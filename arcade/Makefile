@@ -2,7 +2,7 @@
 install: ## Install the poetry environment and install the pre-commit hooks
 	@echo "🚀 Creating virtual environment using pyenv and poetry"
 	@poetry install
-	@ poetry run pre-commit install
+	@poetry run pre-commit install
 	@poetry shell
 
 .PHONY: check
@@ -12,7 +12,7 @@ check: ## Run code quality tools.
 	@echo "🚀 Linting code: Running pre-commit"
 	@poetry run pre-commit run -a
 	@echo "🚀 Static type checking: Running mypy"
-	@poetry run mypy
+	@poetry run mypy $(git ls-files '*.py')
 
 .PHONY: test
 test: ## Test the code with pytest
