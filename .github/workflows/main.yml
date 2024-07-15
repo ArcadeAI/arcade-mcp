@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12']
       fail-fast: false
     steps:
       - name: Check out
@@ -57,9 +57,11 @@ jobs:
       - name: Test with tox
         run: tox
 
-      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.10
+        uses: codecov/codecov-action@v4.0.1
         if: ${{ matrix.python-version == '3.10' }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
 # docs don't work yet.
 #  check-docs:
