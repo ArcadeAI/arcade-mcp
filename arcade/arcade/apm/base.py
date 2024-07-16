@@ -8,6 +8,8 @@ from pydantic import BaseModel, EmailStr
 
 
 class PackInfo(BaseModel):
+    """Package Manager-esk info about a pack of tools."""
+
     name: str
     description: str
     version: str
@@ -16,11 +18,15 @@ class PackInfo(BaseModel):
 
 
 class ToolPack(BaseModel):
+    """A package of tools and their dependencies."""
+
     pack: PackInfo
     depends: Optional[dict[str, str]] = None
-    tools: Optional[dict[str, str]] = {}
+    tools: dict[str, str] = {}
 
-    def write_lock_file(self, pack_dir: Union[str, os.PathLike]):
+    def write_lock_file(self, pack_dir: Union[str, os.PathLike]) -> None:
+        """Write the pack definition to a lock file."""
+
         lock_file = Path(pack_dir) / "pack.lock.toml"
         pack_dict = self.dict(by_alias=True, exclude_none=True)
         pack_ordered_dict = {
@@ -39,7 +45,9 @@ class ToolPack(BaseModel):
             f.write(tomlkit.dumps(doc))
 
     @classmethod
-    def from_lock_file(cls, pack_dir: Union[str, os.PathLike]):
+    def from_lock_file(cls, pack_dir: Union[str, os.PathLike]) -> "ToolPack":
+        """Create a ToolPack object from a lock file."""
+
         pack_dir = Path(pack_dir).resolve()
         lock_file = pack_dir / "pack.lock.toml"
         with open(lock_file) as f:

@@ -15,11 +15,14 @@ class ToolExecutor:
     @staticmethod
     async def run(
         func: Callable,
-        input_model: BaseModel,
-        output_model: BaseModel,
+        input_model: type[BaseModel],
+        output_model: type[BaseModel],
         *args: Any,
         **kwargs: Any,
     ) -> ToolResponse:
+        """
+        Execute a callable function with validated inputs and outputs via Pydantic models.
+        """
         try:
             # serialize the input model
             inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
@@ -45,7 +48,10 @@ class ToolExecutor:
             return await tool_response.fail(msg=str(e))
 
     @staticmethod
-    async def _serialize_input(input_model: BaseModel, **kwargs: Any) -> BaseModel:
+    async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:
+        """
+        Serialize the input to a tool function.
+        """
         try:
             # TODO Logging and telemetry
 
@@ -53,12 +59,15 @@ class ToolExecutor:
             inputs = input_model(**kwargs)
 
         except ValidationError as e:
-            raise ToolInputError(msg=str(e))
+            raise ToolInputError from e
 
         return inputs
 
     @staticmethod
-    async def _serialize_output(output_model: BaseModel, results: dict) -> BaseModel:
+    async def _serialize_output(output_model: type[BaseModel], results: dict) -> BaseModel:
+        """
+        Serialize the output of a tool function.
+        """
         # TODO how to type this the results object?
         try:
             # TODO Logging and telemetry
@@ -67,6 +76,6 @@ class ToolExecutor:
             output = output_model(**{"result": results})
 
         except ValidationError as e:
-            raise ToolOutputError(msg=str(e))
+            raise ToolOutputError from e
 
         return output

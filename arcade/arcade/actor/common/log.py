@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import os
@@ -16,7 +15,9 @@ if TYPE_CHECKING:
 
 
 class Logger:
-    def __init__(self):
+    """Logger for the Actor server"""
+
+    def __init__(self) -> None:
         self.log_path = actor_log_path
 
     def log(self) -> loguru.Logger:
@@ -36,19 +37,19 @@ class Logger:
         logger.add(
             log_stdout_file,
             level="INFO",
-            filter=lambda record: record["level"].name == "INFO" or record["level"].no <= 25,
-            **log_config,
+            filter=lambda record: record["level"].name == "INFO" or record["level"].no <= 25,  # type: ignore[call-overload]
             backtrace=False,
             diagnose=False,
+            **log_config,
         )
         # stderr
         logger.add(
             log_stderr_file,
             level="ERROR",
-            filter=lambda record: record["level"].name == "ERROR" or record["level"].no >= 30,
-            **log_config,
+            filter=lambda record: record["level"].name == "ERROR" or record["level"].no >= 30,  # type: ignore[call-overload]
             backtrace=True,
             diagnose=True,
+            **log_config,
         )
 
         return logger

@@ -7,7 +7,7 @@ from pydantic_core import PydanticUndefined
 
 from arcade.tool.catalog import MaterializedTool
 
-PYTHON_TO_JSON_TYPES = {
+PYTHON_TO_JSON_TYPES: dict[type, str] = {
     str: "string",
     int: "integer",
     float: "number",
@@ -17,15 +17,10 @@ PYTHON_TO_JSON_TYPES = {
 }
 
 
-def python_type_to_json_type(python_type: type) -> dict[str, Any]:
+def python_type_to_json_type(python_type: type[Any]) -> dict[str, Any]:
     """
-    Map Python types to JSON Schema types, including handling of complex types such as lists and dictionaries.
-
-    Args:
-        python_type (Type): The Python type to be converted to a JSON schema type.
-
-    Returns:
-        Dict[str, Any]: A dictionary representing the JSON schema for the given Python type.
+    Map Python types to JSON Schema types, including handling of
+    complex types such as lists and dictionaries.
     """
     if hasattr(python_type, "__origin__"):
         origin = python_type.__origin__
@@ -40,23 +35,18 @@ def python_type_to_json_type(python_type: type) -> dict[str, Any]:
     elif issubclass(python_type, BaseModel):
         return model_to_json_schema(python_type)
 
-    return PYTHON_TO_JSON_TYPES.get(python_type, "string")
+    raise ValueError(f"Unsupported type: {python_type}")
 
 
 def model_to_json_schema(model: type[BaseModel]) -> dict[str, Any]:
     """
     Convert a Pydantic model to a JSON schema.
-
-    Args:
-        model (Type[BaseModel]): The Pydantic model to convert.
-
-    Returns:
-        Dict[str, Any]: A dictionary representing the JSON schema for the given model.
     """
     properties = {}
     required = []
     for field_name, model_field in model.model_fields.items():
-        type_json = python_type_to_json_type(model_field.annotation)
+        # TODO: remove type ignore
+        type_json = python_type_to_json_type(model_field.annotation)  # type: ignore[arg-type]
         if isinstance(type_json, dict):
             field_schema = type_json
         else:
@@ -104,12 +94,6 @@ def schema_to_openai_tool(tool: "MaterializedTool") -> str:
             }
         }
     }
-
-    Args:
-        tool_schema (ToolDefinition): The tool schema to convert.
-
-    Returns:
-        str: A JSON schema string representing the tool in the specified format.
     """
     input_model_schema = model_to_json_schema(tool.input_model)
     function_schema = {

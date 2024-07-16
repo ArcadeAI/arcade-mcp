@@ -3,14 +3,14 @@ from typing import Annotated, Optional, Union
 import pytest
 from pydantic import BaseModel, Field
 
-from arcade.sdk.schemas import (
+from arcade.sdk.tool import tool
+from arcade.tool.catalog import ToolCatalog
+from arcade.tool.schemas import (
     InputParameter,
     ToolInputs,
     ToolOutput,
     ValueSchema,
 )
-from arcade.sdk.tool import tool
-from arcade.tool.catalog import ToolCatalog
 
 
 class ProductOutput(BaseModel):

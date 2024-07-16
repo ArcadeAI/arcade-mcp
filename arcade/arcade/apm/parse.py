@@ -2,17 +2,16 @@ import ast
 import importlib.metadata
 import importlib.util
 import sys
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 from stdlib_list import stdlib_list
 
 
-def load_ast_tree(filepath: str) -> ast.AST:
+def load_ast_tree(filepath: str | Path) -> ast.AST:
     """
     Load and parse the Abstract Syntax Tree (AST) from a Python file.
 
-    :param filepath: Path to the Python file.
-    :return: AST of the Python file.
     """
     try:
         with open(filepath) as file:
@@ -24,8 +23,6 @@ def load_ast_tree(filepath: str) -> ast.AST:
 def get_python_version() -> str:
     """
     Get the current Python version.
-
-    :return: The version of Python in use.
     """
     return f"{sys.version_info.major}.{sys.version_info.minor}"
 
@@ -33,9 +30,6 @@ def get_python_version() -> str:
 def retrieve_imported_libraries(tree: ast.AST) -> dict[str, Optional[str]]:
     """
     Retrieve non-standard libraries imported in the AST.
-
-    :param tree: The AST of the file.
-    :return: A dictionary with libraries as keys and their versions as values.
     """
     libraries = {}
     python_version = get_python_version()
@@ -44,36 +38,36 @@ def retrieve_imported_libraries(tree: ast.AST) -> dict[str, Optional[str]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             package_name = node.module.split(".")[0] if node.module else None
-            if package_name == "dstar" or package_name in stdlib_modules:
+            if package_name:
+                if package_name in stdlib_modules:
+                    continue
+                else:
+                    try:
+                        package_version = importlib.metadata.version(package_name)
+                    except importlib.metadata.PackageNotFoundError:
+                        package_version = None
+            else:
                 continue
-            try:
-                package_version = importlib.metadata.version(package_name)
-            except importlib.metadata.PackageNotFoundError:
-                package_version = None
             libraries[package_name] = package_version
     return libraries
 
 
-def get_function_name_if_decorated(node: ast.FunctionDef) -> Optional[str]:
+def get_function_name_if_decorated(
+    node: Union[ast.FunctionDef, ast.AsyncFunctionDef]
+) -> Optional[str]:
     """
-    Check if a function has a decorator of either "@toolserve.tool" or "tool" and return the function's name.
-
-    :param node: The function definition node from the AST.
-    :return: The name of the function if it has the specified decorators, otherwise None.
+    Check if a function has a decorator
     """
-    decorator_ids = {"toolserve.tool", "tool"}
+    decorator_ids = {"ar.tool", "tool"}
     for decorator in node.decorator_list:
         if isinstance(decorator, ast.Name) and decorator.id in decorator_ids:
             return node.name
     return None
 
 
-def get_tools_from_file(filepath: str) -> list[str]:
+def get_tools_from_file(filepath: str | Path) -> list[str]:
     """
-    Get the names of all functions in a Python file that are decorated with either "@toolserve.tool" or "@tool".
-
-    :param filepath: Path to the Python file.
-    :return: List of function names.
+    Retrieve tools from a Python file.
     """
     tree = load_ast_tree(filepath)
     tools = []

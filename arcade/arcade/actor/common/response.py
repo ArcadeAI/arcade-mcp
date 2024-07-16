@@ -59,7 +59,7 @@ class ResponseBase:
     @staticmethod
     async def __response(
         *,
-        res: CustomResponseCode | CustomResponse = None,
+        res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_200,
         msg: str | None = None,
         data: Any | None = None,
     ) -> ResponseModel:

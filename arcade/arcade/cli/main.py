@@ -14,12 +14,16 @@ console = Console()
 @cli.command(help="Starts the ToolServer with specified configurations.")
 def serve(
     host: str = typer.Option(
-        settings.UVICORN_HOST, help="Host for the app, from settings by default.", show_default=True
+        settings.UVICORN_HOST,
+        help="Host for the app, from settings by default.",
+        show_default=True,
     ),
     port: int = typer.Option(
-        settings.UVICORN_PORT, help="Port for the app, settings default.", show_default=True
+        settings.UVICORN_PORT,
+        help="Port for the app, settings default.",
+        show_default=True,
     ),
-):
+) -> None:
     """
     Starts the actor with host, port, and reload options. Uses
     Uvicorn as ASGI actor. Parameters allow runtime configuration.
@@ -44,7 +48,7 @@ def serve(
 @cli.command(help="Build a new Tool Pack")
 def pack(
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path with pack.toml"),
-):
+) -> None:
     """
     Creates a new tool pack with the given name, description, and result type.
     """

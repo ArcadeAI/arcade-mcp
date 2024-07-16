@@ -47,10 +47,10 @@ def does_function_return_value(func: Callable) -> bool:
     tree = ast.parse(source)
 
     class ReturnVisitor(ast.NodeVisitor):
-        def __init__(self):
+        def __init__(self) -> None:
             self.returns_value = False
 
-        def visit_Return(self, node):
+        def visit_Return(self, node: ast.Return) -> None:
             if node.value is not None:
                 self.returns_value = True
 

@@ -1,5 +1,4 @@
 import os
-import shutil
 from pathlib import Path
 from typing import Union
 
@@ -29,10 +28,13 @@ class Packer:
             raise ValueError(f"Invalid 'pack.toml' format: {e}")
 
         self.tools = self.load_tools()
-        self.depends = {}  # TODO
-        self.packs = []  # TODO
+        self.depends: dict[str, str] = {}  # TODO
+        # self.packs = []  # TODO
 
     def load_tools(self) -> dict[str, str]:
+        """
+        Find and load the from the tools defined within directory
+        """
         tools = {}
         for tool_file in self.tools_dir.rglob("*.py"):
             if "__init__.py" in tool_file.name:
@@ -49,21 +51,11 @@ class Packer:
                 print(f"Error loading tool from {tool_file}: {e}")
         return tools
 
-    def _create_pack_dir(self, pack: ToolPack) -> Path:
-        # Make "packs" directory if it doesn't exist
-        packs_dir = self.pack_dir / "packs"
-        os.makedirs(packs_dir, exist_ok=True)
-        # make the dir for the action pack and the version (making parent dirs if needed)
-        top_pack_dir = packs_dir / pack.pack.name / pack.pack.version
-        # If the pack already exists, remove it and recreate it
-        if top_pack_dir.exists():
-            shutil.rmtree(top_pack_dir)
-        os.makedirs(top_pack_dir, exist_ok=True)
-        return top_pack_dir
-
-    def create_pack(self):
-        # Create an ActionPack instance from the loaded data
+    def create_pack(self) -> None:
+        """
+        Create a tool pack
+        """
+        if not self.tools:
+            raise ValueError("No tools found in the tools directory")
         pack = ToolPack(pack=self.pack, depends=self.depends, tools=self.tools)
-        # pack_dir = self._create_pack_dir(pack)
-        # Write the action pack to a TOML file
         pack.write_lock_file(self.pack_dir)

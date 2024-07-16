@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from arcade.sdk.schemas import OAuth2AuthorizationRequirement
 from arcade.sdk.tool import tool
+from arcade.tool.schemas import OAuth2AuthorizationRequirement
 
 
 def test_sync_function():

@@ -1,19 +1,20 @@
 import dataclasses
 from enum import Enum
+from typing import Any
 
 
 class CustomCodeBase(Enum):
     """Custom status code base class"""
 
     @property
-    def code(self):
+    def code(self) -> Any:
         """
         Get status code
         """
         return self.value[0]
 
     @property
-    def msg(self):
+    def msg(self) -> Any:
         """
         Get status code information
         """

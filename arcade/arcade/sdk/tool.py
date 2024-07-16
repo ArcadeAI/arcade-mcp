@@ -7,6 +7,7 @@ from arcade.utils import snake_to_pascal_case
 T = TypeVar("T")
 
 
+# TODO change desc to description
 def tool(
     func: Callable | None = None,
     desc: str | None = None,
@@ -25,7 +26,7 @@ def tool(
     return decorator
 
 
-def get_secret(name: str, default: Optional[Any] = None) -> str:
+def get_secret(name: str, default: Optional[Any] = None) -> Any:
     secret = os.getenv(name)
     if secret is None:
         if default is not None:

@@ -43,15 +43,11 @@ class ToolResponseFactory:
     async def __response(
         *,
         msg: str | None = None,
-        res: CustomResponseCode | CustomResponse = None,
+        res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_200,
         data: T | None = None,
     ) -> ToolResponse:
         """
         General method for successful response
-
-        :param res: Response information
-        :param data: Response data
-        :return:
         """
         if msg:
             return ToolResponse(code=res.code, msg=msg, data=data)

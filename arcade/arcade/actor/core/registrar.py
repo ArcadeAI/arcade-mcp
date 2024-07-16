@@ -1,24 +1,13 @@
-#!/usr/bin/env python3
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 
 from arcade.actor.common.serializers import MsgSpecJSONResponse
 from arcade.actor.core.conf import settings
+from arcade.actor.core.generate import generate_endpoint
 from arcade.actor.routes import v1
+from arcade.tool.catalog import ToolCatalog
 
 
-@asynccontextmanager
-async def register_init(app: FastAPI):
-    """
-
-    :return:
-    """
-    # eventually lifecycle hooks will be added here
-    yield
-
-
-def register_app():
+def register_app() -> FastAPI:
     # FastAPI
     app = FastAPI(
         title=settings.TITLE,
@@ -28,7 +17,6 @@ def register_app():
         redoc_url=settings.REDOCS_URL,
         openapi_url=settings.OPENAPI_URL,
         default_response_class=MsgSpecJSONResponse,
-        lifespan=register_init,
     )
 
     register_static_file(app)
@@ -37,19 +25,16 @@ def register_app():
 
     register_router(app)
 
-    # register_exception(app)
-
-    generate_actions_routers(app)
+    generate_tool_routes(app)
 
     return app
 
 
-def register_static_file(app: FastAPI):
+def register_static_file(app: FastAPI) -> None:
+    """
+    Register static files
     """
 
-    :param app:
-    :return:
-    """
     if settings.STATIC_FILES:
         import os
 
@@ -60,11 +45,9 @@ def register_static_file(app: FastAPI):
         app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def register_middleware(app: FastAPI):
+def register_middleware(app: FastAPI) -> None:
     """
-
-    :param app:
-    :return:
+    Register middleware for the FastAPI app
     """
     # Gzip: Always at the top
     if settings.MIDDLEWARE_GZIP:
@@ -85,12 +68,9 @@ def register_middleware(app: FastAPI):
         )
 
 
-def register_router(app: FastAPI):
+def register_router(app: FastAPI) -> None:
     """
-    路由
-
-    :param app: FastAPI
-    :return:
+    Register routers for the FastAPI app
     """
     dependencies = None
 
@@ -98,16 +78,13 @@ def register_router(app: FastAPI):
     app.include_router(v1, dependencies=dependencies)
 
 
-def generate_actions_routers(app: FastAPI):
+def generate_tool_routes(app: FastAPI) -> None:
     """
-
-    :param app: FastAPI
-    :return:
+    Generate tool routes for each tool in the catalog
+    Add the routes to the FastAPI app and the tool
+    definitions to the catalog
     """
-    from arcade.actor.core.generate import generate_endpoint
-    from arcade.tool.catalog import ToolCatalog
-
     catalog = ToolCatalog()
-    router = generate_endpoint(catalog.tools.values())
+    router = generate_endpoint(list(catalog.tools.values()))
     app.include_router(router)
     app.state.catalog = catalog

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     WORK_DIR: Path = Path.home() / ".arcade"
-    TOOLS_DIR: Path = os.getcwd()
+    TOOLS_DIR: Path = Path(os.getcwd())
 
     # Env Config
     ENVIRONMENT: Literal["dev", "pro"] = "dev"
@@ -60,12 +60,9 @@ class Settings(BaseSettings):
 
 
 @lru_cache
-def get_settings():
-    try:
-        env_path = Path(os.environ["TOOLSERVE_ENV"])
-    except KeyError:
-        env_path = Path(__file__).parent.parent / ".env"
-    return Settings(_env_file=env_path)
+def get_settings() -> Settings:
+    # TODO allow user to specify env file path as a Env Var
+    return Settings()
 
 
 settings = get_settings()
