@@ -187,10 +187,6 @@ def create_input_definition(func: Callable) -> ToolInputs:
     for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
         tool_field_info = extract_field_info(param)
 
-        # Hard requirement: params must be described
-        if tool_field_info.description is None:
-            raise ToolDefinitionError(f"Parameter {tool_field_info.name} is missing a description")
-
         is_enum = False
         enum_values: list[str] = []
 
@@ -199,12 +195,17 @@ def create_input_definition(func: Callable) -> ToolInputs:
             is_enum = True
             enum_values = [str(e) for e in get_args(tool_field_info.field_type)]
 
+        # If the field has a default value, it is not required
+        # If the field is optional, it is not required
+        has_default_value = tool_field_info.default is not None
+        is_required = not tool_field_info.is_optional and not has_default_value
+
         input_parameters.append(
             InputParameter(
                 name=tool_field_info.name,
                 description=tool_field_info.description,
-                required=tool_field_info.default is None and not tool_field_info.optional,
-                inferrable=tool_field_info.inferrable,
+                required=is_required,
+                inferrable=tool_field_info.is_inferrable,
                 value_schema=ValueSchema(
                     val_type=tool_field_info.wire_type,
                     enum=enum_values if is_enum else None,
@@ -256,13 +257,13 @@ def create_output_definition(func: Callable) -> ToolOutput:
 @dataclass
 class ToolFieldInfo:
     name: str
-    description: str | None
     default: Any
     original_type: type
     field_type: type
-    wire_type: WireType
-    optional: bool
-    inferrable: bool
+    description: str | None = None
+    wire_type: WireType | None = None
+    is_optional: bool = True
+    is_inferrable: bool = True
 
 
 def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
@@ -299,16 +300,21 @@ def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     inferrable_annotation = first_or_none(Inferrable, get_args(annotation))
 
     # Params are inferrable by default
-    # TODO don't like setting these dataclass fields after init
-    field_info.inferrable = inferrable_annotation.value if inferrable_annotation else True
+    field_info.is_inferrable = inferrable_annotation.value if inferrable_annotation else True
 
     # Get the wire type
-    # TODO don't like setting these dataclass fields after init
     field_info.wire_type = (
         get_wire_type(str)
         if is_string_literal(field_info.field_type)
         else get_wire_type(field_info.field_type)
     )
+
+    # Reality check
+    if field_info.description is None:
+        raise ToolDefinitionError(f"Parameter {field_info.name} is missing a description")
+
+    if field_info.wire_type is None:
+        raise ToolDefinitionError(f"Unknown parameter type: {field_info.field_type}")
 
     return field_info
 
@@ -328,20 +334,21 @@ def extract_regular_field_info(param: inspect.Parameter) -> ToolFieldInfo:
 
     return ToolFieldInfo(
         name=param.name,
-        description=None,
         default=param.default if param.default is not inspect.Parameter.empty else None,
-        optional=is_optional,
-        inferrable=True,  # Default
+        is_optional=is_optional,
         original_type=original_type,
         field_type=field_type,
-        wire_type="string",  # TODO Will be set later (Sam: set to string for mypy)
     )
 
 
 def extract_pydantic_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     default_value = None if param.default.default is PydanticUndefined else param.default.default
-    has_default_value_factory = param.default.default_factory is not None
-    is_required = default_value is None and not has_default_value_factory
+
+    if param.default.default_factory is not None:
+        if callable(param.default.default_factory):
+            default_value = param.default.default_factory()
+        else:
+            raise ToolDefinitionError(f"Default factory for parameter {param} is not callable.")
 
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
@@ -362,11 +369,9 @@ def extract_pydantic_field_info(param: inspect.Parameter) -> ToolFieldInfo:
         name=param.name,
         description=param.default.description,
         default=default_value,
-        optional=is_optional or not is_required,
-        inferrable=True,  # Default
+        is_optional=is_optional,
         original_type=original_type,
         field_type=field_type,
-        wire_type="string",  # TODO Will be set later (Sam: set to string for mypy)
     )
 
 

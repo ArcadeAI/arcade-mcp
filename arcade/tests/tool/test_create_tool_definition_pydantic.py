@@ -118,7 +118,7 @@ def read_products(
     cols: list[str] = Field(
         ...,
         description="The columns to return",
-        default_factory=["Product Name", "Price", "Stock Quantity"],
+        default_factory=lambda: ["Product Name", "Price", "Stock Quantity"],
     ),
 ) -> Annotated[list[ProductOutput], "Data with the selected columns"]:
     """Used to search through products by name and filter by rating or price."""
