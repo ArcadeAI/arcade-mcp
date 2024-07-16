@@ -256,7 +256,7 @@ def create_output_definition(func: Callable) -> ToolOutput:
 @dataclass
 class ToolFieldInfo:
     name: str
-    description: str
+    description: str | None
     default: Any
     original_type: type
     field_type: type
@@ -283,7 +283,6 @@ def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     str_annotations = [m for m in metadata if isinstance(m, str)]
 
     # Get the description from annotations, if present
-
     if len(str_annotations) == 0:
         pass
     elif len(str_annotations) == 1:
@@ -329,7 +328,7 @@ def extract_regular_field_info(param: inspect.Parameter) -> ToolFieldInfo:
 
     return ToolFieldInfo(
         name=param.name,
-        description="",  # TODO stub
+        description=None,
         default=param.default if param.default is not inspect.Parameter.empty else None,
         optional=is_optional,
         inferrable=True,  # Default
