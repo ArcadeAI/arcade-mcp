@@ -70,7 +70,7 @@ def generate_endpoint(schemas: list[MaterializedTool]) -> APIRouter:
 
         # Create the endpoint function
         run = create_endpoint_function(
-            name=snake_to_pascal_case(define.name),
+            name=define.name,
             description=define.description,
             func=schema.tool,
             input_model=schema.input_model,
@@ -79,8 +79,8 @@ def generate_endpoint(schemas: list[MaterializedTool]) -> APIRouter:
 
         # Add the endpoint to the FastAPI app
         router.post(
-            f"/{snake_to_pascal_case(define.name)}",
-            name=snake_to_pascal_case(define.name),
+            f"/{define.name}",  # Note: Names from the ToolCatalog are already in PascalCase
+            name=define.name,
             summary=define.description,
             tags=[schema.meta.module],
             # TODO investigate this
