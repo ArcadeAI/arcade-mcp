@@ -303,7 +303,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     """
     annotation = param.annotation
     if annotation == inspect.Parameter.empty:
-        raise TypeError(f"Parameter {param} has no type annotation.")
+        raise ToolDefinitionError(f"Parameter {param} has no type annotation.")
 
     # Get the majority of the param info from either the Pydantic Field() or regular inspection
     if isinstance(param.default, FieldInfo):

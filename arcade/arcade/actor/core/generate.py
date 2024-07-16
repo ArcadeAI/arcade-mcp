@@ -8,7 +8,6 @@ from arcade.actor.core.conf import settings
 from arcade.tool.catalog import MaterializedTool
 from arcade.tool.executor import ToolExecutor
 from arcade.tool.response import ToolResponse, tool_response
-from arcade.utils import snake_to_pascal_case
 
 
 def create_endpoint_function(
