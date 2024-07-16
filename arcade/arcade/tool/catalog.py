@@ -107,9 +107,7 @@ class ToolCatalog:
             module = import_module(module_name)
             tool_func = getattr(module, func_name)
             input_model, output_model = create_func_models(tool_func)
-            tool_name = snake_to_pascal_case(
-                name
-            )  # TODO make sure this follows create_tool_definition
+            tool_name = name
             tools[tool_name] = MaterializedTool(
                 definition=ToolCatalog.create_tool_definition(tool_func, version),
                 tool=tool_func,
