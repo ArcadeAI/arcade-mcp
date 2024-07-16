@@ -255,18 +255,51 @@ def create_output_definition(func: Callable) -> ToolOutput:
 
 
 @dataclass
-class ToolFieldInfo:
+class ParamInfo:
+    """
+    Information about a function parameter found through inspection.
+    """
+
     name: str
     default: Any
     original_type: type
     field_type: type
     description: str | None = None
-    wire_type: WireType | None = None
+    is_optional: bool = True
+
+
+@dataclass
+class ToolParamInfo:
+    """
+    Information about a tool parameter, including computed values.
+    """
+
+    name: str
+    default: Any
+    original_type: type
+    field_type: type
+    wire_type: WireType
+    description: str | None = None
     is_optional: bool = True
     is_inferrable: bool = True
 
+    @classmethod
+    def from_param_info(
+        cls, param_info: ParamInfo, wire_type: WireType, is_inferrable: bool = True
+    ) -> "ToolParamInfo":
+        return cls(
+            name=param_info.name,
+            default=param_info.default,
+            original_type=param_info.original_type,
+            field_type=param_info.field_type,
+            description=param_info.description,
+            is_optional=param_info.is_optional,
+            wire_type=wire_type,
+            is_inferrable=is_inferrable,
+        )
 
-def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
+
+def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     """
     Extract type and field parameters from a function parameter.
     """
@@ -276,9 +309,9 @@ def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
 
     # Get the majority of the param info from either the Pydantic Field() or regular inspection
     if isinstance(param.default, FieldInfo):
-        field_info = extract_pydantic_field_info(param)
+        param_info = extract_pydantic_param_info(param)
     else:
-        field_info = extract_regular_field_info(param)
+        param_info = extract_regular_param_info(param)
 
     metadata = getattr(annotation, "__metadata__", [])
     str_annotations = [m for m in metadata if isinstance(m, str)]
@@ -287,10 +320,10 @@ def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     if len(str_annotations) == 0:
         pass
     elif len(str_annotations) == 1:
-        field_info.description = str_annotations[0]
+        param_info.description = str_annotations[0]
     elif len(str_annotations) == 2:
-        field_info.name = str_annotations[0]
-        field_info.description = str_annotations[1]
+        param_info.name = str_annotations[0]
+        param_info.description = str_annotations[1]
     else:
         raise ToolDefinitionError(
             f"Parameter {param} has too many string annotations. Expected 0, 1, or 2, got {len(str_annotations)}."
@@ -300,26 +333,26 @@ def extract_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     inferrable_annotation = first_or_none(Inferrable, get_args(annotation))
 
     # Params are inferrable by default
-    field_info.is_inferrable = inferrable_annotation.value if inferrable_annotation else True
+    is_inferrable = inferrable_annotation.value if inferrable_annotation else True
 
     # Get the wire type
-    field_info.wire_type = (
+    wire_type = (
         get_wire_type(str)
-        if is_string_literal(field_info.field_type)
-        else get_wire_type(field_info.field_type)
+        if is_string_literal(param_info.field_type)
+        else get_wire_type(param_info.field_type)
     )
 
-    # Reality check
-    if field_info.description is None:
-        raise ToolDefinitionError(f"Parameter {field_info.name} is missing a description")
+    # Final reality check
+    if param_info.description is None:
+        raise ToolDefinitionError(f"Parameter {param_info.name} is missing a description")
 
-    if field_info.wire_type is None:
-        raise ToolDefinitionError(f"Unknown parameter type: {field_info.field_type}")
+    if wire_type is None:
+        raise ToolDefinitionError(f"Unknown parameter type: {param_info.field_type}")
 
-    return field_info
+    return ToolParamInfo.from_param_info(param_info, wire_type, is_inferrable)
 
 
-def extract_regular_field_info(param: inspect.Parameter) -> ToolFieldInfo:
+def extract_regular_param_info(param: inspect.Parameter) -> ParamInfo:
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
     annotation = param.annotation
@@ -332,7 +365,7 @@ def extract_regular_field_info(param: inspect.Parameter) -> ToolFieldInfo:
         field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
         is_optional = True
 
-    return ToolFieldInfo(
+    return ParamInfo(
         name=param.name,
         default=param.default if param.default is not inspect.Parameter.empty else None,
         is_optional=is_optional,
@@ -341,7 +374,7 @@ def extract_regular_field_info(param: inspect.Parameter) -> ToolFieldInfo:
     )
 
 
-def extract_pydantic_field_info(param: inspect.Parameter) -> ToolFieldInfo:
+def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
     default_value = None if param.default.default is PydanticUndefined else param.default.default
 
     if param.default.default_factory is not None:
@@ -365,7 +398,7 @@ def extract_pydantic_field_info(param: inspect.Parameter) -> ToolFieldInfo:
         field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
         is_optional = True
 
-    return ToolFieldInfo(
+    return ParamInfo(
         name=param.name,
         description=param.default.description,
         default=default_value,
