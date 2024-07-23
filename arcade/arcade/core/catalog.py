@@ -16,6 +16,7 @@ from typing import (
     get_args,
     get_origin,
 )
+from arcade.actor.schema import ToolContext
 
 from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
@@ -193,7 +194,16 @@ def create_input_definition(func: Callable) -> ToolInputs:
     Create an input model for a function based on its parameters.
     """
     input_parameters = []
+    has_context = False
     for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+        # Skip ToolContext parameters
+        if param.annotation is ToolContext:
+            if has_context:
+                raise ToolDefinitionError(f"Tool {func.__name__} has multiple context parameters.")
+
+            has_context = True
+            continue
+
         tool_field_info = extract_field_info(param)
 
         is_enum = False

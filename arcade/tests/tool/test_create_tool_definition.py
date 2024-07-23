@@ -1,4 +1,5 @@
 from typing import Annotated, Literal, Optional
+from arcade.actor.schema import ToolContext
 
 import pytest
 
@@ -53,7 +54,7 @@ def func_with_auth_requirement():
 
 ### Tests on input params
 @tool(desc="A function with an input parameter")
-def func_with_param(param1: Annotated[str, "First param"]):
+def func_with_param(context: Annotated[str, "First param"]):
     pass
 
 
@@ -114,6 +115,7 @@ def func_with_optional_param_with_default_value(
 
 @tool(desc="A function with multiple parameters, some with default values")
 def func_with_mixed_params(
+    context: ToolContext,
     param1: Annotated[str, "First param"],
     param2: Annotated[int, "Second param"] = 42,
 ):
@@ -122,6 +124,11 @@ def func_with_mixed_params(
 
 @tool(desc="A function with a complex parameter type")
 def func_with_complex_param(param1: Annotated[list[str], "A list of strings"]):
+    pass
+
+
+@tool(desc="A function that takes a context")
+def func_with_context(context: ToolContext):
     pass
 
 
@@ -212,7 +219,7 @@ def func_with_complex_return() -> list[dict[str, str]]:
                 "inputs": ToolInputs(
                     parameters=[
                         InputParameter(
-                            name="param1",
+                            name="context",  # Nothing special about this name, parameters can be named anything
                             description="First param",
                             inferrable=True,  # Defaults to true
                             required=True,
@@ -449,6 +456,13 @@ def func_with_complex_return() -> list[dict[str, str]]:
                 ),
             },
             id="func_with_complex_param",
+        ),
+        pytest.param(
+            func_with_context,
+            {
+                "inputs": ToolInputs(parameters=[]),  # ToolContext type is not an input param
+            },
+            id="func_with_context",
         ),
         # Tests on output values
         pytest.param(

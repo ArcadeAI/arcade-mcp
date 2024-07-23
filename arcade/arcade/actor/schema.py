@@ -8,13 +8,21 @@ class ToolVersion(BaseModel):
     version: str
 
 
+class ToolAuthorizationContext(BaseModel):
+    token: str | None = None
+
+
+class ToolContext(BaseModel):
+    authorization: ToolAuthorizationContext | None = None
+
+
 class InvokeToolRequest(BaseModel):
     run_id: str
     invocation_id: str
     created_at: str
     tool: ToolVersion
     inputs: dict | None
-    context: dict | None
+    context: ToolContext
 
 
 class ToolOutputError(BaseModel):
