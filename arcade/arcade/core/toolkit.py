@@ -1,9 +1,11 @@
+import importlib.metadata
+import importlib.util
+import os
+import types
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Union
 
-import toml
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
 from arcade.core.parse import get_tools_from_file
 
@@ -12,62 +14,113 @@ class Toolkit(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     name: str
+    """Name of the toolkit"""
+
     package_name: str
-    # TODO validator for semantic versioning
+    """Name of the package holding the toolkit"""
+
+    tools: dict[str, list[str]] = defaultdict(list)
+    """Mapping of module names to tools"""
+
+    # Other python package metadata
     version: str
     description: str
-    author: list[str]
-    dependencies: dict[str, str]
-    tools: dict[str, list[str]] = defaultdict(list)
+    author: list[str] = []
+    repository: HttpUrl | None = None
+    homepage: HttpUrl | None = None
 
-    @model_validator(mode="before")
-    def strip_arcade_prefix(cls, values: dict[str, Any]) -> dict[str, Any]:
-        name = values.get("tool", {}).get("poetry", {}).get("name")
-        if name and name.startswith("arcade_"):
-            values["tool"]["poetry"]["name"] = name[7:]
-        return values
+    @field_validator("name", mode="before")
+    def strip_arcade_prefix(cls, value: str) -> str:
+        """
+        Validator to strip the 'arcade_' prefix from the name if it exists.
+        """
+        if value.startswith("arcade_"):
+            return value[len("arcade_") :]
+        return value
 
     @classmethod
-    def from_directory(cls, directory: Union[str, Path]) -> "Toolkit":
-        directory = Path(directory)
-        pyproject_path = directory / "pyproject.toml"
+    def from_module(cls, module: types.ModuleType) -> "Toolkit":
+        """
+        Load a toolkit from an imported python module
 
-        if not pyproject_path.exists():
-            raise FileNotFoundError(f"No 'pyproject.toml' found in {directory}")
+        >>> import arcade_arithmetic
+        >>> toolkit = Toolkit.from_module(arcade_arithmetic)
+        """
+        return cls.from_package(module.__name__)
 
-        # TODO Error handling
-        with open(pyproject_path) as f:
-            data = toml.load(f)
+    @classmethod
+    def from_package(cls, package: str) -> "Toolkit":
+        """
+        Load a Toolkit from a Python package
+        """
+        try:
+            metadata = importlib.metadata.metadata(package)
+            name = metadata.get("Name", "")
+            package_name = package
+            version = metadata.get("Version", "")
+            description = metadata.get("Summary", "")
+            author = metadata.get("Author", "").split(", ")
+            homepage = metadata.get("Home-page", None)
+            repo = metadata.get("Repository", None)
 
-        # TODO: handle other PM types
+        except importlib.metadata.PackageNotFoundError as e:
+            raise ValueError(f"Package {package} not found.") from e
+        except KeyError as e:
+            raise ValueError(f"Metadata key error for package {package}.") from e
+        except Exception as e:
+            raise ValueError(f"Failed to load metadata for package {package}.") from e
 
-        # poetry
-        if "tool" not in data:
-            raise ValueError("No 'tool' section found in 'pyproject.toml'")
+        # Get the package directory
+        try:
+            package_dir = Path(get_package_directory(package))
+        except AttributeError as e:
+            raise ValueError(f"Failed to locate package directory for {package}.") from e
 
-        poetry = data["tool"].get("poetry", None)
-        if not poetry:
-            raise ValueError("No 'tool.poetry' section found in 'pyproject.toml'")
+        # Get all python files in the package directory
+        try:
+            modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
+        except OSError as e:
+            raise ValueError(
+                f"Failed to locate Python files in package directory for {package}."
+            ) from e
 
-        toolkit = Toolkit(
-            name=poetry.get("name"),
-            package_name=poetry.get("name"),
-            version=poetry.get("version"),
-            description=poetry.get("description"),
-            author=poetry.get("authors"),
-            # TODO: also get dev-dependencies?
-            dependencies=poetry.get("dependencies"),
+        toolkit = cls(
+            name=name,
+            package_name=package_name,
+            version=version,
+            description=description,
+            author=author,
+            homepage=homepage,
+            repo=repo,
         )
 
-        if "arcade" not in data["tool"]:
-            raise ValueError("No 'tool.arcade' section found in 'pyproject.toml'")
-        modules = data["tool"]["arcade"].get("modules", [])
+        for module_path in modules:
+            relative_path = module_path.relative_to(package_dir)
+            import_path = ".".join(relative_path.with_suffix("").parts)
+            import_path = f"{package_name}.{import_path}"
+            toolkit.tools[import_path] = get_tools_from_file(str(module_path))
 
-        if not modules:
-            raise ValueError("No 'tool.arcade.modules' found in 'pyproject.toml'")
-
-        for module in modules:
-            module_path = directory / f"{module.replace('.', '/')}.py"
-            toolkit.tools[module] = get_tools_from_file(module_path)
+        if not toolkit.tools:
+            raise ValueError(f"No tools found in package {package}")
 
         return toolkit
+
+
+def get_package_directory(package_name: str) -> str:
+    """
+    Get the directory of a Python package
+    """
+
+    spec = importlib.util.find_spec(package_name)
+    if spec is None:
+        raise ImportError(f"Cannot find package named {package_name}")
+    if not spec.origin:
+        raise ImportError(f"Package {package_name} does not have a file path associated with it")
+
+    package_path = spec.origin
+
+    if spec.submodule_search_locations:
+        # It's a package, get the directory
+        package_path = os.path.dirname(package_path)
+
+    return package_path

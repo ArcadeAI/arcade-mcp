@@ -72,9 +72,6 @@ pytest = "{DEFAULT_VERSIONS["pytest"]}"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.arcade]
-modules = ["{toolkit_name}.tools.hello"]
 """
     create_file(os.path.join(directory, "pyproject.toml"), content.strip())
 

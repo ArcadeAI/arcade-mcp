@@ -48,8 +48,8 @@ class ToolMeta(BaseModel):
     """
 
     module: str
-    toolkit: str
-    package: str
+    toolkit: Optional[str] = None
+    package: Optional[str] = None
     path: Optional[str] = None
     date_added: datetime = Field(default_factory=datetime.now)
     date_updated: datetime = Field(default_factory=datetime.now)
@@ -101,7 +101,8 @@ class ToolCatalog(BaseModel):
             tool_func, toolkit.version if toolkit else "latest"
         )
 
-        self.tools[definition.name] = MaterializedTool(
+        tool_name = snake_to_pascal_case(definition.name)
+        self.tools[tool_name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
             meta=ToolMeta(
@@ -142,6 +143,12 @@ class ToolCatalog(BaseModel):
 
     def __iter__(self) -> Iterator[MaterializedTool]:
         yield from self.tools.values()
+
+    def __len__(self) -> int:
+        return len(self.tools)
+
+    def is_empty(self) -> bool:
+        return len(self.tools) == 0
 
     def get_tool(self, name: str) -> Optional[Callable]:
         for tool in self.tools.values():
