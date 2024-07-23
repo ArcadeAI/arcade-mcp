@@ -101,14 +101,13 @@ class ToolCatalog(BaseModel):
             tool_func, toolkit.version if toolkit else "latest"
         )
 
-        tool_name = snake_to_pascal_case(definition.name)
-        self.tools[tool_name] = MaterializedTool(
+        self.tools[definition.name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
             meta=ToolMeta(
-                module=module.name if module else tool_func.__module__,
-                toolkit=toolkit.name if toolkit else tool_func.__module__,
-                package=toolkit.package_name if toolkit else tool_func.__module__,
+                module=module.__name__ if module else tool_func.__module__,
+                toolkit=toolkit.name if toolkit else None,
+                package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
             ),
             input_model=input_model,
@@ -175,7 +174,7 @@ class ToolCatalog(BaseModel):
             raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
 
         return ToolDefinition(
-            name=tool_name,
+            name=snake_to_pascal_case(tool_name),
             description=tool_description,
             version=version,
             inputs=create_input_definition(tool),
