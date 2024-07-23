@@ -114,7 +114,7 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_toolkit(self, toolkit: Toolkit) -> dict[str, MaterializedTool]:
+    def add_toolkit(self, toolkit: Toolkit) -> None:
         """
         Add the tools from a loaded toolkit to the catalog.
         """
@@ -140,7 +140,10 @@ class ToolCatalog(BaseModel):
                 return tool
         raise KeyError(f"Tool {name} not found.")
 
-    def __iter__(self) -> Iterator[MaterializedTool]:
+    def __contains__(self, name: str) -> bool:
+        return name in self.tools
+
+    def __iter__(self) -> Iterator[MaterializedTool]:  # type: ignore[override]
         yield from self.tools.values()
 
     def __len__(self) -> int:

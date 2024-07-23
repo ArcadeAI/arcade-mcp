@@ -15,9 +15,8 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    env_file = os.getenv("ARCADE_ENV_FILE")
-    if env_file:
-        return Settings(model_config=SettingsConfigDict(env_file=env_file))
+    # env_file = os.getenv("ARCADE_ENV_FILE")
+    # TODO allow env override
     return Settings()
 
 

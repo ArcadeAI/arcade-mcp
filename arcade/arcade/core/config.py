@@ -23,7 +23,7 @@ class Config(BaseModel):
         return self.api_key
 
     @property
-    def engine_url(self, tls=False) -> str:
+    def engine_url(self, tls: bool = False) -> str:
         if tls:
             return f"https://{self.engine_host}:{self.engine_port}"
         return f"http://{self.engine_host}:{self.engine_port}"

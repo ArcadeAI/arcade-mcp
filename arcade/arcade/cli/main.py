@@ -13,7 +13,7 @@ from typer.models import Context
 
 
 class OrderCommands(TyperGroup):
-    def list_commands(self, ctx: Context):
+    def list_commands(self, ctx: Context) -> list[str]:  # type: ignore[override]
         """Return list of commands in the order appear."""
         return list(self.commands)  # get commands using self.commands
 
@@ -28,7 +28,7 @@ cli = typer.Typer(
 def login(
     username: str = typer.Option(..., prompt="Username", help="Your Arcade Cloud username"),
     api_key: str = typer.Option(None, prompt="API Key", help="Your Arcade Cloud API Key"),
-):
+) -> None:
     """
     Logs the user into Arcade Cloud.
     """
@@ -39,7 +39,7 @@ def login(
 @cli.command(help="Create a new toolkit package directory")
 def new(
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
-):
+) -> None:
     """
     Creates a new toolkit with the given name, description, and result type.
     """
@@ -56,7 +56,7 @@ def new(
 def show(
     toolkit: str = typer.Argument(..., help="The toolkit to show the tools of"),
     actor: Optional[str] = typer.Option(None, help="A running actor address to list tools from"),
-):
+) -> None:
     """
     Show the available tools in an actor or toolkit
     """
@@ -102,7 +102,7 @@ def run(
     actor: Optional[str] = typer.Option(
         None, "-a", "--actor", help="The actor to use for prediction."
     ),
-):
+) -> None:
     """
     Run a tool using an LLM to predict the arguments.
     """
@@ -164,12 +164,13 @@ def run(
                 messages += [
                     {
                         "role": "assistant",
-                        "content": f"Results of Tool {tool_name}: {str(output.data.result)}",
+                        # TODO: escape the output and ensure serialization works
+                        "content": f"Results of Tool {tool_name}: {output.data.result!s}",  # type: ignore[union-attr]
                     },
                 ]
             if stream:
-                response = client.stream_complete(model=model, messages=messages)
-                display_streamed_markdown(response)
+                stream_response = client.stream_complete(model=model, messages=messages)
+                display_streamed_markdown(stream_response)
             else:
                 response = client.complete(model=model, messages=messages)
                 console.print(response.choices[0].message.content, style="bold green")
@@ -184,7 +185,7 @@ def engine(
     action: str = typer.Argument("start", help="The action to take (start/stop/restart)"),
     host: str = typer.Option("localhost", "--host", "-h", help="The host of the engine"),
     port: int = typer.Option(6901, "--port", "-p", help="The port of the engine"),
-):
+) -> None:
     """
     Manage the Arcade Engine (start/stop/restart)
     """
@@ -196,7 +197,7 @@ def credentials(
     action: str = typer.Argument("show", help="The action to take (add/remove/show)"),
     name: str = typer.Option(None, "--name", "-n", help="The name of the credential to add/remove"),
     val: str = typer.Option(None, "--val", "-v", help="The value of the credential to add/remove"),
-):
+) -> None:
     """
     Manage credientials stored in the Arcade Engine
     """
@@ -208,14 +209,14 @@ def config(
     action: str = typer.Argument("show", help="The action to take (show/edit)"),
     name: str = typer.Option(None, "--name", "-n", help="The name of the configuration to edit"),
     val: str = typer.Option(None, "--val", "-v", help="The value of the configuration to edit"),
-):
+) -> None:
     """
     Show/edit configuration details of the Arcade Engine
     """
     pass
 
 
-def display_streamed_markdown(stream: Stream[ChatCompletionChunk]):
+def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> None:
     """
     Display the streamed markdown chunks as a single line.
     """

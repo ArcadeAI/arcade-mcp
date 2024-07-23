@@ -77,7 +77,8 @@ class BaseActor:
             **tool_request.inputs or {},
         )
         if response.code == 200:
-            output = ToolOutput(value=response.data.result)
+            # TODO remove ignore
+            output = ToolOutput(value=response.data.result)  # type: ignore[union-attr]
         else:
             output = ToolOutput(error=ToolOutputError(message=response.msg))
 

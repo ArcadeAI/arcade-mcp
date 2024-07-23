@@ -26,7 +26,7 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     answer = typer.prompt(question)
     if not answer and default:
         return default
-    return answer
+    return str(answer)
 
 
 def create_directory(path: str) -> None:

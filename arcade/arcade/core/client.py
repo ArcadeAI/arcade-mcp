@@ -22,7 +22,7 @@ PYTHON_TO_JSON_TYPES: dict[type, str] = {
 ToolCalls = dict[str, dict[str, Any]]
 
 
-def python_type_to_json_type(python_type: type[Any]) -> dict[str, Any]:
+def python_type_to_json_type(python_type: type[Any]) -> dict[str, Any] | str:
     """
     Map Python types to JSON Schema types, including handling of
     complex types such as lists and dictionaries.
@@ -116,7 +116,7 @@ class EngineClient:
         api_key = os.environ["OPENAI_API_KEY"] if api_key is None else api_key
         self.client = OpenAI(api_key=api_key, base_url=base_url)
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.client, name)
 
     def call_tool(
@@ -134,7 +134,7 @@ class EngineClient:
         """
         specs = [schema_to_openai_tool(tool) for tool in tools]
 
-        if messages is None and prompt is not None:
+        if messages is None:
             messages = [{"role": "user", "content": prompt}]
         try:
             completion = self.complete(
@@ -164,12 +164,12 @@ class EngineClient:
         """
         completion = self.client.chat.completions.create(
             model=model,
-            messages=messages,
+            messages=messages,  # type: ignore[arg-type]
             **kwargs,
         )
         return completion
 
-    def stream_complete(
+    def stream_complete(  # type: ignore[misc]
         self,
         model: str,
         messages: list[dict[str, Any]],
@@ -177,7 +177,7 @@ class EngineClient:
     ) -> Stream[ChatCompletionChunk]:
         stream = self.client.chat.completions.create(
             model=model,
-            messages=messages,
+            messages=messages,  # type: ignore[arg-type]
             stream=True,
             **kwargs,
         )

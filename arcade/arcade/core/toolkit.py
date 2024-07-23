@@ -5,7 +5,7 @@ import types
 from collections import defaultdict
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from arcade.core.parse import get_tools_from_file
 
@@ -26,8 +26,8 @@ class Toolkit(BaseModel):
     version: str
     description: str
     author: list[str] = []
-    repository: HttpUrl | None = None
-    homepage: HttpUrl | None = None
+    repository: str | None = None
+    homepage: str | None = None
 
     @field_validator("name", mode="before")
     def strip_arcade_prefix(cls, value: str) -> str:
@@ -55,13 +55,13 @@ class Toolkit(BaseModel):
         """
         try:
             metadata = importlib.metadata.metadata(package)
-            name = metadata.get("Name", "")
+            name = metadata["Name"]
             package_name = package
-            version = metadata.get("Version", "")
-            description = metadata.get("Summary", "")
-            author = metadata.get("Author", "").split(", ")
-            homepage = metadata.get("Home-page", None)
-            repo = metadata.get("Repository", None)
+            version = metadata["Version"]
+            description = metadata["Summary"] if "Summary" in metadata else ""
+            author = metadata.get_all("Author-email")
+            homepage = metadata["Home-page"] if "Home-page" in metadata else None
+            repo = metadata["Repository"] if "Repository" in metadata else None
 
         except importlib.metadata.PackageNotFoundError as e:
             raise ValueError(f"Package {package} not found.") from e
@@ -89,9 +89,9 @@ class Toolkit(BaseModel):
             package_name=package_name,
             version=version,
             description=description,
-            author=author,
+            author=author if author else [],
             homepage=homepage,
-            repo=repo,
+            repository=repo,
         )
 
         for module_path in modules:

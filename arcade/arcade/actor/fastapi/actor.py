@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable
+from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
@@ -43,9 +43,9 @@ class FastAPIRouter:  # TODO create an interface for this
         Wrap the handler to handle FastAPI-specific request and response.
         """
 
-        async def wrapped_handler(request: Request):
+        async def wrapped_handler(request: Request) -> Any:
             if asyncio.iscoroutinefunction(handler) or (
-                callable(handler) and asyncio.iscoroutinefunction(handler.__call__)
+                callable(handler) and asyncio.iscoroutinefunction(handler.__call__)  # type: ignore[operator]
             ):
                 return await handler(request)
             else:
