@@ -3,14 +3,13 @@ import os
 from typing import Optional
 
 import typer
+from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from rich.console import Console
-from rich.markup import escape
 from rich.markdown import Markdown
+from rich.markup import escape
 from rich.table import Table
 from typer.core import TyperGroup
 from typer.models import Context
-
-from openai.resources.chat.completions import ChatCompletionChunk, Stream
 
 
 class OrderCommands(TyperGroup):

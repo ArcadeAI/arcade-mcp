@@ -3,13 +3,10 @@ import os
 from enum import Enum
 from typing import Any, Optional
 
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
+from openai.resources.chat.completions import ChatCompletion, ChatCompletionChunk, Stream
 from pydantic import BaseModel
 from pydantic_core import PydanticUndefined
-
-from typing import Dict, Any, List, Optional, Union
-from openai import Client
-from openai.resources.chat.completions import ChatCompletion, Stream, ChatCompletionChunk
 
 from arcade.core.catalog import MaterializedTool
 
