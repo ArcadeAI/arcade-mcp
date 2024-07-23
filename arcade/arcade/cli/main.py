@@ -50,20 +50,16 @@ def new(
     except Exception as e:
         error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
         console.print(error_message, style="bold red")
-        raise typer.Exit(code=1)
 
 
 @cli.command(help="Show the available tools in an actor or toolkit directory")
 def show(
     toolkit: str = typer.Argument(..., help="The toolkit to show the tools of"),
-    actor: str = typer.Option(
-        "http://localhost:8000", help="A running actor address to list tools from"
-    ),
+    actor: Optional[str] = typer.Option(None, help="A running actor address to list tools from"),
 ):
     """
     Show the available tools in an actor or toolkit
     """
-
     from arcade.core.catalog import ToolCatalog
     from arcade.core.toolkit import Toolkit
 
@@ -91,7 +87,6 @@ def show(
         # better error message here
         error_message = f"❌ Failed to List tools: {escape(str(e))}"
         console.print(error_message, style="bold red")
-        raise typer.Exit(code=1)
 
 
 @cli.command(help="Run a tool using an LLM to predict the arguments")
