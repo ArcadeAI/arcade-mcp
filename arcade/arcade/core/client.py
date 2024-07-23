@@ -9,7 +9,7 @@ from pydantic_core import PydanticUndefined
 
 from typing import Dict, Any, List, Optional, Union
 from openai import Client
-from openai.resources.chat.completions import ChatCompletion
+from openai.resources.chat.completions import ChatCompletion, Stream, ChatCompletionChunk
 
 from arcade.core.catalog import MaterializedTool
 
@@ -92,59 +92,26 @@ def schema_to_openai_tool(tool: MaterializedTool) -> dict[str, Any]:
     return function_schema
 
 
-class ChatCompletionWrapper:
-    def __init__(self, chat_completion: ChatCompletion) -> None:
-        self.chat_completion = chat_completion
+def called_tool(chat_completion: ChatCompletion) -> bool:
+    """
+    Return true if the chat completion called a tool.
+    """
+    choice = chat_completion.choices[0]
+    if choice.message.tool_calls:
+        return True
+    return False
 
-    def __getattr__(self, name: str) -> Any:
-        """
-        This method is used to make all the underlying chat_completion methods and attributes available.
-        """
-        return getattr(self.chat_completion, name)
 
-    def to_request(self) -> dict[str, Any]:
-        """
-        Converts the chat completion into a request dictionary for openai.Client.chat.completions.create.
-        """
-        if not self.choices:
-            raise ValueError("ChatCompletion object has no choices.")
-
-        # Assuming the first choice's message for simplicity
-        first_choice = self.choices[0]
-        if not hasattr(first_choice, "message"):
-            raise ValueError("Choice object has no 'message' attribute.")
-
-        request_data = {
-            "messages": first_choice.message,
-            "model": self.model,
-            "service_tier": self.service_tier,
-            "system_fingerprint": self.chat_completion.system_fingerprint,
-            # TODO: Add support for other fields
-        }
-
-        # Remove None values
-        return {k: v for k, v in request_data.items() if v is not None}
-
-    def called_tool(self) -> bool:
-        """
-        Returns True if there is a tool_call in the completion object.
-        """
-        for choice in self.chat_completion.choices:
-            if hasattr(choice, "tool_call") and choice.tool_call:
-                return True
-        return False
-
-    @property
-    def tool_args(self) -> ToolCalls:
-        """
-        Returns the tool arguments from the chat completion object.
-        """
-        tool_args_list = {}
-        message = self.chat_completion.choices[0].message
-        if message.tool_calls:
-            for tool_call in message.tool_calls:
-                tool_args_list[tool_call.function.name] = json.loads(tool_call.function.arguments)
-        return tool_args_list
+def get_tool_args(chat_completion: ChatCompletion) -> ToolCalls:
+    """
+    Returns the tool arguments from the chat completion object.
+    """
+    tool_args_list = {}
+    message = chat_completion.choices[0].message
+    if message.tool_calls:
+        for tool_call in message.tool_calls:
+            tool_args_list[tool_call.function.name] = json.loads(tool_call.function.arguments)
+    return tool_args_list
 
 
 class EngineClient:
@@ -181,20 +148,20 @@ class EngineClient:
                 parallel_tool_calls=parallel_tool_calls,
                 **kwargs,
             )
-            if not completion.called_tool:
+            if not called_tool(completion):
                 raise ValueError("No tool call was made.")
 
         except (KeyError, IndexError) as e:
             raise ValueError("Invalid response format from OpenAI API.") from e
 
-        return completion.tool_args
+        return get_tool_args(completion)
 
     def complete(
         self,
         model: str,
         messages: list[dict[str, Any]],
         **kwargs: Any,
-    ) -> ChatCompletionWrapper:
+    ) -> ChatCompletion:
         """
         Call the OpenAI API with the given messages.
         """
@@ -203,5 +170,18 @@ class EngineClient:
             messages=messages,
             **kwargs,
         )
+        return completion
 
-        return ChatCompletionWrapper(completion)
+    def stream_complete(
+        self,
+        model: str,
+        messages: list[dict[str, Any]],
+        **kwargs: Any,
+    ) -> Stream[ChatCompletionChunk]:
+        stream = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            stream=True,
+            **kwargs,
+        )
+        yield from stream

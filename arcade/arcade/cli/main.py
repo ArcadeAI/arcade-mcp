@@ -1,14 +1,16 @@
 import asyncio
 import os
-import sys
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.markup import escape
+from rich.markdown import Markdown
 from rich.table import Table
 from typer.core import TyperGroup
 from typer.models import Context
+
+from openai.resources.chat.completions import ChatCompletionChunk, Stream
 
 
 class OrderCommands(TyperGroup):
@@ -102,6 +104,7 @@ def run(
     choice: str = typer.Option(
         "required", "-c", "--choice", help="The value of the tool choice argument"
     ),
+    stream: bool = typer.Option(True, "-s", "--stream", help="Stream the tool output."),
     actor: Optional[str] = typer.Option(
         None, "-a", "--actor", help="The actor to use for prediction."
     ),
@@ -170,22 +173,16 @@ def run(
                         "content": f"Results of Tool {tool_name}: {str(output.data.result)}",
                     },
                 ]
-            response = client.complete(model=model, messages=messages)
-            console.print(response.choices[0].message.content, style="bold green")
+            if stream:
+                response = client.stream_complete(model=model, messages=messages)
+                display_streamed_markdown(response)
+            else:
+                response = client.complete(model=model, messages=messages)
+                console.print(response.choices[0].message.content, style="bold green")
 
     except RuntimeError as e:
         error_message = f"❌ Failed to run tool{': '+ escape(str(e)) if str(e) else ''}"
         console.print(error_message, style="bold red")
-
-
-@cli.command(help="Execute eval suite wthin /evals")
-def evals(
-    module: str = typer.Option(..., help="The name of the module to run evals on"),
-):
-    """
-    Execute eval suite wthin /evals
-    """
-    pass
 
 
 @cli.command(help="Manage the Arcade Engine (start/stop/restart)")
@@ -222,3 +219,20 @@ def config(
     Show/edit configuration details of the Arcade Engine
     """
     pass
+
+
+def display_streamed_markdown(stream: Stream[ChatCompletionChunk]):
+    """
+    Display the streamed markdown chunks as a single line.
+    """
+    from rich.live import Live
+
+    full_message = ""
+    with Live(console=console, refresh_per_second=10) as live:
+        for chunk in stream:
+            choice = chunk.choices[0]
+            chunk_message = choice.delta.content
+            if chunk_message:
+                full_message += chunk_message
+                markdown_chunk = Markdown(full_message)
+                live.update(markdown_chunk)
