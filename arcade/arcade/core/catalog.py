@@ -465,6 +465,10 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
     for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+        # Skip ToolContext parameters
+        if param.annotation is ToolContext:
+            continue
+
         # TODO make this cleaner
         tool_field_info = extract_field_info(param)
         param_fields = {

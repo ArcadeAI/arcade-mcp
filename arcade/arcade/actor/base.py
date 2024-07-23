@@ -6,6 +6,7 @@ from typing import Any, Callable
 from arcade.actor.schema import (
     InvokeToolRequest,
     InvokeToolResponse,
+    ToolContext,
     ToolOutput,
     ToolOutputError,
 )
@@ -74,6 +75,7 @@ class BaseActor:
             func=materialized_tool.tool,
             input_model=materialized_tool.input_model,
             output_model=materialized_tool.output_model,
+            context=tool_request.context or ToolContext(),
             **tool_request.inputs or {},
         )
         if response.code == 200:

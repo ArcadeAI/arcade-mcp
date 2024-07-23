@@ -1,5 +1,7 @@
 import asyncio
+import inspect
 from typing import Any, Callable
+from arcade.actor.schema import ToolContext
 
 from pydantic import BaseModel, ValidationError
 
@@ -18,6 +20,7 @@ class ToolExecutor:
         func: Callable,
         input_model: type[BaseModel],
         output_model: type[BaseModel],
+        context: ToolContext,
         *args: Any,
         **kwargs: Any,
     ) -> ToolResponse:
@@ -28,11 +31,21 @@ class ToolExecutor:
             # serialize the input model
             inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
 
+            # prepare the arguments for the function call
+            func_args = inputs.model_dump()
+
+            # TODO do this at startup time, not at run time
+            sig = inspect.signature(func)
+            for param in sig.parameters.values():
+                if param.annotation == ToolContext:
+                    func_args[param.name] = context
+                    break
+
             # execute the tool function
             if asyncio.iscoroutinefunction(func):
-                results = await func(**inputs.model_dump())
+                results = await func(**func_args)
             else:
-                results = func(**inputs.model_dump())
+                results = func(**func_args)
 
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
