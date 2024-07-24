@@ -90,13 +90,13 @@ def show(
 
 
 @cli.command(help="Run a tool using an LLM to predict the arguments")
-def run(
+def run(  # noqa: C901
     toolkit: str = typer.Argument(..., help="The toolkit to add to model calls"),
     prompt: str = typer.Argument(..., help="The prompt to use for context"),
     model: str = typer.Option("gpt-3.5-turbo", "-m", help="The model to use for prediction."),
     tool: str = typer.Option(None, "-t", "--tool", help="The name of the tool to run."),
     choice: str = typer.Option(
-        "required", "-c", "--choice", help="The value of the tool choice argument"
+        "prompt", "-c", "--choice", help="The value of the tool choice argument"
     ),
     stream: bool = typer.Option(True, "-s", "--stream", help="Stream the tool output."),
     actor: Optional[str] = typer.Option(
@@ -137,7 +137,9 @@ def run(
 
         # TODO put in the engine url from config
         client = EngineClient()
-        calls = client.call_tool(tools, tool_choice=choice, prompt=prompt, model=model)
+        # TODO better way of doing this
+        tool_choice = "required" if choice in ["prompt", "execute"] else choice
+        calls = client.call_tool(tools, tool_choice=tool_choice, prompt=prompt, model=model)
 
         messages = [
             {"role": "user", "content": prompt},
@@ -147,6 +149,7 @@ def run(
             called_tool = catalog[tool_name]
             console.print(f"Running tool: {tool_name} with params: {parameters}", style="bold blue")
 
+            # TODO async.gather instead of loop.
             output = asyncio.run(
                 ToolExecutor.run(
                     called_tool.tool,
@@ -160,20 +163,23 @@ def run(
                 if output.data:
                     console.print(output.data.result, style="bold red")
             else:
-                # TODO: Add the tool results to the response in a safer way
-                messages += [
-                    {
-                        "role": "assistant",
-                        # TODO: escape the output and ensure serialization works
-                        "content": f"Results of Tool {tool_name}: {output.data.result!s}",  # type: ignore[union-attr]
-                    },
-                ]
-            if stream:
-                stream_response = client.stream_complete(model=model, messages=messages)
-                display_streamed_markdown(stream_response)
-            else:
-                response = client.complete(model=model, messages=messages)
-                console.print(response.choices[0].message.content, style="bold green")
+                if choice == "prompt":
+                    # TODO: Add the tool results to the response in a safer way
+                    messages += [
+                        {
+                            "role": "assistant",
+                            # TODO: escape the output and ensure serialization works
+                            "content": f"Results of Tool {tool_name}: {output.data.result!s}",  # type: ignore[union-attr]
+                        },
+                    ]
+                    if stream:
+                        stream_response = client.stream_complete(model=model, messages=messages)
+                        display_streamed_markdown(stream_response)
+                    else:
+                        response = client.complete(model=model, messages=messages)
+                        console.print(response.choices[0].message.content, style="bold green")
+                elif choice == "execute":
+                    console.print(output.data.result, style="green")  # type: ignore[union-attr]
 
     except RuntimeError as e:
         error_message = f"❌ Failed to run tool{': '+ escape(str(e)) if str(e) else ''}"
