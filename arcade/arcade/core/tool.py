@@ -56,13 +56,7 @@ class ToolOutput(BaseModel):
     )
 
 
-class ToolAuthorizationRequirement(BaseModel, ABC):
-    """A requirement for authorization to use a tool."""
-
-    pass
-
-
-class OAuth2AuthorizationRequirement(ToolAuthorizationRequirement):
+class OAuth2AuthorizationRequirement(BaseModel, ABC):
     """Specifies OAuth2 requirement for tool execution."""
 
     url: AnyUrl
@@ -70,6 +64,12 @@ class OAuth2AuthorizationRequirement(ToolAuthorizationRequirement):
 
     scope: Optional[list[str]] = None
     """The scope of the authorization."""
+
+
+class ToolAuthorizationRequirement(BaseModel, ABC):
+    """A requirement for authorization to use a tool."""
+
+    oauth2: Optional[OAuth2AuthorizationRequirement] = None
 
 
 class ToolRequirements(BaseModel):
@@ -87,3 +87,20 @@ class ToolDefinition(BaseModel):
     inputs: ToolInputs
     output: ToolOutput
     requirements: ToolRequirements
+
+
+# TODO move these to a diff file -- or maybe the other ones! why are they in tool.py?
+class ToolAuthorizationAnnotation(BaseModel, ABC):
+    """The annotation for a tool that requires authorization."""
+
+    pass
+
+
+class OAuth2Requirement(ToolAuthorizationAnnotation):
+    """The annotation for a tool that requires OAuth2 authorization."""
+
+    url: AnyUrl
+    """The URL to which the user should be redirected to authorize the tool."""
+
+    scope: Optional[list[str]] = None
+    """The scope of the authorization."""

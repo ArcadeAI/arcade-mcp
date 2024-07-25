@@ -2,7 +2,7 @@ import inspect
 import os
 from typing import Any, Callable, Optional, TypeVar, Union
 
-from arcade.core.tool import ToolAuthorizationRequirement
+from arcade.core.tool import ToolAuthorizationAnnotation
 from arcade.core.utils import snake_to_pascal_case
 
 T = TypeVar("T")
@@ -13,7 +13,7 @@ def tool(
     func: Callable | None = None,
     desc: str | None = None,
     name: str | None = None,
-    requires_auth: Union[ToolAuthorizationRequirement, None] = None,
+    requires_auth: Union[ToolAuthorizationAnnotation, None] = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))

@@ -25,6 +25,9 @@ from pydantic_core import PydanticUndefined
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.tool import (
     InputParameter,
+    OAuth2Requirement,
+    OAuth2AuthorizationRequirement,
+    ToolAuthorizationRequirement,
     ToolDefinition,
     ToolInputs,
     ToolOutput,
@@ -177,6 +180,12 @@ class ToolCatalog(BaseModel):
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
             raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
 
+        auth_requirement = getattr(tool, "__tool_requires_auth__", None)
+        if isinstance(auth_requirement, OAuth2Requirement):
+            auth_requirement = ToolAuthorizationRequirement(
+                oauth2=OAuth2AuthorizationRequirement(**auth_requirement.model_dump())
+            )
+
         return ToolDefinition(
             name=snake_to_pascal_case(tool_name),
             description=tool_description,
@@ -184,7 +193,7 @@ class ToolCatalog(BaseModel):
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(
-                authorization=getattr(tool, "__tool_requires_auth__", None),
+                authorization=auth_requirement,
             ),
         )
 
