@@ -114,13 +114,12 @@ def get_package_directory(package_name: str) -> str:
     spec = importlib.util.find_spec(package_name)
     if spec is None:
         raise ImportError(f"Cannot find package named {package_name}")
-    if not spec.origin:
+
+    if spec.origin:
+        # If the package has an origin, return the directory of the origin
+        return os.path.dirname(spec.origin)
+    elif spec.submodule_search_locations:
+        # If the package is a namespace package, return the first search location
+        return spec.submodule_search_locations[0]
+    else:
         raise ImportError(f"Package {package_name} does not have a file path associated with it")
-
-    package_path = spec.origin
-
-    if spec.submodule_search_locations:
-        # It's a package, get the directory
-        package_path = os.path.dirname(package_path)
-
-    return package_path

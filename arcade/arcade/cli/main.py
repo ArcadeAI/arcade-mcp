@@ -182,7 +182,7 @@ def run(  # noqa: C901
                     console.print(output.data.result, style="green")  # type: ignore[union-attr]
 
     except RuntimeError as e:
-        error_message = f"❌ Failed to run tool{': '+ escape(str(e)) if str(e) else ''}"
+        error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
         console.print(error_message, style="bold red")
 
 
