@@ -8,10 +8,12 @@ from arcade.core.env import settings
 
 class Config(BaseModel):
     api_key: str | None = None
+    api_secret: str | None = None
     user_email: str | None = None
     engine_key: str | None = None
     engine_host: str = "localhost"
     engine_port: str = "6901"
+    engine_tls: bool = False
 
     config_dir: Path = settings.WORK_DIR if settings.WORK_DIR else Path.home() / ".arcade"
     config_file: Path = config_dir / "arcade.toml"
@@ -23,8 +25,14 @@ class Config(BaseModel):
         return self.api_key
 
     @property
-    def engine_url(self, tls: bool = False) -> str:
-        if tls:
+    def arcade_api_secret(self) -> str:
+        if not self.api_secret:
+            raise ValueError("Arcade API Secret not set")
+        return self.api_secret
+
+    @property
+    def engine_url(self) -> str:
+        if self.engine_tls:
             return f"https://{self.engine_host}:{self.engine_port}"
         return f"http://{self.engine_host}:{self.engine_port}"
 

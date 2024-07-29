@@ -1,62 +1,10 @@
 import asyncio
 from typing import Any, Callable
 
-import jwt
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, FastAPI, Request
 
 from arcade.actor.base import BaseActor
-
-# TODO get these from .config
-creds = {
-    "api_key": "123456789",
-    "api_secret": "196a8a25-fde8-453a-9f58-ff646a6e034d",
-}
-
-TOKEN_VER = "1"  # TODO put this somewhere common
-
-security = HTTPBearer()
-
-
-# Dependency function to validate JWT and extract API key
-async def get_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-    try:
-        # TODO: validate issuer (= engine URL)
-        # TODO: validate jti for replay prevention
-        payload = jwt.decode(
-            token, creds["api_secret"], algorithms=["HS256"], verify=True, audience="actor"
-        )
-        api_key = payload.get("api_key")
-        if not api_key or api_key != creds["api_key"]:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid API key",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        token_ver = payload.get("ver")
-        if token_ver != TOKEN_VER:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token version",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=401,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return api_key
+from arcade.actor.fastapi.auth import get_api_key
 
 
 class FastAPIActor(BaseActor):
@@ -67,13 +15,14 @@ class FastAPIActor(BaseActor):
         """
         super().__init__()
         self.app = app
-        self.router = FastAPIRouter(app)
+        self.router = FastAPIRouter(app, self)
         self.register_routes(self.router)
 
 
 class FastAPIRouter:  # TODO create an interface for this
-    def __init__(self, app: FastAPI) -> None:
+    def __init__(self, app: FastAPI, actor: BaseActor) -> None:
         self.app = app
+        self.actor = actor
 
     def add_route(self, path: str, handler: Callable, methods: str) -> None:
         """
@@ -96,7 +45,10 @@ class FastAPIRouter:  # TODO create an interface for this
         Wrap the handler to handle FastAPI-specific request and response.
         """
 
-        async def wrapped_handler(request: Request, api_key: str = Depends(get_api_key)) -> Any:
+        async def wrapped_handler(
+            request: Request,
+            api_key: str = Depends(lambda: get_api_key(self.actor._validate_token)),
+        ) -> Any:
             if asyncio.iscoroutinefunction(handler) or (
                 callable(handler) and asyncio.iscoroutinefunction(handler.__call__)  # type: ignore[operator]
             ):
