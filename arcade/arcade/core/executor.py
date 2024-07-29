@@ -1,10 +1,10 @@
 import asyncio
 import inspect
 from typing import Any, Callable
-from arcade.actor.schema import ToolContext
 
 from pydantic import BaseModel, ValidationError
 
+from arcade.actor.schema import ToolContext
 from arcade.core.errors import (
     ToolExecutionError,
     ToolInputError,

@@ -1,17 +1,14 @@
 import os
-import re
 
-from base64 import urlsafe_b64decode
-from bs4 import BeautifulSoup
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
-from typing import Dict, List, Annotated
+from typing import Annotated
 from arcade.sdk.tool import tool
 
-
+SECRET_FILE = "/Users/spartee/Dropbox/Arcade/gcp/credentials.json"
 DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
 
 

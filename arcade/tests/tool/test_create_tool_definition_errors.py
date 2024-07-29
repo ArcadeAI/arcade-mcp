@@ -1,6 +1,6 @@
-from arcade.actor.schema import ToolContext
 import pytest
 
+from arcade.actor.schema import ToolContext
 from arcade.core.catalog import ToolCatalog
 from arcade.core.errors import ToolDefinitionError
 from arcade.sdk.tool import tool

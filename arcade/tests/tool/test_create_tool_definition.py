@@ -1,8 +1,8 @@
 from typing import Annotated, Literal, Optional
-from arcade.actor.schema import ToolContext
 
 import pytest
 
+from arcade.actor.schema import ToolContext
 from arcade.core.catalog import ToolCatalog
 from arcade.core.tool import (
     InputParameter,

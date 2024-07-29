@@ -16,17 +16,17 @@ from typing import (
     get_args,
     get_origin,
 )
-from arcade.actor.schema import ToolContext
 
 from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from arcade.actor.schema import ToolContext
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.tool import (
     InputParameter,
-    OAuth2Requirement,
     OAuth2AuthorizationRequirement,
+    OAuth2Requirement,
     ToolAuthorizationRequirement,
     ToolDefinition,
     ToolInputs,
