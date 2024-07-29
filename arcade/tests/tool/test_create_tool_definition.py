@@ -7,13 +7,14 @@ from arcade.core.catalog import ToolCatalog
 from arcade.core.tool import (
     InputParameter,
     OAuth2AuthorizationRequirement,
+    ToolAuthorizationRequirement,
     ToolInputs,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
 )
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.tool import tool
+from arcade.sdk.tool import OAuth2Authorization, tool
 
 
 ### Tests on @tool decorator
@@ -44,8 +45,8 @@ def func_with_name_and_description():
 
 @tool(
     desc="A function that requires authentication",
-    requires_auth=OAuth2AuthorizationRequirement(
-        url="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
+    requires_auth=OAuth2Authorization(
+        authority="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
     ),
 )
 def func_with_auth_requirement():
@@ -198,8 +199,11 @@ def func_with_complex_return() -> list[dict[str, str]]:
             func_with_auth_requirement,
             {
                 "requirements": ToolRequirements(
-                    authorization=OAuth2AuthorizationRequirement(
-                        url="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
+                    authorization=ToolAuthorizationRequirement(
+                        oauth2=OAuth2AuthorizationRequirement(
+                            authority="https://example.com/oauth2/auth",
+                            scope=["scope1", "scope2"],
+                        )
                     )
                 )
             },

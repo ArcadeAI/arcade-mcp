@@ -12,8 +12,7 @@ from arcade.sdk.tool import tool
 
 @tool(
     requires_auth=OAuth2Requirement(
-        # TODO rename url to authority
-        url="https://accounts.google.com",  # Discovery document is hosted at /.well-known/openid-configuration
+        authority="https://accounts.google.com",  # Discovery document is hosted at /.well-known/openid-configuration
         scope=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )

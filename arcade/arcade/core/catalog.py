@@ -26,7 +26,6 @@ from arcade.core.errors import ToolDefinitionError
 from arcade.core.tool import (
     InputParameter,
     OAuth2AuthorizationRequirement,
-    OAuth2Requirement,
     ToolAuthorizationRequirement,
     ToolDefinition,
     ToolInputs,
@@ -42,6 +41,7 @@ from arcade.core.utils import (
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
+from arcade.sdk.tool import OAuth2Authorization
 
 WireType = Literal["string", "integer", "float", "boolean", "json"]
 
@@ -181,7 +181,7 @@ class ToolCatalog(BaseModel):
             raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
 
         auth_requirement = getattr(tool, "__tool_requires_auth__", None)
-        if isinstance(auth_requirement, OAuth2Requirement):
+        if isinstance(auth_requirement, OAuth2Authorization):
             auth_requirement = ToolAuthorizationRequirement(
                 oauth2=OAuth2AuthorizationRequirement(**auth_requirement.model_dump())
             )
