@@ -1,10 +1,9 @@
 import asyncio
 from typing import Any, Callable
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 
 from arcade.actor.base import BaseActor
-from arcade.actor.fastapi.auth import get_api_key
 
 
 class FastAPIActor(BaseActor):
@@ -47,7 +46,7 @@ class FastAPIRouter:  # TODO create an interface for this
 
         async def wrapped_handler(
             request: Request,
-            api_key: str = Depends(lambda: get_api_key(self.actor._validate_token)),
+            # api_key: str = Depends(get_api_key), # TODO re-enable when Engine supports auth
         ) -> Any:
             if asyncio.iscoroutinefunction(handler) or (
                 callable(handler) and asyncio.iscoroutinefunction(handler.__call__)  # type: ignore[operator]

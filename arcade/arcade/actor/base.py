@@ -43,11 +43,12 @@ class BaseActor:
         """
         self.catalog = ToolCatalog()
 
+    @classmethod
     def _validate_token(self, token: str) -> TokenValidationResult:
         try:
             payload = jwt.decode(
                 token,
-                config.arcade_api_secret,
+                config.api.secret,
                 algorithms=["HS256"],
                 verify=True,
                 issuer=config.engine_url,
@@ -57,7 +58,7 @@ class BaseActor:
             return TokenValidationResult(valid=False, error=str(e))
 
         api_key = payload.get("api_key")
-        if api_key != config.arcade_api_key:
+        if api_key != config.api.key:
             return TokenValidationResult(valid=False, error="Invalid API key")
 
         token_ver = payload.get("ver")

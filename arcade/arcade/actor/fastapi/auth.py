@@ -1,9 +1,9 @@
-from typing import Callable, cast
+from typing import cast
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from arcade.actor.base_auth import TokenValidationResult
+from arcade.actor.base import BaseActor
 
 security = HTTPBearer()  # Authorization: Bearer <xxx>
 
@@ -11,11 +11,10 @@ security = HTTPBearer()  # Authorization: Bearer <xxx>
 # Dependency function to validate JWT and extract API key
 # The validator function is provided by the BaseActor class
 async def get_api_key(
-    validator: Callable[[str], TokenValidationResult],
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> str:
     jwt = credentials.credentials
-    validation_result = validator(jwt)
+    validation_result = BaseActor._validate_token(jwt)
 
     if not validation_result.valid:
         raise HTTPException(

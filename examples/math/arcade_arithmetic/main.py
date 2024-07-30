@@ -2,7 +2,8 @@ from arcade.actor.fastapi.actor import FastAPIActor
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AsyncOpenAI
-from arcade_example_nate.tools import arithmetic
+
+from tools import arithmetic
 
 
 client = AsyncOpenAI(base_url="http://localhost:6901")
@@ -30,6 +31,7 @@ async def chat(request: ChatRequest):
             ],
             model="gpt-4o-mini",
             max_tokens=150,
+            tools=["add", "subtract", "multiply", "divide", "sqrt"],
             tool_choice="execute",
         )
         chat_completion = raw_response.parse()
