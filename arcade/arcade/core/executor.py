@@ -38,18 +38,18 @@ class ToolExecutor:
             output = await ToolExecutor._serialize_output(output_model, results)
 
             # return the output
-            return await tool_response.success(data=output)
+            return tool_response.success(data=output)
 
         except ToolSerializationError as e:
-            return await tool_response.fail(msg=str(e))
+            return tool_response.fail(msg=str(e))
 
         except ToolExecutionError as e:
-            return await tool_response.fail(msg=str(e))
+            return tool_response.fail(msg=str(e))
 
         # if we get here we're in trouble
         # TODO: Debate if this is necessary
         except Exception as e:
-            return await tool_response.fail(msg=str(e))
+            return tool_response.fail(msg=str(e))
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

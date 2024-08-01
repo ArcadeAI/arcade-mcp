@@ -1,9 +1,9 @@
-import asyncio
 from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
-from arcade.actor.base import BaseActor
+from arcade.actor.base import BaseActor, BaseRouter
+from arcade.actor.utils import is_async_callable
 
 
 class FastAPIActor(BaseActor):
@@ -18,28 +18,12 @@ class FastAPIActor(BaseActor):
         self.register_routes(self.router)
 
 
-class FastAPIRouter:  # TODO create an interface for this
+class FastAPIRouter(BaseRouter):
     def __init__(self, app: FastAPI, actor: BaseActor) -> None:
         self.app = app
         self.actor = actor
 
-    def add_route(self, path: str, handler: Callable, methods: str) -> None:
-        """
-        Add a route to the FastAPI application.
-        """
-        for method in methods:
-            if method == "GET":
-                self.app.get(path)(self.wrap_handler(handler))
-            elif method == "POST":
-                self.app.post(path)(self.wrap_handler(handler))
-            elif method == "PUT":
-                self.app.put(path)(self.wrap_handler(handler))
-            elif method == "DELETE":
-                self.app.delete(path)(self.wrap_handler(handler))
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
-
-    def wrap_handler(self, handler: Callable) -> Callable:
+    def _wrap_handler(self, handler: Callable) -> Callable:
         """
         Wrap the handler to handle FastAPI-specific request and response.
         """
@@ -48,11 +32,25 @@ class FastAPIRouter:  # TODO create an interface for this
             request: Request,
             # api_key: str = Depends(get_api_key), # TODO re-enable when Engine supports auth
         ) -> Any:
-            if asyncio.iscoroutinefunction(handler) or (
-                callable(handler) and asyncio.iscoroutinefunction(handler.__call__)  # type: ignore[operator]
-            ):
+            if is_async_callable(handler):
                 return await handler(request)
             else:
                 return handler(request)
 
         return wrapped_handler
+
+    def add_route(self, path: str, handler: Callable, method: str) -> None:
+        """
+        Add a route to the FastAPI application.
+        """
+        for m in method:
+            if m == "GET":
+                self.app.get(path)(self._wrap_handler(handler))
+            elif m == "POST":
+                self.app.post(path)(self._wrap_handler(handler))
+            elif m == "PUT":
+                self.app.put(path)(self._wrap_handler(handler))
+            elif m == "DELETE":
+                self.app.delete(path)(self._wrap_handler(handler))
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")

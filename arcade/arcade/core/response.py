@@ -33,7 +33,7 @@ class ToolResponseFactory:
     """
 
     @staticmethod
-    async def __response(
+    def __response(
         *,
         msg: str | None = None,
         res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_200,
@@ -46,22 +46,22 @@ class ToolResponseFactory:
             return ToolResponse(code=res.code, msg=msg, data=data)
         return ToolResponse(code=res.code, msg=res.msg, data=data)
 
-    async def success(
+    def success(
         self,
         *,
         res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_200,
         data: T | None = None,
     ) -> ToolResponse:
-        return await self.__response(res=res, data=data)
+        return self.__response(res=res, data=data)
 
-    async def fail(
+    def fail(
         self,
         *,
         res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_400,
         msg: str = CustomResponseCode.HTTP_400.msg,
         data: Any = None,
     ) -> ToolResponse:
-        return await self.__response(res=res, data=data)
+        return self.__response(res=res, data=data)
 
 
 tool_response = ToolResponseFactory()

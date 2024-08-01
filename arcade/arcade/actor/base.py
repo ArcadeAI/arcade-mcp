@@ -1,5 +1,6 @@
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
@@ -18,16 +19,32 @@ from arcade.core.executor import ToolExecutor
 from arcade.core.tool import ToolDefinition
 
 
+class BaseRouter(ABC):
+    @abstractmethod
+    def add_route(self, path: str, handler: Callable, method: str) -> None:
+        """
+        Add a route to the router.
+        """
+        pass
+
+
+@dataclass
+class RequestData:
+    path: str
+    method: str
+    body: Any
+
+
 class ActorComponent(ABC):
     @abstractmethod
-    def register(self, router: Any) -> None:
+    def register(self, router: BaseRouter) -> None:
         """
         Register the component with the given router.
         """
         pass
 
     @abstractmethod
-    async def __call__(self, request: Any) -> Any:
+    async def __call__(self, request: RequestData) -> Any:
         """
         Handle the request.
         """
@@ -104,9 +121,8 @@ class BaseActor:
             output_model=materialized_tool.output_model,
             **tool_request.inputs or {},
         )
-        if response.code == 200:
-            # TODO remove ignore
-            output = ToolOutput(value=response.data.result)  # type: ignore[union-attr]
+        if response.code == 200 and response.data is not None:
+            output = ToolOutput(value=response.data.result)
         else:
             output = ToolOutput(error=ToolOutputError(message=response.msg))
 
@@ -127,7 +143,7 @@ class BaseActor:
         """
         return {"status": "ok", "tool_count": len(self.catalog.tools.keys())}
 
-    def register_routes(self, router: Any) -> None:
+    def register_routes(self, router: BaseRouter) -> None:
         """
         Register the necessary routes to the application.
         """
@@ -144,13 +160,13 @@ class CatalogComponent(ActorComponent):
     def __init__(self, actor: BaseActor) -> None:
         self.actor = actor
 
-    def register(self, router: Any) -> None:
+    def register(self, router: BaseRouter) -> None:
         """
         Register the catalog route with the router.
         """
-        router.add_route(f"{self.actor.base_path}/tools", self, methods=["GET"])
+        router.add_route(f"{self.actor.base_path}/tools", self, method="GET")
 
-    async def __call__(self, request: Any) -> list[ToolDefinition]:
+    async def __call__(self, request: RequestData) -> list[ToolDefinition]:
         """
         Handle the request to get the catalog.
         """
@@ -161,17 +177,17 @@ class InvokeToolComponent(ActorComponent):
     def __init__(self, actor: BaseActor) -> None:
         self.actor = actor
 
-    def register(self, router: Any) -> None:
+    def register(self, router: BaseRouter) -> None:
         """
         Register the invoke tool route with the router.
         """
-        router.add_route(f"{self.actor.base_path}/tools/invoke", self, methods=["POST"])
+        router.add_route(f"{self.actor.base_path}/tools/invoke", self, method="POST")
 
-    async def __call__(self, request: Any) -> InvokeToolResponse:
+    async def __call__(self, request: RequestData) -> InvokeToolResponse:
         """
         Handle the request to invoke a tool.
         """
-        invoke_tool_request_data = await request.json()
+        invoke_tool_request_data = request.body
         invoke_tool_request = InvokeToolRequest.model_validate(invoke_tool_request_data)
         return await self.actor.invoke_tool(invoke_tool_request)
 
@@ -180,13 +196,13 @@ class HealthCheckComponent(ActorComponent):
     def __init__(self, actor: BaseActor) -> None:
         self.actor = actor
 
-    def register(self, router: Any) -> None:
+    def register(self, router: BaseRouter) -> None:
         """
         Register the health check route with the router.
         """
-        router.add_route(f"{self.actor.base_path}/health", self, methods=["GET"])
+        router.add_route(f"{self.actor.base_path}/health", self, method="GET")
 
-    async def __call__(self, request: Any) -> dict[str, Any]:
+    async def __call__(self, request: RequestData) -> dict[str, Any]:
         """
         Handle the request for a health check.
         """
