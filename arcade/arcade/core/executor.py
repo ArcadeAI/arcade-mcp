@@ -10,14 +10,17 @@ from arcade.core.errors import (
     ToolSerializationError,
 )
 from arcade.core.response import ToolResponse, tool_response
+from arcade.core.schema import ToolContext, ToolDefinition
 
 
 class ToolExecutor:
     @staticmethod
     async def run(
         func: Callable,
+        definition: ToolDefinition,
         input_model: type[BaseModel],
         output_model: type[BaseModel],
+        context: ToolContext,
         *args: Any,
         **kwargs: Any,
     ) -> ToolResponse:
@@ -28,11 +31,18 @@ class ToolExecutor:
             # serialize the input model
             inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
 
+            # prepare the arguments for the function call
+            func_args = inputs.model_dump()
+
+            # inject ToolContext, if the target function supports it
+            if definition.inputs.tool_context_parameter_name is not None:
+                func_args[definition.inputs.tool_context_parameter_name] = context
+
             # execute the tool function
             if asyncio.iscoroutinefunction(func):
-                results = await func(**inputs.model_dump())
+                results = await func(**func_args)
             else:
-                results = func(**inputs.model_dump())
+                results = func(**func_args)
 
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
@@ -73,6 +83,7 @@ class ToolExecutor:
         Serialize the output of a tool function.
         """
         # TODO how to type this the results object?
+        # TODO how to ensure `results` contains only safe (serializable) stuff?
         try:
             # TODO Logging and telemetry
 

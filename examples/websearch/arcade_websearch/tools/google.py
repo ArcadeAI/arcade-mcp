@@ -1,7 +1,8 @@
 import json
+import os
 import serpapi
-from typing import Annotated
-from arcade.sdk.tool import tool, get_secret
+from typing import Annotated, Any, Optional
+from arcade.sdk import tool
 
 
 @tool
@@ -23,3 +24,12 @@ async def search_google(
     organic_results = results.get("organic_results", [])
 
     return json.dumps(organic_results[:n_results])
+
+
+def get_secret(name: str, default: Optional[Any] = None) -> Any:
+    secret = os.getenv(name)
+    if secret is None:
+        if default is not None:
+            return default
+        raise ValueError(f"Secret {name} is not set.")
+    return secret

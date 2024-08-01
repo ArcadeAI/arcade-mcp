@@ -4,13 +4,13 @@ import pytest
 from pydantic import BaseModel, Field
 
 from arcade.core.catalog import ToolCatalog
-from arcade.core.tool import (
+from arcade.core.schema import (
     InputParameter,
     ToolInputs,
     ToolOutput,
     ValueSchema,
 )
-from arcade.sdk.tool import tool
+from arcade.sdk import tool
 
 
 class ProductOutput(BaseModel):

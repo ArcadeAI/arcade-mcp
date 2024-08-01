@@ -153,6 +153,7 @@ def run(  # noqa: C901
             output = asyncio.run(
                 ToolExecutor.run(
                     called_tool.tool,
+                    called_tool.definition,
                     called_tool.input_model,
                     called_tool.output_model,
                     **parameters,

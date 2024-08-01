@@ -3,16 +3,19 @@ from typing import Annotated, Literal, Optional
 import pytest
 
 from arcade.core.catalog import ToolCatalog
-from arcade.core.tool import (
+from arcade.core.schema import (
     InputParameter,
-    OAuth2AuthorizationRequirement,
+    OAuth2Requirement,
+    ToolAuthRequirement,
+    ToolContext,
     ToolInputs,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
 )
+from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.tool import tool
+from arcade.sdk.auth import OAuth2
 
 
 ### Tests on @tool decorator
@@ -43,9 +46,7 @@ def func_with_name_and_description():
 
 @tool(
     desc="A function that requires authentication",
-    requires_auth=OAuth2AuthorizationRequirement(
-        url="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
-    ),
+    requires_auth=OAuth2(authority="https://example.com/oauth2/auth", scope=["scope1", "scope2"]),
 )
 def func_with_auth_requirement():
     pass
@@ -53,7 +54,7 @@ def func_with_auth_requirement():
 
 ### Tests on input params
 @tool(desc="A function with an input parameter")
-def func_with_param(param1: Annotated[str, "First param"]):
+def func_with_param(context: Annotated[str, "First param"]):
     pass
 
 
@@ -114,6 +115,7 @@ def func_with_optional_param_with_default_value(
 
 @tool(desc="A function with multiple parameters, some with default values")
 def func_with_mixed_params(
+    context: ToolContext,
     param1: Annotated[str, "First param"],
     param2: Annotated[int, "Second param"] = 42,
 ):
@@ -122,6 +124,11 @@ def func_with_mixed_params(
 
 @tool(desc="A function with a complex parameter type")
 def func_with_complex_param(param1: Annotated[list[str], "A list of strings"]):
+    pass
+
+
+@tool(desc="A function that takes a context")
+def func_with_context(my_context: ToolContext):
     pass
 
 
@@ -184,15 +191,18 @@ def func_with_complex_return() -> list[dict[str, str]]:
         ),
         pytest.param(
             func_with_name_and_description,
-            {"name": "MyCustomTool", "requirements": ToolRequirements(authorization=None)},
+            {"name": "MyCustomTool", "requirements": ToolRequirements(auth=None)},
             id="func_with_no_auth_requirement",
         ),
         pytest.param(
             func_with_auth_requirement,
             {
                 "requirements": ToolRequirements(
-                    authorization=OAuth2AuthorizationRequirement(
-                        url="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
+                    auth=ToolAuthRequirement(
+                        oauth2=OAuth2Requirement(
+                            authority="https://example.com/oauth2/auth",
+                            scope=["scope1", "scope2"],
+                        )
                     )
                 )
             },
@@ -212,7 +222,7 @@ def func_with_complex_return() -> list[dict[str, str]]:
                 "inputs": ToolInputs(
                     parameters=[
                         InputParameter(
-                            name="param1",
+                            name="context",  # Nothing special about this name, parameters can be named anything
                             description="First param",
                             inferrable=True,  # Defaults to true
                             required=True,
@@ -428,7 +438,8 @@ def func_with_complex_return() -> list[dict[str, str]]:
                             required=False,  # Because a default value is provided
                             value_schema=ValueSchema(val_type="integer", enum=None),
                         ),
-                    ]
+                    ],
+                    tool_context_parameter_name="context",
                 ),
             },
             id="func_with_mixed_params",
@@ -449,6 +460,15 @@ def func_with_complex_return() -> list[dict[str, str]]:
                 ),
             },
             id="func_with_complex_param",
+        ),
+        pytest.param(
+            func_with_context,
+            {
+                "inputs": ToolInputs(
+                    parameters=[], tool_context_parameter_name="my_context"
+                ),  # ToolContext type is not an input param, but it's stored in the inputs field
+            },
+            id="func_with_context",
         ),
         # Tests on output values
         pytest.param(

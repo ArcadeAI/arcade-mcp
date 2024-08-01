@@ -1,9 +1,8 @@
 import inspect
-import os
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Callable, TypeVar, Union
 
-from arcade.core.tool import ToolAuthorizationRequirement
 from arcade.core.utils import snake_to_pascal_case
+from arcade.sdk.auth import ToolAuthorization
 
 T = TypeVar("T")
 
@@ -13,7 +12,7 @@ def tool(
     func: Callable | None = None,
     desc: str | None = None,
     name: str | None = None,
-    requires_auth: Union[ToolAuthorizationRequirement, None] = None,
+    requires_auth: Union[ToolAuthorization, None] = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
@@ -28,12 +27,3 @@ def tool(
     if func:  # This means the decorator is used without parameters
         return decorator(func)
     return decorator
-
-
-def get_secret(name: str, default: Optional[Any] = None) -> Any:
-    secret = os.getenv(name)
-    if secret is None:
-        if default is not None:
-            return default
-        raise ValueError(f"Secret {name} is not set.")
-    return secret

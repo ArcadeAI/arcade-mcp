@@ -4,19 +4,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
-import jwt
-
-from arcade.actor.base_auth import TOKEN_VER, TokenValidationResult
-from arcade.actor.schema import (
+from arcade.core.catalog import ToolCatalog, Toolkit
+from arcade.core.executor import ToolExecutor
+from arcade.core.schema import (
+    InvokeToolError,
+    InvokeToolOutput,
     InvokeToolRequest,
     InvokeToolResponse,
-    ToolOutput,
-    ToolOutputError,
+    ToolContext,
+    ToolDefinition,
 )
-from arcade.core.catalog import ToolCatalog, Toolkit
-from arcade.core.config import config
-from arcade.core.executor import ToolExecutor
-from arcade.core.tool import ToolDefinition
 
 
 class BaseRouter(ABC):
@@ -60,30 +57,6 @@ class BaseActor:
         """
         self.catalog = ToolCatalog()
 
-    @classmethod
-    def _validate_token(self, token: str) -> TokenValidationResult:
-        try:
-            payload = jwt.decode(
-                token,
-                config.api.secret,
-                algorithms=["HS256"],
-                verify=True,
-                issuer=config.engine_url,
-                audience="actor",
-            )
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
-            return TokenValidationResult(valid=False, error=str(e))
-
-        api_key = payload.get("api_key")
-        if api_key != config.api.key:
-            return TokenValidationResult(valid=False, error="Invalid API key")
-
-        token_ver = payload.get("ver")
-        if token_ver != TOKEN_VER:
-            return TokenValidationResult(valid=False, error=f"Unknown token version: {token_ver}")
-
-        return TokenValidationResult(valid=True, api_key=api_key)
-
     def get_catalog(self) -> list[ToolDefinition]:
         """
         Get the catalog as a list of ToolDefinitions.
@@ -117,14 +90,16 @@ class BaseActor:
 
         response = await ToolExecutor.run(
             func=materialized_tool.tool,
+            definition=materialized_tool.definition,
             input_model=materialized_tool.input_model,
             output_model=materialized_tool.output_model,
+            context=tool_request.context or ToolContext(),
             **tool_request.inputs or {},
         )
         if response.code == 200 and response.data is not None:
-            output = ToolOutput(value=response.data.result)
+            output = InvokeToolOutput(value=response.data.result)
         else:
-            output = ToolOutput(error=ToolOutputError(message=response.msg))
+            output = InvokeToolOutput(error=InvokeToolError(message=response.msg))
 
         end_time = time.time()  # End time in seconds
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds

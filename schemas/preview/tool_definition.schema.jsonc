@@ -129,7 +129,10 @@
                       "format": "uri"
                     },
                     "scope": {
-                      "type": "string"
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": ["url"],

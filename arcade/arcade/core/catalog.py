@@ -22,8 +22,11 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
-from arcade.core.tool import (
+from arcade.core.schema import (
     InputParameter,
+    OAuth2Requirement,
+    ToolAuthRequirement,
+    ToolContext,
     ToolDefinition,
     ToolInputs,
     ToolOutput,
@@ -38,6 +41,7 @@ from arcade.core.utils import (
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
+from arcade.sdk.auth import OAuth2
 
 WireType = Literal["string", "integer", "float", "boolean", "json"]
 
@@ -176,6 +180,12 @@ class ToolCatalog(BaseModel):
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
             raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
 
+        auth_requirement = getattr(tool, "__tool_requires_auth__", None)
+        if isinstance(auth_requirement, OAuth2):
+            auth_requirement = ToolAuthRequirement(
+                oauth2=OAuth2Requirement(**auth_requirement.model_dump())
+            )
+
         return ToolDefinition(
             name=snake_to_pascal_case(tool_name),
             description=tool_description,
@@ -183,7 +193,7 @@ class ToolCatalog(BaseModel):
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(
-                authorization=getattr(tool, "__tool_requires_auth__", None),
+                auth=auth_requirement,
             ),
         )
 
@@ -193,7 +203,18 @@ def create_input_definition(func: Callable) -> ToolInputs:
     Create an input model for a function based on its parameters.
     """
     input_parameters = []
+    tool_context_param_name: str | None = None
+
     for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+        if param.annotation is ToolContext:
+            if tool_context_param_name is not None:
+                raise ToolDefinitionError(
+                    f"Only one ToolContext parameter is supported, but tool {func.__name__} has multiple."
+                )
+
+            tool_context_param_name = param.name
+            continue  # No further processing of this param (don't add it to the list of inputs)
+
         tool_field_info = extract_field_info(param)
 
         is_enum = False
@@ -222,7 +243,9 @@ def create_input_definition(func: Callable) -> ToolInputs:
             )
         )
 
-    return ToolInputs(parameters=input_parameters)
+    return ToolInputs(
+        parameters=input_parameters, tool_context_parameter_name=tool_context_param_name
+    )
 
 
 def create_output_definition(func: Callable) -> ToolOutput:
@@ -455,6 +478,10 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
     for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+        # Skip ToolContext parameters
+        if param.annotation is ToolContext:
+            continue
+
         # TODO make this cleaner
         tool_field_info = extract_field_info(param)
         param_fields = {
