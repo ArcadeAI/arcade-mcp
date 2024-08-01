@@ -21,6 +21,7 @@ async def list_drive_files(
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first time.
+    # TODO: use context.authorization.token like gmail.py
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json")
     # If there are no (valid) credentials available, let the user log in.

@@ -33,7 +33,6 @@ async def chat(request: ChatRequest):
             max_tokens=150,
             tools=["add", "subtract", "multiply", "divide", "sqrt"],
             tool_choice="execute",
-            user="nate@arcade-ai.com",  # TODO get this from header or cookie
         )
         chat_completion = raw_response.parse()
 

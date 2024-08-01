@@ -14,7 +14,7 @@ class OAuth2(ToolAuthorization):
     """Marks a tool as requiring OAuth 2.0 authorization."""
 
     authority: AnyUrl
-    """The URL to which the user should be redirected to authorize the tool."""
+    """The URL of the OAuth 2.0 authorization server."""
 
     scope: Optional[list[str]] = None
-    """The scope of the authorization."""
+    """The scope(s) needed for the authorized action."""

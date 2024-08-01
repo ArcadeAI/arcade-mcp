@@ -12,7 +12,7 @@ from arcade.sdk import tool
 
 @tool(
     requires_auth=OAuth2(
-        authority="https://accounts.google.com",  # Discovery document is hosted at /.well-known/openid-configuration
+        authority="https://accounts.google.com",
         scope=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
