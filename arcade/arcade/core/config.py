@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import toml
-from pydantic import BaseModel, ValidationError, constr
+from pydantic import BaseModel, ValidationError, field_validator
 
 from arcade.core.env import settings
 
@@ -115,8 +115,7 @@ class Config(BaseModel):
             # Create a file using the default configuration
             # Don't do cls() directly because then Pydantic will complain about missing fields
             default_config = cls.__new__(cls)
-            default_config.__init__(api=ApiConfig.__new__(ApiConfig))
-            default_config.api.__init__(key="", secret="")
+            default_config.__init__(api=ApiConfig.__new__(ApiConfig), engine=EngineConfig())
             default_config.save_to_file()
 
         config_data = toml.loads(config_file_path.read_text())
