@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import toml
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, ValidationError
 
 from arcade.core.env import settings
 
@@ -113,9 +113,9 @@ class Config(BaseModel):
         config_file_path = cls.get_config_file_path()
         if not config_file_path.exists():
             # Create a file using the default configuration
-            # Don't do cls() directly because then Pydantic will complain about missing fields
-            default_config = cls.__new__(cls)
-            default_config.__init__(api=ApiConfig.__new__(ApiConfig), engine=EngineConfig())
+            default_config = cls.model_construct(
+                api=ApiConfig.model_construct(), engine=EngineConfig()
+            )
             default_config.save_to_file()
 
         config_data = toml.loads(config_file_path.read_text())
@@ -127,7 +127,9 @@ class Config(BaseModel):
             # into a nicely-formatted string message.
             # Any other errors without {type:missing} should just be str()ed
             missing_field_errors = [
-                ".".join(error["loc"]) for error in e.errors() if error["type"] == "missing"
+                ".".join(map(str, error["loc"]))
+                for error in e.errors()
+                if error["type"] == "missing"
             ]
             other_errors = [str(error) for error in e.errors() if error["type"] != "missing"]
 

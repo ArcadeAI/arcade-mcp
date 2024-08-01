@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 import jwt
+
 from arcade.core.config import config
 
 TOKEN_VER = "1"  # noqa: S105 Possible hardcoded password assigned (false positive)
