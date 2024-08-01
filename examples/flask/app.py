@@ -1,14 +1,9 @@
-from pathlib import Path
-import sys
 from arcade.actor.flask.actor import FlaskActor
 from flask import Flask, jsonify, request
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
-# TODO: remove this
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from examples.math.arcade_arithmetic.tools import arithmetic
+from arcade_arithmetic.tools import arithmetic
 
 
 client = OpenAI(base_url="http://localhost:6901")

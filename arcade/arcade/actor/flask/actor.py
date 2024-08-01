@@ -1,10 +1,11 @@
 import asyncio
 from typing import Any, Callable
 
-from arcade.actor.base import BaseActor, BaseRouter, RequestData
-from arcade.actor.utils import is_async_callable
 from flask import Flask, request
 from pydantic import BaseModel
+
+from arcade.actor.base import BaseActor, BaseRouter, RequestData
+from arcade.actor.utils import is_async_callable
 
 
 class FlaskActor(BaseActor):

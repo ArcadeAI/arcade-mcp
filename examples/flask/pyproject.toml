@@ -8,6 +8,7 @@ authors = ["Nate <nate@arcade-ai.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^3.0.3"
+arcade-arithmetic = {path = "../math", develop = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4"
