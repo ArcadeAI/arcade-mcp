@@ -3,9 +3,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable
 
-import jwt
-
-from arcade.actor.base_auth import TOKEN_VER, TokenValidationResult
 from arcade.actor.schema import (
     InvokeToolRequest,
     InvokeToolResponse,
@@ -13,7 +10,6 @@ from arcade.actor.schema import (
     ToolOutputError,
 )
 from arcade.core.catalog import ToolCatalog, Toolkit
-from arcade.core.config import config
 from arcade.core.executor import ToolExecutor
 from arcade.core.tool import ToolDefinition
 
@@ -42,30 +38,6 @@ class BaseActor:
         Initialize the BaseActor with an empty ToolCatalog.
         """
         self.catalog = ToolCatalog()
-
-    @classmethod
-    def _validate_token(self, token: str) -> TokenValidationResult:
-        try:
-            payload = jwt.decode(
-                token,
-                config.api.secret,
-                algorithms=["HS256"],
-                verify=True,
-                issuer=config.engine_url,
-                audience="actor",
-            )
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError) as e:
-            return TokenValidationResult(valid=False, error=str(e))
-
-        api_key = payload.get("api_key")
-        if api_key != config.api.key:
-            return TokenValidationResult(valid=False, error="Invalid API key")
-
-        token_ver = payload.get("ver")
-        if token_ver != TOKEN_VER:
-            return TokenValidationResult(valid=False, error=f"Unknown token version: {token_ver}")
-
-        return TokenValidationResult(valid=True, api_key=api_key)
 
     def get_catalog(self) -> list[ToolDefinition]:
         """
