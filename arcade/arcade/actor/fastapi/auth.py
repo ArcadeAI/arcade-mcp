@@ -3,7 +3,7 @@ from typing import cast
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from arcade.actor.auth import validate_token
+from arcade.actor.core.auth import validate_token
 
 security = HTTPBearer()  # Authorization: Bearer <xxx>
 
@@ -13,7 +13,7 @@ security = HTTPBearer()  # Authorization: Bearer <xxx>
 async def get_api_key(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> str:
-    jwt = credentials.credentials
+    jwt: str = credentials.credentials
     validation_result = validate_token(jwt)
 
     if not validation_result.valid:

@@ -1,5 +1,5 @@
-import time
 from abc import ABC, abstractmethod
+import time
 from datetime import datetime
 from typing import Any, Callable
 

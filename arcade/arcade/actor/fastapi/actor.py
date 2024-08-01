@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
-from arcade.actor.base import BaseActor
+from arcade.actor.core.base import BaseActor
 
 
 class FastAPIActor(BaseActor):

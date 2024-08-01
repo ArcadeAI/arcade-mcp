@@ -15,7 +15,7 @@ class TokenValidationResult:
     error: str | None = None
 
 
-class SigningAlgorithm(Enum):
+class SigningAlgorithm(str, Enum):
     HS256 = "HS256"
 
 
@@ -24,7 +24,7 @@ def validate_token(token: str) -> TokenValidationResult:
         payload = jwt.decode(
             token,
             config.api.secret,
-            algorithms=[SigningAlgorithm.HS256.value],
+            algorithms=[SigningAlgorithm.HS256],
             verify=True,
             issuer=config.engine_url,
             audience="actor",
