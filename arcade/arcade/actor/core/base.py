@@ -1,9 +1,9 @@
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
+from arcade.actor.core.common import RequestData
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
@@ -23,13 +23,6 @@ class BaseRouter(ABC):
         Add a route to the router.
         """
         pass
-
-
-@dataclass
-class RequestData:
-    path: str
-    method: str
-    body: Any
 
 
 class ActorComponent(ABC):

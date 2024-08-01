@@ -4,7 +4,8 @@ from typing import Any, Callable
 from flask import Flask, request
 from pydantic import BaseModel
 
-from arcade.actor.base import BaseActor, BaseRouter, RequestData
+from arcade.actor.core.base import BaseActor, BaseRouter
+from arcade.actor.core.common import RequestData
 from arcade.actor.utils import is_async_callable
 
 

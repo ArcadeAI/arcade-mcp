@@ -2,8 +2,8 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
-from arcade.actor.utils import is_async_callable
 from arcade.actor.core.base import BaseActor, BaseRouter
+from arcade.actor.utils import is_async_callable
 
 
 class FastAPIActor(BaseActor):
