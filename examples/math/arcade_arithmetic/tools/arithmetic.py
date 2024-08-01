@@ -15,6 +15,16 @@ def add(
 
 
 @tool
+def subtract(
+    a: Annotated[int, "The first number"], b: Annotated[int, "The second number"]
+) -> Annotated[int, "The difference of the two numbers"]:
+    """
+    Subtract two numbers
+    """
+    return a - b
+
+
+@tool
 def multiply(
     a: Annotated[int, "The first number"], b: Annotated[int, "The second number"]
 ) -> Annotated[int, "The product of the two numbers"]:

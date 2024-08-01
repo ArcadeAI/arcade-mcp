@@ -2,8 +2,8 @@ from arcade.actor.fastapi.actor import FastAPIActor
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from openai import AsyncOpenAI
-from arcade_example_nate.tools import arithmetic
-from arcade_gmail.tools import gmail
+
+from tools import arithmetic
 
 
 client = AsyncOpenAI(base_url="http://localhost:6901")
@@ -15,7 +15,6 @@ actor.register_tool(arithmetic.add)
 actor.register_tool(arithmetic.multiply)
 actor.register_tool(arithmetic.divide)
 actor.register_tool(arithmetic.sqrt)
-actor.register_tool(gmail.get_emails)
 
 
 class ChatRequest(BaseModel):
@@ -31,7 +30,8 @@ async def chat(request: ChatRequest):
                 {"role": "user", "content": request.message},
             ],
             model="gpt-4o-mini",
-            max_tokens=300,
+            max_tokens=150,
+            tools=["add", "subtract", "multiply", "divide", "sqrt"],
             tool_choice="execute",
             user="nate@arcade-ai.com",  # TODO get this from header or cookie
         )

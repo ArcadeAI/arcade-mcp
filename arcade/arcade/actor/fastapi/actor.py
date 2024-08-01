@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
-from arcade.actor.base import BaseActor
+from arcade.actor.core.base import BaseActor
 
 
 class FastAPIActor(BaseActor):
@@ -14,13 +14,14 @@ class FastAPIActor(BaseActor):
         """
         super().__init__()
         self.app = app
-        self.router = FastAPIRouter(app)
+        self.router = FastAPIRouter(app, self)
         self.register_routes(self.router)
 
 
 class FastAPIRouter:  # TODO create an interface for this
-    def __init__(self, app: FastAPI) -> None:
+    def __init__(self, app: FastAPI, actor: BaseActor) -> None:
         self.app = app
+        self.actor = actor
 
     def add_route(self, path: str, handler: Callable, methods: str) -> None:
         """
@@ -43,7 +44,10 @@ class FastAPIRouter:  # TODO create an interface for this
         Wrap the handler to handle FastAPI-specific request and response.
         """
 
-        async def wrapped_handler(request: Request) -> Any:
+        async def wrapped_handler(
+            request: Request,
+            # api_key: str = Depends(get_api_key), # TODO re-enable when Engine supports auth
+        ) -> Any:
             if asyncio.iscoroutinefunction(handler) or (
                 callable(handler) and asyncio.iscoroutinefunction(handler.__call__)  # type: ignore[operator]
             ):
