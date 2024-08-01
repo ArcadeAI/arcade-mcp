@@ -1,17 +1,17 @@
 import re
 
 from base64 import urlsafe_b64decode
-from arcade.actor.schema import ToolContext
-from arcade.core.tool import OAuth2Requirement
+from arcade.core.schema import ToolContext
+from arcade.sdk.auth import OAuth2
 from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from typing import Annotated
-from arcade.sdk.tool import tool
+from arcade.sdk import tool
 
 
 @tool(
-    requires_auth=OAuth2Requirement(
+    requires_auth=OAuth2(
         authority="https://accounts.google.com",  # Discovery document is hosted at /.well-known/openid-configuration
         scope=["https://www.googleapis.com/auth/gmail.readonly"],
     )

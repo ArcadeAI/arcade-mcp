@@ -119,7 +119,7 @@ def create_new_toolkit(directory: str) -> None:
         os.path.join(toolkit_dir, "tools", "hello.py"),
         dedent(
             f"""
-        from arcade.sdk.tool import tool
+        from arcade.sdk import tool
 
         @tool
         def hello() -> str:

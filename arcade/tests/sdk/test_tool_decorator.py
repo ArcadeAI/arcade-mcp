@@ -2,7 +2,8 @@ import asyncio
 
 import pytest
 
-from arcade.sdk.tool import OAuth2Authorization, tool
+from arcade.sdk import tool
+from arcade.sdk.auth import OAuth2
 
 
 def test_sync_function():
@@ -37,7 +38,7 @@ def test_tool_decorator_with_all_options():
     @tool(
         name="TestTool",
         desc="Test description",
-        requires_auth=OAuth2Authorization(
+        requires_auth=OAuth2(
             authority="https://example.com/oauth2/auth",
             scope=["test_scope", "another.scope"],
         ),

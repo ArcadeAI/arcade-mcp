@@ -4,7 +4,6 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, ValidationError
 
-from arcade.actor.schema import ToolContext
 from arcade.core.errors import (
     ToolExecutionError,
     ToolInputError,
@@ -12,6 +11,7 @@ from arcade.core.errors import (
     ToolSerializationError,
 )
 from arcade.core.response import ToolResponse, tool_response
+from arcade.core.schema import ToolContext
 
 
 class ToolExecutor:

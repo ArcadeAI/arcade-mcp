@@ -6,7 +6,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
 from typing import Annotated
-from arcade.sdk.tool import tool
+from arcade.sdk import tool
 
 SECRET_FILE = "/Users/spartee/Dropbox/Arcade/gcp/credentials.json"
 DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]

@@ -2,19 +2,20 @@ from typing import Annotated, Literal, Optional
 
 import pytest
 
-from arcade.actor.schema import ToolContext
 from arcade.core.catalog import ToolCatalog
-from arcade.core.tool import (
+from arcade.core.schema import (
     InputParameter,
-    OAuth2AuthorizationRequirement,
-    ToolAuthorizationRequirement,
+    OAuth2Requirement,
+    ToolAuthRequirement,
+    ToolContext,
     ToolInputs,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
 )
+from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.tool import OAuth2Authorization, tool
+from arcade.sdk.auth import OAuth2
 
 
 ### Tests on @tool decorator
@@ -45,9 +46,7 @@ def func_with_name_and_description():
 
 @tool(
     desc="A function that requires authentication",
-    requires_auth=OAuth2Authorization(
-        authority="https://example.com/oauth2/auth", scope=["scope1", "scope2"]
-    ),
+    requires_auth=OAuth2(authority="https://example.com/oauth2/auth", scope=["scope1", "scope2"]),
 )
 def func_with_auth_requirement():
     pass
@@ -192,15 +191,15 @@ def func_with_complex_return() -> list[dict[str, str]]:
         ),
         pytest.param(
             func_with_name_and_description,
-            {"name": "MyCustomTool", "requirements": ToolRequirements(authorization=None)},
+            {"name": "MyCustomTool", "requirements": ToolRequirements(auth=None)},
             id="func_with_no_auth_requirement",
         ),
         pytest.param(
             func_with_auth_requirement,
             {
                 "requirements": ToolRequirements(
-                    authorization=ToolAuthorizationRequirement(
-                        oauth2=OAuth2AuthorizationRequirement(
+                    auth=ToolAuthRequirement(
+                        oauth2=OAuth2Requirement(
                             authority="https://example.com/oauth2/auth",
                             scope=["scope1", "scope2"],
                         )

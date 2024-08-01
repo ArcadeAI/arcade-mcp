@@ -5,7 +5,7 @@ from pydantic import Field
 
 from arcade.core.catalog import ToolCatalog
 from arcade.core.errors import ToolDefinitionError
-from arcade.sdk.tool import tool
+from arcade.sdk import tool
 
 
 @tool

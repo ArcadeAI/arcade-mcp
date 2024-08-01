@@ -21,12 +21,12 @@ from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-from arcade.actor.schema import ToolContext
 from arcade.core.errors import ToolDefinitionError
-from arcade.core.tool import (
+from arcade.core.schema import (
     InputParameter,
-    OAuth2AuthorizationRequirement,
-    ToolAuthorizationRequirement,
+    OAuth2Requirement,
+    ToolAuthRequirement,
+    ToolContext,
     ToolDefinition,
     ToolInputs,
     ToolOutput,
@@ -41,7 +41,7 @@ from arcade.core.utils import (
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.tool import OAuth2Authorization
+from arcade.sdk.auth import OAuth2
 
 WireType = Literal["string", "integer", "float", "boolean", "json"]
 
@@ -181,9 +181,9 @@ class ToolCatalog(BaseModel):
             raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
 
         auth_requirement = getattr(tool, "__tool_requires_auth__", None)
-        if isinstance(auth_requirement, OAuth2Authorization):
-            auth_requirement = ToolAuthorizationRequirement(
-                oauth2=OAuth2AuthorizationRequirement(**auth_requirement.model_dump())
+        if isinstance(auth_requirement, OAuth2):
+            auth_requirement = ToolAuthRequirement(
+                oauth2=OAuth2Requirement(**auth_requirement.model_dump())
             )
 
         return ToolDefinition(
@@ -193,7 +193,7 @@ class ToolCatalog(BaseModel):
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(
-                authorization=auth_requirement,
+                auth=auth_requirement,
             ),
         )
 
