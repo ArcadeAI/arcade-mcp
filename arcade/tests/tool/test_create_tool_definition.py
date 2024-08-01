@@ -128,7 +128,7 @@ def func_with_complex_param(param1: Annotated[list[str], "A list of strings"]):
 
 
 @tool(desc="A function that takes a context")
-def func_with_context(context: ToolContext):
+def func_with_context(my_context: ToolContext):
     pass
 
 
@@ -438,7 +438,8 @@ def func_with_complex_return() -> list[dict[str, str]]:
                             required=False,  # Because a default value is provided
                             value_schema=ValueSchema(val_type="integer", enum=None),
                         ),
-                    ]
+                    ],
+                    tool_context_parameter_name="context",
                 ),
             },
             id="func_with_mixed_params",
@@ -463,7 +464,9 @@ def func_with_complex_return() -> list[dict[str, str]]:
         pytest.param(
             func_with_context,
             {
-                "inputs": ToolInputs(parameters=[]),  # ToolContext type is not an input param
+                "inputs": ToolInputs(
+                    parameters=[], tool_context_parameter_name="my_context"
+                ),  # ToolContext type is not an input param, but it's stored in the inputs field
             },
             id="func_with_context",
         ),

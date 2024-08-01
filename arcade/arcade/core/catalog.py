@@ -203,15 +203,17 @@ def create_input_definition(func: Callable) -> ToolInputs:
     Create an input model for a function based on its parameters.
     """
     input_parameters = []
-    has_context = False
-    for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
-        # Skip ToolContext parameters
-        if param.annotation is ToolContext:
-            if has_context:
-                raise ToolDefinitionError(f"Tool {func.__name__} has multiple context parameters.")
+    tool_context_param_name: str | None = None
 
-            has_context = True
-            continue
+    for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+        if param.annotation is ToolContext:
+            if tool_context_param_name is not None:
+                raise ToolDefinitionError(
+                    f"Only one ToolContext parameter is supported, but tool {func.__name__} has multiple."
+                )
+
+            tool_context_param_name = param.name
+            continue  # No further processing of this param (don't add it to the list of inputs)
 
         tool_field_info = extract_field_info(param)
 
@@ -241,7 +243,9 @@ def create_input_definition(func: Callable) -> ToolInputs:
             )
         )
 
-    return ToolInputs(parameters=input_parameters)
+    return ToolInputs(
+        parameters=input_parameters, tool_context_parameter_name=tool_context_param_name
+    )
 
 
 def create_output_definition(func: Callable) -> ToolOutput:

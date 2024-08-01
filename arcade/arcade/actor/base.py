@@ -73,6 +73,7 @@ class BaseActor:
 
         response = await ToolExecutor.run(
             func=materialized_tool.tool,
+            definition=materialized_tool.definition,
             input_model=materialized_tool.input_model,
             output_model=materialized_tool.output_model,
             context=tool_request.context or ToolContext(),

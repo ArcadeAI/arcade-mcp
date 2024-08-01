@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
 
@@ -39,6 +39,12 @@ class ToolInputs(BaseModel):
 
     parameters: list[InputParameter]
     """The list of parameters that the tool accepts."""
+
+    tool_context_parameter_name: str | None = Field(default=None, exclude=True)
+    """
+    The name of the target parameter that will contain the tool context (if any).
+    This field will not be included in serialization.
+    """
 
 
 class ToolOutput(BaseModel):
@@ -148,8 +154,8 @@ class InvokeToolOutput(BaseModel):
     error: InvokeToolError | None = None
     """The error that occurred during the tool invocation."""
 
-    class Config:
-        json_schema_extra: ClassVar[dict] = {
+    model_config = {
+        "json_schema_extra": {
             "oneOf": [
                 {"required": ["value"]},
                 {"required": ["error"]},
@@ -157,6 +163,7 @@ class InvokeToolOutput(BaseModel):
                 {"required": ["artifact"]},
             ]
         }
+    }
 
 
 class InvokeToolResponse(BaseModel):
