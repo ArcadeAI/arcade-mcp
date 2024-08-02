@@ -2,10 +2,10 @@ name: "setup-poetry-env"
 description: "Composite action to setup the Python and poetry environment."
 
 inputs:
-   python-version:
-     required: false
-     description: "The python version to use"
-     default: "3.11"
+  python-version:
+    required: false
+    description: "The python version to use"
+    default: "3.11"
 
 runs:
   using: "composite"
@@ -19,6 +19,7 @@ runs:
       uses: snok/install-poetry@v1
       with:
         virtualenvs-in-project: true
+        installation-arguments: --all-extras
 
     - name: Load cached venv
       id: cached-poetry-dependencies

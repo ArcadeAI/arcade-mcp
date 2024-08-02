@@ -42,8 +42,6 @@ jobs:
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
-        with:
-          installation-arguments: --all-extras
 
       - name: Load cached venv
         uses: actions/cache@v4
