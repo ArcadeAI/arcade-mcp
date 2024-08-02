@@ -1,0 +1,2 @@
+# Un-ignore poetry.lock because the projects in this directory represent runnable apps
+!poetry.lock
