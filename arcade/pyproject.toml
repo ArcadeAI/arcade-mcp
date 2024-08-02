@@ -15,16 +15,16 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 pydantic = "^2.7.0"
-fastapi = "^0.110.0"
 pydantic-settings = "^2.2.1"
 typer = "^0.9.0"
 rich = "^13.7.1"
 toml = "^0.10.2"
 tomlkit = "^0.12.4"
-requests = "^2.26.0"
-
-openai = "^1.36.0"
+requests = "^2.26.0" # TODO: is this really needed?
+openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
 pyjwt = "^2.8.0"
+
+fastapi = { version = "^0.110.0", optional = true }
 flask = { version = "^3.0.3", optional = true }
 
 [tool.poetry.group.dev.dependencies]
@@ -38,6 +38,7 @@ pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
 
 [tool.poetry.extras]
+fastapi = ["fastapi"]
 flask = ["flask"]
 
 [tool.poetry.group.docs.dependencies]
