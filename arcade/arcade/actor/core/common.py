@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 from pydantic import BaseModel
 
-from arcade.core.schema import InvokeToolRequest, InvokeToolResponse, ToolDefinition
+from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 
 
 class RequestData(BaseModel):
@@ -37,7 +37,7 @@ class Router(ABC):
 class Actor(ABC):
     """
     An Actor represents a collection of tools that is hosted inside a web framework
-    and can be invoked by an Engine.
+    and can be called by an Engine.
     """
 
     @abstractmethod
@@ -45,7 +45,7 @@ class Actor(ABC):
         pass
 
     @abstractmethod
-    async def invoke_tool(self, request: InvokeToolRequest) -> InvokeToolResponse:
+    async def call_tool(self, request: ToolCallRequest) -> ToolCallResponse:
         pass
 
     @abstractmethod

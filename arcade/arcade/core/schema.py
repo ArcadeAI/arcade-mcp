@@ -120,8 +120,8 @@ class ToolContext(BaseModel):
     """The authorization context for the tool invocation that requires authorization."""
 
 
-class InvokeToolRequest(BaseModel):
-    """The request to invoke a tool."""
+class ToolCallRequest(BaseModel):
+    """The request to call (invoke) a tool."""
 
     run_id: str
     """The globally-unique run ID provided by the Engine."""
@@ -166,7 +166,7 @@ class ToolCallOutput(BaseModel):
     }
 
 
-class InvokeToolResponse(BaseModel):
+class ToolCallResponse(BaseModel):
     """The response to a tool invocation."""
 
     invocation_id: str

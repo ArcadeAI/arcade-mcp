@@ -1,7 +1,7 @@
 from typing import Any
 
 from arcade.actor.core.common import Actor, ActorComponent, RequestData, Router
-from arcade.core.schema import InvokeToolRequest, InvokeToolResponse, ToolDefinition
+from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 
 
 class CatalogComponent(ActorComponent):
@@ -21,23 +21,23 @@ class CatalogComponent(ActorComponent):
         return self.actor.get_catalog()
 
 
-class InvokeToolComponent(ActorComponent):
+class CallToolComponent(ActorComponent):
     def __init__(self, actor: Actor) -> None:
         self.actor = actor
 
     def register(self, router: Router) -> None:
         """
-        Register the invoke tool route with the router.
+        Register the call tool route with the router.
         """
         router.add_route("tools/invoke", self, method="POST")
 
-    async def __call__(self, request: RequestData) -> InvokeToolResponse:
+    async def __call__(self, request: RequestData) -> ToolCallResponse:
         """
-        Handle the request to invoke a tool.
+        Handle the request to call (invoke) a tool.
         """
-        invoke_tool_request_data = request.body_json
-        invoke_tool_request = InvokeToolRequest.model_validate(invoke_tool_request_data)
-        return await self.actor.invoke_tool(invoke_tool_request)
+        call_tool_request_data = request.body_json
+        call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
+        return await self.actor.call_tool(call_tool_request)
 
 
 class HealthCheckComponent(ActorComponent):

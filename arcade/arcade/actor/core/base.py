@@ -7,13 +7,13 @@ from arcade.actor.core.components import (
     ActorComponent,
     CatalogComponent,
     HealthCheckComponent,
-    InvokeToolComponent,
+    CallToolComponent,
 )
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
-    InvokeToolRequest,
-    InvokeToolResponse,
+    ToolCallRequest,
+    ToolCallResponse,
     ToolCallError,
     ToolCallOutput,
     ToolContext,
@@ -31,7 +31,7 @@ class BaseActor(Actor):
 
     default_components: ClassVar[tuple[type[ActorComponent], ...]] = (
         CatalogComponent,
-        InvokeToolComponent,
+        CallToolComponent,
         HealthCheckComponent,
     )
 
@@ -59,9 +59,9 @@ class BaseActor(Actor):
         """
         self.catalog.add_toolkit(toolkit)
 
-    async def invoke_tool(self, tool_request: InvokeToolRequest) -> InvokeToolResponse:
+    async def call_tool(self, tool_request: ToolCallRequest) -> ToolCallResponse:
         """
-        Invoke a tool using the ToolExecutor.
+        Call (invoke) a tool using the ToolExecutor.
         """
         tool_name = tool_request.tool.name
         tool = self.catalog.get_tool(tool_name)
@@ -88,7 +88,7 @@ class BaseActor(Actor):
         end_time = time.time()  # End time in seconds
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
-        return InvokeToolResponse(
+        return ToolCallResponse(
             invocation_id=tool_request.invocation_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),

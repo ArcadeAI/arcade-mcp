@@ -24,11 +24,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the tool to invoke"
+          "description": "Name of the tool to call (invoke)"
         },
         "version": {
           "type": "string",
-          "description": "Version of the named tool to invoke"
+          "description": "Version of the named tool to call (invoke)"
         }
       },
       "required": ["name", "version"],
