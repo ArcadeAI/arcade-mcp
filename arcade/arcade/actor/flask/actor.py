@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from flask import Flask, request
 from pydantic import BaseModel
@@ -32,7 +32,9 @@ class FlaskRouter(BaseRouter):
             request_data = RequestData(
                 path=request.path,
                 method=request.method,
-                body=request.get_json() if request.is_json else request.data,
+                body=request.get_json()
+                if request.is_json
+                else cast(str, request.get_data(as_text=True)),
             )
 
             if is_async_callable(handler):
