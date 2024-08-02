@@ -1,28 +1,7 @@
-from abc import ABC, abstractmethod
 from typing import Any
-from arcade.actor.core import Actor, Router
 
-from arcade.actor.core.common import RequestData
+from arcade.actor.core.common import Actor, ActorComponent, RequestData, Router
 from arcade.core.schema import InvokeToolRequest, InvokeToolResponse, ToolDefinition
-
-
-class ActorComponent(ABC):
-    def __init__(self, actor: Actor) -> None:
-        self.actor = actor
-
-    @abstractmethod
-    def register(self, router: Router) -> None:
-        """
-        Register the component with the given router.
-        """
-        pass
-
-    @abstractmethod
-    async def __call__(self, request: RequestData) -> Any:
-        """
-        Handle the request.
-        """
-        pass
 
 
 class CatalogComponent(ActorComponent):

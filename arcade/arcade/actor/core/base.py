@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 from typing import Any, Callable, ClassVar
 
-from arcade.actor.core import Actor, Router
+from arcade.actor.core.common import Actor, Router
 from arcade.actor.core.components import (
     ActorComponent,
     CatalogComponent,
