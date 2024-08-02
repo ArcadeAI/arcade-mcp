@@ -12,5 +12,5 @@ class RequestData(BaseModel):
     """The path of the request."""
     method: str
     """The method of the request."""
-    body: str | None = None
+    body_json: dict | None = None
     """The deserialized body of the request (e.g. JSON)"""

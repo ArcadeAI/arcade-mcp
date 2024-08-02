@@ -1,12 +1,21 @@
+import json
 from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 
-from arcade.actor.core.base import BaseActor, BaseRouter
+from arcade.actor.core.base import (
+    BaseActor,
+    Router,
+)
+from arcade.actor.core.common import RequestData
 from arcade.actor.utils import is_async_callable
 
 
 class FastAPIActor(BaseActor):
+    """
+    An Arcade Actor that is hosted inside a FastAPI app.
+    """
+
     def __init__(self, app: FastAPI) -> None:
         """
         Initialize the FastAPIActor with a FastAPI app
@@ -18,7 +27,7 @@ class FastAPIActor(BaseActor):
         self.register_routes(self.router)
 
 
-class FastAPIRouter(BaseRouter):
+class FastAPIRouter(Router):
     def __init__(self, app: FastAPI, actor: BaseActor) -> None:
         self.app = app
         self.actor = actor
@@ -32,25 +41,25 @@ class FastAPIRouter(BaseRouter):
             request: Request,
             # api_key: str = Depends(get_api_key), # TODO re-enable when Engine supports auth
         ) -> Any:
+            body_str = await request.body()
+            body_json = json.loads(body_str) if body_str else {}
+            request_data = RequestData(
+                path=request.url.path,
+                method=request.method,
+                body_json=body_json,
+            )
+
             if is_async_callable(handler):
-                return await handler(request)
+                return await handler(request_data)
             else:
-                return handler(request)
+                return handler(request_data)
 
         return wrapped_handler
 
-    def add_route(self, path: str, handler: Callable, method: str) -> None:
+    def add_route(self, endpoint_path: str, handler: Callable, method: str) -> None:
         """
         Add a route to the FastAPI application.
         """
-        for m in method:
-            if m == "GET":
-                self.app.get(path)(self._wrap_handler(handler))
-            elif m == "POST":
-                self.app.post(path)(self._wrap_handler(handler))
-            elif m == "PUT":
-                self.app.put(path)(self._wrap_handler(handler))
-            elif m == "DELETE":
-                self.app.delete(path)(self._wrap_handler(handler))
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
+        self.app.add_api_route(
+            f"{self.actor.base_path}/{endpoint_path}", self._wrap_handler(handler), methods=[method]
+        )

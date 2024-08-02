@@ -1,9 +1,14 @@
 import time
-from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, ClassVar
 
-from arcade.actor.core.common import RequestData
+from arcade.actor.core import Actor, Router
+from arcade.actor.core.components import (
+    ActorComponent,
+    CatalogComponent,
+    HealthCheckComponent,
+    InvokeToolComponent,
+)
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
@@ -16,33 +21,19 @@ from arcade.core.schema import (
 )
 
 
-class BaseRouter(ABC):
-    @abstractmethod
-    def add_route(self, path: str, handler: Callable, method: str) -> None:
-        """
-        Add a route to the router.
-        """
-        pass
+class BaseActor(Actor):
+    """
+    A base actor class that provides a default implementation for registering tools and invoking them.
+    Actor implementations for specific web frameworks will inherit from this class.
+    """
 
-
-class ActorComponent(ABC):
-    @abstractmethod
-    def register(self, router: BaseRouter) -> None:
-        """
-        Register the component with the given router.
-        """
-        pass
-
-    @abstractmethod
-    async def __call__(self, request: RequestData) -> Any:
-        """
-        Handle the request.
-        """
-        pass
-
-
-class BaseActor:
     base_path = "/actor"  # By default, prefix all our routes with /actor
+
+    default_components: ClassVar[tuple[type[ActorComponent], ...]] = (
+        CatalogComponent,
+        InvokeToolComponent,
+        HealthCheckComponent,
+    )
 
     def __init__(self) -> None:
         """
@@ -111,67 +102,9 @@ class BaseActor:
         """
         return {"status": "ok", "tool_count": len(self.catalog.tools.keys())}
 
-    def register_routes(self, router: BaseRouter) -> None:
+    def register_routes(self, router: Router) -> None:
         """
         Register the necessary routes to the application.
         """
-        catalog_component = CatalogComponent(self)
-        invoke_tool_component = InvokeToolComponent(self)
-        health_check_component = HealthCheckComponent(self)
-
-        catalog_component.register(router)
-        invoke_tool_component.register(router)
-        health_check_component.register(router)
-
-
-class CatalogComponent(ActorComponent):
-    def __init__(self, actor: BaseActor) -> None:
-        self.actor = actor
-
-    def register(self, router: BaseRouter) -> None:
-        """
-        Register the catalog route with the router.
-        """
-        router.add_route(f"{self.actor.base_path}/tools", self, method="GET")
-
-    async def __call__(self, request: RequestData) -> list[ToolDefinition]:
-        """
-        Handle the request to get the catalog.
-        """
-        return self.actor.get_catalog()
-
-
-class InvokeToolComponent(ActorComponent):
-    def __init__(self, actor: BaseActor) -> None:
-        self.actor = actor
-
-    def register(self, router: BaseRouter) -> None:
-        """
-        Register the invoke tool route with the router.
-        """
-        router.add_route(f"{self.actor.base_path}/tools/invoke", self, method="POST")
-
-    async def __call__(self, request: RequestData) -> InvokeToolResponse:
-        """
-        Handle the request to invoke a tool.
-        """
-        invoke_tool_request_data = request.body
-        invoke_tool_request = InvokeToolRequest.model_validate(invoke_tool_request_data)
-        return await self.actor.invoke_tool(invoke_tool_request)
-
-
-class HealthCheckComponent(ActorComponent):
-    def __init__(self, actor: BaseActor) -> None:
-        self.actor = actor
-
-    def register(self, router: BaseRouter) -> None:
-        """
-        Register the health check route with the router.
-        """
-        router.add_route(f"{self.actor.base_path}/health", self, method="GET")
-
-    async def __call__(self, request: RequestData) -> dict[str, Any]:
-        """
-        Handle the request for a health check.
-        """
-        return self.actor.health_check()
+        for component_cls in self.default_components:
+            component_cls(self).register(router)
