@@ -25,7 +25,8 @@ requests = "^2.26.0"
 
 openai = "^1.36.0"
 pyjwt = "^2.8.0"
-flask = "^3.0.3"
+flask = { version = "^3.0.3", optional = true }
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
@@ -35,6 +36,9 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
+
+[tool.poetry.extras]
+flask = ["flask"]
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
