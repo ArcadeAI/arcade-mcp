@@ -19,7 +19,6 @@ runs:
       uses: snok/install-poetry@v1
       with:
         virtualenvs-in-project: true
-        installation-arguments: --all-extras
 
     - name: Load cached venv
       id: cached-poetry-dependencies
@@ -30,5 +29,5 @@ runs:
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: cd arcade && poetry install --no-interaction
+      run: cd arcade && poetry install --no-interaction --all-extras
       shell: bash
