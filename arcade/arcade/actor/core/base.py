@@ -5,17 +5,17 @@ from typing import Any, Callable, ClassVar
 from arcade.actor.core.common import Actor, Router
 from arcade.actor.core.components import (
     ActorComponent,
+    CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
-    CallToolComponent,
 )
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
-    ToolCallRequest,
-    ToolCallResponse,
     ToolCallError,
     ToolCallOutput,
+    ToolCallRequest,
+    ToolCallResponse,
     ToolContext,
     ToolDefinition,
 )
