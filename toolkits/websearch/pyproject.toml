@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "arcade_websearch"
+version = "0.1.0"
+description = "Tools for searching the web"
+authors = ["Sam Partee <sam@arcade-ai.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade-ai = "^0.1.0"
+serpapi = "^0.1.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
