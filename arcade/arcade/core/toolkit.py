@@ -58,10 +58,10 @@ class Toolkit(BaseModel):
             name = metadata["Name"]
             package_name = package
             version = metadata["Version"]
-            description = metadata["Summary"] if "Summary" in metadata else ""
+            description = metadata.get("Summary", "")  # type: ignore[attr-defined]
             author = metadata.get_all("Author-email")
-            homepage = metadata["Home-page"] if "Home-page" in metadata else None
-            repo = metadata["Repository"] if "Repository" in metadata else None
+            homepage = metadata.get("Home-page", None)  # type: ignore[attr-defined]
+            repo = metadata.get("Repository", None)  # type: ignore[attr-defined]
 
         except importlib.metadata.PackageNotFoundError as e:
             raise ValueError(f"Package {package} not found.") from e
@@ -104,6 +104,21 @@ class Toolkit(BaseModel):
             raise ValueError(f"No tools found in package {package}")
 
         return toolkit
+
+    @classmethod
+    def find_all_arcade_toolkits(cls) -> list["Toolkit"]:
+        """
+        Find all installed packages prefixed with 'arcade_' and load them as Toolkits.
+
+        Returns:
+            List[Toolkit]: A list of Toolkit instances.
+        """
+        arcade_packages = [
+            dist.metadata["Name"]
+            for dist in importlib.metadata.distributions()
+            if dist.metadata["Name"].startswith("arcade_")
+        ]
+        return [cls.from_package(package) for package in arcade_packages]
 
 
 def get_package_directory(package_name: str) -> str:

@@ -133,7 +133,7 @@ class ToolCallRequest(BaseModel):
     """The name and version of the tool."""
     inputs: dict[str, Any] | None = None
     """The inputs for the tool."""
-    context: ToolContext
+    context: ToolContext = Field(default_factory=ToolContext)
     """The context for the tool invocation."""
 
 

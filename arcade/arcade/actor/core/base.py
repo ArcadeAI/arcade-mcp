@@ -16,7 +16,6 @@ from arcade.core.schema import (
     ToolCallOutput,
     ToolCallRequest,
     ToolCallResponse,
-    ToolContext,
     ToolDefinition,
 )
 
@@ -77,7 +76,7 @@ class BaseActor(Actor):
             definition=materialized_tool.definition,
             input_model=materialized_tool.input_model,
             output_model=materialized_tool.output_model,
-            context=tool_request.context or ToolContext(),
+            context=tool_request.context,
             **tool_request.inputs or {},
         )
         if response.code == 200 and response.data is not None:

@@ -19,11 +19,21 @@ def get_function_name_if_decorated(
     node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
 ) -> Optional[str]:
     """
-    Check if a function has a decorator
+    Check if a function has a decorator.
     """
-    decorator_ids = {"ar.tool", "tool"}
+    decorator_ids = {"arc.tool", "tool"}
     for decorator in node.decorator_list:
-        if isinstance(decorator, ast.Name) and decorator.id in decorator_ids:
+        # if the function is decorated and the dedorator is
+        # either called, or placed on the function
+        if (
+            isinstance(decorator, ast.Name)
+            and decorator.id in decorator_ids
+            or (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Name)
+                and decorator.func.id in decorator_ids
+            )
+        ):
             return node.name
     return None
 

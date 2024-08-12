@@ -1,4 +1,3 @@
-import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -9,8 +8,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
     WORK_DIR: Path = Path.home() / ".arcade"
-    TOOLS_DIR: Path = Path(os.getcwd())
-    TOOLKIT_DIR: Path = Path(os.getcwd())
 
 
 @lru_cache
