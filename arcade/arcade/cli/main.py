@@ -378,8 +378,8 @@ def create_cli_catalog(
         else:
             # load the toolkit from python package
             try:
-                toolkit = "arcade_" + toolkit
-                toolkits = [Toolkit.from_package(toolkit)]
+                prefixed_toolkit = "arcade_" + toolkit
+                toolkits = [Toolkit.from_package(prefixed_toolkit)]
             except ValueError:
                 try:  # try without prefix
                     toolkits = [Toolkit.from_package(toolkit)]
