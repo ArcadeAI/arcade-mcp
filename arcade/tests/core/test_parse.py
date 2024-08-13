@@ -1,8 +1,8 @@
 import ast
-import pytest
-from arcade.core.parse import get_tools_from_ast
 
 import pytest
+
+from arcade.core.parse import get_tools_from_ast
 
 
 @pytest.mark.parametrize(

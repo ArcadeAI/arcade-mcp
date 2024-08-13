@@ -29,6 +29,7 @@ def get_function_name_if_decorated(
             (isinstance(decorator, ast.Name) and decorator.id in decorator_ids)
             or (
                 isinstance(decorator, ast.Attribute)
+                and isinstance(decorator.value, ast.Name)
                 and f"{decorator.value.id}.{decorator.attr}" in decorator_ids
             )
             or (
