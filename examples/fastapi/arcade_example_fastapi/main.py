@@ -1,8 +1,9 @@
-from arcade_gmail.tools import gmail
 from fastapi import FastAPI, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-from tools import arithmetic
+
+from arcade_arithmetic.tools import arithmetic
+from arcade_gmail.tools import gmail
 
 from arcade.actor.fastapi.actor import FastAPIActor
 
@@ -31,7 +32,7 @@ async def chat(request: ChatRequest, tool_choice: str = "execute"):
                 {"role": "user", "content": request.message},
             ],
             model="gpt-4o-mini",
-            max_tokens=1000,
+            max_tokens=150,
             # TODO tests for tool choice
             tools=["Add", "Multiply", "Divide", "Sqrt", "GetEmails"],
             tool_choice=tool_choice,

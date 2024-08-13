@@ -1,18 +1,15 @@
 [tool.poetry]
 name = "arcade_example_flask"
 version = "0.1.0"
-description = "Flask example app"
+description = "Flask example app with Arcade"
 authors = ["Nate <nate@arcade-ai.com>"]
 
 
 [tool.poetry.dependencies]
 python = "^3.10"
 flask = "^3.0.3"
-arcade-ai = {path = "../../../arcade", develop = true}
-arcade-arithmetic = {path = "../../math", develop = true}
-
-[tool.poetry.dev-dependencies]
-pytest = "^7.4"
+arcade-ai = {path = "../../arcade", develop = true}
+arcade-arithmetic = {path = "../../toolkits/math", develop = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

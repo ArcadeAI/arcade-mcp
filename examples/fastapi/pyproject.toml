@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "arcade_example_fastapi"
+version = "0.1.0"
+description = "FastAPI example app with Arcade"
+authors = ["Nate Barbettini <nate@arcade-ai.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.112.0"
+arcade-ai = {path = "../../arcade", develop = true}
+arcade_arithmetic = {path = "../../toolkits/math", develop = true}
+arcade_gmail = {path = "../../toolkits/gmail", develop = true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

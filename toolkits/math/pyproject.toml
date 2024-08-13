@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "arcade_arithmetic"
 version = "0.1.0"
-description = "Nate's testing package for Arcade"
+description = "Arithmetic toolkit for Arcade"
 authors = ["Nate <nate@arcade-ai.com>"]
 
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.110.3"
+arcade-ai = {path = "../../arcade", develop = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4"
