@@ -2,11 +2,15 @@ from rich.console import Console
 
 try:
     import fastapi
-    import uvicorn
 except ImportError:
     raise ImportError(
         "FastAPI is not installed. Please install it using `pip install arcade-ai[fastapi]`."
     )
+
+try:
+    import uvicorn
+except ImportError:
+    raise ImportError("Uvicorn is not installed. Please install it using `pip install uvicorn`.")
 
 from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.core.toolkit import Toolkit
