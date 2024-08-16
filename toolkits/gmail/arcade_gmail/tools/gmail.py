@@ -4,6 +4,7 @@ from typing import Annotated
 
 from bs4 import BeautifulSoup
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
@@ -23,7 +24,7 @@ async def get_emails(
     """Read emails from a Gmail account and extract plain text content, removing any HTML."""
 
     # Call the Gmail API
-    service = build("gmail", "v1", credentials=context.authorization.token)
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
     # Request a list of all the messages
     result = service.users().messages().list(userId="me").execute()
