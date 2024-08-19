@@ -3,6 +3,7 @@ from arcade.sdk import tool
 import requests
 
 
+# TODO: This does not support private repositories. https://app.clickup.com/t/86b1r3mhe
 @tool
 def count_stargazers(
     owner: Annotated[str, "The owner of the repository"],
