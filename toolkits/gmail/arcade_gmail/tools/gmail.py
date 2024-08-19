@@ -23,7 +23,7 @@ async def get_emails(
 ) -> dict[str, list[dict[str, str]]]:
     """Read emails from a Gmail account and extract plain text content, removing any HTML."""
 
-    # Call the Gmail API
+    # Build the Gmail service using the provided OAuth2 token
     service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
     # Request a list of all the messages
