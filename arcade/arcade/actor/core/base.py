@@ -80,7 +80,11 @@ class BaseActor(Actor):
             **tool_request.inputs or {},
         )
         if response.code == 200 and response.data is not None:
-            output = ToolCallOutput(value=response.data.result)
+            output = (
+                ToolCallOutput(value=response.data.result)
+                if hasattr(response.data, "result") and response.data.result
+                else ToolCallOutput(value=f"Tool {tool_name} called successfully")
+            )
         else:
             output = ToolCallOutput(error=ToolCallError(message=response.msg))
 
