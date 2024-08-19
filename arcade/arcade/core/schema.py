@@ -75,7 +75,11 @@ class OAuth2Requirement(BaseModel):
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
+    provider: str
+    """The provider type."""
+
     oauth2: Optional[OAuth2Requirement] = None
+    """The OAuth 2.0 requirement, if any."""
 
 
 class ToolRequirements(BaseModel):

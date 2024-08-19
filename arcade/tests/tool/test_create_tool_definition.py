@@ -199,10 +199,11 @@ def func_with_complex_return() -> list[dict[str, str]]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
+                        provider="oauth2",
                         oauth2=OAuth2Requirement(
                             authority="https://example.com/oauth2/auth",
                             scope=["scope1", "scope2"],
-                        )
+                        ),
                     )
                 )
             },
