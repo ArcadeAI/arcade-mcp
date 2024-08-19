@@ -23,7 +23,7 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     """
     if default:
         question = f"{question} [{default}]"
-    answer = typer.prompt(question)
+    answer = typer.prompt(question, default=default)
     if not answer and default:
         return default
     return str(answer)
@@ -79,7 +79,7 @@ build-backend = "poetry.core.masonry.api"
 def create_new_toolkit(directory: str) -> None:
     """Generate a new Toolkit package based on user input."""
     name = ask_question("Name of the new toolkit?")
-    toolkit_name = f"arcade_{name}"
+    toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
     # Check for illegal characters in the toolkit name
     if not re.match(r"^[\w_]+$", toolkit_name):
@@ -103,8 +103,12 @@ def create_new_toolkit(directory: str) -> None:
 
     # Create the top level toolkit directory
     create_directory(top_level_dir)
+
     # Create the toolkit directory
     create_directory(toolkit_dir)
+
+    # Create the __init__.py file in the toolkit directory
+    create_file(os.path.join(toolkit_dir, "__init__.py"), "")
 
     # Create the tools directory
     create_directory(os.path.join(toolkit_dir, "tools"))
