@@ -10,6 +10,7 @@ fastapi = "^0.112.0"
 arcade-ai = {path = "../../arcade", develop = true}
 arcade_arithmetic = {path = "../../toolkits/math", develop = true}
 arcade_gmail = {path = "../../toolkits/gmail", develop = true}
+arcade_github = {path = "../../toolkits/github", develop = true}
 
 [build-system]
 requires = ["poetry-core"]

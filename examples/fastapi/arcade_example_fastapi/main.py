@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from arcade_arithmetic.tools import arithmetic
 from arcade_gmail.tools import gmail
+from arcade_github.tools import public_repo, user
 
 from arcade.actor.fastapi.actor import FastAPIActor
 
@@ -17,6 +18,8 @@ actor.register_tool(arithmetic.multiply)
 actor.register_tool(arithmetic.divide)
 actor.register_tool(arithmetic.sqrt)
 actor.register_tool(gmail.get_emails)
+actor.register_tool(public_repo.count_stargazers)
+actor.register_tool(user.set_starred)
 
 
 class ChatRequest(BaseModel):
