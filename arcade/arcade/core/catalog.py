@@ -193,7 +193,7 @@ class ToolCatalog(BaseModel):
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(
-                auth=auth_requirement,
+                authorization=auth_requirement,
             ),
         )
 

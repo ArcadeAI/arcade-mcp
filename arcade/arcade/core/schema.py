@@ -81,7 +81,7 @@ class ToolAuthRequirement(BaseModel):
 class ToolRequirements(BaseModel):
     """The requirements for a tool to run."""
 
-    auth: Union[ToolAuthRequirement, None] = None
+    authorization: Union[ToolAuthRequirement, None] = None
     """The authorization requirements for the tool, if any."""
 
 

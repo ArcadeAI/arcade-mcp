@@ -124,7 +124,7 @@
                 "oauth2": {
                   "type": "object",
                   "properties": {
-                    "url": {
+                    "authority": {
                       "type": "string",
                       "format": "uri"
                     },
@@ -135,7 +135,7 @@
                       }
                     }
                   },
-                  "required": ["url"],
+                  "required": ["authority"],
                   "additionalProperties": false
                 }
               },
@@ -144,7 +144,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     }
   },
   "required": ["name", "version", "inputs", "output"],
