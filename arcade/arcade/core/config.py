@@ -50,14 +50,6 @@ class EngineConfig(BaseModel):
     Whether to use TLS for the connection to Arcade Engine.
     """
 
-    @property
-    def url(self) -> str:
-        """
-        Get the URL of the Arcade Engine.
-        """
-        protocol = "https" if self.tls else "http"
-        return f"{protocol}://{self.host}:{self.port}/v1"
-
 
 class Config(BaseModel):
     """
@@ -99,7 +91,7 @@ class Config(BaseModel):
         if self.engine is None:
             raise ValueError("Engine not set")
         protocol = "https" if self.engine.tls else "http"
-        return f"{protocol}://{self.engine.host}:{self.engine.port}"
+        return f"{protocol}://{self.engine.host}:{self.engine.port}/v1"
 
     @classmethod
     def ensure_config_dir_exists(cls) -> None:

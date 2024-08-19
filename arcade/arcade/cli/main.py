@@ -200,11 +200,11 @@ def chat(
     """
 
     config = Config.load_from_file()
-    if not config.engine or not config.engine.url:
+    if not config.engine or not config.engine_url:
         console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
         typer.Exit(code=1)
 
-    client = EngineClient(base_url=config.engine.url)  # type: ignore[union-attr]
+    client = EngineClient(base_url=config.engine_url)
 
     try:
         # start messages conversation
