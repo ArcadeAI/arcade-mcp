@@ -23,6 +23,7 @@ from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
+    GoogleRequirement,
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
@@ -41,7 +42,7 @@ from arcade.core.utils import (
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.auth import OAuth2, ToolAuthorization
+from arcade.sdk.auth import Google, OAuth2, ToolAuthorization
 
 WireType = Literal["string", "integer", "float", "boolean", "json"]
 
@@ -187,6 +188,8 @@ class ToolCatalog(BaseModel):
             )
             if isinstance(auth_requirement, OAuth2):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
+            elif isinstance(auth_requirement, Google):
+                new_auth_requirement.google = GoogleRequirement(**auth_requirement.model_dump())
             auth_requirement = new_auth_requirement
 
         return ToolDefinition(

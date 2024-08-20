@@ -1,11 +1,11 @@
 from typing import Annotated
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import GitHubAppAuth
+from arcade.sdk.auth import GitHubApp
 import requests
 
 
-@tool(requires_auth=GitHubAppAuth())
+@tool(requires_auth=GitHubApp())
 def set_starred(
     context: ToolContext,
     owner: Annotated[str, "The owner of the repository"],

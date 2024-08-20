@@ -28,7 +28,17 @@ class OAuth2(ToolAuthorization):
     """The scope(s) needed for the authorized action."""
 
 
-class GitHubAppAuth(ToolAuthorization):
+class Google(ToolAuthorization):
+    """Marks a tool as requiring Google authorization."""
+
+    def get_provider(self) -> str:
+        return "google"
+
+    scope: Optional[list[str]] = None
+    """The scope(s) needed for the authorized action."""
+
+
+class GitHubApp(ToolAuthorization):
     """Marks a tool as requiring GitHub App authorization."""
 
     def get_provider(self) -> str:

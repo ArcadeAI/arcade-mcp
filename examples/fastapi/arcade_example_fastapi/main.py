@@ -37,7 +37,15 @@ async def chat(request: ChatRequest, tool_choice: str = "execute"):
             model="gpt-4o-mini",
             max_tokens=150,
             # TODO tests for tool choice
-            tools=["Add", "Multiply", "Divide", "Sqrt", "GetEmails"],
+            tools=[
+                "Add",
+                "Multiply",
+                "Divide",
+                "Sqrt",
+                "GetEmails",
+                "CountStargazers",
+                "SetStarred",
+            ],
             tool_choice=tool_choice,
             user="sam",
         )

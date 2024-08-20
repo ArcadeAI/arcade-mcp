@@ -72,6 +72,13 @@ class OAuth2Requirement(BaseModel):
     """The scope(s) needed for authorization."""
 
 
+class GoogleRequirement(BaseModel):
+    """Indicates that the tool requires Google authorization."""
+
+    scope: Optional[list[str]] = None
+    """The scope(s) needed for authorization."""
+
+
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
@@ -80,6 +87,9 @@ class ToolAuthRequirement(BaseModel):
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""
+
+    google: Optional[GoogleRequirement] = None
+    """The Google requirement, if any."""
 
 
 class ToolRequirements(BaseModel):
