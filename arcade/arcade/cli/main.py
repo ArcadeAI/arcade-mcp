@@ -220,8 +220,13 @@ def chat(
         )
         console.print(chat_header)
 
+        user = config.user.email if config.user and config.user.email else None
+        user_attribution = f" ({user})" if user else ""
+
         while True:
-            user_input = console.input("\n[bold magenta]User: [/bold magenta]")
+            user_input = console.input(
+                f"\n[magenta][bold]User[/bold]{user_attribution}:[/magenta] "
+            )
             messages.append({"role": "user", "content": user_input})
 
             if stream:
@@ -229,7 +234,7 @@ def chat(
                     model=model,
                     messages=messages,
                     tool_choice="generate",
-                    user=config.user.email if config.user and config.user.email else None,
+                    user=user,
                 )
                 display_streamed_markdown(stream_response)
             else:
@@ -237,7 +242,7 @@ def chat(
                     model=model,
                     messages=messages,
                     tool_choice="generate",
-                    user=config.user.email if config.user and config.user.email else None,
+                    user=user,
                 )
                 message_content = response.choices[0].message.content or ""
                 role = response.choices[0].message.role
