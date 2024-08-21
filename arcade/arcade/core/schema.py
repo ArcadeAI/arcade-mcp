@@ -79,6 +79,13 @@ class GoogleRequirement(BaseModel):
     """The scope(s) needed for authorization."""
 
 
+class SlackUserRequirement(BaseModel):
+    """Indicates that the tool requires Slack (user token) authorization."""
+
+    scope: Optional[list[str]] = None
+    """The scope(s) needed for authorization."""
+
+
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
@@ -90,6 +97,9 @@ class ToolAuthRequirement(BaseModel):
 
     google: Optional[GoogleRequirement] = None
     """The Google requirement, if any."""
+
+    slack_user: Optional[SlackUserRequirement] = None
+    """The Slack (user token) requirement, if any."""
 
 
 class ToolRequirements(BaseModel):

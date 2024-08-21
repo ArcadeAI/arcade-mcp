@@ -38,6 +38,16 @@ class Google(ToolAuthorization):
     """The scope(s) needed for the authorized action."""
 
 
+class SlackUser(ToolAuthorization):
+    """Marks a tool as requiring Slack (user token) authorization."""
+
+    def get_provider(self) -> str:
+        return "slack_user"
+
+    scope: Optional[list[str]] = None
+    """The scope(s) needed for the authorized action."""
+
+
 class GitHubApp(ToolAuthorization):
     """Marks a tool as requiring GitHub App authorization."""
 

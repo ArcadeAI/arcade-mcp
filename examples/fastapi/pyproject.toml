@@ -11,6 +11,7 @@ arcade-ai = {path = "../../arcade", develop = true}
 arcade_arithmetic = {path = "../../toolkits/math", develop = true}
 arcade_gmail = {path = "../../toolkits/gmail", develop = true}
 arcade_github = {path = "../../toolkits/github", develop = true}
+arcade_slack = {path = "../../toolkits/slack", develop = true}
 
 [build-system]
 requires = ["poetry-core"]

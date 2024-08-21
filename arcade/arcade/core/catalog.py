@@ -26,6 +26,7 @@ from arcade.core.schema import (
     GoogleRequirement,
     InputParameter,
     OAuth2Requirement,
+    SlackUserRequirement,
     ToolAuthRequirement,
     ToolContext,
     ToolDefinition,
@@ -42,7 +43,7 @@ from arcade.core.utils import (
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.auth import Google, OAuth2, ToolAuthorization
+from arcade.sdk.auth import Google, OAuth2, SlackUser, ToolAuthorization
 
 WireType = Literal["string", "integer", "float", "boolean", "json"]
 
@@ -190,6 +191,10 @@ class ToolCatalog(BaseModel):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
             elif isinstance(auth_requirement, Google):
                 new_auth_requirement.google = GoogleRequirement(**auth_requirement.model_dump())
+            elif isinstance(auth_requirement, SlackUser):
+                new_auth_requirement.slack_user = SlackUserRequirement(
+                    **auth_requirement.model_dump()
+                )
             auth_requirement = new_auth_requirement
 
         return ToolDefinition(
