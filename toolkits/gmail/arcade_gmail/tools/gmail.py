@@ -1,14 +1,50 @@
+import base64
+from email.mime.text import MIMEText
 import re
 from base64 import urlsafe_b64decode
 from typing import Annotated
 
 from bs4 import BeautifulSoup
-from google.auth.credentials import Credentials
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
+
+
+@tool(
+    requires_auth=Google(
+        scope=["https://www.googleapis.com/auth/gmail.compose"],
+    )
+)
+async def write_draft(
+    context: ToolContext,
+    subject: Annotated[str, "The subject of the email"],
+    body: Annotated[str, "The body of the email"],
+    recipient: Annotated[str, "The recipient of the email"],
+) -> Annotated[str, "The URL of the draft"]:
+    """Compose a new email draft."""
+
+    # Set up the Gmail API client
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+
+    message = MIMEText(body)
+    message["to"] = recipient
+    message["subject"] = subject
+
+    # Encode the message in base64
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+    # Create the draft
+    draft = {"message": {"raw": raw_message}}
+
+    draft_message = service.users().drafts().create(userId="me", body=draft).execute()
+    return f"Draft created: {get_draft_url(draft_message['id'])}"
+
+
+def get_draft_url(draft_id):
+    return f"https://mail.google.com/mail/u/0/#drafts/{draft_id}"
 
 
 @tool(

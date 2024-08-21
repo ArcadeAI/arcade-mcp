@@ -19,6 +19,7 @@ actor = FastAPIActor(app)
 # actor.register_tool(arithmetic.divide)
 # actor.register_tool(arithmetic.sqrt)
 actor.register_tool(gmail.get_emails)
+actor.register_tool(gmail.write_draft)
 actor.register_tool(repo.count_stargazers)
 actor.register_tool(repo.search_issues)
 actor.register_tool(user.set_starred)
@@ -42,6 +43,7 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             # TODO tests for tool choice
             tools=[
                 "GetEmails",
+                "WriteDraft",
                 "CountStargazers",
                 "SetStarred",
                 "SearchIssues",
