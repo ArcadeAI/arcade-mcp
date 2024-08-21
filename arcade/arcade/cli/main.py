@@ -8,10 +8,12 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.markup import escape
 from rich.table import Table
+from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade.core.catalog import ToolCatalog
+from arcade.core.client import EngineClient
 from arcade.core.config import Config
 from arcade.core.schema import ToolContext
 from arcade.core.toolkit import Toolkit
@@ -38,7 +40,7 @@ def login(
     Logs the user into Arcade Cloud.
     """
     # Here you would add the logic to authenticate the user with Arcade Cloud
-    pass
+    raise NotImplementedError("This feature is not yet implemented.")
 
 
 @cli.command(help="Log out of Arcade Cloud")
@@ -47,7 +49,7 @@ def logout() -> None:
     Logs the user out of Arcade Cloud.
     """
     # Here you would add the logic to log the user out of Arcade Cloud
-    pass
+    raise NotImplementedError("This feature is not yet implemented.")
 
 
 @cli.command(help="Create a new toolkit package directory")
@@ -71,7 +73,6 @@ def show(
     toolkit: Optional[str] = typer.Option(
         None, "-t", "--toolkit", help="The toolkit to show the tools of"
     ),
-    all_toolkits: bool = typer.Option(False, "-a", "--all", help="Show all installed toolkits"),
     actor: Optional[str] = typer.Option(None, help="A running actor address to list tools from"),
 ) -> None:
     """
@@ -79,7 +80,7 @@ def show(
     """
 
     try:
-        catalog = create_cli_catalog(toolkit, all_toolkits)
+        catalog = create_cli_catalog(toolkit=toolkit)
 
         # Create a table with Rich library
         table = Table(show_header=True, header_style="bold magenta")
@@ -104,9 +105,6 @@ def run(
     toolkit: Optional[str] = typer.Option(
         None, "-t", "--toolkit", help="The toolkit to include in the run"
     ),
-    all_toolkits: bool = typer.Option(
-        False, "-a", "--all", is_flag=True, help="Use all installed toolkits"
-    ),
     model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
     tool: str = typer.Option(None, "--tool", help="The name of the tool to run."),
     choice: str = typer.Option(
@@ -115,7 +113,6 @@ def run(
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
-    actor: Optional[str] = typer.Option(None, "--actor", help="The actor to use for prediction."),
     prompt: str = typer.Argument(..., help="The prompt to use for context"),
 ) -> None:
     """
@@ -125,30 +122,25 @@ def run(
     from arcade.core.executor import ToolExecutor
 
     try:
-        catalog = create_cli_catalog(toolkit=toolkit, all_toolkits=all_toolkits)
+        catalog = create_cli_catalog(toolkit=toolkit)
 
-        # if user specified a tool
-        if tool:
-            # check if the tool is in the catalog/toolkit
-            if tool not in catalog:
-                console.print(f"❌ Tool not found in toolkit: {toolkit}", style="bold red")
-                raise typer.Exit(code=1)
-            else:
-                tools = [catalog[tool]]
-        else:
-            # use all the tools in the catalog
-            tools = list(catalog)
+        tools = [catalog[tool]] if tool else list(catalog)
 
-        # TODO put in the engine url from config
+        # allow user to specify the engine url?
         client = EngineClient()
+
         # TODO better way of doing this
-        tool_choice = "required" if choice in ["generate", "execute"] else choice
+        tool_choice = "auto" if choice in ["execute", "generate"] else choice
         calls = client.call_tool(tools, tool_choice=tool_choice, prompt=prompt, model=model)
+
+        if len(calls) == 0:
+            console.print("[bold red]No tools were called[/bold red]")
 
         messages = [
             {"role": "user", "content": prompt},
         ]
-        for tool_name, parameters in calls.items():
+
+        for tool_name, parameters in calls:
             called_tool = catalog[tool_name]
             console.print(f"Calling tool: {tool_name} with params: {parameters}", style="bold blue")
 
@@ -177,15 +169,19 @@ def run(
                     },
                 ]
 
-            if choice == "execute":
-                console.print(output.data.result, style="green")  # type: ignore[union-attr]
-
-        if stream:
-            stream_response = client.stream_complete(model=model, messages=messages)
-            display_streamed_markdown(stream_response)
+        if choice == "execute":
+            console.print(output.data.result, style="green")  # type: ignore[union-attr]
+            raise typer.Exit(0)
         else:
-            response = client.complete(model=model, messages=messages)
-            console.print(response.choices[0].message.content, style="bold green")
+            if stream:
+                stream_response = client.stream_complete(model=model, messages=messages)
+                display_streamed_markdown(stream_response)
+            else:
+                response = client.complete(model=model, messages=messages)
+                if not len(response.choices) and not response.choices[0].message.content:
+                    console.print("No response from the tool.", style="bold red")
+                else:
+                    console.print(Markdown(response.choices[0].message.content or ""))
 
     except RuntimeError as e:
         error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
@@ -194,36 +190,65 @@ def run(
 
 @cli.command(help="Chat with a language model")
 def chat(
-    model: str = typer.Option("gpt-4o-mini", "-m", help="The model to use for prediction."),
-    choice: str = typer.Option(
-        None, "-c", "--choice", help="The value of the tool choice argument"
-    ),
+    model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
-    prompt: str = typer.Argument(..., help="The prompt to use for context"),
 ) -> None:
     """
-    Run a tool using an LLM to predict the arguments.
+    Chat with a language model.
     """
-    from arcade.core.client import EngineClient
 
-    client = EngineClient()
+    config = Config.load_from_file()
+    if not config.engine or not config.engine_url:
+        console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
+        typer.Exit(code=1)
+
+    client = EngineClient(base_url=config.engine_url)
+
     try:
-        messages = [
-            {"role": "user", "content": prompt},
-        ]
+        # start messages conversation
+        messages = []
 
-        if stream:
-            stream_response = client.stream_complete(model=model, messages=messages)
-            display_streamed_markdown(stream_response)
-        else:
-            response = client.complete(model=model, messages=messages)
-            console.print(response.choices[0].message.content, style="bold green")
+        chat_header = Text.assemble(
+            "\n",
+            (
+                "======== Arcade AI Chat ========",
+                "bold magenta underline",
+            ),
+            "\n",
+        )
+        console.print(chat_header)
+
+        while True:
+            user_input = console.input("\n[bold magenta]User: [/bold magenta]")
+            messages.append({"role": "user", "content": user_input})
+
+            if stream:
+                stream_response = client.stream_complete(
+                    model=model, messages=messages, tool_choice="generate"
+                )
+                display_streamed_markdown(stream_response)
+            else:
+                response = client.complete(model=model, messages=messages, tool_choice="generate")
+                message_content = response.choices[0].message.content or ""
+                role = response.choices[0].message.role
+
+                if role == "assistant":
+                    console.print("\n[bold blue]Assistant:[/bold blue] ", Markdown(message_content))
+                else:
+                    console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+
+                messages.append({"role": role, "content": message_content})
+
+    except KeyboardInterrupt:
+        console.print("Chat stopped by user.", style="bold blue")
+        typer.Exit()
 
     except RuntimeError as e:
         error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
         console.print(error_message, style="bold red")
+        raise typer.Exit()
 
 
 @cli.command(help="Start an Actor server with specified configurations.")
@@ -259,7 +284,7 @@ def engine(
     """
     Manage the Arcade Engine (start/stop/restart)
     """
-    pass
+    raise NotImplementedError("This feature is not yet implemented.")
 
 
 @cli.command(help="Manage credientials stored in the Arcade Engine")
@@ -271,7 +296,7 @@ def credentials(
     """
     Manage credientials stored in the Arcade Engine
     """
-    pass
+    raise NotImplementedError("This feature is not yet implemented.")
 
 
 @cli.command(help="Show/edit configuration details of the Arcade Engine")
@@ -360,35 +385,31 @@ def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> None:
 
 def create_cli_catalog(
     toolkit: str | None = None,
-    all_toolkits: bool = False,
+    show_toolkits: bool = False,
 ) -> ToolCatalog:
     """
     Load toolkits from the python environment.
     """
-
-    if all_toolkits:
-        toolkits = Toolkit.find_all_arcade_toolkits()
-        if not toolkits:
-            console.print("No toolkits found in Python environment.", style="bold red")
-            raise typer.Exit(code=1)
+    if toolkit:
+        try:
+            prefixed_toolkit = "arcade_" + toolkit
+            toolkits = [Toolkit.from_package(prefixed_toolkit)]
+        except ValueError:
+            try:  # try without prefix
+                toolkits = [Toolkit.from_package(toolkit)]
+            except ValueError as e:
+                console.print(f"❌ {e}", style="bold red")
+                typer.Exit(code=1)
     else:
-        if not toolkit:
-            console.print("No toolkit specified and '-a' not supplied.", style="bold red")
-            raise typer.Exit(code=1)
-        else:
-            # load the toolkit from python package
-            try:
-                prefixed_toolkit = "arcade_" + toolkit
-                toolkits = [Toolkit.from_package(prefixed_toolkit)]
-            except ValueError:
-                try:  # try without prefix
-                    toolkits = [Toolkit.from_package(toolkit)]
-                except ValueError as e:
-                    console.print(f"❌ {e}", style="bold red")
-                    raise typer.Exit(code=1)
+        toolkits = Toolkit.find_all_arcade_toolkits()
+
+    if not toolkits:
+        console.print("❌ No toolkits found or specified", style="bold red")
+        typer.Exit(code=1)
 
     catalog = ToolCatalog()
     for loaded_toolkit in toolkits:
-        console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
+        if show_toolkits:
+            console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
         catalog.add_toolkit(loaded_toolkit)
     return catalog

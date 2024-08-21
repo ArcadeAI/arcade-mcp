@@ -173,7 +173,7 @@ class ToolCallError(BaseModel):
 class ToolCallOutput(BaseModel):
     """The output of a tool invocation."""
 
-    value: Union[str, int, float, bool, dict] | None = None
+    value: Union[str, int, float, bool, dict, list[str]] | None = None
     """The value returned by the tool."""
     error: ToolCallError | None = None
     """The error that occurred during the tool invocation."""

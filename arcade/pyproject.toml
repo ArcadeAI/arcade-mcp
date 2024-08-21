@@ -27,8 +27,9 @@ pyjwt = "^2.8.0"
 fastapi = { version = "^0.110.0", optional = true }
 flask = { version = "^3.0.3", optional = true }
 
+
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
+pytest = "^8.1.1"
 pytest-cov = "^4.0.0"
 mypy = "^1.5.1"
 pre-commit = "^3.4.0"
@@ -36,20 +37,17 @@ tox = "^4.11.1"
 pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
 uvicorn = "^0.22.0"
+mkdocs = ">=1.5.2"
+mkdocs-material = ">=9.3.0"
+mkdocstrings = {extras = ["python"], version = ">=0.23.1"}
 
 [tool.poetry.extras]
 fastapi = ["fastapi"]
 flask = ["flask"]
 
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.4.2"
-mkdocs-material = "^9.2.7"
-mkdocstrings = {extras = ["python"], version = "^0.23.0"}
-
 
 [tool.poetry.scripts]
 arcade = "arcade.cli.main:cli"
-
 
 [tool.mypy]
 files = ["arcade"]

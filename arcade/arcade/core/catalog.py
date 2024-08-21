@@ -135,8 +135,8 @@ class ToolCatalog(BaseModel):
                     raise ToolDefinitionError(
                         f"Could not find tool {tool_name} in module {module_name}"
                     )
-                except ImportError:
-                    raise ToolDefinitionError(f"Could not import module {module_name}")
+                except ImportError as e:
+                    raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
 
                 self.add_tool(tool_func, module, toolkit)
 

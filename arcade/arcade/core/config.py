@@ -91,7 +91,7 @@ class Config(BaseModel):
         if self.engine is None:
             raise ValueError("Engine not set")
         protocol = "https" if self.engine.tls else "http"
-        return f"{protocol}://{self.engine.host}:{self.engine.port}"
+        return f"{protocol}://{self.engine.host}:{self.engine.port}/v1"
 
     @classmethod
     def ensure_config_dir_exists(cls) -> None:

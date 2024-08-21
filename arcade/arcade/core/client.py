@@ -99,15 +99,20 @@ def called_tool(chat_completion: ChatCompletion) -> bool:
     return False
 
 
-def get_tool_args(chat_completion: ChatCompletion) -> ToolCalls:
+def get_tool_args(chat_completion: ChatCompletion) -> list[tuple[str, dict[str, Any]]]:
     """
     Returns the tool arguments from the chat completion object.
     """
-    tool_args_list = {}
+    tool_args_list = []
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list[tool_call.function.name] = json.loads(tool_call.function.arguments)
+            tool_args_list.append(
+                (
+                    tool_call.function.name,
+                    json.loads(tool_call.function.arguments),
+                )
+            )
     return tool_args_list
 
 
@@ -125,10 +130,10 @@ class EngineClient:
         model: str,
         messages: Optional[list[dict[str, Any]]] = None,
         tool_choice: Optional[str] = "required",
-        parallel_tool_calls: Optional[bool] = False,
+        parallel_tool_calls: Optional[bool] = True,
         prompt: Optional[str] = "",
         **kwargs: Any,
-    ) -> ToolCalls:
+    ) -> list[tuple[str, dict[str, Any]]]:
         """
         Infer the arguments for a given tool and call the OpenAI API.
         """
