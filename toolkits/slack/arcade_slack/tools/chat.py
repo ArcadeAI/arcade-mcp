@@ -18,11 +18,11 @@ def send_dm_to_user(
 ):
     """Send a direct message to a user in Slack."""
 
-    client = WebClient(token=context.authorization.token)
+    slackClient = WebClient(token=context.authorization.token)
 
     try:
         # Step 1: Retrieve the user's Slack ID based on their username
-        response = client.users_list()
+        response = slackClient.users_list()
         user_id = None
         for user in response["members"]:
             if user["name"].lower() == user_name.lower():
@@ -30,14 +30,18 @@ def send_dm_to_user(
                 break
 
         if not user_id:
+            # does this end up as a developerMessage?
+            # does it end up in the LLM context?
+            # provide the dev an Error type that controls what ends up in the LLM context
             raise ValueError(f"User with username '{user_name}' not found.")
 
         # Step 2: Retrieve the DM channel ID with the user
-        im_response = client.conversations_open(users=[user_id])
+        im_response = slackClient.conversations_open(users=[user_id])
         dm_channel_id = im_response["channel"]["id"]
 
         # Step 3: Send the message as if it's from you (because we're using a user token)
-        client.chat_postMessage(channel=dm_channel_id, text=message)
+        slackClient.chat_postMessage(channel=dm_channel_id, text=message)
 
     except SlackApiError as e:
+        # this should be caught also, not printed
         print(f"Error sending message: {e.response['error']}")

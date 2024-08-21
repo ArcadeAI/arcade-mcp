@@ -27,6 +27,8 @@ def search_issues(
     response = requests.get(url, headers=headers)
 
     # Check for successful response
+    # handle 422 for can't find repo
+    # TODO - how should errors bubble back up if tool_choice=execute
     if response.status_code != 200:
         raise Exception(f"Failed to fetch issues: {response.status_code}")
 
