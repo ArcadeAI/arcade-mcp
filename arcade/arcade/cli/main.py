@@ -226,11 +226,19 @@ def chat(
 
             if stream:
                 stream_response = client.stream_complete(
-                    model=model, messages=messages, tool_choice="generate"
+                    model=model,
+                    messages=messages,
+                    tool_choice="generate",
+                    user=config.user.email if config.user and config.user.email else None,
                 )
                 display_streamed_markdown(stream_response)
             else:
-                response = client.complete(model=model, messages=messages, tool_choice="generate")
+                response = client.complete(
+                    model=model,
+                    messages=messages,
+                    tool_choice="generate",
+                    user=config.user.email if config.user and config.user.email else None,
+                )
                 message_content = response.choices[0].message.content or ""
                 role = response.choices[0].message.role
 
@@ -350,7 +358,7 @@ def display_config_as_table(config: Config) -> None:
     table.add_column("Name")
     table.add_column("Value")
 
-    for section_name in config.dict():
+    for section_name in config.model_dump():
         section = getattr(config, section_name)
         if section:
             section = section.dict()
