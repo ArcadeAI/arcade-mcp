@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from arcade_arithmetic.tools import arithmetic
 from arcade_gmail.tools import gmail
-from arcade_github.tools import public_repo, user
+from arcade_github.tools import repo, user
 from arcade_slack.tools import chat
 
 from arcade.actor.fastapi.actor import FastAPIActor
@@ -19,7 +19,8 @@ actor = FastAPIActor(app)
 # actor.register_tool(arithmetic.divide)
 # actor.register_tool(arithmetic.sqrt)
 actor.register_tool(gmail.get_emails)
-actor.register_tool(public_repo.count_stargazers)
+actor.register_tool(repo.count_stargazers)
+actor.register_tool(repo.search_issues)
 actor.register_tool(user.set_starred)
 actor.register_tool(chat.send_dm_to_user)
 
@@ -37,12 +38,13 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
                 {"role": "user", "content": request.message},
             ],
             model="gpt-4o-mini",
-            max_tokens=150,
+            max_tokens=500,
             # TODO tests for tool choice
             tools=[
                 "GetEmails",
                 "CountStargazers",
                 "SetStarred",
+                "SearchIssues",
                 "SendDmToUser",
             ],
             tool_choice=tool_choice,
