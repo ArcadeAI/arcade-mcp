@@ -1,0 +1,8 @@
+[api]
+key = "123456789"
+secret = "196a8a25-fde8-453a-9f58-ff646a6e034d"
+
+[engine]
+host = "arcade-engine"
+port = "9099"
+tls = false

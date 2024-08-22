@@ -6,13 +6,14 @@ authors = ["Sam Partee <sam@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "^0.1.0"
+arcade-ai = "*"
 google-api-core = "2.19.1"
 google-api-python-client = "2.137.0"
 google-auth = "2.32.0"
 google-auth-httplib2 = "0.2.0"
 google-auth-oauthlib = "1.2.1"
 googleapis-common-protos = "1.63.2"
+beautifulsoup4 = "^4.10.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"
