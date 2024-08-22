@@ -23,6 +23,7 @@ actor.register_tool(repo.count_stargazers)
 actor.register_tool(repo.search_issues)
 actor.register_tool(user.set_starred)
 actor.register_tool(chat.send_dm_to_user)
+actor.register_tool(chat.send_message_to_channel)
 
 
 class ChatRequest(BaseModel):
@@ -47,6 +48,7 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
                 "SetStarred",
                 "SearchIssues",
                 "SendDmToUser",
+                "SendMessageToChannel",
             ],
             tool_choice=tool_choice,
             user="sam",

@@ -192,7 +192,7 @@ def run(
 def chat(
     model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
     stream: bool = typer.Option(
-        False, "-s", "--stream", is_flag=True, help="Stream the tool output."
+        True, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
 ) -> None:
     """
