@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class ToolError(Exception):
     """
     Base class for all errors related to tools.
@@ -18,7 +21,9 @@ class ToolDefinitionError(ToolError):
 
 
 class ToolRuntimeError(RuntimeError):
-    pass
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
 
 class ToolExecutionError(ToolRuntimeError):
@@ -26,7 +31,25 @@ class ToolExecutionError(ToolRuntimeError):
     Raised when there is an error executing a tool.
     """
 
-    pass
+    def __init__(self, message: str, developer_message: Optional[str] = None):
+        super().__init__(message)
+        self.developer_message = developer_message
+
+
+class RetryableToolError(ToolExecutionError):
+    """
+    Raised when a tool error is retryable.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        developer_message: Optional[str] = None,
+        additional_prompt_content: Optional[str] = None,
+    ):
+        super().__init__(message)
+        self.developer_message = developer_message
+        self.additional_prompt_content = additional_prompt_content
 
 
 class ToolSerializationError(ToolRuntimeError):

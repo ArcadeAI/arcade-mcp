@@ -4,6 +4,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, ValidationError
 
 from arcade.core.errors import (
+    RetryableToolError,
     ToolExecutionError,
     ToolInputError,
     ToolOutputError,
@@ -49,6 +50,11 @@ class ToolExecutor:
 
             # return the output
             return tool_response.success(data=output)
+
+        except RetryableToolError as e:
+            return tool_response.fail_retry(
+                msg=str(e), additional_prompt_content=e.additional_prompt_content
+            )
 
         except ToolSerializationError as e:
             return tool_response.fail(msg=str(e))

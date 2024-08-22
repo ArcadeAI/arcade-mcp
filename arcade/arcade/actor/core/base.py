@@ -86,7 +86,10 @@ class BaseActor(Actor):
                 else ToolCallOutput(value=f"Tool {tool_name} called successfully")
             )
         else:
+            # TODO flatten this to just ToolCallError
             output = ToolCallOutput(error=ToolCallError(message=response.msg))
+            if response.code == 425:
+                output.error.additional_prompt_content = response.additional_prompt_content
 
         end_time = time.time()  # End time in seconds
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds

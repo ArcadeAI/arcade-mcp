@@ -22,6 +22,7 @@ class ToolResponse(BaseModel, Generic[T]):
 
     code: int = CustomResponseCode.HTTP_200.code
     msg: str = CustomResponseCode.HTTP_200.msg
+    additional_prompt_content: str | None = None
 
     #
     data: T | None = None
@@ -66,6 +67,22 @@ class ToolResponseFactory:
             msg=msg,  # TODO this needs to map to developer_message in output.error
             data=data,
         )
+
+    def fail_retry(
+        self,
+        *,
+        res: CustomResponseCode | CustomResponse = CustomResponseCode.HTTP_425,
+        msg: str = CustomResponseCode.HTTP_425.msg,
+        data: Any = None,
+        additional_prompt_content: str | None = None,
+    ) -> ToolResponse:
+        res = self.__response(
+            res=res,
+            msg=msg,
+            data=data,
+        )
+        res.additional_prompt_content = additional_prompt_content
+        return res
 
 
 tool_response = ToolResponseFactory()

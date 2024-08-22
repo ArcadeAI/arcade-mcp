@@ -168,6 +168,7 @@ class ToolCallError(BaseModel):
     """The user-facing error message."""
     developer_message: str | None = None
     """The developer-facing error details."""
+    additional_prompt_content: str | None = None
 
 
 class ToolCallOutput(BaseModel):
