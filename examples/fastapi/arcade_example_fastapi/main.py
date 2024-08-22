@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from arcade_arithmetic.tools import arithmetic
 from arcade_gmail.tools import gmail
 from arcade_github.tools import repo, user
 from arcade_slack.tools import chat
