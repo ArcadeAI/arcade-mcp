@@ -206,7 +206,7 @@ def chat(
 
     try:
         # start messages conversation
-        messages = []
+        messages: list[dict[str, Any]] = []
 
         chat_header = Text.assemble(
             "\n",
@@ -378,7 +378,7 @@ def display_config_as_table(config: Config) -> None:
     console.print(table)
 
 
-def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> tuple[str, dict[str, Any]]:
+def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> tuple[str, str]:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -391,7 +391,7 @@ def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> tuple[str,
             choice = chunk.choices[0]
             chunk_message = choice.delta.content
             if role == "":
-                role = choice.delta.role
+                role = choice.delta.role or ""
                 if role == "assistant":
                     console.print("\n[bold blue]Assistant:[/bold blue] ")
             if chunk_message:
