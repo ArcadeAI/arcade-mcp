@@ -15,7 +15,7 @@ from typer.models import Context
 from arcade.core.catalog import ToolCatalog
 from arcade.core.client import EngineClient
 from arcade.core.config import Config
-from arcade.core.schema import ToolContext
+from arcade.core.schema import ToolCallOutput, ToolContext
 from arcade.core.toolkit import Toolkit
 
 
@@ -145,7 +145,7 @@ def run(
             console.print(f"Calling tool: {tool_name} with params: {parameters}", style="bold blue")
 
             # TODO async.gather instead of loop.
-            output = asyncio.run(
+            output: ToolCallOutput = asyncio.run(
                 ToolExecutor.run(
                     called_tool.tool,
                     called_tool.definition,
@@ -155,22 +155,20 @@ def run(
                     **parameters,
                 )
             )
-            if output.code != 200:
-                console.print(output.msg, style="bold red")
-                if output.data:
-                    console.print(output.data.result, style="bold red")
-                    typer.Exit(code=1)
+            if output.error:
+                console.print(output.error.message, style="bold red")
+                typer.Exit(code=1)
             else:
                 messages += [
                     {
                         "role": "assistant",
                         # TODO: escape the output and ensure serialization works
-                        "content": f"Results of Tool {tool_name}: {output.data.result!s}",  # type: ignore[union-attr]
+                        "content": f"Results of Tool {tool_name}: {output.value!s}",
                     },
                 ]
 
         if choice == "execute":
-            console.print(output.data.result, style="green")  # type: ignore[union-attr]
+            console.print(output.value, style="green")
             raise typer.Exit(0)
         else:
             if stream:

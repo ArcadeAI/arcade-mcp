@@ -168,7 +168,12 @@ class ToolCallError(BaseModel):
     """The user-facing error message."""
     developer_message: str | None = None
     """The developer-facing error details."""
+    can_retry: bool = False
+    """Whether the tool call can be retried."""
     additional_prompt_content: str | None = None
+    """Additional content to be included in the retry prompt."""
+    wait_ms: int | None = None
+    """The number of milliseconds (if any) to wait before retrying the tool call."""
 
 
 class ToolCallOutput(BaseModel):

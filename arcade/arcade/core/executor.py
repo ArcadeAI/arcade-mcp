@@ -5,13 +5,12 @@ from pydantic import BaseModel, ValidationError
 
 from arcade.core.errors import (
     RetryableToolError,
-    ToolExecutionError,
     ToolInputError,
     ToolOutputError,
-    ToolSerializationError,
+    ToolRuntimeError,
 )
-from arcade.core.response import ToolResponse, tool_response
-from arcade.core.schema import ToolContext, ToolDefinition
+from arcade.core.output import output_factory
+from arcade.core.schema import ToolCallOutput, ToolContext, ToolDefinition
 
 
 class ToolExecutor:
@@ -24,7 +23,7 @@ class ToolExecutor:
         context: ToolContext,
         *args: Any,
         **kwargs: Any,
-    ) -> ToolResponse:
+    ) -> ToolCallOutput:
         """
         Execute a callable function with validated inputs and outputs via Pydantic models.
         """
@@ -49,23 +48,30 @@ class ToolExecutor:
             output = await ToolExecutor._serialize_output(output_model, results)
 
             # return the output
-            return tool_response.success(data=output)
+            return output_factory.success(data=output)
 
         except RetryableToolError as e:
-            return tool_response.fail_retry(
-                msg=str(e), additional_prompt_content=e.additional_prompt_content
+            return output_factory.fail_retry(
+                message=e.message,
+                developer_message=e.developer_message,
+                additional_prompt_content=e.additional_prompt_content,
+                wait_ms=e.wait_ms,
             )
 
-        except ToolSerializationError as e:
-            return tool_response.fail(msg=str(e))
+        except ToolInputError as e:
+            return output_factory.fail(message=e.message, developer_message=e.developer_message)
 
-        except ToolExecutionError as e:
-            return tool_response.fail(msg=str(e))
+        except ToolOutputError as e:
+            return output_factory.fail(message=e.message, developer_message=e.developer_message)
+
+        except ToolRuntimeError as e:  # Catch any remaining tool-related errors
+            return output_factory.fail(
+                message=f"Error in execution: {e.message}", developer_message=e.developer_message
+            )
 
         # if we get here we're in trouble
-        # TODO: Debate if this is necessary
         except Exception as e:
-            return tool_response.fail(msg=str(e))
+            return output_factory.fail(message="Error in execution", developer_message=str(e))
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:
@@ -79,7 +85,7 @@ class ToolExecutor:
             inputs = input_model(**kwargs)
 
         except ValidationError as e:
-            raise ToolInputError from e
+            raise ToolInputError(message="Error in input", developer_message=str(e)) from e
 
         return inputs
 
@@ -97,6 +103,6 @@ class ToolExecutor:
             output = output_model(**{"result": results})
 
         except ValidationError as e:
-            raise ToolOutputError from e
+            raise ToolOutputError(message="Error in output", developer_message=str(e)) from e
 
         return output

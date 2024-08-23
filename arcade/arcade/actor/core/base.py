@@ -12,8 +12,6 @@ from arcade.actor.core.components import (
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
-    ToolCallError,
-    ToolCallOutput,
     ToolCallRequest,
     ToolCallResponse,
     ToolDefinition,
@@ -71,7 +69,7 @@ class BaseActor(Actor):
 
         start_time = time.time()
 
-        response = await ToolExecutor.run(
+        output = await ToolExecutor.run(
             func=materialized_tool.tool,
             definition=materialized_tool.definition,
             input_model=materialized_tool.input_model,
@@ -79,17 +77,6 @@ class BaseActor(Actor):
             context=tool_request.context,
             **tool_request.inputs or {},
         )
-        if response.code == 200 and response.data is not None:
-            output = (
-                ToolCallOutput(value=response.data.result)
-                if hasattr(response.data, "result") and response.data.result
-                else ToolCallOutput(value=f"Tool {tool_name} called successfully")
-            )
-        else:
-            # TODO flatten this to just ToolCallError
-            output = ToolCallOutput(error=ToolCallError(message=response.msg))
-            if response.code == 425:
-                output.error.additional_prompt_content = response.additional_prompt_content
 
         end_time = time.time()  # End time in seconds
         duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
@@ -98,7 +85,7 @@ class BaseActor(Actor):
             invocation_id=tool_request.invocation_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),
-            success=response.code == 200,
+            success=not output.error,
             output=output,
         )
 

@@ -21,9 +21,10 @@ class ToolDefinitionError(ToolError):
 
 
 class ToolRuntimeError(RuntimeError):
-    def __init__(self, message: str):
+    def __init__(self, message: str, developer_message: Optional[str] = None):
         super().__init__(message)
         self.message = message
+        self.developer_message = developer_message
 
 
 class ToolExecutionError(ToolRuntimeError):
@@ -32,8 +33,7 @@ class ToolExecutionError(ToolRuntimeError):
     """
 
     def __init__(self, message: str, developer_message: Optional[str] = None):
-        super().__init__(message)
-        self.developer_message = developer_message
+        super().__init__(message, developer_message)
 
 
 class RetryableToolError(ToolExecutionError):
@@ -46,10 +46,11 @@ class RetryableToolError(ToolExecutionError):
         message: str,
         developer_message: Optional[str] = None,
         additional_prompt_content: Optional[str] = None,
+        wait_ms: Optional[int] = None,
     ):
-        super().__init__(message)
-        self.developer_message = developer_message
+        super().__init__(message, developer_message)
         self.additional_prompt_content = additional_prompt_content
+        self.wait_ms = wait_ms
 
 
 class ToolSerializationError(ToolRuntimeError):
@@ -57,7 +58,8 @@ class ToolSerializationError(ToolRuntimeError):
     Raised when there is an error executing a tool.
     """
 
-    pass
+    def __init__(self, message: str, developer_message: Optional[str] = None):
+        super().__init__(message, developer_message)
 
 
 class ToolInputError(ToolSerializationError):
@@ -65,7 +67,8 @@ class ToolInputError(ToolSerializationError):
     Raised when there is an error in the input to a tool.
     """
 
-    pass
+    def __init__(self, message: str, developer_message: Optional[str] = None):
+        super().__init__(message, developer_message)
 
 
 class ToolOutputError(ToolSerializationError):
@@ -73,4 +76,5 @@ class ToolOutputError(ToolSerializationError):
     Raised when there is an error in the output of a tool.
     """
 
-    pass
+    def __init__(self, message: str, developer_message: Optional[str] = None):
+        super().__init__(message, developer_message)

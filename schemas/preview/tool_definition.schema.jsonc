@@ -122,8 +122,7 @@
               "type": "object",
               "properties": {
                 "provider": {
-                  "type": "string",
-                  "enum": ["oauth2", "github_app"]
+                  "type": "string"
                 },
                 "oauth2": {
                   "type": "object",
