@@ -1,4 +1,3 @@
-import time
 from typing import Annotated
 from arcade.core.errors import ToolExecutionError, RetryableToolError
 from arcade.core.schema import ToolContext
@@ -10,7 +9,16 @@ from slack_sdk.errors import SlackApiError
 
 @tool(
     requires_auth=SlackUser(
-        scope=["chat:write", "im:write", "users.profile:read", "users:read"],
+        # TODO reduce this to chat:write, im:write, users.profile:read, users:read
+        # when incremental auth works
+        scope=[
+            "chat:write",
+            "im:write",
+            "users.profile:read",
+            "users:read",
+            "channels:read",
+            "groups:read",
+        ],
     )
 )
 def send_dm_to_user(
@@ -32,16 +40,11 @@ def send_dm_to_user(
                 break
 
         if not user_id:
-            # does this end up as a developerMessage?
-            # does it end up in the LLM context?
-            # provide the dev an Error type that controls what ends up in the LLM context
-
-            # TODO make the sleep configurable and sent to the engine
-            time.sleep(0.5)  # Wait for half a second
             raise RetryableToolError(
                 "User not found",
                 developer_message=f"User with username '{user_name}' not found.",
                 additional_prompt_content=format_users(userListResponse),
+                wait_ms=500,  # Play nice with Slack API rate limits
             )
 
         # Step 2: Retrieve the DM channel ID with the user
@@ -52,26 +55,35 @@ def send_dm_to_user(
         slackClient.chat_postMessage(channel=dm_channel_id, text=message)
 
     except SlackApiError as e:
+        error_message = e.response["error"] if "error" in e.response else str(e)
         raise ToolExecutionError(
-            f"Error sending message: {e.response['error']}",
-            developer_message="Error sending message",
+            "Error sending message",
+            developer_message=f"Slack API Error: {error_message}",
         )
 
 
 def format_users(userListResponse: dict) -> str:
-    csv_string = "All active Slack users:\n\nid,name,real_name\n"
+    csv_string = "All active Slack users:\n\nname,real_name\n"
     for user in userListResponse["members"]:
         if not user.get("deleted", False):
-            user_id = user.get("id", "")
             name = user.get("name", "")
             real_name = user.get("profile", {}).get("real_name", "")
-            csv_string += f"{user_id},{name},{real_name}\n"
+            csv_string += f"{name},{real_name}\n"
     return csv_string.strip()
 
 
 @tool(
     requires_auth=SlackUser(
-        scope=["chat:write", "channels:read", "groups:read"],
+        # TODO reduce this to chat:write, channels:read, groups:read
+        # when incremental auth works
+        scope=[
+            "chat:write",
+            "im:write",
+            "users.profile:read",
+            "users:read",
+            "channels:read",
+            "groups:read",
+        ],
     )
 )
 def send_message_to_channel(
@@ -95,28 +107,28 @@ def send_message_to_channel(
                 break
 
         if not channel_id:
-            time.sleep(0.5)  # Wait for half a second
             raise RetryableToolError(
                 "Channel not found",
                 developer_message=f"Channel with name '{channel_name}' not found.",
                 additional_prompt_content=format_channels(channels_response),
+                wait_ms=500,  # Play nice with Slack API rate limits
             )
 
         # Step 2: Send the message to the channel
         slackClient.chat_postMessage(channel=channel_id, text=message)
 
     except SlackApiError as e:
+        error_message = e.response["error"] if "error" in e.response else str(e)
         raise ToolExecutionError(
-            f"Error sending message: {e.response['error']}",
-            developer_message="Error sending message",
+            "Error sending message",
+            developer_message=f"Slack API Error: {error_message}",
         )
 
 
 def format_channels(channels_response: dict) -> str:
-    csv_string = "All active Slack channels:\n\nid,name\n"
+    csv_string = "All active Slack channels:\n\nname\n"
     for channel in channels_response["channels"]:
         if not channel.get("is_archived", False):
-            channel_id = channel.get("id", "")
             name = channel.get("name", "")
-            csv_string += f"{channel_id},{name}\n"
+            csv_string += f"{name}\n"
     return csv_string.strip()
