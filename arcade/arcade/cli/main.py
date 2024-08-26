@@ -204,7 +204,10 @@ def chat(
 
     client = EngineClient(base_url=config.engine_url)
 
-    if not config.user.email:
+    if config.user and config.user.email:
+        user_email = config.user.email
+        user_attribution = f"({user_email})"
+    else:
         console.print(
             "❌ User email not found in configuration. Please run `arcade login`.", style="bold red"
         )
@@ -226,7 +229,7 @@ def chat(
 
         while True:
             user_input = console.input(
-                f"\n[magenta][bold]User[/bold] ({config.user.email}):[/magenta] "
+                f"\n[magenta][bold]User[/bold] {user_attribution}:[/magenta] "
             )
             messages.append({"role": "user", "content": user_input})
 
@@ -235,7 +238,7 @@ def chat(
                     model=model,
                     messages=messages,
                     tool_choice="generate",
-                    user=config.user.email,
+                    user=user_email,
                 )
                 role, message = display_streamed_markdown(stream_response)
                 messages.append({"role": role, "content": message})
@@ -244,7 +247,7 @@ def chat(
                     model=model,
                     messages=messages,
                     tool_choice="generate",
-                    user=config.user.email,
+                    user=user_email,
                 )
                 message_content = response.choices[0].message.content or ""
                 role = response.choices[0].message.role
