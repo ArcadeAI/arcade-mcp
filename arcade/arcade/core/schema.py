@@ -172,7 +172,7 @@ class ToolCallError(BaseModel):
     """Whether the tool call can be retried."""
     additional_prompt_content: str | None = None
     """Additional content to be included in the retry prompt."""
-    wait_ms: int | None = None
+    retry_after_ms: int | None = None
     """The number of milliseconds (if any) to wait before retrying the tool call."""
 
 

@@ -64,7 +64,7 @@
                   "type": "string",
                   "description": "Additional content to be included in the retry prompt"
                 },
-                "wait_ms": {
+                "retry_after_ms": {
                   "type": "integer",
                   "description": "The number of milliseconds (if any) to wait before retrying the tool call"
                 }

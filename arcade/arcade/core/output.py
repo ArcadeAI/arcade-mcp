@@ -15,7 +15,7 @@ class ToolOutputFactory:
         *,
         data: T | None = None,
     ) -> ToolCallOutput:
-        value = data.result if data and hasattr(data, "result") and data.result else "OK"
+        value = data.result if data and hasattr(data, "result") and data.result else ""
 
         return ToolCallOutput(value=value)
 
@@ -32,7 +32,7 @@ class ToolOutputFactory:
         message: str,
         developer_message: str | None = None,
         additional_prompt_content: str | None = None,
-        wait_ms: int | None = None,
+        retry_after_ms: int | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -40,7 +40,7 @@ class ToolOutputFactory:
                 developer_message=developer_message,
                 can_retry=True,
                 additional_prompt_content=additional_prompt_content,
-                wait_ms=wait_ms,
+                retry_after_ms=retry_after_ms,
             )
         )
 

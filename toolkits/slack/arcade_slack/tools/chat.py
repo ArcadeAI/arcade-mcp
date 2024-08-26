@@ -44,7 +44,7 @@ def send_dm_to_user(
                 "User not found",
                 developer_message=f"User with username '{user_name}' not found.",
                 additional_prompt_content=format_users(userListResponse),
-                wait_ms=500,  # Play nice with Slack API rate limits
+                retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
         # Step 2: Retrieve the DM channel ID with the user
@@ -111,7 +111,7 @@ def send_message_to_channel(
                 "Channel not found",
                 developer_message=f"Channel with name '{channel_name}' not found.",
                 additional_prompt_content=format_channels(channels_response),
-                wait_ms=500,  # Play nice with Slack API rate limits
+                retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
         # Step 2: Send the message to the channel

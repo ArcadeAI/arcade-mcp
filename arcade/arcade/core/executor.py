@@ -55,7 +55,7 @@ class ToolExecutor:
                 message=e.message,
                 developer_message=e.developer_message,
                 additional_prompt_content=e.additional_prompt_content,
-                wait_ms=e.wait_ms,
+                retry_after_ms=e.retry_after_ms,
             )
 
         except ToolInputError as e:

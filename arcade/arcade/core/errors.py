@@ -46,11 +46,11 @@ class RetryableToolError(ToolExecutionError):
         message: str,
         developer_message: Optional[str] = None,
         additional_prompt_content: Optional[str] = None,
-        wait_ms: Optional[int] = None,
+        retry_after_ms: Optional[int] = None,
     ):
         super().__init__(message, developer_message)
         self.additional_prompt_content = additional_prompt_content
-        self.wait_ms = wait_ms
+        self.retry_after_ms = retry_after_ms
 
 
 class ToolSerializationError(ToolRuntimeError):
