@@ -126,8 +126,18 @@ def run(
 
         tools = [catalog[tool]] if tool else list(catalog)
 
-        # allow user to specify the engine url?
-        client = EngineClient()
+        config = Config.load_from_file()
+        if not config.engine or not config.engine_url:
+            console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
+            typer.Exit(code=1)
+
+        if not config.api or not config.api.key:
+            console.print(
+                "❌ API configuration not found or key is missing. Please run `arcade login`.",
+                style="bold red",
+            )
+            typer.Exit(code=1)
+        client = EngineClient(api_key=config.api.key, base_url=config.engine_url)
 
         # TODO better way of doing this
         tool_choice = "auto" if choice in ["execute", "generate"] else choice
