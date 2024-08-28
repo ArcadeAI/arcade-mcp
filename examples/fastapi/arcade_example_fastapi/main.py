@@ -11,7 +11,7 @@ from arcade.core.config import config
 from arcade.actor.fastapi.actor import FastAPIActor
 
 if not config.api or not config.api.key:
-    raise ValueError("Arcade API key not set. Please use `arcade login` to set it.")
+    raise ValueError("Arcade API key not set. Please run `arcade login`.")
 
 client = AsyncOpenAI(
     api_key=config.api.key,

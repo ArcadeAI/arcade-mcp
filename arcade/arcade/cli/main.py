@@ -202,7 +202,14 @@ def chat(
         console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
         typer.Exit(code=1)
 
-    client = EngineClient(base_url=config.engine_url)
+    if not config.api or not config.api.key:
+        console.print(
+            "❌ API configuration not found or key is missing. Please run `arcade login`.",
+            style="bold red",
+        )
+        typer.Exit(code=1)
+
+    client = EngineClient(api_key=config.api.key, base_url=config.engine_url)
 
     if config.user and config.user.email:
         user_email = config.user.email

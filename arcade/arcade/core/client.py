@@ -107,18 +107,15 @@ def get_tool_args(chat_completion: ChatCompletion) -> list[tuple[str, dict[str, 
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append(
-                (
-                    tool_call.function.name,
-                    json.loads(tool_call.function.arguments),
-                )
-            )
+            tool_args_list.append((
+                tool_call.function.name,
+                json.loads(tool_call.function.arguments),
+            ))
     return tool_args_list
 
 
 class EngineClient:
-    def __init__(self, api_key: str | None = None, base_url: str | None = None):
-        api_key = os.environ["OPENAI_API_KEY"] if api_key is None else api_key
+    def __init__(self, api_key: str, base_url: str | None = None):
         self.client = OpenAI(api_key=api_key, base_url=base_url)
 
     def __getattr__(self, name: str) -> Any:
