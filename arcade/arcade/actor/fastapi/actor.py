@@ -1,13 +1,14 @@
 import json
 from typing import Any, Callable
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 
 from arcade.actor.core.base import (
     BaseActor,
     Router,
 )
 from arcade.actor.core.common import RequestData
+from arcade.actor.fastapi.auth import validate_engine_request
 from arcade.actor.utils import is_async_callable
 
 
@@ -39,7 +40,7 @@ class FastAPIRouter(Router):
 
         async def wrapped_handler(
             request: Request,
-            # api_key: str = Depends(get_api_key), # TODO re-enable when Engine supports auth
+            _: None = Depends(validate_engine_request),
         ) -> Any:
             body_str = await request.body()
             body_json = json.loads(body_str) if body_str else {}

@@ -15,10 +15,6 @@ class ApiConfig(BaseModel):
     """
     Arcade API key.
     """
-    secret: str
-    """
-    Arcade API secret.
-    """
 
 
 class UserConfig(BaseModel):
