@@ -1,5 +1,4 @@
 import json
-import os
 from enum import Enum
 from typing import Any, Optional
 
@@ -107,10 +106,12 @@ def get_tool_args(chat_completion: ChatCompletion) -> list[tuple[str, dict[str, 
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append((
-                tool_call.function.name,
-                json.loads(tool_call.function.arguments),
-            ))
+            tool_args_list.append(
+                (
+                    tool_call.function.name,
+                    json.loads(tool_call.function.arguments),
+                )
+            )
     return tool_args_list
 
 

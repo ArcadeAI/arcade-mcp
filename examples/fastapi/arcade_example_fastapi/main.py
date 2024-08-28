@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
