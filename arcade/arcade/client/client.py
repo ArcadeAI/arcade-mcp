@@ -154,7 +154,9 @@ class Arcade(ArcadeClientMixin[SyncArcadeClient], SyncArcadeClient):
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self._openai_client = OpenAI(base_url=self._base_url + "/v1")
+
+        # Assume we are using the LLM API of the Engine for now
+        self._openai_client = OpenAI(base_url=self._base_url + "/v1", api_key=self._api_key)
         self.chat = self._openai_client.chat
 
     def _execute_request(self, method: str, url: str, **kwargs: Any) -> Any:

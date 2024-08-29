@@ -44,7 +44,7 @@ class BaseArcadeClient:
         self._base_url = base_url
         self._api_key = api_key or os.environ.get("ARCADE_API_KEY") or config.api.key
         self._headers = headers or {}
-        self._headers.setdefault("X-API-Key", self._api_key)
+        self._headers.setdefault("Authorization", f"Bearer {self._api_key}")
         self._headers.setdefault("Content-Type", "application/json")
         self._proxies = proxies
         self._timeout = timeout
@@ -82,7 +82,6 @@ class SyncArcadeClient(BaseArcadeClient):
         url = self._build_url(path)
         for attempt in range(self._retries):
             try:
-                print(method, url, kwargs)
                 response = self._client.request(method, url, **kwargs)
                 response.raise_for_status()
                 return response  # noqa: TRY300
