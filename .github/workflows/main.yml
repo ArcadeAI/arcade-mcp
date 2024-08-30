@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions/setup-poetry-env
 
       - name: Run checks
-        run: cd arcade && make check
+        run: make check
 
   tox:
     runs-on: ubuntu-latest
