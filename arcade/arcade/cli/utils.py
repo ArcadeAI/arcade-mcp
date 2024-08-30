@@ -55,10 +55,11 @@ def create_cli_catalog(
     return catalog
 
 
-def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> tuple[str, str]:
+def display_streamed_markdown(stream: Stream[ChatCompletionChunk], model: str) -> tuple[str, str]:
     """
     Display the streamed markdown chunks as a single line.
     """
+    from rich.live import Live
 
     full_message = ""
     role = ""
@@ -69,12 +70,32 @@ def display_streamed_markdown(stream: Stream[ChatCompletionChunk]) -> tuple[str,
             if role == "":
                 role = choice.delta.role or ""
                 if role == "assistant":
-                    console.print("\n[bold blue]Assistant:[/bold blue] ")
+                    console.print(f"\n[bold blue]Assistant ({model}):[/bold blue] ")
             if chunk_message:
                 full_message += chunk_message
                 markdown_chunk = Markdown(full_message)
                 live.update(markdown_chunk)
-        return role, full_message
+
+        # Markdownify URLs in the final message if applicable
+        if role == "assistant":
+            full_message = markdownify_urls(full_message)
+            live.update(Markdown(full_message))
+
+    return role, full_message
+
+
+def markdownify_urls(message: str) -> str:
+    """
+    Convert URLs in the message to markdown links.
+    """
+    import re
+
+    # This regex will match URLs that are not already formatted as markdown links:
+    # [Link text](https://example.com)
+    url_pattern = r"(?<!\]\()https?://\S+"
+
+    # Wrap all URLs in the message with markdown links
+    return re.sub(url_pattern, r"[Link](\g<0>)", message)
 
 
 def validate_and_get_config(

@@ -1,4 +1,5 @@
 import os
+import readline
 import threading
 import uuid
 import webbrowser
@@ -17,6 +18,7 @@ from arcade.cli.utils import (
     OrderCommands,
     create_cli_catalog,
     display_streamed_markdown,
+    markdownify_urls,
     validate_and_get_config,
 )
 from arcade.client import Arcade
@@ -150,13 +152,19 @@ def chat(
                 "bold magenta underline",
             ),
             "\n",
+            "\n",
+            "Chatting with Arcade Engine at " + config.engine_url,
         )
         console.print(chat_header)
 
         while True:
-            user_input = console.input(
+            user_input = console.print(
                 f"\n[magenta][bold]User[/bold] {user_attribution}:[/magenta] "
             )
+            # Use input() instead of console.input() to leverage readline history
+            user_input = input()
+            readline.add_history(user_input)  # Add the input to history
+
             messages.append({"role": "user", "content": user_input})
 
             if stream:
@@ -169,8 +177,7 @@ def chat(
                     user=user_email,
                     stream=True,
                 )
-                role, message = display_streamed_markdown(stream_response)
-                messages.append({"role": role, "content": message})
+                role, message_content = display_streamed_markdown(stream_response, model)
             else:
                 response = client.chat.completions.create(  # type: ignore[call-overload]
                     model=model,
@@ -183,11 +190,14 @@ def chat(
                 role = response.choices[0].message.role
 
                 if role == "assistant":
-                    console.print("\n[bold blue]Assistant:[/bold blue] ", Markdown(message_content))
+                    message_content = markdownify_urls(message_content)
+                    console.print(
+                        f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
+                    )
                 else:
                     console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
 
-                messages.append({"role": role, "content": message_content})
+            messages.append({"role": role, "content": message_content})
 
     except KeyboardInterrupt:
         console.print("Chat stopped by user.", style="bold blue")
