@@ -1,9 +1,9 @@
 import asyncio
-from enum import Enum
 import inspect
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from importlib import import_module
 from types import ModuleType
 from typing import (
