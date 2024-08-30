@@ -12,7 +12,7 @@ from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
 
-from arcade.cli.authn import check_existing_login, run_server, shutdown_server
+from arcade.cli.authn import check_existing_login, LocalAuthCallbackServer
 from arcade.cli.utils import (
     OrderCommands,
     create_cli_catalog,
@@ -36,10 +36,10 @@ def login() -> None:
     if check_existing_login():
         return
 
-    # TODO: subclass threading.Thread instead of using a global variable
     # Start the HTTP server in a new thread
     state = str(uuid.uuid4())
-    server_thread = threading.Thread(target=run_server, args=(state,))
+    auth_server = LocalAuthCallbackServer(state)
+    server_thread = threading.Thread(target=auth_server.run_server)
     server_thread.start()
 
     try:
@@ -47,14 +47,14 @@ def login() -> None:
         callback_uri = "http://localhost:9905/callback"
         params = urlencode({"callback_uri": callback_uri, "state": state})
         # TODO: make this configurable
-        login_url = f"https://cloud.arcade-ai.com/api/v1/auth/cli_login?{params}"
+        login_url = f"http://localhost:8001/api/v1/auth/cli_login?{params}"
         console.print("Opening a browser to log you in...")
         webbrowser.open(login_url)
 
         # Wait for the server thread to finish
         server_thread.join()
     except KeyboardInterrupt:
-        shutdown_server()
+        auth_server.shutdown_server()
     finally:
         if server_thread.is_alive():
             server_thread.join()  # Ensure the server thread completes and cleans up

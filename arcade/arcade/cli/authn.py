@@ -12,10 +12,7 @@ from arcade.cli.constants import LOGIN_FAILED_HTML, LOGIN_SUCCESS_HTML
 console = Console()
 
 
-httpd: HTTPServer | None = None
-
-
-class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+class LoginCallbackHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, state: str, **kwargs):  # type: ignore[no-untyped-def]
         self.state = state  # Simple CSRF protection
         super().__init__(*args, **kwargs)
@@ -74,7 +71,7 @@ Stored in: {config_file_path}""",
         )
         return True
 
-    def do_get(self) -> None:
+    def do_GET(self) -> None:  # This naming is correct, required by BaseHTTPRequestHandler
         success = self._handle_login_response()
         if success:
             self.send_response(200)
@@ -86,23 +83,26 @@ Stored in: {config_file_path}""",
             self.wfile.write(LOGIN_FAILED_HTML)
 
         # Always shut down the server so it doesn't keep running
-        threading.Thread(target=shutdown_server).start()
+        threading.Thread(target=self.server.shutdown).start()
 
 
-def shutdown_server() -> None:
-    # Shut down the server gracefully
-    global httpd
-    if "httpd" in globals() and httpd:
-        httpd.shutdown()
+class LocalAuthCallbackServer:
+    def __init__(self, state: str, port: int = 9905):
+        self.state = state
+        self.port = port
+        self.httpd: HTTPServer | None = None
 
+    def run_server(self) -> None:
+        # Initialize and run the server
+        server_address = ("", self.port)
+        handler = lambda *args, **kwargs: LoginCallbackHandler(*args, state=self.state, **kwargs)
+        self.httpd = HTTPServer(server_address, handler)
+        self.httpd.serve_forever()
 
-def run_server(state: str) -> None:
-    # Initialize and run the server
-    global httpd
-    server_address = ("", 9905)
-    handler = lambda *args, **kwargs: SimpleHTTPRequestHandler(*args, state=state, **kwargs)
-    httpd = HTTPServer(server_address, handler)
-    httpd.serve_forever()
+    def shutdown_server(self) -> None:
+        # Shut down the server gracefully
+        if self.httpd:
+            self.httpd.shutdown()
 
 
 def check_existing_login() -> bool:
