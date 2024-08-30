@@ -13,7 +13,7 @@ from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
 
-from arcade.cli.authn import check_existing_login, LocalAuthCallbackServer
+from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.utils import (
     OrderCommands,
     create_cli_catalog,
@@ -158,12 +158,13 @@ def chat(
         console.print(chat_header)
 
         while True:
-            user_input = console.print(
-                f"\n[magenta][bold]User[/bold] {user_attribution}:[/magenta] "
-            )
+            console.print(f"\n[magenta][bold]User[/bold] {user_attribution}:[/magenta] ")
+
             # Use input() instead of console.input() to leverage readline history
             user_input = input()
-            readline.add_history(user_input)  # Add the input to history
+
+            # Add the input to history
+            readline.add_history(user_input)
 
             messages.append({"role": "user", "content": user_input})
 

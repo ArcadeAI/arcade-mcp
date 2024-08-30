@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 import typer
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from rich.console import Console
-from rich.live import Live
 from rich.markdown import Markdown
 from typer.core import TyperGroup
 from typer.models import Context
