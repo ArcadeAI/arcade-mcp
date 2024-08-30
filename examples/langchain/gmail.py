@@ -18,13 +18,16 @@ from langgraph.prebuilt import create_react_agent
 # Uncomment the following lines if you have the LangSmith API key
 # os.environ["LANGCHAIN_TRACING_V2"] = "true"
 # os.environ["LANGCHAIN_API_KEY"] = getpass.getpass("Enter your LangSmith API key: ")
-# Step 3: Authenticate with Gmail
+#
+# Step 3 (Option 1) Manually authenticate with Gmail by creating your own google app, credentials, and handling tokens and Oauth
 # credentials = get_gmail_credentials(
 #    token_file="token.json",
 #    scopes=["https://mail.google.com/"],
 #    client_secrets_file="credentials.json",
 # )
-# alternative way to authenticate with arcade
+#
+# ----------------- OR -----------------
+# Step 3 (Option 2) Use the Arcade SDK to authenticate with Gmail
 from arcade.client import Arcade, AuthProvider
 
 client = Arcade(base_url="http://localhost:9099", api_key=os.environ["ARCADE_API_KEY"])
