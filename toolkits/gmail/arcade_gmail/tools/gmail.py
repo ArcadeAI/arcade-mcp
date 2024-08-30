@@ -1,11 +1,13 @@
 import base64
+import datetime
+from enum import Enum
 import json
-import re
-from base64 import urlsafe_b64decode
 from email.mime.text import MIMEText
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Optional
+from arcade.core.errors import ToolExecutionError
+from googleapiclient.errors import HttpError
 
-from bs4 import BeautifulSoup
+from arcade_gmail.tools.utils import parse_email
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
@@ -46,6 +48,122 @@ async def write_draft(
 
 def get_draft_url(draft_id):
     return f"https://mail.google.com/mail/u/0/#drafts/{draft_id}"
+
+
+class DateRange(Enum):
+    TODAY = "today"
+    YESTERDAY = "yesterday"
+    LAST_7_DAYS = "last_7_days"
+    LAST_30_DAYS = "last_30_days"
+    THIS_MONTH = "this_month"
+    LAST_MONTH = "last_month"
+    THIS_YEAR = "this_year"
+
+    def to_date_query(self):
+        today = datetime.datetime.now()
+        result = "after:"
+        comparison_date = today
+
+        if self == DateRange.YESTERDAY:
+            comparison_date = today - datetime.timedelta(days=1)
+        elif self == DateRange.LAST_7_DAYS:
+            comparison_date = today - datetime.timedelta(days=7)
+        elif self == DateRange.LAST_30_DAYS:
+            comparison_date = today - datetime.timedelta(days=30)
+        elif self == DateRange.THIS_MONTH:
+            comparison_date = today.replace(day=1)
+        elif self == DateRange.LAST_MONTH:
+            comparison_date = (
+                today.replace(day=1) - datetime.timedelta(days=1)
+            ).replace(day=1)
+        elif self == DateRange.THIS_YEAR:
+            comparison_date = today.replace(month=1, day=1)
+        elif self == DateRange.LAST_MONTH:
+            comparison_date = (
+                today.replace(month=1, day=1) - datetime.timedelta(days=1)
+            ).replace(month=1, day=1)
+
+        return result + comparison_date.strftime("%Y/%m/%d")
+
+
+@tool(
+    requires_auth=Google(
+        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def search_emails_by_header(
+    context: ToolContext,
+    sender: Annotated[
+        Optional[str], "The name or email address of the sender of the email"
+    ] = None,
+    recipient: Annotated[
+        Optional[str], "The name or email address of the recipient"
+    ] = None,
+    subject: Annotated[
+        Optional[str], "Words to find in the subject of the email"
+    ] = None,
+    body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
+    date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
+    limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
+) -> Annotated[str, "A list of email details in JSON format"]:
+    """Search for emails by header.
+    One of the following MUST be provided: sender, recipient, subject, body."""
+
+    if not any([sender, recipient, subject, body]):
+        raise ValueError(
+            "At least one of sender, recipient, subject, or body must be provided."
+        )
+
+    # Set up the Gmail API client
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+
+    # Build the query string
+    query = []
+    if sender:
+        query.append(f"from:{sender}")
+    if recipient:
+        query.append(f"to:{recipient}")
+    if subject:
+        query.append(f"subject:{subject}")
+    if body:
+        query.append(body)
+    if date_range:
+        query.append(date_range.to_date_query())
+
+    query_string = " ".join(query)
+
+    try:
+        # Perform the search
+        response = (
+            service.users()
+            .messages()
+            .list(userId="me", q=query_string, maxResults=limit or 100)
+            .execute()
+        )
+        messages = response.get("messages", [])
+
+        if not messages:
+            return json.dumps({"emails": []})
+
+        emails = []
+        for msg in messages:
+            try:
+                email_data = (
+                    service.users().messages().get(userId="me", id=msg["id"]).execute()
+                )
+                email_details = parse_email(email_data)
+                if email_details:
+                    emails.append(email_details)
+            except HttpError as e:
+                print(f"Error reading email {msg['id']}: {e}")
+
+        return json.dumps({"emails": emails})
+
+    except HttpError as e:
+        raise ToolExecutionError(
+            "Error searching emails",
+            developer_message=f"Gmail API Error: {e}",
+        )
 
 
 @tool(
@@ -94,96 +212,3 @@ async def get_emails(
     except Exception as e:
         print(f"Error reading emails: {e}")
         return "Error reading emails"
-
-
-def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
-    """
-    Parse email data and extract relevant information.
-
-    Args:
-        email_data (Dict[str, Any]): Raw email data from Gmail API.
-
-    Returns:
-        Optional[Dict[str, str]]: Parsed email details or None if parsing fails.
-    """
-    try:
-        payload = email_data["payload"]
-        headers = {d["name"].lower(): d["value"] for d in payload["headers"]}
-
-        body_data = get_email_body(payload)
-
-        return {
-            "from": headers.get("from", ""),
-            "date": headers.get("date", ""),
-            "subject": headers.get("subject", "No subject"),
-            "body": clean_email_body(body_data) if body_data else "",
-        }
-    except Exception as e:
-        print(f"Error parsing email {email_data.get('id', 'unknown')}: {e}")
-        return None
-
-
-def get_email_body(payload: Dict[str, Any]) -> Optional[str]:
-    """
-    Extract email body from payload.
-
-    Args:
-        payload (Dict[str, Any]): Email payload data.
-
-    Returns:
-        Optional[str]: Decoded email body or None if not found.
-    """
-    if "body" in payload and payload["body"].get("data"):
-        return urlsafe_b64decode(payload["body"]["data"]).decode()
-
-    for part in payload.get("parts", []):
-        if part.get("mimeType") == "text/plain" and "data" in part["body"]:
-            return urlsafe_b64decode(part["body"]["data"]).decode()
-
-    return None
-
-
-def clean_email_body(body: str) -> str:
-    """
-    Remove HTML tags and clean up email body text while preserving most content.
-
-    Args:
-        body (str): The raw email body text.
-
-    Returns:
-        str: Cleaned email body text.
-    """
-    try:
-        # Remove HTML tags using BeautifulSoup
-        soup = BeautifulSoup(body, "html.parser")
-        text = soup.get_text(separator=" ")
-
-        # Clean up the text
-        text = clean_text(text)
-
-        return text.strip()
-    except Exception as e:
-        print(f"Error cleaning email body: {e}")
-        return body
-
-
-def clean_text(text: str) -> str:
-    """
-    Clean up the text while preserving most content.
-
-    Args:
-        text (str): The input text.
-
-    Returns:
-        str: Cleaned text.
-    """
-    # Replace multiple newlines with a single newline
-    text = re.sub(r"\n+", "\n", text)
-
-    # Replace multiple spaces with a single space
-    text = re.sub(r"\s+", " ", text)
-
-    # Remove leading/trailing whitespace from each line
-    text = "\n".join(line.strip() for line in text.split("\n"))
-
-    return text

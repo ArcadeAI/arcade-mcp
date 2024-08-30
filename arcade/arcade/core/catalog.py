@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 import inspect
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -239,6 +240,9 @@ def create_input_definition(func: Callable) -> ToolInputs:
         if is_string_literal(tool_field_info.field_type):
             is_enum = True
             enum_values = [str(e) for e in get_args(tool_field_info.field_type)]
+        elif issubclass(tool_field_info.field_type, Enum):
+            is_enum = True
+            enum_values = [e.value for e in tool_field_info.field_type]
 
         # If the field has a default value, it is not required
         # If the field is optional, it is not required
@@ -479,6 +483,8 @@ def get_wire_type(
         origin = _type.__origin__
         if origin in [list, dict]:
             return "json"
+    elif issubclass(_type, Enum):
+        return "string"
     elif issubclass(_type, BaseModel):
         return "json"
     raise ToolDefinitionError(f"Unsupported parameter type: {_type}")

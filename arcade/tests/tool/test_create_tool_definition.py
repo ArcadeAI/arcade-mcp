@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated, Literal, Optional
 
 import pytest
@@ -88,13 +89,23 @@ def func_with_every_param(
     pass
 
 
+class TestEnum(Enum):
+    FOO_BAR = "foo bar"
+    BAZ = "baz"
+
+
+@tool(desc="A function that takes an enum")
+def func_with_enum_param(param1: Annotated[TestEnum, "an enum"]):
+    pass
+
+
 @tool(desc="A function that takes a dictionary")
 def func_with_dict_param(param1: Annotated[dict, "a cool dictionary"]):
     pass
 
 
-@tool(desc="A function that takes a string enum")
-def func_with_string_enum_param(param1: Annotated[Literal["value1", "value2"], "a few choices"]):
+@tool(desc="A function that takes a string literal")
+def func_with_string_literal_param(param1: Annotated[Literal["value1", "value2"], "a few choices"]):
     pass
 
 
@@ -330,6 +341,23 @@ def func_with_complex_return() -> list[dict[str, str]]:
             id="func_with_every_param",
         ),
         pytest.param(
+            func_with_enum_param,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="an enum",
+                            inferrable=True,
+                            required=True,
+                            value_schema=ValueSchema(val_type="string", enum=["foo bar", "baz"]),
+                        )
+                    ]
+                ),
+            },
+            id="func_with_enum_param",
+        ),
+        pytest.param(
             func_with_dict_param,
             {
                 "inputs": ToolInputs(
@@ -347,7 +375,7 @@ def func_with_complex_return() -> list[dict[str, str]]:
             id="func_with_dict_param",
         ),
         pytest.param(
-            func_with_string_enum_param,
+            func_with_string_literal_param,
             {
                 "inputs": ToolInputs(
                     parameters=[
