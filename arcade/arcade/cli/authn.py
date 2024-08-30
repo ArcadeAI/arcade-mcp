@@ -74,7 +74,7 @@ Stored in: {config_file_path}""",
         )
         return True
 
-    def do_GET(self) -> None:
+    def do_get(self) -> None:
         success = self._handle_login_response()
         if success:
             self.send_response(200)

@@ -12,7 +12,7 @@ from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
 
-from arcade.cli.authc import check_existing_login, run_server, shutdown_server
+from arcade.cli.authn import check_existing_login, run_server, shutdown_server
 from arcade.cli.utils import (
     OrderCommands,
     create_cli_catalog,
@@ -43,7 +43,6 @@ def login() -> None:
     server_thread.start()
 
     try:
-        # TODO: make this configurable
         # Open the browser for user login
         callback_uri = "http://localhost:9905/callback"
         params = urlencode({"callback_uri": callback_uri, "state": state})
@@ -54,9 +53,9 @@ def login() -> None:
 
         # Wait for the server thread to finish
         server_thread.join()
-    # TODO: catch specific exceptionsa and end in a "finally" block
     except KeyboardInterrupt:
         shutdown_server()
+    finally:
         if server_thread.is_alive():
             server_thread.join()  # Ensure the server thread completes and cleans up
 
