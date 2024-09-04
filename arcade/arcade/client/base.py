@@ -5,7 +5,14 @@ from urllib.parse import urljoin
 import httpx
 from httpx import Timeout
 
-from arcade.client.errors import APIStatusError, InternalServerError
+from arcade.client.errors import (
+    BadRequestError,
+    InternalServerError,
+    NotFoundError,
+    PermissionDeniedError,
+    RateLimitError,
+    UnauthorizedError,
+)
 
 T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
@@ -62,11 +69,15 @@ class BaseArcadeClient:
             chat_url = f"{base_url}/{API_VERSION}"
         return chat_url
 
-    def _handle_http_error(
-        self,
-        e: httpx.HTTPStatusError,
-        error_map: dict[int, type[APIStatusError]],
-    ) -> None:
+    def _handle_http_error(self, e: httpx.HTTPStatusError) -> None:
+        error_map = {
+            400: BadRequestError,
+            401: UnauthorizedError,
+            403: PermissionDeniedError,
+            404: NotFoundError,
+            429: RateLimitError,
+            500: InternalServerError,
+        }
         status_code = e.response.status_code
         error_class = error_map.get(status_code, InternalServerError)
         raise error_class(str(e), response=e.response)

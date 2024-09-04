@@ -55,7 +55,7 @@ class AuthResource(BaseResource[ClientT]):
         body = {
             "auth_requirement": {
                 "provider": auth_provider,
-                auth_provider: AuthRequest(scope=scopes, authority=authority).dict(
+                auth_provider: AuthRequest(scope=scopes, authority=authority).model_dump(
                     exclude_none=True
                 ),
             },
@@ -147,7 +147,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
         body = {
             "auth_requirement": {
                 "provider": auth_provider,
-                auth_provider: AuthRequest(scope=scopes, authority=authority).dict(
+                auth_provider: AuthRequest(scope=scopes, authority=authority).model_dump(
                     exclude_none=True
                 ),
             },

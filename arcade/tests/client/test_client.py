@@ -1,0 +1,186 @@
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+from httpx import HTTPStatusError, Response
+
+from arcade.client import Arcade, AsyncArcade, AuthProvider
+from arcade.client.errors import (
+    BadRequestError,
+    InternalServerError,
+    NotFoundError,
+    PermissionDeniedError,
+    UnauthorizedError,
+)
+from arcade.client.schema import AuthResponse, ExecuteToolResponse
+from arcade.core.schema import ToolDefinition
+
+AUTH_RESPONSE_DATA = {
+    "auth_id": "auth_123",
+    "auth_url": "https://example.com/auth",
+    "status": "pending",
+    "authorizationID": "auth_123",  # Add this line
+}
+
+TOOL_RESPONSE_DATA = {
+    "tool_name": "GetEmails",
+    "tool_version": "0.1.0",
+    "output": {"result": "Hello, World!"},
+    "error": None,
+    "invocation_id": "inv_123",  # Add this line
+    "duration": 1.5,  # Add this line
+    "finished_at": "2023-04-01T12:00:00Z",  # Add this line
+    "success": True,  # Add this line
+}
+
+TOOL_DEFINITION_DATA = {
+    "name": "GetEmails",
+    "description": "Retrieve emails from a user's inbox",
+    "input_schema": {"type": "object", "properties": {"n_emails": {"type": "integer"}}},
+    "output_schema": {"type": "array", "items": {"type": "string"}},
+    "version": "0.1.0",
+    "inputs": {"parameters": []},  # Update this line
+    "output": {},
+    "requirements": {"auth_requirements": []},  # Update this line
+}
+
+
+@pytest.fixture
+def mock_response():
+    """Mock Response object for testing."""
+    response = Mock(spec=Response)
+    response.json.return_value = {}
+    return response
+
+
+@pytest.fixture
+def mock_async_response():
+    """Mock AsyncResponse object for testing."""
+    response = AsyncMock(spec=Response)
+    response.json.return_value = {}
+    return response
+
+
+@pytest.mark.parametrize(
+    "error_code, expected_error",
+    [
+        (400, BadRequestError),
+        (401, UnauthorizedError),
+        (403, PermissionDeniedError),
+        (404, NotFoundError),
+        (500, InternalServerError),
+    ],
+)
+def test_handle_http_error(error_code, expected_error, mock_response):
+    """Test _handle_http_error method for different error codes."""
+    mock_response.status_code = error_code
+    mock_response.json.return_value = {"error": "Test error message"}
+
+    # Create a mock HTTPStatusError
+    mock_http_error = Mock(spec=HTTPStatusError)
+    mock_http_error.response = mock_response
+
+    client = Arcade()  # Create an instance of Arcade
+    with pytest.raises(expected_error):
+        client._handle_http_error(mock_http_error)  # Call the method on the instance
+
+
+def test_arcade_auth_authorize(mock_response, monkeypatch):
+    """Test Arcade.auth.authorize method."""
+    monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
+    client = Arcade()
+    auth_response = client.auth.authorize(
+        provider=AuthProvider.google,
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
+    )
+    assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
+
+
+def test_arcade_auth_poll_authorization(mock_response, monkeypatch):
+    """Test Arcade.auth.poll_authorization method."""
+    monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
+    client = Arcade()
+    auth_response = client.auth.poll_authorization("auth_123")
+    assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
+
+
+def test_arcade_tool_run(mock_response, monkeypatch):
+    """Test Arcade.tool.run method."""
+    monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_RESPONSE_DATA)
+    client = Arcade()
+    tool_response = client.tool.run(
+        tool_name="GetEmails",
+        user_id="sam@arcade-ai.com",
+        tool_version="0.1.0",
+        inputs={"n_emails": 5},
+    )
+    assert tool_response == ExecuteToolResponse(**TOOL_RESPONSE_DATA)
+
+
+def test_arcade_tool_get(mock_response, monkeypatch):
+    """Test Arcade.tool.get method."""
+    monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_DEFINITION_DATA)
+    client = Arcade()
+    tool_definition = client.tool.get(director_id="default", tool_id="GetEmails")
+    assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_auth_authorize(mock_async_response, monkeypatch):
+    """Test AsyncArcade.auth.authorize method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return AUTH_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    auth_response = await client.auth.authorize(
+        provider=AuthProvider.google,
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
+    )
+    assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_auth_poll_authorization(mock_async_response, monkeypatch):
+    """Test AsyncArcade.auth.poll_authorization method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return AUTH_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    auth_response = await client.auth.poll_authorization("auth_123")
+    assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_tool_run(mock_async_response, monkeypatch):
+    """Test AsyncArcade.tool.run method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return TOOL_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    tool_response = await client.tool.run(
+        tool_name="GetEmails",
+        user_id="sam@arcade-ai.com",
+        tool_version="0.1.0",
+        inputs={"n_emails": 5},
+    )
+    assert tool_response == ExecuteToolResponse(**TOOL_RESPONSE_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_tool_get(mock_async_response, monkeypatch):
+    """Test AsyncArcade.tool.get method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return TOOL_DEFINITION_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    tool_definition = await client.tool.get(director_id="default", tool_id="GetEmails")
+    assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
