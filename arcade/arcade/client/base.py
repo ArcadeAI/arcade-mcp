@@ -5,8 +5,13 @@ from urllib.parse import urljoin
 import httpx
 from httpx import Timeout
 
+from arcade.client.errors import APIStatusError, InternalServerError
+
 T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
+
+API_VERSION = "v1"
+BASE_URL = "http://localhost:9099"
 
 
 class BaseResource(Generic[T]):
@@ -21,7 +26,7 @@ class BaseArcadeClient:
 
     def __init__(
         self,
-        base_url: str,
+        base_url: str = BASE_URL,
         api_key: str | None = None,
         headers: dict[str, str] | None = None,
         timeout: float | Timeout = 10.0,
@@ -50,6 +55,21 @@ class BaseArcadeClient:
         Build the full URL for a given path.
         """
         return urljoin(self._base_url, path)
+
+    def _chat_url(self, base_url: str) -> str:
+        chat_url = str(base_url)
+        if not base_url.endswith(API_VERSION):
+            chat_url = f"{base_url}/{API_VERSION}"
+        return chat_url
+
+    def _handle_http_error(
+        self,
+        e: httpx.HTTPStatusError,
+        error_map: dict[int, type[APIStatusError]],
+    ) -> None:
+        status_code = e.response.status_code
+        error_class = error_map.get(status_code, InternalServerError)
+        raise error_class(str(e), response=e.response)
 
 
 class SyncArcadeClient(BaseArcadeClient):
