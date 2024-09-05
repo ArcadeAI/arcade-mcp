@@ -125,3 +125,32 @@ def validate_and_get_config(
         raise typer.Exit(code=1)
 
     return config
+
+
+def apply_config_overrides(
+    config: "Config", host_input: str | None, port_input: int | None, tls_input: bool | None
+) -> None:
+    """
+    Apply optional config overrides (passed by the user) to the config object.
+    """
+
+    if not config.engine:
+        # Should not happen, validate_and_get_config ensures that `engine` is set
+        raise ValueError("Engine configuration not found in config.")
+
+    # Special case for "localhost" and nothing else specified:
+    # default to dev port and no TLS for convenience
+    if host_input == "localhost":
+        if port_input is None:
+            port_input = 9099
+        if tls_input is None:
+            tls_input = False
+
+    if host_input:
+        config.engine.host = host_input
+
+    if port_input is not None:
+        config.engine.port = port_input
+
+    if tls_input is not None:
+        config.engine.tls = tls_input

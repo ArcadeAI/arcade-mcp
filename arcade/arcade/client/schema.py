@@ -42,6 +42,13 @@ class AuthStatus(str, Enum):
     completed = "completed"
 
 
+class HealthCheckResponse(BaseModel):
+    """Response from a health check request."""
+
+    healthy: bool
+    """Whether the health check was successful."""
+
+
 class AuthResponse(BaseModel):
     """Response from an authorization request."""
 

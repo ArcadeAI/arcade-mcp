@@ -1,5 +1,6 @@
 from typing import Any, TypeVar, Union
 
+from arcade.client.errors import APIStatusError, EngineNotHealthyError, EngineOfflineError
 import httpx
 from openai import AsyncOpenAI, OpenAI
 from openai.resources.chat import AsyncChat, Chat
@@ -15,6 +16,7 @@ from arcade.client.schema import (
     AuthRequest,
     AuthResponse,
     ExecuteToolResponse,
+    HealthCheckResponse,
 )
 from arcade.core.schema import ToolDefinition
 
@@ -143,6 +145,41 @@ class ToolResource(BaseResource[ClientT]):
         return AuthResponse(**data)
 
 
+class HealthResource(BaseResource[ClientT]):
+    """Health check resource."""
+
+    def check(self) -> None:
+        """
+        Check the health of the Arcade Engine.
+        Raises an error if the health check fails.
+        """
+
+        try:
+            data = self._client._execute_request(  # type: ignore[attr-defined]
+                "GET",
+                f"/{API_VERSION}/health",
+                timeout=5,
+            )
+
+        except APIStatusError as e:
+            raise EngineNotHealthyError(
+                "Arcade Engine health check returned an unhealthy status code",
+                status_code=e.status_code,
+            )
+        except Exception as e:
+            # Catches everything else including httpx.ConnectError (most common)
+            raise EngineOfflineError(f"Arcade Engine was unreachable: {e}")
+
+        health_check_response = HealthCheckResponse(**data)
+
+        # Raise an error if the health payload is not `healthy: true`
+        if health_check_response.healthy is not True:
+            raise EngineNotHealthyError(
+                "Arcade Engine health check was not healthy",
+                status_code=200,
+            )
+
+
 class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
     """Asynchronous Authentication resource."""
 
@@ -234,6 +271,41 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         return AuthResponse(**data)
 
 
+class AsyncHealthResource(BaseResource[AsyncArcadeClient]):
+    """Asynchronous Health check resource."""
+
+    async def check(self) -> None:
+        """
+        Check the health of the Arcade Engine.
+        Raises an error if the health check fails.
+        """
+
+        try:
+            data = await self._client._execute_request(  # type: ignore[attr-defined]
+                "GET",
+                f"/{API_VERSION}/health",
+                timeout=5,
+            )
+
+        except APIStatusError as e:
+            raise EngineNotHealthyError(
+                "Arcade Engine health check returned an unhealthy status code",
+                status_code=e.status_code,
+            )
+        except Exception as e:
+            # Catches everything else including httpx.ConnectError (most common)
+            raise EngineOfflineError(f"Arcade Engine was unreachable: {e}")
+
+        health_check_response = HealthCheckResponse(**data)
+
+        # Raise an error if the health payload is not `healthy: true`
+        if health_check_response.healthy is not True:
+            raise EngineNotHealthyError(
+                "Arcade Engine health check was not healthy",
+                status_code=200,
+            )
+
+
 class Arcade(SyncArcadeClient):
     """Synchronous Arcade client."""
 
@@ -241,6 +313,7 @@ class Arcade(SyncArcadeClient):
         super().__init__(*args, **kwargs)
         self.auth: AuthResource = AuthResource(self)
         self.tool: ToolResource = ToolResource(self)
+        self.health: HealthResource = HealthResource(self)
         chat_url = self._chat_url(self._base_url)
         self._openai_client = OpenAI(base_url=chat_url, api_key=self._api_key)
 
@@ -266,6 +339,7 @@ class AsyncArcade(AsyncArcadeClient):
         super().__init__(*args, **kwargs)
         self.auth: AsyncAuthResource = AsyncAuthResource(self)
         self.tool: AsyncToolResource = AsyncToolResource(self)
+        self.health: AsyncHealthResource = AsyncHealthResource(self)
         chat_url = self._chat_url(self._base_url)
         self._openai_client = AsyncOpenAI(base_url=chat_url, api_key=self._api_key)
 

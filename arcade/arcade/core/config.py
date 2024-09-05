@@ -1,6 +1,7 @@
 import ipaddress
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import idna
@@ -69,6 +70,11 @@ class Config(BaseModel):
     Arcade Engine configuration.
     """
 
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        self._engine_url_cache: str | None = None
+        self._engine_url_cache_key: str | None = None
+
     @classmethod
     def get_config_dir_path(cls) -> Path:
         """
@@ -83,7 +89,16 @@ class Config(BaseModel):
         """
         return cls.get_config_dir_path() / "arcade.toml"
 
-    @cached_property
+    def _generate_engine_url_cache_key(self) -> str:
+        """
+        Generate a cache key for the engine_url property, based on its underlying data.
+        """
+        if self.engine is None:
+            return ""
+
+        return f"{self.engine.host}:{self.engine.port}:{self.engine.tls}"
+
+    @property
     def engine_url(self) -> str:
         """
         Get the cached URL of the Arcade Engine.
@@ -115,6 +130,13 @@ class Config(BaseModel):
         Raises:
             ValueError: If the engine configuration is missing or incomplete.
         """
+        current_cache_key = self._generate_engine_url_cache_key()
+        if self._engine_url_cache is None or self._engine_url_cache_key != current_cache_key:
+            self._engine_url_cache = self._compute_engine_url()
+            self._engine_url_cache_key = current_cache_key
+        return self._engine_url_cache
+
+    def _compute_engine_url(self) -> str:
         if self.engine is None:
             raise ValueError("Configuration for Engine is not set in arcade.toml")
         if not self.engine.host:

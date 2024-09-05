@@ -9,6 +9,25 @@ class ArcadeError(Exception):
     pass
 
 
+class EngineOfflineError(ArcadeError):
+    """Raised when the Arcade Engine is offline."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class EngineNotHealthyError(ArcadeError):
+    """Raised when the Arcade Engine is not healthy."""
+
+    def __init__(
+        self,
+        message: str,
+        status_code: int,
+    ):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 class APIError(ArcadeError):
     """Base class for API-related errors."""
 
