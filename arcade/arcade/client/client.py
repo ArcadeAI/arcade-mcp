@@ -1,4 +1,4 @@
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, Union
 
 import httpx
 from openai import AsyncOpenAI, OpenAI
@@ -68,25 +68,24 @@ class AuthResource(BaseResource[ClientT]):
         )
         return AuthResponse(**data)
 
-    def poll_authorization(self, existing_response: AuthResponse) -> AuthResponse:
+    def poll_authorization(
+        self, auth_id_or_response: Union[str, AuthResponse], scopes: list[str] | None = None
+    ) -> AuthResponse:
         """Poll for the status of an authorization
 
-        Polls using the data returned from the authorize method.
+        Polls using either the authorization ID or the data returned from the authorize method.
 
         Example:
             auth_response = client.auth.authorize(...)
             auth_status = client.auth.poll_authorization(auth_response)
-        """
-        return self.poll_authorization(existing_response.auth_id, existing_response.scopes)
-
-    def poll_authorization(self, auth_id: str, scopes: list[str] | None) -> AuthResponse:
-        """Poll for the status of an authorization
-
-        Polls using the authorization ID returned from the authorize method.
-
-        Example:
             auth_status = client.auth.poll_authorization("auth_123", ["scope1", "scope2"])
         """
+        if isinstance(auth_id_or_response, AuthResponse):
+            auth_id = auth_id_or_response.auth_id
+            scopes = auth_id_or_response.scopes
+        else:
+            auth_id = auth_id_or_response
+
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
             f"{self._base_path}/status",
