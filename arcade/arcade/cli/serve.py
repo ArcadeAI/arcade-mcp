@@ -18,7 +18,9 @@ from arcade.core.toolkit import Toolkit
 console = Console()
 
 
-def serve_default_actor(host: str = "127.0.0.1", port: int = 8000) -> None:
+def serve_default_actor(
+    host: str = "127.0.0.1", port: int = 8000, disable_auth: bool = False
+) -> None:
     """
     Get an instance of a FastAPI server with the Arcade Actor.
     """
@@ -36,7 +38,7 @@ def serve_default_actor(host: str = "127.0.0.1", port: int = 8000) -> None:
         description="Arcade AI default Actor implementation using FastAPI.",
         version="0.1.0",
     )
-    actor = FastAPIActor(app)
+    actor = FastAPIActor(app, disable_auth=disable_auth)
     for toolkit in toolkits:
         actor.register_toolkit(toolkit)
 

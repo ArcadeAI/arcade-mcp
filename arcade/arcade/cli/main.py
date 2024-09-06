@@ -263,15 +263,28 @@ def dev(
     port: int = typer.Option(
         "8000", "-p", "--port", help="Port for the app, defaults to ", show_default=True
     ),
+    disable_auth: bool = typer.Option(
+        False,
+        "--no-auth",
+        help="Disable authentication for the actor. Not recommended for production.",
+        show_default=True,
+    ),
 ) -> None:
     """
     Starts the actor with host, port, and reload options. Uses
     Uvicorn as ASGI actor. Parameters allow runtime configuration.
     """
+
+    if disable_auth:
+        console.print(
+            "⚠️ Actor authentication is disabled. Not recommended for production.",
+            style="bold yellow",
+        )
+
     from arcade.cli.serve import serve_default_actor
 
     try:
-        serve_default_actor(host, port)
+        serve_default_actor(host, port, disable_auth)
     except KeyboardInterrupt:
         console.print("actor stopped by user.", style="bold red")
         typer.Exit()
