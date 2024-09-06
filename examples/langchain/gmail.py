@@ -41,13 +41,13 @@ challenge = client.auth.authorize(
 if challenge.status != "completed":
     print(f"Please visit this URL to authorize: {challenge.auth_url}")
     input("Press Enter after you've completed the authorization...")
-    challenge = client.auth.poll_authorization(challenge.auth_id)
+    challenge = client.auth.poll_authorization(challenge)
     if challenge.status != "completed":
         print("Authorization not completed. Please try again.")
         exit(1)
 
 
-creds = Credentials(challenge.context.authorization.token)
+creds = Credentials(challenge.context.token)
 api_resource = build_resource_service(credentials=creds)
 toolkit = GmailToolkit(api_resource=api_resource)
 
