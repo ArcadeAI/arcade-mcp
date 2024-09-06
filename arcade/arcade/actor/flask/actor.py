@@ -56,10 +56,15 @@ class FlaskRouter(Router):
 
         return wrapped_handler
 
-    def add_route(self, endpoint_path: str, handler: Callable, method: str) -> None:
+    def add_route(
+        self, endpoint_path: str, handler: Callable, method: str, require_auth: bool = True
+    ) -> None:
         """
         Add a route to the Flask application.
         """
+        # TODO: Implement auth
+        # use_auth_for_route = not self.actor.disable_auth and require_auth
+
         handler_name = handler.__name__ if hasattr(handler, "__name__") else type(handler).__name__
         endpoint_name = f"actor_{handler_name}_{method}"
         self.app.add_url_rule(

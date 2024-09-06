@@ -32,11 +32,12 @@ class BaseActor(Actor):
         HealthCheckComponent,
     )
 
-    def __init__(self) -> None:
+    def __init__(self, disable_auth: bool = False) -> None:
         """
         Initialize the BaseActor with an empty ToolCatalog.
         """
         self.catalog = ToolCatalog()
+        self.disable_auth = disable_auth
 
     def get_catalog(self) -> list[ToolDefinition]:
         """

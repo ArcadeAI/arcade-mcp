@@ -27,7 +27,9 @@ class Router(ABC):
     """
 
     @abstractmethod
-    def add_route(self, endpoint_path: str, handler: Callable, method: str) -> None:
+    def add_route(
+        self, endpoint_path: str, handler: Callable, method: str, require_auth: bool = True
+    ) -> None:
         """
         Add a route to the router.
         """

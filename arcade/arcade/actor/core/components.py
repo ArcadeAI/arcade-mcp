@@ -48,7 +48,7 @@ class HealthCheckComponent(ActorComponent):
         """
         Register the health check route with the router.
         """
-        router.add_route("health", self, method="GET")
+        router.add_route("health", self, method="GET", require_auth=False)
 
     async def __call__(self, request: RequestData) -> dict[str, Any]:
         """
