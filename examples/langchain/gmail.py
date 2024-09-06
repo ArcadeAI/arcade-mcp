@@ -47,7 +47,7 @@ if challenge.status != "completed":
         exit(1)
 
 
-creds = Credentials(challenge.context.authorization.token)
+creds = Credentials(challenge.context.token)
 api_resource = build_resource_service(credentials=creds)
 toolkit = GmailToolkit(api_resource=api_resource)
 
