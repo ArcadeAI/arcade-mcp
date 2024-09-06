@@ -16,8 +16,6 @@ from arcade.sdk.auth import SlackUser
             "im:write",
             "users.profile:read",
             "users:read",
-            "channels:read",
-            "groups:read",
         ],
     )
 )
@@ -76,9 +74,6 @@ def format_users(userListResponse: dict) -> str:
     requires_auth=SlackUser(
         scope=[
             "chat:write",
-            "im:write",
-            "users.profile:read",
-            "users:read",
             "channels:read",
             "groups:read",
         ],
