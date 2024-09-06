@@ -41,7 +41,7 @@ challenge = client.auth.authorize(
 if challenge.status != "completed":
     print(f"Please visit this URL to authorize: {challenge.auth_url}")
     input("Press Enter after you've completed the authorization...")
-    challenge = client.auth.poll_authorization(challenge.auth_id)
+    challenge = client.auth.poll_authorization(challenge)
     if challenge.status != "completed":
         print("Authorization not completed. Please try again.")
         exit(1)

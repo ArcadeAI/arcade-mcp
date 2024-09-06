@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import AnyUrl, BaseModel, Field
 
-from arcade.core.schema import ToolCallOutput, ToolContext
+from arcade.core.schema import ToolAuthorizationContext, ToolCallOutput
 
 
 class AuthProvider(str, Enum):
@@ -48,6 +48,9 @@ class AuthResponse(BaseModel):
     auth_id: str = Field(alias="authorizationID")
     """The ID of the authorization request"""
 
+    scopes: list[str]
+    """The scope(s) requested in the authorization request"""
+
     # TODO: Use AnyUrl?
     auth_url: str | None = Field(None, alias="authorizationURL")
     """The URL for the authorization"""
@@ -55,7 +58,7 @@ class AuthResponse(BaseModel):
     status: AuthStatus
     """Only completed implies presence of a token"""
 
-    context: ToolContext | None = None
+    context: ToolAuthorizationContext | None = None
 
 
 class ExecuteToolResponse(BaseModel):

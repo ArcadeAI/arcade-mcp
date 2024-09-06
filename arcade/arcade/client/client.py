@@ -54,7 +54,7 @@ class AuthResource(BaseResource[ClientT]):
         body = {
             "auth_requirement": {
                 "provider": auth_provider,
-                auth_provider: AuthRequest(scope=scopes, authority=authority).dict(
+                auth_provider: AuthRequest(scope=scopes, authority=authority).model_dump(
                     exclude_none=True
                 ),
             },
@@ -68,16 +68,29 @@ class AuthResource(BaseResource[ClientT]):
         )
         return AuthResponse(**data)
 
-    def poll_authorization(self, auth_id: str) -> AuthResponse:
+    def poll_authorization(self, existing_response: AuthResponse) -> AuthResponse:
+        """Poll for the status of an authorization
+
+        Polls using the data returned from the authorize method.
+
+        Example:
+            auth_response = client.auth.authorize(...)
+            auth_status = client.auth.poll_authorization(auth_response)
+        """
+        return self.poll_authorization(existing_response.auth_id, existing_response.scopes)
+
+    def poll_authorization(self, auth_id: str, scopes: list[str] | None) -> AuthResponse:
         """Poll for the status of an authorization
 
         Polls using the authorization ID returned from the authorize method.
 
         Example:
-            auth_status = client.auth.poll_authorization("auth_123")
+            auth_status = client.auth.poll_authorization("auth_123", ["scope1", "scope2"])
         """
         data = self._client._execute_request(  # type: ignore[attr-defined]
-            "GET", f"{self._base_path}/status", params={"authorizationID": auth_id}
+            "GET",
+            f"{self._base_path}/status",
+            params={"authorizationID": auth_id, "scopes": " ".join(scopes) if scopes else None},
         )
         return AuthResponse(**data)
 
