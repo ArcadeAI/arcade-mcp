@@ -12,7 +12,7 @@ from arcade.client.errors import (
     PermissionDeniedError,
     UnauthorizedError,
 )
-from arcade.client.schema import AuthResponse, ExecuteToolResponse, HealthCheckResponse
+from arcade.client.schema import AuthResponse, ExecuteToolResponse
 from arcade.core.schema import ToolDefinition
 
 AUTH_RESPONSE_DATA = {

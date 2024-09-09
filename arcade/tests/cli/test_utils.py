@@ -1,7 +1,7 @@
+from arcade.core.config import ApiConfig, Config, EngineConfig
 import pytest
 
 from arcade.cli.utils import apply_config_overrides
-from arcade.core.config import config
 
 DEFAULT_HOST = "api.arcade-ai.com"
 DEFAULT_PORT = None
@@ -118,11 +118,15 @@ DEFAULT_TLS = True
     ],
 )
 def test_apply_config_overrides(inputs: dict, expected_outputs: dict):
-    # Set consistent values for testing
-    # (needed in case local config values are present on the machine)
-    config.engine.host = DEFAULT_HOST
-    config.engine.port = DEFAULT_PORT
-    config.engine.tls = DEFAULT_TLS
+    # Set fake default values for testing
+    config = Config(
+        api=ApiConfig(key="fake_api_key"),
+        engine=EngineConfig(
+            host=DEFAULT_HOST,
+            port=DEFAULT_PORT,
+            tls=DEFAULT_TLS,
+        ),
+    )
 
     apply_config_overrides(config, inputs["host_input"], inputs["port_input"], inputs["tls_input"])
 

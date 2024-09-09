@@ -1,6 +1,5 @@
 from typing import Any, TypeVar, Union
 
-from arcade.client.errors import APIStatusError, EngineNotHealthyError, EngineOfflineError
 import httpx
 from openai import AsyncOpenAI, OpenAI
 from openai.resources.chat import AsyncChat, Chat
@@ -11,6 +10,7 @@ from arcade.client.base import (
     BaseResource,
     SyncArcadeClient,
 )
+from arcade.client.errors import APIStatusError, EngineNotHealthyError, EngineOfflineError
 from arcade.client.schema import (
     AuthProvider,
     AuthRequest,
