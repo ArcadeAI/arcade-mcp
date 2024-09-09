@@ -97,7 +97,7 @@ def test_handle_http_error(error_code, expected_error, mock_response):
     mock_http_error = Mock(spec=HTTPStatusError)
     mock_http_error.response = mock_response
 
-    client = Arcade()  # Create an instance of Arcade
+    client = Arcade(api_key="fake_api_key")  # Create an instance of Arcade
     with pytest.raises(expected_error):
         client._handle_http_error(mock_http_error)  # Call the method on the instance
 
@@ -105,7 +105,7 @@ def test_handle_http_error(error_code, expected_error, mock_response):
 def test_arcade_auth_authorize(mock_response, monkeypatch):
     """Test Arcade.auth.authorize method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     auth_response = client.auth.authorize(
         provider=AuthProvider.google,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
@@ -117,7 +117,7 @@ def test_arcade_auth_authorize(mock_response, monkeypatch):
 def test_arcade_auth_poll_authorization(mock_response, monkeypatch):
     """Test Arcade.auth.poll_authorization method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     auth_response = client.auth.status("auth_123")
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -125,7 +125,7 @@ def test_arcade_auth_poll_authorization(mock_response, monkeypatch):
 def test_arcade_tool_run(mock_response, monkeypatch):
     """Test Arcade.tool.run method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_RESPONSE_DATA)
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     tool_response = client.tool.run(
         tool_name="GetEmails",
         user_id="sam@arcade-ai.com",
@@ -138,7 +138,7 @@ def test_arcade_tool_run(mock_response, monkeypatch):
 def test_arcade_tool_get(mock_response, monkeypatch):
     """Test Arcade.tool.get method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_DEFINITION_DATA)
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     tool_definition = client.tool.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
 
@@ -148,7 +148,7 @@ def test_arcade_tool_authorize(mock_response, monkeypatch):
     monkeypatch.setattr(
         Arcade, "_execute_request", lambda *args, **kwargs: TOOL_AUTHORIZE_RESPONSE_DATA
     )
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     auth_response = client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
@@ -158,7 +158,7 @@ def test_arcade_health_check(mock_response, monkeypatch):
     monkeypatch.setattr(
         Arcade, "_execute_request", lambda *args, **kwargs: HEALTH_CHECK_HEALTHY_RESPONSE_DATA
     )
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     client.health.check()
     assert True  # If no exception is raised, the test passes
 
@@ -168,7 +168,7 @@ def test_arcade_health_check_raises_error(mock_response, monkeypatch):
     monkeypatch.setattr(
         Arcade, "_execute_request", lambda *args, **kwargs: HEALTH_CHECK_UNHEALTHY_RESPONSE_DATA
     )
-    client = Arcade()
+    client = Arcade(api_key="fake_api_key")
     with pytest.raises(EngineNotHealthyError):
         client.health.check()
 
@@ -181,7 +181,7 @@ async def test_async_arcade_auth_authorize(mock_async_response, monkeypatch):
         return AUTH_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     auth_response = await client.auth.authorize(
         provider=AuthProvider.google,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
@@ -198,7 +198,7 @@ async def test_async_arcade_auth_poll_authorization(mock_async_response, monkeyp
         return AUTH_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     auth_response = await client.auth.status("auth_123")
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -211,7 +211,7 @@ async def test_async_arcade_tool_run(mock_async_response, monkeypatch):
         return TOOL_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     tool_response = await client.tool.run(
         tool_name="GetEmails",
         user_id="sam@arcade-ai.com",
@@ -229,7 +229,7 @@ async def test_async_arcade_tool_get(mock_async_response, monkeypatch):
         return TOOL_DEFINITION_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     tool_definition = await client.tool.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
 
@@ -242,7 +242,7 @@ async def test_async_arcade_tool_authorize(mock_async_response, monkeypatch):
         return TOOL_AUTHORIZE_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     auth_response = await client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
@@ -255,7 +255,7 @@ async def test_async_arcade_health_check(mock_async_response, monkeypatch):
         return HEALTH_CHECK_HEALTHY_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     await client.health.check()
     assert True  # If no exception is raised, the test passes
 
@@ -268,6 +268,6 @@ async def test_async_arcade_health_check_raises_error(mock_async_response, monke
         return HEALTH_CHECK_UNHEALTHY_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
-    client = AsyncArcade()
+    client = AsyncArcade(api_key="fake_api_key")
     with pytest.raises(EngineNotHealthyError):
         await client.health.check()
