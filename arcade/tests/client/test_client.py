@@ -6,12 +6,13 @@ from httpx import HTTPStatusError, Response
 from arcade.client import Arcade, AsyncArcade, AuthProvider
 from arcade.client.errors import (
     BadRequestError,
+    EngineNotHealthyError,
     InternalServerError,
     NotFoundError,
     PermissionDeniedError,
     UnauthorizedError,
 )
-from arcade.client.schema import AuthResponse, ExecuteToolResponse
+from arcade.client.schema import AuthResponse, ExecuteToolResponse, HealthCheckResponse
 from arcade.core.schema import ToolDefinition
 
 AUTH_RESPONSE_DATA = {
@@ -49,6 +50,15 @@ TOOL_AUTHORIZE_RESPONSE_DATA = {
     "authorizationURL": "https://example.com/auth",
     "scopes": ["scope1", "scope2"],
     "status": "pending",
+}
+
+HEALTH_CHECK_HEALTHY_RESPONSE_DATA = {
+    "healthy": True,
+}
+
+HEALTH_CHECK_UNHEALTHY_RESPONSE_DATA = {
+    "healthy": False,
+    "reason": "Cannot reticulate splines",
 }
 
 
@@ -143,6 +153,26 @@ def test_arcade_tool_authorize(mock_response, monkeypatch):
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
 
+def test_arcade_health_check(mock_response, monkeypatch):
+    """Test Arcade.health.check method."""
+    monkeypatch.setattr(
+        Arcade, "_execute_request", lambda *args, **kwargs: HEALTH_CHECK_HEALTHY_RESPONSE_DATA
+    )
+    client = Arcade()
+    client.health.check()
+    assert True  # If no exception is raised, the test passes
+
+
+def test_arcade_health_check_raises_error(mock_response, monkeypatch):
+    """Test Arcade.health.check method."""
+    monkeypatch.setattr(
+        Arcade, "_execute_request", lambda *args, **kwargs: HEALTH_CHECK_UNHEALTHY_RESPONSE_DATA
+    )
+    client = Arcade()
+    with pytest.raises(EngineNotHealthyError):
+        client.health.check()
+
+
 @pytest.mark.asyncio
 async def test_async_arcade_auth_authorize(mock_async_response, monkeypatch):
     """Test AsyncArcade.auth.authorize method."""
@@ -215,3 +245,29 @@ async def test_async_arcade_tool_authorize(mock_async_response, monkeypatch):
     client = AsyncArcade()
     auth_response = await client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_health_check(mock_async_response, monkeypatch):
+    """Test AsyncArcade.health.check method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return HEALTH_CHECK_HEALTHY_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    await client.health.check()
+    assert True  # If no exception is raised, the test passes
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_health_check_raises_error(mock_async_response, monkeypatch):
+    """Test AsyncArcade.health.check method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return HEALTH_CHECK_UNHEALTHY_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    with pytest.raises(EngineNotHealthyError):
+        await client.health.check()
