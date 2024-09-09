@@ -1,4 +1,4 @@
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, TypeVar, Union
 
 import httpx
 from openai import AsyncOpenAI, OpenAI
