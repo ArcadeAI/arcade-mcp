@@ -18,7 +18,8 @@ AUTH_RESPONSE_DATA = {
     "auth_id": "auth_123",
     "auth_url": "https://example.com/auth",
     "status": "pending",
-    "authorizationID": "auth_123",  # Add this line
+    "authorizationID": "auth_123",
+    "scopes": ["https://www.googleapis.com/auth/gmail.readonly"],
 }
 
 TOOL_RESPONSE_DATA = {
@@ -26,10 +27,10 @@ TOOL_RESPONSE_DATA = {
     "tool_version": "0.1.0",
     "output": {"result": "Hello, World!"},
     "error": None,
-    "invocation_id": "inv_123",  # Add this line
-    "duration": 1.5,  # Add this line
-    "finished_at": "2023-04-01T12:00:00Z",  # Add this line
-    "success": True,  # Add this line
+    "invocation_id": "inv_123",
+    "duration": 1.5,
+    "finished_at": "2023-04-01T12:00:00Z",
+    "success": True,
 }
 
 TOOL_DEFINITION_DATA = {
@@ -46,6 +47,7 @@ TOOL_DEFINITION_DATA = {
 TOOL_AUTHORIZE_RESPONSE_DATA = {
     "authorizationID": "auth_456",
     "authorizationURL": "https://example.com/auth",
+    "scopes": ["scope1", "scope2"],
     "status": "pending",
 }
 
