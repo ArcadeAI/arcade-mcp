@@ -1,7 +1,7 @@
-from arcade.core.config import ApiConfig, Config, EngineConfig
 import pytest
 
 from arcade.cli.utils import apply_config_overrides
+from arcade.core.config_model import ApiConfig, Config, EngineConfig
 
 DEFAULT_HOST = "api.arcade-ai.com"
 DEFAULT_PORT = None

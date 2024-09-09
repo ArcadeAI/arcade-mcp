@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 import typer
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from rich.console import Console
@@ -8,10 +6,8 @@ from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade.core.catalog import ToolCatalog
+from arcade.core.config_model import Config
 from arcade.core.toolkit import Toolkit
-
-if TYPE_CHECKING:
-    from arcade.core.config import Config
 
 console = Console()
 
@@ -101,7 +97,7 @@ def validate_and_get_config(
     validate_engine: bool = True,
     validate_api: bool = True,
     validate_user: bool = True,
-) -> "Config":
+) -> Config:
     """
     Validates the configuration, user, and returns the Config object
     """
@@ -128,7 +124,7 @@ def validate_and_get_config(
 
 
 def apply_config_overrides(
-    config: "Config", host_input: str | None, port_input: int | None, tls_input: bool | None
+    config: Config, host_input: str | None, port_input: int | None, tls_input: bool | None
 ) -> None:
     """
     Apply optional config overrides (passed by the user) to the config object.
