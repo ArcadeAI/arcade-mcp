@@ -10,13 +10,6 @@ from arcade.client.base import (
     BaseResource,
     SyncArcadeClient,
 )
-from arcade.client.errors import (
-    BadRequestError,
-    InternalServerError,
-    NotFoundError,
-    PermissionDeniedError,
-    UnauthorizedError,
-)
 from arcade.client.schema import (
     AuthProvider,
     AuthRequest,
@@ -69,7 +62,7 @@ class AuthResource(BaseResource[ClientT]):
         )
         return AuthResponse(**data)
 
-    def poll_authorization(self, auth_id: str) -> AuthResponse:
+    def status(self, auth_id: str) -> AuthResponse:
         """Poll for the status of an authorization
 
         Polls using the authorization ID returned from the authorize method.
@@ -126,6 +119,17 @@ class ToolResource(BaseResource[ClientT]):
         )
         return ToolDefinition(**data)
 
+    def authorize(self, tool_name: str, user_id: str) -> AuthResponse:
+        """
+        Get the authorization status for a tool.
+        """
+        data = self._client._execute_request(  # type: ignore[attr-defined]
+            "POST",
+            f"{self._base_path}/authorize",
+            json={"tool_name": tool_name, "user_id": user_id},
+        )
+        return AuthResponse(**data)
+
 
 class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
     """Asynchronous Authentication resource."""
@@ -154,16 +158,16 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
             "user_id": user_id,
         }
 
-        data = await self._client._execute_request(
+        data = await self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
             f"{self._base_path}/authorize",
             json=body,
         )
         return AuthResponse(**data)
 
-    async def poll_authorization(self, auth_id: str) -> AuthResponse:
+    async def status(self, auth_id: str) -> AuthResponse:
         """Poll for the status of an authorization asynchronously"""
-        data = await self._client._execute_request(
+        data = await self._client._execute_request(  # type: ignore[attr-defined]
             "GET", f"{self._base_path}/status", params={"authorizationID": auth_id}
         )
         return AuthResponse(**data)
@@ -190,7 +194,7 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
             "tool_version": tool_version,
             "inputs": inputs,
         }
-        data = await self._client._execute_request(
+        data = await self._client._execute_request(  # type: ignore[attr-defined]
             "POST", f"{self._base_path}/execute", json=request_data
         )
         return ExecuteToolResponse(**data)
@@ -199,12 +203,23 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         """
         Get the specification for a tool asynchronously.
         """
-        data = await self._client._execute_request(
+        data = await self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
             f"{self._base_path}/definition",
             params={"director_id": director_id, "tool_id": tool_id},
         )
         return ToolDefinition(**data)
+
+    async def authorize(self, tool_name: str, user_id: str) -> AuthResponse:
+        """
+        Get the authorization status for a tool.
+        """
+        data = await self._client._execute_request(  # type: ignore[attr-defined]
+            "POST",
+            f"{self._base_path}/authorize",
+            json={"tool_name": tool_name, "user_id": user_id},
+        )
+        return AuthResponse(**data)
 
 
 class Arcade(SyncArcadeClient):
@@ -229,16 +244,7 @@ class Arcade(SyncArcadeClient):
             response = self._request(method, url, **kwargs)
             return response.json()
         except httpx.HTTPStatusError as e:
-            self._handle_http_error(
-                e,
-                {
-                    400: BadRequestError,
-                    401: UnauthorizedError,
-                    403: PermissionDeniedError,
-                    404: NotFoundError,
-                    500: InternalServerError,
-                },
-            )
+            self._handle_http_error(e)
 
 
 class AsyncArcade(AsyncArcadeClient):
@@ -263,13 +269,4 @@ class AsyncArcade(AsyncArcadeClient):
             response = await self._request(method, url, **kwargs)
             return response.json()
         except httpx.HTTPStatusError as e:
-            self._handle_http_error(
-                e,
-                {
-                    400: BadRequestError,
-                    401: UnauthorizedError,
-                    403: PermissionDeniedError,
-                    404: NotFoundError,
-                    500: InternalServerError,
-                },
-            )
+            self._handle_http_error(e)

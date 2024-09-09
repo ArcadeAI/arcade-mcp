@@ -43,6 +43,12 @@ TOOL_DEFINITION_DATA = {
     "requirements": {"auth_requirements": []},  # Update this line
 }
 
+TOOL_AUTHORIZE_RESPONSE_DATA = {
+    "authorizationID": "auth_456",
+    "authorizationURL": "https://example.com/auth",
+    "status": "pending",
+}
+
 
 @pytest.fixture
 def mock_response():
@@ -100,7 +106,7 @@ def test_arcade_auth_poll_authorization(mock_response, monkeypatch):
     """Test Arcade.auth.poll_authorization method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
     client = Arcade()
-    auth_response = client.auth.poll_authorization("auth_123")
+    auth_response = client.auth.status("auth_123")
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
 
@@ -123,6 +129,16 @@ def test_arcade_tool_get(mock_response, monkeypatch):
     client = Arcade()
     tool_definition = client.tool.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
+
+
+def test_arcade_tool_authorize(mock_response, monkeypatch):
+    """Test Arcade.tool.authorize method."""
+    monkeypatch.setattr(
+        Arcade, "_execute_request", lambda *args, **kwargs: TOOL_AUTHORIZE_RESPONSE_DATA
+    )
+    client = Arcade()
+    auth_response = client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
+    assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
 
 @pytest.mark.asyncio
@@ -151,7 +167,7 @@ async def test_async_arcade_auth_poll_authorization(mock_async_response, monkeyp
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     client = AsyncArcade()
-    auth_response = await client.auth.poll_authorization("auth_123")
+    auth_response = await client.auth.status("auth_123")
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
 
@@ -184,3 +200,16 @@ async def test_async_arcade_tool_get(mock_async_response, monkeypatch):
     client = AsyncArcade()
     tool_definition = await client.tool.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
+
+
+@pytest.mark.asyncio
+async def test_async_arcade_tool_authorize(mock_async_response, monkeypatch):
+    """Test AsyncArcade.tool.authorize method."""
+
+    async def mock_execute_request(*args, **kwargs):
+        return TOOL_AUTHORIZE_RESPONSE_DATA
+
+    monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
+    client = AsyncArcade()
+    auth_response = await client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
+    assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
