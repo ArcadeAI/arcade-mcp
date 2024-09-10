@@ -32,7 +32,14 @@ console = Console()
 
 
 @cli.command(help="Log in to Arcade Cloud")
-def login() -> None:
+def login(
+    host: str = typer.Option(
+        "https://cloud.arcade-ai.com",
+        "-h",
+        "--host",
+        help="The Arcade Cloud host to log in to.",
+    ),
+) -> None:
     """
     Logs the user into Arcade Cloud.
     """
@@ -50,8 +57,7 @@ def login() -> None:
         # Open the browser for user login
         callback_uri = "http://localhost:9905/callback"
         params = urlencode({"callback_uri": callback_uri, "state": state})
-        # TODO: make this configurable
-        login_url = f"http://localhost:8001/api/v1/auth/cli_login?{params}"
+        login_url = f"https://{host}/api/v1/auth/cli_login?{params}"
         console.print("Opening a browser to log you in...")
         webbrowser.open(login_url)
 
@@ -148,13 +154,11 @@ def chat(
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        is_flag=True,
-        help="Whether to use TLS for the connection to the Arcade Engine.",
+        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
     ),
     force_no_tls: bool = typer.Option(
         False,
-        "--notls",
-        is_flag=True,
+        "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
 ) -> None:
