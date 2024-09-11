@@ -85,7 +85,7 @@ class AuthResource(BaseResource[ClientT]):
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
             f"{self._base_path}/status",
-            params={"authorizationID": auth_id, "scopes": " ".join(scopes) if scopes else None},
+            params={"authorizationId": auth_id, "scopes": " ".join(scopes) if scopes else None},
         )
         return AuthResponse(**data)
 
@@ -217,7 +217,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
     async def status(self, auth_id: str) -> AuthResponse:
         """Poll for the status of an authorization asynchronously"""
         data = await self._client._execute_request(  # type: ignore[attr-defined]
-            "GET", f"{self._base_path}/status", params={"authorizationID": auth_id}
+            "GET", f"{self._base_path}/status", params={"authorizationId": auth_id}
         )
         return AuthResponse(**data)
 

@@ -52,14 +52,14 @@ class HealthCheckResponse(BaseModel):
 class AuthResponse(BaseModel):
     """Response from an authorization request."""
 
-    auth_id: str = Field(alias="authorizationID")
+    auth_id: str = Field(alias="authorization_id")
     """The ID of the authorization request"""
 
     scopes: list[str]
     """The scope(s) requested in the authorization request"""
 
     # TODO: Use AnyUrl?
-    auth_url: str | None = Field(None, alias="authorizationURL")
+    auth_url: str | None = Field(None, alias="authorization_url")
     """The URL for the authorization"""
 
     status: AuthStatus
