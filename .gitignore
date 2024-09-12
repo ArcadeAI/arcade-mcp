@@ -169,6 +169,7 @@ cython_debug/
 
 # Vscode config files
 .vscode/
+!.vscode/launch.json # Exception: allow launch.json
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

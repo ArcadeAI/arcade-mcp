@@ -34,7 +34,7 @@ console = Console()
 @cli.command(help="Log in to Arcade Cloud")
 def login(
     host: str = typer.Option(
-        "https://cloud.arcade-ai.com",
+        "cloud.arcade-ai.com",
         "-h",
         "--host",
         help="The Arcade Cloud host to log in to.",
@@ -261,7 +261,7 @@ def dev(
         "127.0.0.1", help="Host for the app, from settings by default.", show_default=True
     ),
     port: int = typer.Option(
-        "8000", "-p", "--port", help="Port for the app, defaults to ", show_default=True
+        "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True
     ),
     disable_auth: bool = typer.Option(
         False,
