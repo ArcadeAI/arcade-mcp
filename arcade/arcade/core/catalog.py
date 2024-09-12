@@ -46,8 +46,8 @@ from arcade.core.utils import (
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import Google, OAuth2, SlackUser, ToolAuthorization
 
-WireType = Literal["string", "integer", "number", "boolean", "json", "array"]
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
+WireType = Union[InnerWireType, Literal["array"]]
 
 
 @dataclass
@@ -438,6 +438,8 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     if is_string_literal(type_to_check):
         is_enum = True
         enum_values = [str(e) for e in get_args(type_to_check)]
+
+    # Special case: Enum can be enumerated on the wire
     elif issubclass(type_to_check, Enum):
         is_enum = True
         enum_values = [e.value for e in type_to_check]

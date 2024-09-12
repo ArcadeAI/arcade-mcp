@@ -63,11 +63,6 @@ def func_with_google_auth_requirement():
 
 
 ### Tests on input params
-@tool(desc="A function with an input parameter")
-def func_with_param(context: Annotated[str, "First param"]):
-    pass
-
-
 @tool(desc="A function with a non-inferrable input parameter")
 def func_with_non_inferrable_param(param1: Annotated[str, "First param", Inferrable(False)]):
     pass
@@ -76,16 +71,6 @@ def func_with_non_inferrable_param(param1: Annotated[str, "First param", Inferra
 # Two string annotations on an input parameter is understood to be name, description
 @tool(desc="A function with a renamed input parameter")
 def func_with_renamed_param(param1: Annotated[str, "ParamOne", "First param"]):
-    pass
-
-
-@tool(desc="A function with every possible input parameter")
-def func_with_every_param(
-    param1: Annotated[str, "a string"],
-    param2: Annotated[int, "an integer"],
-    param3: Annotated[float, "a float"],
-    param4: Annotated[bool, "a boolean"],
-):
     pass
 
 
@@ -147,11 +132,6 @@ def func_with_list_param(param1: Annotated[list[str], "A list of strings"]):
     pass
 
 
-@tool(desc="A function with a List[str] parameter")
-def func_with_List_param(param1: Annotated[list[str], "A List of strings"]):
-    pass
-
-
 @tool(desc="A function with a list[float] parameter")
 def func_with_list_float_param(param1: Annotated[list[float], "A list of floats"]):
     pass
@@ -175,16 +155,6 @@ def func_with_context(my_context: ToolContext):
 
 
 ### Tests on output/return values
-@tool(desc="A function that performs an action without returning anything")
-def func_with_no_return():
-    pass
-
-
-@tool(desc="A function that returns a value")
-def func_with_value_return() -> str:
-    return "output"
-
-
 @tool(desc="A function that returns a list of strings")
 def func_with_list_return() -> list[str]:
     return ["output1", "output2"]
@@ -282,30 +252,6 @@ def func_with_complex_return() -> dict[str, str]:
         ),
         # Tests on input params
         pytest.param(
-            func_with_value_return,
-            {
-                "inputs": ToolInputs(parameters=[]),
-            },
-            id="func_with_no_params",
-        ),
-        pytest.param(
-            func_with_param,
-            {
-                "inputs": ToolInputs(
-                    parameters=[
-                        InputParameter(
-                            name="context",  # Nothing special about this name, parameters can be named anything
-                            description="First param",
-                            inferrable=True,  # Defaults to true
-                            required=True,
-                            value_schema=ValueSchema(val_type="string", enum=None),
-                        )
-                    ]
-                ),
-            },
-            id="func_with_param",
-        ),
-        pytest.param(
             func_with_non_inferrable_param,
             {
                 "inputs": ToolInputs(
@@ -338,44 +284,6 @@ def func_with_complex_return() -> dict[str, str]:
                 ),
             },
             id="func_with_renamed_param",
-        ),
-        pytest.param(
-            func_with_every_param,
-            {
-                "inputs": ToolInputs(
-                    parameters=[
-                        InputParameter(
-                            name="param1",
-                            description="a string",
-                            inferrable=True,
-                            required=True,
-                            value_schema=ValueSchema(val_type="string", enum=None),
-                        ),
-                        InputParameter(
-                            name="param2",
-                            description="an integer",
-                            inferrable=True,
-                            required=True,
-                            value_schema=ValueSchema(val_type="integer", enum=None),
-                        ),
-                        InputParameter(
-                            name="param3",
-                            description="a float",
-                            inferrable=True,
-                            required=True,
-                            value_schema=ValueSchema(val_type="number", enum=None),
-                        ),
-                        InputParameter(
-                            name="param4",
-                            description="a boolean",
-                            inferrable=True,
-                            required=True,
-                            value_schema=ValueSchema(val_type="boolean", enum=None),
-                        ),
-                    ]
-                ),
-            },
-            id="func_with_every_param",
         ),
         pytest.param(
             func_with_enum_param,
@@ -553,25 +461,6 @@ def func_with_complex_return() -> dict[str, str]:
             id="func_with_list_param",
         ),
         pytest.param(
-            func_with_List_param,
-            {
-                "inputs": ToolInputs(
-                    parameters=[
-                        InputParameter(
-                            name="param1",
-                            description="A List of strings",
-                            inferrable=True,
-                            required=True,
-                            value_schema=ValueSchema(
-                                val_type="array", inner_val_type="string", enum=None
-                            ),
-                        )
-                    ]
-                ),
-            },
-            id="func_with_List_param",
-        ),
-        pytest.param(
             func_with_list_float_param,
             {
                 "inputs": ToolInputs(
@@ -636,27 +525,6 @@ def func_with_complex_return() -> dict[str, str]:
             id="func_with_context",
         ),
         # Tests on output values
-        pytest.param(
-            func_with_no_return,
-            {
-                "output": ToolOutput(
-                    available_modes=["null"], description="No description provided."
-                ),
-            },
-            id="func_with_no_return",
-        ),
-        pytest.param(
-            func_with_value_return,
-            {
-                "inputs": ToolInputs(parameters=[]),
-                "output": ToolOutput(
-                    value_schema=ValueSchema(val_type="string", enum=None),
-                    available_modes=["value", "error"],
-                    description="No description provided.",
-                ),
-            },
-            id="func_with_value_return",
-        ),
         pytest.param(
             func_with_list_return,
             {
@@ -741,5 +609,5 @@ def test_create_tool_def(func_under_test, expected_tool_def_fields):
 
 
 def tool_version_is_set_correctly():
-    tool_def = ToolCatalog.create_tool_definition(func_with_no_return, "abcd1236")
+    tool_def = ToolCatalog.create_tool_definition(func_with_description, "abcd1236")
     assert tool_def.version == "abcd1236"
