@@ -89,13 +89,13 @@ def func_with_every_param(
     pass
 
 
-class TestEnum(Enum):
+class MyEnum(Enum):
     FOO_BAR = "foo bar"
     BAZ = "baz"
 
 
 @tool(desc="A function that takes an enum")
-def func_with_enum_param(param1: Annotated[TestEnum, "an enum"]):
+def func_with_enum_param(param1: Annotated[MyEnum, "an enum"]):
     pass
 
 
@@ -142,8 +142,30 @@ def func_with_mixed_params(
     pass
 
 
+@tool(desc="A function with a list[str] parameter")
+def func_with_list_param(param1: Annotated[list[str], "A list of strings"]):
+    pass
+
+
+@tool(desc="A function with a List[str] parameter")
+def func_with_List_param(param1: Annotated[list[str], "A List of strings"]):
+    pass
+
+
+@tool(desc="A function with a list[float] parameter")
+def func_with_list_float_param(param1: Annotated[list[float], "A list of floats"]):
+    pass
+
+
+@tool(desc="A function with a list of enums parameter")
+def func_with_list_of_enums_param(param1: Annotated[list[MyEnum], "A list of enums"]):
+    pass
+
+
 @tool(desc="A function with a complex parameter type")
-def func_with_complex_param(param1: Annotated[list[str], "A list of strings"]):
+def func_with_complex_param(
+    param1: Annotated[dict[str, list[int]], "A dictionary with lists of integers"],
+):
     pass
 
 
@@ -163,6 +185,21 @@ def func_with_value_return() -> str:
     return "output"
 
 
+@tool(desc="A function that returns a list of strings")
+def func_with_list_return() -> list[str]:
+    return ["output1", "output2"]
+
+
+@tool(desc="A function that returns a known list of string literals")
+def func_with_known_list_return() -> Literal["value1", "value2"]:
+    return "value1"
+
+
+@tool(desc="A function that returns an enum")
+def func_with_enum_return() -> MyEnum:
+    return MyEnum.FOO_BAR
+
+
 @tool(desc="A function with an annotated return type")
 def func_with_annotated_return() -> Annotated[str, "Annotated return description"]:
     return "output"
@@ -174,7 +211,7 @@ def func_with_optional_return() -> Optional[str]:
 
 
 @tool(desc="A function with a complex return type")
-def func_with_complex_return() -> list[dict[str, str]]:
+def func_with_complex_return() -> dict[str, str]:
     return [{"key": "value"}]
 
 
@@ -326,7 +363,7 @@ def func_with_complex_return() -> list[dict[str, str]]:
                             description="a float",
                             inferrable=True,
                             required=True,
-                            value_schema=ValueSchema(val_type="float", enum=None),
+                            value_schema=ValueSchema(val_type="number", enum=None),
                         ),
                         InputParameter(
                             name="param4",
@@ -497,13 +534,89 @@ def func_with_complex_return() -> list[dict[str, str]]:
             id="func_with_mixed_params",
         ),
         pytest.param(
-            func_with_complex_param,
+            func_with_list_param,
             {
                 "inputs": ToolInputs(
                     parameters=[
                         InputParameter(
                             name="param1",
                             description="A list of strings",
+                            inferrable=True,
+                            required=True,
+                            value_schema=ValueSchema(
+                                val_type="array", inner_val_type="string", enum=None
+                            ),
+                        )
+                    ]
+                ),
+            },
+            id="func_with_list_param",
+        ),
+        pytest.param(
+            func_with_List_param,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="A List of strings",
+                            inferrable=True,
+                            required=True,
+                            value_schema=ValueSchema(
+                                val_type="array", inner_val_type="string", enum=None
+                            ),
+                        )
+                    ]
+                ),
+            },
+            id="func_with_List_param",
+        ),
+        pytest.param(
+            func_with_list_float_param,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="A list of floats",
+                            inferrable=True,
+                            required=True,
+                            value_schema=ValueSchema(
+                                val_type="array", inner_val_type="number", enum=None
+                            ),
+                        )
+                    ]
+                ),
+            },
+            id="func_with_list_float_param",
+        ),
+        pytest.param(
+            func_with_list_of_enums_param,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="A list of enums",
+                            inferrable=True,
+                            required=True,
+                            value_schema=ValueSchema(
+                                val_type="array", inner_val_type="string", enum=["foo bar", "baz"]
+                            ),
+                        )
+                    ]
+                ),
+            },
+            id="func_with_list_of_enums_param",
+        ),
+        pytest.param(
+            func_with_complex_param,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="A dictionary with lists of integers",
                             inferrable=True,
                             required=True,
                             value_schema=ValueSchema(val_type="json", enum=None),
@@ -543,6 +656,42 @@ def func_with_complex_return() -> list[dict[str, str]]:
                 ),
             },
             id="func_with_value_return",
+        ),
+        pytest.param(
+            func_with_list_return,
+            {
+                "inputs": ToolInputs(parameters=[]),
+                "output": ToolOutput(
+                    value_schema=ValueSchema(val_type="array", inner_val_type="string", enum=None),
+                    available_modes=["value", "error"],
+                    description="No description provided.",
+                ),
+            },
+            id="func_with_list_return",
+        ),
+        pytest.param(
+            func_with_known_list_return,
+            {
+                "inputs": ToolInputs(parameters=[]),
+                "output": ToolOutput(
+                    value_schema=ValueSchema(val_type="string", enum=["value1", "value2"]),
+                    available_modes=["value", "error"],
+                    description="No description provided.",
+                ),
+            },
+            id="func_with_known_list_return",
+        ),
+        pytest.param(
+            func_with_enum_return,
+            {
+                "inputs": ToolInputs(parameters=[]),
+                "output": ToolOutput(
+                    value_schema=ValueSchema(val_type="string", enum=["foo bar", "baz"]),
+                    available_modes=["value", "error"],
+                    description="No description provided.",
+                ),
+            },
+            id="func_with_enum_return",
         ),
         pytest.param(
             func_with_annotated_return,

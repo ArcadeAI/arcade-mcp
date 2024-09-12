@@ -46,7 +46,19 @@ from arcade.core.utils import (
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import Google, OAuth2, SlackUser, ToolAuthorization
 
-WireType = Literal["string", "integer", "float", "boolean", "json"]
+WireType = Literal["string", "integer", "number", "boolean", "json", "array"]
+InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
+
+
+@dataclass
+class WireTypeInfo:
+    """
+    Represents the wire type information for a value, including its inner type if it's a list.
+    """
+
+    wire_type: WireType
+    inner_wire_type: InnerWireType | None = None
+    enum_values: list[str] | None = None
 
 
 class ToolMeta(BaseModel):
@@ -233,17 +245,6 @@ def create_input_definition(func: Callable) -> ToolInputs:
 
         tool_field_info = extract_field_info(param)
 
-        is_enum = False
-        enum_values: list[str] = []
-
-        # Special case: Literal["string1", "string2"] can be enumerated on the wire
-        if is_string_literal(tool_field_info.field_type):
-            is_enum = True
-            enum_values = [str(e) for e in get_args(tool_field_info.field_type)]
-        elif issubclass(tool_field_info.field_type, Enum):
-            is_enum = True
-            enum_values = [e.value for e in tool_field_info.field_type]
-
         # If the field has a default value, it is not required
         # If the field is optional, it is not required
         has_default_value = tool_field_info.default is not None
@@ -256,8 +257,9 @@ def create_input_definition(func: Callable) -> ToolInputs:
                 required=is_required,
                 inferrable=tool_field_info.is_inferrable,
                 value_schema=ValueSchema(
-                    val_type=tool_field_info.wire_type,
-                    enum=enum_values if is_enum else None,
+                    val_type=tool_field_info.wire_type_info.wire_type,
+                    inner_val_type=tool_field_info.wire_type_info.inner_wire_type,
+                    enum=tool_field_info.wire_type_info.enum_values,
                 ),
             )
         )
@@ -291,7 +293,7 @@ def create_output_definition(func: Callable) -> ToolOutput:
         return_type = next(arg for arg in get_args(return_type) if arg is not type(None))
         is_optional = True
 
-    wire_type = get_wire_type(return_type)
+    wire_type_info = get_wire_type_info(return_type)
 
     available_modes = ["value", "error"]
 
@@ -301,7 +303,11 @@ def create_output_definition(func: Callable) -> ToolOutput:
     return ToolOutput(
         description=description,
         available_modes=available_modes,
-        value_schema=ValueSchema(val_type=wire_type),
+        value_schema=ValueSchema(
+            val_type=wire_type_info.wire_type,
+            inner_val_type=wire_type_info.inner_wire_type,
+            enum=wire_type_info.enum_values,
+        ),
     )
 
 
@@ -329,14 +335,17 @@ class ToolParamInfo:
     default: Any
     original_type: type
     field_type: type
-    wire_type: WireType
+    wire_type_info: WireTypeInfo
     description: str | None = None
     is_optional: bool = True
     is_inferrable: bool = True
 
     @classmethod
     def from_param_info(
-        cls, param_info: ParamInfo, wire_type: WireType, is_inferrable: bool = True
+        cls,
+        param_info: ParamInfo,
+        wire_type_info: WireTypeInfo,
+        is_inferrable: bool = True,
     ) -> "ToolParamInfo":
         return cls(
             name=param_info.name,
@@ -345,7 +354,7 @@ class ToolParamInfo:
             field_type=param_info.field_type,
             description=param_info.description,
             is_optional=param_info.is_optional,
-            wire_type=wire_type,
+            wire_type_info=wire_type_info,
             is_inferrable=is_inferrable,
         )
 
@@ -362,7 +371,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     if isinstance(param.default, FieldInfo):
         param_info = extract_pydantic_param_info(param)
     else:
-        param_info = extract_regular_param_info(param)
+        param_info = extract_python_param_info(param)
 
     metadata = getattr(annotation, "__metadata__", [])
     str_annotations = [m for m in metadata if isinstance(m, str)]
@@ -386,24 +395,57 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     # Params are inferrable by default
     is_inferrable = inferrable_annotation.value if inferrable_annotation else True
 
-    # Get the wire type
-    wire_type = (
-        get_wire_type(str)
-        if is_string_literal(param_info.field_type)
-        else get_wire_type(param_info.field_type)
-    )
+    # Get the wire (serialization) type information for the type
+    wire_type_info = get_wire_type_info(param_info.field_type)
 
     # Final reality check
     if param_info.description is None:
         raise ToolDefinitionError(f"Parameter {param_info.name} is missing a description")
 
-    if wire_type is None:
+    if wire_type_info.wire_type is None:
         raise ToolDefinitionError(f"Unknown parameter type: {param_info.field_type}")
 
-    return ToolParamInfo.from_param_info(param_info, wire_type, is_inferrable)
+    return ToolParamInfo.from_param_info(param_info, wire_type_info, is_inferrable)
 
 
-def extract_regular_param_info(param: inspect.Parameter) -> ParamInfo:
+def get_wire_type_info(_type: type) -> WireTypeInfo:
+    """
+    Get the wire type information for a given type.
+    """
+
+    # Is this a list type?
+    # If so, get the inner (enclosed) type
+    is_list = get_origin(_type) is list
+    if is_list:
+        inner_type = get_args(_type)[0]
+        inner_wire_type = cast(
+            InnerWireType,
+            get_wire_type(str) if is_string_literal(inner_type) else get_wire_type(inner_type),
+        )
+    else:
+        inner_wire_type = None
+
+    # Get the outer wire type
+    wire_type = get_wire_type(str) if is_string_literal(_type) else get_wire_type(_type)
+
+    # Handle enums (known/fixed lists of values)
+    is_enum = False
+    enum_values: list[str] = []
+
+    type_to_check = inner_type if is_list else _type
+
+    # Special case: Literal["string1", "string2"] can be enumerated on the wire
+    if is_string_literal(type_to_check):
+        is_enum = True
+        enum_values = [str(e) for e in get_args(type_to_check)]
+    elif issubclass(type_to_check, Enum):
+        is_enum = True
+        enum_values = [e.value for e in type_to_check]
+
+    return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None)
+
+
+def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
     annotation = param.annotation
@@ -465,28 +507,34 @@ def get_wire_type(
     """
     Mapping between Python types and HTTP/JSON types
     """
-    type_mapping = {
+    type_mapping: dict[type, WireType] = {
         str: "string",
         bool: "boolean",
         int: "integer",
-        float: "float",
+        float: "number",
         dict: "json",
-        list: "json",
-        BaseModel: "json",
+    }
+
+    outer_type_mapping: dict[type, WireType] = {
+        list: "array",
+        dict: "json",
     }
 
     wire_type = type_mapping.get(_type)
     if wire_type:
-        return cast(Literal["string", "integer", "float", "boolean", "json"], wire_type)
-    elif hasattr(_type, "__origin__"):
-        # account for "list[str]" and "dict[str, int]" and "Optional[str]" and other typing types
-        origin = _type.__origin__
-        if origin in [list, dict]:
-            return "json"
-    elif issubclass(_type, Enum):
+        return wire_type
+
+    if hasattr(_type, "__origin__"):
+        wire_type = outer_type_mapping.get(cast(type, get_origin(_type)))
+        if wire_type:
+            return wire_type
+
+    if issubclass(_type, Enum):
         return "string"
-    elif issubclass(_type, BaseModel):
+
+    if issubclass(_type, BaseModel):
         return "json"
+
     raise ToolDefinitionError(f"Unsupported parameter type: {_type}")
 
 

@@ -52,3 +52,13 @@ def sqrt(
     Get the square root of a number
     """
     return math.sqrt(a)
+
+
+@tool
+def sum_list(
+    numbers: Annotated[list[float], "The list of numbers"],
+) -> Annotated[float, "The sum of the numbers in the list"]:
+    """
+    Sum all numbers in a list
+    """
+    return sum(numbers)

@@ -258,12 +258,14 @@ def read_products(
                             name="cols",
                             description="The columns to return",
                             required=False,
-                            value_schema=ValueSchema(val_type="json", enum=None),
+                            value_schema=ValueSchema(
+                                val_type="array", inner_val_type="string", enum=None
+                            ),
                         ),
                     ]
                 ),
                 "output": ToolOutput(
-                    value_schema=ValueSchema(val_type="json", enum=None),
+                    value_schema=ValueSchema(val_type="array", inner_val_type="json", enum=None),
                     available_modes=["value", "error"],
                     description="Data with the selected columns",
                 ),
