@@ -52,3 +52,24 @@ def sqrt(
     Get the square root of a number
     """
     return math.sqrt(a)
+
+
+@tool
+def sum_list(
+    numbers: Annotated[list[float], "The list of numbers"],
+) -> Annotated[float, "The sum of the numbers in the list"]:
+    """
+    Sum all numbers in a list
+    """
+    return sum(numbers)
+
+
+@tool
+def sum_range(
+    start: Annotated[int, "The start of the range  to sum"],
+    end: Annotated[int, "The end of the range to sum"],
+) -> Annotated[int, "The sum of the numbers in the list"]:
+    """
+    Sum all numbers from start through end
+    """
+    return sum([i for i in range(start, end + 1)])

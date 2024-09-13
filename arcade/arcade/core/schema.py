@@ -6,8 +6,11 @@ from pydantic import AnyUrl, BaseModel, Field
 class ValueSchema(BaseModel):
     """Value schema for input parameters and outputs."""
 
-    val_type: Literal["string", "integer", "float", "boolean", "json"]
+    val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
     """The type of the value."""
+
+    inner_val_type: Optional[Literal["string", "integer", "number", "boolean", "json"]] = None
+    """The type of the inner value, if the value is a list."""
 
     enum: Optional[list[str]] = None
     """The list of possible values for the value, if it is a closed list."""

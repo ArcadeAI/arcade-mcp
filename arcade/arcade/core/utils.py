@@ -48,7 +48,15 @@ def does_function_return_value(func: Callable) -> bool:
     """
     Returns True if the given function returns a value, i.e. if it has a return statement with a value.
     """
-    source = inspect.getsource(func)
+    try:
+        source: Optional[str] = inspect.getsource(func)
+    except OSError:
+        # Workaround for parameterized unit tests that use a dynamically-generated function
+        source = getattr(func, "__source__", None)
+
+    if source is None:
+        raise ValueError("Source code not found")
+
     tree = ast.parse(source)
 
     class ReturnVisitor(ast.NodeVisitor):

@@ -4,14 +4,18 @@
     "primitives": {
       // All supported primitive data types
       "type": "string",
-      "enum": ["string", "integer", "float", "boolean", "json"]
+      "enum": ["string", "integer", "number", "boolean", "json"]
     },
     "value_schema": {
       // Represents the schema of a value (e.g. function input parameter value)
       "type": "object",
       "properties": {
         "val_type": {
-          "$ref": "#/$defs/primitives"
+          "oneOf": [{ "$ref": "#/$defs/primitives" }, { "type": "string", "enum": ["array"] }]
+        },
+        "inner_val_type": {
+          "$ref": "#/$defs/primitives",
+          "description": "If the value type is a list, the type of the list values."
         },
         "enum": {
           "oneOf": [
@@ -26,7 +30,13 @@
         }
       },
       "required": ["val_type"],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "if": {
+        "properties": { "val_type": { "const": "array" } }
+      },
+      "then": {
+        "required": ["inner_val_type"]
+      }
     }
   },
   "type": "object",
