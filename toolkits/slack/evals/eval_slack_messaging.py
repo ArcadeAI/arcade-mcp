@@ -65,8 +65,8 @@ def slack_eval_suite() -> EvalSuite:
             )
         ],
         critics=[
-            SimilarityCritic(critic_field="user_name", weight=0.4),
-            SimilarityCritic(critic_field="message", weight=0.6),
+            SimilarityCritic(critic_field="user_name", weight=0.6),
+            SimilarityCritic(critic_field="message", weight=0.4),
         ],
     )
 
@@ -83,8 +83,8 @@ def slack_eval_suite() -> EvalSuite:
             )
         ],
         critics=[
-            BinaryCritic(critic_field="user_name", weight=0.5),
-            SimilarityCritic(critic_field="message", weight=0.5),
+            BinaryCritic(critic_field="user_name", weight=0.6),
+            SimilarityCritic(critic_field="message", weight=0.4),
         ],
     )
 
@@ -102,8 +102,8 @@ def slack_eval_suite() -> EvalSuite:
             )
         ],
         critics=[
-            BinaryCritic(critic_field="channel_name", weight=0.5),
-            SimilarityCritic(critic_field="message", weight=0.5),
+            BinaryCritic(critic_field="channel_name", weight=0.6),
+            SimilarityCritic(critic_field="message", weight=0.4),
         ],
     )
 
@@ -147,7 +147,7 @@ def slack_eval_suite() -> EvalSuite:
     # Multiple recipients in DM request
     suite.add_case(
         name="Multiple recipients in DM request",
-        user_message="Send a DM to Alice and Bob about pushing the meeting tomorrow. I have to much work to do.",
+        user_message="Send a DM to Alice and Bob about pushing the meeting tomorrow. I have too much work to do.",
         expected_tool_calls=[
             ExpectedToolCall(
                 name="SendDmToUser",
@@ -165,8 +165,10 @@ def slack_eval_suite() -> EvalSuite:
             ),
         ],
         critics=[
-            SimilarityCritic(critic_field="user_name", weight=0.4),
-            SimilarityCritic(critic_field="message", weight=0.6),
+            SimilarityCritic(critic_field="user_name", weight=0.6),
+            SimilarityCritic(
+                critic_field="message", weight=0.4, similarity_threshold=0.7
+            ),
         ],
     )
 
