@@ -396,11 +396,15 @@ def evals(
         "-c",
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
+    models: str = typer.Option(
+        "gpt-4o", "--models", "-m", help="The models to use for evaluation (default: gpt-4o)"
+    ),
 ) -> None:
     """
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
+    models = models.split(",") if models else ["gpt-4o"]
     eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
 
     if not eval_files:
@@ -427,5 +431,5 @@ def evals(
 
         for func in eval_functions:
             console.print(f"\nRunning evaluation from {file}: {func.__name__}", style="bold blue")
-            results = func(max_concurrency=max_concurrent)
+            results = func(models=models, max_concurrency=max_concurrent)
             display_eval_results(results, show_details=show_details)
