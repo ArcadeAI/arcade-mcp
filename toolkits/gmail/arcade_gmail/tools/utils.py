@@ -22,6 +22,7 @@ def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
         body_data = _get_email_body(payload)
 
         return {
+            "id": email_data.get("id", ""),
             "from": headers.get("from", ""),
             "date": headers.get("date", ""),
             "subject": headers.get("subject", "No subject"),
@@ -30,6 +31,43 @@ def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
     except Exception as e:
         print(f"Error parsing email {email_data.get('id', 'unknown')}: {e}")
         return None
+
+
+def parse_draft_email(draft_email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    """
+    Parse draft email data and extract relevant information.
+
+    Args:
+        draft_email_data (Dict[str, Any]): Raw draft email data from Gmail API.
+
+    Returns:
+        Optional[Dict[str, str]]: Parsed draft email details or None if parsing fails.
+    """
+    try:
+        message = draft_email_data["message"]
+        payload = message["payload"]
+        headers = {d["name"].lower(): d["value"] for d in payload["headers"]}
+
+        body_data = _get_email_body(payload)
+
+        return {
+            "id": draft_email_data.get("id", ""),
+            "from": headers.get("from", ""),
+            "date": headers.get("internaldate", ""),
+            "subject": headers.get("subject", "No subject"),
+            "body": _clean_email_body(body_data) if body_data else "",
+        }
+    except Exception as e:
+        print(f"Error parsing draft email {draft_email_data.get('id', 'unknown')}: {e}")
+        return None
+
+
+def get_draft_url(draft_id):
+    return f"https://mail.google.com/mail/u/0/#drafts/{draft_id}"
+
+
+def get_sent_email_url(sent_email_id):
+    return f"https://mail.google.com/mail/u/0/#sent/{sent_email_id}"
 
 
 def _get_email_body(payload: Dict[str, Any]) -> Optional[str]:
