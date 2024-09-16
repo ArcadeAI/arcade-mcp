@@ -14,12 +14,12 @@ class FlaskActor(BaseActor):
     An Arcade Actor that is hosted inside a Flask app.
     """
 
-    def __init__(self, app: Flask) -> None:
+    def __init__(self, app: Flask, *, secret: str, disable_auth: bool = False) -> None:
         """
         Initialize the FlaskActor with a Flask app
         instance and an empty ToolCatalog.
         """
-        super().__init__()
+        super().__init__(secret, disable_auth)
         self.app = app
         self.router = FlaskRouter(app, self)
         self.register_routes(self.router)
