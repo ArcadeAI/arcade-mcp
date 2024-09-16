@@ -1,6 +1,6 @@
+import logging
 from dataclasses import dataclass
 from enum import Enum
-import logging
 
 import jwt
 
@@ -30,7 +30,7 @@ def validate_engine_token(actor_secret: str, token: str) -> TokenValidationResul
         )
     except jwt.InvalidSignatureError as e:
         logger.warning(
-            f"Invalid signature. Is the Arcade Engine configured with the correct Actor secret '%s'?",
+            "Invalid signature. Is the Arcade Engine configured with the Actor secret '%s'?",
             actor_secret,
         )
         return TokenValidationResult(valid=False, error=str(e))
