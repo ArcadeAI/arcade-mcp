@@ -1,6 +1,8 @@
 import asyncio
 import functools
 import json
+import random
+import string
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -14,6 +16,12 @@ from arcade.sdk.error import WeightError
 if TYPE_CHECKING:
     from arcade.core.catalog import ToolCatalog
     from arcade.sdk.eval.critic import Critic
+
+
+def random_string(length: int) -> str:
+    """Generate a random string of the specified length."""
+    characters = string.ascii_lowercase + string.digits
+    return "".join(random.choice(characters) for _ in range(length))
 
 
 @dataclass
@@ -462,7 +470,8 @@ class EvalSuite:
             messages=messages,
             tool_choice="auto",
             tools=list(self.catalog.tools.keys()),
-            user="eval",
+            user=f"eval_{random_string(5)}",
+            stream=False,
         )
 
         predicted_args = get_tool_args(response)
@@ -526,7 +535,8 @@ class EvalSuite:
                 messages=messages,
                 tool_choice="auto",
                 tools=list(self.catalog.tools.keys()),
-                user="eval",
+                user=f"eval_{random_string(5)}",
+                stream=False,
             )
 
             predicted_args = get_tool_args(response)
