@@ -1,8 +1,46 @@
 from base64 import urlsafe_b64decode
+import datetime
+from enum import Enum
 import re
 from typing import Any, Dict, Optional
 
 from bs4 import BeautifulSoup
+
+
+class DateRange(Enum):
+    TODAY = "today"
+    YESTERDAY = "yesterday"
+    LAST_7_DAYS = "last_7_days"
+    LAST_30_DAYS = "last_30_days"
+    THIS_MONTH = "this_month"
+    LAST_MONTH = "last_month"
+    THIS_YEAR = "this_year"
+
+    def to_date_query(self):
+        today = datetime.datetime.now()
+        result = "after:"
+        comparison_date = today
+
+        if self == DateRange.YESTERDAY:
+            comparison_date = today - datetime.timedelta(days=1)
+        elif self == DateRange.LAST_7_DAYS:
+            comparison_date = today - datetime.timedelta(days=7)
+        elif self == DateRange.LAST_30_DAYS:
+            comparison_date = today - datetime.timedelta(days=30)
+        elif self == DateRange.THIS_MONTH:
+            comparison_date = today.replace(day=1)
+        elif self == DateRange.LAST_MONTH:
+            comparison_date = (
+                today.replace(day=1) - datetime.timedelta(days=1)
+            ).replace(day=1)
+        elif self == DateRange.THIS_YEAR:
+            comparison_date = today.replace(month=1, day=1)
+        elif self == DateRange.LAST_MONTH:
+            comparison_date = (
+                today.replace(month=1, day=1) - datetime.timedelta(days=1)
+            ).replace(month=1, day=1)
+
+        return result + comparison_date.strftime("%Y/%m/%d")
 
 
 def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:

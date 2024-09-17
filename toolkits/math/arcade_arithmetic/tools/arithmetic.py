@@ -66,7 +66,7 @@ def sum_list(
 
 @tool
 def sum_range(
-    start: Annotated[int, "The start of the range  to sum"],
+    start: Annotated[int, "The start of the range to sum"],
     end: Annotated[int, "The end of the range to sum"],
 ) -> Annotated[int, "The sum of the numbers in the list"]:
     """

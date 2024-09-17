@@ -1,6 +1,4 @@
 import base64
-import datetime
-from enum import Enum
 import json
 from email.message import EmailMessage
 from email.mime.text import MIMEText
@@ -9,6 +7,7 @@ from arcade.core.errors import ToolExecutionError, ToolInputError
 from googleapiclient.errors import HttpError
 
 from arcade_google.tools.utils import (
+    DateRange,
     parse_email,
     get_draft_url,
     get_sent_email_url,
@@ -21,7 +20,12 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
 
+# TODO: Determine a common return structure for all gmail tools.
+# TODO: Better handle the case where a tool fails.
+# TODO: Determine the best docstring format (in terms of LLM understanding) and then apply it to all tools.
 
+
+# Email sending tools
 @tool(
     requires_auth=Google(
         scope=["https://www.googleapis.com/auth/gmail.send"],
@@ -62,29 +66,30 @@ async def send_email(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.modify"],
+        scope=["https://www.googleapis.com/auth/gmail.send"],
     )
 )
-async def trash_email(
-    context: ToolContext, id: Annotated[str, "The ID of the email to trash"]
+async def send_draft_email(
+    context: ToolContext, unique_email_id: Annotated[str, "The ID of the draft to send"]
 ) -> Annotated[str, "Confirmation message"]:
-    """Move an email to the trash folder."""
+    """Send a draft email."""
 
     # Set up the Gmail API client
     service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
-    # Trash the email
-    try:
-        service.users().messages().trash(userId="me", id=id).execute()
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Error while attempting to trash email with id: {id}",
-            developer_message=f"Error while attempting to trash email with id {id}: {e}",
-        )
+    # Send the draft email
+    sent_message = (
+        service.users()
+        .drafts()
+        .send(userId="me", body={"id": unique_email_id})
+        .execute()
+    )
 
-    return f"Email with ID {id} trashed successfully."
+    # Construct the URL to the sent email
+    return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
 
 
+# Draft Management Tools
 @tool(
     requires_auth=Google(
         scope=["https://www.googleapis.com/auth/gmail.compose"],
@@ -170,31 +175,6 @@ async def update_draft_email(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.send"],
-    )
-)
-async def send_draft_email(
-    context: ToolContext, unique_email_id: Annotated[str, "The ID of the draft to send"]
-) -> Annotated[str, "Confirmation message"]:
-    """Send a draft email."""
-
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
-
-    # Send the draft email
-    sent_message = (
-        service.users()
-        .drafts()
-        .send(userId="me", body={"id": unique_email_id})
-        .execute()
-    )
-
-    # Construct the URL to the sent email
-    return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
-
-
-@tool(
-    requires_auth=Google(
         scope=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
@@ -212,6 +192,33 @@ async def delete_draft_email(
     return f"Draft email with ID {draft_id} deleted successfully."
 
 
+# Email Management Tools
+@tool(
+    requires_auth=Google(
+        scope=["https://www.googleapis.com/auth/gmail.modify"],
+    )
+)
+async def trash_email(
+    context: ToolContext, id: Annotated[str, "The ID of the email to trash"]
+) -> Annotated[str, "Confirmation message"]:
+    """Move an email to the trash folder."""
+
+    # Set up the Gmail API client
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+
+    # Trash the email
+    try:
+        service.users().messages().trash(userId="me", id=id).execute()
+    except Exception as e:
+        raise ToolExecutionError(
+            f"Error while attempting to trash email with id: {id}",
+            developer_message=f"Error while attempting to trash email with id {id}: {e}",
+        )
+
+    return f"Email with ID {id} trashed successfully."
+
+
+# Draft Search Tools
 @tool(
     requires_auth=Google(
         scope=["https://www.googleapis.com/auth/gmail.readonly"],
@@ -265,42 +272,7 @@ async def get_draft_emails(
         return "Unable to retrieve draft emails."
 
 
-class DateRange(Enum):
-    TODAY = "today"
-    YESTERDAY = "yesterday"
-    LAST_7_DAYS = "last_7_days"
-    LAST_30_DAYS = "last_30_days"
-    THIS_MONTH = "this_month"
-    LAST_MONTH = "last_month"
-    THIS_YEAR = "this_year"
-
-    def to_date_query(self):
-        today = datetime.datetime.now()
-        result = "after:"
-        comparison_date = today
-
-        if self == DateRange.YESTERDAY:
-            comparison_date = today - datetime.timedelta(days=1)
-        elif self == DateRange.LAST_7_DAYS:
-            comparison_date = today - datetime.timedelta(days=7)
-        elif self == DateRange.LAST_30_DAYS:
-            comparison_date = today - datetime.timedelta(days=30)
-        elif self == DateRange.THIS_MONTH:
-            comparison_date = today.replace(day=1)
-        elif self == DateRange.LAST_MONTH:
-            comparison_date = (
-                today.replace(day=1) - datetime.timedelta(days=1)
-            ).replace(day=1)
-        elif self == DateRange.THIS_YEAR:
-            comparison_date = today.replace(month=1, day=1)
-        elif self == DateRange.LAST_MONTH:
-            comparison_date = (
-                today.replace(month=1, day=1) - datetime.timedelta(days=1)
-            ).replace(month=1, day=1)
-
-        return result + comparison_date.strftime("%Y/%m/%d")
-
-
+# Email Search Tools
 @tool(
     requires_auth=Google(
         scope=["https://www.googleapis.com/auth/gmail.readonly"],
