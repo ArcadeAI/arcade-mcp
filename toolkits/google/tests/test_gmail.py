@@ -1,9 +1,9 @@
 import json
 from arcade.core.errors import ToolExecutionError
-from arcade_gmail.tools.utils import parse_draft_email, parse_email
+from arcade_google.tools.utils import parse_draft_email, parse_email
 import pytest
 from unittest.mock import patch, MagicMock
-from arcade_gmail.tools.gmail import (
+from arcade_google.tools.gmail import (
     send_email,
     write_draft_email,
     update_draft_email,
@@ -25,7 +25,7 @@ def mock_context():
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_send_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -42,7 +42,7 @@ async def test_send_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_write_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -59,7 +59,7 @@ async def test_write_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_update_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -77,7 +77,7 @@ async def test_update_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_send_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -89,7 +89,7 @@ async def test_send_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_delete_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -101,8 +101,8 @@ async def test_delete_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
-@patch("arcade_gmail.tools.gmail.parse_draft_email")
+@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.gmail.parse_draft_email")
 async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context):
     # Setup test data
     mock_drafts_list_response = {
@@ -168,8 +168,8 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
-@patch("arcade_gmail.tools.gmail.parse_email")
+@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.gmail.parse_email")
 async def test_search_emails_by_header(mock_parse_email, mock_build, mock_context):
     # Setup test data
     mock_messages_list_response = {
@@ -239,8 +239,8 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
-@patch("arcade_gmail.tools.gmail.parse_email")
+@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.gmail.parse_email")
 async def test_get_emails(mock_parse_email, mock_build, mock_context):
     # Setup test data
     mock_messages_list_response = {
@@ -311,7 +311,7 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_trash_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -323,7 +323,7 @@ async def test_trash_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_gmail.tools.gmail.build")
+@patch("arcade_google.tools.gmail.build")
 async def test_trash_email_failure(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service

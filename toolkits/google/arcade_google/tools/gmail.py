@@ -8,7 +8,7 @@ from typing import Annotated, Optional
 from arcade.core.errors import ToolExecutionError, ToolInputError
 from googleapiclient.errors import HttpError
 
-from arcade_gmail.tools.utils import (
+from arcade_google.tools.utils import (
     parse_email,
     get_draft_url,
     get_sent_email_url,
