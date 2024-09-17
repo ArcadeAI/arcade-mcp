@@ -3,7 +3,7 @@ import json
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from typing import Annotated, Optional
-from arcade.core.errors import ToolExecutionError, ToolInputError
+from arcade.core.errors import ToolInputError
 from googleapiclient.errors import HttpError
 
 from arcade_google.tools.utils import (
@@ -20,8 +20,7 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
 
-# TODO: Determine a common return structure for all gmail tools.
-# TODO: Better handle the case where a tool fails.
+# TODO: Determine a common return structure for all gmail tools if one exists that increases LLM understanding.
 # TODO: Determine the best docstring format (in terms of LLM understanding) and then apply it to all tools.
 
 
@@ -41,27 +40,46 @@ async def send_email(
 ) -> Annotated[str, "Confirmation message"]:
     """Send an email."""
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
 
-    message = EmailMessage()
-    message.set_content(body)
-    message["To"] = recipient
-    message["Subject"] = subject
-    if cc:
-        message["Cc"] = ", ".join(cc)
-    if bcc:
-        message["Bcc"] = ", ".join(bcc)
+        message = EmailMessage()
+        message.set_content(body)
+        message["To"] = recipient
+        message["Subject"] = subject
+        if cc:
+            message["Cc"] = ", ".join(cc)
+        if bcc:
+            message["Bcc"] = ", ".join(bcc)
 
-    # Encode the message in base64
-    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        # Encode the message in base64
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-    # Create the email
-    email = {"raw": encoded_message}
+        # Create the email
+        email = {"raw": encoded_message}
 
-    # Send the email
-    sent_message = service.users().messages().send(userId="me", body=email).execute()
-    return f"Email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
+        # Send the email
+        sent_message = (
+            service.users().messages().send(userId="me", body=email).execute()
+        )
+        return f"Email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{send_email.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{send_email.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 @tool(
@@ -70,23 +88,37 @@ async def send_email(
     )
 )
 async def send_draft_email(
-    context: ToolContext, unique_email_id: Annotated[str, "The ID of the draft to send"]
+    context: ToolContext, id: Annotated[str, "The ID of the draft to send"]
 ) -> Annotated[str, "Confirmation message"]:
     """Send a draft email."""
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
 
-    # Send the draft email
-    sent_message = (
-        service.users()
-        .drafts()
-        .send(userId="me", body={"id": unique_email_id})
-        .execute()
-    )
+        # Send the draft email
+        sent_message = (
+            service.users().drafts().send(userId="me", body={"id": id}).execute()
+        )
 
-    # Construct the URL to the sent email
-    return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
+        # Construct the URL to the sent email
+        return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{send_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{send_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 # Draft Management Tools
@@ -105,25 +137,44 @@ async def write_draft_email(
 ) -> Annotated[str, "The URL of the draft email"]:
     """Compose a new email draft."""
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
 
-    message = MIMEText(body)
-    message["to"] = recipient
-    message["subject"] = subject
-    if cc:
-        message["Cc"] = ", ".join(cc)
-    if bcc:
-        message["Bcc"] = ", ".join(bcc)
+        message = MIMEText(body)
+        message["to"] = recipient
+        message["subject"] = subject
+        if cc:
+            message["Cc"] = ", ".join(cc)
+        if bcc:
+            message["Bcc"] = ", ".join(bcc)
 
-    # Encode the message in base64
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        # Encode the message in base64
+        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-    # Create the draft
-    draft = {"message": {"raw": raw_message}}
+        # Create the draft
+        draft = {"message": {"raw": raw_message}}
 
-    draft_message = service.users().drafts().create(userId="me", body=draft).execute()
-    return f"Draft email with ID {draft_message['id']} created: {get_draft_url(draft_message['id'])}"
+        draft_message = (
+            service.users().drafts().create(userId="me", body=draft).execute()
+        )
+        return f"Draft email with ID {draft_message['id']} created: {get_draft_url(draft_message['id'])}"
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{write_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{write_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 @tool(
@@ -144,32 +195,43 @@ async def update_draft_email(
     Update an existing email draft.
     """
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
-
-    message = MIMEText(body)
-    message["to"] = recipient
-    message["subject"] = subject
-    if cc:
-        message["Cc"] = ", ".join(cc)
-    if bcc:
-        message["Bcc"] = ", ".join(bcc)
-
-    # Encode the message in base64
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-    # Update the draft
-    draft = {"id": id, "message": {"raw": raw_message}}
-
     try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
+
+        message = MIMEText(body)
+        message["to"] = recipient
+        message["subject"] = subject
+        if cc:
+            message["Cc"] = ", ".join(cc)
+        if bcc:
+            message["Bcc"] = ", ".join(bcc)
+
+        # Encode the message in base64
+        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        # Update the draft
+        draft = {"id": id, "message": {"raw": raw_message}}
+
         updated_draft_message = (
             service.users().drafts().update(userId="me", id=id, body=draft).execute()
         )
         return f"Draft email with ID {updated_draft_message['id']} updated: {get_draft_url(updated_draft_message['id'])}"
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{update_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
     except Exception as e:
-        raise ToolInputError(
-            f"Error updating draft email with id: {id}",
-            developer_message=f"Error updating draft email with id {id}: {e}",
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{update_draft_email.__name__}' tool. "
+                + str(e)
+            }
         )
 
 
@@ -180,16 +242,33 @@ async def update_draft_email(
 )
 async def delete_draft_email(
     context: ToolContext,
-    draft_id: Annotated[str, "The ID of the draft email to delete"],
+    id: Annotated[str, "The ID of the draft email to delete"],
 ) -> Annotated[str, "Confirmation message"]:
     """Delete a draft email."""
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
 
-    # Delete the draft
-    service.users().drafts().delete(userId="me", id=draft_id).execute()
-    return f"Draft email with ID {draft_id} deleted successfully."
+        # Delete the draft
+        service.users().drafts().delete(userId="me", id=id).execute()
+        return f"Draft email with ID {id} deleted successfully."
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{delete_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{delete_draft_email.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 # Email Management Tools
@@ -203,19 +282,30 @@ async def trash_email(
 ) -> Annotated[str, "Confirmation message"]:
     """Move an email to the trash folder."""
 
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
-
-    # Trash the email
     try:
-        service.users().messages().trash(userId="me", id=id).execute()
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Error while attempting to trash email with id: {id}",
-            developer_message=f"Error while attempting to trash email with id {id}: {e}",
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
         )
 
-    return f"Email with ID {id} trashed successfully."
+        # Trash the email
+        service.users().messages().trash(userId="me", id=id).execute()
+
+        return f"Email with ID {id} trashed successfully."
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{trash_email.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{trash_email.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 # Draft Search Tools
@@ -266,10 +356,20 @@ async def get_draft_emails(
                 print(f"Error reading draft email {draft_id}: {e}")
 
         return json.dumps({"emails": emails})
-
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{get_draft_emails.__name__}' tool. "
+                + str(e)
+            }
+        )
     except Exception as e:
-        print(f"Error reading draft emails: {e}")
-        return "Unable to retrieve draft emails."
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{get_draft_emails.__name__}' tool. "
+                + str(e)
+            }
+        )
 
 
 # Email Search Tools
@@ -297,12 +397,9 @@ async def search_emails_by_header(
     One of the following MUST be provided: sender, recipient, subject, body."""
 
     if not any([sender, recipient, subject, body]):
-        raise ValueError(
+        raise ToolInputError(
             "At least one of sender, recipient, subject, or body must be provided."
         )
-
-    # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
     # Build the query string
     query = []
@@ -320,6 +417,11 @@ async def search_emails_by_header(
     query_string = " ".join(query)
 
     try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
+
         # Perform the search
         response = (
             service.users()
@@ -345,11 +447,19 @@ async def search_emails_by_header(
                 print(f"Error reading email {msg['id']}: {e}")
 
         return json.dumps({"emails": emails})
-
     except HttpError as e:
-        raise ToolExecutionError(
-            "Error searching emails",
-            developer_message=f"Gmail API Error: {e}",
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{search_emails_by_header.__name__}' tool. "
+                + str(e)
+            }
+        )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{search_emails_by_header.__name__}' tool. "
+                + str(e)
+            }
         )
 
 
@@ -372,9 +482,12 @@ async def get_emails(
     Returns:
         Dict[str, List[Dict[str, str]]]: A dictionary containing a list of email details.
     """
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
-
     try:
+        # Set up the Gmail API client
+        service = build(
+            "gmail", "v1", credentials=Credentials(context.authorization.token)
+        )
+
         messages = (
             service.users().messages().list(userId="me").execute().get("messages", [])
         )
@@ -395,7 +508,17 @@ async def get_emails(
                 print(f"Error reading email {msg['id']}: {e}")
 
         return json.dumps({"emails": emails})
-
+    except HttpError as e:
+        return json.dumps(
+            {
+                "error": f"HttpError during execution of '{get_emails.__name__}' tool. "
+                + str(e)
+            }
+        )
     except Exception as e:
-        print(f"Error reading emails: {e}")
-        return "Error reading emails"
+        return json.dumps(
+            {
+                "error": f"Unexpected Error encountered during execution of '{get_emails.__name__}' tool. "
+                + str(e)
+            }
+        )

@@ -1,5 +1,4 @@
 import json
-from arcade.core.errors import ToolExecutionError
 from arcade_google.tools.utils import parse_draft_email, parse_email
 import pytest
 from unittest.mock import patch, MagicMock
@@ -16,6 +15,7 @@ from arcade_google.tools.gmail import (
 )
 
 from arcade.core.schema import ToolContext, ToolAuthorizationContext
+from googleapiclient.errors import HttpError
 
 
 @pytest.fixture
@@ -30,6 +30,7 @@ async def test_send_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
+    # Test happy path
     result = await send_email(
         context=mock_context,
         subject="Test Subject",
@@ -40,6 +41,21 @@ async def test_send_email(mock_build, mock_context):
     assert "Email with ID" in result
     assert "sent" in result
 
+    # Test http error
+    mock_service.users().messages().send().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid recipient"}}',
+    )
+
+    result = await send_email(
+        context=mock_context,
+        subject="Test Subject",
+        body="Test Body",
+        recipient="invalid@example.com",
+    )
+
+    assert "error" in result
+
 
 @pytest.mark.asyncio
 @patch("arcade_google.tools.gmail.build")
@@ -47,6 +63,7 @@ async def test_write_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
+    # Test happy path
     result = await write_draft_email(
         context=mock_context,
         subject="Test Draft Subject",
@@ -57,6 +74,21 @@ async def test_write_draft_email(mock_build, mock_context):
     assert "Draft email with ID" in result
     assert "created" in result
 
+    # Test http error
+    mock_service.users().drafts().create().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    result = await write_draft_email(
+        context=mock_context,
+        subject="Test Draft Subject",
+        body="Test Draft Body",
+        recipient="draft@example.com",
+    )
+
+    assert "error" in result
+
 
 @pytest.mark.asyncio
 @patch("arcade_google.tools.gmail.build")
@@ -64,6 +96,7 @@ async def test_update_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
+    # Test happy path
     result = await update_draft_email(
         context=mock_context,
         id="draft123",
@@ -75,6 +108,22 @@ async def test_update_draft_email(mock_build, mock_context):
     assert "Draft email with ID" in result
     assert "updated" in result
 
+    # Test http error
+    mock_service.users().drafts().update().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Draft not found"}}',
+    )
+
+    result = await update_draft_email(
+        context=mock_context,
+        id="nonexistent_draft",
+        subject="Updated Subject",
+        body="Updated Body",
+        recipient="updated@example.com",
+    )
+
+    assert "error" in result
+
 
 @pytest.mark.asyncio
 @patch("arcade_google.tools.gmail.build")
@@ -82,10 +131,21 @@ async def test_send_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
-    result = await send_draft_email(context=mock_context, unique_email_id="draft456")
+    # Test happy path
+    result = await send_draft_email(context=mock_context, id="draft456")
 
     assert "Draft email with ID" in result
     assert "sent" in result
+
+    # Test http error
+    mock_service.users().drafts().send().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Draft not found"}}',
+    )
+
+    result = await send_draft_email(context=mock_context, id="nonexistent_draft")
+
+    assert "error" in result
 
 
 @pytest.mark.asyncio
@@ -94,10 +154,21 @@ async def test_delete_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
-    result = await delete_draft_email(context=mock_context, draft_id="draft789")
+    # Test happy path
+    result = await delete_draft_email(context=mock_context, id="draft789")
 
     assert "Draft email with ID" in result
     assert "deleted successfully" in result
+
+    # Test http error
+    mock_service.users().drafts().delete().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Draft not found"}}',
+    )
+
+    result = await delete_draft_email(context=mock_context, id="nonexistent_draft")
+
+    assert "error" in result
 
 
 @pytest.mark.asyncio
@@ -157,6 +228,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
     mock_parse_draft_email.return_value = parse_draft_email(mock_drafts_get_response)
 
+    # Test happy path
     result = await get_draft_emails(context=mock_context, n_drafts=2)
 
     assert isinstance(result, str)
@@ -165,6 +237,15 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     assert "emails" in result_json
     assert len(result_json["emails"]) == 1
     assert all("id" in draft and "subject" in draft for draft in result_json["emails"])
+
+    # Test http error
+    mock_service.users().drafts().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    result = await get_draft_emails(context=mock_context, n_drafts=2)
+    assert "error" in result
 
 
 @pytest.mark.asyncio
@@ -226,6 +307,7 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
     mock_parse_email.return_value = parse_email(mock_messages_get_response)
 
+    # Test happy path
     result = await search_emails_by_header(
         context=mock_context, sender="noreply@github.com", limit=2
     )
@@ -236,6 +318,17 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     assert "emails" in result_json
     assert len(result_json["emails"]) == 2
     assert all("id" in email and "subject" in email for email in result_json["emails"])
+
+    # Test http error
+    mock_service.users().messages().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    result = await search_emails_by_header(
+        context=mock_context, sender="noreply@github.com", limit=2
+    )
+    assert "error" in result
 
 
 @pytest.mark.asyncio
@@ -296,6 +389,7 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
     mock_parse_email.return_value = parse_email(mock_messages_get_response)
 
+    # Test happy path
     result = await get_emails(context=mock_context, n_emails=1)
 
     # Assert the result
@@ -309,6 +403,15 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     assert "date" in result_json["emails"][0]
     assert "body" in result_json["emails"][0]
 
+    # Test http error
+    mock_service.users().messages().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    result = await get_emails(context=mock_context, n_emails=1)
+    assert "error" in result
+
 
 @pytest.mark.asyncio
 @patch("arcade_google.tools.gmail.build")
@@ -316,20 +419,17 @@ async def test_trash_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
 
+    # Test happy path
     email_id = "123456"
     result = await trash_email(context=mock_context, id=email_id)
 
     assert f"Email with ID {email_id} trashed successfully." == result
 
+    # Test http error
+    mock_service.users().messages().trash().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Email not found"}}',
+    )
 
-@pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
-async def test_trash_email_failure(mock_build, mock_context):
-    mock_service = MagicMock()
-    mock_build.return_value = mock_service
-
-    mock_service.users().messages().trash().execute.side_effect = Exception("Error")
-
-    email_id = "123456"
-    with pytest.raises(ToolExecutionError):
-        await trash_email(context=mock_context, id=email_id)
+    result = await trash_email(context=mock_context, id="nonexistent_email")
+    assert "error" in result
