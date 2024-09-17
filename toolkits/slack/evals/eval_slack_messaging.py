@@ -28,7 +28,7 @@ def slack_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Slack messaging tools."""
     suite = EvalSuite(
         name="Slack Messaging Tools Evaluation",
-        system="You are an AI assistant that can send direct messages and post messages to channels in Slack using the provided tools.",
+        system_message="You are an AI assistant that can send direct messages and post messages to channels in Slack using the provided tools.",
         catalog=catalog,
         rubric=rubric,
     )

@@ -106,21 +106,21 @@ class SimilarityCritic(Critic):
     metric: str = "cosine"
     similarity_threshold: float = 0.8
 
-    def evaluate(self, expected: str, actual: str) -> dict[str, Any]:
+    def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
         if self.metric == "cosine":
             try:
                 from sklearn.feature_extraction.text import TfidfVectorizer
                 from sklearn.metrics.pairwise import cosine_similarity
             except ImportError:
                 raise ImportError(
-                    "Please install scikit-learn to use the cosine similarity metric."
+                    "Use `pip install arcade[evals]` to install the required dependencies for similarity metrics."
                 )
             vectorizer = TfidfVectorizer()
-            tfidf_matrix = vectorizer.fit_transform([str(expected), str(actual)])
-            similarity = float(cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0])
+            tfidf_matrix = vectorizer.fit_transform([expected, actual])
+            similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0]
         else:
             raise ValueError(f"Unsupported similarity metric: {self.metric}")
         return {
-            "match": bool(similarity >= self.similarity_threshold),
-            "score": float(similarity * self.weight),
+            "match": similarity >= self.similarity_threshold,
+            "score": similarity * self.weight,
         }

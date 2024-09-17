@@ -1,13 +1,16 @@
 import asyncio
 import functools
 import json
-import random
-import string
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
-import numpy as np
-from scipy.optimize import linear_sum_assignment
+try:
+    import numpy as np
+    from scipy.optimize import linear_sum_assignment
+except ImportError:
+    raise ImportError(
+        "Use `pip install arcade[evals]` to install the required dependencies for evaluation."
+    )
 
 from arcade.client.client import Arcade, AsyncArcade
 from arcade.core.config import config
@@ -16,12 +19,6 @@ from arcade.sdk.error import WeightError
 if TYPE_CHECKING:
     from arcade.core.catalog import ToolCatalog
     from arcade.sdk.eval.critic import Critic
-
-
-def random_string(length: int) -> str:
-    """Generate a random string of the specified length."""
-    characters = string.ascii_lowercase + string.digits
-    return "".join(random.choice(characters) for _ in range(length))
 
 
 @dataclass
@@ -100,13 +97,15 @@ class EvaluationResult:
             expected: The expected value for the critic.
             actual: The actual value for the critic.
         """
-        self.results.append({
-            "field": field,
-            **result,
-            "weight": weight,
-            "expected": expected,
-            "actual": actual,
-        })
+        self.results.append(
+            {
+                "field": field,
+                **result,
+                "weight": weight,
+                "expected": expected,
+                "actual": actual,
+            }
+        )
 
     def score_tool_selection(self, expected: str, actual: str, weight: float) -> float:
         """
@@ -138,19 +137,21 @@ class EvalCase:
 
     Attributes:
         name: A descriptive name for this evaluation case.
+        system_message: The system message to be sent to the AI model.
         user_message: The user input to be sent to the AI model.
         expected_tool_calls: A list of ExpectedToolCall objects representing the expected tool calls.
-        rubric: An EvalRubric object defining pass/fail criteria and tool selection behavior.
         critics: A list of Critic objects used to evaluate tool arguments.
         additional_messages: Optional list of additional context messages.
+        rubric: An EvalRubric object defining pass/fail criteria and tool selection behavior.
     """
 
     name: str
+    system_message: str
     user_message: str
     expected_tool_calls: list[ExpectedToolCall]
     critics: list["Critic"]
-    rubric: EvalRubric = field(default_factory=EvalRubric)
     additional_messages: list[dict[str, str]] = field(default_factory=list)
+    rubric: EvalRubric = field(default_factory=EvalRubric)
 
     def __post_init__(self) -> None:
         self._validate_critics()
@@ -303,6 +304,88 @@ class EvalCase:
 
         return cost_matrix
 
+    async def run_async(
+        self, client: AsyncArcade, model: str, tool_names: list[str]
+    ) -> dict[str, Any]:
+        """
+        Run the evaluation case asynchronously.
+
+        Args:
+            client: The AsyncArcade client instance.
+            model: The model to evaluate.
+            tool_names: The list of tool names to use for the evaluation.
+        Returns:
+            A dictionary containing the evaluation result for the case.
+        """
+        messages = [{"role": "system", "content": self.system_message}]
+        messages.extend(list(self.additional_messages))
+        messages.append({"role": "user", "content": self.user_message})
+
+        response = await client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=messages,
+            tool_choice="auto",
+            tools=tool_names,
+            user="eval_user",
+            stream=False,
+        )
+
+        predicted_args = get_tool_args(response)
+
+        evaluation = self.evaluate(predicted_args)
+
+        result = {
+            "name": self.name,
+            "input": self.user_message,
+            "expected_tool_calls": [
+                {"name": tc.name, "args": tc.args} for tc in self.expected_tool_calls
+            ],
+            "predicted_tool_calls": [{"name": tool, "args": args} for tool, args in predicted_args],
+            "evaluation": evaluation,
+        }
+
+        return result
+
+    def run_sync(self, client: Arcade, model: str, tool_names: list[str]) -> dict[str, Any]:
+        """
+        Run the evaluation case synchronously.
+
+        Args:
+            client: The Arcade client instance.
+            model: The model to evaluate.
+            tool_names: The list of tool names to use for the evaluation.
+        Returns:
+            A dictionary containing the evaluation result for the case.
+        """
+        messages = [{"role": "system", "content": self.system_message}]
+        messages.extend(list(self.additional_messages))
+        messages.append({"role": "user", "content": self.user_message})
+
+        response = client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=messages,
+            tool_choice="auto",
+            tools=tool_names,
+            user="eval_user",
+            stream=False,
+        )
+
+        predicted_args = get_tool_args(response)
+
+        evaluation = self.evaluate(predicted_args)
+
+        result = {
+            "name": self.name,
+            "input": self.user_message,
+            "expected_tool_calls": [
+                {"name": tc.name, "args": tc.args} for tc in self.expected_tool_calls
+            ],
+            "predicted_tool_calls": [{"name": tool, "args": args} for tool, args in predicted_args],
+            "evaluation": evaluation,
+        }
+
+        return result
+
 
 @dataclass
 class EvalSuite:
@@ -314,7 +397,7 @@ class EvalSuite:
 
     Attributes:
         name: The name of the evaluation suite.
-        system: The system message to be used for all cases in this suite.
+        system_message: The system message to be used for all cases in this suite.
         catalog: A ToolCatalog object containing registered tools.
         cases: A list of EvalCase objects representing individual test scenarios.
         tool_choice: The tool choice mode for the AI model ("auto" or "function").
@@ -323,33 +406,27 @@ class EvalSuite:
     """
 
     name: str
-    system: str
+    system_message: str
     catalog: "ToolCatalog"
     cases: list[EvalCase] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
     max_concurrent: int = 1  # Default to sequential execution
     _client: AsyncArcade | Arcade | None = None
 
-    def initialize_client(self, client: AsyncArcade | Arcade | None = None) -> None:
+    def initialize_client(self) -> None:
         """
         Initialize the client instance for the EvalSuite.
-
-        Args:
-            client: An instance of AsyncArcade or Arcade client. If not provided, a new client will be created.
         """
-        if client:
-            self._client = client
+        if self.max_concurrent > 1:
+            self._client = AsyncArcade(
+                api_key=config.api.key,
+                base_url=config.engine_url,
+            )
         else:
-            if self.max_concurrent > 1:
-                self._client = AsyncArcade(
-                    api_key=config.api.key,
-                    base_url=config.engine_url,
-                )
-            else:
-                self._client = Arcade(
-                    api_key=config.api.key,
-                    base_url=config.engine_url,
-                )
+            self._client = Arcade(
+                api_key=config.api.key,
+                base_url=config.engine_url,
+            )
 
     def add_case(
         self,
@@ -357,6 +434,7 @@ class EvalSuite:
         user_message: str,
         expected_tool_calls: list[ExpectedToolCall],
         critics: list["Critic"],
+        system_message: str | None = None,
         rubric: EvalRubric | None = None,
         additional_messages: list[dict[str, str]] | None = None,
     ) -> None:
@@ -366,6 +444,7 @@ class EvalSuite:
         Args:
             name: The name of the evaluation case.
             user_message: The user's input message.
+            system_message: The system message to be sent to the AI model.
             expected_tool_calls: A list of expected tool calls.
             critics: List of critics to evaluate the tool arguments.
             rubric: The evaluation rubric for this case.
@@ -373,6 +452,7 @@ class EvalSuite:
         """
         case = EvalCase(
             name=name,
+            system_message=system_message or self.system_message,
             user_message=user_message,
             expected_tool_calls=expected_tool_calls,
             rubric=rubric or self.rubric,
@@ -385,9 +465,11 @@ class EvalSuite:
         self,
         name: str,
         user_message: str,
+        system_message: str | None = None,
         expected_tool_calls: list[ExpectedToolCall] | None = None,
         rubric: EvalRubric | None = None,
         critics: list["Critic"] | None = None,
+        additional_messages: list[dict[str, str]] | None = None,
     ) -> None:
         """
         Extend the last added case with new information.
@@ -395,9 +477,12 @@ class EvalSuite:
         Args:
             name: The name of the extended case.
             user_message: The new user message for this extended case.
+            system_message: The new system message for this extended case.
             expected_tool_calls: New or updated expected tool calls.
             rubric: A new rubric (if different from the last case).
             critics: New critics (if different from the last case).
+            additional_messages: New additional messages (if different from the last case).
+                to be added before the new user message.
         """
         if not self.cases:
             raise ValueError("No cases to extend. Add a case first.")
@@ -407,12 +492,14 @@ class EvalSuite:
         # Create a new message list with the previous case's messages and user message
         new_additional_messages = [
             *last_case.additional_messages,
-            {"role": "user", "content": last_case.user_message},
         ]
+        if additional_messages:
+            new_additional_messages.extend(additional_messages)
 
         # Create a new case, copying from the last one and updating fields
         new_case = EvalCase(
             name=name,
+            system_message=system_message or last_case.system_message,
             user_message=user_message,
             expected_tool_calls=expected_tool_calls or last_case.expected_tool_calls,
             rubric=rubric or self.rubric,
@@ -422,13 +509,12 @@ class EvalSuite:
 
         self.cases.append(new_case)
 
-    async def run_async(self, model: str, max_concurrent: int) -> dict[str, Any]:
+    async def run_async(self, model: str) -> dict[str, Any]:
         """
         Run the evaluation suite asynchronously.
 
         Args:
             model: The model to evaluate.
-            max_concurrent: Maximum number of concurrent tasks.
 
         Returns:
             A dictionary containing the evaluation results.
@@ -438,80 +524,18 @@ class EvalSuite:
 
         results: dict[str, Any] = {"model": model, "rubric": self.rubric, "cases": []}
 
-        semaphore = asyncio.Semaphore(max_concurrent)
+        semaphore = asyncio.Semaphore(self.max_concurrent)
+        tool_names = list(self.catalog.tools.keys())
 
         async def sem_task(case: EvalCase) -> dict[str, Any]:
             async with semaphore:
-                return await self._run_case_async(case, model)
+                return await case.run_async(self._client, model, tool_names)  # type: ignore[arg-type]
 
         tasks = [sem_task(case) for case in self.cases]
         case_results = await asyncio.gather(*tasks)
 
         results["cases"] = case_results
         return results
-
-    async def _run_case_async(self, case: EvalCase, model: str) -> dict[str, Any]:
-        """
-        Run a single evaluation case asynchronously.
-
-        Args:
-            case: The EvalCase to run.
-            model: The model to evaluate.
-
-        Returns:
-            A dictionary containing the evaluation result for the case.
-        """
-        messages = [{"role": "system", "content": self.system}]
-        messages.extend(list(case.additional_messages))
-        messages.append({"role": "user", "content": case.user_message})
-
-        response = await self._client.chat.completions.create(  # type: ignore[call-overload]
-            model=model,
-            messages=messages,
-            tool_choice="auto",
-            tools=list(self.catalog.tools.keys()),
-            user=f"eval_{random_string(5)}",
-            stream=False,
-        )
-
-        predicted_args = get_tool_args(response)
-
-        evaluation = case.evaluate(predicted_args)
-
-        result = {
-            "name": case.name,
-            "input": case.user_message,
-            "expected_tool_calls": [
-                {"name": tc.name, "args": tc.args} for tc in case.expected_tool_calls
-            ],
-            "predicted_tool_calls": [{"name": tool, "args": args} for tool, args in predicted_args],
-            "evaluation": evaluation,
-        }
-
-        return result
-
-    def run(self, model: str, max_concurrent: int = 1) -> dict[str, Any]:
-        """
-        Run the evaluation suite.
-
-        Args:
-            model: The model to evaluate.
-            max_concurrent: Maximum number of concurrent evaluations (default: 1).
-
-        Returns:
-            A dictionary containing the evaluation results.
-        """
-        self.max_concurrent = max_concurrent
-        if self.max_concurrent > 1:
-            # Run asynchronously with concurrency
-            if not self._client:
-                self.initialize_client()
-            return asyncio.run(self.run_async(model, self.max_concurrent))
-        else:
-            # Run synchronously
-            if not self._client:
-                self.initialize_client()
-            return self.run_sync(model)
 
     def run_sync(self, model: str) -> dict[str, Any]:
         """
@@ -523,41 +547,37 @@ class EvalSuite:
         Returns:
             A dictionary containing the evaluation results.
         """
-        results = {"model": model, "rubric": self.rubric, "cases": []}
+        if not self._client:
+            raise ValueError("Client not initialized. Call initialize_client() first.")
 
+        cases: list[dict[str, Any]] = []
+        results = {"model": model, "rubric": self.rubric, "cases": cases}
+        tool_names = list(self.catalog.tools.keys())
         for case in self.cases:
-            messages = [{"role": "system", "content": self.system}]
-            messages.extend(list(case.additional_messages))
-            messages.append({"role": "user", "content": case.user_message})
-
-            response = self._client.chat.completions.create(  # type: ignore[call-overload]
-                model=model,
-                messages=messages,
-                tool_choice="auto",
-                tools=list(self.catalog.tools.keys()),
-                user=f"eval_{random_string(5)}",
-                stream=False,
-            )
-
-            predicted_args = get_tool_args(response)
-
-            evaluation = case.evaluate(predicted_args)
-
-            result = {
-                "name": case.name,
-                "input": case.user_message,
-                "expected_tool_calls": [
-                    {"name": tc.name, "args": tc.args} for tc in case.expected_tool_calls
-                ],
-                "predicted_tool_calls": [
-                    {"name": tool, "args": args} for tool, args in predicted_args
-                ],
-                "evaluation": evaluation,
-            }
-
-            results["cases"].append(result)
+            result = case.run_sync(self._client, model, tool_names)  # type: ignore[arg-type]
+            cases.append(result)
 
         return results
+
+    def run(self, model: str) -> dict[str, Any]:
+        """
+        Run the evaluation suite.
+
+        Args:
+            model: The model to evaluate.
+
+        Returns:
+            A dictionary containing the evaluation results.
+        """
+        if not self._client:
+            self.initialize_client()
+
+        if self.max_concurrent > 1:
+            # Run asynchronously with concurrency
+            return asyncio.run(self.run_async(model))
+        else:
+            # Run synchronously
+            return self.run_sync(model)
 
 
 def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
@@ -574,10 +594,12 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append((
-                tool_call.function.name,
-                json.loads(tool_call.function.arguments),
-            ))
+            tool_args_list.append(
+                (
+                    tool_call.function.name,
+                    json.loads(tool_call.function.arguments),
+                )
+            )
     return tool_args_list
 
 
@@ -591,13 +613,14 @@ def tool_eval() -> Callable[[Callable], Callable]:
             suite = func()
             if not isinstance(suite, EvalSuite):
                 raise TypeError("Eval function must return an EvalSuite")
+            suite.max_concurrent = max_concurrency
             results = []
             for model in models:
-                result = suite.run(model, max_concurrent=max_concurrency)
+                result = suite.run(model)
                 results.append(result)
             return results
 
-        wrapper.__tool_eval__ = True
+        wrapper.__tool_eval__ = True  # type: ignore[attr-defined]
         return wrapper
 
     return decorator

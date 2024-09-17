@@ -404,7 +404,7 @@ def evals(
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
-    models = models.split(",") if models else ["gpt-4o"]
+    models = models.split(",")  # type: ignore[assignment]
     eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
 
     if not eval_files:
@@ -416,8 +416,11 @@ def evals(
         module_name = file[:-3]  # Remove .py extension
 
         spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None:
+            console.print(f"Failed to load {file}", style="bold red")
+            continue
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
 
         eval_functions = [
             obj
