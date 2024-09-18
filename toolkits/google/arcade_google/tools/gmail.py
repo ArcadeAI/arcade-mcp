@@ -295,7 +295,7 @@ async def trash_email(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
-async def get_draft_emails(
+async def list_draft_emails(
     context: ToolContext,
     n_drafts: Annotated[int, "Number of draft emails to read"] = 5,
 ) -> Annotated[
@@ -334,11 +334,12 @@ async def get_draft_emails(
         return json.dumps({"emails": emails})
     except HttpError as e:
         raise ToolExecutionError(
-            f"HttpError during execution of '{get_draft_emails.__name__}' tool.", str(e)
+            f"HttpError during execution of '{list_draft_emails.__name__}' tool.",
+            str(e),
         )
     except Exception as e:
         raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{get_draft_emails.__name__}' tool.",
+            f"Unexpected Error encountered during execution of '{list_draft_emails.__name__}' tool.",
             str(e),
         )
 
@@ -349,7 +350,7 @@ async def get_draft_emails(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
-async def search_emails_by_header(
+async def list_emails_by_header(
     context: ToolContext,
     sender: Annotated[
         Optional[str], "The name or email address of the sender of the email"
@@ -424,12 +425,12 @@ async def search_emails_by_header(
         return json.dumps({"emails": emails})
     except HttpError as e:
         raise ToolExecutionError(
-            f"HttpError during execution of '{search_emails_by_header.__name__}' tool.",
+            f"HttpError during execution of '{list_emails_by_header.__name__}' tool.",
             str(e),
         )
     except Exception as e:
         raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{search_emails_by_header.__name__}' tool.",
+            f"Unexpected Error encountered during execution of '{list_emails_by_header.__name__}' tool.",
             str(e),
         )
 
@@ -439,7 +440,7 @@ async def search_emails_by_header(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
-async def get_emails(
+async def list_emails(
     context: ToolContext,
     n_emails: Annotated[int, "Number of emails to read"] = 5,
 ) -> Annotated[str, "A JSON string containing a list of email details"]:
@@ -474,10 +475,10 @@ async def get_emails(
         return json.dumps({"emails": emails})
     except HttpError as e:
         raise ToolExecutionError(
-            f"HttpError during execution of '{get_emails.__name__}' tool.", str(e)
+            f"HttpError during execution of '{list_emails.__name__}' tool.", str(e)
         )
     except Exception as e:
         raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{get_emails.__name__}' tool.",
+            f"Unexpected Error encountered during execution of '{list_emails.__name__}' tool.",
             str(e),
         )

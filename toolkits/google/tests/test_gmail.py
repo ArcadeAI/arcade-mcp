@@ -9,9 +9,9 @@ from arcade_google.tools.gmail import (
     update_draft_email,
     send_draft_email,
     delete_draft_email,
-    get_draft_emails,
-    search_emails_by_header,
-    get_emails,
+    list_draft_emails,
+    list_emails_by_header,
+    list_emails,
     trash_email,
 )
 
@@ -225,7 +225,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     mock_parse_draft_email.return_value = parse_draft_email(mock_drafts_get_response)
 
     # Test happy path
-    result = await get_draft_emails(context=mock_context, n_drafts=2)
+    result = await list_draft_emails(context=mock_context, n_drafts=2)
 
     assert isinstance(result, str)
     result_json = json.loads(result)
@@ -241,7 +241,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     )
 
     with pytest.raises(ToolExecutionError):
-        await get_draft_emails(context=mock_context, n_drafts=2)
+        await list_draft_emails(context=mock_context, n_drafts=2)
 
 
 @pytest.mark.asyncio
@@ -304,7 +304,7 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     mock_parse_email.return_value = parse_email(mock_messages_get_response)
 
     # Test happy path
-    result = await search_emails_by_header(
+    result = await list_emails_by_header(
         context=mock_context, sender="noreply@github.com", limit=2
     )
 
@@ -322,7 +322,7 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     )
 
     with pytest.raises(ToolExecutionError):
-        await search_emails_by_header(
+        await list_emails_by_header(
             context=mock_context, sender="noreply@github.com", limit=2
         )
 
@@ -386,7 +386,7 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     mock_parse_email.return_value = parse_email(mock_messages_get_response)
 
     # Test happy path
-    result = await get_emails(context=mock_context, n_emails=1)
+    result = await list_emails(context=mock_context, n_emails=1)
 
     # Assert the result
     assert isinstance(result, str)
@@ -406,7 +406,7 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     )
 
     with pytest.raises(ToolExecutionError):
-        await get_emails(context=mock_context, n_emails=1)
+        await list_emails(context=mock_context, n_emails=1)
 
 
 @pytest.mark.asyncio
