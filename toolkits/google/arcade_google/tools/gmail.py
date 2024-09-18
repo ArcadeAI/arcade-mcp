@@ -25,7 +25,7 @@ from arcade.sdk.auth import Google
 # Email sending tools
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.send"],
+        scopes=["https://www.googleapis.com/auth/gmail.send"],
     )
 )
 async def send_email(
@@ -95,7 +95,7 @@ async def send_email(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.send"],
+        scopes=["https://www.googleapis.com/auth/gmail.send"],
     )
 )
 async def send_draft_email(
@@ -144,7 +144,7 @@ async def send_draft_email(
 # Draft Management Tools
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.compose"],
+        scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
 async def write_draft_email(
@@ -212,7 +212,7 @@ async def write_draft_email(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.compose"],
+        scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
 async def update_draft_email(
@@ -282,7 +282,7 @@ async def update_draft_email(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.compose"],
+        scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
 async def delete_draft_email(
@@ -328,7 +328,7 @@ async def delete_draft_email(
 # Email Management Tools
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.modify"],
+        scopes=["https://www.googleapis.com/auth/gmail.modify"],
     )
 )
 async def trash_email(
@@ -374,7 +374,7 @@ async def trash_email(
 # Draft Search Tools
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
 async def get_draft_emails(
@@ -438,7 +438,7 @@ async def get_draft_emails(
 # Email Search Tools
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
 async def search_emails_by_header(
@@ -542,7 +542,7 @@ async def search_emails_by_header(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
 async def get_emails(
