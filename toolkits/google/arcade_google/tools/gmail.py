@@ -11,6 +11,7 @@ from arcade_google.tools.utils import (
     parse_email,
     get_draft_url,
     get_sent_email_url,
+    get_email_in_trash_url,
     parse_draft_email,
 )
 from google.oauth2.credentials import Credentials
@@ -19,9 +20,6 @@ from googleapiclient.discovery import build
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
-
-# TODO: Determine a common return structure for all gmail tools if one exists that increases LLM understanding.
-# TODO: Determine the best docstring format (in terms of LLM understanding) and then apply it to all tools.
 
 
 # Email sending tools
@@ -38,7 +36,20 @@ async def send_email(
     cc: Annotated[Optional[list[str]], "CC recipients of the email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the email"] = None,
 ) -> Annotated[str, "Confirmation message"]:
-    """Send an email."""
+    """
+    Send an email using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        subject (str): The subject of the email.
+        body (str): The body of the email.
+        recipient (str): The recipient of the email.
+        cc (Optional[list[str]]): CC recipients of the email.
+        bcc (Optional[list[str]]): BCC recipients of the email.
+
+    Returns:
+        str: A confirmation message with the sent email ID and URL.
+    """
 
     try:
         # Set up the Gmail API client
@@ -90,7 +101,16 @@ async def send_email(
 async def send_draft_email(
     context: ToolContext, id: Annotated[str, "The ID of the draft to send"]
 ) -> Annotated[str, "Confirmation message"]:
-    """Send a draft email."""
+    """
+    Send a draft email using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        id (str): The ID of the draft to send.
+
+    Returns:
+        str: A confirmation message with the sent email ID and URL.
+    """
 
     try:
         # Set up the Gmail API client
@@ -135,7 +155,20 @@ async def write_draft_email(
     cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
 ) -> Annotated[str, "The URL of the draft email"]:
-    """Compose a new email draft."""
+    """
+    Compose a new email draft using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        subject (str): The subject of the draft email.
+        body (str): The body of the draft email.
+        recipient (str): The recipient of the draft email.
+        cc (Optional[list[str]]): CC recipients of the draft email.
+        bcc (Optional[list[str]]): BCC recipients of the draft email.
+
+    Returns:
+        str: A confirmation message with the draft email ID and URL.
+    """
 
     try:
         # Set up the Gmail API client
@@ -192,7 +225,19 @@ async def update_draft_email(
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
 ) -> Annotated[str, "The URL of the updated draft email"]:
     """
-    Update an existing email draft.
+    Update an existing email draft using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        id (str): The ID of the draft email to update.
+        subject (str): The updated subject of the draft email.
+        body (str): The updated body of the draft email.
+        recipient (str): The updated recipient of the draft email.
+        cc (Optional[list[str]]): Updated CC recipients of the draft email.
+        bcc (Optional[list[str]]): Updated BCC recipients of the draft email.
+
+    Returns:
+        str: A confirmation message with the updated draft email ID and URL.
     """
 
     try:
@@ -244,7 +289,16 @@ async def delete_draft_email(
     context: ToolContext,
     id: Annotated[str, "The ID of the draft email to delete"],
 ) -> Annotated[str, "Confirmation message"]:
-    """Delete a draft email."""
+    """
+    Delete a draft email using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        id (str): The ID of the draft email to delete.
+
+    Returns:
+        str: A confirmation message indicating successful deletion.
+    """
 
     try:
         # Set up the Gmail API client
@@ -280,7 +334,16 @@ async def delete_draft_email(
 async def trash_email(
     context: ToolContext, id: Annotated[str, "The ID of the email to trash"]
 ) -> Annotated[str, "Confirmation message"]:
-    """Move an email to the trash folder."""
+    """
+    Move an email to the trash folder using the Gmail API.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        id (str): The ID of the email to trash.
+
+    Returns:
+        str: A confirmation message with the trashed email ID and URL.
+    """
 
     try:
         # Set up the Gmail API client
@@ -291,7 +354,7 @@ async def trash_email(
         # Trash the email
         service.users().messages().trash(userId="me", id=id).execute()
 
-        return f"Email with ID {id} trashed successfully."
+        return f"Email with ID {id} trashed successfully: {get_email_in_trash_url(id)}"
     except HttpError as e:
         return json.dumps(
             {
@@ -319,14 +382,14 @@ async def get_draft_emails(
     n_drafts: Annotated[int, "Number of draft emails to read"] = 5,
 ) -> Annotated[str, "A list of draft email details and their IDs in JSON format"]:
     """
-    Lists `n_drafts` in the user's draft mailbox by id.
+    Lists draft emails in the user's draft mailbox using the Gmail API.
 
     Args:
         context (ToolContext): The context containing authorization information.
         n_drafts (int): Number of email drafts to read (default: 5).
 
     Returns:
-        str: A list of email details in JSON format.
+        str: A JSON string containing a list of draft email details and their IDs.
     """
     try:
         # Set up the Gmail API client
@@ -393,8 +456,22 @@ async def search_emails_by_header(
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
     limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
 ) -> Annotated[str, "A list of email details in JSON format"]:
-    """Search for emails by header.
-    One of the following MUST be provided: sender, recipient, subject, body."""
+    """
+    Search for emails by header using the Gmail API.
+    At least one of the following parametersMUST be provided: sender, recipient, subject, body.
+
+    Args:
+        context (ToolContext): The context containing authorization information.
+        sender (Optional[str]): The name or email address of the sender of the email.
+        recipient (Optional[str]): The name or email address of the recipient.
+        subject (Optional[str]): Words to find in the subject of the email.
+        body (Optional[str]): Words to find in the body of the email.
+        date_range (Optional[DateRange]): The date range of the email.
+        limit (Optional[int]): The maximum number of emails to return (default: 25).
+
+    Returns:
+        str: A JSON string containing a list of email details matching the search criteria.
+    """
 
     if not any([sender, recipient, subject, body]):
         raise ToolInputError(
@@ -480,7 +557,7 @@ async def get_emails(
         n_emails (int): Number of emails to read (default: 5).
 
     Returns:
-        Dict[str, List[Dict[str, str]]]: A dictionary containing a list of email details.
+        str: A JSON string containing a list of email details.
     """
     try:
         # Set up the Gmail API client

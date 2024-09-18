@@ -423,7 +423,10 @@ async def test_trash_email(mock_build, mock_context):
     email_id = "123456"
     result = await trash_email(context=mock_context, id=email_id)
 
-    assert f"Email with ID {email_id} trashed successfully." == result
+    assert (
+        f"Email with ID {email_id} trashed successfully: https://mail.google.com/mail/u/0/#trash/{email_id}"
+        == result
+    )
 
     # Test http error
     mock_service.users().messages().trash().execute.side_effect = HttpError(

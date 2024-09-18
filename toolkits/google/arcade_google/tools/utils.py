@@ -108,6 +108,10 @@ def get_sent_email_url(sent_email_id):
     return f"https://mail.google.com/mail/u/0/#sent/{sent_email_id}"
 
 
+def get_email_in_trash_url(email_id):
+    return f"https://mail.google.com/mail/u/0/#trash/{email_id}"
+
+
 def _get_email_body(payload: Dict[str, Any]) -> Optional[str]:
     """
     Extract email body from payload.
