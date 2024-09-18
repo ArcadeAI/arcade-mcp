@@ -1,4 +1,5 @@
 import json
+from arcade.core.errors import ToolExecutionError
 from arcade_google.tools.utils import parse_draft_email, parse_email
 import pytest
 from unittest.mock import patch, MagicMock
@@ -47,14 +48,13 @@ async def test_send_email(mock_build, mock_context):
         content=b'{"error": {"message": "Invalid recipient"}}',
     )
 
-    result = await send_email(
-        context=mock_context,
-        subject="Test Subject",
-        body="Test Body",
-        recipient="invalid@example.com",
-    )
-
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await send_email(
+            context=mock_context,
+            subject="Test Subject",
+            body="Test Body",
+            recipient="invalid@example.com",
+        )
 
 
 @pytest.mark.asyncio
@@ -80,14 +80,13 @@ async def test_write_draft_email(mock_build, mock_context):
         content=b'{"error": {"message": "Invalid request"}}',
     )
 
-    result = await write_draft_email(
-        context=mock_context,
-        subject="Test Draft Subject",
-        body="Test Draft Body",
-        recipient="draft@example.com",
-    )
-
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await write_draft_email(
+            context=mock_context,
+            subject="Test Draft Subject",
+            body="Test Draft Body",
+            recipient="draft@example.com",
+        )
 
 
 @pytest.mark.asyncio
@@ -114,15 +113,14 @@ async def test_update_draft_email(mock_build, mock_context):
         content=b'{"error": {"message": "Draft not found"}}',
     )
 
-    result = await update_draft_email(
-        context=mock_context,
-        id="nonexistent_draft",
-        subject="Updated Subject",
-        body="Updated Body",
-        recipient="updated@example.com",
-    )
-
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await update_draft_email(
+            context=mock_context,
+            id="nonexistent_draft",
+            subject="Updated Subject",
+            body="Updated Body",
+            recipient="updated@example.com",
+        )
 
 
 @pytest.mark.asyncio
@@ -143,9 +141,8 @@ async def test_send_draft_email(mock_build, mock_context):
         content=b'{"error": {"message": "Draft not found"}}',
     )
 
-    result = await send_draft_email(context=mock_context, id="nonexistent_draft")
-
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await send_draft_email(context=mock_context, id="nonexistent_draft")
 
 
 @pytest.mark.asyncio
@@ -166,9 +163,8 @@ async def test_delete_draft_email(mock_build, mock_context):
         content=b'{"error": {"message": "Draft not found"}}',
     )
 
-    result = await delete_draft_email(context=mock_context, id="nonexistent_draft")
-
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await delete_draft_email(context=mock_context, id="nonexistent_draft")
 
 
 @pytest.mark.asyncio
@@ -244,8 +240,8 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
         content=b'{"error": {"message": "Invalid request"}}',
     )
 
-    result = await get_draft_emails(context=mock_context, n_drafts=2)
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await get_draft_emails(context=mock_context, n_drafts=2)
 
 
 @pytest.mark.asyncio
@@ -325,10 +321,10 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
         content=b'{"error": {"message": "Invalid request"}}',
     )
 
-    result = await search_emails_by_header(
-        context=mock_context, sender="noreply@github.com", limit=2
-    )
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await search_emails_by_header(
+            context=mock_context, sender="noreply@github.com", limit=2
+        )
 
 
 @pytest.mark.asyncio
@@ -409,8 +405,8 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
         content=b'{"error": {"message": "Invalid request"}}',
     )
 
-    result = await get_emails(context=mock_context, n_emails=1)
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await get_emails(context=mock_context, n_emails=1)
 
 
 @pytest.mark.asyncio
@@ -434,5 +430,5 @@ async def test_trash_email(mock_build, mock_context):
         content=b'{"error": {"message": "Email not found"}}',
     )
 
-    result = await trash_email(context=mock_context, id="nonexistent_email")
-    assert "error" in result
+    with pytest.raises(ToolExecutionError):
+        await trash_email(context=mock_context, id="nonexistent_email")

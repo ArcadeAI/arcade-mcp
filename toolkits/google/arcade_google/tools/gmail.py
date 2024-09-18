@@ -3,7 +3,7 @@ import json
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from typing import Annotated, Optional
-from arcade.core.errors import ToolInputError
+from arcade.core.errors import ToolExecutionError, ToolInputError
 from googleapiclient.errors import HttpError
 
 from arcade_google.tools.utils import (
@@ -35,20 +35,9 @@ async def send_email(
     recipient: Annotated[str, "The recipient of the email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the email"] = None,
-) -> Annotated[str, "Confirmation message"]:
+) -> Annotated[str, "A confirmation message with the sent email ID and URL"]:
     """
     Send an email using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        subject (str): The subject of the email.
-        body (str): The body of the email.
-        recipient (str): The recipient of the email.
-        cc (Optional[list[str]]): CC recipients of the email.
-        bcc (Optional[list[str]]): BCC recipients of the email.
-
-    Returns:
-        str: A confirmation message with the sent email ID and URL.
     """
 
     try:
@@ -78,18 +67,13 @@ async def send_email(
         )
         return f"Email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{send_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{send_email.__name__}' tool.", str(e)
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{send_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{send_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -100,16 +84,9 @@ async def send_email(
 )
 async def send_draft_email(
     context: ToolContext, id: Annotated[str, "The ID of the draft to send"]
-) -> Annotated[str, "Confirmation message"]:
+) -> Annotated[str, "A confirmation message with the sent email ID and URL"]:
     """
     Send a draft email using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        id (str): The ID of the draft to send.
-
-    Returns:
-        str: A confirmation message with the sent email ID and URL.
     """
 
     try:
@@ -126,18 +103,13 @@ async def send_draft_email(
         # Construct the URL to the sent email
         return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{send_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{send_draft_email.__name__}' tool.", str(e)
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{send_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{send_draft_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -154,20 +126,9 @@ async def write_draft_email(
     recipient: Annotated[str, "The recipient of the draft email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
-) -> Annotated[str, "The URL of the draft email"]:
+) -> Annotated[str, "A confirmation message with the draft email ID and URL"]:
     """
     Compose a new email draft using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        subject (str): The subject of the draft email.
-        body (str): The body of the draft email.
-        recipient (str): The recipient of the draft email.
-        cc (Optional[list[str]]): CC recipients of the draft email.
-        bcc (Optional[list[str]]): BCC recipients of the draft email.
-
-    Returns:
-        str: A confirmation message with the draft email ID and URL.
     """
 
     try:
@@ -195,18 +156,14 @@ async def write_draft_email(
         )
         return f"Draft email with ID {draft_message['id']} created: {get_draft_url(draft_message['id'])}"
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{write_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{write_draft_email.__name__}' tool.",
+            str(e),
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{write_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{write_draft_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -223,21 +180,9 @@ async def update_draft_email(
     recipient: Annotated[str, "The recipient of the draft email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
-) -> Annotated[str, "The URL of the updated draft email"]:
+) -> Annotated[str, "A confirmation message with the updated draft email ID and URL"]:
     """
     Update an existing email draft using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        id (str): The ID of the draft email to update.
-        subject (str): The updated subject of the draft email.
-        body (str): The updated body of the draft email.
-        recipient (str): The updated recipient of the draft email.
-        cc (Optional[list[str]]): Updated CC recipients of the draft email.
-        bcc (Optional[list[str]]): Updated BCC recipients of the draft email.
-
-    Returns:
-        str: A confirmation message with the updated draft email ID and URL.
     """
 
     try:
@@ -265,18 +210,14 @@ async def update_draft_email(
         )
         return f"Draft email with ID {updated_draft_message['id']} updated: {get_draft_url(updated_draft_message['id'])}"
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{update_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{update_draft_email.__name__}' tool.",
+            str(e),
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{update_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{update_draft_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -288,16 +229,9 @@ async def update_draft_email(
 async def delete_draft_email(
     context: ToolContext,
     id: Annotated[str, "The ID of the draft email to delete"],
-) -> Annotated[str, "Confirmation message"]:
+) -> Annotated[str, "A confirmation message indicating successful deletion"]:
     """
     Delete a draft email using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        id (str): The ID of the draft email to delete.
-
-    Returns:
-        str: A confirmation message indicating successful deletion.
     """
 
     try:
@@ -310,18 +244,14 @@ async def delete_draft_email(
         service.users().drafts().delete(userId="me", id=id).execute()
         return f"Draft email with ID {id} deleted successfully."
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{delete_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{delete_draft_email.__name__}' tool.",
+            str(e),
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{delete_draft_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{delete_draft_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -333,16 +263,9 @@ async def delete_draft_email(
 )
 async def trash_email(
     context: ToolContext, id: Annotated[str, "The ID of the email to trash"]
-) -> Annotated[str, "Confirmation message"]:
+) -> Annotated[str, "A confirmation message with the trashed email ID and URL"]:
     """
     Move an email to the trash folder using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        id (str): The ID of the email to trash.
-
-    Returns:
-        str: A confirmation message with the trashed email ID and URL.
     """
 
     try:
@@ -356,18 +279,13 @@ async def trash_email(
 
         return f"Email with ID {id} trashed successfully: {get_email_in_trash_url(id)}"
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{trash_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{trash_email.__name__}' tool.", str(e)
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{trash_email.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{trash_email.__name__}' tool.",
+            str(e),
         )
 
 
@@ -380,16 +298,11 @@ async def trash_email(
 async def get_draft_emails(
     context: ToolContext,
     n_drafts: Annotated[int, "Number of draft emails to read"] = 5,
-) -> Annotated[str, "A list of draft email details and their IDs in JSON format"]:
+) -> Annotated[
+    str, "A JSON string containing a list of draft email details and their IDs"
+]:
     """
     Lists draft emails in the user's draft mailbox using the Gmail API.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        n_drafts (int): Number of email drafts to read (default: 5).
-
-    Returns:
-        str: A JSON string containing a list of draft email details and their IDs.
     """
     try:
         # Set up the Gmail API client
@@ -420,18 +333,13 @@ async def get_draft_emails(
 
         return json.dumps({"emails": emails})
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{get_draft_emails.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{get_draft_emails.__name__}' tool.", str(e)
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{get_draft_emails.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{get_draft_emails.__name__}' tool.",
+            str(e),
         )
 
 
@@ -455,22 +363,12 @@ async def search_emails_by_header(
     body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
     limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
-) -> Annotated[str, "A list of email details in JSON format"]:
+) -> Annotated[
+    str, "A JSON string containing a list of email details matching the search criteria"
+]:
     """
     Search for emails by header using the Gmail API.
     At least one of the following parametersMUST be provided: sender, recipient, subject, body.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        sender (Optional[str]): The name or email address of the sender of the email.
-        recipient (Optional[str]): The name or email address of the recipient.
-        subject (Optional[str]): Words to find in the subject of the email.
-        body (Optional[str]): Words to find in the body of the email.
-        date_range (Optional[DateRange]): The date range of the email.
-        limit (Optional[int]): The maximum number of emails to return (default: 25).
-
-    Returns:
-        str: A JSON string containing a list of email details matching the search criteria.
     """
 
     if not any([sender, recipient, subject, body]):
@@ -525,18 +423,14 @@ async def search_emails_by_header(
 
         return json.dumps({"emails": emails})
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{search_emails_by_header.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{search_emails_by_header.__name__}' tool.",
+            str(e),
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{search_emails_by_header.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{search_emails_by_header.__name__}' tool.",
+            str(e),
         )
 
 
@@ -548,16 +442,9 @@ async def search_emails_by_header(
 async def get_emails(
     context: ToolContext,
     n_emails: Annotated[int, "Number of emails to read"] = 5,
-) -> Annotated[str, "A list of email details in JSON format"]:
+) -> Annotated[str, "A JSON string containing a list of email details"]:
     """
     Read emails from a Gmail account and extract plain text content.
-
-    Args:
-        context (ToolContext): The context containing authorization information.
-        n_emails (int): Number of emails to read (default: 5).
-
-    Returns:
-        str: A JSON string containing a list of email details.
     """
     try:
         # Set up the Gmail API client
@@ -586,16 +473,11 @@ async def get_emails(
 
         return json.dumps({"emails": emails})
     except HttpError as e:
-        return json.dumps(
-            {
-                "error": f"HttpError during execution of '{get_emails.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"HttpError during execution of '{get_emails.__name__}' tool.", str(e)
         )
     except Exception as e:
-        return json.dumps(
-            {
-                "error": f"Unexpected Error encountered during execution of '{get_emails.__name__}' tool. "
-                + str(e)
-            }
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{get_emails.__name__}' tool.",
+            str(e),
         )
