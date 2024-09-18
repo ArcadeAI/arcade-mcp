@@ -2,6 +2,7 @@ import json
 from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from arcade.actor.core.base import (
     BaseActor,
@@ -17,15 +18,18 @@ class FastAPIActor(BaseActor):
     An Arcade Actor that is hosted inside a FastAPI app.
     """
 
-    def __init__(self, app: FastAPI, *, disable_auth: bool = False) -> None:
+    def __init__(self, app: FastAPI, *, secret: str, disable_auth: bool = False) -> None:
         """
         Initialize the FastAPIActor with a FastAPI app
         instance and an empty ToolCatalog.
         """
-        super().__init__(disable_auth)
+        super().__init__(secret, disable_auth)
         self.app = app
         self.router = FastAPIRouter(app, self)
         self.register_routes(self.router)
+
+
+security = HTTPBearer()  # Authorization: Bearer <xxx>
 
 
 class FastAPIRouter(Router):
@@ -40,9 +44,19 @@ class FastAPIRouter(Router):
 
         use_auth_for_route = not self.actor.disable_auth and require_auth
 
+        def call_validate_engine_request(actor_secret: str) -> Callable:
+            async def dependency(
+                credentials: HTTPAuthorizationCredentials = Depends(security),
+            ) -> None:
+                await validate_engine_request(actor_secret, credentials)
+
+            return dependency
+
         async def wrapped_handler(
             request: Request,
-            _: None = Depends(validate_engine_request) if use_auth_for_route else None,
+            _: None = Depends(call_validate_engine_request(self.actor.secret))
+            if use_auth_for_route
+            else None,
         ) -> Any:
             body_str = await request.body()
             body_json = json.loads(body_str) if body_str else {}

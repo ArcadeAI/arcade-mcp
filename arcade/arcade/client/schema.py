@@ -30,7 +30,7 @@ class AuthRequest(BaseModel):
     authority: AnyUrl | str | None = None
     """The URL of the OAuth 2.0 authorization server."""
 
-    scope: list[str]
+    scopes: list[str]
     """The scope(s) needed for authorization."""
 
 

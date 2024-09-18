@@ -5,7 +5,6 @@ import pytest
 
 from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import (
-    GoogleRequirement,
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
@@ -17,7 +16,7 @@ from arcade.core.schema import (
 )
 from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.auth import Google, OAuth2
+from arcade.sdk.auth import GitHubApp, Google, OAuth2, SlackUser
 
 
 ### Tests on @tool decorator
@@ -48,17 +47,33 @@ def func_with_name_and_description():
 
 @tool(
     desc="A function that requires authentication",
-    requires_auth=OAuth2(authority="https://example.com/oauth2/auth", scope=["scope1", "scope2"]),
+    requires_auth=OAuth2(authority="https://example.com/oauth2/auth", scopes=["scope1", "scope2"]),
 )
 def func_with_auth_requirement():
     pass
 
 
 @tool(
-    desc="A function that requires authentication",
-    requires_auth=Google(scope=["https://www.googleapis.com/auth/gmail.readonly"]),
+    desc="A function that requires Google authorization",
+    requires_auth=Google(scopes=["https://www.googleapis.com/auth/gmail.readonly"]),
 )
 def func_with_google_auth_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires GitHub authorization",
+    requires_auth=GitHubApp(),
+)
+def func_with_github_auth_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires Slack user authorization",
+    requires_auth=SlackUser(scopes=["chat:write", "channels:history"]),
+)
+def func_with_slack_user_auth_requirement():
     pass
 
 
@@ -229,7 +244,7 @@ def func_with_complex_return() -> dict[str, str]:
                         provider="oauth2",
                         oauth2=OAuth2Requirement(
                             authority="https://example.com/oauth2/auth",
-                            scope=["scope1", "scope2"],
+                            scopes=["scope1", "scope2"],
                         ),
                     )
                 )
@@ -242,13 +257,38 @@ def func_with_complex_return() -> dict[str, str]:
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
                         provider="google",
-                        google=GoogleRequirement(
-                            scope=["https://www.googleapis.com/auth/gmail.readonly"],
+                        oauth2=OAuth2Requirement(
+                            scopes=["https://www.googleapis.com/auth/gmail.readonly"],
                         ),
                     )
                 )
             },
             id="func_with_google_auth_requirement",
+        ),
+        pytest.param(
+            func_with_github_auth_requirement,
+            {
+                "requirements": ToolRequirements(
+                    authorization=ToolAuthRequirement(
+                        provider="github_app",
+                    )
+                )
+            },
+            id="func_with_github_auth_requirement",
+        ),
+        pytest.param(
+            func_with_slack_user_auth_requirement,
+            {
+                "requirements": ToolRequirements(
+                    authorization=ToolAuthRequirement(
+                        provider="slack_user",
+                        oauth2=OAuth2Requirement(
+                            scopes=["chat:write", "channels:history"],
+                        ),
+                    )
+                )
+            },
+            id="func_with_slack_user_auth_requirement",
         ),
         # Tests on input params
         pytest.param(

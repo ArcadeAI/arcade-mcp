@@ -68,25 +68,11 @@ class ToolOutput(BaseModel):
 class OAuth2Requirement(BaseModel):
     """Indicates that the tool requires OAuth 2.0 authorization."""
 
-    authority: AnyUrl
+    authority: Optional[AnyUrl] = None
     """The URL of the OAuth 2.0 authorization server."""
 
-    scope: Optional[list[str]] = None
-    """The scope(s) needed for authorization."""
-
-
-class GoogleRequirement(BaseModel):
-    """Indicates that the tool requires Google authorization."""
-
-    scope: Optional[list[str]] = None
-    """The scope(s) needed for authorization."""
-
-
-class SlackUserRequirement(BaseModel):
-    """Indicates that the tool requires Slack (user token) authorization."""
-
-    scope: Optional[list[str]] = None
-    """The scope(s) needed for authorization."""
+    scopes: Optional[list[str]] = None
+    """The scope(s) needed for authorization, if any."""
 
 
 class ToolAuthRequirement(BaseModel):
@@ -97,12 +83,6 @@ class ToolAuthRequirement(BaseModel):
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""
-
-    google: Optional[GoogleRequirement] = None
-    """The Google requirement, if any."""
-
-    slack_user: Optional[SlackUserRequirement] = None
-    """The Slack (user token) requirement, if any."""
 
 
 class ToolRequirements(BaseModel):
