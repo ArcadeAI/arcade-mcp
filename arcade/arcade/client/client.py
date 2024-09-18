@@ -129,7 +129,7 @@ class ToolResource(BaseResource[ClientT]):
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
             f"{self._base_path}/definition",
-            params={"director_id": director_id, "tool_id": tool_id},
+            params={"directorId": director_id, "toolId": tool_id},
         )
         return ToolDefinition(**data)
 
@@ -255,7 +255,7 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
             f"{self._base_path}/definition",
-            params={"director_id": director_id, "tool_id": tool_id},
+            params={"directorId": director_id, "toolId": tool_id},
         )
         return ToolDefinition(**data)
 

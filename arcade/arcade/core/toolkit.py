@@ -101,8 +101,8 @@ class Toolkit(BaseModel):
             toolkit.tools[import_path] = get_tools_from_file(str(module_path))
 
         if not toolkit.tools:
-            raise ValueError(f"No tools found in package {package}")
-
+            # raise ValueError(f"No tools found in package {package}")
+            print(f"No tools found in package {package}")
         return toolkit
 
     @classmethod
