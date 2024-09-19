@@ -62,12 +62,10 @@ class BaseActor(Actor):
         """
         Call (invoke) a tool using the ToolExecutor.
         """
-        tool_name = tool_request.tool.name
-        tool = self.catalog.get_tool(tool_name)
-        if not tool:
-            raise ValueError(f"Tool {tool_name} not found in catalog.")
-
-        materialized_tool = self.catalog[tool_name]
+        tool_fqname = tool_request.tool.get_fully_qualified_name()
+        materialized_tool = self.catalog.tools.get(tool_fqname)
+        if materialized_tool is None:
+            raise ValueError(f"Tool {tool_fqname} not found in catalog.")
 
         start_time = time.time()
 

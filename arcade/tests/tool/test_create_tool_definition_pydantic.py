@@ -277,7 +277,5 @@ def read_products(
 def test_create_tool_def_from_pydantic(func_under_test, expected_tool_def_fields):
     tool_def = ToolCatalog.create_tool_definition(func_under_test, "1.0")
 
-    assert tool_def.version == "1.0"
-
     for field, expected_value in expected_tool_def_fields.items():
         assert getattr(tool_def, field) == expected_value

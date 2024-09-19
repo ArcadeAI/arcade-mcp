@@ -54,9 +54,25 @@
       "type": "string",
       "description": "A human-readable description of the tool and when to use it"
     },
-    "version": {
-      "type": "string",
-      "description": "An identifier for this version of the tool"
+    "toolkit": {
+      "type": "object",
+      "description": "The toolkit that contains the tool",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the toolkit"
+        },
+        "description": {
+          "type": "string",
+          "description": "A human-readable description of the toolkit"
+        },
+        "version": {
+          "type": "string",
+          "description": "An identifier for this version of the toolkit"
+        }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false
     },
     "inputs": {
       "type": "object",
@@ -160,6 +176,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["name", "version", "inputs", "output"],
+  "required": ["name", "toolkit", "inputs", "output"],
   "additionalProperties": false
 }

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
@@ -92,25 +93,85 @@ class ToolRequirements(BaseModel):
     """The authorization requirements for the tool, if any."""
 
 
+class ToolkitDefinition(BaseModel):
+    """The specification of a toolkit."""
+
+    name: str
+    """The name of the toolkit."""
+
+    description: Optional[str] = None
+    """The description of the toolkit."""
+
+    version: Optional[str] = None
+    """The version identifier of the toolkit."""
+
+
+@dataclass
+class FullyQualifiedToolName:
+    """The fully-qualified name of a tool."""
+
+    def __init__(self, tool_name: str, toolkit_name: str, toolkit_version: Optional[str] = None):
+        self.name = tool_name
+        self.toolkit_name = toolkit_name
+        self.toolkit_version = toolkit_version
+
+    def __str__(self):
+        return f"{self.toolkit_name}.{self.name}"
+
+    name: str
+    """The name of the tool."""
+
+    toolkit_name: str
+    """The name of the toolkit containing the tool."""
+
+    toolkit_version: Optional[str] = None
+    """The version of the toolkit containing the tool."""
+
+    @staticmethod
+    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedToolName":
+        """Creates a fully-qualified tool name from a tool name and a ToolkitDefinition."""
+        return FullyQualifiedToolName(tool_name, toolkit.name, toolkit.version)
+
+
 class ToolDefinition(BaseModel):
     """The specification of a tool."""
 
     name: str
+    """The fully-qualified name of the tool."""
+
+    tool_name: str
+    """The name of the tool."""
+
     description: str
-    version: str
+    """The description of the tool."""
+
+    toolkit: ToolkitDefinition
+    """The toolkit that contains the tool."""
+
     inputs: ToolInputs
+    """The inputs that the tool accepts."""
+
     output: ToolOutput
+    """The output types that the tool can return."""
+
     requirements: ToolRequirements
+    """The requirements (e.g. authorization) for the tool to run."""
 
 
-class ToolVersion(BaseModel):
+class ToolReference(BaseModel):
     """The name and version of a tool."""
 
     name: str
     """The name of the tool."""
 
-    version: str
-    """The version of the tool."""
+    toolkit: str
+    """The name of the toolkit containing the tool."""
+
+    version: Optional[str] = None
+    """The version of the toolkit containing the tool."""
+
+    def get_fully_qualified_name(self) -> FullyQualifiedToolName:
+        return FullyQualifiedToolName(self.name, self.toolkit_name, self.version)
 
 
 class ToolAuthorizationContext(BaseModel):
@@ -136,8 +197,8 @@ class ToolCallRequest(BaseModel):
     """The globally-unique ID for this tool invocation in the run."""
     created_at: str | None = None
     """The timestamp when the tool invocation was created."""
-    tool: ToolVersion
-    """The name and version of the tool."""
+    tool: ToolReference
+    """The fully-qualified name and version of the tool."""
     inputs: dict[str, Any] | None = None
     """The inputs for the tool."""
     context: ToolContext = Field(default_factory=ToolContext)

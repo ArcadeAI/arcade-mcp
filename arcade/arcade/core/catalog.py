@@ -25,11 +25,13 @@ from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
+    FullyQualifiedToolName,
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolContext,
     ToolDefinition,
+    ToolkitDefinition,
     ToolInputs,
     ToolOutput,
     ToolRequirements,
@@ -106,29 +108,43 @@ class MaterializedTool(BaseModel):
 class ToolCatalog(BaseModel):
     """Singleton class that holds all tools for a given actor"""
 
-    tools: dict[str, MaterializedTool] = {}
+    tools: dict[FullyQualifiedToolName, MaterializedTool] = {}
 
     def add_tool(
         self,
         tool_func: Callable,
+        toolkit_or_name: Union[str, Toolkit],
         module: ModuleType | None = None,
-        toolkit: Toolkit | None = None,
     ) -> None:
         """
         Add a function to the catalog as a tool.
         """
 
         input_model, output_model = create_func_models(tool_func)
+
+        if isinstance(toolkit_or_name, Toolkit):
+            toolkit = toolkit_or_name
+            toolkit_name = toolkit.name
+        elif isinstance(toolkit_or_name, str):
+            toolkit = None
+            toolkit_name = toolkit_or_name
+
         definition = ToolCatalog.create_tool_definition(
-            tool_func, toolkit.version if toolkit else "latest"
+            tool_func,
+            toolkit_name,
+            toolkit.description if toolkit else None,
+            toolkit.version if toolkit else None,
         )
+
+        if definition.name in self.tools:
+            raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
 
         self.tools[definition.name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
             meta=ToolMeta(
                 module=module.__name__ if module else tool_func.__module__,
-                toolkit=toolkit.name if toolkit else None,
+                toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
             ),
@@ -154,15 +170,15 @@ class ToolCatalog(BaseModel):
                 except ImportError as e:
                     raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
 
-                self.add_tool(tool_func, module, toolkit)
+                self.add_tool(tool_func, toolkit, module)
 
-    def __getitem__(self, name: str) -> MaterializedTool:
-        for tool_name, tool in self.tools.items():
-            if tool_name == name:
+    def __getitem__(self, name: FullyQualifiedToolName) -> MaterializedTool:
+        for tool_fqname, tool in self.tools.items():
+            if tool_fqname == name:
                 return tool
         raise KeyError(f"Tool {name} not found.")
 
-    def __contains__(self, name: str) -> bool:
+    def __contains__(self, name: FullyQualifiedToolName) -> bool:
         return name in self.tools
 
     def __iter__(self) -> Iterator[MaterializedTool]:  # type: ignore[override]
@@ -174,20 +190,26 @@ class ToolCatalog(BaseModel):
     def is_empty(self) -> bool:
         return len(self.tools) == 0
 
-    def get_tool(self, name: str) -> Optional[Callable]:
+    def get_tool(self, name: FullyQualifiedToolName) -> Callable:
         for tool in self.tools.values():
-            if tool.definition.name == name:
+            if (
+                tool.definition.name == name
+                and tool.definition.toolkit.name == name.toolkit_name
+                and (name.version is None or tool.definition.version == name.version)
+            ):
                 return tool.tool
         raise ValueError(f"Tool {name} not found.")
 
     @staticmethod
-    def create_tool_definition(tool: Callable, version: str) -> ToolDefinition:
+    def create_tool_definition(
+        tool: Callable,
+        toolkit_name: str,
+        toolkit_version: Optional[str] = None,
+        toolkit_desc: Optional[str] = None,
+    ) -> ToolDefinition:
         """
         Given a tool function, create a ToolDefinition
-        # TODO: (sam) Make this a function?
         """
-
-        tool_name = getattr(tool, "__tool_name__", tool.__name__)
 
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
@@ -207,10 +229,21 @@ class ToolCatalog(BaseModel):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
             auth_requirement = new_auth_requirement
 
+        toolkit_definition = ToolkitDefinition(
+            name=snake_to_pascal_case(toolkit_name),
+            description=toolkit_desc,
+            version=toolkit_version,
+        )
+
+        tool_name = getattr(tool, "__tool_name__", tool.__name__)
+        tool_name = snake_to_pascal_case(tool_name)
+        fully_qualified_name = FullyQualifiedToolName.from_toolkit(tool_name, toolkit_definition)
+
         return ToolDefinition(
-            name=snake_to_pascal_case(tool_name),
+            name=str(fully_qualified_name),
+            tool_name=tool_name,
             description=tool_description,
-            version=version,
+            toolkit=toolkit_definition,
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(

@@ -49,10 +49,10 @@ def serve_default_actor(
     else:
         logger.info("Serving the following toolkits:")
         for toolkit in toolkits:
-            logger.info(f"  - {toolkit.name} ({toolkit.package_name})")
+            logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {len(toolkit.tools)} tools")
 
     actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
-    if not actor_secret:
+    if not disable_auth and not actor_secret:
         logger.warning(
             "Warning: ARCADE_ACTOR_SECRET environment variable is not set. Using 'dev' as the actor secret.",
         )

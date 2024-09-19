@@ -26,12 +26,16 @@
           "type": "string",
           "description": "Name of the tool to call (invoke)"
         },
+        "toolkit": {
+          "type": "string",
+          "description": "Name of the toolkit containing the tool to call"
+        },
         "version": {
           "type": "string",
-          "description": "Version of the named tool to call (invoke)"
+          "description": "Version of the toolkit containing the tool to call"
         }
       },
-      "required": ["name", "version"],
+      "required": ["name", "toolkit_name", "version"],
       "additionalProperties": false
     },
     "inputs": {
