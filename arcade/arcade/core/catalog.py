@@ -40,6 +40,7 @@ from arcade.core.utils import (
     does_function_return_value,
     first_or_none,
     is_string_literal,
+    is_union,
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
@@ -447,11 +448,23 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     original_type = annotation.__args__[0] if get_origin(annotation) is Annotated else annotation
     field_type = original_type
 
-    # Unwrap Optional types
+    # Handle optional types
+    # Both Optional[T] and T | None are supported
     is_optional = False
-    if get_origin(field_type) is Union and type(None) in get_args(field_type):
+    if (
+        is_union(field_type)
+        and len(get_args(field_type)) == 2
+        and type(None) in get_args(field_type)
+    ):
         field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
         is_optional = True
+
+    # Union types are not currently supported
+    # (other than optional, which is handled above)
+    if is_union(field_type):
+        raise ToolDefinitionError(
+            f"Parameter {param.name} is a union type. Only optional types are supported."
+        )
 
     return ParamInfo(
         name=param.name,

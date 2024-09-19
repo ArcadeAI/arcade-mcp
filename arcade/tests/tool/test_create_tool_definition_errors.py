@@ -31,6 +31,11 @@ def func_with_unsupported_param(param1: complex):
     pass
 
 
+@tool(desc="A function with a union parameter (illegal)")
+def func_with_union_param(param1: str | int):
+    pass
+
+
 @tool(desc="A function with multiple context parameters (illegal)")
 def func_with_multiple_context_params(context: ToolContext, context2: ToolContext):
     pass
@@ -63,6 +68,11 @@ def func_with_multiple_context_params(context: ToolContext, context2: ToolContex
             func_with_unsupported_param,
             ToolDefinitionError,
             id=func_with_unsupported_param.__name__,
+        ),
+        pytest.param(
+            func_with_union_param,
+            ToolDefinitionError,
+            id=func_with_union_param.__name__,
         ),
         pytest.param(
             func_with_multiple_context_params,
