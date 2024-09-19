@@ -28,6 +28,8 @@ pyjwt = "^2.8.0"
 [tool.poetry.group.fastapi.dependencies]
 fastapi = "^0.110.0"
 
+[tool.poetry.group.flask.dependencies]
+flask = "^3.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

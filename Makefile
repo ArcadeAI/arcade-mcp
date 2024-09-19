@@ -5,7 +5,6 @@ install: ## Install the poetry environment and install the pre-commit hooks
 	@echo "🚀 Creating virtual environment using pyenv and poetry"
 	@cd arcade && poetry install --all-extras
 	@cd arcade && poetry run pre-commit install
-	@cd arcade && poetry shell
 
 .PHONY: check
 check: ## Run code quality tools.
