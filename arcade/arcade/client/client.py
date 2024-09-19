@@ -67,7 +67,8 @@ class AuthResource(BaseResource[ClientT]):
     def status(
         self, auth_id_or_response: Union[str, AuthResponse], scopes: list[str] | None = None
     ) -> AuthResponse:
-        """Poll for the status of an authorization
+        """
+        Poll for the status of an authorization
 
         Polls using either the authorization ID or the data returned from the authorize method.
 
@@ -214,10 +215,29 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
         )
         return AuthResponse(**data)
 
-    async def status(self, auth_id: str) -> AuthResponse:
-        """Poll for the status of an authorization asynchronously"""
+    async def status(
+        self, auth_id_or_response: Union[str, AuthResponse], scopes: list[str] | None = None
+    ) -> AuthResponse:
+        """
+        Poll for the status of an authorization asynchronously
+
+        Polls using either the authorization ID or the data returned from the authorize method.
+
+        Example:
+            auth_response = await client.auth.authorize(...)
+            auth_status = await client.auth.poll_authorization(auth_response)
+            auth_status = await client.auth.poll_authorization("auth_123", ["scope1", "scope2"])
+        """
+        if isinstance(auth_id_or_response, AuthResponse):
+            auth_id = auth_id_or_response.auth_id
+            scopes = auth_id_or_response.scopes
+        else:
+            auth_id = auth_id_or_response
+
         data = await self._client._execute_request(  # type: ignore[attr-defined]
-            "GET", f"{self._base_path}/status", params={"authorizationId": auth_id}
+            "GET",
+            f"{self._base_path}/status",
+            params={"authorizationId": auth_id, "scopes": " ".join(scopes) if scopes else None},
         )
         return AuthResponse(**data)
 
