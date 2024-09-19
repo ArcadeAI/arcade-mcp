@@ -18,7 +18,7 @@ from arcade.sdk.auth import Google
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.compose"],
+        scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
 async def write_draft(
@@ -88,7 +88,7 @@ class DateRange(Enum):
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
 async def search_emails_by_header(
@@ -168,7 +168,7 @@ async def search_emails_by_header(
 
 @tool(
     requires_auth=Google(
-        scope=["https://www.googleapis.com/auth/gmail.readonly"],
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
 async def get_emails(

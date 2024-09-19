@@ -6,8 +6,6 @@ from arcade.sdk.eval import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
-    NumericCritic,
-    SimilarityCritic,
     tool_eval,
 )
 

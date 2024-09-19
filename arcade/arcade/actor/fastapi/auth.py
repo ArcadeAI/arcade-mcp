@@ -1,17 +1,16 @@
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 
 from arcade.actor.core.auth import validate_engine_token
-
-security = HTTPBearer()  # Authorization: Bearer <xxx>
 
 
 # Dependency function to validate JWT
 async def validate_engine_request(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    actor_secret: str,
+    credentials: HTTPAuthorizationCredentials,
 ) -> None:
     jwt: str = credentials.credentials
-    validation_result = validate_engine_token(jwt)
+    validation_result = validate_engine_token(actor_secret, jwt)
 
     if not validation_result.valid:
         raise HTTPException(

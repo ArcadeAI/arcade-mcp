@@ -23,12 +23,12 @@ catalog.add_tool(send_dm_to_user)
 catalog.add_tool(send_message_to_channel)
 
 
-@tool_eval("gpt-4o-mini")
+@tool_eval()
 def slack_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Slack messaging tools."""
     suite = EvalSuite(
         name="Slack Messaging Tools Evaluation",
-        system="You are an AI assistant to a number of tools.",
+        system_message="You are an AI assistant that can send direct messages and post messages to channels in Slack using the provided tools.",
         catalog=catalog,
         rubric=rubric,
     )
@@ -147,7 +147,7 @@ def slack_eval_suite() -> EvalSuite:
     # Multiple recipients in DM request
     suite.add_case(
         name="Multiple recipients in DM request",
-        user_message="Send a DM to Alice and Bob about pushing the meeting tomorrow. I have too much work to do.",
+        user_message="Send a DM to Alice and Bob about pushing the meeting tomorrow. I have to much work to do.",
         expected_tool_calls=[
             ExpectedToolCall(
                 name="SendDmToUser",
