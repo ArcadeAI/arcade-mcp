@@ -1,5 +1,7 @@
+from typing import Optional, Union
+
 import pytest
-from typing import Union, Optional
+
 from arcade.core.utils import is_union
 
 
