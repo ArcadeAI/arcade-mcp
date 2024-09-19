@@ -129,6 +129,13 @@ class EvaluationResult:
         )
         return score
 
+    def compute_final_score(self, total_weight: float) -> None:
+        """
+        Compute the final score by normalizing the total score with the total weight.
+        """
+        total_score = sum(result["score"] for result in self.results)
+        self.score = total_score / total_weight if total_weight > 0 else 0.0
+
 
 @dataclass
 class EvalCase:
@@ -256,16 +263,15 @@ class EvalCase:
                             critic.critic_field, result, critic.weight, expected_value, actual_value
                         )
 
-        # Normalize the total score by dividing it by the total weight
-        normalized_score = total_score / total_weight if total_weight > 0 else 0.0
-        evaluation_result.score = normalized_score
+        # Compute the final score using the method from EvaluationResult
+        evaluation_result.compute_final_score(total_weight)
 
         # Set the pass/fail status based on the fail_threshold
-        evaluation_result.passed = normalized_score >= self.rubric.fail_threshold
+        evaluation_result.passed = evaluation_result.score >= self.rubric.fail_threshold
 
         # Set the warning status based on the warn_threshold
         evaluation_result.warning = (
-            not evaluation_result.passed and normalized_score >= self.rubric.warn_threshold
+            not evaluation_result.passed and evaluation_result.score >= self.rubric.warn_threshold
         )
 
         return evaluation_result

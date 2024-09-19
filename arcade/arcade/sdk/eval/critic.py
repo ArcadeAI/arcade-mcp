@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from arcade.sdk.error import WeightError
 
@@ -67,6 +67,19 @@ class NumericCritic(Critic):
     value_range: tuple[float, float]
     match_threshold: float = 0.8
 
+    def __init__(
+        self,
+        critic_field: str,
+        weight: float,
+        value_range: tuple[float, float],
+        match_threshold: float = 0.8,
+    ):
+        super().__init__(critic_field, weight)
+        if value_range[0] >= value_range[1]:
+            raise ValueError("Invalid value_range: minimum must be less than maximum.")
+        self.value_range = value_range
+        self.match_threshold = match_threshold
+
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         min_val, max_val = self.value_range
         normalized_expected = float((float(expected) - min_val) / (max_val - min_val))
@@ -106,6 +119,21 @@ class SimilarityCritic(Critic):
     metric: str = "cosine"
     similarity_threshold: float = 0.8
 
+    SUPPORTED_METRICS: ClassVar[list[str]] = ["cosine"]
+
+    def __init__(
+        self,
+        critic_field: str,
+        weight: float,
+        similarity_threshold: float = 0.8,
+        metric: str = "cosine",
+    ):
+        super().__init__(critic_field, weight)
+        if metric not in self.SUPPORTED_METRICS:
+            raise ValueError(f"Unsupported similarity metric: {metric}")
+        self.similarity_threshold = similarity_threshold
+        self.metric = metric
+
     def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
         if self.metric == "cosine":
             try:
@@ -122,5 +150,5 @@ class SimilarityCritic(Critic):
             raise ValueError(f"Unsupported similarity metric: {self.metric}")
         return {
             "match": similarity >= self.similarity_threshold,
-            "score": similarity * self.weight,
+            "score": min(similarity * self.weight, self.weight),
         }
