@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import typing
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
@@ -501,6 +502,7 @@ def get_wire_type(
     """
     Mapping between Python types and HTTP/JSON types
     """
+    # TODO ensure Any is not allowed
     type_mapping: dict[type, WireType] = {
         str: "string",
         bool: "boolean",
@@ -513,7 +515,6 @@ def get_wire_type(
         list: "array",
         dict: "json",
     }
-
     wire_type = type_mapping.get(_type)
     if wire_type:
         return wire_type
@@ -580,6 +581,17 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
                     output_model_name,
                     result=(field_type, Field(description=str(description))),
                 )
+        # Handle Union types
+        origin = return_annotation.__origin__
+        if origin is typing.Union:
+            # For union types, create a model with the first non-None argument
+            # TODO handle multiple non-None arguments. Raise error?
+            for arg in get_args(return_annotation):
+                if arg is not type(None):
+                    return create_model(
+                        output_model_name,
+                        result=(arg, Field(description="No description provided.")),
+                    )
         # when the return_annotation has an __origin__ attribute
         # and does not have a __metadata__ attribute.
         return create_model(

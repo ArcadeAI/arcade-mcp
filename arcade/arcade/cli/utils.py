@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Any
+
 import typer
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from rich.console import Console
@@ -8,6 +10,9 @@ from typer.models import Context
 from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
 from arcade.core.toolkit import Toolkit
+
+if TYPE_CHECKING:
+    from arcade.sdk.eval.eval import EvaluationResult
 
 console = Console()
 
@@ -150,3 +155,91 @@ def apply_config_overrides(
 
     if tls_input is not None:
         config.engine.tls = tls_input
+
+
+def display_eval_results(results: list[dict[str, Any]], show_details: bool = False) -> None:
+    """
+    Display evaluation results in a format inspired by pytest's output.
+
+    Args:
+        results: List of dictionaries containing evaluation results for each model.
+        show_details: Whether to show detailed results for each case.
+    """
+    total_passed = 0
+    total_failed = 0
+    total_warned = 0
+    total_cases = 0
+
+    for model_results in results:
+        model = model_results.get("model", "Unknown Model")
+        rubric = model_results.get("rubric", "Unknown Rubric")
+        cases = model_results.get("cases", [])
+        total_cases += len(cases)
+
+        console.print(f"\n[bold magenta]Model: {model}[/bold magenta]\n")
+        console.print(f"[bold magenta]{rubric}[/bold magenta]\n")
+
+        for case in cases:
+            evaluation = case["evaluation"]
+            status = (
+                "[green]PASSED[/green]"
+                if evaluation.passed
+                else "[yellow]WARNED[/yellow]"
+                if evaluation.warning
+                else "[red]FAILED[/red]"
+            )
+            if evaluation.passed:
+                total_passed += 1
+            elif evaluation.warning:
+                total_warned += 1
+            else:
+                total_failed += 1
+
+            # Display one-line summary for each case
+            console.print(f"{status} {case['name']} -- Score: {evaluation.score:.2f}")
+
+            if show_details:
+                # Show detailed information for each case
+                console.print(f"[bold]User Input:[/bold] {case['input']}\n")
+                console.print("[bold]Details:[/bold]")
+                console.print(_format_evaluation(evaluation))
+                console.print("-" * 80)
+
+    # Summary
+    console.print("\n[bold]Summary:[/bold]")
+    console.print(f"Total Cases: {total_cases}")
+    console.print(f"[green]Passed: {total_passed}[/green]")
+    console.print(f"[yellow]Warnings: {total_warned}[/yellow]")
+    console.print(f"[red]Failed: {total_failed}[/red]\n")
+
+
+def _format_evaluation(evaluation: "EvaluationResult") -> str:
+    """
+    Format evaluation results with color-coded matches and scores.
+
+    Args:
+        evaluation: An EvaluationResult object containing the evaluation results.
+
+    Returns:
+        A formatted string representation of the evaluation details.
+    """
+    result_lines = []
+
+    # Include overall final score
+    result_lines.append(f"[bold]Final Score:[/bold] {evaluation.score:.2f}\n")
+
+    for critic_result in evaluation.results:
+        match_color = "green" if critic_result["match"] else "red"
+        field = critic_result["field"]
+        score = critic_result["score"]
+        weight = critic_result["weight"]
+        expected = critic_result["expected"]
+        actual = critic_result["actual"]
+        result_lines.append(
+            f"[bold]{field}:[/bold] "
+            f"[{match_color}]Match: {critic_result['match']}, "
+            f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
+            f"\n    Expected: {expected}"
+            f"\n    Actual: {actual}"
+        )
+    return "\n".join(result_lines)

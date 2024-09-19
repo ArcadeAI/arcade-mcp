@@ -133,6 +133,13 @@ def func_with_optional_param_with_default_value(
     pass
 
 
+@tool(desc="A function with an optional input parameter with bar syntax")
+def func_with_optional_param_with_bar_syntax(
+    param1: Annotated[str | None, "First param"] = None,
+):
+    pass
+
+
 @tool(desc="A function with multiple parameters, some with default values")
 def func_with_mixed_params(
     context: ToolContext,
@@ -455,6 +462,26 @@ def func_with_complex_return() -> dict[str, str]:
                 ),
             },
             id="func_with_optional_param_with_default_value",
+        ),
+        pytest.param(
+            func_with_optional_param_with_bar_syntax,
+            {
+                "inputs": ToolInputs(
+                    parameters=[
+                        InputParameter(
+                            name="param1",
+                            description="First param",
+                            inferrable=True,
+                            required=False,  # Because of Optional[str]
+                            value_schema=ValueSchema(val_type="string", enum=None),
+                        )
+                    ]
+                ),
+                "output": ToolOutput(
+                    available_modes=["null"], description="No description provided."
+                ),
+            },
+            id="func_with_optional_param_with_bar_syntax",
         ),
         pytest.param(
             func_with_mixed_params,

@@ -3,9 +3,8 @@
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
 	@echo "🚀 Creating virtual environment using pyenv and poetry"
-	@cd arcade && poetry install
+	@cd arcade && poetry install --all-extras
 	@cd arcade && poetry run pre-commit install
-	@cd arcade && poetry shell
 
 .PHONY: check
 check: ## Run code quality tools.
@@ -53,6 +52,35 @@ docs: ## Build and serve the documentation
 docker: ## Build and run the Docker container
 	@cd docker && make docker-build
 	@cd docker && make docker-run
+
+.PHONY: full-dist
+full-dist: clean-dist ## Build all projects and copy wheels to arcade/dist
+	@echo "🚀 Building all projects and copying wheels to arcade/dist"
+
+	# Build the main arcade project
+	@echo "Building arcade project..."
+	@cd arcade && poetry build
+
+	# Create the arcade/dist directory if it doesn't exist
+	@mkdir -p arcade/dist
+
+	# Build and copy wheels for each toolkit
+	@for toolkit_dir in toolkits/*; do \
+		if [ -d "$$toolkit_dir" ]; then \
+			toolkit_name=$$(basename "$$toolkit_dir"); \
+			echo "Building $$toolkit_name project..."; \
+			cd "$$toolkit_dir" && poetry build; \
+			cp dist/*.whl ../../arcade/dist; \
+			cd -; \
+		fi; \
+	done
+
+	@echo "✅ All projects built and wheels copied to arcade/dist"
+
+.PHONY: clean-dist
+clean-dist: ## Clean the arcade/dist directory
+	@echo "🗑️ Cleaning arcade/dist directory"
+	@rm -rf arcade/dist
 
 .PHONY: help
 help:

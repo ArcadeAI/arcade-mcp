@@ -97,6 +97,7 @@ def create_new_toolkit(directory: str) -> None:
     author = f"{author_name} <{author_email}>"
 
     generate_test_dir = ask_question("Generate test directory? (yes/no)", "yes") == "yes"
+    generate_eval_dir = ask_question("Generate eval directory? (yes/no)", "yes") == "yes"
 
     top_level_dir = os.path.join(directory, name)
     toolkit_dir = os.path.join(directory, name, toolkit_name)
@@ -139,5 +140,9 @@ def create_new_toolkit(directory: str) -> None:
     # If the user wants to generate a test directory
     if generate_test_dir:
         create_directory(os.path.join(top_level_dir, "tests"))
+
+    # If the user wants to generate an eval directory
+    if generate_eval_dir:
+        create_directory(os.path.join(top_level_dir, "evals"))
 
     console.print(f"[green]Toolkit {toolkit_name} has been created.[/green]")
