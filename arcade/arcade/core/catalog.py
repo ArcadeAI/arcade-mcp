@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import typing
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
@@ -39,6 +40,7 @@ from arcade.core.utils import (
     does_function_return_value,
     first_or_none,
     is_string_literal,
+    is_union,
     snake_to_pascal_case,
 )
 from arcade.sdk.annotations import Inferrable
@@ -446,11 +448,23 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     original_type = annotation.__args__[0] if get_origin(annotation) is Annotated else annotation
     field_type = original_type
 
-    # Unwrap Optional types
+    # Handle optional types
+    # Both Optional[T] and T | None are supported
     is_optional = False
-    if get_origin(field_type) is Union and type(None) in get_args(field_type):
+    if (
+        is_union(field_type)
+        and len(get_args(field_type)) == 2
+        and type(None) in get_args(field_type)
+    ):
         field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
         is_optional = True
+
+    # Union types are not currently supported
+    # (other than optional, which is handled above)
+    if is_union(field_type):
+        raise ToolDefinitionError(
+            f"Parameter {param.name} is a union type. Only optional types are supported."
+        )
 
     return ParamInfo(
         name=param.name,
@@ -501,6 +515,7 @@ def get_wire_type(
     """
     Mapping between Python types and HTTP/JSON types
     """
+    # TODO ensure Any is not allowed
     type_mapping: dict[type, WireType] = {
         str: "string",
         bool: "boolean",
@@ -513,7 +528,6 @@ def get_wire_type(
         list: "array",
         dict: "json",
     }
-
     wire_type = type_mapping.get(_type)
     if wire_type:
         return wire_type
@@ -580,6 +594,17 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
                     output_model_name,
                     result=(field_type, Field(description=str(description))),
                 )
+        # Handle Union types
+        origin = return_annotation.__origin__
+        if origin is typing.Union:
+            # For union types, create a model with the first non-None argument
+            # TODO handle multiple non-None arguments. Raise error?
+            for arg in get_args(return_annotation):
+                if arg is not type(None):
+                    return create_model(
+                        output_model_name,
+                        result=(arg, Field(description="No description provided.")),
+                    )
         # when the return_annotation has an __origin__ attribute
         # and does not have a __metadata__ attribute.
         return create_model(

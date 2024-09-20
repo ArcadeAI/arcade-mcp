@@ -24,9 +24,12 @@ requests = "^2.26.0" # TODO: is this really needed?
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
 pyjwt = "^2.8.0"
 
-fastapi = { version = "^0.110.0", optional = true }
-flask = { version = "^3.0.3", optional = true }
 
+[tool.poetry.group.fastapi.dependencies]
+fastapi = "^0.110.0"
+
+[tool.poetry.group.flask.dependencies]
+flask = "^3.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -41,16 +44,17 @@ mkdocs = ">=1.5.2"
 mkdocs-material = ">=9.3.0"
 mkdocstrings = {extras = ["python"], version = ">=0.23.1"}
 
-[tool.poetry.extras]
-fastapi = ["fastapi"]
-flask = ["flask"]
-
+[tool.poetry.group.evals.dependencies]
+scipy = "^1.14.0"
+numpy = "^2.0.0"
+scikit-learn = "^1.5.0"
 
 [tool.poetry.scripts]
 arcade = "arcade.cli.main:cli"
 
 [tool.mypy]
 files = ["arcade"]
+python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
 no_implicit_optional = "True"
@@ -58,6 +62,7 @@ check_untyped_defs = "True"
 warn_return_any = "True"
 warn_unused_ignores = "True"
 show_error_codes = "True"
+ignore_missing_imports = "True"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,5 +1,5 @@
 from arcade_github.tools import repo, user
-from arcade_gmail.tools import gmail
+from arcade_google.tools import gmail
 from arcade_slack.tools import chat
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -20,9 +20,9 @@ actor = FastAPIActor(app)
 # actor.register_tool(arithmetic.multiply)
 # actor.register_tool(arithmetic.divide)
 # actor.register_tool(arithmetic.sqrt)
-actor.register_tool(gmail.get_emails)
-actor.register_tool(gmail.search_emails_by_header)
-actor.register_tool(gmail.write_draft)
+actor.register_tool(gmail.list_emails)
+actor.register_tool(gmail.list_emails_by_header)
+actor.register_tool(gmail.write_draft_email)
 actor.register_tool(repo.count_stargazers)
 actor.register_tool(repo.search_issues)
 actor.register_tool(user.set_starred)

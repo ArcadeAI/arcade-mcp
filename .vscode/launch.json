@@ -12,11 +12,23 @@
       "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
     },
     {
-      "name": "Debug arcade dev",
+      "name": "Debug `arcade dev`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
       "args": ["dev"],
+      "console": "integratedTerminal",
+      "jinja": true,
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}"
+    },
+    ,
+    {
+      "name": "Debug `arcade chat -h localhost`",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/arcade/run_cli.py",
+      "args": ["chat", "-h", "localhost"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

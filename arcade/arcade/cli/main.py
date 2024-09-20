@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import readline
 import threading
@@ -18,6 +19,7 @@ from arcade.cli.utils import (
     OrderCommands,
     apply_config_overrides,
     create_cli_catalog,
+    display_eval_results,
     display_streamed_markdown,
     markdownify_urls,
     validate_and_get_config,
@@ -107,6 +109,7 @@ def show(
         None, "-t", "--toolkit", help="The toolkit to show the tools of"
     ),
     actor: Optional[str] = typer.Option(None, help="A running actor address to list tools from"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Show the available tools in an actor or toolkit
@@ -128,7 +131,8 @@ def show(
         console.print(table)
 
     except Exception as e:
-        # better error message here
+        if debug:
+            raise
         error_message = f"❌ Failed to List tools: {escape(str(e))}"
         console.print(error_message, style="bold red")
 
@@ -197,6 +201,8 @@ def chat(
                 "bold blue",
             ),
         )
+        if stream:
+            chat_header.append(" (streaming)")
         console.print(chat_header)
 
         # Try to hit /health endpoint on engine and warn if it is down
@@ -380,3 +386,55 @@ def display_config_as_table(config) -> None:  # type: ignore[no-untyped-def]
             table.add_row("", "", "")
 
     console.print(table)
+
+
+@cli.command(help="Run evaluation suites in a directory")
+def evals(
+    directory: str = typer.Argument(".", help="Directory containing evaluation files"),
+    show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
+    max_concurrent: int = typer.Option(
+        1,
+        "--max-concurrent",
+        "-c",
+        help="Maximum number of concurrent evaluations (default: 1)",
+    ),
+    models: str = typer.Option(
+        "gpt-4o", "--models", "-m", help="The models to use for evaluation (default: gpt-4o)"
+    ),
+) -> None:
+    """
+    Find all files starting with 'eval_' in the given directory,
+    execute any functions decorated with @tool_eval, and display the results.
+    """
+    models = models.split(",")  # type: ignore[assignment]
+    eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
+
+    if not eval_files:
+        console.print("No evaluation files found.", style="bold yellow")
+        return
+
+    for file in eval_files:
+        file_path = os.path.join(directory, file)
+        module_name = file[:-3]  # Remove .py extension
+
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None:
+            console.print(f"Failed to load {file}", style="bold red")
+            continue
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        eval_functions = [
+            obj
+            for name, obj in module.__dict__.items()
+            if callable(obj) and hasattr(obj, "__tool_eval__")
+        ]
+
+        if not eval_functions:
+            console.print(f"No @tool_eval functions found in {file}", style="bold yellow")
+            continue
+
+        for func in eval_functions:
+            console.print(f"\nRunning evaluation from {file}: {func.__name__}", style="bold blue")
+            results = func(models=models, max_concurrency=max_concurrent)
+            display_eval_results(results, show_details=show_details)

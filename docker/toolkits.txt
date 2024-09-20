@@ -1,4 +1,4 @@
-gmail
+google
 slack
 github
 websearch

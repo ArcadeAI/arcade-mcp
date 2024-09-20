@@ -17,9 +17,9 @@ from arcade.core.schema import ToolDefinition
 
 AUTH_RESPONSE_DATA = {
     "auth_id": "auth_123",
-    "auth_url": "https://example.com/auth",
+    "authorization_url": "https://example.com/auth",
     "status": "pending",
-    "authorizationID": "auth_123",
+    "authorization_id": "auth_123",
     "scopes": ["https://www.googleapis.com/auth/gmail.readonly"],
 }
 
@@ -40,14 +40,14 @@ TOOL_DEFINITION_DATA = {
     "input_schema": {"type": "object", "properties": {"n_emails": {"type": "integer"}}},
     "output_schema": {"type": "array", "items": {"type": "string"}},
     "version": "0.1.0",
-    "inputs": {"parameters": []},  # Update this line
+    "inputs": {"parameters": []},
     "output": {},
-    "requirements": {"auth_requirements": []},  # Update this line
+    "requirements": {"auth_requirements": []},
 }
 
 TOOL_AUTHORIZE_RESPONSE_DATA = {
-    "authorizationID": "auth_456",
-    "authorizationURL": "https://example.com/auth",
+    "authorization_id": "auth_456",
+    "authorization_url": "https://example.com/auth",
     "scopes": ["scope1", "scope2"],
     "status": "pending",
 }
