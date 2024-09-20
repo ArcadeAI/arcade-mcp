@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Annotated, Literal, Optional
 
-from arcade.core.utils import snake_to_pascal_case
 import pytest
 
 from arcade.core.catalog import ToolCatalog
@@ -15,6 +14,7 @@ from arcade.core.schema import (
     ToolRequirements,
     ValueSchema,
 )
+from arcade.core.utils import snake_to_pascal_case
 from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import GitHubApp, Google, OAuth2, SlackUser

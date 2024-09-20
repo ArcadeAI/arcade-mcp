@@ -3,6 +3,8 @@ from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
 
+TOOL_NAME_SEPARATOR = "."
+
 
 class ValueSchema(BaseModel):
     """Value schema for input parameters and outputs."""
@@ -106,17 +108,9 @@ class ToolkitDefinition(BaseModel):
     """The version identifier of the toolkit."""
 
 
-@dataclass
+@dataclass(frozen=True)
 class FullyQualifiedToolName:
     """The fully-qualified name of a tool."""
-
-    def __init__(self, tool_name: str, toolkit_name: str, toolkit_version: Optional[str] = None):
-        self.name = tool_name
-        self.toolkit_name = toolkit_name
-        self.toolkit_version = toolkit_version
-
-    def __str__(self):
-        return f"{self.toolkit_name}.{self.name}"
 
     name: str
     """The name of the tool."""
@@ -126,6 +120,34 @@ class FullyQualifiedToolName:
 
     toolkit_version: Optional[str] = None
     """The version of the toolkit containing the tool."""
+
+    def __str__(self):
+        return f"{self.toolkit_name}{TOOL_NAME_SEPARATOR}{self.name}"
+
+    def __eq__(self, other):
+        if not isinstance(other, FullyQualifiedToolName):
+            return False
+        return (
+            self.name.lower() == other.name.lower()
+            and self.toolkit_name.lower() == other.toolkit_name.lower()
+            and (self.toolkit_version or "").lower() == (other.toolkit_version or "").lower()
+        )
+
+    def __hash__(self):
+        return hash(
+            (
+                self.name.lower(),
+                self.toolkit_name.lower(),
+                (self.toolkit_version or "").lower(),
+            )
+        )
+
+    def equals_ignoring_version(self, other: "FullyQualifiedToolName") -> bool:
+        """Check if two fully-qualified tool names are equal, ignoring the version."""
+        return (
+            self.name.lower() == other.name.lower()
+            and self.toolkit_name.lower() == other.toolkit_name.lower()
+        )
 
     @staticmethod
     def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedToolName":
@@ -137,10 +159,10 @@ class ToolDefinition(BaseModel):
     """The specification of a tool."""
 
     name: str
-    """The fully-qualified name of the tool."""
-
-    tool_name: str
     """The name of the tool."""
+
+    full_name: str
+    """The fully-qualified name of the tool."""
 
     description: str
     """The description of the tool."""
@@ -157,6 +179,9 @@ class ToolDefinition(BaseModel):
     requirements: ToolRequirements
     """The requirements (e.g. authorization) for the tool to run."""
 
+    def get_fully_qualified_name(self) -> FullyQualifiedToolName:
+        return FullyQualifiedToolName(self.name, self.toolkit.name, self.toolkit.version)
+
 
 class ToolReference(BaseModel):
     """The name and version of a tool."""
@@ -171,7 +196,7 @@ class ToolReference(BaseModel):
     """The version of the toolkit containing the tool."""
 
     def get_fully_qualified_name(self) -> FullyQualifiedToolName:
-        return FullyQualifiedToolName(self.name, self.toolkit_name, self.version)
+        return FullyQualifiedToolName(self.name, self.toolkit, self.version)
 
 
 class ToolAuthorizationContext(BaseModel):

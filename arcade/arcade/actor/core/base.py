@@ -63,9 +63,13 @@ class BaseActor(Actor):
         Call (invoke) a tool using the ToolExecutor.
         """
         tool_fqname = tool_request.tool.get_fully_qualified_name()
-        materialized_tool = self.catalog.tools.get(tool_fqname)
-        if materialized_tool is None:
-            raise ValueError(f"Tool {tool_fqname} not found in catalog.")
+
+        try:
+            materialized_tool = self.catalog.get_tool(tool_fqname)
+        except KeyError:
+            raise ValueError(
+                f"Tool {tool_fqname} not found in catalog with toolkit version {tool_request.tool.version}."
+            )
 
         start_time = time.time()
 
@@ -93,7 +97,7 @@ class BaseActor(Actor):
         """
         Provide a health check that serves as a heartbeat of actor health.
         """
-        return {"status": "ok", "tool_count": len(self.catalog.tools.keys())}
+        return {"status": "ok", "tool_count": len(self.catalog)}
 
     def register_routes(self, router: Router) -> None:
         """

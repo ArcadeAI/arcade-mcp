@@ -31,8 +31,8 @@ from arcade.core.schema import (
     ToolAuthRequirement,
     ToolContext,
     ToolDefinition,
-    ToolkitDefinition,
     ToolInputs,
+    ToolkitDefinition,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
@@ -108,7 +108,7 @@ class MaterializedTool(BaseModel):
 class ToolCatalog(BaseModel):
     """Singleton class that holds all tools for a given actor"""
 
-    tools: dict[FullyQualifiedToolName, MaterializedTool] = {}
+    _tools: dict[FullyQualifiedToolName, MaterializedTool] = {}
 
     def add_tool(
         self,
@@ -132,14 +132,16 @@ class ToolCatalog(BaseModel):
         definition = ToolCatalog.create_tool_definition(
             tool_func,
             toolkit_name,
-            toolkit.description if toolkit else None,
             toolkit.version if toolkit else None,
+            toolkit.description if toolkit else None,
         )
 
-        if definition.name in self.tools:
+        fully_qualified_name = definition.get_fully_qualified_name()
+
+        if fully_qualified_name in self._tools:
             raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
 
-        self.tools[definition.name] = MaterializedTool(
+        self._tools[fully_qualified_name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
             meta=ToolMeta(
@@ -173,32 +175,38 @@ class ToolCatalog(BaseModel):
                 self.add_tool(tool_func, toolkit, module)
 
     def __getitem__(self, name: FullyQualifiedToolName) -> MaterializedTool:
-        for tool_fqname, tool in self.tools.items():
-            if tool_fqname == name:
-                return tool
-        raise KeyError(f"Tool {name} not found.")
+        return self.get_tool(name)
 
     def __contains__(self, name: FullyQualifiedToolName) -> bool:
-        return name in self.tools
+        return name in self._tools
 
     def __iter__(self) -> Iterator[MaterializedTool]:  # type: ignore[override]
-        yield from self.tools.values()
+        yield from self._tools.values()
 
     def __len__(self) -> int:
-        return len(self.tools)
+        return len(self._tools)
 
     def is_empty(self) -> bool:
-        return len(self.tools) == 0
+        return len(self._tools) == 0
 
-    def get_tool(self, name: FullyQualifiedToolName) -> Callable:
-        for tool in self.tools.values():
-            if (
-                tool.definition.name == name
-                and tool.definition.toolkit.name == name.toolkit_name
-                and (name.version is None or tool.definition.version == name.version)
-            ):
-                return tool.tool
-        raise ValueError(f"Tool {name} not found.")
+    def get_tool(self, fully_qualified_name: FullyQualifiedToolName) -> MaterializedTool:
+        """
+        Get a tool from the catalog by fully-qualified name and version.
+        If the version is not specified, the any version is returned.
+        """
+        if fully_qualified_name.toolkit_version:
+            try:
+                return self._tools[fully_qualified_name]
+            except KeyError:
+                raise ValueError(
+                    f"Tool {fully_qualified_name}@{fully_qualified_name.toolkit_version} not found in the catalog."
+                )
+
+        for key, tool in self._tools.items():
+            if key.equals_ignoring_version(fully_qualified_name):
+                return tool
+
+        raise ValueError(f"Tool {fully_qualified_name} not found.")
 
     @staticmethod
     def create_tool_definition(
@@ -240,8 +248,8 @@ class ToolCatalog(BaseModel):
         fully_qualified_name = FullyQualifiedToolName.from_toolkit(tool_name, toolkit_definition)
 
         return ToolDefinition(
-            name=str(fully_qualified_name),
-            tool_name=tool_name,
+            name=tool_name,
+            full_name=str(fully_qualified_name),
             description=tool_description,
             toolkit=toolkit_definition,
             inputs=create_input_definition(tool),
