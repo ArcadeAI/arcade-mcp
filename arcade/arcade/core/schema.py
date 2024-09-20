@@ -121,10 +121,10 @@ class FullyQualifiedToolName:
     toolkit_version: Optional[str] = None
     """The version of the toolkit containing the tool."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.toolkit_name}{TOOL_NAME_SEPARATOR}{self.name}"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, FullyQualifiedToolName):
             return False
         return (
@@ -133,7 +133,7 @@ class FullyQualifiedToolName:
             and (self.toolkit_version or "").lower() == (other.toolkit_version or "").lower()
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
                 self.name.lower(),

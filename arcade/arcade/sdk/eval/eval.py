@@ -531,7 +531,7 @@ class EvalSuite:
         results: dict[str, Any] = {"model": model, "rubric": self.rubric, "cases": []}
 
         semaphore = asyncio.Semaphore(self.max_concurrent)
-        tool_names = list(self.catalog.tools.keys())
+        tool_names = list(self.catalog._tools.keys())
 
         async def sem_task(case: EvalCase) -> dict[str, Any]:
             async with semaphore:
@@ -558,7 +558,7 @@ class EvalSuite:
 
         cases: list[dict[str, Any]] = []
         results = {"model": model, "rubric": self.rubric, "cases": cases}
-        tool_names = list(self.catalog.tools.keys())
+        tool_names = list(self.catalog._tools.keys())
         for case in self.cases:
             result = case.run_sync(self._client, model, tool_names)  # type: ignore[arg-type]
             cases.append(result)

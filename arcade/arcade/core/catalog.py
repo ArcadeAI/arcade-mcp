@@ -93,8 +93,8 @@ class MaterializedTool(BaseModel):
         return self.definition.name
 
     @property
-    def version(self) -> str:
-        return self.definition.version
+    def version(self) -> str | None:
+        return self.definition.toolkit.version
 
     @property
     def description(self) -> str:
@@ -219,14 +219,16 @@ class ToolCatalog(BaseModel):
         Given a tool function, create a ToolDefinition
         """
 
+        raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
+
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool {tool_name} is missing a description")
+            raise ToolDefinitionError(f"Tool {raw_tool_name} is missing a description")
 
         # If the function returns a value, it must have a type annotation
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
-            raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
+            raise ToolDefinitionError(f"Tool {raw_tool_name} must have a return type annotation")
 
         auth_requirement = getattr(tool, "__tool_requires_auth__", None)
         if isinstance(auth_requirement, ToolAuthorization):
@@ -243,8 +245,7 @@ class ToolCatalog(BaseModel):
             version=toolkit_version,
         )
 
-        tool_name = getattr(tool, "__tool_name__", tool.__name__)
-        tool_name = snake_to_pascal_case(tool_name)
+        tool_name = snake_to_pascal_case(raw_tool_name)
         fully_qualified_name = FullyQualifiedToolName.from_toolkit(tool_name, toolkit_definition)
 
         return ToolDefinition(

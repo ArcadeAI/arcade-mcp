@@ -1,8 +1,9 @@
-from arcade.core.toolkit import Toolkit
-from arcade.sdk import tool
 import pytest
+
 from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import FullyQualifiedToolName
+from arcade.core.toolkit import Toolkit
+from arcade.sdk import tool
 
 
 @tool
