@@ -159,6 +159,19 @@ class ToolCallError(BaseModel):
     """The number of milliseconds (if any) to wait before retrying the tool call."""
 
 
+class ToolCallRequiresAuthorization(BaseModel):
+    """The authorization requirements for the tool invocation."""
+
+    authorization_url: str | None = None
+    """The URL to redirect the user to for authorization."""
+    authorization_id: str | None = None
+    """The ID for checking the status of the authorization."""
+    scopes: list[str] | None = None
+    """The scopes that are required for authorization."""
+    status: str | None = None
+    """The status of the authorization."""
+
+
 class ToolCallOutput(BaseModel):
     """The output of a tool invocation."""
 
@@ -166,6 +179,8 @@ class ToolCallOutput(BaseModel):
     """The value returned by the tool."""
     error: ToolCallError | None = None
     """The error that occurred during the tool invocation."""
+    requires_authorization: ToolCallRequiresAuthorization | None = None
+    """The authorization requirements for the tool invocation."""
 
     model_config = {
         "json_schema_extra": {

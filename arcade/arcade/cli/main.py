@@ -201,6 +201,8 @@ def chat(
                 "bold blue",
             ),
         )
+        if stream:
+            chat_header.append(" (streaming)")
         console.print(chat_header)
 
         # Try to hit /health endpoint on engine and warn if it is down

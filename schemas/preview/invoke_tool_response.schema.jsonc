@@ -81,26 +81,28 @@
             "requires_authorization": {
               "type": "object",
               "properties": {
-                "message": {
+                "authorization_url": {
                   "type": "string",
-                  "description": "A message that can be shown to the user or AI model that explains the authorization requirement"
+                  "format": "uri",
+                  "description": "The URL to redirect the user to for authorization"
                 },
-                "oauth2": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "scope": {
-                      "type": "string"
-                    }
+                "authorization_id": {
+                  "type": "string",
+                  "description": "The ID for checking the status of the authorization"
+                },
+                "scopes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   },
-                  "required": ["url"],
-                  "additionalProperties": false
+                  "description": "The scopes that are required for authorization"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The status of the authorization"
                 }
               },
-              "required": ["message"],
+              "required": ["status"],
               "additionalProperties": false
             }
           },

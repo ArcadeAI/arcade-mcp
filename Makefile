@@ -20,6 +20,13 @@ test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@cd arcade && poetry run pytest -v --cov --cov-config=pyproject.toml --cov-report=xml
 
+.PHONY: test-toolkits
+test-toolkits: ## Iterate over all toolkits and run pytest on each one
+	@echo "🚀 Testing code in toolkits: Running pytest"
+	@for dir in toolkits/*/ ; do \
+		(cd $$dir && poetry run pytest -v --cov --cov-config=pyproject.toml --cov-report=xml || exit 1); \
+	done
+
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
 	@echo "🚀 Creating wheel file"

@@ -9,7 +9,7 @@ python = "^3.10"
 fastapi = "^0.112.0"
 arcade-ai = {path = "../../arcade", develop = true}
 arcade_arithmetic = {path = "../../toolkits/math", develop = true}
-arcade_gmail = {path = "../../toolkits/gmail", develop = true}
+arcade_google = {path = "../../toolkits/google", develop = true}
 arcade_github = {path = "../../toolkits/github", develop = true}
 arcade_slack = {path = "../../toolkits/slack", develop = true}
 
