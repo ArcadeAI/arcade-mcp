@@ -13,7 +13,6 @@ except ImportError:
     )
 
 from arcade.client.client import Arcade, AsyncArcade
-from arcade.core.config import config
 from arcade.sdk.error import WeightError
 
 if TYPE_CHECKING:
@@ -423,6 +422,8 @@ class EvalSuite:
         """
         Initialize the client instance for the EvalSuite.
         """
+        from arcade.core.config import config
+
         if self.max_concurrent > 1:
             self._client = AsyncArcade(
                 api_key=config.api.key,

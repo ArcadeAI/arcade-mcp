@@ -224,10 +224,6 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
         A formatted string representation of the evaluation details.
     """
     result_lines = []
-
-    # Include overall final score
-    result_lines.append(f"[bold]Final Score:[/bold] {evaluation.score:.2f}\n")
-
     for critic_result in evaluation.results:
         match_color = "green" if critic_result["match"] else "red"
         field = critic_result["field"]

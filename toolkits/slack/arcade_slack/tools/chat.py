@@ -21,7 +21,10 @@ from arcade.sdk.auth import SlackUser
 )
 def send_dm_to_user(
     context: ToolContext,
-    user_name: Annotated[str, "The Slack username of the person you want to message"],
+    user_name: Annotated[
+        str,
+        "The Slack username of the person you want to message. Slack usernames are ALWAYS lowercase.",
+    ],
     message: Annotated[str, "The message you want to send"],
 ):
     """Send a direct message to a user in Slack."""
@@ -82,7 +85,8 @@ def format_users(userListResponse: dict) -> str:
 def send_message_to_channel(
     context: ToolContext,
     channel_name: Annotated[
-        str, "The Slack channel name where you want to send the message"
+        str,
+        "The Slack channel name where you want to send the message. Slack channel names are ALWAYS lowercase.",
     ],
     message: Annotated[str, "The message you want to send"],
 ):

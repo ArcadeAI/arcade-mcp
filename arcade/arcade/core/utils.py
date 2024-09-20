@@ -2,7 +2,8 @@ import ast
 import inspect
 import re
 from collections.abc import Iterable
-from typing import Any, Callable, Literal, Optional, TypeVar, get_args, get_origin
+from types import UnionType
+from typing import Any, Callable, Literal, Optional, TypeVar, Union, get_args, get_origin
 
 T = TypeVar("T")
 
@@ -42,6 +43,13 @@ def is_string_literal(_type: type) -> bool:
     Returns True if the given type is a string literal, i.e. a Literal[str] or Literal[str, str, ...] etc.
     """
     return get_origin(_type) is Literal and all(isinstance(arg, str) for arg in get_args(_type))
+
+
+def is_union(_type: type) -> bool:
+    """
+    Returns True if the given type is a union, i.e. a Union[T1, T2, ...] or T1 | T2 | ... etc.
+    """
+    return get_origin(_type) in {Union, UnionType}
 
 
 def does_function_return_value(func: Callable) -> bool:
