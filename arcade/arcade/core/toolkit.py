@@ -108,14 +108,19 @@ class Toolkit(BaseModel):
     @classmethod
     def find_all_arcade_toolkits(cls) -> list["Toolkit"]:
         """
-        Find all installed packages prefixed with 'arcade_' and load them as Toolkits.
+        Find all installed packages prefixed with 'arcade_' in the current
+        Python interpreter's environment and load them as Toolkits.
 
         Returns:
             List[Toolkit]: A list of Toolkit instances.
         """
+        import sysconfig
+
+        # Get the site-packages directory of the current interpreter
+        site_packages_dir = sysconfig.get_paths()["purelib"]
         arcade_packages = [
             dist.metadata["Name"]
-            for dist in importlib.metadata.distributions()
+            for dist in importlib.metadata.distributions(path=[site_packages_dir])
             if dist.metadata["Name"].startswith("arcade_")
         ]
         return [cls.from_package(package) for package in arcade_packages]

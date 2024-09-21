@@ -9,8 +9,9 @@ try:
     from scipy.optimize import linear_sum_assignment
 except ImportError:
     raise ImportError(
-        "Use `pip install arcade[evals]` to install the required dependencies for evaluation."
+        "Use `pip install arcade-ai[evals]` to install the required dependencies for evaluation."
     )
+
 
 from arcade.client.client import Arcade, AsyncArcade
 from arcade.sdk.error import WeightError

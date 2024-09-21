@@ -1,6 +1,5 @@
 from typing import Any, TypeVar, Union
 
-import httpx
 from openai import AsyncOpenAI, OpenAI
 from openai.resources.chat import AsyncChat, Chat
 
@@ -94,7 +93,7 @@ class AuthResource(BaseResource[ClientT]):
 class ToolResource(BaseResource[ClientT]):
     """Tool resource."""
 
-    _base_path = f"/{API_VERSION}/tool"
+    _base_path = f"/{API_VERSION}/tools"
 
     def run(
         self,
@@ -134,14 +133,16 @@ class ToolResource(BaseResource[ClientT]):
         )
         return ToolDefinition(**data)
 
-    def authorize(self, tool_name: str, user_id: str) -> AuthResponse:
+    def authorize(
+        self, tool_name: str, user_id: str, tool_version: str | None = None
+    ) -> AuthResponse:
         """
         Get the authorization status for a tool.
         """
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
             f"{self._base_path}/authorize",
-            json={"tool_name": tool_name, "user_id": user_id},
+            json={"tool_name": tool_name, "tool_version": tool_version, "user_id": user_id},
         )
         return AuthResponse(**data)
 
@@ -279,14 +280,16 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         )
         return ToolDefinition(**data)
 
-    async def authorize(self, tool_name: str, user_id: str) -> AuthResponse:
+    async def authorize(
+        self, tool_name: str, user_id: str, tool_version: str | None = None
+    ) -> AuthResponse:
         """
         Get the authorization status for a tool.
         """
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
             f"{self._base_path}/authorize",
-            json={"tool_name": tool_name, "user_id": user_id},
+            json={"tool_name": tool_name, "tool_version": tool_version, "user_id": user_id},
         )
         return AuthResponse(**data)
 
@@ -345,11 +348,8 @@ class Arcade(SyncArcadeClient):
         """
         Execute a synchronous request.
         """
-        try:
-            response = self._request(method, url, **kwargs)
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            self._handle_http_error(e)
+        response = self._request(method, url, **kwargs)
+        return response.json()
 
 
 class AsyncArcade(AsyncArcadeClient):
@@ -371,8 +371,5 @@ class AsyncArcade(AsyncArcadeClient):
         """
         Execute an asynchronous request.
         """
-        try:
-            response = await self._request(method, url, **kwargs)
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            self._handle_http_error(e)
+        response = await self._request(method, url, **kwargs)
+        return response.json()
