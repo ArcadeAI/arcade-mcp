@@ -1,6 +1,8 @@
+import os
+import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, ClassVar
+from typing import Any, Callable, ClassVar, cast
 
 from arcade.actor.core.common import Actor, Router
 from arcade.actor.core.components import (
@@ -17,6 +19,11 @@ from arcade.core.schema import (
     ToolDefinition,
 )
 
+DEFAULT_TOOLKIT_NAME = "Tools"
+
+
+logger = logging.getLogger(__name__)
+
 
 class BaseActor(Actor):
     """
@@ -32,13 +39,36 @@ class BaseActor(Actor):
         HealthCheckComponent,
     )
 
-    def __init__(self, secret: str, disable_auth: bool = False) -> None:
+    def __init__(self, secret: str | None = None, disable_auth: bool = False) -> None:
         """
         Initialize the BaseActor with an empty ToolCatalog.
+        If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
         """
         self.catalog = ToolCatalog()
         self.disable_auth = disable_auth
-        self.secret = secret
+        if disable_auth:
+            logger.warning(
+                "Warning: Actor is running without authentication. Not recommended for production."
+            )
+
+        self.secret = self._set_secret(secret, disable_auth)
+
+    def _set_secret(self, secret: str | None, disable_auth: bool) -> str:
+        if disable_auth:
+            return ""
+
+        # If secret is provided, use it
+        if secret is not None:
+            return secret
+
+        # If secret is not provided, try to get it from environment variables
+        env_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+        if env_secret is not None:
+            return env_secret
+
+        raise ValueError(
+            "No secret provided for actor. Set the ARCADE_ACTOR_SECRET environment variable."
+        )
 
     def get_catalog(self) -> list[ToolDefinition]:
         """
@@ -46,11 +76,11 @@ class BaseActor(Actor):
         """
         return [tool.definition for tool in self.catalog]
 
-    def register_tool(self, tool: Callable) -> None:
+    def register_tool(self, tool: Callable, toolkit_name: str | None = None) -> None:
         """
         Register a tool to the catalog.
         """
-        self.catalog.add_tool(tool)
+        self.catalog.add_tool(tool, toolkit_name or DEFAULT_TOOLKIT_NAME)
 
     def register_toolkit(self, toolkit: Toolkit) -> None:
         """

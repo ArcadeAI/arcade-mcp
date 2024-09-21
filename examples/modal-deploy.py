@@ -34,7 +34,8 @@ def fastapi_app():
     web_app = FastAPI()
 
     # Initialize app and Arcade FastAPIActor
-    actor = FastAPIActor(web_app)
+    actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+    actor = FastAPIActor(web_app, secret=actor_secret)
 
     # Register toolkits we've installed
     toolkits = Toolkit.find_all_arcade_toolkits()

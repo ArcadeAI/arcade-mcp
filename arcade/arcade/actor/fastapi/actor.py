@@ -18,10 +18,12 @@ class FastAPIActor(BaseActor):
     An Arcade Actor that is hosted inside a FastAPI app.
     """
 
-    def __init__(self, app: FastAPI, *, secret: str, disable_auth: bool = False) -> None:
+    def __init__(
+        self, app: FastAPI, secret: str | None = None, *, disable_auth: bool = False
+    ) -> None:
         """
-        Initialize the FastAPIActor with a FastAPI app
-        instance and an empty ToolCatalog.
+        Initialize the FastAPIActor with a FastAPI app instance.
+        If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
         """
         super().__init__(secret, disable_auth)
         self.app = app

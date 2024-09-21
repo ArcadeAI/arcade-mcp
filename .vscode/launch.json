@@ -6,7 +6,7 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["main:app", "--app-dir", "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"],
+      "args": ["main:app", "--app-dir", "${workspaceFolder}/examples/fastapi/arcade_example_fastapi", "--port", "8002"],
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
