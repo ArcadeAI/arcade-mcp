@@ -18,7 +18,7 @@ T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
 
 API_VERSION = "v1"
-BASE_URL = "http://localhost:9099"
+BASE_URL = "https://api.arcade.com/"
 
 
 class BaseResource(Generic[T]):
@@ -80,7 +80,10 @@ class BaseArcadeClient:
         }
         status_code = e.response.status_code
         error_class = error_map.get(status_code, InternalServerError)
-        raise error_class(str(e), response=e.response)
+        msg = e.response.json()
+        if isinstance(msg, dict) and "error" in msg:
+            raise error_class(msg["error"], response=e.response) from None
+        raise error_class(msg, response=e.response) from None
 
 
 class SyncArcadeClient(BaseArcadeClient):
@@ -94,7 +97,7 @@ class SyncArcadeClient(BaseArcadeClient):
             timeout=self._timeout,
         )
 
-    def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+    def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:  # type: ignore[return]
         """
         Make a synchronous HTTP request.
         """
@@ -104,10 +107,9 @@ class SyncArcadeClient(BaseArcadeClient):
                 response = self._client.request(method, url, **kwargs)
                 response.raise_for_status()
                 return response  # noqa: TRY300
-            except httpx.HTTPStatusError:
+            except httpx.HTTPStatusError as e:
                 if attempt == self._retries - 1:
-                    raise
-        raise RuntimeError("This should never be reached")
+                    self._handle_http_error(e)
 
     def close(self) -> None:
         """Close the client session."""
@@ -139,7 +141,7 @@ class AsyncArcadeClient(BaseArcadeClient):
             )
         return self._client
 
-    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:  # type: ignore[return]
         """
         Make an asynchronous HTTP request.
         """
@@ -150,10 +152,9 @@ class AsyncArcadeClient(BaseArcadeClient):
                 response = await client.request(method, url, **kwargs)
                 response.raise_for_status()
                 return response  # noqa: TRY300
-            except httpx.HTTPStatusError:
+            except httpx.HTTPStatusError as e:
                 if attempt == self._retries - 1:
-                    raise
-        raise RuntimeError("This should never be reached")
+                    self._handle_http_error(e)
 
     async def close(self) -> None:
         """Close the client session."""

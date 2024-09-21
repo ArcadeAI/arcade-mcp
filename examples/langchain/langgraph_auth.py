@@ -28,24 +28,14 @@ from langgraph.prebuilt import create_react_agent
 #
 # ----------------- OR -----------------
 # Step 3 (Option 2) Use the Arcade SDK to authenticate with Gmail
-from arcade.client import Arcade, AuthProvider
+from arcade.client import Arcade
 
-client = Arcade(api_key=os.environ["ARCADE_API_KEY"])
+client = Arcade(api_key=os.environ["ARCADE_API_KEY"], base_url="http://127.0.0.1:9099")
 
-challenge = client.auth.authorize(
-    provider=AuthProvider.google,
-    scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-    user_id="example_user_id",
+challenge = client.tool.authorize(
+    tool_name="ListEmails",
+    user_id="sam@arcade-ai.com",
 )
-
-if challenge.status != "completed":
-    print(f"Please visit this URL to authorize: {challenge.auth_url}")
-    input("Press Enter after you've completed the authorization...")
-    challenge = client.auth.poll_authorization(challenge)
-    if challenge.status != "completed":
-        print("Authorization not completed. Please try again.")
-        exit(1)
-
 
 creds = Credentials(challenge.context.token)
 api_resource = build_resource_service(credentials=creds)

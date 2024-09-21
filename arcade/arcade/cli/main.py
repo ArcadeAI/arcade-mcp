@@ -31,6 +31,10 @@ from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
 
 cli = typer.Typer(
     cls=OrderCommands,
+    no_args_is_help=True,
+    pretty_exceptions_enable=False,
+    pretty_exceptions_show_locals=False,
+    pretty_exceptions_short=True,
 )
 console = Console()
 
