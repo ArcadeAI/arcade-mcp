@@ -19,7 +19,6 @@ from arcade.core.schema import (
     ToolDefinition,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
