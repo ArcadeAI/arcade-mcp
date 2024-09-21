@@ -51,7 +51,7 @@ def test_add_tool_with_toolkit():
         (None, sample_tool),
     ],
 )
-def test_get_tool(catalog: ToolCatalog, toolkit_version: str | None, expected_tool):
+def test_get_tool(toolkit_version: str | None, expected_tool):
     catalog = ToolCatalog()
     fake_toolkit = Toolkit(
         name="sample_toolkit",
