@@ -1,8 +1,8 @@
-import os
 import logging
+import os
 import time
 from datetime import datetime
-from typing import Any, Callable, ClassVar, cast
+from typing import Any, Callable, ClassVar
 
 from arcade.actor.core.common import Actor, Router
 from arcade.actor.core.components import (
@@ -58,12 +58,12 @@ class BaseActor(Actor):
             return ""
 
         # If secret is provided, use it
-        if secret is not None:
+        if secret:
             return secret
 
         # If secret is not provided, try to get it from environment variables
         env_secret = os.environ.get("ARCADE_ACTOR_SECRET")
-        if env_secret is not None:
+        if env_secret:
             return env_secret
 
         raise ValueError(
