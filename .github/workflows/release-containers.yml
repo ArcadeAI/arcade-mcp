@@ -24,6 +24,15 @@ jobs:
       packages: write
 
     steps:
+    - name: Wait for tests to succeed
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        running-workflow-name: 'Main'
+        repo-token: ${{ secrets.PAT }}
+        wait-interval: 10
+        ignore-checks: "release-and-publish"
+
     - name: Checkout code
       uses: actions/checkout@v3
       with:
@@ -71,6 +80,30 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.PAT }}
       run: gh workflow -R ArcadeAI/Team run Deploy -f actor-version=${{ env.VERSION }}
 
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Build Dev Python Package
+      if: github.event_name == 'push'
+      run: |
+        make set-version VERSION="0.0.0.dev"
+        make build
+
+    - name: Build Prod Python Package
+      if: github.event_name != 'push'
+      run: |
+        make set-version VERSION=${{ env.VERSION }}
+        make build
+
+    - name: Set TAR and WHL names
+      run: |
+        export PKG=$(ls arcade/dist/ | grep tar)
+        set -- $PKG
+        echo "TAR_NAME=$1" >> $GITHUB_ENV
+        export PKG=$(ls arcade/dist/ | grep whl)
+        set -- $PKG
+        echo "WHL_NAME=$1" >> $GITHUB_ENV
+
 
     - name: Generate release notes
       id: generate_release_notes
@@ -104,3 +137,31 @@ jobs:
         asset_path: ./release_notes.md
         asset_name: release_notes.md
         asset_content_type: text/markdown
+
+    - name: Upload Python Tar Asset
+      uses: actions/upload-release-asset@v1
+      if: github.event_name != 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./arcade/dist/${{ env.TAR_NAME }}
+        asset_name: ${{ env.TAR_NAME }}
+        asset_content_type: application/zip
+
+    - name: Upload Python Whl Asset
+      uses: actions/upload-release-asset@v1
+      if: github.event_name != 'push'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./arcade/dist/${{ env.WHL_NAME }}
+        asset_name: ${{ env.WHL_NAME }}
+        asset_content_type: application/zip
+
+    - name: Upload the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: arcade/dist/
