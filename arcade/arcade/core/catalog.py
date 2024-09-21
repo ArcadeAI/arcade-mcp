@@ -25,7 +25,7 @@ from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
-    FullyQualifiedToolName,
+    FullyQualifiedName,
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
@@ -109,7 +109,7 @@ class MaterializedTool(BaseModel):
 class ToolCatalog(BaseModel):
     """Singleton class that holds all tools for a given actor"""
 
-    _tools: dict[FullyQualifiedToolName, MaterializedTool] = {}
+    _tools: dict[FullyQualifiedName, MaterializedTool] = {}
 
     def add_tool(
         self,
@@ -175,10 +175,10 @@ class ToolCatalog(BaseModel):
 
                 self.add_tool(tool_func, toolkit, module)
 
-    def __getitem__(self, name: FullyQualifiedToolName) -> MaterializedTool:
+    def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
 
-    def __contains__(self, name: FullyQualifiedToolName) -> bool:
+    def __contains__(self, name: FullyQualifiedName) -> bool:
         return name in self._tools
 
     def __iter__(self) -> Iterator[MaterializedTool]:  # type: ignore[override]
@@ -190,7 +190,10 @@ class ToolCatalog(BaseModel):
     def is_empty(self) -> bool:
         return len(self._tools) == 0
 
-    def get_tool(self, fully_qualified_name: FullyQualifiedToolName) -> MaterializedTool:
+    def get_tool_names(self) -> list[FullyQualifiedName]:
+        return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+
+    def get_tool(self, fully_qualified_name: FullyQualifiedName) -> MaterializedTool:
         """
         Get a tool from the catalog by fully-qualified name and version.
         If the version is not specified, the any version is returned.
@@ -247,7 +250,7 @@ class ToolCatalog(BaseModel):
         )
 
         tool_name = snake_to_pascal_case(raw_tool_name)
-        fully_qualified_name = FullyQualifiedToolName.from_toolkit(tool_name, toolkit_definition)
+        fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
 
         return ToolDefinition(
             name=tool_name,

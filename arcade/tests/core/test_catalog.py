@@ -1,7 +1,7 @@
 import pytest
 
 from arcade.core.catalog import ToolCatalog
-from arcade.core.schema import FullyQualifiedToolName
+from arcade.core.schema import FullyQualifiedName
 from arcade.core.toolkit import Toolkit
 from arcade.sdk import tool
 
@@ -35,7 +35,7 @@ def catalog() -> ToolCatalog:
     ],
 )
 def test_get_tool(catalog: ToolCatalog, toolkit_version: str | None, expected_tool):
-    fq_name = FullyQualifiedToolName(
+    fq_name = FullyQualifiedName(
         name="SampleTool", toolkit_name="SampleToolkit", toolkit_version=toolkit_version
     )
     tool = catalog.get_tool(fq_name)

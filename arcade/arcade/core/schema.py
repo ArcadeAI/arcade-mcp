@@ -109,7 +109,7 @@ class ToolkitDefinition(BaseModel):
 
 
 @dataclass(frozen=True)
-class FullyQualifiedToolName:
+class FullyQualifiedName:
     """The fully-qualified name of a tool."""
 
     name: str
@@ -125,7 +125,7 @@ class FullyQualifiedToolName:
         return f"{self.toolkit_name}{TOOL_NAME_SEPARATOR}{self.name}"
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, FullyQualifiedToolName):
+        if not isinstance(other, FullyQualifiedName):
             return False
         return (
             self.name.lower() == other.name.lower()
@@ -142,7 +142,7 @@ class FullyQualifiedToolName:
             )
         )
 
-    def equals_ignoring_version(self, other: "FullyQualifiedToolName") -> bool:
+    def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
         """Check if two fully-qualified tool names are equal, ignoring the version."""
         return (
             self.name.lower() == other.name.lower()
@@ -150,9 +150,9 @@ class FullyQualifiedToolName:
         )
 
     @staticmethod
-    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedToolName":
+    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedName":
         """Creates a fully-qualified tool name from a tool name and a ToolkitDefinition."""
-        return FullyQualifiedToolName(tool_name, toolkit.name, toolkit.version)
+        return FullyQualifiedName(tool_name, toolkit.name, toolkit.version)
 
 
 class ToolDefinition(BaseModel):
@@ -179,8 +179,8 @@ class ToolDefinition(BaseModel):
     requirements: ToolRequirements
     """The requirements (e.g. authorization) for the tool to run."""
 
-    def get_fully_qualified_name(self) -> FullyQualifiedToolName:
-        return FullyQualifiedToolName(self.name, self.toolkit.name, self.toolkit.version)
+    def get_fully_qualified_name(self) -> FullyQualifiedName:
+        return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
 
 
 class ToolReference(BaseModel):
@@ -195,8 +195,8 @@ class ToolReference(BaseModel):
     version: Optional[str] = None
     """The version of the toolkit containing the tool."""
 
-    def get_fully_qualified_name(self) -> FullyQualifiedToolName:
-        return FullyQualifiedToolName(self.name, self.toolkit, self.version)
+    def get_fully_qualified_name(self) -> FullyQualifiedName:
+        return FullyQualifiedName(self.name, self.toolkit, self.version)
 
 
 class ToolAuthorizationContext(BaseModel):
