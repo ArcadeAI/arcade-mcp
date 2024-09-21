@@ -1,4 +1,4 @@
-
+VERSION ?= "0.0.0.dev"
 
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
@@ -26,6 +26,11 @@ test-toolkits: ## Iterate over all toolkits and run pytest on each one
 	@for dir in toolkits/*/ ; do \
 		(cd $$dir && poetry run pytest -v --cov --cov-config=pyproject.toml --cov-report=xml || exit 1); \
 	done
+
+.PHONY: set-version
+set-version: ## Set the version in the pyproject.toml file
+	@echo "🚀 Setting version in pyproject.toml"
+	@cd arcade && poetry version $(VERSION)
 
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
