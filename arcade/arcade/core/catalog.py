@@ -48,6 +48,8 @@ from arcade.core.utils import (
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import BaseOAuth2, ToolAuthorization
 
+DEFAULT_TOOLKIT_NAME = "Tools"
+
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
 
@@ -114,7 +116,7 @@ class ToolCatalog(BaseModel):
     def add_tool(
         self,
         tool_func: Callable,
-        toolkit_or_name: Union[str, Toolkit],
+        toolkit_or_name: Union[str | None, Toolkit] = None,
         module: ModuleType | None = None,
     ) -> None:
         """
@@ -129,6 +131,12 @@ class ToolCatalog(BaseModel):
         elif isinstance(toolkit_or_name, str):
             toolkit = None
             toolkit_name = toolkit_or_name
+        else:
+            toolkit = None
+            toolkit_name = DEFAULT_TOOLKIT_NAME
+
+        if not toolkit_name:
+            raise ValueError("A toolkit name or toolkit must be provided.")
 
         definition = ToolCatalog.create_tool_definition(
             tool_func,
@@ -193,24 +201,22 @@ class ToolCatalog(BaseModel):
     def get_tool_names(self) -> list[FullyQualifiedName]:
         return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
 
-    def get_tool(self, fully_qualified_name: FullyQualifiedName) -> MaterializedTool:
+    def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
         """
         Get a tool from the catalog by fully-qualified name and version.
         If the version is not specified, the any version is returned.
         """
-        if fully_qualified_name.toolkit_version:
+        if name.toolkit_version:
             try:
-                return self._tools[fully_qualified_name]
+                return self._tools[name]
             except KeyError:
-                raise ValueError(
-                    f"Tool {fully_qualified_name}@{fully_qualified_name.toolkit_version} not found in the catalog."
-                )
+                raise ValueError(f"Tool {name}@{name.toolkit_version} not found in the catalog.")
 
         for key, tool in self._tools.items():
-            if key.equals_ignoring_version(fully_qualified_name):
+            if key.equals_ignoring_version(name):
                 return tool
 
-        raise ValueError(f"Tool {fully_qualified_name} not found.")
+        raise ValueError(f"Tool {name} not found.")
 
     @staticmethod
     def create_tool_definition(

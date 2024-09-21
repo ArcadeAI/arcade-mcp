@@ -32,6 +32,17 @@
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug `arcade evals -d`",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/arcade/run_cli.py",
+      "args": ["evals", "-d"],
+      "console": "integratedTerminal",
+      "jinja": true,
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

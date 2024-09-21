@@ -19,8 +19,6 @@ from arcade.core.schema import (
     ToolDefinition,
 )
 
-DEFAULT_TOOLKIT_NAME = "Tools"
-
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +78,7 @@ class BaseActor(Actor):
         """
         Register a tool to the catalog.
         """
-        self.catalog.add_tool(tool, toolkit_name or DEFAULT_TOOLKIT_NAME)
+        self.catalog.add_tool(tool, toolkit_name)
 
     def register_toolkit(self, toolkit: Toolkit) -> None:
         """
