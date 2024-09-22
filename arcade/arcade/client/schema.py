@@ -1,8 +1,14 @@
+import os
 from enum import Enum
 
 from pydantic import AnyUrl, BaseModel, Field
 
+from arcade.core.config import config
 from arcade.core.schema import ToolAuthorizationContext, ToolCallOutput
+
+API_BASE_URL = os.getenv("ARCADE_API_URL", config.engine_url)
+API_KEY = os.getenv("ARCADE_API_KEY", config.api.key)
+OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "v1")
 
 
 class AuthProvider(str, Enum):

@@ -453,7 +453,7 @@ def evals(
 def up(
     host: str = typer.Option("127.0.0.1", help="Host for the actor server.", show_default=True),
     port: int = typer.Option(
-        8000, "-p", "--port", help="Port for the actor server.", show_default=True
+        8002, "-p", "--port", help="Port for the actor server.", show_default=True
     ),
     engine_config: str = typer.Option(
         None, "-c", "--config", help="Path to the engine configuration file."

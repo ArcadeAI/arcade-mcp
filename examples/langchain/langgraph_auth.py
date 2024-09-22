@@ -1,4 +1,4 @@
-import os
+import time  # Import time for polling delays
 
 from google.oauth2.credentials import Credentials
 from langchain_google_community import GmailToolkit
@@ -13,31 +13,32 @@ from langgraph.prebuilt import create_react_agent
 # %pip install -qU langchain-google-community[gmail]
 # %pip install -qU langchain-openai
 # %pip install -qU langgraph
-#
-# Step 2: Set environment variables for LangChain and OpenAI API keys
-# Uncomment the following lines if you have the LangSmith API key
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_API_KEY"] = getpass.getpass("Enter your LangSmith API key: ")
-#
-# Step 3 (Option 1) Manually authenticate with Gmail by creating your own google app, credentials, and handling tokens and Oauth
-# credentials = get_gmail_credentials(
-#    token_file="token.json",
-#    scopes=["https://mail.google.com/"],
-#    client_secrets_file="credentials.json",
-# )
-#
-# ----------------- OR -----------------
-# Step 3 (Option 2) Use the Arcade SDK to authenticate with Gmail
 from arcade.client import Arcade
 
-client = Arcade(api_key=os.environ["ARCADE_API_KEY"], base_url="http://127.0.0.1:9099")
+client = Arcade()
 
-challenge = client.tool.authorize(
+# Start the authorization process for the tool "ListEmails"
+auth_response = client.tool.authorize(
     tool_name="ListEmails",
     user_id="sam@arcade-ai.com",
 )
 
-creds = Credentials(challenge.context.token)
+# If authorization is not completed, prompt the user and poll for status
+if auth_response.status != "completed":
+    print(
+        "Please complete the authorization challenge in your browser before continuing:"
+    )
+    print(auth_response.auth_url)
+    input("Press Enter to continue...")
+
+    # Poll for authorization status using the auth polling method
+    while auth_response.status != "completed":
+        # Wait before polling again to avoid spamming the server
+        time.sleep(4)
+        auth_response = client.auth.status(auth_response)
+
+# Authorization is completed; proceed with obtaining credentials
+creds = Credentials(auth_response.context.token)
 api_resource = build_resource_service(credentials=creds)
 toolkit = GmailToolkit(api_resource=api_resource)
 

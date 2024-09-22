@@ -22,6 +22,10 @@ class ApiConfig(BaseConfig):
     """
     Arcade API key.
     """
+    version: str = "v1"
+    """
+    Arcade API version.
+    """
 
 
 class UserConfig(BaseConfig):
@@ -172,14 +176,14 @@ class Config(BaseConfig):
         if ":" in parsed_host.netloc and not is_ip:
             host, existing_port = parsed_host.netloc.rsplit(":", 1)
             if existing_port.isdigit():
-                return f"{protocol}://{parsed_host.netloc}/v1"
+                return f"{protocol}://{parsed_host.netloc}/{self.api.version}"
 
         if is_fqdn and self.engine.port is None:
-            return f"{protocol}://{encoded_host}/v1"
+            return f"{protocol}://{encoded_host}/{self.api.version}"
         elif self.engine.port is not None:
-            return f"{protocol}://{encoded_host}:{self.engine.port}/v1"
+            return f"{protocol}://{encoded_host}:{self.engine.port}/{self.api.version}"
         else:
-            return f"{protocol}://{encoded_host}/v1"
+            return f"{protocol}://{encoded_host}/{self.api.version}"
 
     @classmethod
     def ensure_config_dir_exists(cls) -> None:
