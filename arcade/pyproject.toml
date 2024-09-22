@@ -15,14 +15,13 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 pydantic = "^2.7.0"
-pydantic-settings = "^2.2.1"
 typer = "^0.9.0"
 rich = "^13.7.1"
 toml = "^0.10.2"
 tomlkit = "^0.12.4"
-requests = "^2.26.0" # TODO: is this really needed?
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
 pyjwt = "^2.8.0"
+loguru = "^0.7.0"
 
 
 [tool.poetry.group.fastapi.dependencies]
@@ -115,7 +114,9 @@ ignore = [ # TODO work to remove these
     # raise from (cli specific)
     "B904",
     # long message exceptions
-    "TRY003"
+    "TRY003",
+    # subprocess.Popen
+    "S603",
 ]
 
 [tool.ruff.format]

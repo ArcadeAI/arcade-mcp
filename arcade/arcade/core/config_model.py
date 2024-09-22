@@ -1,16 +1,19 @@
 import ipaddress
+import os
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import idna
 import toml
-from pydantic import BaseModel, ValidationError
-
-from arcade.core.env import settings
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 
-class ApiConfig(BaseModel):
+class BaseConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+
+class ApiConfig(BaseConfig):
     """
     Arcade API configuration.
     """
@@ -21,7 +24,7 @@ class ApiConfig(BaseModel):
     """
 
 
-class UserConfig(BaseModel):
+class UserConfig(BaseConfig):
     """
     Arcade user configuration.
     """
@@ -32,7 +35,7 @@ class UserConfig(BaseModel):
     """
 
 
-class EngineConfig(BaseModel):
+class EngineConfig(BaseConfig):
     """
     Arcade Engine configuration.
     """
@@ -51,7 +54,7 @@ class EngineConfig(BaseModel):
     """
 
 
-class Config(BaseModel):
+class Config(BaseConfig):
     """
     Configuration for Arcade.
     """
@@ -79,7 +82,9 @@ class Config(BaseModel):
         """
         Get the path to the Arcade configuration directory.
         """
-        return settings.WORK_DIR if settings.WORK_DIR else Path.home() / ".arcade"
+        # TODO change to ARCADE_WORK_DIR
+        config_path = os.getenv("WORK_DIR") or Path.home() / ".arcade"
+        return Path(config_path).resolve()
 
     @classmethod
     def get_config_file_path(cls) -> Path:
