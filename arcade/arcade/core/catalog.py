@@ -137,18 +137,6 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_tools(
-        self,
-        tool_funcs: list[Callable],
-        module: ModuleType | None = None,
-        toolkit: Toolkit | None = None,
-    ) -> None:
-        """
-        Add multiple functions to the catalog as tools.
-        """
-        for tool_func in tool_funcs:
-            self.add_tool(tool_func, module, toolkit)
-
     def add_toolkit(self, toolkit: Toolkit) -> None:
         """
         Add the tools from a loaded toolkit to the catalog.
