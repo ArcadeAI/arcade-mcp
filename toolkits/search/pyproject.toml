@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "arcade_github"
+name = "arcade_search"
 version = "0.1.0"
-description = "AI tools for interacting with GitHub"
-authors = ["Nate Barbettini <nate@arcade-ai.com>"]
+description = "Tools for searching the web"
+authors = ["Sam Partee <sam@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 arcade-ai = "*"
-requests = "^2.32.3"
+serpapi = "^0.1.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"

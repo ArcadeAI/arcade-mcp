@@ -21,6 +21,8 @@ from arcade.cli.utils import (
     create_cli_catalog,
     display_eval_results,
     display_streamed_markdown,
+    display_tool_messages,
+    get_tool_messages,
     markdownify_urls,
     validate_and_get_config,
 )
@@ -165,6 +167,7 @@ def chat(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Chat with a language model.
@@ -185,7 +188,7 @@ def chat(
 
     try:
         # start messages conversation
-        messages: list[dict[str, Any]] = []
+        history: list[dict[str, Any]] = []
 
         chat_header = Text.assemble(
             "\n",
@@ -217,30 +220,39 @@ def chat(
             # Add the input to history
             readline.add_history(user_input)
 
-            messages.append({"role": "user", "content": user_input})
+            history.append({"role": "user", "content": user_input})
+
+            tool_messages: list[dict] = []
 
             if stream:
                 # TODO Fix this in the client so users don't deal with these
                 # typing issues
                 stream_response = client.chat.completions.create(  # type: ignore[call-overload]
                     model=model,
-                    messages=messages,
+                    messages=history,
                     tool_choice="generate",
                     user=user_email,
                     stream=True,
                 )
-                role, message_content = display_streamed_markdown(stream_response, model)
+                role, message_content, tool_messages = display_streamed_markdown(
+                    stream_response, model
+                )
+
+                history += tool_messages
             else:
                 response = client.chat.completions.create(  # type: ignore[call-overload]
                     model=model,
-                    messages=messages,
+                    messages=history,
                     tool_choice="generate",
                     user=user_email,
                     stream=False,
                 )
                 message_content = response.choices[0].message.content or ""
-                role = response.choices[0].message.role
 
+                tool_messages = get_tool_messages(response.choices[0])
+                history += tool_messages
+
+                role = response.choices[0].message.role
                 if role == "assistant":
                     message_content = markdownify_urls(message_content)
                     console.print(
@@ -249,7 +261,10 @@ def chat(
                 else:
                     console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
 
-            messages.append({"role": role, "content": message_content})
+            if debug:
+                display_tool_messages(tool_messages)
+
+            history.append({"role": role, "content": message_content})
 
     except KeyboardInterrupt:
         console.print("Chat stopped by user.", style="bold blue")

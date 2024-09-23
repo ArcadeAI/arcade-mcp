@@ -1,6 +1,6 @@
 import os
 from arcade.core.toolkit import Toolkit
-import arcade_arithmetic
+import arcade_math
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -17,15 +17,7 @@ app = FastAPI()
 
 actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
 actor = FastAPIActor(app, secret=actor_secret)
-actor.register_toolkit(Toolkit.from_module(arcade_arithmetic))
-# actor.register_tool(gmail.list_emails)
-# actor.register_tool(gmail.list_emails_by_header)
-# actor.register_tool(gmail.write_draft_email)
-# actor.register_tool(repo.count_stargazers)
-# actor.register_tool(repo.search_issues)
-# actor.register_tool(user.set_starred)
-# actor.register_tool(chat.send_dm_to_user)
-# actor.register_tool(chat.send_message_to_channel)
+actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):

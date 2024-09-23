@@ -24,8 +24,8 @@ catalog.add_toolkit(Toolkit.from_module(arcade_arithmetic))
 @tool_eval()
 def arithmetic_eval_suite():
     suite = EvalSuite(
-        name="Arithmetic Tools Evaluation",
-        system_message="You are an AI assistant with access to arithmetic tools. Use them to help the user with their math-related tasks.",
+        name="Math Tools Evaluation",
+        system_message="You are an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
         catalog=catalog,
         rubric=rubric,
     )

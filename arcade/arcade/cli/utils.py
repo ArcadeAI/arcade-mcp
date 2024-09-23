@@ -55,13 +55,35 @@ def create_cli_catalog(
     return catalog
 
 
-def display_streamed_markdown(stream: Stream[ChatCompletionChunk], model: str) -> tuple[str, str]:
+def display_tool_messages(tool_messages: list[dict]) -> None:
+    for message in tool_messages:
+        if message["role"] == "assistant":
+            for tool_call in message.get("tool_calls", []):
+                console.print(
+                    f"[bright_black]Called tool '{tool_call['function']['name']}' with parameters: {tool_call['function']['arguments']}[/bright_black]"
+                )
+        elif message["role"] == "tool":
+            console.print(
+                f"[bright_black]Tool '{message['name']}' returned: {message['content']}[/bright_black]"
+            )
+
+
+def get_tool_messages(choice: dict) -> list[dict]:
+    if hasattr(choice, "tool_messages") and choice.tool_messages:
+        return choice.tool_messages  # type: ignore[no-any-return]
+    return []
+
+
+def display_streamed_markdown(
+    stream: Stream[ChatCompletionChunk], model: str
+) -> tuple[str, str, list]:
     """
     Display the streamed markdown chunks as a single line.
     """
     from rich.live import Live
 
     full_message = ""
+    tool_messages = []
     role = ""
     with Live(console=console, refresh_per_second=10) as live:
         for chunk in stream:
@@ -76,12 +98,15 @@ def display_streamed_markdown(stream: Stream[ChatCompletionChunk], model: str) -
                 markdown_chunk = Markdown(full_message)
                 live.update(markdown_chunk)
 
+            # Display and get tool messages if they exist
+            tool_messages += get_tool_messages(choice)  # type: ignore[arg-type]
+
         # Markdownify URLs in the final message if applicable
         if role == "assistant":
             full_message = markdownify_urls(full_message)
             live.update(Markdown(full_message))
 
-    return role, full_message
+    return role, full_message, tool_messages
 
 
 def markdownify_urls(message: str) -> str:

@@ -1,5 +1,5 @@
 import pytest
-from arcade_arithmetic.tools.arithmetic import (
+from arcade_math.tools.arithmetic import (
     add,
     subtract,
     multiply,

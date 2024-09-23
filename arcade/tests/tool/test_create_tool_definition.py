@@ -17,7 +17,7 @@ from arcade.core.schema import (
 from arcade.core.utils import snake_to_pascal_case
 from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
-from arcade.sdk.auth import GitHubApp, Google, OAuth2, SlackUser
+from arcade.sdk.auth import GitHubApp, Google, OAuth2, SlackUser, X
 
 
 ### Tests on @tool decorator
@@ -75,6 +75,14 @@ def func_with_github_auth_requirement():
     requires_auth=SlackUser(scopes=["chat:write", "channels:history"]),
 )
 def func_with_slack_user_auth_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires X (Twitter) authorization",
+    requires_auth=X(scopes=["tweet.write"]),
+)
+def func_with_x_requirement():
     pass
 
 

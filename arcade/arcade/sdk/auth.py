@@ -51,3 +51,10 @@ class GitHubApp(ToolAuthorization):
 
     def get_provider(self) -> str:
         return "github_app"
+
+
+class X(BaseOAuth2):
+    """Marks a tool as requiring X (Twitter) authorization."""
+
+    def get_provider(self) -> str:
+        return "x"
