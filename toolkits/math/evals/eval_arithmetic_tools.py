@@ -1,6 +1,6 @@
 from arcade.core.catalog import ToolCatalog
 from arcade.core.toolkit import Toolkit
-import arcade_arithmetic
+import arcade_math
 
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -18,7 +18,7 @@ rubric = EvalRubric(
 
 
 catalog = ToolCatalog()
-catalog.add_toolkit(Toolkit.from_module(arcade_arithmetic))
+catalog.add_toolkit(Toolkit.from_module(arcade_math))
 
 
 @tool_eval()
