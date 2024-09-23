@@ -27,4 +27,30 @@ def lookup_single_user_by_username(
             f"Failed to look up user during execution of '{lookup_single_user_by_username.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
+    """
+    Example response.text structure:
+    {
+        "data": {
+            "verified_type": str,
+            "public_metrics": {
+                "followers_count": int,
+                "following_count": int,
+                "tweet_count": int,
+                "listed_count": int,
+                "like_count": int
+            },
+            "id": str,
+            "most_recent_tweet_id": str,
+            "url": str,
+            "verified": bool,
+            "location": str,
+            "description": str,
+            "name": str,
+            "username": str,
+            "profile_image_url": str,
+            "created_at": str,
+            "protected": bool
+        }
+    }
+    """
     return response.text

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "arcade_websearch"
+name = "arcade_search"
 version = "0.1.0"
 description = "Tools for searching the web"
 authors = ["Sam Partee <sam@arcade-ai.com>"]

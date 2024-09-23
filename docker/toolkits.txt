@@ -1,5 +1,5 @@
 google
 slack
 math
-websearch
+search
 x

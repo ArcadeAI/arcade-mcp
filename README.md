@@ -38,24 +38,24 @@ poetry install
 Follow these steps if you've cloned the repo and installed the package from source:
 
 ```bash
-cd examples/websearch
+cd examples/search
 poetry install
 
-arcade show arcade_websearch
+arcade show arcade_search
 ```
 This will show an output that looks like
 
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━┓
 ┃ Name         ┃ Description                                                    ┃ Toolkit   ┃ Version ┃
 ┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━┩
-│ SearchGoogle │ Search Google using SerpAPI and return organic search results. │ websearch │ 0.1.0   │
+│ SearchGoogle │ Search Google using SerpAPI and return organic search results. │ search │ 0.1.0   │
 └──────────────┴────────────────────────────────────────────────────────────────┴───────────┴─────────┘
 
 
 Predict the parameters with a model and run the tool with the predicted parameters. Arcade adds the `execute` choice to the tool, which allows you to run the tool with the predicted parameters in a single request.
 
 ```bash
-> arcade run arcade_websearch "who is Sam Partee?" --choice "execute"
+> arcade run arcade_search "who is Sam Partee?" --choice "execute"
 Running tool: SearchGoogle with params: {'query': 'Sam Partee'}
 
 [{"position": 1, "title": "Sam Partee (@SamPartee) / X", "link": "https://twitter.com/sampartee", "redirect_link":
@@ -68,7 +68,7 @@ Running tool: SearchGoogle with params: {'query': 'Sam Partee'}
 Arcade also adds the `predict` choice to the tool, which allows you to predict the parameters with a model.
 
 ```bash
-> arcade run arcade_websearch "who is Sam Partee?" --choice "predict" # also the default
+> arcade run arcade_search "who is Sam Partee?" --choice "predict" # also the default
 Running tool: SearchGoogle with params: {'query': 'Sam Partee'}
 
 Sam Partee is a CTO, Co-founder of Arcade AI and former Machine Learning Engineer at companies like RedisInc and HPE_Cray. They have

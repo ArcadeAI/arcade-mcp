@@ -95,10 +95,10 @@ def search_recent_tweets_by_username(
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_keywords(
     context: ToolContext,
-    required_keywords: Annotated[
+    keywords: Annotated[
         list[str], "List of keywords that must be present in the tweet"
     ] = None,
-    required_phrases: Annotated[
+    phrases: Annotated[
         list[str], "List of phrases that must be present in the tweet"
     ] = None,
     max_results: Annotated[
@@ -107,21 +107,19 @@ def search_recent_tweets_by_keywords(
 ) -> Annotated[str, "JSON string of the search results"]:
     """
     Search for recent tweets (last 7 days) on X (Twitter) by required keywords and phrases. Includes replies and reposts
-    One of the following MUST be provided: required_keywords, required_phrases
+    One of the following input parametersMUST be provided: keywords, phrases
     """
 
-    if not any([required_keywords, required_phrases]):
+    if not any([keywords, phrases]):
         raise ValueError(
-            "At least one of required_keywords or required_phrases must be provided to the '{search_recent_tweets_by_keywords.__name__}' tool."
+            "At least one of keywords or phrases must be provided to the '{search_recent_tweets_by_keywords.__name__}' tool."
         )
 
     headers = {
         "Authorization": f"Bearer {context.authorization.token}",
         "Content-Type": "application/json",
     }
-    query = " ".join([f'"{phrase}"' for phrase in required_phrases]) + " ".join(
-        required_keywords
-    )
+    query = " ".join([f'"{phrase}"' for phrase in phrases]) + " ".join(keywords)
     params = {
         "query": query,
         "max_results": max(
