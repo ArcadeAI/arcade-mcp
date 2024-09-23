@@ -1,4 +1,3 @@
-from arcade_github.tools import repo, user
 from arcade_google.tools import gmail
 from arcade_slack.tools import chat
 from fastapi import FastAPI, HTTPException
@@ -23,9 +22,6 @@ actor = FastAPIActor(app)
 actor.register_tool(gmail.list_emails)
 actor.register_tool(gmail.list_emails_by_header)
 actor.register_tool(gmail.write_draft_email)
-actor.register_tool(repo.count_stargazers)
-actor.register_tool(repo.search_issues)
-actor.register_tool(user.set_starred)
 actor.register_tool(chat.send_dm_to_user)
 actor.register_tool(chat.send_message_to_channel)
 
@@ -48,9 +44,6 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
                 "GetEmails",
                 "SearchEmailsByHeader",
                 "WriteDraft",
-                "CountStargazers",
-                "SetStarred",
-                "SearchIssues",
                 "SendDmToUser",
                 "SendMessageToChannel",
             ],

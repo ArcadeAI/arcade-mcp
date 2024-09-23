@@ -1,5 +1,5 @@
 from arcade.core.catalog import ToolCatalog
-from arcade_arithmetic.tools.arithmetic import add, sqrt
+from arcade_math.tools.arithmetic import add, sqrt
 
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -25,8 +25,8 @@ catalog.add_tool(sqrt)
 @tool_eval("gpt-4o-mini")
 def arithmetic_eval_suite():
     suite = EvalSuite(
-        name="Arithmetic Tools Evaluation",
-        system="You are an AI assistant with access to arithmetic tools. Use them to help the user with their math-related tasks.",
+        name="Math Tools Evaluation",
+        system="You are an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
         catalog=catalog,
         rubric=rubric,
     )

@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "arcade_arithmetic"
+name = "arcade_math"
 version = "0.1.0"
-description = "Arithmetic toolkit for Arcade"
+description = "Math toolkit for Arcade"
 authors = ["Nate <nate@arcade-ai.com>"]
 
 

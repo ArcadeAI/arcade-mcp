@@ -14,7 +14,6 @@ image = (
     .pip_install("/root/dist/arcade_ai-0.1.0-py3-none-any.whl")
     .pip_install("/root/dist/arcade_gmail-0.1.0-py3-none-any.whl")
     .pip_install("/root/dist/arcade_websearch-0.1.0-py3-none-any.whl")
-    .pip_install("/root/dist/arcade_github-0.1.0-py3-none-any.whl")
     .pip_install("/root/dist/arcade_slack-0.1.0-py3-none-any.whl")
     .pip_install("fastapi>=0.110.0")
     .pip_install("uvicorn>=0.24.0")

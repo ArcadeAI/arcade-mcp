@@ -9,7 +9,7 @@ authors = ["Nate <nate@arcade-ai.com>"]
 python = "^3.10"
 flask = "^3.0.3"
 arcade-ai = {path = "../../arcade", develop = true}
-arcade-arithmetic = {path = "../../toolkits/math", develop = true}
+arcade-math = {path = "../../toolkits/math", develop = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

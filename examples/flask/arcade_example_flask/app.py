@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
-from arcade_arithmetic.tools import arithmetic
+from arcade_math.tools import arithmetic
 
 from arcade.actor.flask.actor import FlaskActor
 

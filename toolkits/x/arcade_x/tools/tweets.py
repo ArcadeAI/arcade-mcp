@@ -1,4 +1,3 @@
-import json
 from typing import Annotated
 from arcade.core.errors import ToolExecutionError
 from arcade.sdk.auth import X
@@ -7,7 +6,7 @@ from arcade.sdk import tool
 
 from arcade.core.schema import ToolContext
 
-from arcade_x.tools.utils import get_tweet_url
+from arcade_x.tools.utils import get_tweet_url, parse_search_recent_tweets_response
 
 TWEETS_URL = "https://api.x.com/2/tweets"
 
@@ -60,47 +59,6 @@ def delete_tweet_by_id(
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
-def search_recent_tweets_by_query(
-    context: ToolContext,
-    query: Annotated[
-        str,
-        "The search query to match tweets. Queries are made up of operators that are used to match on a variety of Post attributes",
-    ],
-    max_results: Annotated[int, "The maximum number of results to return"] = 10,
-) -> Annotated[str, "JSON string of the search results"]:
-    """
-    Search for recent tweets on X (Twitter) by query. A query is made up of operators that are used to match on a variety of Post attributes.
-    """
-
-    headers = {
-        "Authorization": f"Bearer {context.authorization.token}",
-        "Content-Type": "application/json",
-    }
-    params = {
-        "query": query,  # max 512 character query for non enterprise X accounts
-        "max_results": max_results,
-    }
-
-    response = requests.get(
-        "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username",
-        headers=headers,
-        params=params,
-    )
-
-    if response.status_code != 200:
-        raise ToolExecutionError(
-            f"Failed to search recent tweets during execution of '{search_recent_tweets_by_query.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
-        )
-
-    # TODO: Write utility function to parse tweets
-    tweets_data = json.loads(response.text)
-    for tweet in tweets_data["data"]:
-        tweet["tweet_url"] = get_tweet_url(tweet["id"])
-
-    return json.dumps(tweets_data)
-
-
-@tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
@@ -129,11 +87,9 @@ def search_recent_tweets_by_username(
             f"Failed to search recent tweets during execution of '{search_recent_tweets_by_username.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
-    tweets_data = json.loads(response.text)
-    for tweet in tweets_data["data"]:
-        tweet["tweet_url"] = get_tweet_url(tweet["id"])
+    tweets_data = parse_search_recent_tweets_response(response)
 
-    return json.dumps(tweets_data)
+    return tweets_data
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
@@ -181,8 +137,6 @@ def search_recent_tweets_by_keywords(
             f"Failed to search recent tweets during execution of '{search_recent_tweets_by_keywords.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
-    tweets_data = json.loads(response.text)
-    for tweet in tweets_data["data"]:
-        tweet["tweet_url"] = get_tweet_url(tweet["id"])
+    tweets_data = parse_search_recent_tweets_response(response)
 
-    return json.dumps(tweets_data)
+    return tweets_data

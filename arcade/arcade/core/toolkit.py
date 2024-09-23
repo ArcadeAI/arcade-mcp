@@ -43,8 +43,8 @@ class Toolkit(BaseModel):
         """
         Load a toolkit from an imported python module
 
-        >>> import arcade_arithmetic
-        >>> toolkit = Toolkit.from_module(arcade_arithmetic)
+        >>> import arcade_math
+        >>> toolkit = Toolkit.from_module(arcade_math)
         """
         return cls.from_package(module.__name__)
 
