@@ -14,6 +14,7 @@ from arcade.core.schema import (
     ToolRequirements,
     ValueSchema,
 )
+from arcade.core.utils import snake_to_pascal_case
 from arcade.sdk import tool
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import GitHubApp, Google, OAuth2, SlackUser, X
@@ -221,13 +222,6 @@ def func_with_complex_return() -> dict[str, str]:
         # Tests on @tool decorator
         pytest.param(
             func_with_description,
-            {
-                "name": "FuncWithDescription",  # Defaults to the camelCased function name
-            },
-            id="func_with_default_name",
-        ),
-        pytest.param(
-            func_with_description,
             {"description": "A function with a description"},
             id="func_with_description",
         ),
@@ -243,12 +237,16 @@ def func_with_complex_return() -> dict[str, str]:
         ),
         pytest.param(
             func_with_name_and_description,
-            {"name": "MyCustomTool", "description": "A function with a very cool description"},
+            {
+                "name": "MyCustomTool",
+                "full_name": "TestToolkit.MyCustomTool",
+                "description": "A function with a very cool description",
+            },
             id="func_with_description_and_name",
         ),
         pytest.param(
             func_with_name_and_description,
-            {"name": "MyCustomTool", "requirements": ToolRequirements(auth=None)},
+            {"requirements": ToolRequirements(auth=None)},
             id="func_with_no_auth_requirement",
         ),
         pytest.param(
@@ -675,14 +673,33 @@ def func_with_complex_return() -> dict[str, str]:
     ],
 )
 def test_create_tool_def(func_under_test, expected_tool_def_fields):
-    tool_def = ToolCatalog.create_tool_definition(func_under_test, "1.0")
-
-    assert tool_def.version == "1.0"
+    tool_def = ToolCatalog.create_tool_definition(func_under_test, "test_toolkit", "1.0.0")
 
     for field, expected_value in expected_tool_def_fields.items():
         assert getattr(tool_def, field) == expected_value
 
 
-def tool_version_is_set_correctly():
-    tool_def = ToolCatalog.create_tool_definition(func_with_description, "abcd1236")
-    assert tool_def.version == "abcd1236"
+def test_tool_name_is_set_correctly():
+    tool_def = ToolCatalog.create_tool_definition(func_with_description, "test_toolkit", "1.0.0")
+
+    assert tool_def.name == snake_to_pascal_case(func_with_description.__name__)
+    assert tool_def.full_name == "TestToolkit.FuncWithDescription"
+
+
+@pytest.mark.parametrize(
+    "toolkit_name, toolkit_version, toolkit_desc",
+    [
+        ("test_toolkit", "1.0.0", "test_toolkit_desc"),  # Both specified
+        ("test_toolkit", None, "test_toolkit_desc"),  # Version optional
+        ("test_toolkit", "latest", None),  # Description optional
+        ("test_toolkit", None, None),  # Both optional
+    ],
+)
+def test_toolkit_info_is_set_correctly(toolkit_name, toolkit_version, toolkit_desc):
+    tool_def = ToolCatalog.create_tool_definition(
+        func_with_description, toolkit_name, toolkit_version, toolkit_desc
+    )
+
+    assert tool_def.toolkit.name == snake_to_pascal_case(toolkit_name)
+    assert tool_def.toolkit.description == toolkit_desc
+    assert tool_def.toolkit.version == toolkit_version

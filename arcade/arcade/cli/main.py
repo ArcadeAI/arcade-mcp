@@ -295,13 +295,6 @@ def dev(
     Starts the actor with host, port, and reload options. Uses
     Uvicorn as ASGI actor. Parameters allow runtime configuration.
     """
-
-    if disable_auth:
-        console.print(
-            "⚠️ Actor authentication is disabled. Not recommended for production.",
-            style="bold yellow",
-        )
-
     from arcade.cli.serve import serve_default_actor
 
     try:

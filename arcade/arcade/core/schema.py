@@ -1,6 +1,9 @@
+from dataclasses import dataclass
 from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
+
+TOOL_NAME_SEPARATOR = "."
 
 
 class ValueSchema(BaseModel):
@@ -92,25 +95,108 @@ class ToolRequirements(BaseModel):
     """The authorization requirements for the tool, if any."""
 
 
+class ToolkitDefinition(BaseModel):
+    """The specification of a toolkit."""
+
+    name: str
+    """The name of the toolkit."""
+
+    description: Optional[str] = None
+    """The description of the toolkit."""
+
+    version: Optional[str] = None
+    """The version identifier of the toolkit."""
+
+
+@dataclass(frozen=True)
+class FullyQualifiedName:
+    """The fully-qualified name of a tool."""
+
+    name: str
+    """The name of the tool."""
+
+    toolkit_name: str
+    """The name of the toolkit containing the tool."""
+
+    toolkit_version: Optional[str] = None
+    """The version of the toolkit containing the tool."""
+
+    def __str__(self) -> str:
+        return f"{self.toolkit_name}{TOOL_NAME_SEPARATOR}{self.name}"
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, FullyQualifiedName):
+            return False
+        return (
+            self.name.lower() == other.name.lower()
+            and self.toolkit_name.lower() == other.toolkit_name.lower()
+            and (self.toolkit_version or "").lower() == (other.toolkit_version or "").lower()
+        )
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.name.lower(),
+                self.toolkit_name.lower(),
+                (self.toolkit_version or "").lower(),
+            )
+        )
+
+    def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
+        """Check if two fully-qualified tool names are equal, ignoring the version."""
+        return (
+            self.name.lower() == other.name.lower()
+            and self.toolkit_name.lower() == other.toolkit_name.lower()
+        )
+
+    @staticmethod
+    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedName":
+        """Creates a fully-qualified tool name from a tool name and a ToolkitDefinition."""
+        return FullyQualifiedName(tool_name, toolkit.name, toolkit.version)
+
+
 class ToolDefinition(BaseModel):
     """The specification of a tool."""
 
     name: str
+    """The name of the tool."""
+
+    full_name: str
+    """The fully-qualified name of the tool."""
+
     description: str
-    version: str
+    """The description of the tool."""
+
+    toolkit: ToolkitDefinition
+    """The toolkit that contains the tool."""
+
     inputs: ToolInputs
+    """The inputs that the tool accepts."""
+
     output: ToolOutput
+    """The output types that the tool can return."""
+
     requirements: ToolRequirements
+    """The requirements (e.g. authorization) for the tool to run."""
+
+    def get_fully_qualified_name(self) -> FullyQualifiedName:
+        return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)
 
 
-class ToolVersion(BaseModel):
+class ToolReference(BaseModel):
     """The name and version of a tool."""
 
     name: str
     """The name of the tool."""
 
-    version: str
-    """The version of the tool."""
+    toolkit: str
+    """The name of the toolkit containing the tool."""
+
+    version: Optional[str] = None
+    """The version of the toolkit containing the tool."""
+
+    def get_fully_qualified_name(self) -> FullyQualifiedName:
+        return FullyQualifiedName(self.name, self.toolkit, self.version)
 
 
 class ToolAuthorizationContext(BaseModel):
@@ -136,8 +222,8 @@ class ToolCallRequest(BaseModel):
     """The globally-unique ID for this tool invocation in the run."""
     created_at: str | None = None
     """The timestamp when the tool invocation was created."""
-    tool: ToolVersion
-    """The name and version of the tool."""
+    tool: ToolReference
+    """The fully-qualified name and version of the tool."""
     inputs: dict[str, Any] | None = None
     """The inputs for the tool."""
     context: ToolContext = Field(default_factory=ToolContext)

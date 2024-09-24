@@ -1,5 +1,6 @@
-from arcade_google.tools import gmail
-from arcade_slack.tools import chat
+import os
+from arcade.core.toolkit import Toolkit
+import arcade_math
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -14,16 +15,9 @@ client = AsyncArcade(api_key=config.api.key)
 
 app = FastAPI()
 
-actor = FastAPIActor(app)
-# actor.register_tool(arithmetic.add)
-# actor.register_tool(arithmetic.multiply)
-# actor.register_tool(arithmetic.divide)
-# actor.register_tool(arithmetic.sqrt)
-actor.register_tool(gmail.list_emails)
-actor.register_tool(gmail.list_emails_by_header)
-actor.register_tool(gmail.write_draft_email)
-actor.register_tool(chat.send_dm_to_user)
-actor.register_tool(chat.send_message_to_channel)
+actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+actor = FastAPIActor(app, secret=actor_secret)
+actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):
@@ -41,11 +35,14 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             model="gpt-4o-mini",
             max_tokens=500,
             tools=[
-                "GetEmails",
-                "SearchEmailsByHeader",
-                "WriteDraft",
-                "SendDmToUser",
-                "SendMessageToChannel",
+                # "Google.GetEmails",
+                # "Google.SearchEmailsByHeader",
+                # "Google.WriteDraft",
+                # "GitHub.CountStargazers",
+                # "GitHub.SetStarred",
+                # "GitHub.SearchIssues",
+                # "Slack.SendDmToUser",
+                # "Slack.SendMessageToChannel",
             ],
             tool_choice=tool_choice,
             user=config.user.email if config.user else None,

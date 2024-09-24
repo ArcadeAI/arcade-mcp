@@ -36,7 +36,13 @@ TOOL_RESPONSE_DATA = {
 
 TOOL_DEFINITION_DATA = {
     "name": "GetEmails",
+    "full_name": "TestToolkit.GetEmails",
     "description": "Retrieve emails from a user's inbox",
+    "toolkit": {
+        "name": "TestToolkit",
+        "version": "0.1.0",
+        "description": "A toolkit for testing",
+    },
     "input_schema": {"type": "object", "properties": {"n_emails": {"type": "integer"}}},
     "output_schema": {"type": "array", "items": {"type": "string"}},
     "version": "0.1.0",

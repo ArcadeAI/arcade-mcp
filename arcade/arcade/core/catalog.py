@@ -25,12 +25,14 @@ from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
+    FullyQualifiedName,
     InputParameter,
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolContext,
     ToolDefinition,
     ToolInputs,
+    ToolkitDefinition,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
@@ -45,6 +47,8 @@ from arcade.core.utils import (
 )
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import BaseOAuth2, ToolAuthorization
+
+DEFAULT_TOOLKIT_NAME = "Tools"
 
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
@@ -92,8 +96,8 @@ class MaterializedTool(BaseModel):
         return self.definition.name
 
     @property
-    def version(self) -> str:
-        return self.definition.version
+    def version(self) -> str | None:
+        return self.definition.toolkit.version
 
     @property
     def description(self) -> str:
@@ -107,29 +111,51 @@ class MaterializedTool(BaseModel):
 class ToolCatalog(BaseModel):
     """Singleton class that holds all tools for a given actor"""
 
-    tools: dict[str, MaterializedTool] = {}
+    _tools: dict[FullyQualifiedName, MaterializedTool] = {}
 
     def add_tool(
         self,
         tool_func: Callable,
+        toolkit_or_name: Union[str | None, Toolkit] = None,
         module: ModuleType | None = None,
-        toolkit: Toolkit | None = None,
     ) -> None:
         """
         Add a function to the catalog as a tool.
         """
 
         input_model, output_model = create_func_models(tool_func)
+
+        if isinstance(toolkit_or_name, Toolkit):
+            toolkit = toolkit_or_name
+            toolkit_name = toolkit.name
+        elif isinstance(toolkit_or_name, str):
+            toolkit = None
+            toolkit_name = toolkit_or_name
+        else:
+            toolkit = None
+            toolkit_name = DEFAULT_TOOLKIT_NAME
+
+        if not toolkit_name:
+            raise ValueError("A toolkit name or toolkit must be provided.")
+
         definition = ToolCatalog.create_tool_definition(
-            tool_func, toolkit.version if toolkit else "latest"
+            tool_func,
+            toolkit_name,
+            toolkit.version if toolkit else None,
+            toolkit.description if toolkit else None,
         )
 
-        self.tools[definition.name] = MaterializedTool(
+        fully_qualified_name = definition.get_fully_qualified_name()
+
+        if fully_qualified_name in self._tools:
+            raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
+
+        self._tools[fully_qualified_name] = MaterializedTool(
             definition=definition,
             tool=tool_func,
             meta=ToolMeta(
                 module=module.__name__ if module else tool_func.__module__,
-                toolkit=toolkit.name if toolkit else None,
+                toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
             ),
@@ -155,49 +181,64 @@ class ToolCatalog(BaseModel):
                 except ImportError as e:
                     raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
 
-                self.add_tool(tool_func, module, toolkit)
+                self.add_tool(tool_func, toolkit, module)
 
-    def __getitem__(self, name: str) -> MaterializedTool:
-        for tool_name, tool in self.tools.items():
-            if tool_name == name:
-                return tool
-        raise KeyError(f"Tool {name} not found.")
+    def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
+        return self.get_tool(name)
 
-    def __contains__(self, name: str) -> bool:
-        return name in self.tools
+    def __contains__(self, name: FullyQualifiedName) -> bool:
+        return name in self._tools
 
     def __iter__(self) -> Iterator[MaterializedTool]:  # type: ignore[override]
-        yield from self.tools.values()
+        yield from self._tools.values()
 
     def __len__(self) -> int:
-        return len(self.tools)
+        return len(self._tools)
 
     def is_empty(self) -> bool:
-        return len(self.tools) == 0
+        return len(self._tools) == 0
 
-    def get_tool(self, name: str) -> Optional[Callable]:
-        for tool in self.tools.values():
-            if tool.definition.name == name:
-                return tool.tool
+    def get_tool_names(self) -> list[FullyQualifiedName]:
+        return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+
+    def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
+        """
+        Get a tool from the catalog by fully-qualified name and version.
+        If the version is not specified, the any version is returned.
+        """
+        if name.toolkit_version:
+            try:
+                return self._tools[name]
+            except KeyError:
+                raise ValueError(f"Tool {name}@{name.toolkit_version} not found in the catalog.")
+
+        for key, tool in self._tools.items():
+            if key.equals_ignoring_version(name):
+                return tool
+
         raise ValueError(f"Tool {name} not found.")
 
     @staticmethod
-    def create_tool_definition(tool: Callable, version: str) -> ToolDefinition:
+    def create_tool_definition(
+        tool: Callable,
+        toolkit_name: str,
+        toolkit_version: Optional[str] = None,
+        toolkit_desc: Optional[str] = None,
+    ) -> ToolDefinition:
         """
         Given a tool function, create a ToolDefinition
-        # TODO: (sam) Make this a function?
         """
 
-        tool_name = getattr(tool, "__tool_name__", tool.__name__)
+        raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
 
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool {tool_name} is missing a description")
+            raise ToolDefinitionError(f"Tool {raw_tool_name} is missing a description")
 
         # If the function returns a value, it must have a type annotation
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
-            raise ToolDefinitionError(f"Tool {tool_name} must have a return type annotation")
+            raise ToolDefinitionError(f"Tool {raw_tool_name} must have a return type annotation")
 
         auth_requirement = getattr(tool, "__tool_requires_auth__", None)
         if isinstance(auth_requirement, ToolAuthorization):
@@ -208,10 +249,20 @@ class ToolCatalog(BaseModel):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
             auth_requirement = new_auth_requirement
 
+        toolkit_definition = ToolkitDefinition(
+            name=snake_to_pascal_case(toolkit_name),
+            description=toolkit_desc,
+            version=toolkit_version,
+        )
+
+        tool_name = snake_to_pascal_case(raw_tool_name)
+        fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
+
         return ToolDefinition(
-            name=snake_to_pascal_case(tool_name),
+            name=tool_name,
+            full_name=str(fully_qualified_name),
             description=tool_description,
-            version=version,
+            toolkit=toolkit_definition,
             inputs=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(

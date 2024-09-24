@@ -9,7 +9,7 @@ def get_tweet_url(tweet_id: str) -> str:
 
 def parse_search_recent_tweets_response(response: Response) -> str:
     """
-    Parse the response from the X API search recent tweets endpoint.
+    Parses response from the X API search recent tweets endpoint.
     Returns a JSON string with the tweets data.
 
     Example parsed response:
@@ -27,7 +27,14 @@ def parse_search_recent_tweets_response(response: Response) -> str:
         },
     ]
     """
+    if response.status_code != 200:
+        return json.dumps({"tweets": []})
+
     tweets_data = json.loads(response.text)
+
+    if not sanity_check_tweets_data(tweets_data):
+        return json.dumps({"tweets": []})
+
     for tweet in tweets_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
@@ -38,3 +45,15 @@ def parse_search_recent_tweets_response(response: Response) -> str:
         tweet_data["author_name"] = user_data["name"]
 
     return json.dumps({"tweets": tweets_data["data"]})
+
+
+def sanity_check_tweets_data(tweets_data: dict) -> bool:
+    """
+    Sanity check the tweets data.
+    Returns True if the tweets data is valid and contains tweets, False otherwise.
+    """
+    if not tweets_data.get("data", []):
+        return False
+    if not tweets_data.get("includes", {}).get("users", []):
+        return False
+    return True

@@ -4,6 +4,8 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
+from arcade.core.schema import FullyQualifiedName
+
 try:
     import numpy as np
     from scipy.optimize import linear_sum_assignment
@@ -310,7 +312,7 @@ class EvalCase:
         return cost_matrix
 
     async def run_async(
-        self, client: AsyncArcade, model: str, tool_names: list[str]
+        self, client: AsyncArcade, model: str, tool_names: list[FullyQualifiedName]
     ) -> dict[str, Any]:
         """
         Run the evaluation case asynchronously.
@@ -330,7 +332,7 @@ class EvalCase:
             model=model,
             messages=messages,
             tool_choice="auto",
-            tools=tool_names,
+            tools=(str(name) for name in tool_names),
             user="eval_user",
             stream=False,
         )
@@ -351,7 +353,9 @@ class EvalCase:
 
         return result
 
-    def run_sync(self, client: Arcade, model: str, tool_names: list[str]) -> dict[str, Any]:
+    def run_sync(
+        self, client: Arcade, model: str, tool_names: list[FullyQualifiedName]
+    ) -> dict[str, Any]:
         """
         Run the evaluation case synchronously.
 
@@ -370,7 +374,7 @@ class EvalCase:
             model=model,
             messages=messages,
             tool_choice="auto",
-            tools=tool_names,
+            tools=(str(name) for name in tool_names),
             user="eval_user",
             stream=False,
         )
@@ -532,7 +536,7 @@ class EvalSuite:
         results: dict[str, Any] = {"model": model, "rubric": self.rubric, "cases": []}
 
         semaphore = asyncio.Semaphore(self.max_concurrent)
-        tool_names = list(self.catalog.tools.keys())
+        tool_names = list(self.catalog.get_tool_names())
 
         async def sem_task(case: EvalCase) -> dict[str, Any]:
             async with semaphore:
@@ -559,7 +563,7 @@ class EvalSuite:
 
         cases: list[dict[str, Any]] = []
         results = {"model": model, "rubric": self.rubric, "cases": cases}
-        tool_names = list(self.catalog.tools.keys())
+        tool_names = list(self.catalog.get_tool_names())
         for case in self.cases:
             result = case.run_sync(self._client, model, tool_names)  # type: ignore[arg-type]
             cases.append(result)
