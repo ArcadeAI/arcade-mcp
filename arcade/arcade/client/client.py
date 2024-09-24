@@ -160,7 +160,7 @@ class HealthResource(BaseResource[ClientT]):
         try:
             data = self._client._execute_request(  # type: ignore[attr-defined]
                 "GET",
-                f"/{self._resource_path}",
+                f"{self._resource_path}",
                 timeout=5,
             )
 
@@ -309,7 +309,7 @@ class AsyncHealthResource(BaseResource[AsyncArcadeClient]):
         try:
             data = await self._client._execute_request(  # type: ignore[attr-defined]
                 "GET",
-                f"/{self._resource_path}",
+                f"{self._resource_path}",
                 timeout=5,
             )
 
