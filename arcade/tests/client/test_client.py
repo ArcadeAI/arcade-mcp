@@ -129,10 +129,10 @@ def test_arcade_auth_poll_authorization(mock_response, monkeypatch):
 
 
 def test_arcade_tool_run(mock_response, monkeypatch):
-    """Test Arcade.tool.run method."""
+    """Test Arcade.tools.run method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_RESPONSE_DATA)
     client = Arcade(api_key="fake_api_key")
-    tool_response = client.tool.run(
+    tool_response = client.tools.run(
         tool_name="GetEmails",
         user_id="sam@arcade-ai.com",
         tool_version="0.1.0",
@@ -142,20 +142,20 @@ def test_arcade_tool_run(mock_response, monkeypatch):
 
 
 def test_arcade_tool_get(mock_response, monkeypatch):
-    """Test Arcade.tool.get method."""
+    """Test Arcade.tools.get method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_DEFINITION_DATA)
     client = Arcade(api_key="fake_api_key")
-    tool_definition = client.tool.get(director_id="default", tool_id="GetEmails")
+    tool_definition = client.tools.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
 
 
 def test_arcade_tool_authorize(mock_response, monkeypatch):
-    """Test Arcade.tool.authorize method."""
+    """Test Arcade.tools.authorize method."""
     monkeypatch.setattr(
         Arcade, "_execute_request", lambda *args, **kwargs: TOOL_AUTHORIZE_RESPONSE_DATA
     )
     client = Arcade(api_key="fake_api_key")
-    auth_response = client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
+    auth_response = client.tools.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
 
@@ -211,14 +211,14 @@ async def test_async_arcade_auth_poll_authorization(mock_async_response, monkeyp
 
 @pytest.mark.asyncio
 async def test_async_arcade_tool_run(mock_async_response, monkeypatch):
-    """Test AsyncArcade.tool.run method."""
+    """Test AsyncArcade.tools.run method."""
 
     async def mock_execute_request(*args, **kwargs):
         return TOOL_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     client = AsyncArcade(api_key="fake_api_key")
-    tool_response = await client.tool.run(
+    tool_response = await client.tools.run(
         tool_name="GetEmails",
         user_id="sam@arcade-ai.com",
         tool_version="0.1.0",
@@ -229,27 +229,27 @@ async def test_async_arcade_tool_run(mock_async_response, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_async_arcade_tool_get(mock_async_response, monkeypatch):
-    """Test AsyncArcade.tool.get method."""
+    """Test AsyncArcade.tools.get method."""
 
     async def mock_execute_request(*args, **kwargs):
         return TOOL_DEFINITION_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     client = AsyncArcade(api_key="fake_api_key")
-    tool_definition = await client.tool.get(director_id="default", tool_id="GetEmails")
+    tool_definition = await client.tools.get(director_id="default", tool_id="GetEmails")
     assert tool_definition == ToolDefinition(**TOOL_DEFINITION_DATA)
 
 
 @pytest.mark.asyncio
 async def test_async_arcade_tool_authorize(mock_async_response, monkeypatch):
-    """Test AsyncArcade.tool.authorize method."""
+    """Test AsyncArcade.tools.authorize method."""
 
     async def mock_execute_request(*args, **kwargs):
         return TOOL_AUTHORIZE_RESPONSE_DATA
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     client = AsyncArcade(api_key="fake_api_key")
-    auth_response = await client.tool.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
+    auth_response = await client.tools.authorize(tool_name="GetEmails", user_id="sam@arcade-ai.com")
     assert auth_response == AuthResponse(**TOOL_AUTHORIZE_RESPONSE_DATA)
 
 

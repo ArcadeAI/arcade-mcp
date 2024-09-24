@@ -18,7 +18,7 @@ class State(TypedDict):
 def step_1(state: State, config) -> State:
     user_id = config["configurable"]["user_id"]
 
-    challenge = client.tool.authorize(
+    challenge = client.tools.authorize(
         tool_name="ListEmails",
         user_id=user_id,
     )
@@ -26,7 +26,7 @@ def step_1(state: State, config) -> State:
     if challenge.status != "completed":
         raise NodeInterrupt(f"Please visit this URL to authorize: {challenge.auth_url}")
 
-    result = client.tool.run(
+    result = client.tools.run(
         tool_name="ListEmails",
         user_id=user_id,
         tool_version="default",

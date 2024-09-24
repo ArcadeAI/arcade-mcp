@@ -338,7 +338,7 @@ class Arcade(SyncArcadeClient):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.auth: AuthResource = AuthResource(self)
-        self.tool: ToolResource = ToolResource(self)
+        self.tools: ToolResource = ToolResource(self)
         self.health: HealthResource = HealthResource(self)
         chat_url = self._chat_url(self._base_url)
         self._openai_client = OpenAI(base_url=chat_url, api_key=self._api_key)
@@ -361,7 +361,7 @@ class AsyncArcade(AsyncArcadeClient):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.auth: AsyncAuthResource = AsyncAuthResource(self)
-        self.tool: AsyncToolResource = AsyncToolResource(self)
+        self.tools: AsyncToolResource = AsyncToolResource(self)
         self.health: AsyncHealthResource = AsyncHealthResource(self)
         chat_url = self._chat_url(self._base_url)
         self._openai_client = AsyncOpenAI(base_url=chat_url, api_key=self._api_key)
