@@ -70,12 +70,15 @@ class EvaluationResult:
         passed: Whether the evaluation passed based on the fail_threshold.
         warning: Whether the evaluation issued a warning based on the warn_threshold.
         results: A list of dictionaries containing the results for each critic.
+        failure_reason: If the evaluation failed completely due to settings in the rubric,
+                        this field contains the reason for failure.
     """
 
     score: float = 0.0
     passed: bool = False
     warning: bool = False
     results: list[dict[str, Any]] = field(default_factory=list)
+    failure_reason: str | None = None
 
     @property
     def fail(self) -> bool:
@@ -223,6 +226,8 @@ class EvalCase:
             evaluation_result.score = 0.0
             evaluation_result.passed = False
             evaluation_result.warning = False
+            expected_tools = [tc.name for tc in self.expected_tool_calls]
+            evaluation_result.failure_reason = f"Tool selection mismatch. Expected tools: {expected_tools}, but got: {actual_tools}"
             return evaluation_result
 
         actual_count = len(actual_tool_calls)
@@ -230,6 +235,10 @@ class EvalCase:
             evaluation_result.score = 0.0
             evaluation_result.passed = False
             evaluation_result.warning = False
+            expected_count = len(self.expected_tool_calls)
+            evaluation_result.failure_reason = (
+                f"Expected {expected_count} tool call(s), but got {actual_count}"
+            )
             return evaluation_result
 
         # Create a cost matrix for the assignment problem

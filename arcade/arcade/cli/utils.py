@@ -249,18 +249,21 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
         A formatted string representation of the evaluation details.
     """
     result_lines = []
-    for critic_result in evaluation.results:
-        match_color = "green" if critic_result["match"] else "red"
-        field = critic_result["field"]
-        score = critic_result["score"]
-        weight = critic_result["weight"]
-        expected = critic_result["expected"]
-        actual = critic_result["actual"]
-        result_lines.append(
-            f"[bold]{field}:[/bold] "
-            f"[{match_color}]Match: {critic_result['match']}, "
-            f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
-            f"\n    Expected: {expected}"
-            f"\n    Actual: {actual}"
-        )
+    if evaluation.failure_reason:
+        result_lines.append(f"[bold red]Failure Reason:[/bold red] {evaluation.failure_reason}")
+    else:
+        for critic_result in evaluation.results:
+            match_color = "green" if critic_result["match"] else "red"
+            field = critic_result["field"]
+            score = critic_result["score"]
+            weight = critic_result["weight"]
+            expected = critic_result["expected"]
+            actual = critic_result["actual"]
+            result_lines.append(
+                f"[bold]{field}:[/bold] "
+                f"[{match_color}]Match: {critic_result['match']}, "
+                f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
+                f"\n    Expected: {expected}"
+                f"\n    Actual: {actual}"
+            )
     return "\n".join(result_lines)
