@@ -21,7 +21,7 @@ catalog.add_module(arcade_math)
 
 
 @tool_eval()
-def arithmetic_eval_suite():
+def math_eval_suite():
     suite = EvalSuite(
         name="Math Tools Evaluation",
         system_message="You are an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
