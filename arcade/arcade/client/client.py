@@ -4,7 +4,6 @@ from openai import AsyncOpenAI, OpenAI
 from openai.resources.chat import AsyncChat, Chat
 
 from arcade.client.base import (
-    API_VERSION,
     AsyncArcadeClient,
     BaseResource,
     SyncArcadeClient,
@@ -26,7 +25,7 @@ ClientT = TypeVar("ClientT", SyncArcadeClient, AsyncArcadeClient)
 class AuthResource(BaseResource[ClientT]):
     """Authentication resource."""
 
-    _base_path = f"/{API_VERSION}/auth"
+    _path = "/auth"
 
     def authorize(
         self,
@@ -58,7 +57,7 @@ class AuthResource(BaseResource[ClientT]):
 
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
-            f"{self._base_path}/authorize",
+            f"{self._resource_path}/authorize",
             json=body,
         )
         return AuthResponse(**data)
@@ -84,7 +83,7 @@ class AuthResource(BaseResource[ClientT]):
 
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
-            f"{self._base_path}/status",
+            f"{self._resource_path}/status",
             params={"authorizationId": auth_id, "scopes": " ".join(scopes) if scopes else None},
         )
         return AuthResponse(**data)
@@ -93,7 +92,7 @@ class AuthResource(BaseResource[ClientT]):
 class ToolResource(BaseResource[ClientT]):
     """Tool resource."""
 
-    _base_path = f"/{API_VERSION}/tools"
+    _path = "/tools"
 
     def run(
         self,
@@ -118,7 +117,7 @@ class ToolResource(BaseResource[ClientT]):
             "inputs": inputs,
         }
         data = self._client._execute_request(  # type: ignore[attr-defined]
-            "POST", f"{self._base_path}/execute", json=request_data
+            "POST", f"{self._resource_path}/execute", json=request_data
         )
         return ExecuteToolResponse(**data)
 
@@ -128,7 +127,7 @@ class ToolResource(BaseResource[ClientT]):
         """
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
-            f"{self._base_path}/definition",
+            f"{self._resource_path}/definition",
             params={"directorId": director_id, "toolId": tool_id},
         )
         return ToolDefinition(**data)
@@ -141,7 +140,7 @@ class ToolResource(BaseResource[ClientT]):
         """
         data = self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
-            f"{self._base_path}/authorize",
+            f"{self._resource_path}/authorize",
             json={"tool_name": tool_name, "tool_version": tool_version, "user_id": user_id},
         )
         return AuthResponse(**data)
@@ -149,6 +148,8 @@ class ToolResource(BaseResource[ClientT]):
 
 class HealthResource(BaseResource[ClientT]):
     """Health check resource."""
+
+    _path = "/health"
 
     def check(self) -> None:
         """
@@ -159,7 +160,7 @@ class HealthResource(BaseResource[ClientT]):
         try:
             data = self._client._execute_request(  # type: ignore[attr-defined]
                 "GET",
-                f"/{API_VERSION}/health",
+                f"/{self._resource_path}",
                 timeout=5,
             )
 
@@ -185,7 +186,7 @@ class HealthResource(BaseResource[ClientT]):
 class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
     """Asynchronous Authentication resource."""
 
-    _base_path = f"/{API_VERSION}/auth"
+    _path = "/auth"
 
     async def authorize(
         self,
@@ -211,7 +212,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
 
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
-            f"{self._base_path}/authorize",
+            f"{self._resource_path}/authorize",
             json=body,
         )
         return AuthResponse(**data)
@@ -237,7 +238,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
 
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
-            f"{self._base_path}/status",
+            f"{self._resource_path}/status",
             params={"authorizationId": auth_id, "scopes": " ".join(scopes) if scopes else None},
         )
         return AuthResponse(**data)
@@ -246,7 +247,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
 class AsyncToolResource(BaseResource[AsyncArcadeClient]):
     """Asynchronous Tool resource."""
 
-    _base_path = f"/{API_VERSION}/tools"
+    _path = "/tools"
 
     async def run(
         self,
@@ -265,7 +266,7 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
             "inputs": inputs,
         }
         data = await self._client._execute_request(  # type: ignore[attr-defined]
-            "POST", f"{self._base_path}/execute", json=request_data
+            "POST", f"{self._resource_path}/execute", json=request_data
         )
         return ExecuteToolResponse(**data)
 
@@ -275,7 +276,7 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         """
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "GET",
-            f"{self._base_path}/definition",
+            f"{self._resource_path}/definition",
             params={"directorId": director_id, "toolId": tool_id},
         )
         return ToolDefinition(**data)
@@ -288,7 +289,7 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
         """
         data = await self._client._execute_request(  # type: ignore[attr-defined]
             "POST",
-            f"{self._base_path}/authorize",
+            f"{self._resource_path}/authorize",
             json={"tool_name": tool_name, "tool_version": tool_version, "user_id": user_id},
         )
         return AuthResponse(**data)
@@ -296,6 +297,8 @@ class AsyncToolResource(BaseResource[AsyncArcadeClient]):
 
 class AsyncHealthResource(BaseResource[AsyncArcadeClient]):
     """Asynchronous Health check resource."""
+
+    _path = "/health"
 
     async def check(self) -> None:
         """
@@ -306,7 +309,7 @@ class AsyncHealthResource(BaseResource[AsyncArcadeClient]):
         try:
             data = await self._client._execute_request(  # type: ignore[attr-defined]
                 "GET",
-                f"/{API_VERSION}/health",
+                f"/{self._resource_path}",
                 timeout=5,
             )
 

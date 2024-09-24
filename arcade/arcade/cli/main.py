@@ -15,6 +15,7 @@ from rich.table import Table
 from rich.text import Text
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade.cli.launcher import start_servers
 from arcade.cli.utils import (
     OrderCommands,
     apply_config_overrides,
@@ -31,6 +32,7 @@ from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
 
 cli = typer.Typer(
     cls=OrderCommands,
+    add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=False,
     pretty_exceptions_show_locals=False,
@@ -39,7 +41,7 @@ cli = typer.Typer(
 console = Console()
 
 
-@cli.command(help="Log in to Arcade Cloud")
+@cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
 def login(
     host: str = typer.Option(
         "cloud.arcade-ai.com",
@@ -78,7 +80,7 @@ def login(
             server_thread.join()  # Ensure the server thread completes and cleans up
 
 
-@cli.command(help="Log out of Arcade Cloud")
+@cli.command(help="Log out of Arcade Cloud", rich_help_panel="User")
 def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
@@ -93,7 +95,7 @@ def logout() -> None:
         console.print("You're not logged in.", style="bold red")
 
 
-@cli.command(help="Create a new toolkit package directory")
+@cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
 def new(
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
 ) -> None:
@@ -109,7 +111,10 @@ def new(
         console.print(error_message, style="bold red")
 
 
-@cli.command(help="Show the available tools in an actor or toolkit directory")
+@cli.command(
+    help="Show the installed toolkits",
+    rich_help_panel="Tool Development",
+)
 def show(
     toolkit: Optional[str] = typer.Option(
         None, "-t", "--toolkit", help="The toolkit to show the tools of"
@@ -143,7 +148,7 @@ def show(
         console.print(error_message, style="bold red")
 
 
-@cli.command(help="Chat with a language model")
+@cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
 def chat(
     model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
     stream: bool = typer.Option(
@@ -280,7 +285,7 @@ def chat(
         raise typer.Exit()
 
 
-@cli.command(help="Start an Actor server with specified configurations.")
+@cli.command(help="Start an Arcade Actor server", rich_help_panel="Launch")
 def dev(
     host: str = typer.Option(
         "127.0.0.1", help="Host for the app, from settings by default.", show_default=True
@@ -312,7 +317,7 @@ def dev(
         raise typer.Exit(code=1)
 
 
-@cli.command(help="Show/edit configuration details of the Arcade Engine")
+@cli.command(help="Show/edit configuration details of the Arcade Engine", rich_help_panel="User")
 def config(
     action: str = typer.Argument("show", help="The action to take (show/edit)"),
     key: str = typer.Option(
@@ -400,7 +405,7 @@ def display_config_as_table(config) -> None:  # type: ignore[no-untyped-def]
     console.print(table)
 
 
-@cli.command(help="Run evaluation suites in a directory")
+@cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
     show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
@@ -450,3 +455,24 @@ def evals(
             console.print(f"\nRunning evaluation from {file}: {func.__name__}", style="bold blue")
             results = func(models=models, max_concurrency=max_concurrent)
             display_eval_results(results, show_details=show_details)
+
+
+@cli.command(help="Start an Arcade Cluster instance", rich_help_panel="Launch")
+def up(
+    host: str = typer.Option("127.0.0.1", help="Host for the actor server.", show_default=True),
+    port: int = typer.Option(
+        8002, "-p", "--port", help="Port for the actor server.", show_default=True
+    ),
+    engine_config: str = typer.Option(
+        None, "-c", "--config", help="Path to the engine configuration file."
+    ),
+) -> None:
+    """
+    Start both the actor and engine servers.
+    """
+    try:
+        start_servers(host, port, engine_config)
+    except Exception as e:
+        error_message = f"❌ Failed to start servers: {escape(str(e))}"
+        console.print(error_message, style="bold red")
+        raise typer.Exit(code=1)

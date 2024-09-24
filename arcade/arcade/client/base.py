@@ -1,4 +1,3 @@
-import os
 from typing import Any, Generic, TypeVar
 from urllib.parse import urljoin
 
@@ -13,19 +12,20 @@ from arcade.client.errors import (
     RateLimitError,
     UnauthorizedError,
 )
+from arcade.client.schema import API_BASE_URL, API_KEY, OPENAI_API_VERSION
 
 T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
-
-API_VERSION = "v1"
-BASE_URL = "https://api.arcade.com/"
 
 
 class BaseResource(Generic[T]):
     """Base class for all resources."""
 
-    def __init__(self, client: T):
+    _path: str
+
+    def __init__(self, client: T) -> None:
         self._client = client
+        self._resource_path = self._client._base_url + self._path  # type: ignore[attr-defined]
 
 
 class BaseArcadeClient:
@@ -33,8 +33,8 @@ class BaseArcadeClient:
 
     def __init__(
         self,
-        base_url: str = BASE_URL,
-        api_key: str | None = None,
+        base_url: str = API_BASE_URL,
+        api_key: str = API_KEY,
         headers: dict[str, str] | None = None,
         timeout: float | Timeout = 10.0,
         retries: int = 3,
@@ -50,7 +50,7 @@ class BaseArcadeClient:
             retries: Number of retries for failed requests.
         """
         self._base_url = base_url
-        self._api_key = api_key or os.environ.get("ARCADE_API_KEY")
+        self._api_key = api_key
         self._headers = headers or {}
         self._headers.setdefault("Authorization", f"Bearer {self._api_key}")
         self._headers.setdefault("Content-Type", "application/json")
@@ -65,8 +65,8 @@ class BaseArcadeClient:
 
     def _chat_url(self, base_url: str) -> str:
         chat_url = str(base_url)
-        if not base_url.endswith(API_VERSION):
-            chat_url = f"{base_url}/{API_VERSION}"
+        if not base_url.endswith(OPENAI_API_VERSION):
+            chat_url = f"{base_url}/{OPENAI_API_VERSION}"
         return chat_url
 
     def _handle_http_error(self, e: httpx.HTTPStatusError) -> None:
