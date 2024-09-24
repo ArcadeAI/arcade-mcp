@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
+from arcade.core.config_model import Config
 from arcade.core.schema import FullyQualifiedName
 
 try:
@@ -124,10 +125,10 @@ class EvaluationResult:
         Returns:
             The score for the tool selection.
         """
-        score = weight if expected == actual else 0.0
+        score = weight if compare_tool_name(expected, actual) else 0.0
         self.add(
             "tool_selection",
-            {"match": expected == actual, "score": score},
+            {"match": compare_tool_name(expected, actual), "score": score},
             weight,
             expected,
             actual,
@@ -194,7 +195,10 @@ class EvalCase:
             True if tool selection failure should occur, False otherwise.
         """
         expected_tools = [tc.name for tc in self.expected_tool_calls]
-        return self.rubric.fail_on_tool_selection and set(expected_tools) != set(actual_tools)
+        return self.rubric.fail_on_tool_selection and not all(
+            compare_tool_name(expected, actual)
+            for expected, actual in zip(expected_tools, actual_tools)
+        )
 
     def check_tool_call_quantity_failure(self, actual_count: int) -> bool:
         """
@@ -222,14 +226,6 @@ class EvalCase:
         evaluation_result = EvaluationResult()
         actual_tools = [tool for tool, _ in actual_tool_calls]
 
-        if self.check_tool_selection_failure(actual_tools):
-            evaluation_result.score = 0.0
-            evaluation_result.passed = False
-            evaluation_result.warning = False
-            expected_tools = [tc.name for tc in self.expected_tool_calls]
-            evaluation_result.failure_reason = f"Tool selection mismatch. Expected tools: {expected_tools}, but got: {actual_tools}"
-            return evaluation_result
-
         actual_count = len(actual_tool_calls)
         if self.check_tool_call_quantity_failure(actual_count):
             evaluation_result.score = 0.0
@@ -239,6 +235,21 @@ class EvalCase:
             evaluation_result.failure_reason = (
                 f"Expected {expected_count} tool call(s), but got {actual_count}"
             )
+            return evaluation_result
+
+        # check if no tools should be called and none were called
+        if not self.expected_tool_calls and not actual_tools:
+            evaluation_result.score = 1.0
+            evaluation_result.passed = True
+            evaluation_result.warning = False
+            return evaluation_result
+
+        if self.check_tool_selection_failure(actual_tools):
+            evaluation_result.score = 0.0
+            evaluation_result.passed = False
+            evaluation_result.warning = False
+            expected_tools = [tc.name for tc in self.expected_tool_calls]
+            evaluation_result.failure_reason = f"Tool selection mismatch. Expected tools: {expected_tools}, but got: {actual_tools}"
             return evaluation_result
 
         # Create a cost matrix for the assignment problem
@@ -432,12 +443,10 @@ class EvalSuite:
     max_concurrent: int = 1  # Default to sequential execution
     _client: AsyncArcade | Arcade | None = None
 
-    def initialize_client(self) -> None:
+    def initialize_client(self, config: Config) -> None:
         """
         Initialize the client instance for the EvalSuite.
         """
-        from arcade.core.config import config
-
         if self.max_concurrent > 1:
             self._client = AsyncArcade(
                 api_key=config.api.key,
@@ -453,7 +462,7 @@ class EvalSuite:
         self,
         name: str,
         user_message: str,
-        expected_tool_calls: list[ExpectedToolCall],
+        expected_tool_calls: list[tuple[Callable, dict[str, Any]]],
         critics: list["Critic"],
         system_message: str | None = None,
         rubric: EvalRubric | None = None,
@@ -471,11 +480,18 @@ class EvalSuite:
             rubric: The evaluation rubric for this case.
             additional_messages: Optional list of additional messages for context.
         """
+        expected = [
+            ExpectedToolCall(
+                name=str(self.catalog.find_tool_by_func(func).get_fully_qualified_name()),
+                args=args,
+            )
+            for func, args in expected_tool_calls
+        ]
         case = EvalCase(
             name=name,
             system_message=system_message or self.system_message,
             user_message=user_message,
-            expected_tool_calls=expected_tool_calls,
+            expected_tool_calls=expected,
             rubric=rubric or self.rubric,
             critics=critics,
             additional_messages=additional_messages or [],
@@ -487,7 +503,7 @@ class EvalSuite:
         name: str,
         user_message: str,
         system_message: str | None = None,
-        expected_tool_calls: list[ExpectedToolCall] | None = None,
+        expected_tool_calls: list[tuple[Callable, dict[str, Any]]] | None = None,
         rubric: EvalRubric | None = None,
         critics: list["Critic"] | None = None,
         additional_messages: list[dict[str, str]] | None = None,
@@ -517,12 +533,22 @@ class EvalSuite:
         if additional_messages:
             new_additional_messages.extend(additional_messages)
 
+        expected = last_case.expected_tool_calls
+        if expected_tool_calls:
+            expected = [
+                ExpectedToolCall(
+                    name=str(self.catalog.find_tool_by_func(func).get_fully_qualified_name()),
+                    args=args,
+                )
+                for func, args in expected_tool_calls
+            ]
+
         # Create a new case, copying from the last one and updating fields
         new_case = EvalCase(
             name=name,
             system_message=system_message or last_case.system_message,
             user_message=user_message,
-            expected_tool_calls=expected_tool_calls or last_case.expected_tool_calls,
+            expected_tool_calls=expected,
             rubric=rubric or self.rubric,
             critics=critics or last_case.critics.copy(),
             additional_messages=new_additional_messages,
@@ -580,7 +606,7 @@ class EvalSuite:
 
         return results
 
-    def run(self, model: str) -> dict[str, Any]:
+    def run(self, config: Config, model: str) -> dict[str, Any]:
         """
         Run the evaluation suite.
 
@@ -591,7 +617,7 @@ class EvalSuite:
             A dictionary containing the evaluation results.
         """
         if not self._client:
-            self.initialize_client()
+            self.initialize_client(config)
 
         if self.max_concurrent > 1:
             # Run asynchronously with concurrency
@@ -624,10 +650,26 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     return tool_args_list
 
 
+def compare_tool_name(expected: str, actual: str) -> bool:
+    """
+    Compare the tool name without penalizing for mismatch in separators
+    between module names and tool names ex. '-' vs '_' vs '.' vs ' '
+    """
+    # TODO optimize this
+    # Remove all separators from both names
+    separators = "-_."
+    expected_clean = "".join(char for char in expected if char not in separators)
+    actual_clean = "".join(char for char in actual if char not in separators)
+
+    # Compare the cleaned names
+    return expected_clean == actual_clean
+
+
 def tool_eval() -> Callable[[Callable], Callable]:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(
+            config: Config,
             models: list[str],
             max_concurrency: int = 1,
         ) -> list[dict[str, Any]]:
@@ -637,7 +679,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             suite.max_concurrent = max_concurrency
             results = []
             for model in models:
-                result = suite.run(model)
+                result = suite.run(config, model)
                 results.append(result)
             return results
 

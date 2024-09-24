@@ -73,7 +73,7 @@ class BaseActor(Actor):
         """
         return [tool.definition for tool in self.catalog]
 
-    def register_tool(self, tool: Callable, toolkit_name: str | None = None) -> None:
+    def register_tool(self, tool: Callable, toolkit_name: str) -> None:
         """
         Register a tool to the catalog.
         """

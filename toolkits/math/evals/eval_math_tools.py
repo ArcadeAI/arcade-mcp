@@ -1,12 +1,11 @@
-from arcade.core.catalog import ToolCatalog
-from arcade.core.toolkit import Toolkit
 import arcade_math
+from arcade_math.tools.arithmetic import add, sqrt
 
+from arcade.core.catalog import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
-    ExpectedToolCall,
     tool_eval,
 )
 
@@ -18,11 +17,11 @@ rubric = EvalRubric(
 
 
 catalog = ToolCatalog()
-catalog.add_toolkit(Toolkit.from_module(arcade_math))
+catalog.add_module(arcade_math)
 
 
 @tool_eval()
-def arithmetic_eval_suite():
+def math_eval_suite():
     suite = EvalSuite(
         name="Math Tools Evaluation",
         system_message="You are an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
@@ -34,9 +33,9 @@ def arithmetic_eval_suite():
         name="Add two large numbers",
         user_message="Add 12345 and 987654321",
         expected_tool_calls=[
-            ExpectedToolCall(
-                "Arithmetic_Add",
-                args={
+            (
+                add,
+                {
                     "a": 12345,
                     "b": 987654321,
                 },
@@ -55,7 +54,12 @@ def arithmetic_eval_suite():
         name="Take the square root of a large number",
         user_message="What is the square root of 3224990521?",
         expected_tool_calls=[
-            ExpectedToolCall("Arithmetic_Sqrt", args={"a": 3224990521})
+            (
+                sqrt,
+                {
+                    "a": 3224990521,
+                },
+            )
         ],
         rubric=rubric,
         critics=[

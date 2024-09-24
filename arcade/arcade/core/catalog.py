@@ -48,8 +48,6 @@ from arcade.core.utils import (
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import BaseOAuth2, ToolAuthorization
 
-DEFAULT_TOOLKIT_NAME = "Tools"
-
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
 
@@ -116,7 +114,7 @@ class ToolCatalog(BaseModel):
     def add_tool(
         self,
         tool_func: Callable,
-        toolkit_or_name: Union[str | None, Toolkit] = None,
+        toolkit_or_name: Union[str, Toolkit],
         module: ModuleType | None = None,
     ) -> None:
         """
@@ -131,9 +129,6 @@ class ToolCatalog(BaseModel):
         elif isinstance(toolkit_or_name, str):
             toolkit = None
             toolkit_name = toolkit_or_name
-        else:
-            toolkit = None
-            toolkit_name = DEFAULT_TOOLKIT_NAME
 
         if not toolkit_name:
             raise ValueError("A toolkit name or toolkit must be provided.")
@@ -162,6 +157,13 @@ class ToolCatalog(BaseModel):
             input_model=input_model,
             output_model=output_model,
         )
+
+    def add_module(self, module: ModuleType) -> None:
+        """
+        Add all the tools in a module to the catalog.
+        """
+        toolkit = Toolkit.from_module(module)
+        self.add_toolkit(toolkit)
 
     def add_toolkit(self, toolkit: Toolkit) -> None:
         """
@@ -200,6 +202,15 @@ class ToolCatalog(BaseModel):
 
     def get_tool_names(self) -> list[FullyQualifiedName]:
         return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+
+    def find_tool_by_func(self, func: Callable) -> ToolDefinition:
+        """
+        Find a tool by its function.
+        """
+        for _, tool in self._tools.items():
+            if tool.tool == func:
+                return tool.definition
+        raise ValueError(f"Tool {func} not found in the catalog.")
 
     def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
         """

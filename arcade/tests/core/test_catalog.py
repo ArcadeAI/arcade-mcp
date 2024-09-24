@@ -14,10 +14,10 @@ def sample_tool() -> str:
     return "Hello, world!"
 
 
-def test_add_tool_with_no_toolkit():
+def test_add_tool_with_empty_toolkit_name_raises():
     catalog = ToolCatalog()
-    catalog.add_tool(sample_tool)
-    assert catalog.get_tool(FullyQualifiedName("SampleTool", "Tools", None)).tool == sample_tool
+    with pytest.raises(ValueError):
+        catalog.add_tool(sample_tool, "")
 
 
 def test_add_tool_with_toolkit_name():

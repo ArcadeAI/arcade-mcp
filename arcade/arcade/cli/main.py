@@ -29,6 +29,7 @@ from arcade.cli.utils import (
 )
 from arcade.client import Arcade
 from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
+from arcade.core.config_model import Config
 
 cli = typer.Typer(
     cls=OrderCommands,
@@ -39,6 +40,27 @@ cli = typer.Typer(
     pretty_exceptions_short=True,
 )
 console = Console()
+
+
+def _get_config_with_overrides(
+    force_tls: bool,
+    force_no_tls: bool,
+    host_input: str | None = None,
+    port_input: int | None = None,
+) -> Config:
+    """
+    Get the config with CLI-specific optional overrides applied.
+    """
+    config = validate_and_get_config()
+
+    if not force_tls and not force_no_tls:
+        tls_input = None
+    elif force_no_tls:
+        tls_input = False
+    else:
+        tls_input = True
+    apply_config_overrides(config, host_input, port_input, tls_input)
+    return config
 
 
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
@@ -154,6 +176,7 @@ def chat(
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
         None,
         "-h",
@@ -176,20 +199,11 @@ def chat(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Chat with a language model.
     """
-    config = validate_and_get_config()
-
-    if not force_tls and not force_no_tls:
-        tls_input = None
-    elif force_no_tls:
-        tls_input = False
-    else:
-        tls_input = True
-    apply_config_overrides(config, host, port, tls_input)
+    config = _get_config_with_overrides(force_tls, force_no_tls, host, port)
 
     client = Arcade(api_key=config.api.key, base_url=config.engine_url)
     user_email = config.user.email if config.user else None
@@ -418,17 +432,53 @@ def evals(
     models: str = typer.Option(
         "gpt-4o", "--models", "-m", help="The models to use for evaluation (default: gpt-4o)"
     ),
+    host: str = typer.Option(
+        None,
+        "-h",
+        "--host",
+        help="The Arcade Engine address to send chat requests to.",
+    ),
+    port: int = typer.Option(
+        None,
+        "-p",
+        "--port",
+        help="The port of the Arcade Engine.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to the Arcade Engine.",
+    ),
 ) -> None:
     """
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
+    config = _get_config_with_overrides(force_tls, force_no_tls, host, port)
+
     models = models.split(",")  # type: ignore[assignment]
     eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
 
     if not eval_files:
         console.print("No evaluation files found.", style="bold yellow")
         return
+
+    if show_details:
+        console.print(
+            Text.assemble(
+                ("\nRunning evaluations against Arcade Engine at ", "bold"),
+                (config.engine_url, "bold blue"),
+            )
+        )
+
+    # Try to hit /health endpoint on engine and warn if it is down
+    client = Arcade(api_key=config.api.key, base_url=config.engine_url)
+    log_engine_health(client)
 
     for file in eval_files:
         file_path = os.path.join(directory, file)
@@ -441,19 +491,28 @@ def evals(
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore[union-attr]
 
-        eval_functions = [
+        eval_suites = [
             obj
             for name, obj in module.__dict__.items()
             if callable(obj) and hasattr(obj, "__tool_eval__")
         ]
 
-        if not eval_functions:
+        if not eval_suites:
             console.print(f"No @tool_eval functions found in {file}", style="bold yellow")
             continue
 
-        for func in eval_functions:
-            console.print(f"\nRunning evaluation from {file}: {func.__name__}", style="bold blue")
-            results = func(models=models, max_concurrency=max_concurrent)
+        if show_details:
+            suite_label = "suite" if len(eval_suites) == 1 else "suites"
+            console.print(f"\nFound {len(eval_suites)} {suite_label} in {file}", style="bold")
+
+        for suite_func in eval_suites:
+            console.print(
+                Text.assemble(
+                    ("\nRunning evaluations in ", "bold"),
+                    (suite_func.__name__, "bold blue"),
+                )
+            )
+            results = suite_func(config=config, models=models, max_concurrency=max_concurrent)
             display_eval_results(results, show_details=show_details)
 
 
