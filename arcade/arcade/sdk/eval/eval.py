@@ -102,15 +102,13 @@ class EvaluationResult:
             expected: The expected value for the critic.
             actual: The actual value for the critic.
         """
-        self.results.append(
-            {
-                "field": field,
-                **result,
-                "weight": weight,
-                "expected": expected,
-                "actual": actual,
-            }
-        )
+        self.results.append({
+            "field": field,
+            **result,
+            "weight": weight,
+            "expected": expected,
+            "actual": actual,
+        })
 
     def score_tool_selection(self, expected: str, actual: str, weight: float) -> float:
         """
@@ -483,10 +481,10 @@ class EvalSuite:
         """
         expected = [
             ExpectedToolCall(
-                name=str(self.catalog.get_fq_name(tool_name)),
+                name=str(self.catalog.find_tool_by_func(func).get_fully_qualified_name()),
                 args=args,
             )
-            for tool_name, args in expected_tool_calls
+            for func, args in expected_tool_calls
         ]
         case = EvalCase(
             name=name,
@@ -538,10 +536,10 @@ class EvalSuite:
         if expected_tool_calls:
             expected = [
                 ExpectedToolCall(
-                    name=str(self.catalog.get_fq_name(tool_name)),
+                    name=str(self.catalog.find_tool_by_func(func).get_fully_qualified_name()),
                     args=args,
                 )
-                for tool_name, args in expected_tool_calls
+                for func, args in expected_tool_calls
             ]
 
         # Create a new case, copying from the last one and updating fields
@@ -642,12 +640,10 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append(
-                (
-                    tool_call.function.name,
-                    json.loads(tool_call.function.arguments),
-                )
-            )
+            tool_args_list.append((
+                tool_call.function.name,
+                json.loads(tool_call.function.arguments),
+            ))
     return tool_args_list
 
 

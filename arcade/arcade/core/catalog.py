@@ -208,13 +208,13 @@ class ToolCatalog(BaseModel):
     def get_tool_names(self) -> list[FullyQualifiedName]:
         return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
 
-    def get_fq_name(self, func: Callable) -> FullyQualifiedName:
+    def find_tool_by_func(self, func: Callable) -> ToolDefinition:
         """
-        Get the fully-qualified name of a tool function.
+        Find a tool by its function.
         """
         for _, tool in self._tools.items():
             if tool.tool == func:
-                return tool.definition.get_fully_qualified_name()
+                return tool.definition
         raise ValueError(f"Tool {func} not found in the catalog.")
 
     def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
