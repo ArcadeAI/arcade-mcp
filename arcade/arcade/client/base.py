@@ -12,7 +12,7 @@ from arcade.client.errors import (
     RateLimitError,
     UnauthorizedError,
 )
-from arcade.client.schema import API_BASE_URL, API_KEY, OPENAI_API_VERSION
+from arcade.client.schema import OPENAI_API_VERSION
 
 T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
@@ -33,8 +33,8 @@ class BaseArcadeClient:
 
     def __init__(
         self,
-        base_url: str = API_BASE_URL,
-        api_key: str = API_KEY,
+        base_url: str | None = None,
+        api_key: str | None = None,
         headers: dict[str, str] | None = None,
         timeout: float | Timeout = 10.0,
         retries: int = 3,
@@ -49,8 +49,14 @@ class BaseArcadeClient:
             timeout: Request timeout in seconds.
             retries: Number of retries for failed requests.
         """
+        if base_url is None or api_key is None:
+            from arcade.core.config import config
+
+            base_url = base_url or config.engine_url
+            api_key = api_key or config.api.key
         self._base_url = base_url
         self._api_key = api_key
+
         self._headers = headers or {}
         self._headers.setdefault("Authorization", f"Bearer {self._api_key}")
         self._headers.setdefault("Content-Type", "application/json")
