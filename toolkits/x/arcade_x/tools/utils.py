@@ -28,6 +28,10 @@ def parse_search_recent_tweets_response(response: Response) -> str:
     ]
     """
     tweets_data = json.loads(response.text)
+
+    if not sanity_check_tweets_data(tweets_data):
+        return json.dumps({"tweets": []})
+
     for tweet in tweets_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
@@ -38,3 +42,15 @@ def parse_search_recent_tweets_response(response: Response) -> str:
         tweet_data["author_name"] = user_data["name"]
 
     return json.dumps({"tweets": tweets_data["data"]})
+
+
+def sanity_check_tweets_data(tweets_data: dict) -> bool:
+    """
+    Sanity check the tweets data.
+    Returns True if the tweets data is valid and contains tweets, False otherwise.
+    """
+    if not tweets_data.get("data", []):
+        return False
+    if not tweets_data.get("includes", {}).get("users", []):
+        return False
+    return True
