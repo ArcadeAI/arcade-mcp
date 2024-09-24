@@ -2,7 +2,7 @@ import os
 
 from modal import App, Image, asgi_app
 
-os.environ["WORK_DIR"] = "/root"
+os.environ["ARCADE_WORK_DIR"] = "/root"
 
 # Define the FastAPI app
 app = App("arcade-ai-actor")

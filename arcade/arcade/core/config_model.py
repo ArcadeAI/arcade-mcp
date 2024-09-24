@@ -86,8 +86,7 @@ class Config(BaseConfig):
         """
         Get the path to the Arcade configuration directory.
         """
-        # TODO change to ARCADE_WORK_DIR
-        config_path = os.getenv("WORK_DIR") or Path.home() / ".arcade"
+        config_path = os.getenv("ARCADE_WORK_DIR") or Path.home() / ".arcade"
         return Path(config_path).resolve()
 
     @classmethod

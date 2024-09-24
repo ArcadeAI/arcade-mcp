@@ -8,7 +8,7 @@ ARG HOST=0.0.0.0
 # Set environment variables using the build arguments
 ENV PORT=${PORT}
 ENV HOST=${HOST}
-ENV WORK_DIR=/app
+ENV ARCADE_WORK_DIR=/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -45,8 +45,8 @@ WORKDIR /app/toolkits
 # Install toolkits from the toolkits directory
 RUN set -e; \
     for toolkit in ./*; do \
-        echo "Installing toolkit $toolkit"; \
-        pip install $toolkit; \
+    echo "Installing toolkit $toolkit"; \
+    pip install $toolkit; \
     done
 
 
