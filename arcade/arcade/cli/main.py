@@ -299,7 +299,7 @@ def chat(
         raise typer.Exit()
 
 
-@cli.command(help="Start an Arcade Actor server", rich_help_panel="Launch")
+@cli.command(help="Start a local Arcade Actor server", rich_help_panel="Launch")
 def dev(
     host: str = typer.Option(
         "127.0.0.1", help="Host for the app, from settings by default.", show_default=True
@@ -330,7 +330,7 @@ def dev(
         raise typer.Exit(code=1)
 
 
-@cli.command(help="Show/edit configuration details of the Arcade Engine", rich_help_panel="User")
+@cli.command(help="Show/edit the local Arcade configuration", rich_help_panel="User")
 def config(
     action: str = typer.Argument("show", help="The action to take (show/edit)"),
     key: str = typer.Option(
