@@ -1,8 +1,8 @@
 import asyncio
-from contextlib import asynccontextmanager
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 from typing import Any
 
 from loguru import logger
@@ -67,7 +67,7 @@ def setup_logging(log_level: int = logging.INFO) -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: fastapi.FastAPI):
+async def lifespan(app: fastapi.FastAPI):  # type: ignore[no-untyped-def]
     try:
         yield
     except asyncio.CancelledError:
@@ -133,7 +133,7 @@ def serve_default_actor(
     )
     server = CustomUvicornServer(config=config)
 
-    async def serve():
+    async def serve() -> None:
         await server.serve()
 
     try:
