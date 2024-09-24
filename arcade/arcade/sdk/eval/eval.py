@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
+from arcade.core.config_model import Config
 from arcade.core.schema import FullyQualifiedName
 
 try:
@@ -440,12 +441,10 @@ class EvalSuite:
     max_concurrent: int = 1  # Default to sequential execution
     _client: AsyncArcade | Arcade | None = None
 
-    def initialize_client(self) -> None:
+    def initialize_client(self, config: Config) -> None:
         """
         Initialize the client instance for the EvalSuite.
         """
-        from arcade.core.config import config
-
         if self.max_concurrent > 1:
             self._client = AsyncArcade(
                 api_key=config.api.key,
@@ -605,7 +604,7 @@ class EvalSuite:
 
         return results
 
-    def run(self, model: str) -> dict[str, Any]:
+    def run(self, config: Config, model: str) -> dict[str, Any]:
         """
         Run the evaluation suite.
 
@@ -616,7 +615,7 @@ class EvalSuite:
             A dictionary containing the evaluation results.
         """
         if not self._client:
-            self.initialize_client()
+            self.initialize_client(config)
 
         if self.max_concurrent > 1:
             # Run asynchronously with concurrency
@@ -666,6 +665,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(
+            config: Config,
             models: list[str],
             max_concurrency: int = 1,
         ) -> list[dict[str, Any]]:
@@ -675,7 +675,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             suite.max_concurrent = max_concurrency
             results = []
             for model in models:
-                result = suite.run(model)
+                result = suite.run(config, model)
                 results.append(result)
             return results
 
