@@ -14,12 +14,14 @@ from langgraph.prebuilt import create_react_agent
 # %pip install -qU langchain-openai
 # %pip install -qU langgraph
 from arcade.client import Arcade
+from arcade.client.types import AuthProvider
 
 client = Arcade()
 
 # Start the authorization process for the tool "ListEmails"
-auth_response = client.tool.authorize(
-    tool_name="ListEmails",
+auth_response = client.auth.authorize(
+    provider=AuthProvider.Google,
+    scopes=["https://www.googleapis.com/auth/gmail.compose"],
     user_id="sam@arcade-ai.com",
 )
 

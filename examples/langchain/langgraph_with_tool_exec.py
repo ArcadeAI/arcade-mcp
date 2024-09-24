@@ -8,7 +8,7 @@ from langgraph.graph import END, START, StateGraph
 
 from arcade.client import Arcade
 
-client = Arcade(api_key=os.environ["ARCADE_API_KEY"], base_url="http://127.0.0.1:9099")
+client = Arcade(api_key=os.environ["ARCADE_API_KEY"])
 
 
 class State(TypedDict):

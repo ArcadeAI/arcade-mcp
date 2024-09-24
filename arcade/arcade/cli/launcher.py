@@ -120,7 +120,7 @@ def _get_engine_config(engine_config: str | None) -> str:
     return str(engine_config_path)
 
 
-def _build_actor_command(host: str, port: int) -> list:
+def _build_actor_command(host: str, port: int) -> list[str]:
     """
     Builds the command to start the actor server.
 
@@ -131,10 +131,13 @@ def _build_actor_command(host: str, port: int) -> list:
     Returns:
         The command as a list.
     """
-    # expand full path to "arcade" executable
+    # Expand full path to "arcade" executable
     arcade_bin = shutil.which("arcade")
     if not arcade_bin:
-        console.print("❌ Arcade binary not found", style="bold red")
+        console.print(
+            "❌ Arcade binary not found, please install with `pip install arcade-ai`",
+            style="bold red",
+        )
         sys.exit(1)
     cmd = [
         arcade_bin,
@@ -147,7 +150,7 @@ def _build_actor_command(host: str, port: int) -> list:
     return cmd
 
 
-def _build_engine_command(engine_config: str) -> list:
+def _build_engine_command(engine_config: str) -> list[str]:
     """
     Builds the command to start the engine.
 
@@ -159,7 +162,11 @@ def _build_engine_command(engine_config: str) -> list:
     """
     engine_bin = shutil.which("engine")
     if not engine_bin:
-        console.print("❌ Engine binary not found", style="bold red")
+        console.print(
+            "❌ Engine binary not found, refer to the installation guide at "
+            "https://docs.arcade-ai.com/docs/home/deployment for how to install the engine",
+            style="bold red",
+        )
         sys.exit(1)
     cmd = [
         engine_bin,
@@ -170,7 +177,7 @@ def _build_engine_command(engine_config: str) -> list:
     return cmd
 
 
-def _manage_processes(actor_cmd: list, engine_cmd: list) -> None:
+def _manage_processes(actor_cmd: list[str], engine_cmd: list[str]) -> None:
     """
     Manages the lifecycle of the actor and engine processes.
 
@@ -181,15 +188,19 @@ def _manage_processes(actor_cmd: list, engine_cmd: list) -> None:
     actor_process: subprocess.Popen | None = None
     engine_process: subprocess.Popen | None = None
 
-    def terminate_processes() -> None:
+    def terminate_processes(exit_program: bool = False) -> None:
         console.print("Terminating child processes...", style="bold yellow")
         _terminate_process(actor_process)
         _terminate_process(engine_process)
-        sys.exit(0)
+        if exit_program:
+            sys.exit(0)
 
     _setup_signal_handlers(terminate_processes)
 
-    while True:
+    retry_count = 0
+    max_retries = 3  # Define the maximum number of retries
+
+    while retry_count <= max_retries:
         try:
             # Start the actor server
             console.print("Starting actor server...", style="bold green")
@@ -205,13 +216,34 @@ def _manage_processes(actor_cmd: list, engine_cmd: list) -> None:
             # Monitor processes
             _monitor_processes(actor_process, engine_process)
 
+            # If we reach here, one of the processes has exited
+            retry_count += 1
+            console.print(
+                f"Processes exited. Retry {retry_count} of {max_retries}.", style="bold yellow"
+            )
+
+            if retry_count > max_retries:
+                console.print(f"❌ Exiting after {retry_count - 1} retries", style="bold red")
+                terminate_processes(exit_program=True)
+                break  # Exit the loop
+
         except Exception as e:
-            console.print(f"❌ Error: {e}", style="bold red")
+            console.print(f"❌ Exception occurred: {e}", style="bold red")
             terminate_processes()
-            break
+            retry_count += 1
+            if retry_count > max_retries:
+                console.print(
+                    f"❌ Exiting after {retry_count - 1} retries due to exceptions",
+                    style="bold red",
+                )
+                sys.exit(1)
+                break  # Not strictly necessary, but good practice
+
+    console.print("Exiting...", style="bold red")
+    sys.exit(1)
 
 
-def _start_process(name: str, cmd: list) -> subprocess.Popen:
+def _start_process(name: str, cmd: list[str]) -> subprocess.Popen:
     """
     Starts a subprocess and begins streaming its output.
 
@@ -251,7 +283,9 @@ def _stream_output(process: subprocess.Popen, name: str) -> None:
     """
     stdout_style = "green" if name == "Actor" else "#87CEFA"
 
-    def stream(pipe: io.TextIOWrapper, style: str) -> None:
+    def stream(pipe: io.TextIOWrapper | None, style: str) -> None:
+        if pipe is None:
+            return
         with pipe:
             for line in iter(pipe.readline, ""):
                 console.print(f"[{style}]{name}>[/{style}] {line.rstrip()}")
@@ -306,7 +340,7 @@ def _terminate_process(process: subprocess.Popen | None) -> None:
             process.kill()
 
 
-def _setup_signal_handlers(terminate_processes: Callable[[], None]) -> None:
+def _setup_signal_handlers(terminate_processes: Callable[[bool], None]) -> None:
     """
     Setup signal handlers to handle process termination signals.
 
@@ -320,14 +354,18 @@ def _setup_signal_handlers(terminate_processes: Callable[[], None]) -> None:
         if sig is None:
             continue  # Signal not available on this platform
         try:
-            signal.signal(sig, lambda signum, frame: _handle_signal(signum, terminate_processes))
+            # Use a lambda to pass the terminate_processes function
+            signal.signal(
+                sig,
+                lambda signum, frame: _handle_signal(signum, terminate_processes),
+            )
         except (ValueError, RuntimeError):
             # Signal handling not allowed in this thread or invalid signal
             console.print(f"Warning: Cannot set handler for {sig_name}", style="bold yellow")
             continue
 
 
-def _handle_signal(signum: int, terminate_processes: Callable[[], None]) -> None:
+def _handle_signal(signum: int, terminate_processes: Callable[[bool], None]) -> None:
     """
     Handle received signal and terminate child processes.
 
@@ -337,4 +375,4 @@ def _handle_signal(signum: int, terminate_processes: Callable[[], None]) -> None
     """
     signal_name = signal.Signals(signum).name
     console.print(f"Received {signal_name}. Shutting down...", style="bold yellow")
-    terminate_processes()
+    terminate_processes(exit_program=True)  # type: ignore[call-arg]
