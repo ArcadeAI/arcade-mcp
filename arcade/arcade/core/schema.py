@@ -1,9 +1,11 @@
+import os
 from dataclasses import dataclass
 from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
 
-TOOL_NAME_SEPARATOR = "."
+# allow for custom tool name separator
+TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
 
 
 class ValueSchema(BaseModel):

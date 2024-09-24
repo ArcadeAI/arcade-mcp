@@ -163,6 +163,13 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
+    def add_module(self, module: ModuleType) -> None:
+        """
+        Add all the tools in a module to the catalog.
+        """
+        toolkit = Toolkit.from_module(module)
+        self.add_toolkit(toolkit)
+
     def add_toolkit(self, toolkit: Toolkit) -> None:
         """
         Add the tools from a loaded toolkit to the catalog.
@@ -200,6 +207,15 @@ class ToolCatalog(BaseModel):
 
     def get_tool_names(self) -> list[FullyQualifiedName]:
         return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+
+    def get_fq_name(self, func: Callable) -> FullyQualifiedName:
+        """
+        Get the fully-qualified name of a tool function.
+        """
+        for _, tool in self._tools.items():
+            if tool.tool == func:
+                return tool.definition.get_fully_qualified_name()
+        raise ValueError(f"Tool {func} not found in the catalog.")
 
     def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
         """
