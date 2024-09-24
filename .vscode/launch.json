@@ -38,7 +38,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["evals", "-d", "${fileDirname}"],
+      "args": ["evals", "-d", "${fileDirname}", "-h", "localhost"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

@@ -48,8 +48,6 @@ from arcade.core.utils import (
 from arcade.sdk.annotations import Inferrable
 from arcade.sdk.auth import BaseOAuth2, ToolAuthorization
 
-DEFAULT_TOOLKIT_NAME = "Tools"
-
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
 
@@ -116,7 +114,7 @@ class ToolCatalog(BaseModel):
     def add_tool(
         self,
         tool_func: Callable,
-        toolkit_or_name: Union[str | None, Toolkit] = None,
+        toolkit_or_name: Union[str, Toolkit],
         module: ModuleType | None = None,
     ) -> None:
         """
@@ -131,9 +129,6 @@ class ToolCatalog(BaseModel):
         elif isinstance(toolkit_or_name, str):
             toolkit = None
             toolkit_name = toolkit_or_name
-        else:
-            toolkit = None
-            toolkit_name = DEFAULT_TOOLKIT_NAME
 
         if not toolkit_name:
             raise ValueError("A toolkit name or toolkit must be provided.")

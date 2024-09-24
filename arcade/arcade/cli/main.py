@@ -7,7 +7,6 @@ import webbrowser
 from typing import Any, Optional
 from urllib.parse import urlencode
 
-from arcade.core.config_model import Config
 import typer
 from rich.console import Console
 from rich.markdown import Markdown
@@ -30,6 +29,7 @@ from arcade.cli.utils import (
 )
 from arcade.client import Arcade
 from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
+from arcade.core.config_model import Config
 
 cli = typer.Typer(
     cls=OrderCommands,
@@ -508,7 +508,7 @@ def evals(
         for suite_func in eval_suites:
             console.print(
                 Text.assemble(
-                    (f"\nRunning evaluations in ", "bold"),
+                    ("\nRunning evaluations in ", "bold"),
                     (suite_func.__name__, "bold blue"),
                 )
             )
