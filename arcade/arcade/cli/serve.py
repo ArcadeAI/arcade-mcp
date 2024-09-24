@@ -1,3 +1,5 @@
+import asyncio
+from contextlib import asynccontextmanager
 import logging
 import os
 import sys
@@ -64,6 +66,16 @@ def setup_logging(log_level: int = logging.INFO) -> None:
     )
 
 
+@asynccontextmanager
+async def lifespan(app: fastapi.FastAPI):
+    try:
+        yield
+    except asyncio.CancelledError:
+        # This is necessary to prevent an unhandled error
+        # when the user presses Ctrl+C
+        logger.debug("Lifespan cancelled.")
+
+
 def serve_default_actor(
     host: str = "127.0.0.1",
     port: int = 8002,
@@ -98,6 +110,7 @@ def serve_default_actor(
         title="Arcade AI Actor",
         description="Arcade AI default Actor implementation using FastAPI.",
         version="0.1.0",
+        lifespan=lifespan,  # Use custom lifespan to catch errors, notably KeyboardInterrupt (Ctrl+C)
     )
     actor = FastAPIActor(app, secret=actor_secret, disable_auth=disable_auth)
     for toolkit in toolkits:
@@ -107,7 +120,7 @@ def serve_default_actor(
 
     class CustomUvicornServer(uvicorn.Server):
         def install_signal_handlers(self) -> None:
-            pass
+            pass  # Disable Uvicorn's default signal handlers
 
     config = uvicorn.Config(
         app=app,
@@ -119,4 +132,13 @@ def serve_default_actor(
         **kwargs,
     )
     server = CustomUvicornServer(config=config)
-    server.run()
+
+    async def serve():
+        await server.serve()
+
+    try:
+        asyncio.run(serve())
+    except KeyboardInterrupt:
+        logger.info("Server stopped by user.")
+    finally:
+        logger.debug("Server shutdown complete.")

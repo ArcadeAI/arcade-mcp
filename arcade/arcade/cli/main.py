@@ -323,7 +323,6 @@ def dev(
     try:
         serve_default_actor(host, port, disable_auth)
     except KeyboardInterrupt:
-        console.print("actor stopped by user.", style="bold red")
         typer.Exit()
     except Exception as e:
         error_message = f"❌ Failed to start Arcade Actor: {escape(str(e))}"
