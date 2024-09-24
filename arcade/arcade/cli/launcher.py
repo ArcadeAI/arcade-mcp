@@ -160,7 +160,7 @@ def _build_engine_command(engine_config: str) -> list[str]:
     Returns:
         The command as a list.
     """
-    engine_bin = shutil.which("engine")
+    engine_bin = shutil.which("arcade-engine")
     if not engine_bin:
         console.print(
             "❌ Engine binary not found, refer to the installation guide at "
