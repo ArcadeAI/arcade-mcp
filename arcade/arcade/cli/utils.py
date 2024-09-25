@@ -344,7 +344,7 @@ def wait_for_authorization_completion(client: Arcade, tool_authorization: dict |
 
 
 def get_tool_authorization(
-    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice]
+    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice],
 ) -> dict | None:
     """
     Get the tool authorization from a chat response's choice.
