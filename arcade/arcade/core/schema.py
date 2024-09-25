@@ -136,13 +136,11 @@ class FullyQualifiedName:
         )
 
     def __hash__(self) -> int:
-        return hash(
-            (
-                self.name.lower(),
-                self.toolkit_name.lower(),
-                (self.toolkit_version or "").lower(),
-            )
-        )
+        return hash((
+            self.name.lower(),
+            self.toolkit_name.lower(),
+            (self.toolkit_version or "").lower(),
+        ))
 
     def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
         """Check if two fully-qualified tool names are equal, ignoring the version."""

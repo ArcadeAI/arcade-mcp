@@ -43,9 +43,7 @@ def x_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             (
                 post_tweet,
-                {
-                    "tweet_text": "Hello World! Exciting stuff is happening over at Arcade AI!"
-                },
+                {"tweet_text": "Hello World! Exciting stuff is happening over at Arcade AI!"},
             )
         ],
         critics=[

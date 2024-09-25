@@ -26,9 +26,7 @@ auth_response = client.auth.authorize(
 
 # If authorization is not completed, prompt the user and poll for status
 if auth_response.status != "completed":
-    print(
-        "Please complete the authorization challenge in your browser before continuing:"
-    )
+    print("Please complete the authorization challenge in your browser before continuing:")
     print(auth_response.auth_url)
     input("Press Enter to continue...")
 

@@ -1,5 +1,5 @@
 import os
-from arcade.core.toolkit import Toolkit
+
 import arcade_math
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.client import AsyncArcade
 from arcade.core.config import config
+from arcade.core.toolkit import Toolkit
 
 if not config.api or not config.api.key:
     raise ValueError("Arcade API key not set. Please run `arcade login`.")
@@ -47,6 +48,8 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             tool_choice=tool_choice,
             user=config.user.email if config.user else None,
         )
-        return raw_response.choices
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    else:
+        return raw_response.choices

@@ -1,11 +1,11 @@
 from typing import Annotated
-from arcade.core.errors import ToolExecutionError
-from arcade.sdk.auth import X
+
 import requests
-from arcade.sdk import tool
 
+from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
-
+from arcade.sdk import tool
+from arcade.sdk.auth import X
 from arcade_x.tools.utils import get_tweet_url, parse_search_recent_tweets_response
 
 TWEETS_URL = "https://api.x.com/2/tweets"
@@ -33,9 +33,7 @@ def post_tweet(
         )
 
     tweet_id = response.json()["data"]["id"]
-    return (
-        f"Tweet with id {tweet_id} posted successfully. URL: {get_tweet_url(tweet_id)}"
-    )
+    return f"Tweet with id {tweet_id} posted successfully. URL: {get_tweet_url(tweet_id)}"
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "tweet.write", "users.read"]))
@@ -74,11 +72,11 @@ def search_recent_tweets_by_username(
     }
     params = {
         "query": f"from:{username}",
-        "max_results": max(
-            max_results, 10
-        ),  # X API does not allow 'max_results' less than 10
+        "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
     }
-    url = "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
+    url = (
+        "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
+    )
 
     response = requests.get(url, headers=headers, params=params)
 
@@ -95,12 +93,8 @@ def search_recent_tweets_by_username(
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_keywords(
     context: ToolContext,
-    keywords: Annotated[
-        list[str], "List of keywords that must be present in the tweet"
-    ] = None,
-    phrases: Annotated[
-        list[str], "List of phrases that must be present in the tweet"
-    ] = None,
+    keywords: Annotated[list[str], "List of keywords that must be present in the tweet"] = None,
+    phrases: Annotated[list[str], "List of phrases that must be present in the tweet"] = None,
     max_results: Annotated[
         int, "The maximum number of results to return. Cannot be less than 10"
     ] = 10,
@@ -122,11 +116,11 @@ def search_recent_tweets_by_keywords(
     query = " ".join([f'"{phrase}"' for phrase in phrases]) + " ".join(keywords)
     params = {
         "query": query,
-        "max_results": max(
-            max_results, 10
-        ),  # X API does not allow 'max_results' less than 10
+        "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
     }
-    url = "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
+    url = (
+        "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
+    )
 
     response = requests.get(url, headers=headers, params=params)
 

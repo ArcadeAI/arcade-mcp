@@ -43,7 +43,7 @@ ignore = [
     # DoNotAssignLambda
     "E731",
     # raise from (cli specific)
-    "TRY200",
+    "B904", # Previously "TRY200"
     # Depends function in arg string
     "B008",
     # raise from (cli specific)
@@ -56,6 +56,7 @@ ignore = [
 
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
+"toolkits/*" = ["A002", "TRY300", "C901", "C416", "S113", "RUF013", "SIM103"] # TODO: Remove everything here
 
 [format]
 preview = true

@@ -1,27 +1,28 @@
 import json
-from arcade.core.errors import ToolExecutionError
-from arcade_google.tools.utils import parse_draft_email, parse_email
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from arcade_google.tools.gmail import (
-    send_email,
-    write_draft_email,
-    update_draft_email,
-    send_draft_email,
     delete_draft_email,
     list_draft_emails,
-    list_emails_by_header,
     list_emails,
+    list_emails_by_header,
+    send_draft_email,
+    send_email,
     trash_email,
+    update_draft_email,
+    write_draft_email,
 )
-
-from arcade.core.schema import ToolContext, ToolAuthorizationContext
+from arcade_google.tools.utils import parse_draft_email, parse_email
 from googleapiclient.errors import HttpError
+
+from arcade.core.errors import ToolExecutionError
+from arcade.core.schema import ToolAuthorizationContext, ToolContext
 
 
 @pytest.fixture
 def mock_context():
-    mock_auth = ToolAuthorizationContext(token="fake-token")
+    mock_auth = ToolAuthorizationContext(token="fake-token")  # noqa: S106
     return ToolContext(authorization=mock_auth)
 
 
@@ -214,9 +215,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     mock_build.return_value = mock_service
 
     # Mock the response from the Gmail list drafts API
-    mock_service.users().drafts().list().execute.return_value = (
-        mock_drafts_list_response
-    )
+    mock_service.users().drafts().list().execute.return_value = mock_drafts_list_response
 
     # Mock the response from the Gmail get drafts API
     mock_service.users().drafts().get().execute.return_value = mock_drafts_get_response
@@ -291,22 +290,16 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     mock_build.return_value = mock_service
 
     # Mock the response from the Gmail list messages API
-    mock_service.users().messages().list().execute.return_value = (
-        mock_messages_list_response
-    )
+    mock_service.users().messages().list().execute.return_value = mock_messages_list_response
 
     # Mock the response from the Gmail get messages API
-    mock_service.users().messages().get().execute.return_value = (
-        mock_messages_get_response
-    )
+    mock_service.users().messages().get().execute.return_value = mock_messages_get_response
 
     # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
     mock_parse_email.return_value = parse_email(mock_messages_get_response)
 
     # Test happy path
-    result = await list_emails_by_header(
-        context=mock_context, sender="noreply@github.com", limit=2
-    )
+    result = await list_emails_by_header(context=mock_context, sender="noreply@github.com", limit=2)
 
     assert isinstance(result, str)
     result_json = json.loads(result)
@@ -322,9 +315,7 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     )
 
     with pytest.raises(ToolExecutionError):
-        await list_emails_by_header(
-            context=mock_context, sender="noreply@github.com", limit=2
-        )
+        await list_emails_by_header(context=mock_context, sender="noreply@github.com", limit=2)
 
 
 @pytest.mark.asyncio
@@ -373,14 +364,10 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     mock_build.return_value = mock_service
 
     # Mock the response from the Gmail list messages API
-    mock_service.users().messages().list().execute.return_value = (
-        mock_messages_list_response
-    )
+    mock_service.users().messages().list().execute.return_value = mock_messages_list_response
 
     # Mock the Gmail get messages API
-    mock_service.users().messages().get().execute.return_value = (
-        mock_messages_get_response
-    )
+    mock_service.users().messages().get().execute.return_value = mock_messages_get_response
 
     # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
     mock_parse_email.return_value = parse_email(mock_messages_get_response)

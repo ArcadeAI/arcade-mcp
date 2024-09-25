@@ -30,12 +30,10 @@ test_cases = [
 
 # Generate tool functions dynamically
 def generate_tool_function(input_types: list[type], output_type: type | None):
-    input_annotation = ", ".join(
-        [
-            f"param{i}: Annotated[{input_type.__name__}, 'Param {i + 1}']"
-            for i, input_type in enumerate(input_types)
-        ]
-    )
+    input_annotation = ", ".join([
+        f"param{i}: Annotated[{input_type.__name__}, 'Param {i + 1}']"
+        for i, input_type in enumerate(input_types)
+    ])
     output_annotation = f" -> {output_type.__name__}" if output_type else ""
 
     func_code = f"""
