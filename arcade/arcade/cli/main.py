@@ -2,6 +2,7 @@ import importlib.util
 import os
 import readline
 import threading
+import time
 import uuid
 import webbrowser
 from typing import Any, Optional
@@ -9,7 +10,6 @@ from urllib.parse import urlencode
 
 import typer
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
@@ -21,14 +21,15 @@ from arcade.cli.utils import (
     apply_config_overrides,
     create_cli_catalog,
     display_eval_results,
-    display_streamed_markdown,
     display_tool_messages,
-    get_tool_messages,
-    markdownify_urls,
+    handle_chat_response,
+    handle_streamed_chat_response,
+    is_authorization_pending,
     validate_and_get_config,
 )
 from arcade.client import Arcade
 from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
+from arcade.client.schema import AuthResponse
 from arcade.core.config_model import Config
 
 cli = typer.Typer(
@@ -247,47 +248,42 @@ def chat(
 
             tool_messages: list[dict] = []
 
+            response = None
+
             if stream:
-                # TODO Fix this in the client so users don't deal with these
-                # typing issues
-                stream_response = client.chat.completions.create(  # type: ignore[call-overload]
-                    model=model,
-                    messages=history,
-                    tool_choice="generate",
-                    user=user_email,
-                    stream=True,
-                )
-                role, message_content, tool_messages = display_streamed_markdown(
-                    stream_response, model
-                )
-
-                history += tool_messages
+                (
+                    response,
+                    history,
+                    tool_messages,
+                    tool_authorization,
+                    _,
+                    _,
+                ) = handle_streamed_chat_response(client, model, history, user_email)
             else:
-                response = client.chat.completions.create(  # type: ignore[call-overload]
-                    model=model,
-                    messages=history,
-                    tool_choice="generate",
-                    user=user_email,
-                    stream=False,
+                response, history, tool_messages, tool_authorization, _, _ = handle_chat_response(
+                    client, model, history, user_email
                 )
-                message_content = response.choices[0].message.content or ""
 
-                tool_messages = get_tool_messages(response.choices[0])
-                history += tool_messages
+            # wait for tool authorizations to complete, if any
+            is_auth_pending = is_authorization_pending(tool_authorization)
+            if is_auth_pending:
+                auth_response = AuthResponse.model_validate(tool_authorization)
 
-                role = response.choices[0].message.role
-                if role == "assistant":
-                    message_content = markdownify_urls(message_content)
-                    console.print(
-                        f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
+                while auth_response.status != "completed":
+                    time.sleep(0.5)
+                    auth_response = client.auth.status(auth_response)
+
+                if stream:
+                    response, history, tool_messages, _, _, _ = handle_streamed_chat_response(
+                        client, model, history, user_email
                     )
                 else:
-                    console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+                    response, history, tool_messages, _, _, _ = handle_chat_response(
+                        client, model, history, user_email
+                    )
 
             if debug:
                 display_tool_messages(tool_messages)
-
-            history.append({"role": role, "content": message_content})
 
     except KeyboardInterrupt:
         console.print("Chat stopped by user.", style="bold blue")
