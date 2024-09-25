@@ -249,8 +249,7 @@ def chat(
             )
 
             # wait for tool authorizations to complete, if any
-            is_auth_pending = is_authorization_pending(tool_authorization)
-            if is_auth_pending:
+            if is_authorization_pending(tool_authorization):
                 wait_for_authorization_completion(client, tool_authorization)
                 # re-run the chat request now that authorization is complete
                 history, tool_messages, _ = handle_chat_interaction(
