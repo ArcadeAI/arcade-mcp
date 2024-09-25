@@ -103,13 +103,15 @@ class EvaluationResult:
             expected: The expected value for the critic.
             actual: The actual value for the critic.
         """
-        self.results.append({
-            "field": field,
-            **result,
-            "weight": weight,
-            "expected": expected,
-            "actual": actual,
-        })
+        self.results.append(
+            {
+                "field": field,
+                **result,
+                "weight": weight,
+                "expected": expected,
+                "actual": actual,
+            }
+        )
 
     def score_tool_selection(self, expected: str, actual: str, weight: float) -> float:
         """
@@ -178,6 +180,9 @@ class EvalCase:
         Raises:
             WeightError: If the sum of critic weights exceeds 1.0.
         """
+        if not self.critics:
+            return
+
         total_weight = sum(critic.weight for critic in self.critics)
         if total_weight > 1.0:
             raise WeightError(f"Sum of critic weights must not exceed 1.0, got {total_weight}")
@@ -256,7 +261,7 @@ class EvalCase:
 
         # if no critics for tool call arguments, then return
         # passing score as only tool selection and quantity is checked
-        if len(self.critics) == 0:
+        if not self.critics or len(self.critics) == 0:
             evaluation_result.score = 1.0
             evaluation_result.passed = True
             evaluation_result.warning = False
@@ -333,12 +338,13 @@ class EvalCase:
                 if expected.name == actual_tool:
                     score += self.rubric.tool_selection_weight
 
-                for critic in self.critics:
-                    expected_value = expected.args.get(critic.critic_field)
-                    actual_value = actual_args.get(critic.critic_field)
-                    if expected_value is not None and actual_value is not None:
-                        result = critic.evaluate(expected_value, actual_value)
-                        score += result["score"]
+                if self.critics:
+                    for critic in self.critics:
+                        expected_value = expected.args.get(critic.critic_field)
+                        actual_value = actual_args.get(critic.critic_field)
+                        if expected_value is not None and actual_value is not None:
+                            result = critic.evaluate(expected_value, actual_value)
+                            score += result["score"]
                 cost_matrix[i, j] = score
 
         return cost_matrix
@@ -561,7 +567,7 @@ class EvalSuite:
             user_message=user_message,
             expected_tool_calls=expected,
             rubric=rubric or self.rubric,
-            critics=critics or last_case.critics.copy(),
+            critics=critics or (last_case.critics.copy() if last_case.critics else None),
             additional_messages=new_additional_messages,
         )
 
@@ -652,10 +658,12 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append((
-                tool_call.function.name,
-                json.loads(tool_call.function.arguments),
-            ))
+            tool_args_list.append(
+                (
+                    tool_call.function.name,
+                    json.loads(tool_call.function.arguments),
+                )
+            )
     return tool_args_list
 
 
