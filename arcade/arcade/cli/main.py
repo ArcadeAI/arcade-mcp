@@ -2,7 +2,6 @@ import importlib.util
 import os
 import readline
 import threading
-import time
 import uuid
 import webbrowser
 from typing import Any, Optional
@@ -22,14 +21,13 @@ from arcade.cli.utils import (
     create_cli_catalog,
     display_eval_results,
     display_tool_messages,
-    handle_chat_response,
-    handle_streamed_chat_response,
+    handle_chat_interaction,
     is_authorization_pending,
     validate_and_get_config,
+    wait_for_authorization_completion,
 )
 from arcade.client import Arcade
 from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
-from arcade.client.schema import AuthResponse
 from arcade.core.config_model import Config
 
 cli = typer.Typer(
@@ -246,41 +244,18 @@ def chat(
 
             history.append({"role": "user", "content": user_input})
 
-            tool_messages: list[dict] = []
-
-            response = None
-
-            if stream:
-                (
-                    response,
-                    history,
-                    tool_messages,
-                    tool_authorization,
-                    _,
-                    _,
-                ) = handle_streamed_chat_response(client, model, history, user_email)
-            else:
-                response, history, tool_messages, tool_authorization, _, _ = handle_chat_response(
-                    client, model, history, user_email
-                )
+            history, tool_messages, tool_authorization = handle_chat_interaction(
+                client, model, history, user_email, stream
+            )
 
             # wait for tool authorizations to complete, if any
             is_auth_pending = is_authorization_pending(tool_authorization)
             if is_auth_pending:
-                auth_response = AuthResponse.model_validate(tool_authorization)
-
-                while auth_response.status != "completed":
-                    time.sleep(0.5)
-                    auth_response = client.auth.status(auth_response)
-
-                if stream:
-                    response, history, tool_messages, _, _, _ = handle_streamed_chat_response(
-                        client, model, history, user_email
-                    )
-                else:
-                    response, history, tool_messages, _, _, _ = handle_chat_response(
-                        client, model, history, user_email
-                    )
+                wait_for_authorization_completion(client, tool_authorization)
+                # re-run the chat request now that authorization is complete
+                history, tool_messages, _ = handle_chat_interaction(
+                    client, model, history, user_email, stream
+                )
 
             if debug:
                 display_tool_messages(tool_messages)

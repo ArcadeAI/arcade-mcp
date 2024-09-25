@@ -1,14 +1,17 @@
-from typing import TYPE_CHECKING, Any
+import time
+from typing import TYPE_CHECKING, Any, Union
 
 import typer
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
-from openai.types.chat import ChatCompletion
+from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
+from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from rich.console import Console
 from rich.markdown import Markdown
 from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade.client.client import Arcade
+from arcade.client.schema import AuthResponse
 from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
 from arcade.core.toolkit import Toolkit
@@ -76,15 +79,9 @@ def get_tool_messages(choice: dict) -> list[dict]:
     return []
 
 
-def get_tool_authorization(choice: dict) -> dict:
-    if hasattr(choice, "tool_authorizations") and choice.tool_authorizations:
-        return choice.tool_authorizations[0]  # type: ignore[no-any-return]
-    return None
-
-
 def display_streamed_markdown(
     stream: Stream[ChatCompletionChunk], model: str
-) -> tuple[str, str, list, dict]:
+) -> tuple[str, str, list, dict | None]:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -279,68 +276,90 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
     return "\n".join(result_lines)
 
 
-def is_authorization_pending(tool_authorization: dict) -> bool:
+def handle_chat_interaction(
+    client: Arcade, model: str, history: list[dict], user_email: str | None, stream: bool = False
+) -> tuple[list[dict], list[dict], dict | None]:
+    """
+    Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
+    Handling the chat response includes:
+    - Streaming the response if the stream flag is set
+    - Displaying the response in the console
+    - Getting the tool messages and tool authorization from the response
+    - Updating the history with the response, tool calls, and tool responses
+    """
+    if stream:
+        # TODO Fix this in the client so users don't deal with these
+        # typing issues
+        response = client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=history,
+            tool_choice="generate",
+            user=user_email,
+            stream=True,
+        )
+        role, message_content, tool_messages, tool_authorization = display_streamed_markdown(
+            response, model
+        )
+    else:
+        response = client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=history,
+            tool_choice="generate",
+            user=user_email,
+            stream=False,
+        )
+        message_content = response.choices[0].message.content or ""
+
+        # Get extra fields from the response
+        tool_messages = get_tool_messages(response.choices[0])
+        tool_authorization = get_tool_authorization(response.choices[0])
+
+        role = response.choices[0].message.role
+        if role == "assistant":
+            message_content = markdownify_urls(message_content)
+            console.print(
+                f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
+            )
+        else:
+            console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+
+    history += tool_messages
+    history.append({"role": role, "content": message_content})
+
+    return history, tool_messages, tool_authorization
+
+
+def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
+    """
+    Wait for the authorization for a tool call to complete i.e., wait for the user to click on
+    the approval link and authorize Arcade.
+    """
+    if tool_authorization is None:
+        return
+    auth_response = AuthResponse.model_validate(tool_authorization)
+
+    while auth_response.status != "completed":
+        time.sleep(0.5)
+        auth_response = client.auth.status(auth_response)
+
+
+def get_tool_authorization(
+    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice]
+) -> dict | None:
+    """
+    Get the tool authorization from a chat response's choice.
+    """
+    if hasattr(choice, "tool_authorizations") and choice.tool_authorizations:
+        return choice.tool_authorizations[0]  # type: ignore[no-any-return]
+    return None
+
+
+def is_authorization_pending(tool_authorization: dict | None) -> bool:
     """
     Check if the authorization for a tool call is pending.
+    Expects a chat response's choice.tool_authorizations as input.
     """
-    is_auth_pending = tool_authorization and tool_authorization.get("status", "") == "pending"
+    is_auth_pending = (
+        tool_authorization is not None and tool_authorization.get("status", "") == "pending"
+    )
     return is_auth_pending
-
-
-def handle_chat_response(
-    client: Arcade, model: str, history: list[dict], user_email: str
-) -> tuple[ChatCompletion, list[dict], list[dict], dict, str, str]:
-    """
-    Handle the chat response from the client.
-    """
-
-    response = client.chat.completions.create(  # type: ignore[call-overload]
-        model=model,
-        messages=history,
-        tool_choice="generate",
-        user=user_email,
-        stream=False,
-    )
-    message_content = response.choices[0].message.content or ""
-
-    # Get extra fields from the response
-    tool_messages = get_tool_messages(response.choices[0])
-    tool_authorization = get_tool_authorization(response.choices[0])
-
-    role = response.choices[0].message.role
-    if role == "assistant":
-        message_content = markdownify_urls(message_content)
-        console.print(f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content))
-    else:
-        console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
-
-    history += tool_messages
-    history.append({"role": role, "content": message_content})
-
-    return response, history, tool_messages, tool_authorization, role, message_content
-
-
-def handle_streamed_chat_response(
-    client: Arcade, model: str, history: list[dict], user_email: str
-) -> tuple[Stream[ChatCompletionChunk], list[dict], list[dict], dict, str, str]:
-    """
-    Handle the streamed chat response from the client.
-    """
-
-    # TODO Fix this in the client so users don't deal with these
-    # typing issues
-    response = client.chat.completions.create(  # type: ignore[call-overload]
-        model=model,
-        messages=history,
-        tool_choice="generate",
-        user=user_email,
-        stream=True,
-    )
-    role, message_content, tool_messages, tool_authorization = display_streamed_markdown(
-        response, model
-    )
-
-    history += tool_messages
-    history.append({"role": role, "content": message_content})
-
-    return response, history, tool_messages, tool_authorization, role, message_content
