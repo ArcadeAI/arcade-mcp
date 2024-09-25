@@ -55,7 +55,7 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-"tests/*" = ["S101"]
+"**/tests/*" = ["S101"]
 
 [format]
 preview = true
