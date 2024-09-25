@@ -32,7 +32,7 @@ fastapi = ["fastapi"]
 evals = ["scipy", "numpy", "scikit-learn"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.1.1"
+pytest = "^8.1.2"
 pytest-cov = "^4.0.0"
 mypy = "^1.5.1"
 pre-commit = "^3.4.0"
