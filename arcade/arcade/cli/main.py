@@ -244,17 +244,19 @@ def chat(
 
             history.append({"role": "user", "content": user_input})
 
-            history, tool_messages, tool_authorization = handle_chat_interaction(
-                client, model, history, user_email, stream
-            )
+            chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+            history = chat_result.history
+            tool_messages = chat_result.tool_messages
+            tool_authorization = chat_result.tool_authorization
 
             # wait for tool authorizations to complete, if any
             if is_authorization_pending(tool_authorization):
-                wait_for_authorization_completion(client, tool_authorization)
+                with console.status("Waiting for you to authorize the action...", spinner="dots"):
+                    wait_for_authorization_completion(client, tool_authorization)
                 # re-run the chat request now that authorization is complete
-                history, tool_messages, _ = handle_chat_interaction(
-                    client, model, history, user_email, stream
-                )
+                chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+                history = chat_result.history
+                tool_messages = chat_result.tool_messages
 
             if debug:
                 display_tool_messages(tool_messages)

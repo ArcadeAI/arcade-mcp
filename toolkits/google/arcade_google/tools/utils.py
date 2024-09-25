@@ -2,7 +2,7 @@ import datetime
 import re
 from base64 import urlsafe_b64decode
 from enum import Enum
-from typing import Any, Optional, dict
+from typing import Any, Optional
 
 from bs4 import BeautifulSoup
 

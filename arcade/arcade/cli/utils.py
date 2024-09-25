@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Union
 
 import typer
@@ -79,9 +80,15 @@ def get_tool_messages(choice: dict) -> list[dict]:
     return []
 
 
-def display_streamed_markdown(
-    stream: Stream[ChatCompletionChunk], model: str
-) -> tuple[str, str, list, dict | None]:
+@dataclass
+class StreamingResult:
+    role: str
+    full_message: str
+    tool_messages: list
+    tool_authorization: dict | None
+
+
+def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) -> StreamingResult:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -113,7 +120,7 @@ def display_streamed_markdown(
             full_message = markdownify_urls(full_message)
             live.update(Markdown(full_message))
 
-    return role, full_message, tool_messages, tool_authorization
+    return StreamingResult(role, full_message, tool_messages, tool_authorization)
 
 
 def markdownify_urls(message: str) -> str:
@@ -276,9 +283,16 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
     return "\n".join(result_lines)
 
 
+@dataclass
+class ChatInteractionResult:
+    history: list[dict]
+    tool_messages: list[dict]
+    tool_authorization: dict | None
+
+
 def handle_chat_interaction(
     client: Arcade, model: str, history: list[dict], user_email: str | None, stream: bool = False
-) -> tuple[list[dict], list[dict], dict | None]:
+) -> ChatInteractionResult:
     """
     Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
     Handling the chat response includes:
@@ -297,8 +311,11 @@ def handle_chat_interaction(
             user=user_email,
             stream=True,
         )
-        role, message_content, tool_messages, tool_authorization = display_streamed_markdown(
-            response, model
+        streaming_result = handle_streaming_content(response, model)
+        role, message_content = streaming_result.role, streaming_result.full_message
+        tool_messages, tool_authorization = (
+            streaming_result.tool_messages,
+            streaming_result.tool_authorization,
         )
     else:
         response = client.chat.completions.create(  # type: ignore[call-overload]
@@ -326,7 +343,7 @@ def handle_chat_interaction(
     history += tool_messages
     history.append({"role": role, "content": message_content})
 
-    return history, tool_messages, tool_authorization
+    return ChatInteractionResult(history, tool_messages, tool_authorization)
 
 
 def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
