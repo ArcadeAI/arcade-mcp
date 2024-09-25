@@ -248,9 +248,7 @@ def chat(
             try:
                 chat_result = handle_chat_interaction(client, model, history, user_email, stream)
             except OpenAIError as e:
-                console.print(
-                    f"❌ Failed to get a response from language model: {e}", style="bold red"
-                )
+                console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
                 continue
 
             history = chat_result.history
@@ -267,9 +265,7 @@ def chat(
                         client, model, history, user_email, stream
                     )
                 except OpenAIError as e:
-                    console.print(
-                        f"❌ Failed to get a response from language model: {e}", style="bold red"
-                    )
+                    console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
                     continue
 
                 history = chat_result.history
