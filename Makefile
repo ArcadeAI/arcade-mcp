@@ -74,7 +74,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to arcade/dist
 	@cd arcade && poetry build
 
 	# Create the arcade/dist directory if it doesn't exist
-	@mkdir -p arcade/dist
+	@mkdir -p arcade/dist/toolkits
 
 	# Build and copy wheels for each toolkit
 	@for toolkit_dir in toolkits/*; do \
@@ -82,7 +82,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to arcade/dist
 			toolkit_name=$$(basename "$$toolkit_dir"); \
 			echo "Building $$toolkit_name project..."; \
 			cd "$$toolkit_dir" && poetry build; \
-			cp dist/*.whl ../../arcade/dist; \
+			cp dist/*.whl ../../arcade/dist/toolkits; \
 			cd -; \
 		fi; \
 	done

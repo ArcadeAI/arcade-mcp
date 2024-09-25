@@ -1,6 +1,22 @@
 from typing import Optional
 
 
+class ToolkitError(Exception):
+    """
+    Base class for all errors related to toolkits.
+    """
+
+    pass
+
+
+class ToolkitLoadError(ToolkitError):
+    """
+    Raised when there is an error loading a toolkit.
+    """
+
+    pass
+
+
 class ToolError(Exception):
     """
     Base class for all errors related to tools.

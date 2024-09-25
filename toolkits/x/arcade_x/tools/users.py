@@ -1,10 +1,11 @@
 from typing import Annotated
-from arcade.core.errors import ToolExecutionError
-from arcade.sdk.auth import X
-import requests
-from arcade.sdk import tool
 
+import requests
+
+from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
+from arcade.sdk import tool
+from arcade.sdk.auth import X
 
 
 # Users Lookup Tools. See developer docs for additional available query parameters: https://developer.x.com/en/docs/x-api/users/lookup/api-reference

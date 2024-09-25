@@ -20,12 +20,16 @@ runs:
       with:
         virtualenvs-in-project: true
 
+    - name: Generate poetry.lock
+      run: cd arcade && poetry lock --no-update
+      shell: bash
+
     - name: Load cached venv
       id: cached-poetry-dependencies
       uses: actions/cache@v4
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('poetry.lock') }}
+        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('arcade/poetry.lock') }}
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'

@@ -1,0 +1,63 @@
+target-version = "py39"
+line-length = 100
+fix = true
+
+[lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+    # tryceratops
+    "TRY",
+]
+
+# TODO work to remove these
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+    # raise from (cli specific)
+    "B904", # Previously "TRY200"
+    # Depends function in arg string
+    "B008",
+    # raise from (cli specific)
+    "B904",
+    # long message exceptions
+    "TRY003",
+    # subprocess.Popen
+    "S603",
+]
+
+[lint.per-file-ignores]
+"**/tests/*" = ["S101"]
+"toolkits/*" = ["A002", "TRY300", "C901", "C416", "S113", "RUF013", "SIM103"] # TODO: Remove everything here
+
+[format]
+preview = true
+skip-magic-trailing-comma = false

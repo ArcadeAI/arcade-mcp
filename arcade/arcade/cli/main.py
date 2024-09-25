@@ -9,33 +9,60 @@ from urllib.parse import urlencode
 
 import typer
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade.cli.launcher import start_servers
 from arcade.cli.utils import (
     OrderCommands,
     apply_config_overrides,
     create_cli_catalog,
     display_eval_results,
-    display_streamed_markdown,
     display_tool_messages,
-    get_tool_messages,
-    markdownify_urls,
+    handle_chat_interaction,
+    is_authorization_pending,
     validate_and_get_config,
+    wait_for_authorization_completion,
 )
 from arcade.client import Arcade
 from arcade.client.errors import EngineNotHealthyError, EngineOfflineError
+from arcade.core.config_model import Config
 
 cli = typer.Typer(
     cls=OrderCommands,
+    add_completion=False,
+    no_args_is_help=True,
+    pretty_exceptions_enable=False,
+    pretty_exceptions_show_locals=False,
+    pretty_exceptions_short=True,
 )
 console = Console()
 
 
-@cli.command(help="Log in to Arcade Cloud")
+def _get_config_with_overrides(
+    force_tls: bool,
+    force_no_tls: bool,
+    host_input: str | None = None,
+    port_input: int | None = None,
+) -> Config:
+    """
+    Get the config with CLI-specific optional overrides applied.
+    """
+    config = validate_and_get_config()
+
+    if not force_tls and not force_no_tls:
+        tls_input = None
+    elif force_no_tls:
+        tls_input = False
+    else:
+        tls_input = True
+    apply_config_overrides(config, host_input, port_input, tls_input)
+    return config
+
+
+@cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
 def login(
     host: str = typer.Option(
         "cloud.arcade-ai.com",
@@ -74,7 +101,7 @@ def login(
             server_thread.join()  # Ensure the server thread completes and cleans up
 
 
-@cli.command(help="Log out of Arcade Cloud")
+@cli.command(help="Log out of Arcade Cloud", rich_help_panel="User")
 def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
@@ -89,7 +116,7 @@ def logout() -> None:
         console.print("You're not logged in.", style="bold red")
 
 
-@cli.command(help="Create a new toolkit package directory")
+@cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
 def new(
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
 ) -> None:
@@ -105,7 +132,10 @@ def new(
         console.print(error_message, style="bold red")
 
 
-@cli.command(help="Show the available tools in an actor or toolkit directory")
+@cli.command(
+    help="Show the installed toolkits",
+    rich_help_panel="Tool Development",
+)
 def show(
     toolkit: Optional[str] = typer.Option(
         None, "-t", "--toolkit", help="The toolkit to show the tools of"
@@ -139,12 +169,13 @@ def show(
         console.print(error_message, style="bold red")
 
 
-@cli.command(help="Chat with a language model")
+@cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
 def chat(
     model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
         None,
         "-h",
@@ -167,20 +198,11 @@ def chat(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Chat with a language model.
     """
-    config = validate_and_get_config()
-
-    if not force_tls and not force_no_tls:
-        tls_input = None
-    elif force_no_tls:
-        tls_input = False
-    else:
-        tls_input = True
-    apply_config_overrides(config, host, port, tls_input)
+    config = _get_config_with_overrides(force_tls, force_no_tls, host, port)
 
     client = Arcade(api_key=config.api.key, base_url=config.engine_url)
     user_email = config.user.email if config.user else None
@@ -222,49 +244,22 @@ def chat(
 
             history.append({"role": "user", "content": user_input})
 
-            tool_messages: list[dict] = []
+            chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+            history = chat_result.history
+            tool_messages = chat_result.tool_messages
+            tool_authorization = chat_result.tool_authorization
 
-            if stream:
-                # TODO Fix this in the client so users don't deal with these
-                # typing issues
-                stream_response = client.chat.completions.create(  # type: ignore[call-overload]
-                    model=model,
-                    messages=history,
-                    tool_choice="generate",
-                    user=user_email,
-                    stream=True,
-                )
-                role, message_content, tool_messages = display_streamed_markdown(
-                    stream_response, model
-                )
-
-                history += tool_messages
-            else:
-                response = client.chat.completions.create(  # type: ignore[call-overload]
-                    model=model,
-                    messages=history,
-                    tool_choice="generate",
-                    user=user_email,
-                    stream=False,
-                )
-                message_content = response.choices[0].message.content or ""
-
-                tool_messages = get_tool_messages(response.choices[0])
-                history += tool_messages
-
-                role = response.choices[0].message.role
-                if role == "assistant":
-                    message_content = markdownify_urls(message_content)
-                    console.print(
-                        f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
-                    )
-                else:
-                    console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+            # wait for tool authorizations to complete, if any
+            if is_authorization_pending(tool_authorization):
+                with console.status("Waiting for you to authorize the action...", spinner="dots"):
+                    wait_for_authorization_completion(client, tool_authorization)
+                # re-run the chat request now that authorization is complete
+                chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+                history = chat_result.history
+                tool_messages = chat_result.tool_messages
 
             if debug:
                 display_tool_messages(tool_messages)
-
-            history.append({"role": role, "content": message_content})
 
     except KeyboardInterrupt:
         console.print("Chat stopped by user.", style="bold blue")
@@ -276,7 +271,7 @@ def chat(
         raise typer.Exit()
 
 
-@cli.command(help="Start an Actor server with specified configurations.")
+@cli.command(help="Start a local Arcade Actor server", rich_help_panel="Launch")
 def dev(
     host: str = typer.Option(
         "127.0.0.1", help="Host for the app, from settings by default.", show_default=True
@@ -300,7 +295,6 @@ def dev(
     try:
         serve_default_actor(host, port, disable_auth)
     except KeyboardInterrupt:
-        console.print("actor stopped by user.", style="bold red")
         typer.Exit()
     except Exception as e:
         error_message = f"❌ Failed to start Arcade Actor: {escape(str(e))}"
@@ -308,7 +302,7 @@ def dev(
         raise typer.Exit(code=1)
 
 
-@cli.command(help="Show/edit configuration details of the Arcade Engine")
+@cli.command(help="Show/edit the local Arcade configuration", rich_help_panel="User")
 def config(
     action: str = typer.Argument("show", help="The action to take (show/edit)"),
     key: str = typer.Option(
@@ -396,7 +390,7 @@ def display_config_as_table(config) -> None:  # type: ignore[no-untyped-def]
     console.print(table)
 
 
-@cli.command(help="Run evaluation suites in a directory")
+@cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
     show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
@@ -409,17 +403,53 @@ def evals(
     models: str = typer.Option(
         "gpt-4o", "--models", "-m", help="The models to use for evaluation (default: gpt-4o)"
     ),
+    host: str = typer.Option(
+        None,
+        "-h",
+        "--host",
+        help="The Arcade Engine address to send chat requests to.",
+    ),
+    port: int = typer.Option(
+        None,
+        "-p",
+        "--port",
+        help="The port of the Arcade Engine.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to the Arcade Engine.",
+    ),
 ) -> None:
     """
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
+    config = _get_config_with_overrides(force_tls, force_no_tls, host, port)
+
     models = models.split(",")  # type: ignore[assignment]
     eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
 
     if not eval_files:
         console.print("No evaluation files found.", style="bold yellow")
         return
+
+    if show_details:
+        console.print(
+            Text.assemble(
+                ("\nRunning evaluations against Arcade Engine at ", "bold"),
+                (config.engine_url, "bold blue"),
+            )
+        )
+
+    # Try to hit /health endpoint on engine and warn if it is down
+    client = Arcade(api_key=config.api.key, base_url=config.engine_url)
+    log_engine_health(client)
 
     for file in eval_files:
         file_path = os.path.join(directory, file)
@@ -432,17 +462,48 @@ def evals(
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore[union-attr]
 
-        eval_functions = [
+        eval_suites = [
             obj
             for name, obj in module.__dict__.items()
             if callable(obj) and hasattr(obj, "__tool_eval__")
         ]
 
-        if not eval_functions:
+        if not eval_suites:
             console.print(f"No @tool_eval functions found in {file}", style="bold yellow")
             continue
 
-        for func in eval_functions:
-            console.print(f"\nRunning evaluation from {file}: {func.__name__}", style="bold blue")
-            results = func(models=models, max_concurrency=max_concurrent)
+        if show_details:
+            suite_label = "suite" if len(eval_suites) == 1 else "suites"
+            console.print(f"\nFound {len(eval_suites)} {suite_label} in {file}", style="bold")
+
+        for suite_func in eval_suites:
+            console.print(
+                Text.assemble(
+                    ("\nRunning evaluations in ", "bold"),
+                    (suite_func.__name__, "bold blue"),
+                )
+            )
+            results = suite_func(config=config, models=models, max_concurrency=max_concurrent)
             display_eval_results(results, show_details=show_details)
+
+
+@cli.command(help="Start an Arcade Cluster instance", rich_help_panel="Launch")
+def up(
+    host: str = typer.Option("127.0.0.1", help="Host for the actor server.", show_default=True),
+    port: int = typer.Option(
+        8002, "-p", "--port", help="Port for the actor server.", show_default=True
+    ),
+    engine_config: str = typer.Option(
+        None, "-c", "--config", help="Path to the engine configuration file."
+    ),
+) -> None:
+    """
+    Start both the actor and engine servers.
+    """
+    try:
+        # TODO: pass Engine env vars from here
+        start_servers(host, port, engine_config)
+    except Exception as e:
+        error_message = f"❌ Failed to start servers: {escape(str(e))}"
+        console.print(error_message, style="bold red")
+        typer.Exit(code=1)

@@ -1,9 +1,11 @@
+import os
 from dataclasses import dataclass
 from typing import Any, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, Field
 
-TOOL_NAME_SEPARATOR = "."
+# allow for custom tool name separator
+TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
 
 
 class ValueSchema(BaseModel):
@@ -134,13 +136,11 @@ class FullyQualifiedName:
         )
 
     def __hash__(self) -> int:
-        return hash(
-            (
-                self.name.lower(),
-                self.toolkit_name.lower(),
-                (self.toolkit_version or "").lower(),
-            )
-        )
+        return hash((
+            self.name.lower(),
+            self.toolkit_name.lower(),
+            (self.toolkit_version or "").lower(),
+        ))
 
     def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
         """Check if two fully-qualified tool names are equal, ignoring the version."""

@@ -1,14 +1,21 @@
-from typing import TYPE_CHECKING, Any
+import time
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Union
 
 import typer
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
+from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
+from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from rich.console import Console
 from rich.markdown import Markdown
 from typer.core import TyperGroup
 from typer.models import Context
 
+from arcade.client.client import Arcade
+from arcade.client.schema import AuthResponse
 from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
+from arcade.core.errors import ToolkitLoadError
 from arcade.core.toolkit import Toolkit
 
 if TYPE_CHECKING:
@@ -34,10 +41,10 @@ def create_cli_catalog(
         try:
             prefixed_toolkit = "arcade_" + toolkit
             toolkits = [Toolkit.from_package(prefixed_toolkit)]
-        except ValueError:
+        except ToolkitLoadError:
             try:  # try without prefix
                 toolkits = [Toolkit.from_package(toolkit)]
-            except ValueError as e:
+            except ToolkitLoadError as e:
                 console.print(f"❌ {e}", style="bold red")
                 typer.Exit(code=1)
     else:
@@ -74,9 +81,15 @@ def get_tool_messages(choice: dict) -> list[dict]:
     return []
 
 
-def display_streamed_markdown(
-    stream: Stream[ChatCompletionChunk], model: str
-) -> tuple[str, str, list]:
+@dataclass
+class StreamingResult:
+    role: str
+    full_message: str
+    tool_messages: list
+    tool_authorization: dict | None
+
+
+def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) -> StreamingResult:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -84,6 +97,7 @@ def display_streamed_markdown(
 
     full_message = ""
     tool_messages = []
+    tool_authorization = None
     role = ""
     with Live(console=console, refresh_per_second=10) as live:
         for chunk in stream:
@@ -100,13 +114,14 @@ def display_streamed_markdown(
 
             # Display and get tool messages if they exist
             tool_messages += get_tool_messages(choice)  # type: ignore[arg-type]
+            tool_authorization = get_tool_authorization(choice)
 
         # Markdownify URLs in the final message if applicable
         if role == "assistant":
             full_message = markdownify_urls(full_message)
             live.update(Markdown(full_message))
 
-    return role, full_message, tool_messages
+    return StreamingResult(role, full_message, tool_messages, tool_authorization)
 
 
 def markdownify_urls(message: str) -> str:
@@ -249,18 +264,120 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
         A formatted string representation of the evaluation details.
     """
     result_lines = []
-    for critic_result in evaluation.results:
-        match_color = "green" if critic_result["match"] else "red"
-        field = critic_result["field"]
-        score = critic_result["score"]
-        weight = critic_result["weight"]
-        expected = critic_result["expected"]
-        actual = critic_result["actual"]
-        result_lines.append(
-            f"[bold]{field}:[/bold] "
-            f"[{match_color}]Match: {critic_result['match']}, "
-            f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
-            f"\n    Expected: {expected}"
-            f"\n    Actual: {actual}"
-        )
+    if evaluation.failure_reason:
+        result_lines.append(f"[bold red]Failure Reason:[/bold red] {evaluation.failure_reason}")
+    else:
+        for critic_result in evaluation.results:
+            match_color = "green" if critic_result["match"] else "red"
+            field = critic_result["field"]
+            score = critic_result["score"]
+            weight = critic_result["weight"]
+            expected = critic_result["expected"]
+            actual = critic_result["actual"]
+            result_lines.append(
+                f"[bold]{field}:[/bold] "
+                f"[{match_color}]Match: {critic_result['match']}, "
+                f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
+                f"\n    Expected: {expected}"
+                f"\n    Actual: {actual}"
+            )
     return "\n".join(result_lines)
+
+
+@dataclass
+class ChatInteractionResult:
+    history: list[dict]
+    tool_messages: list[dict]
+    tool_authorization: dict | None
+
+
+def handle_chat_interaction(
+    client: Arcade, model: str, history: list[dict], user_email: str | None, stream: bool = False
+) -> ChatInteractionResult:
+    """
+    Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
+    Handling the chat response includes:
+    - Streaming the response if the stream flag is set
+    - Displaying the response in the console
+    - Getting the tool messages and tool authorization from the response
+    - Updating the history with the response, tool calls, and tool responses
+    """
+    if stream:
+        # TODO Fix this in the client so users don't deal with these
+        # typing issues
+        response = client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=history,
+            tool_choice="generate",
+            user=user_email,
+            stream=True,
+        )
+        streaming_result = handle_streaming_content(response, model)
+        role, message_content = streaming_result.role, streaming_result.full_message
+        tool_messages, tool_authorization = (
+            streaming_result.tool_messages,
+            streaming_result.tool_authorization,
+        )
+    else:
+        response = client.chat.completions.create(  # type: ignore[call-overload]
+            model=model,
+            messages=history,
+            tool_choice="generate",
+            user=user_email,
+            stream=False,
+        )
+        message_content = response.choices[0].message.content or ""
+
+        # Get extra fields from the response
+        tool_messages = get_tool_messages(response.choices[0])
+        tool_authorization = get_tool_authorization(response.choices[0])
+
+        role = response.choices[0].message.role
+        if role == "assistant":
+            message_content = markdownify_urls(message_content)
+            console.print(
+                f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
+            )
+        else:
+            console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+
+    history += tool_messages
+    history.append({"role": role, "content": message_content})
+
+    return ChatInteractionResult(history, tool_messages, tool_authorization)
+
+
+def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
+    """
+    Wait for the authorization for a tool call to complete i.e., wait for the user to click on
+    the approval link and authorize Arcade.
+    """
+    if tool_authorization is None:
+        return
+    auth_response = AuthResponse.model_validate(tool_authorization)
+
+    while auth_response.status != "completed":
+        time.sleep(0.5)
+        auth_response = client.auth.status(auth_response)
+
+
+def get_tool_authorization(
+    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice],
+) -> dict | None:
+    """
+    Get the tool authorization from a chat response's choice.
+    """
+    if hasattr(choice, "tool_authorizations") and choice.tool_authorizations:
+        return choice.tool_authorizations[0]  # type: ignore[no-any-return]
+    return None
+
+
+def is_authorization_pending(tool_authorization: dict | None) -> bool:
+    """
+    Check if the authorization for a tool call is pending.
+    Expects a chat response's choice.tool_authorizations as input.
+    """
+    is_auth_pending = (
+        tool_authorization is not None and tool_authorization.get("status", "") == "pending"
+    )
+    return is_auth_pending

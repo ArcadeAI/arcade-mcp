@@ -1,4 +1,5 @@
 import json
+
 from requests import Response
 
 
@@ -38,9 +39,7 @@ def parse_search_recent_tweets_response(response: Response) -> str:
     for tweet in tweets_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
-    for tweet_data, user_data in zip(
-        tweets_data["data"], tweets_data["includes"]["users"]
-    ):
+    for tweet_data, user_data in zip(tweets_data["data"], tweets_data["includes"]["users"]):
         tweet_data["author_username"] = user_data["username"]
         tweet_data["author_name"] = user_data["name"]
 

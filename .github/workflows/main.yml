@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .tox
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('arcade/poetry.lock') }}
 
       - name: Install tox
         run: |

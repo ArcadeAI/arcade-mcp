@@ -1,16 +1,19 @@
 import ipaddress
+import os
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import idna
 import toml
-from pydantic import BaseModel, ValidationError
-
-from arcade.core.env import settings
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 
-class ApiConfig(BaseModel):
+class BaseConfig(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+
+class ApiConfig(BaseConfig):
     """
     Arcade API configuration.
     """
@@ -19,9 +22,13 @@ class ApiConfig(BaseModel):
     """
     Arcade API key.
     """
+    version: str = "v1"
+    """
+    Arcade API version.
+    """
 
 
-class UserConfig(BaseModel):
+class UserConfig(BaseConfig):
     """
     Arcade user configuration.
     """
@@ -32,7 +39,7 @@ class UserConfig(BaseModel):
     """
 
 
-class EngineConfig(BaseModel):
+class EngineConfig(BaseConfig):
     """
     Arcade Engine configuration.
     """
@@ -51,7 +58,7 @@ class EngineConfig(BaseModel):
     """
 
 
-class Config(BaseModel):
+class Config(BaseConfig):
     """
     Configuration for Arcade.
     """
@@ -79,7 +86,8 @@ class Config(BaseModel):
         """
         Get the path to the Arcade configuration directory.
         """
-        return settings.WORK_DIR if settings.WORK_DIR else Path.home() / ".arcade"
+        config_path = os.getenv("ARCADE_WORK_DIR") or Path.home() / ".arcade"
+        return Path(config_path).resolve()
 
     @classmethod
     def get_config_file_path(cls) -> Path:
@@ -167,14 +175,14 @@ class Config(BaseModel):
         if ":" in parsed_host.netloc and not is_ip:
             host, existing_port = parsed_host.netloc.rsplit(":", 1)
             if existing_port.isdigit():
-                return f"{protocol}://{parsed_host.netloc}/v1"
+                return f"{protocol}://{parsed_host.netloc}/{self.api.version}"
 
         if is_fqdn and self.engine.port is None:
-            return f"{protocol}://{encoded_host}/v1"
+            return f"{protocol}://{encoded_host}/{self.api.version}"
         elif self.engine.port is not None:
-            return f"{protocol}://{encoded_host}:{self.engine.port}/v1"
+            return f"{protocol}://{encoded_host}:{self.engine.port}/{self.api.version}"
         else:
-            return f"{protocol}://{encoded_host}/v1"
+            return f"{protocol}://{encoded_host}/{self.api.version}"
 
     @classmethod
     def ensure_config_dir_exists(cls) -> None:
