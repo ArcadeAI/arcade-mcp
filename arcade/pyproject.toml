@@ -23,12 +23,13 @@ openai = "^1.36.0" # TODO: relax to an earlier version that still has what we ne
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
 fastapi = {version = "^0.110.0", optional = true}
+uvicorn = {version = "^0.30.0", optional = true}
 scipy = {version = "^1.14.0", optional = true}
 numpy = {version = "^2.0.0", optional = true}
 scikit-learn = {version = "^1.5.0", optional = true}
 
 [tool.poetry.extras]
-fastapi = ["fastapi"]
+fastapi = ["fastapi", "uvicorn"]
 evals = ["scipy", "numpy", "scikit-learn"]
 
 [tool.poetry.group.dev.dependencies]
@@ -39,10 +40,6 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
-uvicorn = "^0.22.0"
-mkdocs = ">=1.5.2"
-mkdocs-material = ">=9.3.0"
-mkdocstrings = {extras = ["python"], version = ">=0.23.1"}
 
 
 [tool.poetry.scripts]

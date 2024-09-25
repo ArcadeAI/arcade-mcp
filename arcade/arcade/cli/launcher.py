@@ -21,6 +21,7 @@ def start_servers(
     host: str,
     port: int,
     engine_config: str | None,
+    engine_env: dict[str, str] | None = None,
 ) -> None:
     """
     Start the actor and engine servers.
@@ -42,7 +43,7 @@ def start_servers(
     engine_cmd = _build_engine_command(engine_config)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, engine_cmd)
+    _manage_processes(actor_cmd, engine_cmd, engine_env)
 
 
 def _validate_host(host: str) -> str:
@@ -177,13 +178,16 @@ def _build_engine_command(engine_config: str) -> list[str]:
     return cmd
 
 
-def _manage_processes(actor_cmd: list[str], engine_cmd: list[str]) -> None:
+def _manage_processes(
+    actor_cmd: list[str], engine_cmd: list[str], engine_env: dict[str, str] | None = None
+) -> None:
     """
     Manages the lifecycle of the actor and engine processes.
 
     Args:
         actor_cmd: The command to start the actor server.
         engine_cmd: The command to start the engine.
+        engine_env: Environment variables to set for the engine.
     """
     actor_process: subprocess.Popen | None = None
     engine_process: subprocess.Popen | None = None
@@ -211,7 +215,7 @@ def _manage_processes(actor_cmd: list[str], engine_cmd: list[str]) -> None:
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
-            engine_process = _start_process("Engine", engine_cmd)
+            engine_process = _start_process("Engine", engine_cmd, engine_env)
 
             # Monitor processes
             _monitor_processes(actor_process, engine_process)
@@ -222,8 +226,8 @@ def _manage_processes(actor_cmd: list[str], engine_cmd: list[str]) -> None:
                 f"Processes exited. Retry {retry_count} of {max_retries}.", style="bold yellow"
             )
 
-            if retry_count > max_retries:
-                console.print(f"❌ Exiting after {retry_count - 1} retries", style="bold red")
+            if retry_count >= max_retries:
+                console.print(f"❌ Exiting after {max_retries} retries", style="bold red")
                 terminate_processes(exit_program=True)
                 break  # Exit the loop
 
@@ -243,13 +247,16 @@ def _manage_processes(actor_cmd: list[str], engine_cmd: list[str]) -> None:
     sys.exit(1)
 
 
-def _start_process(name: str, cmd: list[str]) -> subprocess.Popen:
+def _start_process(
+    name: str, cmd: list[str], env: dict[str, str] | None = None
+) -> subprocess.Popen:
     """
     Starts a subprocess and begins streaming its output.
 
     Args:
         name: Name of the process.
         cmd: Command to execute.
+        env: Environment variables to set for the process.
 
     Returns:
         The subprocess.Popen object.
@@ -257,9 +264,17 @@ def _start_process(name: str, cmd: list[str]) -> subprocess.Popen:
     Raises:
         RuntimeError: If the process fails to start.
     """
+    _env = os.environ.copy()
+    if env:
+        _env.update(env)
+
+    # TODO temporary fix for GIN_MODE
+    _env["GIN_MODE"] = "release"
+
     try:
         process = subprocess.Popen(  # noqa: S603, RUF100
             cmd,
+            env=_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
@@ -302,6 +317,7 @@ def _monitor_processes(actor_process: subprocess.Popen, engine_process: subproce
         actor_process: The actor subprocess.
         engine_process: The engine subprocess.
     """
+
     while True:
         actor_status = actor_process.poll()
         engine_status = engine_process.poll()

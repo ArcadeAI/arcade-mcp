@@ -529,8 +529,9 @@ def up(
     Start both the actor and engine servers.
     """
     try:
+        # TODO: pass Engine env vars from here
         start_servers(host, port, engine_config)
     except Exception as e:
         error_message = f"❌ Failed to start servers: {escape(str(e))}"
         console.print(error_message, style="bold red")
-        raise typer.Exit(code=1)
+        typer.Exit(code=1)

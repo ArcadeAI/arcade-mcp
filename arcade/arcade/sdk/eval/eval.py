@@ -103,15 +103,13 @@ class EvaluationResult:
             expected: The expected value for the critic.
             actual: The actual value for the critic.
         """
-        self.results.append(
-            {
-                "field": field,
-                **result,
-                "weight": weight,
-                "expected": expected,
-                "actual": actual,
-            }
-        )
+        self.results.append({
+            "field": field,
+            **result,
+            "weight": weight,
+            "expected": expected,
+            "actual": actual,
+        })
 
     def score_tool_selection(self, expected: str, actual: str, weight: float) -> float:
         """
@@ -162,12 +160,16 @@ class EvalCase:
     system_message: str
     user_message: str
     expected_tool_calls: list[ExpectedToolCall]
-    critics: list["Critic"]
+    critics: list["Critic"] | None = None
     additional_messages: list[dict[str, str]] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
 
     def __post_init__(self) -> None:
-        self._validate_critics()
+        if self.critics is not None:
+            self._validate_critics()
+        else:
+            # if no critics are provided, set to empty list
+            self.critics = []
 
     def _validate_critics(self) -> None:
         """
@@ -250,6 +252,15 @@ class EvalCase:
             evaluation_result.warning = False
             expected_tools = [tc.name for tc in self.expected_tool_calls]
             evaluation_result.failure_reason = f"Tool selection mismatch. Expected tools: {expected_tools}, but got: {actual_tools}"
+            return evaluation_result
+
+        # if no critics for tool call arguments, then return
+        # passing score as only tool selection and quantity is checked
+        if len(self.critics) == 0:
+            evaluation_result.score = 1.0
+            evaluation_result.passed = True
+            evaluation_result.warning = False
+            # TODO passing reason should be added
             return evaluation_result
 
         # Create a cost matrix for the assignment problem
@@ -463,7 +474,7 @@ class EvalSuite:
         name: str,
         user_message: str,
         expected_tool_calls: list[tuple[Callable, dict[str, Any]]],
-        critics: list["Critic"],
+        critics: list["Critic"] | None = None,
         system_message: str | None = None,
         rubric: EvalRubric | None = None,
         additional_messages: list[dict[str, str]] | None = None,
@@ -641,12 +652,10 @@ def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
     message = chat_completion.choices[0].message
     if message.tool_calls:
         for tool_call in message.tool_calls:
-            tool_args_list.append(
-                (
-                    tool_call.function.name,
-                    json.loads(tool_call.function.arguments),
-                )
-            )
+            tool_args_list.append((
+                tool_call.function.name,
+                json.loads(tool_call.function.arguments),
+            ))
     return tool_args_list
 
 
