@@ -3,23 +3,23 @@ import json
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from typing import Annotated, Optional
-from arcade.core.errors import ToolExecutionError, ToolInputError
-from googleapiclient.errors import HttpError
 
-from arcade_google.tools.utils import (
-    DateRange,
-    parse_email,
-    get_draft_url,
-    get_sent_email_url,
-    get_email_in_trash_url,
-    parse_draft_email,
-)
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
+from arcade.core.errors import ToolExecutionError, ToolInputError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
+from arcade_google.tools.utils import (
+    DateRange,
+    get_draft_url,
+    get_email_in_trash_url,
+    get_sent_email_url,
+    parse_draft_email,
+    parse_email,
+)
 
 
 # Email sending tools
@@ -42,9 +42,7 @@ async def send_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         message = EmailMessage()
         message.set_content(body)
@@ -62,9 +60,7 @@ async def send_email(
         email = {"raw": encoded_message}
 
         # Send the email
-        sent_message = (
-            service.users().messages().send(userId="me", body=email).execute()
-        )
+        sent_message = service.users().messages().send(userId="me", body=email).execute()
         return f"Email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
     except HttpError as e:
         raise ToolExecutionError(
@@ -91,14 +87,10 @@ async def send_draft_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Send the draft email
-        sent_message = (
-            service.users().drafts().send(userId="me", body={"id": id}).execute()
-        )
+        sent_message = service.users().drafts().send(userId="me", body={"id": id}).execute()
 
         # Construct the URL to the sent email
         return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
@@ -133,9 +125,7 @@ async def write_draft_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         message = MIMEText(body)
         message["to"] = recipient
@@ -151,9 +141,7 @@ async def write_draft_email(
         # Create the draft
         draft = {"message": {"raw": raw_message}}
 
-        draft_message = (
-            service.users().drafts().create(userId="me", body=draft).execute()
-        )
+        draft_message = service.users().drafts().create(userId="me", body=draft).execute()
         return f"Draft email with ID {draft_message['id']} created: {get_draft_url(draft_message['id'])}"
     except HttpError as e:
         raise ToolExecutionError(
@@ -187,9 +175,7 @@ async def update_draft_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         message = MIMEText(body)
         message["to"] = recipient
@@ -236,9 +222,7 @@ async def delete_draft_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Delete the draft
         service.users().drafts().delete(userId="me", id=id).execute()
@@ -270,9 +254,7 @@ async def trash_email(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Trash the email
         service.users().messages().trash(userId="me", id=id).execute()
@@ -298,33 +280,25 @@ async def trash_email(
 async def list_draft_emails(
     context: ToolContext,
     n_drafts: Annotated[int, "Number of draft emails to read"] = 5,
-) -> Annotated[
-    str, "A JSON string containing a list of draft email details and their IDs"
-]:
+) -> Annotated[str, "A JSON string containing a list of draft email details and their IDs"]:
     """
     Lists draft emails in the user's draft mailbox using the Gmail API.
     """
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         listed_drafts = service.users().drafts().list(userId="me").execute()
 
         if not listed_drafts:
             return {"emails": []}
 
-        draft_ids = [draft["id"] for draft in listed_drafts.get("drafts", [])][
-            :n_drafts
-        ]
+        draft_ids = [draft["id"] for draft in listed_drafts.get("drafts", [])][:n_drafts]
 
         emails = []
         for draft_id in draft_ids:
             try:
-                draft_data = (
-                    service.users().drafts().get(userId="me", id=draft_id).execute()
-                )
+                draft_data = service.users().drafts().get(userId="me", id=draft_id).execute()
                 draft_details = parse_draft_email(draft_data)
                 if draft_details:
                     emails.append(draft_details)
@@ -352,15 +326,9 @@ async def list_draft_emails(
 )
 async def list_emails_by_header(
     context: ToolContext,
-    sender: Annotated[
-        Optional[str], "The name or email address of the sender of the email"
-    ] = None,
-    recipient: Annotated[
-        Optional[str], "The name or email address of the recipient"
-    ] = None,
-    subject: Annotated[
-        Optional[str], "Words to find in the subject of the email"
-    ] = None,
+    sender: Annotated[Optional[str], "The name or email address of the sender of the email"] = None,
+    recipient: Annotated[Optional[str], "The name or email address of the recipient"] = None,
+    subject: Annotated[Optional[str], "Words to find in the subject of the email"] = None,
     body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
     limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
@@ -394,9 +362,7 @@ async def list_emails_by_header(
 
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Perform the search
         response = (
@@ -413,9 +379,7 @@ async def list_emails_by_header(
         emails = []
         for msg in messages:
             try:
-                email_data = (
-                    service.users().messages().get(userId="me", id=msg["id"]).execute()
-                )
+                email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
                 email_details = parse_email(email_data)
                 if email_details:
                     emails.append(email_details)
@@ -449,13 +413,9 @@ async def list_emails(
     """
     try:
         # Set up the Gmail API client
-        service = build(
-            "gmail", "v1", credentials=Credentials(context.authorization.token)
-        )
+        service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
-        messages = (
-            service.users().messages().list(userId="me").execute().get("messages", [])
-        )
+        messages = service.users().messages().list(userId="me").execute().get("messages", [])
 
         if not messages:
             return {"emails": []}
@@ -463,9 +423,7 @@ async def list_emails(
         emails = []
         for msg in messages[:n_emails]:
             try:
-                email_data = (
-                    service.users().messages().get(userId="me", id=msg["id"]).execute()
-                )
+                email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
                 email_details = parse_email(email_data)
                 if email_details:
                     emails.append(email_details)

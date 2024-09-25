@@ -165,9 +165,7 @@ def slack_eval_suite() -> EvalSuite:
         ],
         critics=[
             SimilarityCritic(critic_field="user_name", weight=0.7),
-            SimilarityCritic(
-                critic_field="message", weight=0.3, similarity_threshold=0.6
-            ),
+            SimilarityCritic(critic_field="message", weight=0.3, similarity_threshold=0.6),
         ],
     )
 

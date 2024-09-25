@@ -1,10 +1,10 @@
 import pytest
 from arcade_math.tools.arithmetic import (
     add,
-    subtract,
-    multiply,
     divide,
+    multiply,
     sqrt,
+    subtract,
     sum_list,
     sum_range,
 )

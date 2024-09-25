@@ -55,6 +55,11 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
             )
             return False
 
+        # ensure the ~/.arcade directory exists
+        # TODO: this should use WORK_DIR from env if set
+        if not os.path.exists(os.path.expanduser("~/.arcade")):
+            os.makedirs(os.path.expanduser("~/.arcade"), exist_ok=True)
+
         # TODO don't overwrite existing config
         config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
         new_config = {"api": {"key": api_key}, "user": {"email": email}}

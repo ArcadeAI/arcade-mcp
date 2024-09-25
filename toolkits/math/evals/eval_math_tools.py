@@ -43,9 +43,7 @@ def math_eval_suite():
         ],
         rubric=rubric,
         critics=[
-            BinaryCritic(
-                critic_field="a", weight=0.5
-            ),  # TODO: weight should be optional
+            BinaryCritic(critic_field="a", weight=0.5),  # TODO: weight should be optional
             BinaryCritic(critic_field="b", weight=0.5),
         ],
     )

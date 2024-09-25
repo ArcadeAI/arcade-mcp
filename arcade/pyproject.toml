@@ -23,12 +23,13 @@ openai = "^1.36.0" # TODO: relax to an earlier version that still has what we ne
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
 fastapi = {version = "^0.110.0", optional = true}
+uvicorn = {version = "^0.30.0", optional = true}
 scipy = {version = "^1.14.0", optional = true}
 numpy = {version = "^2.0.0", optional = true}
 scikit-learn = {version = "^1.5.0", optional = true}
 
 [tool.poetry.extras]
-fastapi = ["fastapi"]
+fastapi = ["fastapi", "uvicorn"]
 evals = ["scipy", "numpy", "scikit-learn"]
 
 [tool.poetry.group.dev.dependencies]
@@ -39,10 +40,6 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
-uvicorn = "^0.22.0"
-mkdocs = ">=1.5.2"
-mkdocs-material = ">=9.3.0"
-mkdocstrings = {extras = ["python"], version = ">=0.23.1"}
 
 
 [tool.poetry.scripts]
@@ -63,69 +60,9 @@ ignore_missing_imports = "True"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-[tool.ruff]
-target-version = "py39"
-line-length = 100
-fix = true
-select = [
-    # flake8-2020
-    "YTT",
-    # flake8-bandit
-    "S",
-    # flake8-bugbear
-    "B",
-    # flake8-builtins
-    "A",
-    # flake8-comprehensions
-    "C4",
-    # flake8-debugger
-    "T10",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # mccabe
-    "C90",
-    # pycodestyle
-    "E", "W",
-    # pyflakes
-    "F",
-    # pygrep-hooks
-    "PGH",
-    # pyupgrade
-    "UP",
-    # ruff
-    "RUF",
-    # tryceratops
-    "TRY",
-]
-ignore = [ # TODO work to remove these
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
-    # raise from (cli specific)
-    "TRY200",
-    # Depends function in arg string
-    "B008",
-    # raise from (cli specific)
-    "B904",
-    # long message exceptions
-    "TRY003",
-    # subprocess.Popen
-    "S603",
-]
-
-[tool.ruff.format]
-preview = true
-
 [tool.coverage.report]
 skip_empty = true
 
 [tool.coverage.run]
 branch = true
 source = ["arcade"]
-
-
-[tool.ruff.per-file-ignores]
-"tests/*" = ["S101"]

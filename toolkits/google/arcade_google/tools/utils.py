@@ -1,8 +1,8 @@
-from base64 import urlsafe_b64decode
 import datetime
-from enum import Enum
 import re
-from typing import Any, Dict, Optional
+from base64 import urlsafe_b64decode
+from enum import Enum
+from typing import Any, Optional, dict
 
 from bs4 import BeautifulSoup
 
@@ -30,20 +30,18 @@ class DateRange(Enum):
         elif self == DateRange.THIS_MONTH:
             comparison_date = today.replace(day=1)
         elif self == DateRange.LAST_MONTH:
-            comparison_date = (
-                today.replace(day=1) - datetime.timedelta(days=1)
-            ).replace(day=1)
+            comparison_date = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
         elif self == DateRange.THIS_YEAR:
             comparison_date = today.replace(month=1, day=1)
         elif self == DateRange.LAST_MONTH:
-            comparison_date = (
-                today.replace(month=1, day=1) - datetime.timedelta(days=1)
-            ).replace(month=1, day=1)
+            comparison_date = (today.replace(month=1, day=1) - datetime.timedelta(days=1)).replace(
+                month=1, day=1
+            )
 
         return result + comparison_date.strftime("%Y/%m/%d")
 
 
-def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
+def parse_email(email_data: dict[str, Any]) -> Optional[dict[str, str]]:
     """
     Parse email data and extract relevant information.
 
@@ -71,7 +69,7 @@ def parse_email(email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
         return None
 
 
-def parse_draft_email(draft_email_data: Dict[str, Any]) -> Optional[Dict[str, str]]:
+def parse_draft_email(draft_email_data: dict[str, Any]) -> Optional[dict[str, str]]:
     """
     Parse draft email data and extract relevant information.
 
@@ -112,7 +110,7 @@ def get_email_in_trash_url(email_id):
     return f"https://mail.google.com/mail/u/0/#trash/{email_id}"
 
 
-def _get_email_body(payload: Dict[str, Any]) -> Optional[str]:
+def _get_email_body(payload: dict[str, Any]) -> Optional[str]:
     """
     Extract email body from payload.
 

@@ -1,7 +1,9 @@
 import json
 import os
-import serpapi
 from typing import Annotated, Any, Optional
+
+import serpapi
+
 from arcade.sdk import tool
 
 

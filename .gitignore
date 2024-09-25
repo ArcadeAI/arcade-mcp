@@ -167,10 +167,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Vscode config files
-.vscode/
-!.vscode/launch.json # Exception: allow launch.json
-
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
