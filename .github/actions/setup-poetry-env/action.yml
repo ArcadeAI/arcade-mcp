@@ -20,6 +20,10 @@ runs:
       with:
         virtualenvs-in-project: true
 
+    - name: Generate poetry.lock
+      run: cd arcade && poetry lock --no-update
+      shell: bash
+
     - name: Load cached venv
       id: cached-poetry-dependencies
       uses: actions/cache@v4
