@@ -1,6 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from arcade.core.catalog import ToolCatalog
+from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import FullyQualifiedName
 from arcade.core.toolkit import Toolkit
 from arcade.sdk import tool
@@ -67,3 +70,35 @@ def test_get_tool(toolkit_version: str | None, expected_tool):
     tool = catalog.get_tool(fq_name)
 
     assert tool.tool == expected_tool
+
+
+def test_add_toolkit_type_error():
+    catalog = ToolCatalog()
+
+    # Create a mock toolkit with an invalid tool
+    class InvalidTool:
+        pass
+
+    mock_toolkit = Toolkit(
+        name="mock_toolkit",
+        description="A mock toolkit",
+        version="0.0.1",
+        package_name="mock_toolkit",
+    )
+    mock_toolkit.tools = {"mock_module": ["invalid_tool"]}
+
+    # Mock the import_module and getattr functions
+    with (
+        patch("arcade.core.catalog.import_module") as mock_import,
+        patch("arcade.core.catalog.getattr") as mock_getattr,
+    ):
+        mock_import.return_value = MagicMock()
+        mock_getattr.return_value = InvalidTool()
+
+        # Assert that ToolDefinitionError is raised with the correct message
+        with pytest.raises(ToolDefinitionError) as exc_info:
+            catalog.add_toolkit(mock_toolkit)
+
+        assert "Type error encountered while adding tool invalid_tool from mock_module" in str(
+            exc_info.value
+        )
