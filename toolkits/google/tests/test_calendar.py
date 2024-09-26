@@ -74,7 +74,7 @@ async def test_list_events(mock_build, mock_context):
                 "creator": {"email": "example@arcade-ai.com", "self": True},
                 "end": {"dateTime": "2024-09-27T01:00:00-07:00", "timeZone": "America/Los_Angeles"},
                 "eventType": "default",
-                "htmlLink": "https://www.google.com/calendar/event?eid=N2pmYjZ0ZmNnMGNydG5scmhkY2JvZWc4OGIgZXJpY0BhcmNhZGUtYWkuY29t",
+                "htmlLink": "https://www.google.com/calendar/event?eid=N2pmYjZ0ZmNnMGNydG5scmhkY2JvZWc4OGIgZXJpY0BhcmNhZGUtYWku",
                 "id": "7jfb6tfcg0crtnlrhdcboeg88b",
                 "organizer": {"email": "example@arcade-ai.com", "self": True},
                 "start": {
@@ -87,7 +87,7 @@ async def test_list_events(mock_build, mock_context):
                 "creator": {"email": "example@arcade-ai.com", "self": True},
                 "end": {"dateTime": "2024-09-27T17:00:00-07:00", "timeZone": "America/Los_Angeles"},
                 "eventType": "default",
-                "htmlLink": "https://www.google.com/calendar/event?eid=MjZvYnRoc2xtMWMzbG5mdG10bzk4cDcxaGMgZXJpY0BhcmNhZGUtYWkuY29t",
+                "htmlLink": "https://www.google.com/calendar/event?eid=MjZvYnRoc2xtMWMzbG5mdG10bzk4cDcxaGMgZXJpY0BhcmNhZGUtYWku",
                 "id": "26obthslm1c3lnftmto98p71hc",
                 "organizer": {"email": "example@arcade-ai.com", "self": True},
                 "start": {

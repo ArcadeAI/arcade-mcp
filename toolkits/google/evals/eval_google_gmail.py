@@ -20,7 +20,6 @@ rubric = EvalRubric(
 
 
 catalog = ToolCatalog()
-# Register the Slack tools
 catalog.add_module(arcade_google)
 
 
