@@ -113,7 +113,10 @@ def search_recent_tweets_by_keywords(
         "Authorization": f"Bearer {context.authorization.token}",
         "Content-Type": "application/json",
     }
-    query = " ".join([f'"{phrase}"' for phrase in phrases]) + " ".join(keywords)
+    query = " ".join([f'"{phrase}"' for phrase in (phrases or [])]) + " " + " "
+    if keywords:
+        query += " ".join(keywords or [])
+
     params = {
         "query": query,
         "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10

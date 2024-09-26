@@ -8,6 +8,7 @@ from typing import Any, Optional
 from urllib.parse import urlencode
 
 import typer
+from openai import OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
@@ -244,7 +245,12 @@ def chat(
 
             history.append({"role": "user", "content": user_input})
 
-            chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+            try:
+                chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+            except OpenAIError as e:
+                console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
+                continue
+
             history = chat_result.history
             tool_messages = chat_result.tool_messages
             tool_authorization = chat_result.tool_authorization
@@ -254,7 +260,14 @@ def chat(
                 with console.status("Waiting for you to authorize the action...", spinner="dots"):
                     wait_for_authorization_completion(client, tool_authorization)
                 # re-run the chat request now that authorization is complete
-                chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+                try:
+                    chat_result = handle_chat_interaction(
+                        client, model, history, user_email, stream
+                    )
+                except OpenAIError as e:
+                    console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
+                    continue
+
                 history = chat_result.history
                 tool_messages = chat_result.tool_messages
 
