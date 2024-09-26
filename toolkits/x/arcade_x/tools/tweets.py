@@ -25,7 +25,7 @@ def post_tweet(
     }
     payload = {"text": tweet_text}
 
-    response = requests.post(TWEETS_URL, headers=headers, json=payload)
+    response = requests.post(TWEETS_URL, headers=headers, json=payload, timeout=10)
 
     if response.status_code != 201:
         raise ToolExecutionError(
@@ -46,7 +46,7 @@ def delete_tweet_by_id(
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
     url = f"{TWEETS_URL}/{tweet_id}"
 
-    response = requests.delete(url, headers=headers)
+    response = requests.delete(url, headers=headers, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(
@@ -78,7 +78,7 @@ def search_recent_tweets_by_username(
         "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
     )
 
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers, params=params, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(
@@ -93,8 +93,12 @@ def search_recent_tweets_by_username(
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_keywords(
     context: ToolContext,
-    keywords: Annotated[list[str], "List of keywords that must be present in the tweet"] = None,
-    phrases: Annotated[list[str], "List of phrases that must be present in the tweet"] = None,
+    keywords: Annotated[
+        list[str] | None, "List of keywords that must be present in the tweet"
+    ] = None,
+    phrases: Annotated[
+        list[str] | None, "List of phrases that must be present in the tweet"
+    ] = None,
     max_results: Annotated[
         int, "The maximum number of results to return. Cannot be less than 10"
     ] = 10,
@@ -125,7 +129,7 @@ def search_recent_tweets_by_keywords(
         "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
     )
 
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers, params=params, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(

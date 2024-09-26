@@ -72,4 +72,4 @@ def sum_range(
     """
     Sum all numbers from start through end
     """
-    return sum([i for i in range(start, end + 1)])
+    return sum(list(range(start, end + 1)))

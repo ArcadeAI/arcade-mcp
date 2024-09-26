@@ -53,6 +53,4 @@ def sanity_check_tweets_data(tweets_data: dict) -> bool:
     """
     if not tweets_data.get("data", []):
         return False
-    if not tweets_data.get("includes", {}).get("users", []):
-        return False
-    return True
+    return tweets_data.get("includes", {}).get("users", [])
