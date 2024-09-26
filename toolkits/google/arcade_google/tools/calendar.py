@@ -12,6 +12,7 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
 from arcade_google.tools.models import Day, EventVisibility, SendUpdatesOptions, TimeSlot
+from arcade_google.tools.utils import _update_datetime
 
 
 @tool(
@@ -225,36 +226,23 @@ async def update_event(
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 
     try:
-        # Get the calendar's time zone
         calendar = service.calendars().get(calendarId="primary").execute()
         time_zone = calendar["timeZone"]
-
-        # Get the event to update
         event = service.events().get(calendarId="primary", eventId=event_id).execute()
 
-        # Update the Events resource object's fields https://developers.google.com/calendar/api/v3/reference/events#resource
-        if updated_start_day and updated_start_time:
-            start_datetime = datetime.combine(
-                updated_start_day.to_date(time_zone), updated_start_time.to_time()
-            )
-            event["start"] = {"dateTime": start_datetime.isoformat(), "timeZone": time_zone}
-        if updated_end_day and updated_end_time:
-            end_datetime = datetime.combine(
-                updated_end_day.to_date(time_zone), updated_end_time.to_time()
-            )
-            event["end"] = {"dateTime": end_datetime.isoformat(), "timeZone": time_zone}
-        if updated_calendar_id:
-            event["calendarId"] = updated_calendar_id
-        if send_updates:
-            event["sendUpdates"] = send_updates.value
-        if updated_summary:
-            event["summary"] = updated_summary
-        if updated_description:
-            event["description"] = updated_description
-        if updated_location:
-            event["location"] = updated_location
-        if updated_visibility:
-            event["visibility"] = updated_visibility.value
+        update_fields = {
+            "start": _update_datetime(updated_start_day, updated_start_time, time_zone),
+            "end": _update_datetime(updated_end_day, updated_end_time, time_zone),
+            "calendarId": updated_calendar_id,
+            "sendUpdates": send_updates.value if send_updates else None,
+            "summary": updated_summary,
+            "description": updated_description,
+            "location": updated_location,
+            "visibility": updated_visibility.value if updated_visibility else None,
+        }
+
+        event.update({k: v for k, v in update_fields.items() if v is not None})
+
         if attendee_emails_to_remove:
             event["attendees"] = [
                 attendee
@@ -266,7 +254,6 @@ async def update_event(
                 {"email": email} for email in attendee_emails_to_add
             ]
 
-        # Update the event
         updated_event = (
             service.events()
             .update(
@@ -277,7 +264,6 @@ async def update_event(
             )
             .execute()
         )
-
         return f"Event with ID {event_id} successfully updated at {updated_event['updated']}. View updated event at {updated_event['htmlLink']}"
     except HttpError as e:
         raise ToolExecutionError(
@@ -318,8 +304,6 @@ async def delete_event(
             notification_message = "Notifications were sent to external attendees only."
         elif send_updates == SendUpdatesOptions.NONE:
             notification_message = "No notifications were sent to attendees."
-
-        return f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. {notification_message}"
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{delete_event.__name__}' tool.", str(e)
@@ -329,3 +313,5 @@ async def delete_event(
             f"Unexpected Error encountered during execution of '{delete_event.__name__}' tool.",
             str(e),
         )
+    else:
+        return f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. {notification_message}"

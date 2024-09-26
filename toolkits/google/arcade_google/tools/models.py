@@ -37,7 +37,7 @@ class DateRange(Enum):
             end = next_month.replace(day=1)
             return start, end
 
-    def to_datetime_range(self, time_zone_name: str = None) -> tuple[datetime, datetime]:
+    def to_datetime_range(self, time_zone_name: str | None = None) -> tuple[datetime, datetime]:
         start_date, end_date = self.to_date_range()
         # time_zone = ZoneInfo(time_zone_name)
         start_datetime = datetime.combine(
@@ -68,38 +68,40 @@ class Day(Enum):
     def to_date(self, time_zone_name: str):
         time_zone = ZoneInfo(time_zone_name)
         today = datetime.now(time_zone).date()
+        weekday = today.weekday()
+
         if self == Day.TODAY:
             return today
         elif self == Day.TOMORROW:
             return today + timedelta(days=1)
-        elif self == Day.THIS_SUNDAY:
-            return today + timedelta(days=(6 - today.weekday()) % 7)
-        elif self == Day.THIS_MONDAY:
-            return today + timedelta(days=0 - today.weekday())
-        elif self == Day.THIS_TUESDAY:
-            return today + timedelta(days=1 - today.weekday())
-        elif self == Day.THIS_WEDNESDAY:
-            return today + timedelta(days=2 - today.weekday())
-        elif self == Day.THIS_THURSDAY:
-            return today + timedelta(days=3 - today.weekday())
-        elif self == Day.THIS_FRIDAY:
-            return today + timedelta(days=4 - today.weekday())
-        elif self == Day.THIS_SATURDAY:
-            return today + timedelta(days=5 - today.weekday())
-        elif self == Day.NEXT_SUNDAY:
-            return today + timedelta(days=(6 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_MONDAY:
-            return today + timedelta(days=(0 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_TUESDAY:
-            return today + timedelta(days=(1 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_WEDNESDAY:
-            return today + timedelta(days=(2 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_THURSDAY:
-            return today + timedelta(days=(3 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_FRIDAY:
-            return today + timedelta(days=(4 - today.weekday() + 7) % 7)
-        elif self == Day.NEXT_SATURDAY:
-            return today + timedelta(days=(5 - today.weekday() + 7) % 7)
+
+        day_offsets = {
+            Day.THIS_SUNDAY: 6,
+            Day.THIS_MONDAY: 0,
+            Day.THIS_TUESDAY: 1,
+            Day.THIS_WEDNESDAY: 2,
+            Day.THIS_THURSDAY: 3,
+            Day.THIS_FRIDAY: 4,
+            Day.THIS_SATURDAY: 5,
+        }
+
+        if self in day_offsets:
+            return today + timedelta(days=(day_offsets[self] - weekday) % 7)
+
+        next_week_offsets = {
+            Day.NEXT_SUNDAY: 6,
+            Day.NEXT_MONDAY: 0,
+            Day.NEXT_TUESDAY: 1,
+            Day.NEXT_WEDNESDAY: 2,
+            Day.NEXT_THURSDAY: 3,
+            Day.NEXT_FRIDAY: 4,
+            Day.NEXT_SATURDAY: 5,
+        }
+
+        if self in next_week_offsets:
+            return today + timedelta(days=(next_week_offsets[self] - weekday + 7) % 7)
+
+        raise ValueError(f"Invalid Day enum value: {self}")
 
 
 class TimeSlot(Enum):
