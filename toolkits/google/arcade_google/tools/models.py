@@ -48,6 +48,8 @@ class DateRange(Enum):
 
 
 class Day(Enum):
+    # TODO: THere are obvious limitations here. We should do better and support any date.
+    YESTERDAY = "yesterday"
     TODAY = "today"
     TOMORROW = "tomorrow"
     THIS_SUNDAY = "this_sunday"
@@ -70,7 +72,9 @@ class Day(Enum):
         today = datetime.now(time_zone).date()
         weekday = today.weekday()
 
-        if self == Day.TODAY:
+        if self == Day.YESTERDAY:
+            return today - timedelta(days=1)
+        elif self == Day.TODAY:
             return today
         elif self == Day.TOMORROW:
             return today + timedelta(days=1)

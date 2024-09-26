@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
@@ -7,7 +7,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from arcade.core.errors import ToolExecutionError
+from arcade.core.errors import RetryableToolError, ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
@@ -128,8 +128,6 @@ async def list_events(
         if start_datetime > end_datetime:
             start_datetime, end_datetime = end_datetime, start_datetime
 
-        if start_datetime > end_datetime:
-            print("TODO raise ToolRetryableError")
         events_result = (
             service.events()
             .list(
@@ -228,7 +226,28 @@ async def update_event(
     try:
         calendar = service.calendars().get(calendarId="primary").execute()
         time_zone = calendar["timeZone"]
-        event = service.events().get(calendarId="primary", eventId=event_id).execute()
+
+        try:
+            event = service.events().get(calendarId="primary", eventId=event_id).execute()
+        except HttpError:  # TODO: This is a first pass. We should do better.
+            valid_events_with_id = (
+                service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=(datetime.now() - timedelta(days=2)).isoformat(),
+                    timeMax=(datetime.now() - timedelta(days=2)).isoformat(),
+                    maxResults=50,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
+            raise RetryableToolError(
+                f"Event with ID {event_id} not found.",
+                additional_prompt_content=f"Here is list of valid events. The event_id parameter must match one of these: {valid_events_with_id}",
+                retry_after_ms=1000,
+                developer_message=f"Event with ID {event_id} not found. Please try again with a valid event ID.",
+            )
 
         update_fields = {
             "start": _update_datetime(updated_start_day, updated_start_time, time_zone),
@@ -258,7 +277,7 @@ async def update_event(
             service.events()
             .update(
                 calendarId="primary",
-                eventId=event["id"],
+                eventId=event_id,
                 sendUpdates=send_updates.value,
                 body=event,
             )
