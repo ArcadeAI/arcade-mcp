@@ -37,17 +37,13 @@ class DateRange(Enum):
             end = next_month.replace(day=1)
             return start, end
 
-    def to_datetime_range(
-        self, time_zone_name: str = None
-    ) -> tuple[datetime, datetime]:
+    def to_datetime_range(self, time_zone_name: str = None) -> tuple[datetime, datetime]:
         start_date, end_date = self.to_date_range()
         # time_zone = ZoneInfo(time_zone_name)
         start_datetime = datetime.combine(
             start_date, datetime.min.time()
         )  # .replace(tzinfo=time_zone)
-        end_datetime = datetime.combine(
-            end_date, datetime.min.time()
-        )  # .replace(tzinfo=time_zone)
+        end_datetime = datetime.combine(end_date, datetime.min.time())  # .replace(tzinfo=time_zone)
         return start_datetime, end_datetime
 
 
@@ -213,3 +209,18 @@ class EventVisibility(Enum):
     PUBLIC = "public"
     PRIVATE = "private"
     CONFIDENTIAL = "confidential"
+
+
+class EventType(Enum):
+    BIRTHDAY = "birthday"  # Special all-day events with an annual recurrence.
+    DEFAULT = "default"  # Regular events
+    FOCUS_TIME = "focusTime"  # Focus time events
+    FROM_GMAIL = "fromGmail"  # Events from Gmail
+    OUT_OF_OFFICE = "outOfOffice"  # Out of office events
+    WORKING_LOCATION = "workingLocation"  # Working location events
+
+
+class SendUpdatesOptions(Enum):
+    NONE = "none"  # No notifications are sent
+    ALL = "all"  # Notifications are sent to all guests
+    EXTERNAL_ONLY = "externalOnly"  # Notifications are sent to non-Google Calendar guests only.
