@@ -103,6 +103,10 @@ class ToolExecutor:
             output = output_model(**{"result": results})
 
         except ValidationError as e:
-            raise ToolOutputError(message="Error in output", developer_message=str(e)) from e
+            raise ToolOutputError(
+                message="Failed to serialize tool output",
+                developer_message=f"Validation error occurred while serializing tool output: {e!s}. "
+                f"Please ensure the tool's output matches the expected schema.",
+            ) from e
 
         return output
