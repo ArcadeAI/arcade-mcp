@@ -3,3 +3,4 @@ slack
 math
 search
 x
+github
