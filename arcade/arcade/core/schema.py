@@ -84,7 +84,10 @@ class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
     provider: str
-    """The provider type."""
+    """The unique provider name."""  # TODO: type?
+
+    provider_id: Optional[str] = None
+    """A unique provider ID."""
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""

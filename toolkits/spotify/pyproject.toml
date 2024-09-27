@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "arcade_spotify"
+version = "0.1.0"
+description = "Arcade tools for Spotify"
+authors = ["Nate Barbettini <nate@arcade-ai.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade-ai = "^0.1.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -7,6 +7,8 @@ from pydantic import AnyUrl, BaseModel
 class ToolAuthorization(BaseModel, ABC):
     """Marks a tool as requiring authorization."""
 
+    provider_id: Optional[str] = None
+
     @abstractmethod
     def get_provider(self) -> str:
         """Return the name of the authorization method."""
