@@ -12,6 +12,7 @@ from arcade_github.tools.models import (
     RepoSortProperty,
     RepoTimePeriod,
     RepoType,
+    ReviewCommentSortProperty,
     SortDirection,
 )
 
@@ -95,7 +96,10 @@ async def list_org_repositories(
     sort_direction: Annotated[SortDirection, "The order to sort by"] = SortDirection.ASC,
     per_page: Annotated[Optional[int], "The number of results per page"] = 30,
     page: Annotated[Optional[int], "The page number of the results to fetch"] = 1,
-    return_all: Annotated[bool, "If true, return all the data about all the repositories"] = False,
+    include_extra_data: Annotated[
+        bool,
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+    ] = False,
 ) -> dict[str, list[dict]]:
     """List repositories for the specified organization."""
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
@@ -120,7 +124,7 @@ async def list_org_repositories(
         raise ToolExecutionError(f"Failed to fetch repositories: {response.status_code}")
 
     repos = response.json()
-    if return_all:
+    if include_extra_data:
         return {"repositories": repos}
 
     results = []
@@ -152,7 +156,8 @@ async def get_repository(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     include_extra_data: Annotated[
-        bool, "If true, return all the data available about the repository"
+        bool,
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> dict:
     """Get a repository.
@@ -245,7 +250,8 @@ async def list_repository_activities(
     time_period: Annotated[Optional[RepoTimePeriod], "The time period to filter by."] = None,
     activity_type: Annotated[Optional[ActivityType], "The activity type to filter by."] = None,
     include_extra_data: Annotated[
-        bool, "If true, return all the data available about the activities."
+        bool,
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> str:
     """List repository activities.
@@ -315,4 +321,96 @@ async def list_repository_activities(
     else:
         raise ToolExecutionError(
             f"Failed to fetch repository activities. Status code: {response.status_code}"
+        )
+
+
+@tool(requires_auth=GitHubApp())
+async def list_review_comments_in_a_repository(
+    context: ToolContext,
+    owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
+    repo: Annotated[
+        str,
+        "The name of the repository without the .git extension. The name is not case sensitive.",
+    ],
+    sort: Annotated[
+        Optional[ReviewCommentSortProperty], "Can be one of: created, updated."
+    ] = ReviewCommentSortProperty.CREATED,
+    direction: Annotated[
+        Optional[SortDirection],
+        "The direction to sort results. Ignored without sort parameter. Can be one of: asc, desc.",
+    ] = SortDirection.DESC,
+    since: Annotated[
+        Optional[str],
+        "Only show results that were last updated after the given time. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
+    ] = None,
+    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
+    page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
+    include_extra_data: Annotated[
+        bool,
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+    ] = False,
+) -> str:
+    """
+    List review comments in a GitHub repository.
+
+    Example:
+    ```
+    list_review_comments(owner="octocat", repo="Hello-World", sort="created", direction="asc")
+    ```
+    """
+    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/comments"
+
+    params = {
+        "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
+        "page": page,
+    }
+
+    if sort:
+        params["sort"] = sort
+    if direction:
+        params["direction"] = direction
+    if since:
+        params["since"] = since
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {context.authorization.token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        review_comments = response.json()
+        if include_extra_data:
+            return json.dumps({"review_comments": review_comments})
+        else:
+            important_info = [
+                {
+                    "id": comment["id"],
+                    "url": comment["url"],
+                    "diff_hunk": comment["diff_hunk"],
+                    "path": comment["path"],
+                    "position": comment["position"],
+                    "original_position": comment["original_position"],
+                    "commit_id": comment["commit_id"],
+                    "original_commit_id": comment["original_commit_id"],
+                    "in_reply_to_id": comment.get("in_reply_to_id"),
+                    "user": comment["user"]["login"],
+                    "body": comment["body"],
+                    "created_at": comment["created_at"],
+                    "updated_at": comment["updated_at"],
+                    "html_url": comment["html_url"],
+                    "line": comment["line"],
+                    "side": comment["side"],
+                    "pull_request_url": comment["pull_request_url"],
+                }
+                for comment in review_comments
+            ]
+            return json.dumps({"review_comments": important_info})
+    else:
+        raise ToolExecutionError(
+            f"Failed to fetch review comments from '{url}'. Status code: {response.status_code}"
         )

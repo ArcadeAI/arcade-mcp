@@ -12,7 +12,6 @@ class PRSortProperty(str, Enum):
 class ReviewCommentSortProperty(str, Enum):
     CREATED = "created"
     UPDATED = "updated"
-    CREATED_AT = "created_at"
 
 
 # Repo specific
@@ -75,3 +74,14 @@ class ActivityType(str, Enum):
     BRANCH_DELETION = "branch_deletion"
     PR_MERGE = "pr_merge"
     MERGE_QUEUE_MERGE = "merge_queue_merge"
+
+
+class DiffSide(str, Enum):
+    """
+    The side of the diff that the pull request's changes appear on.
+    Use LEFT for deletions that appear in red.
+    Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context
+    """
+
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"

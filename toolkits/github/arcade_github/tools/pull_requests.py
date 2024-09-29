@@ -8,7 +8,11 @@ from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
-from arcade_github.tools.models import PRSortProperty, ReviewCommentSortProperty, SortDirection
+from arcade_github.tools.models import (
+    PRSortProperty,
+    ReviewCommentSortProperty,
+    SortDirection,
+)
 
 
 class PRState(str, Enum):
@@ -40,7 +44,7 @@ async def list_pull_requests(
     page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use sparingly.",
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> str:
     """
@@ -122,7 +126,7 @@ async def get_pull_request(
     pull_number: Annotated[int, "The number that identifies the pull request."],
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use sparingly.",
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> str:
     """
@@ -308,20 +312,68 @@ async def list_pull_request_commits(
     return json.dumps({"commits": commits})
 
 
+# This tool requires the ID of the review comment to reply to, which can be found by calling list_review_comments_on_pull_request
+# Example arcade chat usage: "create a reply to the review comment 1778019974 in arcadeai/arcade-ai for the pull request number 72 that says 'Thanks for the suggestion.'"
 @tool(requires_auth=GitHubApp())
-async def list_review_comments(
+async def create_reply_for_review_comment(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
     repo: Annotated[
         str,
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
+    pull_number: Annotated[int, "The number that identifies the pull request."],
+    comment_id: Annotated[int, "The unique identifier of the comment."],
+    body: Annotated[str, "The text of the review comment."],
+) -> str:
+    """
+    Create a reply to a review comment for a pull request.
+
+    Example:
+    ```
+    create_reply_for_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, comment_id=42, body="Looks good to me!")
+    ```
+    """
+    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies"
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {context.authorization.token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    data = {"body": body}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=data)
+
+    if response.status_code == 201:
+        return json.dumps(response.json())
+    elif response.status_code == 404:
+        raise ToolExecutionError(f"Resource not found at '{url}'.")
+    else:
+        raise ToolExecutionError(
+            f"Failed to create reply for review comment at '{url}'. Status code: {response.status_code}"
+        )
+
+
+# Example arcade chat usage: "list all of the review comments for PR 72 in arcadeai/arcade-ai"
+@tool(requires_auth=GitHubApp())
+async def list_review_comments_on_pull_request(
+    context: ToolContext,
+    owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
+    repo: Annotated[
+        str,
+        "The name of the repository without the .git extension. The name is not case sensitive.",
+    ],
+    pull_number: Annotated[int, "The number that identifies the pull request."],
     sort: Annotated[
-        Optional[ReviewCommentSortProperty], "Can be one of: created, updated, created_at."
+        Optional[ReviewCommentSortProperty],
+        "The property to sort the results by. Can be one of: created, updated.",
     ] = ReviewCommentSortProperty.CREATED,
     direction: Annotated[
-        Optional[SortDirection],
-        "The direction to sort results. Ignored without sort parameter. Can be one of: asc, desc.",
+        Optional[SortDirection], "The direction to sort results. Can be one of: asc, desc."
     ] = SortDirection.DESC,
     since: Annotated[
         Optional[str],
@@ -331,29 +383,27 @@ async def list_review_comments(
     page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use sparingly.",
+        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> str:
     """
-    List review comments in a GitHub repository.
+    List review comments on a pull request in a GitHub repository.
 
     Example:
     ```
-    list_review_comments(owner="octocat", repo="Hello-World", sort="created", direction="asc")
+    list_review_comments_on_pull_request(owner="octocat", repo="Hello-World", pull_number=1347)
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/comments"
+    # Implements: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments"
 
     params = {
+        "sort": sort,
+        "direction": direction,
         "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
         "page": page,
     }
 
-    if sort:
-        params["sort"] = sort
-    if direction:
-        params["direction"] = direction
     if since:
         params["since"] = since
 
@@ -368,11 +418,10 @@ async def list_review_comments(
 
     if response.status_code == 200:
         review_comments = response.json()
-        if include_extra_data:
-            return json.dumps({"review_comments": review_comments})
-        else:
-            important_info = [
-                {
+        if not include_extra_data:
+            filtered_comments = []
+            for comment in review_comments:
+                filtered_comment = {
                     "id": comment["id"],
                     "url": comment["url"],
                     "diff_hunk": comment["diff_hunk"],
@@ -391,53 +440,96 @@ async def list_review_comments(
                     "side": comment["side"],
                     "pull_request_url": comment["pull_request_url"],
                 }
-                for comment in review_comments
-            ]
-            return json.dumps({"review_comments": important_info})
+                filtered_comments.append(filtered_comment)
+            return json.dumps({"review_comments": filtered_comments})
+        else:
+            return json.dumps({"review_comments": review_comments})
     else:
         raise ToolExecutionError(
             f"Failed to fetch review comments from '{url}'. Status code: {response.status_code}"
         )
 
 
-@tool(requires_auth=GitHubApp())
-async def create_reply_for_review_comment(
-    context: ToolContext,
-    owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
-    repo: Annotated[
-        str,
-        "The name of the repository without the .git extension. The name is not case sensitive.",
-    ],
-    pull_number: Annotated[int, "The number that identifies the pull request."],
-    comment_id: Annotated[int, "The unique identifier of the comment."],
-    body: Annotated[str, "The text of the review comment."],
-) -> str:
-    """
-    Create a reply to a review comment for a pull request.
+# @tool(requires_auth=GitHubApp())
+# async def create_review_comment(
+#     context: ToolContext,
+#     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
+#     repo: Annotated[
+#         str,
+#         "The name of the repository without the .git extension. The name is not case sensitive.",
+#     ],
+#     pull_number: Annotated[int, "The number that identifies the pull request."],
+#     body: Annotated[str, "The text of the review comment."],
+#     commit_id: Annotated[str, "The SHA of the commit needing a comment. Use the latest commit SHA of the PR's base branch to avoid your comment rendered as outdated."],
+#     path: Annotated[str, "The relative path to the file that necessitates a comment."],
+#     line: Annotated[Optional[int], "The line of the blob in the pull request diff that the comment applies to."] = None,
+#     side: Annotated[Optional[DiffSide], "The side of the diff that the pull request's changes appear on. Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context"] = DiffSide.RIGHT,
+#     start_line: Annotated[Optional[int], "The first line in the pull request diff that your multi-line comment applies to."] = None,
+#     start_side: Annotated[Optional[str], "The starting side of the diff that the comment applies to."] = None,
+#     in_reply_to: Annotated[Optional[int], "The ID of the review comment to reply to."] = None,
+#     include_extra_data: Annotated[
+#         bool,
+#         "If true, return all the data available about the review comment. This is a large payload and may impact performance - use with caution.",
+#     ] = False,
+# ) -> str:
+#     """
+#     Create a review comment for a pull request in a GitHub repository.
 
-    Example:
-    ```
-    create_reply_for_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, comment_id=42, body="Great stuff!")
-    ```
-    """
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies"
+#     Example:
+#     ```
+#     create_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, body="Great stuff!", commit_id="6dcb09b5b57875f334f61aebed695e2e4193db5e", path="file1.txt", line=2, side="RIGHT")
+#     ```
+#     """
+#     # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
+#     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments"
 
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+#     data = {
+#         "body": body,
+#         "commit_id": commit_id,
+#         "path": path,
+#         "side": side.value,
+#     }
 
-    data = {"body": body}
+#     if line:
+#         data["line"] = line
+#     if start_line:
+#         data["start_line"] = start_line
+#     if start_side:
+#         data["start_side"] = start_side
+#     if in_reply_to:
+#         data["in_reply_to"] = in_reply_to
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, json=data)
+#     headers = {
+#         "Accept": "application/vnd.github+json",
+#         "Authorization": f"Bearer {context.authorization.token}",
+#         "X-GitHub-Api-Version": "2022-11-28",
+#     }
 
-    if response.status_code == 201:
-        return response.json()
-    elif response.status_code == 404:
-        raise ToolExecutionError(f"Resource not found at '{url}'.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to create reply for review comment at '{url}'. Status code: {response.status_code}"
-        )
+#     async with httpx.AsyncClient() as client:
+#         response = await client.post(url, headers=headers, json=data)
+
+#     if response.status_code == 201:
+#         comment_data = response.json()
+#         if include_extra_data:
+#             return json.dumps(comment_data)
+#         else:
+#             important_info = {
+#                 "id": comment_data["id"],
+#                 "url": comment_data["url"],
+#                 "body": comment_data["body"],
+#                 "path": comment_data["path"],
+#                 "line": comment_data.get("line"),
+#                 "side": comment_data.get("side"),
+#                 "commit_id": comment_data["commit_id"],
+#                 "user": comment_data["user"]["login"],
+#                 "created_at": comment_data["created_at"],
+#                 "updated_at": comment_data["updated_at"],
+#                 "html_url": comment_data["html_url"],
+#             }
+#             return json.dumps(important_info)
+#     elif response.status_code == 403:
+#         raise ToolExecutionError(f"Forbidden. You do not have access to create a review comment at {url}.")
+#     elif response.status_code == 422:
+#         raise ToolExecutionError(f"Validation failed or the endpoint '{url}' has been spammed.")
+#     else:
+#         raise ToolExecutionError(f"Failed to create review comment at {url}. Status code: {response.status_code}")
