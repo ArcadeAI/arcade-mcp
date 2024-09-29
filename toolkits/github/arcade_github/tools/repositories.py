@@ -7,7 +7,13 @@ from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
-from arcade_github.tools.models import RepoSortDirection, RepoSortProperty, RepoType
+from arcade_github.tools.models import (
+    ActivityType,
+    RepoSortProperty,
+    RepoTimePeriod,
+    RepoType,
+    SortDirection,
+)
 
 
 @tool(requires_auth=GitHubApp())
@@ -86,7 +92,7 @@ async def list_org_repositories(
     sort: Annotated[
         RepoSortProperty, "The property to sort the results by"
     ] = RepoSortProperty.CREATED,
-    sort_direction: Annotated[RepoSortDirection, "The order to sort by"] = RepoSortDirection.ASC,
+    sort_direction: Annotated[SortDirection, "The order to sort by"] = SortDirection.ASC,
     per_page: Annotated[Optional[int], "The number of results per page"] = 30,
     page: Annotated[Optional[int], "The page number of the results to fetch"] = 1,
     return_all: Annotated[bool, "If true, return all the data about all the repositories"] = False,
@@ -145,7 +151,9 @@ async def get_repository(
         str,
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
-    return_all: Annotated[bool, "If true, return all the data about the repository"] = False,
+    include_extra_data: Annotated[
+        bool, "If true, return all the data available about the repository"
+    ] = False,
 ) -> dict:
     """Get a repository.
 
@@ -169,7 +177,7 @@ async def get_repository(
 
     if response.status_code == 200:
         repo_data = response.json()
-        if return_all:
+        if include_extra_data:
             return json.dumps(repo_data)
         else:
             return {
@@ -204,92 +212,107 @@ async def get_repository(
         )
 
 
-# @tool(requires_auth=GitHubApp())
-# async def list_repository_activities(
-#     context: ToolContext,
-#     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
-#     repo: Annotated[
-#         str,
-#         "The name of the repository without the .git extension. The name is not case sensitive.",
-#     ],
-#     direction: Annotated[
-#         Optional[RepoSortDirection], "The direction to sort the results by."
-#     ] = RepoSortDirection.DESC,
-#     per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
-#     before: Annotated[Optional[str], "A cursor to search for results before this cursor."] = None,
-#     after: Annotated[Optional[str], "A cursor to search for results after this cursor."] = None,
-#     ref: Annotated[Optional[str], "The Git reference for the activities you want to list."] = None,
-#     actor: Annotated[
-#         Optional[str], "The GitHub username to filter by the actor who performed the activity."
-#     ] = None,
-#     time_period: Annotated[Optional[str], "The time period to filter by."] = None,
-#     activity_type: Annotated[Optional[str], "The activity type to filter by."] = None,
-#     return_all: Annotated[bool, "If true, return all the data about the activities."] = False,
-# ) -> dict[str, list[dict]]:
-#     """List repository activities.
+# It seems like this tool is useful as an intermediary step in a chain, and it's likely not immediatelt useful to the end user.
+# For example, it provides SHA hashes, and other unique identifiers that could be used as input parameters for other tools.
+# Example arcade chat usage: "list all merges into main by EricGustin in the repo ArcadeAI/Engine in the last week"
+@tool(requires_auth=GitHubApp())
+async def list_repository_activities(
+    context: ToolContext,
+    owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
+    repo: Annotated[
+        str,
+        "The name of the repository without the .git extension. The name is not case sensitive.",
+    ],
+    direction: Annotated[
+        Optional[SortDirection], "The direction to sort the results by."
+    ] = SortDirection.DESC,
+    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
+    before: Annotated[
+        Optional[str],
+        "A cursor (unique identifier, e.g., a SHA of a commit) to search for results before this cursor.",
+    ] = None,
+    after: Annotated[
+        Optional[str],
+        "A cursor (unique identifier, e.g., a SHA of a commit) to search for results after this cursor.",
+    ] = None,
+    ref: Annotated[
+        Optional[str],
+        "The Git reference for the activities you want to list. The ref for a branch can be formatted either as refs/heads/BRANCH_NAME or BRANCH_NAME, where BRANCH_NAME is the name of your branch.",
+    ] = None,
+    actor: Annotated[
+        Optional[str], "The GitHub username to filter by the actor who performed the activity."
+    ] = None,
+    time_period: Annotated[Optional[RepoTimePeriod], "The time period to filter by."] = None,
+    activity_type: Annotated[Optional[ActivityType], "The activity type to filter by."] = None,
+    include_extra_data: Annotated[
+        bool, "If true, return all the data available about the activities."
+    ] = False,
+) -> str:
+    """List repository activities.
 
-#     Retrieves a detailed history of changes to a repository, such as pushes, merges, force pushes, and branch changes,
-#     and associates these changes with commits and users.
+    Retrieves a detailed history of changes to a repository, such as pushes, merges, force pushes, and branch changes,
+    and associates these changes with commits and users.
 
-#     Example:
-#     ```
-#     list_repository_activities(
-#         owner="octocat",
-#         repo="Hello-World",
-#         per_page=10,
-#         activity_type="force_push"
-#     )
-#     ```
-#     """
-#     url = f"https://api.github.com/repos/{owner}/{repo}/activity"
-#     params = {
-#         "direction": direction.value,
-#         "per_page": per_page,
-#     }
+    Example:
+    ```
+    list_repository_activities(
+        owner="octocat",
+        repo="Hello-World",
+        per_page=10,
+        activity_type="force_push"
+    )
+    ```
+    """
+    # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
+    url = f"https://api.github.com/repos/{owner}/{repo}/activity"
+    params = {
+        "direction": direction.value,
+        "per_page": min(100, per_page),  # The API only allows up to 100 per page
+    }
 
-#     if before:
-#         params["before"] = before
-#     if after:
-#         params["after"] = after
-#     if ref:
-#         params["ref"] = ref
-#     if actor:
-#         params["actor"] = actor
-#     if time_period:
-#         params["time_period"] = time_period
-#     if activity_type:
-#         params["activity_type"] = activity_type
+    if before:
+        params["before"] = before
+    if after:
+        params["after"] = after
+    if ref:
+        params["ref"] = ref
+    if actor:
+        params["actor"] = actor
+    if time_period:
+        params["time_period"] = time_period
+    if activity_type:
+        params["activity_type"] = activity_type
 
-#     headers = {
-#         "Accept": "application/vnd.github+json",
-#         "Authorization": f"Bearer {context.authorization.token}",
-#         "X-GitHub-Api-Version": "2022-11-28",
-#     }
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {context.authorization.token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
 
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(url, headers=headers, params=params)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
 
-#     if response.status_code == 200:
-#         activities = response.json()
-#         if return_all:
-#             return {"activities": activities}
+    if response.status_code == 200:
+        activities = response.json()
+        if include_extra_data:
+            return json.dumps({"activities": activities})
 
-#         results = []
-#         for activity in activities:
-#             results.append({
-#                 "id": activity["id"],
-#                 "node_id": activity["node_id"],
-#                 "before": activity.get("before"),
-#                 "after": activity.get("after"),
-#                 "ref": activity.get("ref"),
-#                 "timestamp": activity.get("timestamp"),
-#                 "activity_type": activity.get("activity_type"),
-#                 "actor": activity.get("actor", {}).get("login") if activity.get("actor") else None,
-#             })
-#         return {"activities": results}
-#     elif response.status_code == 422:
-#         raise ToolExecutionError("Validation failed or the endpoint has been spammed.")
-#     else:
-#         raise ToolExecutionError(
-#             f"Failed to fetch repository activities. Status code: {response.status_code}"
-#         )
+        results = []
+        for activity in activities:
+            results.append({
+                "id": activity["id"],
+                "node_id": activity["node_id"],
+                "before": activity.get("before"),
+                "after": activity.get("after"),
+                "ref": activity.get("ref"),
+                "timestamp": activity.get("timestamp"),
+                "activity_type": activity.get("activity_type"),
+                "actor": activity.get("actor", {}).get("login") if activity.get("actor") else None,
+            })
+        return json.dumps({"activities": results})
+    elif response.status_code == 422:
+        raise ToolExecutionError("Validation failed or the endpoint has been spammed.")
+    else:
+        raise ToolExecutionError(
+            f"Failed to fetch repository activities. Status code: {response.status_code}"
+        )
