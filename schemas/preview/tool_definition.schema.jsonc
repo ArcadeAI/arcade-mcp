@@ -50,6 +50,10 @@
       "type": "string",
       "description": "The tool name"
     },
+    "full_name": {
+      "type": "string",
+      "description": "The tool's fully-qualified name"
+    },
     "description": {
       "type": "string",
       "description": "A human-readable description of the tool and when to use it"
@@ -176,6 +180,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["name", "toolkit", "inputs", "output"],
+  "required": ["name", "full_name", "toolkit", "inputs", "output"],
   "additionalProperties": false
 }
