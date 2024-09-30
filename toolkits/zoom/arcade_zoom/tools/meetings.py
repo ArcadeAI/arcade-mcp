@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-import requests
+import httpx
 
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
@@ -15,7 +15,7 @@ from arcade.sdk.auth import OAuth2
         scopes=["meeting:read:list_upcoming_meetings"],
     )
 )
-def list_upcoming_meetings(
+async def list_upcoming_meetings(
     context: ToolContext,
     user_id: Annotated[
         Optional[str],
@@ -26,10 +26,11 @@ def list_upcoming_meetings(
     url = f"https://api.zoom.us/v2/users/{user_id}/upcoming_meetings"
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
 
-    try:
-        response = requests.get(url, headers=headers)
-    except Exception as e:
-        raise ToolExecutionError(f"Failed to list upcoming meetings: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers)
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to list upcoming meetings: {e}")
 
     if response.status_code == 200:
         return response.json()
@@ -50,7 +51,7 @@ def list_upcoming_meetings(
         scopes=["meeting:read:invitation"],
     )
 )
-def get_meeting_invitation(
+async def get_meeting_invitation(
     context: ToolContext,
     meeting_id: Annotated[
         str,
@@ -61,10 +62,11 @@ def get_meeting_invitation(
     url = f"https://api.zoom.us/v2/meetings/{meeting_id}/invitation"
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
 
-    try:
-        response = requests.get(url, headers=headers)
-    except Exception as e:
-        raise ToolExecutionError(f"Failed to retrieve meeting invitation: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers)
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to retrieve meeting invitation: {e}")
 
     if response.status_code == 200:
         return response.json()

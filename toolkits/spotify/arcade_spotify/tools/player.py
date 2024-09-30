@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-import requests
+import httpx
 
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
@@ -15,7 +15,7 @@ from arcade.sdk.auth import OAuth2
         scopes=["user-modify-playback-state"],
     )
 )
-def pause(
+async def pause(
     context: ToolContext,
     device_id: Annotated[
         Optional[str],
@@ -27,17 +27,17 @@ def pause(
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
     params = {"device_id": device_id} if device_id else {}
 
-    try:
-        response = requests.put(url, params=params, headers=headers)
-    except Exception as e:
-        raise ToolExecutionError(f"Failed to pause the current track: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.put(url, params=params, headers=headers)
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to pause the current track: {e}")
 
     if response.status_code >= 200 and response.status_code < 300:
         return "Playback paused"
     elif response.status_code == 401:
         raise ToolExecutionError("Unauthorized: Invalid or expired token")
     elif response.status_code == 403:
-        # Todo get the actual error message from the response
         raise ToolExecutionError("Forbidden: User does not have Spotify Premium")
     elif response.status_code == 429:
         raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
@@ -46,7 +46,7 @@ def pause(
 
 
 @tool(requires_auth=OAuth2(provider_id="spotify", scopes=["user-modify-playback-state"]))
-def resume(
+async def resume(
     context: ToolContext,
     device_id: Annotated[
         Optional[str],
@@ -59,10 +59,11 @@ def resume(
     params = {"device_id": device_id} if device_id else {}
     data = {}
 
-    try:
-        response = requests.put(url, headers=headers, params=params, json=data)
-    except Exception as e:
-        raise ToolExecutionError(f"Failed to resume playback: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.put(url, headers=headers, params=params, json=data)
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to resume playback: {e}")
 
     if response.status_code >= 200 and response.status_code < 300:
         return "Playback resumed"
@@ -83,7 +84,7 @@ def resume(
         scopes=["user-read-playback-state"],
     )
 )
-def get_playback_state(
+async def get_playback_state(
     context: ToolContext,
 ) -> Annotated[dict, "Information about the user's current playback state"]:
     """Get information about the user's current playback state, including track or episode, progress, and active device."""
@@ -91,10 +92,11 @@ def get_playback_state(
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
     params = {}
 
-    try:
-        response = requests.get(url, headers=headers, params=params)
-    except Exception as e:
-        raise ToolExecutionError(f"Failed to get playback state: {e}")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers, params=params)
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to get playback state: {e}")
 
     if response.status_code == 200:
         data = response.json()
