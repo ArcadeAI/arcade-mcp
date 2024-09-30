@@ -208,12 +208,18 @@ class ToolAuthorizationContext(BaseModel):
     token: str | None = None
     """The token for the tool invocation."""
 
+    user_info: dict = {}
+    """The user information provided by the authorization server (if any)."""
+
 
 class ToolContext(BaseModel):
     """The context for a tool invocation."""
 
     authorization: ToolAuthorizationContext | None = None
     """The authorization context for the tool invocation that requires authorization."""
+
+    user_id: str | None = None
+    """The user ID for the tool invocation (if any)."""
 
 
 class ToolCallRequest(BaseModel):
