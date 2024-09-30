@@ -3,7 +3,6 @@ from typing import Annotated, Optional
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
@@ -14,6 +13,12 @@ from arcade_github.tools.models import (
     RepoType,
     ReviewCommentSortProperty,
     SortDirection,
+)
+from arcade_github.tools.utils import (
+    get_github_headers,
+    get_url,
+    handle_github_response,
+    remove_none_values,
 )
 
 
@@ -28,22 +33,20 @@ async def search_issues(
     """Search for issues in a GitHub repository."""
 
     # Build the search query
-    url = f"https://api.github.com/search/issues?q={query}+is:issue+is:open+repo:{owner}/{name}+sort:created-desc&per_page={limit}"
-
-    # Make the API request
-    headers = {
-        "Authorization": f"token {context.authorization.token}",
-        "Accept": "application/vnd.github.v3+json",
+    url = get_url("search_issues")
+    params = {
+        "q": f"{query}+is:issue+is:open+repo:{owner}/{name}",
+        "sort": "created",
+        "order": "desc",
+        "per_page": limit,
     }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
+    headers = get_github_headers(context.authorization.token)
 
-    # Check for successful response
-    # handle 422 for can't find repo
-    # TODO - how should errors bubble back up if tool_choice=execute
-    if response.status_code != 200:
-        raise ToolExecutionError(f"Failed to fetch issues: {response.status_code}")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+
+    handle_github_response(response, url)
 
     issues = response.json().get("items", [])
     results = []
@@ -57,32 +60,26 @@ async def search_issues(
     return {"issues": results}
 
 
-# TODO: This does not support private repositories. https://app.clickup.com/t/86b1r3mhe
-@tool
+@tool(requires_auth=GitHubApp())
 async def count_stargazers(
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
 ) -> int:
-    """Count the number of stargazers (stars) for a public GitHub repository.
+    """Count the number of stargazers (stars) for a GitHub repository.
     For example, to count the number of stars for microsoft/vscode, you would use:
     ```
     count_stargazers(owner="microsoft", name="vscode")
     ```
     """
 
-    url = f"https://api.github.com/repos/{owner}/{name}"
+    url = get_url("repo", owner=owner, repo=name)
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
 
-    print(response)
+    handle_github_response(response, url)
 
-    if response.status_code == 200:
-        data = response.json()
-        return data.get("stargazers_count", 0)
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch repository data. Status code: {response.status_code}"
-        )
+    data = response.json()
+    return data.get("stargazers_count", 0)
 
 
 @tool(requires_auth=GitHubApp())
@@ -103,7 +100,7 @@ async def list_org_repositories(
 ) -> dict[str, list[dict]]:
     """List repositories for the specified organization."""
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
-    url = f"https://api.github.com/orgs/{org}/repos"
+    url = get_url("org_repos", org=org)
     params = {
         "type": repo_type.value,
         "sort": sort.value,
@@ -112,16 +109,12 @@ async def list_org_repositories(
         "page": page,
     }
 
-    headers = {
-        "Authorization": f"token {context.authorization.token}",
-        "Accept": "application/vnd.github+json",
-    }
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code != 200:
-        raise ToolExecutionError(f"Failed to fetch repositories: {response.status_code}")
+    handle_github_response(response, url)
 
     repos = response.json()
     if include_extra_data:
@@ -170,54 +163,35 @@ async def get_repository(
     ```
     """
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
-    url = f"https://api.github.com/repos/{owner}/{repo}"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    url = get_url("repo", owner=owner, repo=repo)
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
 
-    if response.status_code == 200:
-        repo_data = response.json()
-        if include_extra_data:
-            return json.dumps(repo_data)
-        else:
-            return {
-                "name": repo_data["name"],
-                "full_name": repo_data["full_name"],
-                "html_url": repo_data["html_url"],
-                "description": repo_data["description"],
-                "clone_url": repo_data["clone_url"],
-                "private": repo_data["private"],
-                "created_at": repo_data["created_at"],
-                "updated_at": repo_data["updated_at"],
-                "pushed_at": repo_data["pushed_at"],
-                "stargazers_count": repo_data["stargazers_count"],
-                "watchers_count": repo_data["watchers_count"],
-                "forks_count": repo_data["forks_count"],
-            }
-    elif response.status_code == 301:
-        raise ToolExecutionError(
-            "Failed to fetch repository data. Moved permanently. The repository has moved."
-        )
-    elif response.status_code == 403:
-        raise ToolExecutionError(
-            "Failed to fetch repository data. Forbidden. You do not have access to this repository."
-        )
-    elif response.status_code == 404:
-        raise ToolExecutionError(
-            "Failed to fetch repository data. Resource not found. The repository does not exist."
-        )
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch repository data. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
+
+    repo_data = response.json()
+    if include_extra_data:
+        return json.dumps(repo_data)
+
+    return {
+        "name": repo_data["name"],
+        "full_name": repo_data["full_name"],
+        "html_url": repo_data["html_url"],
+        "description": repo_data["description"],
+        "clone_url": repo_data["clone_url"],
+        "private": repo_data["private"],
+        "created_at": repo_data["created_at"],
+        "updated_at": repo_data["updated_at"],
+        "pushed_at": repo_data["pushed_at"],
+        "stargazers_count": repo_data["stargazers_count"],
+        "watchers_count": repo_data["watchers_count"],
+        "forks_count": repo_data["forks_count"],
+    }
 
 
-# It seems like this tool is useful as an intermediary step in a chain, and it's likely not immediatelt useful to the end user.
+# It seems like this tool is useful as an intermediary step in a chain, and it's likely not immediately useful to the end user.
 # For example, it provides SHA hashes, and other unique identifiers that could be used as input parameters for other tools.
 # Example arcade chat usage: "list all merges into main by EricGustin in the repo ArcadeAI/Engine in the last week"
 @tool(requires_auth=GitHubApp())
@@ -270,58 +244,43 @@ async def list_repository_activities(
     ```
     """
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
-    url = f"https://api.github.com/repos/{owner}/{repo}/activity"
+    url = get_url("repo_activity", owner=owner, repo=repo)
     params = {
         "direction": direction.value,
         "per_page": min(100, per_page),  # The API only allows up to 100 per page
+        "before": before,
+        "after": after,
+        "ref": ref,
+        "actor": actor,
+        "time_period": time_period,
+        "activity_type": activity_type,
     }
+    params = remove_none_values(params)
 
-    if before:
-        params["before"] = before
-    if after:
-        params["after"] = after
-    if ref:
-        params["ref"] = ref
-    if actor:
-        params["actor"] = actor
-    if time_period:
-        params["time_period"] = time_period
-    if activity_type:
-        params["activity_type"] = activity_type
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code == 200:
-        activities = response.json()
-        if include_extra_data:
-            return json.dumps({"activities": activities})
+    handle_github_response(response, url)
 
-        results = []
-        for activity in activities:
-            results.append({
-                "id": activity["id"],
-                "node_id": activity["node_id"],
-                "before": activity.get("before"),
-                "after": activity.get("after"),
-                "ref": activity.get("ref"),
-                "timestamp": activity.get("timestamp"),
-                "activity_type": activity.get("activity_type"),
-                "actor": activity.get("actor", {}).get("login") if activity.get("actor") else None,
-            })
-        return json.dumps({"activities": results})
-    elif response.status_code == 422:
-        raise ToolExecutionError("Validation failed or the endpoint has been spammed.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch repository activities. Status code: {response.status_code}"
-        )
+    activities = response.json()
+    if include_extra_data:
+        return json.dumps({"activities": activities})
+
+    results = []
+    for activity in activities:
+        results.append({
+            "id": activity["id"],
+            "node_id": activity["node_id"],
+            "before": activity.get("before"),
+            "after": activity.get("after"),
+            "ref": activity.get("ref"),
+            "timestamp": activity.get("timestamp"),
+            "activity_type": activity.get("activity_type"),
+            "actor": activity.get("actor", {}).get("login") if activity.get("actor") else None,
+        })
+    return json.dumps({"activities": results})
 
 
 @tool(requires_auth=GitHubApp())
@@ -359,58 +318,47 @@ async def list_review_comments_in_a_repository(
     ```
     """
     # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/comments"
+    url = get_url("repo_pulls_comments", owner=owner, repo=repo)
 
     params = {
-        "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
+        "per_page": min(max(1, per_page), 100),  # clamp per_page to 1-100
         "page": page,
+        "sort": sort,
+        "direction": direction,
+        "since": since,
     }
-
-    if sort:
-        params["sort"] = sort
-    if direction:
-        params["direction"] = direction
-    if since:
-        params["since"] = since
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    params = remove_none_values(params)
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code == 200:
-        review_comments = response.json()
-        if include_extra_data:
-            return json.dumps({"review_comments": review_comments})
-        else:
-            important_info = [
-                {
-                    "id": comment["id"],
-                    "url": comment["url"],
-                    "diff_hunk": comment["diff_hunk"],
-                    "path": comment["path"],
-                    "position": comment["position"],
-                    "original_position": comment["original_position"],
-                    "commit_id": comment["commit_id"],
-                    "original_commit_id": comment["original_commit_id"],
-                    "in_reply_to_id": comment.get("in_reply_to_id"),
-                    "user": comment["user"]["login"],
-                    "body": comment["body"],
-                    "created_at": comment["created_at"],
-                    "updated_at": comment["updated_at"],
-                    "html_url": comment["html_url"],
-                    "line": comment["line"],
-                    "side": comment["side"],
-                    "pull_request_url": comment["pull_request_url"],
-                }
-                for comment in review_comments
-            ]
-            return json.dumps({"review_comments": important_info})
+    handle_github_response(response, url)
+
+    review_comments = response.json()
+    if include_extra_data:
+        return json.dumps({"review_comments": review_comments})
     else:
-        raise ToolExecutionError(
-            f"Failed to fetch review comments from '{url}'. Status code: {response.status_code}"
-        )
+        important_info = [
+            {
+                "id": comment["id"],
+                "url": comment["url"],
+                "diff_hunk": comment["diff_hunk"],
+                "path": comment["path"],
+                "position": comment["position"],
+                "original_position": comment["original_position"],
+                "commit_id": comment["commit_id"],
+                "original_commit_id": comment["original_commit_id"],
+                "in_reply_to_id": comment.get("in_reply_to_id"),
+                "user": comment["user"]["login"],
+                "body": comment["body"],
+                "created_at": comment["created_at"],
+                "updated_at": comment["updated_at"],
+                "html_url": comment["html_url"],
+                "line": comment["line"],
+                "side": comment["side"],
+                "pull_request_url": comment["pull_request_url"],
+            }
+            for comment in review_comments
+        ]
+        return json.dumps({"review_comments": important_info})

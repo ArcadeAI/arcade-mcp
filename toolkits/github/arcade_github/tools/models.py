@@ -9,9 +9,26 @@ class PRSortProperty(str, Enum):
     LONG_RUNNING = "long-running"
 
 
+class PRState(str, Enum):
+    OPEN = "open"
+    CLOSED = "closed"
+    ALL = "all"
+
+
 class ReviewCommentSortProperty(str, Enum):
     CREATED = "created"
     UPDATED = "updated"
+
+
+class DiffSide(str, Enum):
+    """
+    The side of the diff that the pull request's changes appear on.
+    Use LEFT for deletions that appear in red.
+    Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context
+    """
+
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
 
 
 # Repo specific
@@ -41,16 +58,6 @@ class RepoSortProperty(str, Enum):
     FULL_NAME = "full_name"
 
 
-class SortDirection(str, Enum):
-    """
-    The order to sort by when listing organization repositories.
-    Default is asc.
-    """
-
-    ASC = "asc"
-    DESC = "desc"
-
-
 class RepoTimePeriod(str, Enum):
     """
     The time period to filter by when listing repository activities.
@@ -76,12 +83,11 @@ class ActivityType(str, Enum):
     MERGE_QUEUE_MERGE = "merge_queue_merge"
 
 
-class DiffSide(str, Enum):
+class SortDirection(str, Enum):
     """
-    The side of the diff that the pull request's changes appear on.
-    Use LEFT for deletions that appear in red.
-    Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context
+    The order to sort by when listing organization repositories.
+    Default is asc.
     """
 
-    LEFT = "LEFT"
-    RIGHT = "RIGHT"
+    ASC = "asc"
+    DESC = "desc"

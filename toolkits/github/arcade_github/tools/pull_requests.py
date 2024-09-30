@@ -1,24 +1,23 @@
 import json
-from enum import Enum
 from typing import Annotated, Optional
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
 from arcade_github.tools.models import (
     PRSortProperty,
+    PRState,
     ReviewCommentSortProperty,
     SortDirection,
 )
-
-
-class PRState(str, Enum):
-    OPEN = "open"
-    CLOSED = "closed"
-    ALL = "all"
+from arcade_github.tools.utils import (
+    get_github_headers,
+    get_url,
+    handle_github_response,
+    remove_none_values,
+)
 
 
 # Example arcade chat usage: "get all open PRs that EricGustin has that are in the ArcadeAI/arcade-ai repo"
@@ -59,60 +58,44 @@ async def list_pull_requests(
 
     # TODO: Validate owner/repo combination is valid for the authenticated user
     # TODO: list repo's branches and validate base is in the list (or default to main)
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
-
+    url = get_url("repo_pulls", owner=owner, repo=repo)
     params = {
         "base": base,
         "state": state.value,
         "sort": sort.value,
-        "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
+        "per_page": min(max(1, per_page), 100),  # clamp per_page to 1-100
         "page": page,
+        "head": head,
+        "direction": direction,  # Note: Github defaults to desc when sort is 'created' or not specified, otherwise defaults to asc
     }
-
-    if head:
-        params["head"] = head
-    if direction:
-        # Github defaults to desc when sort is created or sort is not specified, otherwise Github defaults to asc
-        params["direction"] = direction.value
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    params = remove_none_values(params)
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code == 200:
-        pull_requests = response.json()
-        results = []
-        for pr in pull_requests:
-            if include_extra_data:
-                results.append(pr)
-            else:
-                results.append({
-                    "number": pr["number"],
-                    "title": pr["title"],
-                    "body": pr["body"],
-                    "state": pr["state"],
-                    "html_url": pr["html_url"],
-                    "diff_url": pr["diff_url"],
-                    "created_at": pr["created_at"],
-                    "updated_at": pr["updated_at"],
-                    "user": pr["user"]["login"],
-                    "base": pr["base"]["ref"],
-                    "head": pr["head"]["ref"],
-                })
-        return json.dumps({"pull_requests": results})
-    elif response.status_code == 304:
-        return json.dumps({"pull_requests": []})
-    elif response.status_code == 422:
-        raise ToolExecutionError(f"Validation failed or the endpoint '{url}' has been spammed.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch pull requests from '{url}'. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
+
+    pull_requests = response.json()
+    results = []
+    for pr in pull_requests:
+        if include_extra_data:
+            results.append(pr)
+            continue
+        results.append({
+            "number": pr.get("number"),
+            "title": pr.get("title"),
+            "body": pr.get("body"),
+            "state": pr.get("state"),
+            "html_url": pr.get("html_url"),
+            "diff_url": pr.get("diff_url"),
+            "created_at": pr.get("created_at"),
+            "updated_at": pr.get("updated_at"),
+            "user": pr.get("user", {}).get("login"),
+            "base": pr.get("base", {}).get("ref"),
+            "head": pr.get("head", {}).get("ref"),
+        })
+    return json.dumps({"pull_requests": results})
 
 
 @tool(requires_auth=GitHubApp())
@@ -138,51 +121,34 @@ async def get_pull_request(
     ```
     """
     # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
 
-    if response.status_code == 200:
-        pr_data = response.json()
-        if include_extra_data:
-            return json.dumps(pr_data)
-        else:
-            important_info = {
-                "number": pr_data["number"],
-                "title": pr_data["title"],
-                "body": pr_data["body"],
-                "state": pr_data["state"],
-                "html_url": pr_data["html_url"],
-                "diff_url": pr_data["diff_url"],
-                "created_at": pr_data["created_at"],
-                "updated_at": pr_data["updated_at"],
-                "user": pr_data["user"]["login"],
-                "base": pr_data["base"]["ref"],
-                "head": pr_data["head"]["ref"],
-            }
-            return json.dumps(important_info)
-    elif response.status_code == 404:
-        raise ToolExecutionError(f"Pull request not found at '{url}'.")
-    elif response.status_code == 406:
-        raise ToolExecutionError(f"Unacceptable request to '{url}'.")
-    elif response.status_code == 500:
-        raise ToolExecutionError(f"Internal server error at '{url}'.")
-    elif response.status_code == 503:
-        raise ToolExecutionError(f"Service unavailable at '{url}'.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch pull request from '{url}'. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
+
+    pr_data = response.json()
+    if include_extra_data:
+        return json.dumps(pr_data)
+    important_info = {
+        "number": pr_data.get("number"),
+        "title": pr_data.get("title"),
+        "body": pr_data.get("body"),
+        "state": pr_data.get("state"),
+        "html_url": pr_data.get("html_url"),
+        "diff_url": pr_data.get("diff_url"),
+        "created_at": pr_data.get("created_at"),
+        "updated_at": pr_data.get("updated_at"),
+        "user": pr_data.get("user", {}).get("login"),
+        "base": pr_data.get("base", {}).get("ref"),
+        "head": pr_data.get("head", {}).get("ref"),
+    }
+    return json.dumps(important_info)
 
 
-# Get PR 72 in ArcadeAI/arcade-ai, thenupdate PR 72 in ArcadeAI/arcade-ai by adding "This portion of the PR description was added via arcade chat!" to the end of the body/description
+# Example arcade chat usage: Get PR 72 in ArcadeAI/arcade-ai, then update PR 72 in ArcadeAI/arcade-ai by adding "This portion of the PR description was added via arcade chat!" to the end of the body/description
 @tool(requires_auth=GitHubApp())
 async def update_pull_request(
     context: ToolContext,
@@ -215,54 +181,38 @@ async def update_pull_request(
     # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request
 
     # TODO: force "get PR" tool to be called first so that the user can append/alter PR contents instead of just replacing them.
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}"
+    url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
 
-    data = {}
-    if title:
-        data["title"] = title
-    if body:
-        data["body"] = body
-    if state:
-        data["state"] = state.value
-    if base:
-        data["base"] = base
-    if maintainer_can_modify:
-        data["maintainer_can_modify"] = maintainer_can_modify
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
+    data = {
+        "title": title,
+        "body": body,
+        "state": state.value if state else None,
+        "base": base,
+        "maintainer_can_modify": maintainer_can_modify,
     }
+    data = remove_none_values(data)
+
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.patch(url, headers=headers, json=data)
 
-    if response.status_code == 200:
-        pr_data = response.json()
-        important_info = {
-            "url": pr_data["url"],
-            "id": pr_data["id"],
-            "html_url": pr_data["html_url"],
-            "number": pr_data["number"],
-            "state": pr_data["state"],
-            "title": pr_data["title"],
-            "user": pr_data["user"]["login"],
-            "body": pr_data["body"],
-            "created_at": pr_data["created_at"],
-            "updated_at": pr_data["updated_at"],
-        }
-        return json.dumps(important_info)
-    elif response.status_code == 403:
-        raise ToolExecutionError(
-            f"Forbidden. You do not have access to update this pull request at {url}."
-        )
-    elif response.status_code == 422:
-        raise ToolExecutionError(f"Validation failed or the endpoint '{url}' has been spammed.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to update pull request at {url}. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
+
+    pr_data = response.json()
+    important_info = {
+        "url": pr_data.get("url"),
+        "id": pr_data.get("id"),
+        "html_url": pr_data.get("html_url"),
+        "number": pr_data.get("number"),
+        "state": pr_data.get("state"),
+        "title": pr_data.get("title"),
+        "user": pr_data.get("user", {}).get("login"),
+        "body": pr_data.get("body"),
+        "created_at": pr_data.get("created_at"),
+        "updated_at": pr_data.get("updated_at"),
+    }
+    return json.dumps(important_info)
 
 
 # Example arcade chat usage: "list all of the commits for the pull request number 72 in arcadeai/arcade-ai"
@@ -287,26 +237,19 @@ async def list_pull_request_commits(
     ```
     """
     # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/commits"
+    url = get_url("repo_pull_commits", owner=owner, repo=repo, pull_number=pull_number)
 
     params = {
         "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
         "page": page,
     }
 
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code != 200:
-        raise ToolExecutionError(
-            f"Failed to fetch commits from '{url}'. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
 
     commits = response.json()
     return json.dumps({"commits": commits})
@@ -335,27 +278,24 @@ async def create_reply_for_review_comment(
     ```
     """
     # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies"
+    url = get_url(
+        "repo_pull_comment_replies",
+        owner=owner,
+        repo=repo,
+        pull_number=pull_number,
+        comment_id=comment_id,
+    )
 
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    headers = get_github_headers(context.authorization.token)
 
     data = {"body": body}
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)
 
-    if response.status_code == 201:
-        return json.dumps(response.json())
-    elif response.status_code == 404:
-        raise ToolExecutionError(f"Resource not found at '{url}'.")
-    else:
-        raise ToolExecutionError(
-            f"Failed to create reply for review comment at '{url}'. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
+
+    return json.dumps(response.json())
 
 
 # Example arcade chat usage: "list all of the review comments for PR 72 in arcadeai/arcade-ai"
@@ -395,141 +335,48 @@ async def list_review_comments_on_pull_request(
     ```
     """
     # Implements: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments"
+    url = get_url("repo_pull_comments", owner=owner, repo=repo, pull_number=pull_number)
 
     params = {
         "sort": sort,
         "direction": direction,
         "per_page": max(1, min(100, per_page)),  # clamp per_page to 1-100
         "page": page,
+        "since": since,
     }
+    params = remove_none_values(params)
 
-    if since:
-        params["since"] = since
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {context.authorization.token}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+    headers = get_github_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
 
-    if response.status_code == 200:
-        review_comments = response.json()
-        if not include_extra_data:
-            filtered_comments = []
-            for comment in review_comments:
-                filtered_comment = {
-                    "id": comment["id"],
-                    "url": comment["url"],
-                    "diff_hunk": comment["diff_hunk"],
-                    "path": comment["path"],
-                    "position": comment["position"],
-                    "original_position": comment["original_position"],
-                    "commit_id": comment["commit_id"],
-                    "original_commit_id": comment["original_commit_id"],
-                    "in_reply_to_id": comment.get("in_reply_to_id"),
-                    "user": comment["user"]["login"],
-                    "body": comment["body"],
-                    "created_at": comment["created_at"],
-                    "updated_at": comment["updated_at"],
-                    "html_url": comment["html_url"],
-                    "line": comment["line"],
-                    "side": comment["side"],
-                    "pull_request_url": comment["pull_request_url"],
-                }
-                filtered_comments.append(filtered_comment)
-            return json.dumps({"review_comments": filtered_comments})
-        else:
-            return json.dumps({"review_comments": review_comments})
-    else:
-        raise ToolExecutionError(
-            f"Failed to fetch review comments from '{url}'. Status code: {response.status_code}"
-        )
+    handle_github_response(response, url)
 
+    review_comments = response.json()
+    if include_extra_data:
+        return json.dumps(review_comments)
 
-# @tool(requires_auth=GitHubApp())
-# async def create_review_comment(
-#     context: ToolContext,
-#     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
-#     repo: Annotated[
-#         str,
-#         "The name of the repository without the .git extension. The name is not case sensitive.",
-#     ],
-#     pull_number: Annotated[int, "The number that identifies the pull request."],
-#     body: Annotated[str, "The text of the review comment."],
-#     commit_id: Annotated[str, "The SHA of the commit needing a comment. Use the latest commit SHA of the PR's base branch to avoid your comment rendered as outdated."],
-#     path: Annotated[str, "The relative path to the file that necessitates a comment."],
-#     line: Annotated[Optional[int], "The line of the blob in the pull request diff that the comment applies to."] = None,
-#     side: Annotated[Optional[DiffSide], "The side of the diff that the pull request's changes appear on. Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context"] = DiffSide.RIGHT,
-#     start_line: Annotated[Optional[int], "The first line in the pull request diff that your multi-line comment applies to."] = None,
-#     start_side: Annotated[Optional[str], "The starting side of the diff that the comment applies to."] = None,
-#     in_reply_to: Annotated[Optional[int], "The ID of the review comment to reply to."] = None,
-#     include_extra_data: Annotated[
-#         bool,
-#         "If true, return all the data available about the review comment. This is a large payload and may impact performance - use with caution.",
-#     ] = False,
-# ) -> str:
-#     """
-#     Create a review comment for a pull request in a GitHub repository.
-
-#     Example:
-#     ```
-#     create_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, body="Great stuff!", commit_id="6dcb09b5b57875f334f61aebed695e2e4193db5e", path="file1.txt", line=2, side="RIGHT")
-#     ```
-#     """
-#     # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
-#     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/comments"
-
-#     data = {
-#         "body": body,
-#         "commit_id": commit_id,
-#         "path": path,
-#         "side": side.value,
-#     }
-
-#     if line:
-#         data["line"] = line
-#     if start_line:
-#         data["start_line"] = start_line
-#     if start_side:
-#         data["start_side"] = start_side
-#     if in_reply_to:
-#         data["in_reply_to"] = in_reply_to
-
-#     headers = {
-#         "Accept": "application/vnd.github+json",
-#         "Authorization": f"Bearer {context.authorization.token}",
-#         "X-GitHub-Api-Version": "2022-11-28",
-#     }
-
-#     async with httpx.AsyncClient() as client:
-#         response = await client.post(url, headers=headers, json=data)
-
-#     if response.status_code == 201:
-#         comment_data = response.json()
-#         if include_extra_data:
-#             return json.dumps(comment_data)
-#         else:
-#             important_info = {
-#                 "id": comment_data["id"],
-#                 "url": comment_data["url"],
-#                 "body": comment_data["body"],
-#                 "path": comment_data["path"],
-#                 "line": comment_data.get("line"),
-#                 "side": comment_data.get("side"),
-#                 "commit_id": comment_data["commit_id"],
-#                 "user": comment_data["user"]["login"],
-#                 "created_at": comment_data["created_at"],
-#                 "updated_at": comment_data["updated_at"],
-#                 "html_url": comment_data["html_url"],
-#             }
-#             return json.dumps(important_info)
-#     elif response.status_code == 403:
-#         raise ToolExecutionError(f"Forbidden. You do not have access to create a review comment at {url}.")
-#     elif response.status_code == 422:
-#         raise ToolExecutionError(f"Validation failed or the endpoint '{url}' has been spammed.")
-#     else:
-#         raise ToolExecutionError(f"Failed to create review comment at {url}. Status code: {response.status_code}")
+    filtered_comments = []
+    for comment in review_comments:
+        filtered_comment = {
+            "id": comment.get("id"),
+            "url": comment.get("url"),
+            "diff_hunk": comment.get("diff_hunk"),
+            "path": comment.get("path"),
+            "position": comment.get("position"),
+            "original_position": comment.get("original_position"),
+            "commit_id": comment.get("commit_id"),
+            "original_commit_id": comment.get("original_commit_id"),
+            "in_reply_to_id": comment.get("in_reply_to_id"),
+            "user": comment.get("user", {}).get("login"),
+            "body": comment.get("body"),
+            "created_at": comment.get("created_at"),
+            "updated_at": comment.get("updated_at"),
+            "html_url": comment.get("html_url"),
+            "line": comment.get("line"),
+            "side": comment.get("side"),
+            "pull_request_url": comment.get("pull_request_url"),
+        }
+        filtered_comments.append(filtered_comment)
+    return json.dumps({"review_comments": filtered_comments})
