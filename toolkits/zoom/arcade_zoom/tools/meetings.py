@@ -41,3 +41,38 @@ def list_upcoming_meetings(
         raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
     else:
         raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+
+
+@tool(
+    requires_auth=OAuth2(
+        provider_id="zoom",
+        authority="https://zoom.us",
+        scopes=["meeting:read:invitation"],
+    )
+)
+def get_meeting_invitation(
+    context: ToolContext,
+    meeting_id: Annotated[
+        str,
+        "The meeting's numeric ID (as a string).",
+    ],
+) -> Annotated[dict, "Meeting invitation string"]:
+    """Retrieve the invitation note for a specific Zoom meeting."""
+    url = f"https://api.zoom.us/v2/meetings/{meeting_id}/invitation"
+    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+
+    try:
+        response = requests.get(url, headers=headers)
+    except Exception as e:
+        raise ToolExecutionError(f"Failed to retrieve meeting invitation: {e}")
+
+    if response.status_code == 200:
+        return response.json()
+    elif response.status_code == 401:
+        raise ToolExecutionError("Unauthorized: Invalid or expired token")
+    elif response.status_code == 403:
+        raise ToolExecutionError("Forbidden: Access denied")
+    elif response.status_code == 429:
+        raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
+    else:
+        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
