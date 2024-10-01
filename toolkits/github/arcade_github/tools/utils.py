@@ -30,7 +30,7 @@ def handle_github_response(response, url):
     raise ToolExecutionError(f"Error accessing '{url}': {error_message}")
 
 
-def get_github_headers(token: str) -> dict:
+def get_github_json_headers(token: str) -> dict:
     """
     Generate common headers for GitHub API requests.
 
@@ -39,6 +39,20 @@ def get_github_headers(token: str) -> dict:
     """
     return {
         "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
+def get_github_diff_headers(token: str) -> dict:
+    """
+    Generate headers for GitHub API requests for diff content.
+
+    :param token: The authorization token
+    :return: A dictionary of headers
+    """
+    return {
+        "Accept": "application/vnd.github.diff",
         "Authorization": f"Bearer {token}",
         "X-GitHub-Api-Version": "2022-11-28",
     }

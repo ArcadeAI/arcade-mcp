@@ -7,7 +7,7 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
 from arcade_github.tools.utils import (
-    get_github_headers,
+    get_github_json_headers,
     get_url,
     handle_github_response,
     remove_none_values,
@@ -52,7 +52,7 @@ async def create_issue(
         "assignees": assignees,
     }
     data = remove_none_values(data)
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)
@@ -107,7 +107,7 @@ async def create_issue_comment(
     data = {
         "body": body,
     }
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)

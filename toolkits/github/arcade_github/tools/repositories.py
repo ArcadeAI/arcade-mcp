@@ -15,7 +15,7 @@ from arcade_github.tools.models import (
     SortDirection,
 )
 from arcade_github.tools.utils import (
-    get_github_headers,
+    get_github_json_headers,
     get_url,
     handle_github_response,
     remove_none_values,
@@ -41,7 +41,7 @@ async def search_issues(
         "per_page": limit,
     }
 
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -109,7 +109,7 @@ async def list_org_repositories(
         "page": page,
     }
 
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -164,7 +164,7 @@ async def get_repository(
     """
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
     url = get_url("repo", owner=owner, repo=repo)
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
@@ -257,7 +257,7 @@ async def list_repository_activities(
     }
     params = remove_none_values(params)
 
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -328,7 +328,7 @@ async def list_review_comments_in_a_repository(
         "since": since,
     }
     params = remove_none_values(params)
-    headers = get_github_headers(context.authorization.token)
+    headers = get_github_json_headers(context.authorization.token)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)

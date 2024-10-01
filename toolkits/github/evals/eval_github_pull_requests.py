@@ -1,6 +1,8 @@
 import arcade_github
+from arcade_github.tools.models import DiffSide, ReviewCommentSubjectType  # Add these imports
 from arcade_github.tools.pull_requests import (
     create_reply_for_review_comment,
+    create_review_comment,  # Add this import
     get_pull_request,
     list_pull_request_commits,
     list_pull_requests,
@@ -64,7 +66,7 @@ def github_pull_requests_eval_suite() -> EvalSuite:
     # Get Pull Request
     suite.add_case(
         name="Get details of a pull request",
-        user_message="Get details of pull request #72 in the 'ArcadeAI/test' repository. Include all the data that is available in your response.",
+        user_message="Get diff of pull request #72 in the 'ArcadeAI/test' repository. Include all the data that is available in your response.",
         expected_tool_calls=[
             (
                 get_pull_request,
@@ -72,6 +74,7 @@ def github_pull_requests_eval_suite() -> EvalSuite:
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "pull_number": 72,
+                    "include_diff_content": True,
                     "include_extra_data": True,
                 },
             )
@@ -81,6 +84,7 @@ def github_pull_requests_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="repo", weight=0.2),
             BinaryCritic(critic_field="pull_number", weight=0.3),
             BinaryCritic(critic_field="include_extra_data", weight=0.1),
+            BinaryCritic(critic_field="include_diff_content", weight=0.2),
         ],
     )
 
@@ -175,6 +179,66 @@ def github_pull_requests_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="pull_number", weight=0.2),
             BinaryCritic(critic_field="sort", weight=0.2),
             BinaryCritic(critic_field="direction", weight=0.2),
+        ],
+    )
+
+    # Create Review Comment
+    suite.add_case(
+        name="Create a review comment on a pull request file",
+        user_message="Create a review comment on pr 72 in the 'ArcadeAI/test' repo. The comment should be on the file 'README.md' and says 'nit: you misspelled the word 'intelligence'",
+        expected_tool_calls=[
+            (
+                create_review_comment,
+                {
+                    "owner": "ArcadeAI",
+                    "repo": "test",
+                    "pull_number": 72,
+                    "body": "nit: you misspelled the word 'intelligence'",
+                    "path": "README.md",
+                    "subject_type": ReviewCommentSubjectType.FILE,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="owner", weight=0.15),
+            BinaryCritic(critic_field="repo", weight=0.15),
+            BinaryCritic(critic_field="pull_number", weight=0.2),
+            SimilarityCritic(critic_field="body", weight=0.2),
+            BinaryCritic(critic_field="path", weight=0.15),
+            BinaryCritic(critic_field="subject_type", weight=0.15),
+        ],
+    )
+
+    # Create Review Comment with Line Numbers
+    suite.add_case(
+        name="Create a review comment on specific lines of a pull request",
+        user_message="Create a review comment on pull request #72 in the 'ArcadeAI/test' repository. The comment should be on the file 'src/main.py', lines 10-15, and say 'Move these to constants.py.'",
+        expected_tool_calls=[
+            (
+                create_review_comment,
+                {
+                    "owner": "ArcadeAI",
+                    "repo": "test",
+                    "pull_number": 72,
+                    "body": "Move these to constants.py.",
+                    "path": "src/main.py",
+                    "start_line": 10,
+                    "end_line": 15,
+                    "side": DiffSide.RIGHT,
+                    "subject_type": ReviewCommentSubjectType.LINE,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="owner", weight=0.1),
+            BinaryCritic(critic_field="repo", weight=0.1),
+            BinaryCritic(critic_field="pull_number", weight=0.15),
+            SimilarityCritic(critic_field="body", weight=0.15),
+            BinaryCritic(critic_field="path", weight=0.1),
+            BinaryCritic(critic_field="start_line", weight=0.1),
+            BinaryCritic(critic_field="end_line", weight=0.1),
+            BinaryCritic(critic_field="side", weight=0.1),
+            BinaryCritic(critic_field="subject_type", weight=0.1),
         ],
     )
 

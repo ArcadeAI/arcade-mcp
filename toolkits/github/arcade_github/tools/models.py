@@ -20,6 +20,11 @@ class ReviewCommentSortProperty(str, Enum):
     UPDATED = "updated"
 
 
+class ReviewCommentSubjectType(str, Enum):
+    FILE = "file"
+    LINE = "line"
+
+
 class DiffSide(str, Enum):
     """
     The side of the diff that the pull request's changes appear on.
