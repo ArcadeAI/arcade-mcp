@@ -29,7 +29,10 @@ async def search_issues(
     name: Annotated[str, "The name of the repository"],
     query: Annotated[str, "The query to search for"],
     limit: Annotated[int, "The maximum number of issues to return"] = 10,
-) -> dict[str, list[dict]]:
+) -> Annotated[
+    dict[str, list[dict]],
+    "A dictionary with key 'issues' containing a list of matching issues, each with 'title', 'url', and 'created_at' fields",
+]:
     """Search for issues in a GitHub repository."""
 
     # Build the search query
@@ -64,7 +67,7 @@ async def search_issues(
 async def count_stargazers(
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
-) -> int:
+) -> Annotated[int, "The number of stargazers (stars) for the specified repository"]:
     """Count the number of stargazers (stars) for a GitHub repository.
     For example, to count the number of stars for microsoft/vscode, you would use:
     ```
@@ -97,7 +100,10 @@ async def list_org_repositories(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> dict[str, list[dict]]:
+) -> Annotated[
+    dict[str, list[dict]],
+    "A dictionary with key 'repositories' containing a list of repositories, each with details such as name, full_name, html_url, description, clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
+]:
     """List repositories for the specified organization."""
     # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
     url = get_url("org_repos", org=org)
@@ -152,7 +158,10 @@ async def get_repository(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> dict:
+) -> Annotated[
+    dict,
+    "A dictionary containing repository details such as name, full_name, html_url, description, clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
+]:
     """Get a repository.
 
     Retrieves detailed information about a repository using the GitHub API.
@@ -227,7 +236,10 @@ async def list_repository_activities(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str,
+    "A JSON string containing a dictionary with key 'activities', which is a list of repository activities. Each activity includes id, node_id, before and after states, ref, timestamp, activity_type, and actor information",
+]:
     """List repository activities.
 
     Retrieves a detailed history of changes to a repository, such as pushes, merges, force pushes, and branch changes,
@@ -308,7 +320,10 @@ async def list_review_comments_in_a_repository(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str,
+    "A JSON string containing a dictionary with key 'review_comments', which is a list of review comments. Each comment includes id, url, diff_hunk, path, position details, commit information, user, body, timestamps, and related URLs",
+]:
     """
     List review comments in a GitHub repository.
 

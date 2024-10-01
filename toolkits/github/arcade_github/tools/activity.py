@@ -14,7 +14,9 @@ async def set_starred(
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
     starred: Annotated[bool, "Whether to star the repository or not"],
-) -> Annotated[str, "Success message"]:
+) -> Annotated[
+    str, "A message indicating whether the repository was successfully starred or unstarred"
+]:
     """
     Star or un-star a GitHub repository.
     For example, to star microsoft/vscode, you would use:

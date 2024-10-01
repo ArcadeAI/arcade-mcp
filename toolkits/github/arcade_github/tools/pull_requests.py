@@ -49,7 +49,7 @@ async def list_pull_requests(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[str, "JSON string containing a list of pull requests with their details"]:
     """
     List pull requests in a GitHub repository.
 
@@ -119,7 +119,10 @@ async def get_pull_request(
         Optional[bool],
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str,
+    "JSON string containing details of the specified pull request, optionally including diff content",
+]:
     """
     Get details of a pull request in a GitHub repository.
 
@@ -192,7 +195,7 @@ async def update_pull_request(
     maintainer_can_modify: Annotated[
         Optional[bool], "Indicates whether maintainers can modify the pull request."
     ] = None,
-) -> str:
+) -> Annotated[str, "JSON string containing updated information about the pull request"]:
     """
     Update a pull request in a GitHub repository.
 
@@ -254,7 +257,7 @@ async def list_pull_request_commits(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[str, "JSON string containing a list of commits for the specified pull request"]:
     """
     List commits (from oldest to newest) on a pull request in a GitHub repository.
 
@@ -315,7 +318,7 @@ async def create_reply_for_review_comment(
     pull_number: Annotated[int, "The number that identifies the pull request."],
     comment_id: Annotated[int, "The unique identifier of the comment."],
     body: Annotated[str, "The text of the review comment."],
-) -> str:
+) -> Annotated[str, "JSON string containing details of the created reply comment"]:
     """
     Create a reply to a review comment for a pull request.
 
@@ -372,7 +375,9 @@ async def list_review_comments_on_pull_request(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str, "JSON string containing a list of review comments for the specified pull request"
+]:
     """
     List review comments on a pull request in a GitHub repository.
 
@@ -467,7 +472,7 @@ async def create_review_comment(
         bool,
         "If true, return all the data available about the review comment. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> Annotated[str, "Data about the created review comment"]:
+) -> Annotated[str, "JSON string containing details of the created review comment"]:
     """
     Create a review comment for a pull request in a GitHub repository.
 

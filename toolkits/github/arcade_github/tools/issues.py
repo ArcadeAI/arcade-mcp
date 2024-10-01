@@ -33,7 +33,10 @@ async def create_issue(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str,
+    "A JSON string containing the created issue's details, including id, url, title, body, state, html_url, creation and update timestamps, user, assignees, and labels. If include_extra_data is True, returns all available data about the issue.",
+]:
     """
     Create an issue in a GitHub repository.
 
@@ -93,7 +96,10 @@ async def create_issue_comment(
         bool,
         "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
     ] = False,
-) -> str:
+) -> Annotated[
+    str,
+    "A JSON string containing the created comment's details, including id, url, body, user, and creation and update timestamps. If include_extra_data is True, returns all available data about the comment.",
+]:
     """
     Create a comment on an issue in a GitHub repository.
 
