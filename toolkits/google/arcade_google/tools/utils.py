@@ -5,6 +5,8 @@ from enum import Enum
 from typing import Any, Optional
 
 from bs4 import BeautifulSoup
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 
 class DateRange(Enum):
@@ -205,3 +207,20 @@ def fetch_messages(service, query_string, limit):
         .execute()
     )
     return response.get("messages", [])
+
+
+def remove_none_values(params: dict) -> dict:
+    """
+    Remove None values from a dictionary.
+    :param params: The dictionary to clean
+    :return: A new dictionary with None values removed
+    """
+    return {k: v for k, v in params.items() if v is not None}
+
+
+# Drive utils
+def build_drive_service(token: str):
+    """
+    Build a Drive service object.
+    """
+    return build("drive", "v3", credentials=Credentials(token))

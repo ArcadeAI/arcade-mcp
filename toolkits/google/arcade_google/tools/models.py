@@ -2,7 +2,7 @@ from enum import Enum
 
 
 # Utils for Google Drive tools
-class Corpora(Enum):
+class Corpora(str, Enum):
     """
     Bodies of items (files/documents) to which the query applies.
     Prefer 'user' or 'drive' to 'allDrives' for efficiency.
@@ -15,7 +15,7 @@ class Corpora(Enum):
     ALL_DRIVES = "allDrives"
 
 
-class OrderBy(Enum):
+class OrderBy(str, Enum):
     """
     Sort keys for ordering files in Google Drive.
     Each key has both ascending and descending options.
