@@ -11,7 +11,6 @@ from arcade.sdk.auth import OAuth2
 @tool(
     requires_auth=OAuth2(
         provider_id="zoom",
-        authority="https://zoom.us",
         scopes=["meeting:read:list_upcoming_meetings"],
     )
 )
@@ -47,7 +46,6 @@ async def list_upcoming_meetings(
 @tool(
     requires_auth=OAuth2(
         provider_id="zoom",
-        authority="https://zoom.us",
         scopes=["meeting:read:invitation"],
     )
 )

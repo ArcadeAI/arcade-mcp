@@ -19,7 +19,8 @@ client = Arcade()
 
 # Start the authorization process for the tool "ListEmails"
 auth_response = client.auth.authorize(
-    provider=AuthProvider.google,
+    provider_id="google",
+    provider_type=AuthProvider.oauth2,
     scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     user_id="sam@arcade-ai.com",
 )

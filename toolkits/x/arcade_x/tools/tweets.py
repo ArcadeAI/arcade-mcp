@@ -5,14 +5,14 @@ import requests
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import X
+from arcade.sdk.auth import OAuth2
 from arcade_x.tools.utils import get_tweet_url, parse_search_recent_tweets_response
 
 TWEETS_URL = "https://api.x.com/2/tweets"
 
 
 # Manage Tweets Tools. See developer docs for additional available parameters: https://developer.x.com/en/docs/x-api/tweets/manage-tweets/api-reference
-@tool(requires_auth=X(scopes=["tweet.read", "tweet.write", "users.read"]))
+@tool(requires_auth=OAuth2(provider_id="x", scopes=["tweet.read", "tweet.write", "users.read"]))
 def post_tweet(
     context: ToolContext,
     tweet_text: Annotated[str, "The text content of the tweet you want to post"],
@@ -36,7 +36,7 @@ def post_tweet(
     return f"Tweet with id {tweet_id} posted successfully. URL: {get_tweet_url(tweet_id)}"
 
 
-@tool(requires_auth=X(scopes=["tweet.read", "tweet.write", "users.read"]))
+@tool(requires_auth=OAuth2(provider_id="x", scopes=["tweet.read", "tweet.write", "users.read"]))
 def delete_tweet_by_id(
     context: ToolContext,
     tweet_id: Annotated[str, "The ID of the tweet you want to delete"],
@@ -56,7 +56,7 @@ def delete_tweet_by_id(
     return f"Tweet with id {tweet_id} deleted successfully."
 
 
-@tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
+@tool(requires_auth=OAuth2(provider_id="x", scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
@@ -90,7 +90,7 @@ def search_recent_tweets_by_username(
     return tweets_data
 
 
-@tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
+@tool(requires_auth=OAuth2(provider_id="x", scopes=["tweet.read", "users.read"]))
 def search_recent_tweets_by_keywords(
     context: ToolContext,
     keywords: Annotated[list[str], "List of keywords that must be present in the tweet"] = None,

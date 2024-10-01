@@ -151,17 +151,18 @@
             {
               "type": "object",
               "properties": {
-                "provider": {
-                  "type": "string"
+                "provider_id": {
+                  "type": "string",
+                  "description": "A unique provider ID."
+                },
+                "provider_type": {
+                  "type": "string",
+                  "description": "The provider type."
                 },
                 "oauth2": {
                   "type": "object",
                   "properties": {
-                    "authority": {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "scope": {
+                    "scopes": {
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -171,7 +172,7 @@
                   "additionalProperties": false
                 }
               },
-              "required": ["provider"],
+              "required": ["provider_id", "provider_type"],
               "additionalProperties": false
             }
           ]

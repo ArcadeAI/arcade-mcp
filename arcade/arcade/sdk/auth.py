@@ -1,62 +1,36 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from pydantic import AnyUrl, BaseModel
+from pydantic import BaseModel
 
 
 class ToolAuthorization(BaseModel, ABC):
     """Marks a tool as requiring authorization."""
 
-    provider_id: Optional[str] = None
+    @abstractmethod
+    def get_provider_id(self) -> str:
+        """Return the unique provider ID."""
+        pass
 
     @abstractmethod
-    def get_provider(self) -> str:
-        """Return the name of the authorization method."""
+    def get_provider_type(self) -> str:
+        """Return the type of the authorization provider."""
         pass
 
     pass
 
 
-class BaseOAuth2(ToolAuthorization):
-    """Base class for any provider supporting OAuth 2.0-like authorization."""
+class OAuth2(ToolAuthorization):
+    """Marks a tool as requiring OAuth 2.0 authorization."""
 
-    authority: Optional[AnyUrl] = None
-    """The URL of the OAuth 2.0 authorization server."""
+    provider_id: str
+    """The unique provider ID configured in Arcade."""
 
     scopes: Optional[list[str]] = None
     """The scope(s) needed for the authorized action."""
 
+    def get_provider_id(self) -> str:
+        return self.provider_id
 
-class OAuth2(BaseOAuth2):
-    """Marks a tool as requiring OAuth 2.0 authorization."""
-
-    def get_provider(self) -> str:
+    def get_provider_type(self) -> str:
         return "oauth2"
-
-
-class Google(BaseOAuth2):
-    """Marks a tool as requiring Google authorization."""
-
-    def get_provider(self) -> str:
-        return "google"
-
-
-class SlackUser(BaseOAuth2):
-    """Marks a tool as requiring Slack (user token) authorization."""
-
-    def get_provider(self) -> str:
-        return "slack_user"
-
-
-class GitHubApp(ToolAuthorization):
-    """Marks a tool as requiring GitHub App authorization."""
-
-    def get_provider(self) -> str:
-        return "github_app"
-
-
-class X(BaseOAuth2):
-    """Marks a tool as requiring X (Twitter) authorization."""
-
-    def get_provider(self) -> str:
-        return "x"

@@ -11,7 +11,6 @@ from arcade.sdk.auth import OAuth2
 @tool(
     requires_auth=OAuth2(
         provider_id="linkedin",
-        authority="https://www.linkedin.com",
         scopes=["w_member_social"],
     )
 )

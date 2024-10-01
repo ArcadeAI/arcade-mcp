@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import Any, Literal, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import BaseModel, Field
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
@@ -73,9 +73,6 @@ class ToolOutput(BaseModel):
 class OAuth2Requirement(BaseModel):
     """Indicates that the tool requires OAuth 2.0 authorization."""
 
-    authority: Optional[AnyUrl] = None
-    """The URL of the OAuth 2.0 authorization server."""
-
     scopes: Optional[list[str]] = None
     """The scope(s) needed for authorization, if any."""
 
@@ -83,11 +80,11 @@ class OAuth2Requirement(BaseModel):
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
-    provider: str
-    """The unique provider name."""  # TODO: type?
-
     provider_id: Optional[str] = None
     """A unique provider ID."""
+
+    provider_type: str
+    """The provider type."""
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""

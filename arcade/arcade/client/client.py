@@ -29,10 +29,10 @@ class AuthResource(BaseResource[ClientT]):
 
     def authorize(
         self,
-        provider: AuthProvider,
+        provider_id: str,
+        provider_type: AuthProvider,
         scopes: list[str],
         user_id: str,
-        authority: str | None = None,
     ) -> AuthResponse:
         """
         Initiate an authorization request.
@@ -41,16 +41,14 @@ class AuthResource(BaseResource[ClientT]):
             provider: The authorization provider.
             scopes: The scopes required for the authorization.
             user_id: The user ID initiating the authorization.
-            authority: The authority initiating the authorization.
         """
-        auth_provider = provider.value
+        auth_provider = provider_type.value
 
         body = {
             "auth_requirement": {
-                "provider": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes, authority=authority).model_dump(
-                    exclude_none=True
-                ),
+                "provider_id": provider_id,
+                "provider_type": auth_provider,
+                auth_provider: AuthRequest(scopes=scopes).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }
@@ -190,22 +188,21 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
 
     async def authorize(
         self,
-        provider: AuthProvider,
+        provider_id: str,
+        provider_type: AuthProvider,
         scopes: list[str],
         user_id: str,
-        authority: str | None = None,
     ) -> AuthResponse:
         """
         Initiate an asynchronous authorization request.
         """
-        auth_provider = provider.value
+        auth_provider = provider_type.value
 
         body = {
             "auth_requirement": {
-                "provider": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes, authority=authority).model_dump(
-                    exclude_none=True
-                ),
+                "provider_id": provider_id,
+                "provider_type": auth_provider,
+                auth_provider: AuthRequest(scopes=scopes).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }

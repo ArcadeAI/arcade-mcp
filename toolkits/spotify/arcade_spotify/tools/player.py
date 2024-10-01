@@ -11,7 +11,6 @@ from arcade.sdk.auth import OAuth2
 @tool(
     requires_auth=OAuth2(
         provider_id="spotify",
-        authority="https://accounts.spotify.com",
         scopes=["user-modify-playback-state"],
     )
 )
@@ -80,7 +79,6 @@ async def resume(
 @tool(
     requires_auth=OAuth2(
         provider_id="spotify",
-        authority="https://accounts.spotify.com",
         scopes=["user-read-playback-state"],
     )
 )
