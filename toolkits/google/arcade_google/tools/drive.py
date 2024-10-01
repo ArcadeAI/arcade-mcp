@@ -10,6 +10,14 @@ from arcade_google.tools.utils import build_drive_service, remove_none_values
 
 from .models import Corpora, OrderBy
 
+"""
+Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
+
+TODO: Support pagination.
+TODO: Support query with natural language. Currently, the tool expects a fully formed query string as input with the syntax defined here: https://developers.google.com/drive/api/guides/search-files
+TODO: This returns all files including trashed ones. Dont include them by default, but add ability to add them.
+"""
+
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
 # TODO: Support pagination.
@@ -70,15 +78,15 @@ async def list_documents(
             if not page_token or len(batch) < page_size:
                 break
 
-        return {"documents_count": len(files), "documents": files}
+        return json.dumps({"files": files})
 
     except HttpError as e:
         raise ToolExecutionError(
-            f"HttpError during execution of '{list_documents.__name__}' tool.",
+            f"HttpError during execution of '{export_file.__name__}' tool.",
             str(e),
         )
     except Exception as e:
         raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{list_documents.__name__}' tool.",
+            f"Unexpected Error encountered during execution of '{export_file.__name__}' tool.",
             str(e),
         )
