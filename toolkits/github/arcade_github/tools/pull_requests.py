@@ -23,8 +23,16 @@ from arcade_github.tools.utils import (
     remove_none_values,
 )
 
+"""
+Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
 
-# Example arcade chat usage: "get all open PRs that EricGustin has that are in the ArcadeAI/arcade-ai repo"
+Example `arcade chat` usage: "get all open PRs that <USER> has that are in the <OWNER>/<REPO> repo"
+
+TODO: Validate owner/repo combination is valid for the authenticated user. If not, return RetryableToolError with available repos.
+TODO: list repo's branches and validate base is in the list (or default to main). If not, return RetryableToolError with available branches.
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def list_pull_requests(
     context: ToolContext,
@@ -58,10 +66,6 @@ async def list_pull_requests(
     list_pull_requests(owner="octocat", repo="Hello-World", state=PRState.OPEN, sort=PRSort.UPDATED)
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
-
-    # TODO: Validate owner/repo combination is valid for the authenticated user
-    # TODO: list repo's branches and validate base is in the list (or default to main)
     url = get_url("repo_pulls", owner=owner, repo=repo)
     params = {
         "base": base,
@@ -102,6 +106,13 @@ async def list_pull_requests(
     return json.dumps({"pull_requests": results})
 
 
+"""
+Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
+
+Example `arcade chat` usage: "get the PR #72 in the <OWNER>/<REPO> repo. Include diff content in your response."
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def get_pull_request(
     context: ToolContext,
@@ -131,7 +142,6 @@ async def get_pull_request(
     get_pull_request(owner="octocat", repo="Hello-World", pull_number=1347)
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
     url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
     headers = get_github_json_headers(context.authorization.token)
     diff_headers = get_github_diff_headers(context.authorization.token)
@@ -174,7 +184,15 @@ async def get_pull_request(
     return json.dumps(important_info)
 
 
-# Example arcade chat usage: Get PR 72 in ArcadeAI/arcade-ai, then update PR 72 in ArcadeAI/arcade-ai by adding "This portion of the PR description was added via arcade chat!" to the end of the body/description
+"""
+Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request
+
+Example `arcade chat` usage: "update PR #72 in the <OWNER>/<REPO> repo by changing the title to 'New Title' and setting the body to 'This PR description was added via arcade chat!'."
+
+TODO: Enable this tool to append to the PR contents instead of only replacing content.
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def update_pull_request(
     context: ToolContext,
@@ -204,9 +222,6 @@ async def update_pull_request(
     update_pull_request(owner="octocat", repo="Hello-World", pull_number=1347, title="new title", body="updated body")
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request
-
-    # TODO: force "get PR" tool to be called first so that the user can append/alter PR contents instead of just replacing them.
     url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
 
     data = {
@@ -241,7 +256,13 @@ async def update_pull_request(
     return json.dumps(important_info)
 
 
-# Example arcade chat usage: "list all of the commits for the pull request number 72 in arcadeai/arcade-ai"
+"""
+Implements https://docs.github.com/en/rest/pulls/commits?apiVersion=2022-11-28#list-commits-on-a-pull-request
+
+Example `arcade chat` usage: "list all of the commits for the PR 72 in the <OWNER>/<REPO> repo"
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def list_pull_request_commits(
     context: ToolContext,
@@ -266,7 +287,6 @@ async def list_pull_request_commits(
     list_pull_request_commits(owner="octocat", repo="Hello-World", pull_number=1347)
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request
     url = get_url("repo_pull_commits", owner=owner, repo=repo, pull_number=pull_number)
 
     params = {
@@ -305,8 +325,16 @@ async def list_pull_request_commits(
     return json.dumps({"commits": filtered_commits})
 
 
-# This tool requires the ID of the review comment to reply to, which can be found by calling list_review_comments_on_pull_request
-# Example arcade chat usage: "create a reply to the review comment 1778019974 in arcadeai/arcade-ai for the pull request number 72 that says 'Thanks for the suggestion.'"
+"""
+Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
+
+Example `arcade chat` usage: "create a reply to the review comment 1778019974 in arcadeai/arcade-ai for the PR 72 that says 'Thanks for the suggestion.'"
+
+Note: This tool requires the ID of the review comment to reply to. To obtain this ID, you should first call the `list_review_comments_on_pull_request` function.
+      The returned JSON will contain the `id` field for each comment, which can be used as the `comment_id` parameter in this function.
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def create_reply_for_review_comment(
     context: ToolContext,
@@ -327,7 +355,6 @@ async def create_reply_for_review_comment(
     create_reply_for_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, comment_id=42, body="Looks good to me!")
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
     url = get_url(
         "repo_pull_comment_replies",
         owner=owner,
@@ -348,7 +375,13 @@ async def create_reply_for_review_comment(
     return json.dumps(response.json())
 
 
-# Example arcade chat usage: "list all of the review comments for PR 72 in arcadeai/arcade-ai"
+"""
+Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-on-a-pull-request
+
+Example `arcade chat` usage: "list all of the review comments for PR 72 in <OWNER>/<REPO>"
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def list_review_comments_on_pull_request(
     context: ToolContext,
@@ -386,7 +419,6 @@ async def list_review_comments_on_pull_request(
     list_review_comments_on_pull_request(owner="octocat", repo="Hello-World", pull_number=1347)
     ```
     """
-    # Implements: https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
     url = get_url("repo_pull_comments", owner=owner, repo=repo, pull_number=pull_number)
 
     params = {
@@ -432,6 +464,15 @@ async def list_review_comments_on_pull_request(
         }
         filtered_comments.append(filtered_comment)
     return json.dumps({"review_comments": filtered_comments})
+
+
+"""
+Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
+
+Example `arcade chat` usage: "create a review comment for PR 72 in <OWNER>/<REPO> that says 'Great stuff! This looks good to merge. Add the comment to README.md file.'"
+
+TODO: Verify that path parameter exists in the PR's files that have changed (Or should we allow for any file in the repo?). If not, then throw RetryableToolError with all valid file paths.
+"""
 
 
 @tool(requires_auth=GitHubApp())
@@ -485,9 +526,6 @@ async def create_review_comment(
     create_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, body="Great stuff!", commit_id="6dcb09b5b57875f334f61aebed695e2e4193db5e", path="file1.txt", line=2, side="RIGHT")
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
-    # TODO: Verify that path parameter exists in the PR's files that have changed. (Or should we allow for any file in the repo?) and then throw RetryableToolError with all valid file paths.
-
     # If the subject_type is 'file', then the line_range parameter is ignored
     if subject_type == ReviewCommentSubjectType.FILE:
         start_line, end_line = None, None

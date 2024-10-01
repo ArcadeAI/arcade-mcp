@@ -7,6 +7,12 @@ from arcade.sdk import tool
 from arcade.sdk.auth import GitHubApp
 from arcade_github.tools.utils import get_github_json_headers, get_url, handle_github_response
 
+"""
+Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#star-a-repository-for-the-authenticated-user and https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#unstar-a-repository-for-the-authenticated-user
+
+Example `arcade chat` usage: "star the vscode repo owned by microsoft"
+"""
+
 
 @tool(requires_auth=GitHubApp())
 async def set_starred(
@@ -24,8 +30,6 @@ async def set_starred(
     set_starred(owner="microsoft", name="vscode", starred=True)
     ```
     """
-    # Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#star-a-repository-for-the-authenticated-user
-    # and https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#unstar-a-repository-for-the-authenticated-user
     url = get_url("user_starred", owner=owner, repo=name)
     headers = get_github_json_headers(context.authorization.token)
 

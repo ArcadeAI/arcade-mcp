@@ -5,7 +5,6 @@ from arcade_github.tools.repositories import (
     list_org_repositories,
     list_repository_activities,
     list_review_comments_in_a_repository,
-    search_issues,
 )
 
 from arcade.core.catalog import ToolCatalog
@@ -35,28 +34,6 @@ def github_repositories_eval_suite() -> EvalSuite:
         system_message="You are an AI assistant that helps users interact with GitHub repositories using the provided tools.",
         catalog=catalog,
         rubric=rubric,
-    )
-
-    # Search Issues
-    suite.add_case(
-        name="Search issues in a repository",
-        user_message="Search for open issues in the 'ArcadeAI/test' repo with the query 'bug'.",
-        expected_tool_calls=[
-            (
-                search_issues,
-                {
-                    "owner": "ArcadeAI",
-                    "name": "test",
-                    "query": "bug",
-                    "limit": 10,
-                },
-            )
-        ],
-        critics=[
-            BinaryCritic(critic_field="owner", weight=0.3),
-            BinaryCritic(critic_field="name", weight=0.3),
-            BinaryCritic(critic_field="query", weight=0.3),
-        ],
     )
 
     # Count Stargazers

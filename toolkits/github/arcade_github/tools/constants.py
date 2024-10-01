@@ -3,7 +3,6 @@ GITHUB_API_BASE_URL = "https://api.github.com"
 
 # Endpoint patterns
 ENDPOINTS = {
-    "search_issues": "/search/issues",
     "repo": "/repos/{owner}/{repo}",
     "org_repos": "/orgs/{org}/repos",
     "repo_activity": "/repos/{owner}/{repo}/activity",

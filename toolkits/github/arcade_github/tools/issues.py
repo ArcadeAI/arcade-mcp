@@ -13,6 +13,12 @@ from arcade_github.tools.utils import (
     remove_none_values,
 )
 
+"""
+Implements https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#create-an-issue
+
+Example `arcade chat` usage: "create an issue in the <REPO> repo owned by <OWNER> titled 'Found a bug' with the body 'I'm having a problem with this.' Assign it to <USER> and label it 'bug'"
+"""
+
 
 @tool(requires_auth=GitHubApp())
 async def create_issue(
@@ -45,7 +51,6 @@ async def create_issue(
     create_issue(owner="octocat", repo="Hello-World", title="Found a bug", body="I'm having a problem with this.", assignees=["octocat"], milestone=1, labels=["bug"])
     ```
     """
-    # Implements https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#create-an-issue
     url = get_url("repo_issues", owner=owner, repo=repo)
     data = {
         "title": title,
@@ -82,6 +87,13 @@ async def create_issue(
     return json.dumps(important_info)
 
 
+"""
+Implements https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
+
+Example `arcade chat` usage: "create a comment in the vscode repo owned by microsoft for issue 1347 that says 'Me too'"
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def create_issue_comment(
     context: ToolContext,
@@ -108,7 +120,6 @@ async def create_issue_comment(
     create_issue_comment(owner="octocat", repo="Hello-World", issue_number=1347, body="Me too")
     ```
     """
-    # Implements https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
     url = get_url("repo_issue_comments", owner=owner, repo=repo, issue_number=issue_number)
     data = {
         "body": body,

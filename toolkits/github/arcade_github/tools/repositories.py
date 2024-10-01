@@ -21,46 +21,11 @@ from arcade_github.tools.utils import (
     remove_none_values,
 )
 
+"""
+Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository and returns only the stargazers_count field.
 
-@tool(requires_auth=GitHubApp())
-async def search_issues(
-    context: ToolContext,
-    owner: Annotated[str, "The owner of the repository"],
-    name: Annotated[str, "The name of the repository"],
-    query: Annotated[str, "The query to search for"],
-    limit: Annotated[int, "The maximum number of issues to return"] = 10,
-) -> Annotated[
-    dict[str, list[dict]],
-    "A dictionary with key 'issues' containing a list of matching issues, each with 'title', 'url', and 'created_at' fields",
-]:
-    """Search for issues in a GitHub repository."""
-
-    # Build the search query
-    url = get_url("search_issues")
-    params = {
-        "q": f"{query}+is:issue+is:open+repo:{owner}/{name}",
-        "sort": "created",
-        "order": "desc",
-        "per_page": limit,
-    }
-
-    headers = get_github_json_headers(context.authorization.token)
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers, params=params)
-
-    handle_github_response(response, url)
-
-    issues = response.json().get("items", [])
-    results = []
-    for issue in issues:
-        results.append({
-            "title": issue["title"],
-            "url": issue["html_url"],
-            "created_at": issue["created_at"],
-        })
-
-    return {"issues": results}
+Example arcade chat usage: "How many stargazers does the <OWNER>/<REPO> repo have?"
+"""
 
 
 @tool(requires_auth=GitHubApp())
@@ -82,7 +47,15 @@ async def count_stargazers(
     handle_github_response(response, url)
 
     data = response.json()
-    return data.get("stargazers_count", 0)
+    stargazers_count = data.get("stargazers_count", 0)
+    return f"The repository {owner}/{name} has {stargazers_count} stargazers."
+
+
+"""
+Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
+
+Example arcade chat usage: "List all repositories for the <ORG> organization. Sort by creation date in descending order."
+"""
 
 
 @tool(requires_auth=GitHubApp())
@@ -105,7 +78,6 @@ async def list_org_repositories(
     "A dictionary with key 'repositories' containing a list of repositories, each with details such as name, full_name, html_url, description, clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
 ]:
     """List repositories for the specified organization."""
-    # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
     url = get_url("org_repos", org=org)
     params = {
         "type": repo_type.value,
@@ -146,6 +118,13 @@ async def list_org_repositories(
     return {"repositories": results}
 
 
+"""
+Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+
+Example arcade chat usage: "Tell me about the <OWNER>/<REPO> repo."
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def get_repository(
     context: ToolContext,
@@ -171,7 +150,6 @@ async def get_repository(
     get_repository(owner="octocat", repo="Hello-World")
     ```
     """
-    # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
     url = get_url("repo", owner=owner, repo=repo)
     headers = get_github_json_headers(context.authorization.token)
 
@@ -200,9 +178,13 @@ async def get_repository(
     }
 
 
-# It seems like this tool is useful as an intermediary step in a chain, and it's likely not immediately useful to the end user.
-# For example, it provides SHA hashes, and other unique identifiers that could be used as input parameters for other tools.
-# Example arcade chat usage: "list all merges into main by EricGustin in the repo ArcadeAI/Engine in the last week"
+"""
+Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
+
+Example arcade chat usage: "List all merges into main for the <OWNER>/<REPO> repo in the last week by <USER>"
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def list_repository_activities(
     context: ToolContext,
@@ -255,7 +237,6 @@ async def list_repository_activities(
     )
     ```
     """
-    # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
     url = get_url("repo_activity", owner=owner, repo=repo)
     params = {
         "direction": direction.value,
@@ -295,6 +276,15 @@ async def list_repository_activities(
     return json.dumps({"activities": results})
 
 
+"""
+Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
+
+Example arcade chat usage: "List all review comments for the <OWNER>/<REPO> repo. Sort by update date in descending order."
+
+TODO: Improve the 'since' input parameter such that language model can more easily specify a valid date/time.
+"""
+
+
 @tool(requires_auth=GitHubApp())
 async def list_review_comments_in_a_repository(
     context: ToolContext,
@@ -332,7 +322,6 @@ async def list_review_comments_in_a_repository(
     list_review_comments(owner="octocat", repo="Hello-World", sort="created", direction="asc")
     ```
     """
-    # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
     url = get_url("repo_pulls_comments", owner=owner, repo=repo)
 
     params = {

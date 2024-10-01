@@ -7,7 +7,6 @@ from arcade_github.tools.repositories import (
     list_org_repositories,
     list_repository_activities,
     list_review_comments_in_a_repository,
-    search_issues,
 )
 from httpx import Response
 
@@ -46,7 +45,7 @@ async def test_error_responses(
 
     with pytest.raises(ToolExecutionError, match=expected_error):
         if status_code == 422:
-            await search_issues(mock_context, "owner", "repo", "invalid query")
+            await list_org_repositories(mock_context, "org", repo_type="invalid_type")
         elif status_code == 301:
             await count_stargazers("owner", "repo")
         elif status_code == 404:
@@ -63,26 +62,6 @@ async def test_list_repository_activities_invalid_cursor(mock_context, mock_clie
 
     with pytest.raises(ToolExecutionError, match="Error accessing.*: Validation failed"):
         await list_repository_activities(mock_context, "owner", "repo", before="invalid_cursor")
-
-
-@pytest.mark.asyncio
-async def test_search_issues_success(mock_context, mock_client):
-    mock_client.get.return_value = Response(
-        200,
-        json={
-            "items": [
-                {
-                    "title": "Test Issue",
-                    "html_url": "https://github.com/owner/repo/issues/1",
-                    "created_at": "2023-05-01T12:00:00Z",
-                }
-            ]
-        },
-    )
-
-    result = await search_issues(mock_context, "owner", "repo", "test query")
-    assert "Test Issue" in str(result)
-    assert "https://github.com/owner/repo/issues/1" in str(result)
 
 
 @pytest.mark.asyncio
