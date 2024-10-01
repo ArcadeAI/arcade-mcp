@@ -123,7 +123,8 @@ def test_arcade_auth_authorize(test_sync_client, mock_response, monkeypatch):
     """Test Arcade.auth.authorize method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
     auth_response = test_sync_client.auth.authorize(
-        provider=AuthProvider.google,
+        provider_id="google",
+        provider_type=AuthProvider.oauth2,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
         user_id="sam@arcade-ai.com",
     )
@@ -194,7 +195,8 @@ async def test_async_arcade_auth_authorize(test_async_client, mock_async_respons
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     auth_response = await test_async_client.auth.authorize(
-        provider=AuthProvider.google,
+        provider_id="google",
+        provider_type=AuthProvider.oauth2,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
         user_id="sam@arcade-ai.com",
     )
