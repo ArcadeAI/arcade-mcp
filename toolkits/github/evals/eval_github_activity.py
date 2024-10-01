@@ -11,8 +11,8 @@ from arcade.sdk.eval import (
 
 # Evaluation rubric
 rubric = EvalRubric(
-    fail_threshold=0.8,
-    warn_threshold=0.9,
+    fail_threshold=0.9,
+    warn_threshold=0.95,
 )
 
 catalog = ToolCatalog()

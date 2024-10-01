@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from arcade_github.tools.models import RepoType
 from arcade_github.tools.repositories import (
     count_stargazers,
     get_repository,
@@ -45,7 +46,7 @@ async def test_error_responses(
 
     with pytest.raises(ToolExecutionError, match=expected_error):
         if status_code == 422:
-            await list_org_repositories(mock_context, "org", repo_type="invalid_type")
+            await list_org_repositories(mock_context, "org", repo_type=RepoType.ALL)
         elif status_code == 301:
             await count_stargazers("owner", "repo")
         elif status_code == 404:
@@ -69,4 +70,4 @@ async def test_count_stargazers_success(mock_client):
     mock_client.get.return_value = Response(200, json={"stargazers_count": 42})
 
     result = await count_stargazers("owner", "repo")
-    assert result == 42
+    assert result == "The repository owner/repo has 42 stargazers."

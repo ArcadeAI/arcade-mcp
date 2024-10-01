@@ -2,7 +2,7 @@ from arcade.core.errors import ToolExecutionError
 from arcade_github.tools.constants import ENDPOINTS, GITHUB_API_BASE_URL
 
 
-def handle_github_response(response, url):
+def handle_github_response(response: dict, url: str) -> None:
     """
     Handle GitHub API response and raise appropriate exceptions for non-200 status codes.
 

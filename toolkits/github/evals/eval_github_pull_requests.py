@@ -21,8 +21,8 @@ from arcade.sdk.eval import (
 
 # Evaluation rubric
 rubric = EvalRubric(
-    fail_threshold=0.8,
-    warn_threshold=0.9,
+    fail_threshold=0.9,
+    warn_threshold=0.95,
 )
 
 catalog = ToolCatalog()
@@ -203,9 +203,9 @@ def github_pull_requests_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="owner", weight=0.15),
             BinaryCritic(critic_field="repo", weight=0.15),
             BinaryCritic(critic_field="pull_number", weight=0.2),
-            SimilarityCritic(critic_field="body", weight=0.2),
-            BinaryCritic(critic_field="path", weight=0.15),
-            BinaryCritic(critic_field="subject_type", weight=0.15),
+            SimilarityCritic(critic_field="body", weight=0.1),
+            BinaryCritic(critic_field="path", weight=0.2),
+            BinaryCritic(critic_field="subject_type", weight=0.2),
         ],
     )
 
