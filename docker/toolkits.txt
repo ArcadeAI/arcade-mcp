@@ -1,6 +1,0 @@
-google
-slack
-math
-search
-x
-github
