@@ -1,5 +1,0 @@
-google
-slack
-math
-search
-x

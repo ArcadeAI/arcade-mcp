@@ -7,6 +7,8 @@ from typing import Any
 
 from loguru import logger
 
+from arcade.core.telemetry import OTELHandler
+
 try:
     import fastapi
 except ImportError:
@@ -60,9 +62,9 @@ def setup_logging(log_level: int = logging.INFO) -> None:
                 "sink": sys.stdout,
                 "serialize": False,
                 "level": log_level,
-                "format": "{time:MM-DD HH:mm:ss} | {level: <8} | {message}"
+                "format": "{level}  [{time:HH:mm:ss.SSS}] {message}"
                 + (" {name}:{function}:{line}" if log_level <= logging.DEBUG else "")
-                + ("{exception}\n" if "{exception}" in "{message}" else ""),
+                + ("\n{exception}" if "{exception}" in "{message}" else ""),
             }
         ]
     )
@@ -84,13 +86,15 @@ def serve_default_actor(
     disable_auth: bool = False,
     workers: int = 1,
     timeout_keep_alive: int = 5,
+    enable_otel: bool = False,
+    debug: bool = False,
     **kwargs: Any,
 ) -> None:
     """
     Get an instance of a FastAPI server with the Arcade Actor.
     """
     # Setup unified logging
-    setup_logging()
+    setup_logging(log_level=logging.DEBUG if debug else logging.INFO)
 
     toolkits = Toolkit.find_all_arcade_toolkits()
     if not toolkits:
@@ -114,7 +118,12 @@ def serve_default_actor(
         version="0.1.0",
         lifespan=lifespan,  # Use custom lifespan to catch errors, notably KeyboardInterrupt (Ctrl+C)
     )
-    actor = FastAPIActor(app, secret=actor_secret, disable_auth=disable_auth)
+
+    otel_handler = OTELHandler(app, enable=enable_otel)
+
+    actor = FastAPIActor(
+        app, secret=actor_secret, disable_auth=disable_auth, otel_meter=otel_handler.get_meter()
+    )
     for toolkit in toolkits:
         actor.register_toolkit(toolkit)
 
@@ -143,4 +152,6 @@ def serve_default_actor(
     except KeyboardInterrupt:
         logger.info("Server stopped by user.")
     finally:
+        if enable_otel:
+            otel_handler.shutdown()
         logger.debug("Server shutdown complete.")

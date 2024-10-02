@@ -99,7 +99,7 @@ async def test_update_draft_email(mock_build, mock_context):
     # Test happy path
     result = await update_draft_email(
         context=mock_context,
-        id="draft123",
+        draft_email_id="draft123",
         subject="Updated Subject",
         body="Updated Body",
         recipient="updated@example.com",
@@ -117,7 +117,7 @@ async def test_update_draft_email(mock_build, mock_context):
     with pytest.raises(ToolExecutionError):
         await update_draft_email(
             context=mock_context,
-            id="nonexistent_draft",
+            draft_email_id="nonexistent_draft",
             subject="Updated Subject",
             body="Updated Body",
             recipient="updated@example.com",
@@ -131,7 +131,7 @@ async def test_send_draft_email(mock_build, mock_context):
     mock_build.return_value = mock_service
 
     # Test happy path
-    result = await send_draft_email(context=mock_context, id="draft456")
+    result = await send_draft_email(context=mock_context, email_id="draft456")
 
     assert "Draft email with ID" in result
     assert "sent" in result
@@ -143,7 +143,7 @@ async def test_send_draft_email(mock_build, mock_context):
     )
 
     with pytest.raises(ToolExecutionError):
-        await send_draft_email(context=mock_context, id="nonexistent_draft")
+        await send_draft_email(context=mock_context, email_id="nonexistent_draft")
 
 
 @pytest.mark.asyncio
@@ -153,7 +153,7 @@ async def test_delete_draft_email(mock_build, mock_context):
     mock_build.return_value = mock_service
 
     # Test happy path
-    result = await delete_draft_email(context=mock_context, id="draft789")
+    result = await delete_draft_email(context=mock_context, draft_email_id="draft789")
 
     assert "Draft email with ID" in result
     assert "deleted successfully" in result
@@ -165,7 +165,7 @@ async def test_delete_draft_email(mock_build, mock_context):
     )
 
     with pytest.raises(ToolExecutionError):
-        await delete_draft_email(context=mock_context, id="nonexistent_draft")
+        await delete_draft_email(context=mock_context, draft_email_id="nonexistent_draft")
 
 
 @pytest.mark.asyncio
@@ -404,7 +404,7 @@ async def test_trash_email(mock_build, mock_context):
 
     # Test happy path
     email_id = "123456"
-    result = await trash_email(context=mock_context, id=email_id)
+    result = await trash_email(context=mock_context, email_id=email_id)
 
     assert (
         f"Email with ID {email_id} trashed successfully: https://mail.google.com/mail/u/0/#trash/{email_id}"
@@ -418,4 +418,4 @@ async def test_trash_email(mock_build, mock_context):
     )
 
     with pytest.raises(ToolExecutionError):
-        await trash_email(context=mock_context, id="nonexistent_email")
+        await trash_email(context=mock_context, email_id="nonexistent_email")

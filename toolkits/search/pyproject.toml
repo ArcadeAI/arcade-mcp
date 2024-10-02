@@ -6,7 +6,7 @@ authors = ["Sam Partee <sam@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "^0.1.0"
+arcade-ai = "0.1.*"
 serpapi = "^0.1.5"
 
 [tool.poetry.dev-dependencies]

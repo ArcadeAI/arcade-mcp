@@ -14,6 +14,8 @@ from arcade.sdk import tool
 from arcade.sdk.auth import Google
 from arcade_google.tools.utils import (
     DateRange,
+    build_query_string,
+    fetch_messages,
     get_draft_url,
     get_email_in_trash_url,
     get_sent_email_url,
@@ -79,7 +81,7 @@ async def send_email(
     )
 )
 async def send_draft_email(
-    context: ToolContext, id: Annotated[str, "The ID of the draft to send"]
+    context: ToolContext, email_id: Annotated[str, "The ID of the draft to send"]
 ) -> Annotated[str, "A confirmation message with the sent email ID and URL"]:
     """
     Send a draft email using the Gmail API.
@@ -90,7 +92,7 @@ async def send_draft_email(
         service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Send the draft email
-        sent_message = service.users().drafts().send(userId="me", body={"id": id}).execute()
+        sent_message = service.users().drafts().send(userId="me", body={"id": email_id}).execute()
 
         # Construct the URL to the sent email
         return f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
@@ -162,7 +164,7 @@ async def write_draft_email(
 )
 async def update_draft_email(
     context: ToolContext,
-    id: Annotated[str, "The ID of the draft email to update."],
+    draft_email_id: Annotated[str, "The ID of the draft email to update."],
     subject: Annotated[str, "The subject of the draft email"],
     body: Annotated[str, "The body of the draft email"],
     recipient: Annotated[str, "The recipient of the draft email"],
@@ -189,10 +191,10 @@ async def update_draft_email(
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
         # Update the draft
-        draft = {"id": id, "message": {"raw": raw_message}}
+        draft = {"id": draft_email_id, "message": {"raw": raw_message}}
 
         updated_draft_message = (
-            service.users().drafts().update(userId="me", id=id, body=draft).execute()
+            service.users().drafts().update(userId="me", id=draft_email_id, body=draft).execute()
         )
         return f"Draft email with ID {updated_draft_message['id']} updated: {get_draft_url(updated_draft_message['id'])}"
     except HttpError as e:
@@ -214,7 +216,7 @@ async def update_draft_email(
 )
 async def delete_draft_email(
     context: ToolContext,
-    id: Annotated[str, "The ID of the draft email to delete"],
+    draft_email_id: Annotated[str, "The ID of the draft email to delete"],
 ) -> Annotated[str, "A confirmation message indicating successful deletion"]:
     """
     Delete a draft email using the Gmail API.
@@ -225,8 +227,7 @@ async def delete_draft_email(
         service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Delete the draft
-        service.users().drafts().delete(userId="me", id=id).execute()
-        return f"Draft email with ID {id} deleted successfully."
+        service.users().drafts().delete(userId="me", id=draft_email_id).execute()
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{delete_draft_email.__name__}' tool.",
@@ -237,6 +238,8 @@ async def delete_draft_email(
             f"Unexpected Error encountered during execution of '{delete_draft_email.__name__}' tool.",
             str(e),
         )
+    else:
+        return f"Draft email with ID {draft_email_id} deleted successfully."
 
 
 # Email Management Tools
@@ -246,7 +249,7 @@ async def delete_draft_email(
     )
 )
 async def trash_email(
-    context: ToolContext, id: Annotated[str, "The ID of the email to trash"]
+    context: ToolContext, email_id: Annotated[str, "The ID of the email to trash"]
 ) -> Annotated[str, "A confirmation message with the trashed email ID and URL"]:
     """
     Move an email to the trash folder using the Gmail API.
@@ -257,9 +260,9 @@ async def trash_email(
         service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
         # Trash the email
-        service.users().messages().trash(userId="me", id=id).execute()
+        service.users().messages().trash(userId="me", id=email_id).execute()
 
-        return f"Email with ID {id} trashed successfully: {get_email_in_trash_url(id)}"
+        return f"Email with ID {email_id} trashed successfully: {get_email_in_trash_url(email_id)}"
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{trash_email.__name__}' tool.", str(e)
@@ -339,53 +342,21 @@ async def list_emails_by_header(
     Search for emails by header using the Gmail API.
     At least one of the following parametersMUST be provided: sender, recipient, subject, body.
     """
-
     if not any([sender, recipient, subject, body]):
         raise ToolInputError(
             "At least one of sender, recipient, subject, or body must be provided."
         )
 
-    # Build the query string
-    query = []
-    if sender:
-        query.append(f"from:{sender}")
-    if recipient:
-        query.append(f"to:{recipient}")
-    if subject:
-        query.append(f"subject:{subject}")
-    if body:
-        query.append(body)
-    if date_range:
-        query.append(date_range.to_date_query())
-
-    query_string = " ".join(query)
+    query = build_query_string(sender, recipient, subject, body, date_range)
 
     try:
-        # Set up the Gmail API client
         service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
-
-        # Perform the search
-        response = (
-            service.users()
-            .messages()
-            .list(userId="me", q=query_string, maxResults=limit or 100)
-            .execute()
-        )
-        messages = response.get("messages", [])
+        messages = fetch_messages(service, query, limit)
 
         if not messages:
             return json.dumps({"emails": []})
 
-        emails = []
-        for msg in messages:
-            try:
-                email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
-                email_details = parse_email(email_data)
-                if email_details:
-                    emails.append(email_details)
-            except HttpError as e:
-                print(f"Error reading email {msg['id']}: {e}")
-
+        emails = process_messages(service, messages)
         return json.dumps({"emails": emails})
     except HttpError as e:
         raise ToolExecutionError(
@@ -397,6 +368,18 @@ async def list_emails_by_header(
             f"Unexpected Error encountered during execution of '{list_emails_by_header.__name__}' tool.",
             str(e),
         )
+
+
+def process_messages(service, messages):
+    emails = []
+    for msg in messages:
+        try:
+            email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
+            email_details = parse_email(email_data)
+            emails += email_details if email_details else []
+        except HttpError as e:
+            print(f"Error reading email {msg['id']}: {e}")
+    return emails
 
 
 @tool(

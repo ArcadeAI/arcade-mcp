@@ -1,6 +1,6 @@
 from typing import Annotated
 
-import requests
+import httpx
 
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
@@ -13,7 +13,7 @@ TWEETS_URL = "https://api.x.com/2/tweets"
 
 # Manage Tweets Tools. See developer docs for additional available parameters: https://developer.x.com/en/docs/x-api/tweets/manage-tweets/api-reference
 @tool(requires_auth=X(scopes=["tweet.read", "tweet.write", "users.read"]))
-def post_tweet(
+async def post_tweet(
     context: ToolContext,
     tweet_text: Annotated[str, "The text content of the tweet you want to post"],
 ) -> Annotated[str, "Success string and the URL of the tweet"]:
@@ -25,7 +25,8 @@ def post_tweet(
     }
     payload = {"text": tweet_text}
 
-    response = requests.post(TWEETS_URL, headers=headers, json=payload)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(TWEETS_URL, headers=headers, json=payload, timeout=10)
 
     if response.status_code != 201:
         raise ToolExecutionError(
@@ -37,7 +38,7 @@ def post_tweet(
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "tweet.write", "users.read"]))
-def delete_tweet_by_id(
+async def delete_tweet_by_id(
     context: ToolContext,
     tweet_id: Annotated[str, "The ID of the tweet you want to delete"],
 ) -> Annotated[str, "Success string confirming the tweet deletion"]:
@@ -46,7 +47,8 @@ def delete_tweet_by_id(
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
     url = f"{TWEETS_URL}/{tweet_id}"
 
-    response = requests.delete(url, headers=headers)
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(url, headers=headers, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(
@@ -57,7 +59,7 @@ def delete_tweet_by_id(
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
-def search_recent_tweets_by_username(
+async def search_recent_tweets_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
     max_results: Annotated[
@@ -78,7 +80,8 @@ def search_recent_tweets_by_username(
         "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
     )
 
-    response = requests.get(url, headers=headers, params=params)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(
@@ -91,10 +94,14 @@ def search_recent_tweets_by_username(
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
-def search_recent_tweets_by_keywords(
+async def search_recent_tweets_by_keywords(
     context: ToolContext,
-    keywords: Annotated[list[str], "List of keywords that must be present in the tweet"] = None,
-    phrases: Annotated[list[str], "List of phrases that must be present in the tweet"] = None,
+    keywords: Annotated[
+        list[str] | None, "List of keywords that must be present in the tweet"
+    ] = None,
+    phrases: Annotated[
+        list[str] | None, "List of phrases that must be present in the tweet"
+    ] = None,
     max_results: Annotated[
         int, "The maximum number of results to return. Cannot be less than 10"
     ] = 10,
@@ -125,7 +132,8 @@ def search_recent_tweets_by_keywords(
         "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
     )
 
-    response = requests.get(url, headers=headers, params=params)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(

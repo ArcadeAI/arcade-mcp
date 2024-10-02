@@ -22,6 +22,9 @@ tomlkit = "^0.12.4"
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
+opentelemetry-instrumentation-fastapi = {version = "0.48b0", optional = true}
+opentelemetry-exporter-otlp-proto-http = {version = "1.27.0", optional = true}
+opentelemetry-exporter-otlp-proto-common = {version = "1.27.0", optional = true}
 fastapi = {version = "^0.110.0", optional = true}
 uvicorn = {version = "^0.30.0", optional = true}
 scipy = {version = "^1.14.0", optional = true}
@@ -29,7 +32,7 @@ numpy = {version = "^2.0.0", optional = true}
 scikit-learn = {version = "^1.5.0", optional = true}
 
 [tool.poetry.extras]
-fastapi = ["fastapi", "uvicorn"]
+fastapi = ["fastapi", "uvicorn", "opentelemetry-instrumentation-fastapi", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-exporter-otlp-proto-common"]
 evals = ["scipy", "numpy", "scikit-learn"]
 
 [tool.poetry.group.dev.dependencies]
@@ -40,7 +43,7 @@ pre-commit = "^3.4.0"
 tox = "^4.11.1"
 pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
-
+poetry-plugin-export = "^1.7.0"
 
 [tool.poetry.scripts]
 arcade = "arcade.cli.main:cli"

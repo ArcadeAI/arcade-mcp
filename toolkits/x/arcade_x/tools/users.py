@@ -1,6 +1,6 @@
 from typing import Annotated
 
-import requests
+import httpx
 
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
@@ -10,7 +10,7 @@ from arcade.sdk.auth import X
 
 # Users Lookup Tools. See developer docs for additional available query parameters: https://developer.x.com/en/docs/x-api/users/lookup/api-reference
 @tool(requires_auth=X(scopes=["users.read", "tweet.read"]))
-def lookup_single_user_by_username(
+async def lookup_single_user_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
 ) -> Annotated[str, "User information including id, name, username, and description"]:
@@ -21,7 +21,8 @@ def lookup_single_user_by_username(
     }
     url = f"https://api.x.com/2/users/by/username/{username}?user.fields=created_at,description,id,location,most_recent_tweet_id,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld"
 
-    response = requests.get(url, headers=headers)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, timeout=10)
 
     if response.status_code != 200:
         raise ToolExecutionError(

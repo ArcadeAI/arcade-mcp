@@ -22,6 +22,7 @@ def start_servers(
     port: int,
     engine_config: str | None,
     engine_env: dict[str, str] | None = None,
+    debug: bool = False,
 ) -> None:
     """
     Start the actor and engine servers.
@@ -39,11 +40,11 @@ def start_servers(
     engine_config = _get_engine_config(engine_config)
 
     # Prepare command-line arguments for the actor server and engine
-    actor_cmd = _build_actor_command(host, port)
+    actor_cmd = _build_actor_command(host, port, debug)
     engine_cmd = _build_engine_command(engine_config)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, engine_cmd, engine_env)
+    _manage_processes(actor_cmd, engine_cmd, engine_env, debug)
 
 
 def _validate_host(host: str) -> str:
@@ -109,6 +110,12 @@ def _get_engine_config(engine_config: str | None) -> str:
                 f"❌ Engine config file not found at {engine_config_path}", style="bold red"
             )
             raise RuntimeError("Engine config file not found.")
+
+    elif Path(os.path.expanduser("~/.arcade/engine.yaml")).is_file():
+        engine_config_path = Path(os.path.expanduser("~/.arcade/engine.yaml"))
+        console.print(
+            f"Using default engine config file at {engine_config_path}", style="bold green"
+        )
     else:
         # Look for engine.yaml in the current directory
         engine_config_path = Path(os.getcwd()) / "engine.yaml"
@@ -121,13 +128,14 @@ def _get_engine_config(engine_config: str | None) -> str:
     return str(engine_config_path)
 
 
-def _build_actor_command(host: str, port: int) -> list[str]:
+def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
     """
     Builds the command to start the actor server.
 
     Args:
         host: Host for the actor server.
         port: Port for the actor server.
+        debug: Whether to run in debug mode.
 
     Returns:
         The command as a list.
@@ -142,12 +150,14 @@ def _build_actor_command(host: str, port: int) -> list[str]:
         sys.exit(1)
     cmd = [
         arcade_bin,
-        "dev",
+        "actorup",
         "--host",
         host,
         "--port",
         str(port),
     ]
+    if debug:
+        cmd.append("--debug")
     return cmd
 
 
@@ -165,13 +175,12 @@ def _build_engine_command(engine_config: str) -> list[str]:
     if not engine_bin:
         console.print(
             "❌ Engine binary not found, refer to the installation guide at "
-            "https://docs.arcade-ai.com/docs/home/deployment for how to install the engine",
+            "https://docs.arcade-ai.com/guides/installation for how to install the engine",
             style="bold red",
         )
         sys.exit(1)
     cmd = [
         engine_bin,
-        "dev",
         "-c",
         engine_config,
     ]
@@ -179,7 +188,10 @@ def _build_engine_command(engine_config: str) -> list[str]:
 
 
 def _manage_processes(
-    actor_cmd: list[str], engine_cmd: list[str], engine_env: dict[str, str] | None = None
+    actor_cmd: list[str],
+    engine_cmd: list[str],
+    engine_env: dict[str, str] | None = None,
+    debug: bool = False,
 ) -> None:
     """
     Manages the lifecycle of the actor and engine processes.
@@ -188,6 +200,7 @@ def _manage_processes(
         actor_cmd: The command to start the actor server.
         engine_cmd: The command to start the engine.
         engine_env: Environment variables to set for the engine.
+        debug: Whether to run in debug mode.
     """
     actor_process: subprocess.Popen | None = None
     engine_process: subprocess.Popen | None = None
@@ -208,14 +221,14 @@ def _manage_processes(
         try:
             # Start the actor server
             console.print("Starting actor server...", style="bold green")
-            actor_process = _start_process("Actor", actor_cmd)
+            actor_process = _start_process("Actor", actor_cmd, debug=debug)
 
             # Wait a bit to ensure actor is up
             time.sleep(2)
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
-            engine_process = _start_process("Engine", engine_cmd, engine_env)
+            engine_process = _start_process("Engine", engine_cmd, env=engine_env, debug=debug)
 
             # Monitor processes
             _monitor_processes(actor_process, engine_process)
@@ -248,7 +261,7 @@ def _manage_processes(
 
 
 def _start_process(
-    name: str, cmd: list[str], env: dict[str, str] | None = None
+    name: str, cmd: list[str], env: dict[str, str] | None = None, debug: bool = False
 ) -> subprocess.Popen:
     """
     Starts a subprocess and begins streaming its output.
@@ -257,7 +270,7 @@ def _start_process(
         name: Name of the process.
         cmd: Command to execute.
         env: Environment variables to set for the process.
-
+        debug: Whether to run in debug mode.
     Returns:
         The subprocess.Popen object.
 
@@ -268,8 +281,13 @@ def _start_process(
     if env:
         _env.update(env)
 
-    # TODO temporary fix for GIN_MODE
-    _env["GIN_MODE"] = "release"
+    if debug:
+        _env["GIN_MODE"] = "debug"
+    else:
+        _env["GIN_MODE"] = "release"
+
+    if name == "Actor":
+        _env["PYTHONUNBUFFERED"] = "1"
 
     try:
         process = subprocess.Popen(  # noqa: S603, RUF100
@@ -303,7 +321,12 @@ def _stream_output(process: subprocess.Popen, name: str) -> None:
             return
         with pipe:
             for line in iter(pipe.readline, ""):
-                console.print(f"[{style}]{name}>[/{style}] {line.rstrip()}")
+                line = line.rstrip()
+                if "WARNING" in line:
+                    line = line.replace("WARNING", "[orange]WARNING[/orange]")
+                if "ERROR" in line:
+                    line = line.replace("ERROR", "[red]ERROR[/red]")
+                console.print(f"[{style}]{name}>[/{style}] {line}")
 
     threading.Thread(target=stream, args=(process.stdout, stdout_style), daemon=True).start()
     threading.Thread(target=stream, args=(process.stderr, "red"), daemon=True).start()

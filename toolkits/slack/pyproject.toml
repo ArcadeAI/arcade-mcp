@@ -6,7 +6,7 @@ authors = ["Nate Barbettini <nate@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "^0.1.0"
+arcade-ai = "0.1.*"
 slack-sdk = "^3.31.0"
 
 [tool.poetry.dev-dependencies]

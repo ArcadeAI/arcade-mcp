@@ -194,3 +194,34 @@ def _update_datetime(day: Day | None, time: TimeSlot | None, time_zone: str) -> 
         dt = datetime.combine(day.to_date(time_zone), time.to_time())
         return {"dateTime": dt.isoformat(), "timeZone": time_zone}
     return None
+
+
+def build_query_string(sender, recipient, subject, body, date_range):
+    """
+    Helper function to build a query string for Gmail list_emails_by_header tool.
+    """
+    query = []
+    if sender:
+        query.append(f"from:{sender}")
+    if recipient:
+        query.append(f"to:{recipient}")
+    if subject:
+        query.append(f"subject:{subject}")
+    if body:
+        query.append(body)
+    if date_range:
+        query.append(date_range.to_date_query())
+    return " ".join(query)
+
+
+def fetch_messages(service, query_string, limit):
+    """
+    Helper function to fetch messages from Gmail API for the list_emails_by_header tool.
+    """
+    response = (
+        service.users()
+        .messages()
+        .list(userId="me", q=query_string, maxResults=limit or 100)
+        .execute()
+    )
+    return response.get("messages", [])

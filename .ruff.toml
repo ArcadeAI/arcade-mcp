@@ -56,7 +56,6 @@ ignore = [
 
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
-"toolkits/*" = ["A002", "TRY300", "C901", "C416", "S113", "RUF013", "SIM103"] # TODO: Remove everything here
 
 [format]
 preview = true

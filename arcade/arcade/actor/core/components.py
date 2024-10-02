@@ -1,5 +1,7 @@
 from typing import Any
 
+from opentelemetry import trace
+
 from arcade.actor.core.common import Actor, ActorComponent, RequestData, Router
 from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 
@@ -18,7 +20,9 @@ class CatalogComponent(ActorComponent):
         """
         Handle the request to get the catalog.
         """
-        return self.actor.get_catalog()
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("Catalog"):
+            return self.actor.get_catalog()
 
 
 class CallToolComponent(ActorComponent):
@@ -35,9 +39,11 @@ class CallToolComponent(ActorComponent):
         """
         Handle the request to call (invoke) a tool.
         """
-        call_tool_request_data = request.body_json
-        call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
-        return await self.actor.call_tool(call_tool_request)
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("CallTool"):
+            call_tool_request_data = request.body_json
+            call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
+            return await self.actor.call_tool(call_tool_request)
 
 
 class HealthCheckComponent(ActorComponent):
@@ -54,4 +60,6 @@ class HealthCheckComponent(ActorComponent):
         """
         Handle the request for a health check.
         """
-        return self.actor.health_check()
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("HealthCheck"):
+            return self.actor.health_check()
