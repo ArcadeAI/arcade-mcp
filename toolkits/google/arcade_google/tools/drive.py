@@ -82,100 +82,100 @@ async def list_drive_files(
         )
 
 
-"""
-only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use files.export
-"""
+# """
+# only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use files.export
+# """
 
 
-@tool(
-    requires_auth=Google(
-        scopes=["https://www.googleapis.com/auth/drive.readonly"],
-    )
-)
-async def get_file(
-    context: ToolContext,
-    file_id: Annotated[str, "The ID of the file to retrieve"],
-    acknowledge_abuse: Annotated[
-        Optional[bool], "Acknowledge the risk of downloading known malware or other abusive files"
-    ] = None,
-    include_labels: Annotated[
-        Optional[str], "A comma-separated list of IDs of labels to include in the response"
-    ] = None,
-    include_permissions_for_view: Annotated[
-        Optional[str], "Specifies which additional view's permissions to include in the response"
-    ] = None,
-    supports_all_drives: Annotated[
-        Optional[bool],
-        "Whether the requesting application supports both My Drives and shared drives",
-    ] = None,
-) -> Annotated[str, "The media object as a string"]:
-    """
-    Get a file's metadata or content by ID.
-    """
-    try:
-        service = build_drive_service(context.authorization.token)
+# @tool(
+#     requires_auth=Google(
+#         scopes=["https://www.googleapis.com/auth/drive.readonly"],
+#     )
+# )
+# async def get_file(
+#     context: ToolContext,
+#     file_id: Annotated[str, "The ID of the file to retrieve"],
+#     acknowledge_abuse: Annotated[
+#         Optional[bool], "Acknowledge the risk of downloading known malware or other abusive files"
+#     ] = None,
+#     include_labels: Annotated[
+#         Optional[str], "A comma-separated list of IDs of labels to include in the response"
+#     ] = None,
+#     include_permissions_for_view: Annotated[
+#         Optional[str], "Specifies which additional view's permissions to include in the response"
+#     ] = None,
+#     supports_all_drives: Annotated[
+#         Optional[bool],
+#         "Whether the requesting application supports both My Drives and shared drives",
+#     ] = None,
+# ) -> Annotated[str, "The media object as a string"]:
+#     """
+#     Get a file's metadata or content by ID.
+#     """
+#     try:
+#         service = build_drive_service(context.authorization.token)
 
-        # Prepare the request parameters
-        params = {
-            "acknowledgeAbuse": acknowledge_abuse,
-            "includeLabels": include_labels,
-            "includePermissionsForView": include_permissions_for_view,
-            "supportsAllDrives": supports_all_drives,
-            "alt": "media",
-        }
-        params = remove_none_values(params)
+#         # Prepare the request parameters
+#         params = {
+#             "acknowledgeAbuse": acknowledge_abuse,
+#             "includeLabels": include_labels,
+#             "includePermissionsForView": include_permissions_for_view,
+#             "supportsAllDrives": supports_all_drives,
+#             "alt": "media",
+#         }
+#         params = remove_none_values(params)
 
-        # Execute the files().get_media() method
-        request = service.files().get(
-            fileId=file_id, **params
-        )  # Returns File object https://developers.google.com/drive/api/reference/rest/v3/files#File
-        response = request.execute()
+#         # Execute the files().get_media() method
+#         request = service.files().get(
+#             fileId=file_id, **params
+#         )  # Returns File object https://developers.google.com/drive/api/reference/rest/v3/files#File
+#         response = request.execute()
 
-        return json.dumps(response)
+#         return json.dumps(response)
 
-    except HttpError as e:
-        raise ToolExecutionError(
-            f"HttpError during execution of '{get_file.__name__}' tool.",
-            str(e),
-        )
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{get_file.__name__}' tool.",
-            str(e),
-        )
+#     except HttpError as e:
+#         raise ToolExecutionError(
+#             f"HttpError during execution of '{get_file.__name__}' tool.",
+#             str(e),
+#         )
+#     except Exception as e:
+#         raise ToolExecutionError(
+#             f"Unexpected Error encountered during execution of '{get_file.__name__}' tool.",
+#             str(e),
+#         )
 
 
-@tool(
-    requires_auth=Google(
-        scopes=[
-            "https://www.googleapis.com/auth/drive.readonly",
-        ],
-    )
-)
-async def export_file(
-    context: ToolContext,
-    file_id: Annotated[str, "The ID of the file to export"],
-    mime_type: Annotated[str, "The MIME type of the format requested for this export"],
-) -> Annotated[bytes, "The exported file content as bytes"]:
-    """
-    Export a Google Workspace document to the requested MIME type.
-    """
-    try:
-        service = build_drive_service(context.authorization.token)
+# @tool(
+#     requires_auth=Google(
+#         scopes=[
+#             "https://www.googleapis.com/auth/drive.readonly",
+#         ],
+#     )
+# )
+# async def export_file(
+#     context: ToolContext,
+#     file_id: Annotated[str, "The ID of the file to export"],
+#     mime_type: Annotated[str, "The MIME type of the format requested for this export"],
+# ) -> Annotated[str, "The exported file content as bytes"]:
+#     """
+#     Export a Google Workspace document to the requested MIME type.
+#     """
+#     try:
+#         service = build_drive_service(context.authorization.token)
 
-        # Execute the files().export() method
-        request = service.files().export(fileId=file_id, mimeType=mime_type)
-        response = request.execute()
+#         # Execute the files().export() method
+#         request = service.files().export(fileId=file_id, mimeType=mime_type)
+#         response = request.execute()
 
-        return json.dumps(response)
+#         return json.dumps(response)
 
-    except HttpError as e:
-        raise ToolExecutionError(
-            f"HttpError during execution of '{export_file.__name__}' tool.",
-            str(e),
-        )
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{export_file.__name__}' tool.",
-            str(e),
-        )
+#     except HttpError as e:
+#         raise ToolExecutionError(
+#             f"HttpError during execution of '{export_file.__name__}' tool.",
+#             str(e),
+#         )
+#     except Exception as e:
+#         raise ToolExecutionError(
+#             f"Unexpected Error encountered during execution of '{export_file.__name__}' tool.",
+#             str(e),
+#         )

@@ -224,3 +224,11 @@ def build_drive_service(token: str):
     Build a Drive service object.
     """
     return build("drive", "v3", credentials=Credentials(token))
+
+
+# Docs utils
+def build_docs_service(token: str):
+    """
+    Build a Drive service object.
+    """
+    return build("docs", "v1", credentials=Credentials(token))
