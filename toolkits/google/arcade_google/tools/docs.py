@@ -11,8 +11,8 @@ from arcade_google.tools.utils import build_docs_service, remove_none_values
 
 
 # Uses https://developers.google.com/docs/api/reference/rest/v1/documents/get
-# Example arcade chat: get document 1234567890
-# Note: Document IDs are returned in the response of the list_drive_files tool
+# Example arcade chat: get document with ID 1234567890
+# Note: Document IDs are returned in the response of the list_docuemnts tool
 # TODO: Ensure document_id is valid. If not, then get all document ids and raise Retryable Error with list of document ids
 @tool(
     requires_auth=Google(
@@ -23,7 +23,7 @@ from arcade_google.tools.utils import build_docs_service, remove_none_values
 )
 async def get_document(
     context: ToolContext,
-    document_id: Annotated[str, "The ID of the document to retrieve"],
+    document_id: Annotated[str, "The ID of the document to retrieve."],
     suggestions_view_mode: Annotated[
         Optional[str], "The suggestions view mode to apply to the document"
     ] = None,
