@@ -67,11 +67,11 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
         if message["role"] == "assistant":
             for tool_call in message.get("tool_calls", []):
                 console.print(
-                    f"[bright_black]Called tool '{tool_call['function']['name']}' with parameters: {tool_call['function']['arguments']}[/bright_black]"
+                    f"[bright_black][bold]Called tool '{tool_call['function']['name']}'[/bold]\n[bold]Parameters:[/bold]{tool_call['function']['arguments']}[/bright_black]"
                 )
         elif message["role"] == "tool":
             console.print(
-                f"[bright_black]Tool '{message['name']}' returned: {message['content']}[/bright_black]"
+                f"[bright_black][bold]'{message['name']}' tool returned:[/bold]{message['content']}[/bright_black]"
             )
 
 
@@ -197,7 +197,7 @@ def apply_config_overrides(
         config.engine.tls = tls_input
 
 
-def display_eval_results(results: list[dict[str, Any]], show_details: bool = False) -> None:
+def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool = False) -> None:
     """
     Display evaluation results in a format inspired by pytest's output.
 
@@ -210,47 +210,52 @@ def display_eval_results(results: list[dict[str, Any]], show_details: bool = Fal
     total_warned = 0
     total_cases = 0
 
-    for model_results in results:
-        model = model_results.get("model", "Unknown Model")
-        rubric = model_results.get("rubric", "Unknown Rubric")
-        cases = model_results.get("cases", [])
-        total_cases += len(cases)
+    for eval_suite in results:
+        for model_results in eval_suite:
+            model = model_results.get("model", "Unknown Model")
+            rubric = model_results.get("rubric", "Unknown Rubric")
+            cases = model_results.get("cases", [])
+            total_cases += len(cases)
 
-        console.print(f"\n[bold magenta]Model: {model}[/bold magenta]\n")
-        console.print(f"[bold magenta]{rubric}[/bold magenta]\n")
-
-        for case in cases:
-            evaluation = case["evaluation"]
-            status = (
-                "[green]PASSED[/green]"
-                if evaluation.passed
-                else "[yellow]WARNED[/yellow]"
-                if evaluation.warning
-                else "[red]FAILED[/red]"
-            )
-            if evaluation.passed:
-                total_passed += 1
-            elif evaluation.warning:
-                total_warned += 1
-            else:
-                total_failed += 1
-
-            # Display one-line summary for each case
-            console.print(f"{status} {case['name']} -- Score: {evaluation.score:.2f}")
-
+            console.print(f"[bold]Model:[/bold] [bold magenta]{model}[/bold magenta]")
             if show_details:
-                # Show detailed information for each case
-                console.print(f"[bold]User Input:[/bold] {case['input']}\n")
-                console.print("[bold]Details:[/bold]")
-                console.print(_format_evaluation(evaluation))
-                console.print("-" * 80)
+                console.print(f"[bold magenta]{rubric}[/bold magenta]")
+
+            for case in cases:
+                evaluation = case["evaluation"]
+                status = (
+                    "[green]PASSED[/green]"
+                    if evaluation.passed
+                    else "[yellow]WARNED[/yellow]"
+                    if evaluation.warning
+                    else "[red]FAILED[/red]"
+                )
+                if evaluation.passed:
+                    total_passed += 1
+                elif evaluation.warning:
+                    total_warned += 1
+                else:
+                    total_failed += 1
+
+                # Display one-line summary for each case
+                console.print(f"{status} {case['name']} -- Score: {evaluation.score:.2f}")
+
+                if show_details:
+                    # Show detailed information for each case
+                    console.print(f"[bold]User Input:[/bold] {case['input']}\n")
+                    console.print("[bold]Details:[/bold]")
+                    console.print(_format_evaluation(evaluation))
+                    console.print("-" * 80)
 
     # Summary
-    console.print("\n[bold]Summary:[/bold]")
-    console.print(f"Total Cases: {total_cases}")
-    console.print(f"[green]Passed: {total_passed}[/green]")
-    console.print(f"[yellow]Warnings: {total_warned}[/yellow]")
-    console.print(f"[red]Failed: {total_failed}[/red]\n")
+    summary = (
+        f"[bold]Summary -- [/bold]Total: {total_cases} -- [green]Passed: {total_passed}[/green]"
+    )
+    if total_warned > 0:
+        summary += f" -- [yellow]Warnings: {total_warned}[/yellow]"
+    if total_failed > 0:
+        summary += f" -- [red]Failed: {total_failed}[/red]"
+    console.print(summary + "\n")
 
 
 def _format_evaluation(evaluation: "EvaluationResult") -> str:
