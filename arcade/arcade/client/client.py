@@ -29,10 +29,10 @@ class AuthResource(BaseResource[ClientT]):
 
     def authorize(
         self,
-        provider_id: str,
-        provider_type: AuthProvider,
-        scopes: list[str],
         user_id: str,
+        provider_id: str,
+        provider_type: AuthProvider = AuthProvider.oauth2,
+        scopes: list[str] | None = None,
     ) -> AuthResponse:
         """
         Initiate an authorization request.
@@ -48,7 +48,7 @@ class AuthResource(BaseResource[ClientT]):
             "auth_requirement": {
                 "provider_id": provider_id,
                 "provider_type": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes).model_dump(exclude_none=True),
+                auth_provider: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }
@@ -188,10 +188,10 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
 
     async def authorize(
         self,
-        provider_id: str,
-        provider_type: AuthProvider,
-        scopes: list[str],
         user_id: str,
+        provider_id: str,
+        provider_type: AuthProvider = AuthProvider.oauth2,
+        scopes: list[str] | None = None,
     ) -> AuthResponse:
         """
         Initiate an asynchronous authorization request.
@@ -202,7 +202,7 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
             "auth_requirement": {
                 "provider_id": provider_id,
                 "provider_type": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes).model_dump(exclude_none=True),
+                auth_provider: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }
