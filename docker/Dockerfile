@@ -27,7 +27,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app/arcade
 
 # Copy the parent directory contents into the container
-COPY ./dist .
+COPY ../dist /app/arcade/
+
+# List files for debugging purposes
+RUN ls -lah /app/arcade/
+
 
 # Install the wheel with extras (not evals for now)
 RUN python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl

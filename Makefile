@@ -91,7 +91,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 		fi; \
 	done
 
-	@echo "✅ All projects built and wheels copied to arcade/dist"
+	@echo "✅ All toolkits built and wheels copied to ./dist"
 
 .PHONY: clean-dist
 clean-dist: ## Clean all built distributions
