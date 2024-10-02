@@ -6,7 +6,7 @@ DESCRIPTION ?= "Arcade AI for LLM Tool Serving"
 REPOSITORY ?= arcadeai/arcade-ai
 ECR_ENDPOINT ?= 471112909428.dkr.ecr.us-east-1.amazonaws.com
 
-VERSION ?= dev
+VERSION ?= 0.1.0.dev0
 COMMIT ?= $(shell git describe --dirty --always --abbrev=15)
 BUILD_DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 IMAGE_NAME ?= actor

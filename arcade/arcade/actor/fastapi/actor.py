@@ -3,6 +3,7 @@ from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from opentelemetry.metrics import Meter
 
 from arcade.actor.core.base import (
     BaseActor,
@@ -19,13 +20,18 @@ class FastAPIActor(BaseActor):
     """
 
     def __init__(
-        self, app: FastAPI, secret: str | None = None, *, disable_auth: bool = False
+        self,
+        app: FastAPI,
+        secret: str | None = None,
+        *,
+        disable_auth: bool = False,
+        otel_meter: Meter | None = None,
     ) -> None:
         """
         Initialize the FastAPIActor with a FastAPI app instance.
         If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
         """
-        super().__init__(secret, disable_auth)
+        super().__init__(secret, disable_auth, otel_meter)
         self.app = app
         self.router = FastAPIRouter(app, self)
         self.register_routes(self.router)

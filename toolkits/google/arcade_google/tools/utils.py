@@ -174,3 +174,34 @@ def _clean_text(text: str) -> str:
     text = "\n".join(line.strip() for line in text.split("\n"))
 
     return text
+
+
+def build_query_string(sender, recipient, subject, body, date_range):
+    """
+    Helper function to build a query string for Gmail list_emails_by_header tool.
+    """
+    query = []
+    if sender:
+        query.append(f"from:{sender}")
+    if recipient:
+        query.append(f"to:{recipient}")
+    if subject:
+        query.append(f"subject:{subject}")
+    if body:
+        query.append(body)
+    if date_range:
+        query.append(date_range.to_date_query())
+    return " ".join(query)
+
+
+def fetch_messages(service, query_string, limit):
+    """
+    Helper function to fetch messages from Gmail API for the list_emails_by_header tool.
+    """
+    response = (
+        service.users()
+        .messages()
+        .list(userId="me", q=query_string, maxResults=limit or 100)
+        .execute()
+    )
+    return response.get("messages", [])
