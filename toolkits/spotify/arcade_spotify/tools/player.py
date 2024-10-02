@@ -56,11 +56,10 @@ async def resume(
     url = "https://api.spotify.com/v1/me/player/play"
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
     params = {"device_id": device_id} if device_id else {}
-    data = {}
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.put(url, headers=headers, params=params, json=data)
+            response = await client.put(url, headers=headers, params=params, json={})
         except httpx.RequestError as e:
             raise ToolExecutionError(f"Failed to resume playback: {e}")
 
