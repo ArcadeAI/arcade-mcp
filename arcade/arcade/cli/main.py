@@ -425,13 +425,20 @@ def evals(
             if f.is_file() and f.name.startswith("eval_") and f.name.endswith(".py")
         ]
     elif directory_path.is_file():
-        eval_files = [directory_path]
+        eval_files = (
+            [directory_path]
+            if directory_path.name.startswith("eval_") and directory_path.name.endswith(".py")
+            else []
+        )
     else:
         console.print(f"Path not found: {directory_path}", style="bold red")
         return
 
     if not eval_files:
-        console.print("No evaluation files found.", style="bold yellow")
+        console.print(
+            "No evaluation files found. Filenames must start with 'eval_' and end with '.py'.",
+            style="bold yellow",
+        )
         return
 
     if show_details:

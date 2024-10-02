@@ -15,4 +15,5 @@ ENDPOINTS = {
     "repo_pull_comments": "/repos/{owner}/{repo}/pulls/{pull_number}/comments",
     "repo_pull_comment_replies": "/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies",
     "user_starred": "/user/starred/{owner}/{repo}",
+    "repo_stargazers": "/repos/{owner}/{repo}/stargazers",
 }

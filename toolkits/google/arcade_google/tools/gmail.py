@@ -376,7 +376,7 @@ def process_messages(service, messages):
         try:
             email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
             email_details = parse_email(email_data)
-            emails += email_details if email_details else []
+            emails += [email_details] if email_details else []
         except HttpError as e:
             print(f"Error reading email {msg['id']}: {e}")
     return emails
