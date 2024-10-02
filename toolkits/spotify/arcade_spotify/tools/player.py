@@ -124,8 +124,6 @@ async def get_playback_state(
                 "episode_spotify_url": item.get("external_urls", {}).get("spotify"),
             })
         return result
-    elif response.status_code == 204:
-        return {}  # The request has succeeded but returns no content
     elif response.status_code == 401:
         raise ToolExecutionError("Unauthorized: Invalid or expired token")
     elif response.status_code == 403:

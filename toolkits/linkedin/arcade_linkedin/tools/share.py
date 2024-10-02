@@ -14,11 +14,11 @@ from arcade.sdk.auth import OAuth2
         scopes=["w_member_social"],
     )
 )
-async def share_text_post(
+async def create_text_post(
     context: ToolContext,
     text: Annotated[str, "The text content of the post"],
 ) -> Annotated[str, "URL of the shared post"]:
-    """Share a post to LinkedIn."""
+    """Share a new text post to LinkedIn."""
     url = "https://api.linkedin.com/v2/ugcPosts"
     headers = {
         "Authorization": f"Bearer {context.authorization.token}",
