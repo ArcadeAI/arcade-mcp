@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timedelta
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -40,7 +39,7 @@ async def create_event(
         list[str] | None,
         "The list of attendee emails. Must be valid email addresses e.g., username@domain.com",
     ] = None,
-) -> Annotated[str, "A JSON string containing the created event details"]:
+) -> Annotated[dict, "A dictionary containing the created event details"]:
     """Create a new event/meeting/sync/meetup in the specified calendar."""
 
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
@@ -53,9 +52,6 @@ async def create_event(
         # Convert enum values to datetime objects
         start_datetime = datetime.combine(start_date.to_date(time_zone), start_time.to_time())
         end_datetime = datetime.combine(end_date.to_date(time_zone), end_time.to_time())
-
-        if end_datetime <= start_datetime:
-            return f"Unable to create event because the event end time is before the start time. Start time: {start_datetime}, End time: {end_datetime}"
 
         event = {
             "summary": summary,
@@ -70,7 +66,7 @@ async def create_event(
             event["attendees"] = [{"email": email} for email in attendee_emails]
 
         created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-        return json.dumps({"event": created_event})
+
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{create_event.__name__}' tool.", str(e)
@@ -80,6 +76,8 @@ async def create_event(
             f"Unexpected Error encountered during execution of '{create_event.__name__}' tool.",
             str(e),
         )
+    else:
+        return {"event": created_event}
 
 
 @tool(
@@ -103,12 +101,21 @@ async def list_events(
     ],
     calendar_id: Annotated[str, "The ID of the calendar to list events from"] = "primary",
     max_results: Annotated[int, "The maximum number of events to return"] = 10,
-) -> Annotated[str, "A JSON string containing the list of events"]:
+) -> Annotated[dict, "A dictionary containing the list of events"]:
     """
     List events from the specified calendar within the given date range.
 
     min_day and min_time_slot are combined to form the lower bound (exclusive) for an event's end time to filter by
     max_day and max_time_slot are combined to form the upper bound (exclusive) for an event's start time to filter by
+
+    For example:
+    If min_day is set to Day.TODAY and min_time_slot is set to TimeSlot._09:00,
+    and max_day is set to Day.TOMORROW and max_time_slot is set to TimeSlot._17:00,
+    the function will return events that:
+    1. End after 09:00 today (exclusive)
+    2. Start before 17:00 tomorrow (exclusive)
+    This means an event starting at 08:00 today and ending at 10:00 today would be included,
+    but an event starting at 17:00 tomorrow would not be included.
     """
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 
@@ -162,7 +169,7 @@ async def list_events(
             for event in events_result.get("items", [])
         ]
 
-        return json.dumps({"events_count": len(events), "events": events})
+        return {"events_count": len(events), "events": events}
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{list_events.__name__}' tool.", str(e)
@@ -213,7 +220,10 @@ async def update_event(
     send_updates: Annotated[
         SendUpdatesOptions, "Guests who should receive notifications about the event update"
     ] = SendUpdatesOptions.ALL,
-) -> Annotated[str, "A JSON string containing the updated event details"]:
+) -> Annotated[
+    str,
+    "A string containing the updated event details, including the event ID, update timestamp, and a link to view the updated event",
+]:
     """
     Update an existing event in the specified calendar with the provided details.
     Only the provided fields will be updated; others will remain unchanged.
@@ -307,7 +317,7 @@ async def delete_event(
     send_updates: Annotated[
         SendUpdatesOptions, "Specifies which attendees to notify about the deletion"
     ] = SendUpdatesOptions.ALL,
-) -> str:
+) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 

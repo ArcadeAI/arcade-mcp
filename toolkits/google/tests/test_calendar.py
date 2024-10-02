@@ -1,4 +1,3 @@
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -24,19 +23,6 @@ async def test_create_event(mock_build, mock_context):
 
     # Mock the calendar's time zone
     mock_service.calendars().get().execute.return_value = {"timeZone": "America/Los_Angeles"}
-
-    # Case: start_datetime > end_datetime
-    message = await create_event(
-        context=mock_context,
-        summary="Test Event",
-        start_date=Day.TODAY,
-        start_time=TimeSlot._1615,
-        end_date=Day.TODAY,
-        end_time=TimeSlot._1515,
-        description="Test Description",
-        location="Test Location",
-    )
-    assert "Unable to create event because the event end time is before the start time." in message
 
     # Case: HttpError
     mock_service.events().insert().execute.side_effect = HttpError(
@@ -110,7 +96,7 @@ async def test_list_events(mock_build, mock_context):
         max_day=Day.TODAY,
         max_time_slot=TimeSlot._1515,
     )
-    assert message == json.dumps(expected_tool_response)
+    assert message == expected_tool_response
 
     # Case: HttpError
     mock_service.events().list().execute.side_effect = HttpError(
