@@ -25,6 +25,10 @@ async def create_text_post(
         "Content-Type": "application/json",
     }
 
+    # The LinkedIn user ID is required to create a post, even though we're using the user's access token.
+    # Arcade Engine gets the current user's info from LinkedIn and automatically populates context.authorization.user_info.
+    # LinkedIn calls the user ID "sub" in their user_info data payload. See:
+    # https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2#api-request-to-retreive-member-details
     user_id = context.authorization.user_info.get("sub")
     if not user_id:
         raise ToolExecutionError(
