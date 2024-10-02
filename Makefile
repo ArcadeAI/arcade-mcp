@@ -32,6 +32,11 @@ set-version: ## Set the version in the pyproject.toml file
 	@echo "🚀 Setting version in pyproject.toml"
 	@cd arcade && poetry version $(VERSION)
 
+.PHONY: unset-version
+unset-version: ## Set the version in the pyproject.toml file
+	@echo "🚀 Setting version in pyproject.toml"
+	@cd arcade && poetry version 0.1.0
+
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
 	@echo "🚀 Creating wheel file"
@@ -62,6 +67,10 @@ docker: ## Build and run the Docker container
 	@cd docker && make docker-build
 	@cd docker && make docker-run
 
+.PHONY: publish-ecr
+publish-ecr: ## Publish to the ECR
+	@cd docker && make publish-ecr
+
 .PHONY: full-dist
 full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo " Building a full distribution with toolkits"
@@ -79,14 +88,21 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	# Copy the main arcade project wheel to the dist directory
 	@cp arcade/dist/*.whl dist/
 
+	@echo "Reset version to default (0.1.0)"
+	@make unset-version
+
 	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	# Build and copy wheels for each toolkit
 	@for toolkit_dir in toolkits/*; do \
 		if [ -d "$$toolkit_dir" ]; then \
 			toolkit_name=$$(basename "$$toolkit_dir"); \
 			echo "Building $$toolkit_name project..."; \
-			cd "$$toolkit_dir" && poetry build; \
+			cd "$$toolkit_dir" && poetry version $(VERSION); \
+            awk '{gsub(/arcade-ai = "0.1.\*"/, "arcade-ai = \"$(VERSION)\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
+            poetry build; \
 			cp dist/*.whl ../../dist/toolkits; \
+            poetry version 0.1.0; \
+            awk '{gsub(/arcade-ai = "$(VERSION)"/, "arcade-ai = \"0.1.\*\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
 			cd -; \
 		fi; \
 	done
