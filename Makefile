@@ -1,4 +1,4 @@
-VERSION ?= "0.0.0.dev"
+VERSION ?= "0.1.0.dev0"
 
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
@@ -54,27 +54,39 @@ build-and-publish: build publish ## Build and publish.
 
 .PHONY: docker
 docker: ## Build and run the Docker container
+	@echo "🚀 Building arcade and toolkit wheels..."
+	@make full-dist
+	@echo "Writing extras [fastapi, evals] to requirements.txt"
+	@cd arcade && poetry export --extras "fastapi evals" --output ../dist/requirements.txt
+	@echo "🚀 Building Docker image"
 	@cd docker && make docker-build
 	@cd docker && make docker-run
 
 .PHONY: full-dist
-full-dist: clean-dist ## Build all projects and copy wheels to arcade/dist
-	@echo "🚀 Building all projects and copying wheels to arcade/dist"
+full-dist: clean-dist ## Build all projects and copy wheels to ./dist
+	@echo " Building a full distribution with toolkits"
+
+	@echo "Setting version to $(VERSION)"
+	@make set-version
+
+	@echo "🛠️ Building all projects and copying wheels to ./dist"
+	@mkdir -p dist/toolkits
 
 	# Build the main arcade project
-	@echo "Building arcade project..."
+	@echo "🛠️ Building arcade project wheel..."
 	@cd arcade && poetry build
 
-	# Create the arcade/dist directory if it doesn't exist
-	@mkdir -p arcade/dist/toolkits
+	# Copy the main arcade project wheel to the dist directory
+	@cp arcade/dist/*.whl dist/
 
+	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	# Build and copy wheels for each toolkit
 	@for toolkit_dir in toolkits/*; do \
 		if [ -d "$$toolkit_dir" ]; then \
 			toolkit_name=$$(basename "$$toolkit_dir"); \
 			echo "Building $$toolkit_name project..."; \
 			cd "$$toolkit_dir" && poetry build; \
-			cp dist/*.whl ../../arcade/dist/toolkits; \
+			cp dist/*.whl ../../dist/toolkits; \
 			cd -; \
 		fi; \
 	done
@@ -82,9 +94,17 @@ full-dist: clean-dist ## Build all projects and copy wheels to arcade/dist
 	@echo "✅ All projects built and wheels copied to arcade/dist"
 
 .PHONY: clean-dist
-clean-dist: ## Clean the arcade/dist directory
+clean-dist: ## Clean all built distributions
+	@echo "🗑️ Cleaning dist directory"
+	@rm -rf dist
 	@echo "🗑️ Cleaning arcade/dist directory"
 	@rm -rf arcade/dist
+	@echo "🗑️ Cleaning toolkits/*/dist directory"
+	@for toolkit_dir in toolkits/*; do \
+		if [ -d "$$toolkit_dir" ]; then \
+			rm -rf "$$toolkit_dir"/dist; \
+		fi; \
+	done
 
 .PHONY: help
 help:

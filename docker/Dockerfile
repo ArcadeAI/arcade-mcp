@@ -4,10 +4,12 @@ FROM python:3.10-slim
 # Define build arguments with default values
 ARG PORT=8001
 ARG HOST=0.0.0.0
+ARG VERSION=0.1.0
 
 # Set environment variables using the build arguments
 ENV PORT=${PORT}
 ENV HOST=${HOST}
+ENV VERSION=${VERSION}
 ENV OTEL_ENABLE=false
 ENV ARCADE_WORK_DIR=/app
 
@@ -22,32 +24,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-RUN pip install build poetry
-
-# Copy the parent directory contents into the container
-COPY . .
-
 WORKDIR /app/arcade
 
-# Build the project
-RUN python -m build
+# Copy the parent directory contents into the container
+COPY ./dist .
 
-# Build the project and install the wheel with extras
-RUN poetry export --extras "fastapi evals" --output requirements.txt
-
-# Install the wheel with extras
-RUN python -m pip install dist/arcade_ai-0.1.0-py3-none-any.whl[fastapi,evals] uvicorn
-RUN python -m pip install -r requirements.txt
-
-WORKDIR /app/toolkits
+# Install the wheel with extras (not evals for now)
+RUN python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl
+RUN python -m pip install -r ./requirements.txt
 
 # Install toolkits from the toolkits directory
 RUN set -e; \
-    for toolkit in ./*; do \
+    for toolkit in ./toolkits/*; do \
     echo "Installing toolkit $toolkit"; \
-    pip install $toolkit; \
+    python -m pip install $toolkit; \
     done
 
 

@@ -141,7 +141,6 @@ def show(
     toolkit: Optional[str] = typer.Option(
         None, "-t", "--toolkit", help="The toolkit to show the tools of"
     ),
-    actor: Optional[str] = typer.Option(None, help="A running actor address to list tools from"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
@@ -155,14 +154,20 @@ def show(
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("Name")
         table.add_column("Description")
-        table.add_column("Toolkit")
+        table.add_column("Package")
         table.add_column("Version")
 
-        for tool in catalog:
-            table.add_row(tool.name, tool.description, tool.meta.toolkit, tool.version)
+        tool_names = catalog.get_tool_names()
+        for tool_name in tool_names:
+            tool = catalog.get_tool(tool_name)
+            package = tool.meta.package if tool.meta.package else tool.meta.toolkit
+            table.add_row(str(tool_name), tool.description, package, tool.version)
 
         console.print(table)
 
+    # used when debugging a broken package on import.
+    # `arcade show` is the first command used after
+    # a toolkit package is created.
     except Exception as e:
         if debug:
             raise
