@@ -68,9 +68,8 @@ jobs:
 
     - name: Build and push Actor image
       id: build
-      working-directory: ./docker
       run: |
-        make docker-build VERSION=${{ env.VERSION }}
+        make docker VERSION=${{ env.VERSION }}
         make publish-ecr VERSION=${{ env.VERSION }}
         echo "image=471112909428.dkr.ecr.us-east-1.amazonaws.com/arcadeai/arcade-ai:${{ env.VERSION }}" >> $GITHUB_OUTPUT
 
