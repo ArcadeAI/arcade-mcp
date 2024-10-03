@@ -128,7 +128,9 @@ async def get_playback_state(
     endpoint = "/me/player"
 
     response = await _send_spotify_request(context, "GET", endpoint)
-    if response.status_code >= 200 and response.status_code < 300:
+    if response.status_code == 204:
+        return {"status": "Playback not available or active"}
+    elif response.status_code == 200:
         data = response.json()
 
         # TODO: Return a more structured model
