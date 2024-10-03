@@ -5,12 +5,11 @@ import httpx
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Spotify
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="spotify",
+    requires_auth=Spotify(
         scopes=["user-modify-playback-state"],
     )
 )
@@ -44,7 +43,11 @@ async def pause(
         raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
 
 
-@tool(requires_auth=OAuth2(provider_id="spotify", scopes=["user-modify-playback-state"]))
+@tool(
+    requires_auth=Spotify(
+        scopes=["user-modify-playback-state"],
+    )
+)
 async def resume(
     context: ToolContext,
     device_id: Annotated[
@@ -76,8 +79,7 @@ async def resume(
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="spotify",
+    requires_auth=Spotify(
         scopes=["user-read-playback-state"],
     )
 )

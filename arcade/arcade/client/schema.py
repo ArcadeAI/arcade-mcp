@@ -9,7 +9,18 @@ OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "v1")
 
 
 class AuthProvider(str, Enum):
-    """The supported authorization providers."""
+    google = "google"
+    """Google authorization"""
+
+    slack = "slack_user"
+    """Slack (user token) authorization"""
+
+    github = "github"
+    """GitHub authorization"""
+
+
+class AuthProviderType(str, Enum):
+    """The supported authorization provider types."""
 
     oauth2 = "oauth2"
     """OAuth 2.0 authorization"""

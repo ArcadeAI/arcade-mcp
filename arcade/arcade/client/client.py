@@ -11,6 +11,7 @@ from arcade.client.base import (
 from arcade.client.errors import APIStatusError, EngineNotHealthyError, EngineOfflineError
 from arcade.client.schema import (
     AuthProvider,
+    AuthProviderType,
     AuthRequest,
     AuthResponse,
     ExecuteToolResponse,
@@ -30,8 +31,8 @@ class AuthResource(BaseResource[ClientT]):
     def authorize(
         self,
         user_id: str,
-        provider_id: str,
-        provider_type: AuthProvider = AuthProvider.oauth2,
+        provider: AuthProvider | str,
+        provider_type: AuthProviderType = AuthProviderType.oauth2,
         scopes: list[str] | None = None,
     ) -> AuthResponse:
         """
@@ -42,13 +43,13 @@ class AuthResource(BaseResource[ClientT]):
             scopes: The scopes required for the authorization.
             user_id: The user ID initiating the authorization.
         """
-        auth_provider = provider_type.value
+        auth_provider_type = provider_type.value
 
         body = {
             "auth_requirement": {
-                "provider_id": provider_id,
-                "provider_type": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
+                "provider_id": provider.value if isinstance(provider, AuthProvider) else provider,
+                "provider_type": auth_provider_type,
+                auth_provider_type: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }
@@ -189,20 +190,20 @@ class AsyncAuthResource(BaseResource[AsyncArcadeClient]):
     async def authorize(
         self,
         user_id: str,
-        provider_id: str,
-        provider_type: AuthProvider = AuthProvider.oauth2,
+        provider: AuthProvider | str,
+        provider_type: AuthProviderType = AuthProviderType.oauth2,
         scopes: list[str] | None = None,
     ) -> AuthResponse:
         """
         Initiate an asynchronous authorization request.
         """
-        auth_provider = provider_type.value
+        auth_provider_type = provider_type.value
 
         body = {
             "auth_requirement": {
-                "provider_id": provider_id,
-                "provider_type": auth_provider,
-                auth_provider: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
+                "provider_id": provider.value if isinstance(provider, AuthProvider) else provider,
+                "provider_type": auth_provider_type,
+                auth_provider_type: AuthRequest(scopes=scopes or []).model_dump(exclude_none=True),
             },
             "user_id": user_id,
         }

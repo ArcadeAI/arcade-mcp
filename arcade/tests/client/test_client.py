@@ -12,7 +12,7 @@ from arcade.client.errors import (
     PermissionDeniedError,
     UnauthorizedError,
 )
-from arcade.client.schema import AuthResponse, ExecuteToolResponse
+from arcade.client.schema import AuthProviderType, AuthResponse, ExecuteToolResponse
 from arcade.core.schema import ToolDefinition
 
 AUTH_RESPONSE_DATA = {
@@ -131,9 +131,9 @@ def test_arcade_auth_authorize(test_sync_client, mock_response, monkeypatch):
     """Test Arcade.auth.authorize method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
     auth_response = test_sync_client.auth.authorize(
-        user_id="sam@arcade-ai.com",
-        provider_id="google",
+        provider=AuthProvider.google,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -142,10 +142,10 @@ def test_arcade_auth_authorize_with_provider_type(test_sync_client, mock_respons
     """Test Arcade.auth.authorize method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
     auth_response = test_sync_client.auth.authorize(
-        user_id="sam@arcade-ai.com",
-        provider_id="google",
-        provider_type=AuthProvider.oauth2,
+        provider_id="hooli",
+        provider_type=AuthProviderType.oauth2,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -156,8 +156,8 @@ def test_arcade_auth_authorize_with_no_scopes(test_sync_client, mock_response, m
         Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA_NO_SCOPES
     )
     auth_response = test_sync_client.auth.authorize(
+        provider=AuthProvider.google,
         user_id="sam@arcade-ai.com",
-        provider_id="google",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA_NO_SCOPES)
 
@@ -226,9 +226,9 @@ async def test_async_arcade_auth_authorize(test_async_client, mock_async_respons
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     auth_response = await test_async_client.auth.authorize(
-        user_id="sam@arcade-ai.com",
-        provider_id="google",
+        provider=AuthProvider.google,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -244,10 +244,10 @@ async def test_async_arcade_auth_authorize_with_provider_type(
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     auth_response = await test_async_client.auth.authorize(
-        user_id="sam@arcade-ai.com",
-        provider_id="google",
-        provider_type=AuthProvider.oauth2,
+        provider_id="hooli",
+        provider_type=AuthProviderType.oauth2,
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        user_id="sam@arcade-ai.com",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
@@ -263,8 +263,8 @@ async def test_async_arcade_auth_authorize_with_no_scopes(
 
     monkeypatch.setattr(AsyncArcade, "_execute_request", mock_execute_request)
     auth_response = await test_async_client.auth.authorize(
+        provider=AuthProvider.google,
         user_id="sam@arcade-ai.com",
-        provider_id="google",
     )
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA_NO_SCOPES)
 

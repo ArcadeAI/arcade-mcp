@@ -5,12 +5,11 @@ import httpx
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import LinkedIn
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="linkedin",
+    requires_auth=LinkedIn(
         scopes=["w_member_social"],
     )
 )

@@ -5,12 +5,11 @@ import httpx
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Zoom
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="zoom",
+    requires_auth=Zoom(
         scopes=["meeting:read:list_upcoming_meetings"],
     )
 )
@@ -44,8 +43,7 @@ async def list_upcoming_meetings(
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="zoom",
+    requires_auth=Zoom(
         scopes=["meeting:read:invitation"],
     )
 )

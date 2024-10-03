@@ -11,7 +11,7 @@ from googleapiclient.errors import HttpError
 from arcade.core.errors import ToolExecutionError, ToolInputError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Google
 from arcade_google.tools.utils import (
     DateRange,
     build_query_string,
@@ -26,8 +26,7 @@ from arcade_google.tools.utils import (
 
 # Email sending tools
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.send"],
     )
 )
@@ -77,8 +76,7 @@ async def send_email(
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.send"],
     )
 )
@@ -111,8 +109,7 @@ async def send_draft_email(
 
 # Draft Management Tools
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
@@ -161,8 +158,7 @@ async def write_draft_email(
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
@@ -214,8 +210,7 @@ async def update_draft_email(
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.compose"],
     )
 )
@@ -249,8 +244,7 @@ async def delete_draft_email(
 
 # Email Management Tools
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.modify"],
     )
 )
@@ -282,8 +276,7 @@ async def trash_email(
 
 # Draft Search Tools
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
@@ -330,8 +323,7 @@ async def list_draft_emails(
 
 # Email Search Tools
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )
@@ -391,8 +383,7 @@ def process_messages(service, messages):
 
 
 @tool(
-    requires_auth=OAuth2(
-        provider_id="google",
+    requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     )
 )

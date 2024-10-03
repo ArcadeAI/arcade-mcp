@@ -13,13 +13,13 @@ from langgraph.prebuilt import create_react_agent
 # %pip install -qU langchain-google-community[gmail]
 # %pip install -qU langchain-openai
 # %pip install -qU langgraph
-from arcade.client import Arcade
+from arcade.client import Arcade, AuthProvider
 
 client = Arcade()
 
 # Start the authorization process for the tool "ListEmails"
 auth_response = client.auth.authorize(
-    provider_id="google",
+    provider=AuthProvider.google,
     scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     user_id="sam@arcade-ai.com",
 )
