@@ -12,7 +12,7 @@ from .models import Corpora, OrderBy
 
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
-# TODO: Support pagination.
+# Example `arcade chat` query: `list my 5 most recently modified documents`
 # TODO: Support query with natural language. Currently, the tool expects a fully formed query string as input with the syntax defined here: https://developers.google.com/drive/api/guides/search-files
 @tool(
     requires_auth=Google(
@@ -36,7 +36,7 @@ async def list_documents(
     "A dictionary containing 'documents_count' (number of documents returned) and 'documents' (a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
 ]:
     """
-    List documents in the user's Google Drive.
+    List documents in the user's Google Drive. Excludes documents that are in the trash.
     """
     page_size = min(10, limit)
     page_token = None  # The page token is used for continuing a previous request on the next page
@@ -70,8 +70,6 @@ async def list_documents(
             if not page_token or len(batch) < page_size:
                 break
 
-        return {"documents_count": len(files), "documents": files}
-
     except HttpError as e:
         raise ToolExecutionError(
             f"HttpError during execution of '{list_documents.__name__}' tool.",
@@ -82,3 +80,5 @@ async def list_documents(
             f"Unexpected Error encountered during execution of '{list_documents.__name__}' tool.",
             str(e),
         )
+    else:
+        return {"documents_count": len(files), "documents": files}

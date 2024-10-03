@@ -76,7 +76,7 @@ def drive_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="No tool call case",
-        user_message="How much wood would a woodchuck chuck if a woodchuck could chuck wood?",
+        user_message="List my 10 most recently modified documents that are stored in my Microsoft OneDrive.",
         expected_tool_calls=[],
         critics=[],
     )

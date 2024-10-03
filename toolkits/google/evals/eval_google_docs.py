@@ -188,7 +188,7 @@ def docs_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="No tool call case",
-        user_message="Why is the moon made of cheese?",
+        user_message="Create a new microsoft word document titled 'My Resume'.",
         expected_tool_calls=[],
         critics=[],
     )
