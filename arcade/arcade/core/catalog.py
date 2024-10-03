@@ -275,7 +275,7 @@ class ToolCatalog(BaseModel):
 
         return ToolDefinition(
             name=tool_name,
-            full_name=str(fully_qualified_name),
+            fully_qualified_name=str(fully_qualified_name),
             description=tool_description,
             toolkit=toolkit_definition,
             inputs=create_input_definition(tool),

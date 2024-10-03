@@ -44,7 +44,7 @@ TOOL_RESPONSE_DATA = {
 
 TOOL_DEFINITION_DATA = {
     "name": "GetEmails",
-    "full_name": "TestToolkit.GetEmails",
+    "fully_qualified_name": "TestToolkit.GetEmails",
     "description": "Retrieve emails from a user's inbox",
     "toolkit": {
         "name": "TestToolkit",

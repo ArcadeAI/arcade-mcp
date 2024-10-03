@@ -242,7 +242,7 @@ def func_with_complex_return() -> dict[str, str]:
             func_with_name_and_description,
             {
                 "name": "MyCustomTool",
-                "full_name": "TestToolkit.MyCustomTool",
+                "fully_qualified_name": "TestToolkit.MyCustomTool",
                 "description": "A function with a very cool description",
             },
             id="func_with_description_and_name",
@@ -689,7 +689,7 @@ def test_tool_name_is_set_correctly():
     tool_def = ToolCatalog.create_tool_definition(func_with_description, "test_toolkit", "1.0.0")
 
     assert tool_def.name == snake_to_pascal_case(func_with_description.__name__)
-    assert tool_def.full_name == "TestToolkit.FuncWithDescription"
+    assert tool_def.fully_qualified_name == "TestToolkit.FuncWithDescription"
 
 
 @pytest.mark.parametrize(

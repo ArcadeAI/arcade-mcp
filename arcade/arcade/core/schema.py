@@ -170,7 +170,7 @@ class ToolDefinition(BaseModel):
     name: str
     """The name of the tool."""
 
-    full_name: str
+    fully_qualified_name: str
     """The fully-qualified name of the tool."""
 
     description: str
