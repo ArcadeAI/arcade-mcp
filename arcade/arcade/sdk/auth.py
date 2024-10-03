@@ -1,39 +1,32 @@
-from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class ToolAuthorization(BaseModel, ABC):
+class AuthProviderType(str, Enum):
+    oauth2 = "oauth2"
+
+
+class ToolAuthorization(BaseModel):
     """Marks a tool as requiring authorization."""
 
-    @abstractmethod
-    def get_provider_id(self) -> str:
-        """Return the unique provider ID."""
-        pass
+    model_config = ConfigDict(frozen=True)
 
-    @abstractmethod
-    def get_provider_type(self) -> str:
-        """Return the type of the authorization provider."""
-        pass
+    provider_id: str
+    """The unique provider ID configured in Arcade."""
 
-    pass
+    provider_type: AuthProviderType
+    """The type of the authorization provider."""
 
 
 class OAuth2(ToolAuthorization):
     """Marks a tool as requiring OAuth 2.0 authorization."""
 
-    provider_id: str
-    """The unique provider ID configured in Arcade."""
+    provider_type: AuthProviderType = AuthProviderType.oauth2
 
     scopes: Optional[list[str]] = None
     """The scope(s) needed for the authorized action."""
-
-    def get_provider_id(self) -> str:
-        return self.provider_id
-
-    def get_provider_type(self) -> str:
-        return "oauth2"
 
 
 class Google(OAuth2):
