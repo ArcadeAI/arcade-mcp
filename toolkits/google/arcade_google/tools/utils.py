@@ -6,6 +6,8 @@ from typing import Any, Optional
 
 from bs4 import BeautifulSoup
 
+from arcade_google.tools.models import Day, TimeSlot
+
 
 class DateRange(Enum):
     TODAY = "today"
@@ -174,6 +176,24 @@ def _clean_text(text: str) -> str:
     text = "\n".join(line.strip() for line in text.split("\n"))
 
     return text
+
+
+def _update_datetime(day: Day | None, time: TimeSlot | None, time_zone: str) -> dict | None:
+    """
+    Update the datetime for a Google Calendar event.
+
+    Args:
+        day (Day | None): The day of the event.
+        time (TimeSlot | None): The time of the event.
+        time_zone (str): The time zone of the event.
+
+    Returns:
+        dict | None: The updated datetime for the event.
+    """
+    if day and time:
+        dt = datetime.combine(day.to_date(time_zone), time.to_time())
+        return {"dateTime": dt.isoformat(), "timeZone": time_zone}
+    return None
 
 
 def build_query_string(sender, recipient, subject, body, date_range):

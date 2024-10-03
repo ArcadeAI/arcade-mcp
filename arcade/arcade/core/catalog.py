@@ -175,6 +175,7 @@ class ToolCatalog(BaseModel):
                 try:
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
+                    self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError:
                     raise ToolDefinitionError(
@@ -182,8 +183,10 @@ class ToolCatalog(BaseModel):
                     )
                 except ImportError as e:
                     raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
-
-                self.add_tool(tool_func, toolkit, module)
+                except TypeError as e:
+                    raise ToolDefinitionError(
+                        f"Type error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
+                    )
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)

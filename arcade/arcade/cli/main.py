@@ -4,6 +4,7 @@ import readline
 import threading
 import uuid
 import webbrowser
+from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import urlencode
 
@@ -420,10 +421,29 @@ def evals(
     config = _get_config_with_overrides(force_tls, force_no_tls, host, port)
 
     models = models.split(",")  # type: ignore[assignment]
-    eval_files = [f for f in os.listdir(directory) if f.startswith("eval_") and f.endswith(".py")]
+    directory_path = Path(directory).resolve()
+
+    if directory_path.is_dir():
+        eval_files = [
+            f
+            for f in directory_path.iterdir()
+            if f.is_file() and f.name.startswith("eval_") and f.name.endswith(".py")
+        ]
+    elif directory_path.is_file():
+        eval_files = (
+            [directory_path]
+            if directory_path.name.startswith("eval_") and directory_path.name.endswith(".py")
+            else []
+        )
+    else:
+        console.print(f"Path not found: {directory_path}", style="bold red")
+        return
 
     if not eval_files:
-        console.print("No evaluation files found.", style="bold yellow")
+        console.print(
+            "No evaluation files found. Filenames must start with 'eval_' and end with '.py'.",
+            style="bold yellow",
+        )
         return
 
     if show_details:
@@ -438,14 +458,19 @@ def evals(
     client = Arcade(api_key=config.api.key, base_url=config.engine_url)
     log_engine_health(client)
 
-    for file in eval_files:
-        file_path = os.path.join(directory, file)
-        module_name = file[:-3]  # Remove .py extension
+    for eval_file_path in eval_files:
+        module_name = eval_file_path.stem  # filename without extension
 
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        # Now we need to load the module from eval_file_path
+        file_path_str = str(eval_file_path)
+        module_name_str = module_name
+
+        # Load using importlib
+        spec = importlib.util.spec_from_file_location(module_name_str, file_path_str)
         if spec is None:
-            console.print(f"Failed to load {file}", style="bold red")
+            console.print(f"Failed to load {eval_file_path}", style="bold red")
             continue
+
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)  # type: ignore[union-attr]
 
@@ -456,22 +481,26 @@ def evals(
         ]
 
         if not eval_suites:
-            console.print(f"No @tool_eval functions found in {file}", style="bold yellow")
+            console.print(f"No @tool_eval functions found in {eval_file_path}", style="bold yellow")
             continue
 
         if show_details:
             suite_label = "suite" if len(eval_suites) == 1 else "suites"
-            console.print(f"\nFound {len(eval_suites)} {suite_label} in {file}", style="bold")
+            console.print(
+                f"\nFound {len(eval_suites)} {suite_label} in {eval_file_path}", style="bold"
+            )
 
+        all_evaluations = []
         for suite_func in eval_suites:
             console.print(
                 Text.assemble(
-                    ("\nRunning evaluations in ", "bold"),
+                    ("Running evaluations in ", "bold"),
                     (suite_func.__name__, "bold blue"),
                 )
             )
             results = suite_func(config=config, models=models, max_concurrency=max_concurrent)
-            display_eval_results(results, show_details=show_details)
+            all_evaluations.append(results)
+        display_eval_results(all_evaluations, show_details=show_details)
 
 
 @cli.command(help="Launch Arcade AI locally for tool dev", rich_help_panel="Launch")
