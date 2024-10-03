@@ -1,6 +1,5 @@
 import json
-
-from requests import Response
+from typing import Any
 
 
 def get_tweet_url(tweet_id: str) -> str:
@@ -8,7 +7,7 @@ def get_tweet_url(tweet_id: str) -> str:
     return f"https://x.com/x/status/{tweet_id}"
 
 
-def parse_search_recent_tweets_response(response: Response) -> str:
+def parse_search_recent_tweets_response(response_data: Any) -> str:
     """
     Parses response from the X API search recent tweets endpoint.
     Returns a JSON string with the tweets data.
@@ -28,22 +27,18 @@ def parse_search_recent_tweets_response(response: Response) -> str:
         },
     ]
     """
-    if response.status_code != 200:
+
+    if not sanity_check_tweets_data(response_data):
         return json.dumps({"tweets": []})
 
-    tweets_data = json.loads(response.text)
-
-    if not sanity_check_tweets_data(tweets_data):
-        return json.dumps({"tweets": []})
-
-    for tweet in tweets_data["data"]:
+    for tweet in response_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
-    for tweet_data, user_data in zip(tweets_data["data"], tweets_data["includes"]["users"]):
+    for tweet_data, user_data in zip(response_data["data"], response_data["includes"]["users"]):
         tweet_data["author_username"] = user_data["username"]
         tweet_data["author_name"] = user_data["name"]
 
-    return json.dumps({"tweets": tweets_data["data"]})
+    return {"tweets": response_data["data"]}
 
 
 def sanity_check_tweets_data(tweets_data: dict) -> bool:

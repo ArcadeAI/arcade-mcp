@@ -65,7 +65,7 @@ async def search_recent_tweets_by_username(
     max_results: Annotated[
         int, "The maximum number of results to return. Cannot be less than 10"
     ] = 10,
-) -> Annotated[str, "JSON string of the search results"]:
+) -> Annotated[dict, "Dictionary containing the search results"]:
     """Search for recent tweets (last 7 days) on X (Twitter) by username. Includes replies and reposts."""
 
     headers = {
@@ -76,9 +76,7 @@ async def search_recent_tweets_by_username(
         "query": f"from:{username}",
         "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
     }
-    url = (
-        "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
-    )
+    url = "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params, timeout=10)
@@ -88,9 +86,25 @@ async def search_recent_tweets_by_username(
             f"Failed to search recent tweets during execution of '{search_recent_tweets_by_username.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
-    tweets_data = parse_search_recent_tweets_response(response)
+    response_data = response.json()
 
-    return tweets_data
+    for tweet_data in response_data["data"]:
+        if "entities" in tweet_data and "urls" in tweet_data["entities"]:
+            for url_entity in tweet_data["entities"]["urls"]:
+                short_url = url_entity["url"]
+                expanded_url = url_entity["expanded_url"]
+                tweet_data["text"] = tweet_data["text"].replace(short_url, expanded_url)
+            tweet_data["entities"].pop("urls")
+            # TODO: Create mentioned profile urls and add to the tweet text?
+        # if "entities" in tweet_data and "mentions" in tweet_data["entities"]:
+        #     for mention_entity in tweet_data["entities"]["mentions"]:
+        #         mentioned_
+
+    # Todo: expand author description URLs?
+
+    tweets_data = parse_search_recent_tweets_response(response_data)
+
+    return tweets_data  # LLM doesnt really do what i want to do with this data. Do we even want to expand urls in tweets?
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
@@ -128,9 +142,7 @@ async def search_recent_tweets_by_keywords(
         "query": query,
         "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
     }
-    url = (
-        "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username"
-    )
+    url = "https://api.x.com/2/tweets/search/recent?expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params, timeout=10)

@@ -13,13 +13,13 @@ from arcade.sdk.auth import X
 async def lookup_single_user_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
-) -> Annotated[str, "User information including id, name, username, and description"]:
+) -> Annotated[dict, "User information including id, name, username, and description"]:
     """Look up a user on X (Twitter) by their username."""
 
     headers = {
         "Authorization": f"Bearer {context.authorization.token}",
     }
-    url = f"https://api.x.com/2/users/by/username/{username}?user.fields=created_at,description,id,location,most_recent_tweet_id,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld"
+    url = f"https://api.x.com/2/users/by/username/{username}?user.fields=created_at,description,id,location,most_recent_tweet_id,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld,entities"
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, timeout=10)
@@ -29,8 +29,32 @@ async def lookup_single_user_by_username(
             f"Failed to look up user during execution of '{lookup_single_user_by_username.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
+    # Parse the response JSON
+    user_data = response.json()["data"]
+
+    # Resolve t.co links to their expanded URLs in the description
+    description_urls = user_data.get("entities", {}).get("description", {}).get("urls", [])
+    description = user_data.get("description", "")
+    for url_info in description_urls:
+        t_co_link = url_info["url"]
+        expanded_url = url_info["expanded_url"]
+        description = description.replace(t_co_link, expanded_url)
+    user_data["description"] = description
+
+    # Resolve t.co links to their expanded URLs in the url
+    url_urls = user_data.get("entities", {}).get("url", {}).get("urls", [])
+    url = user_data.get("url", "")
+    for url_info in url_urls:
+        t_co_link = url_info["url"]
+        expanded_url = url_info["expanded_url"]
+        url = url.replace(t_co_link, expanded_url)
+    user_data["url"] = url
+
+    # Entities is no longer needed now that we have expanded the t.co links
+    user_data.pop("entities", None)
+
     """
-    Example response.text structure:
+    Example response["data"] structure:
     {
         "data": {
             "verified_type": str,
@@ -55,4 +79,4 @@ async def lookup_single_user_by_username(
         }
     }
     """
-    return response.text
+    return {"data": user_data}
