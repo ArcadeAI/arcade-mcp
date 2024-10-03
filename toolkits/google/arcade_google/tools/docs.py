@@ -62,11 +62,66 @@ async def get_document(
         )
 
 
+# Uses https://developers.google.com/docs/api/reference/rest/v1/documents/batchUpdate
+@tool(
+    requires_auth=Google(
+        scopes=[
+            "https://www.googleapis.com/auth/documents",
+        ],
+    )
+)
+async def insert_text_at_end_of_document(
+    context: ToolContext,
+    document_id: Annotated[str, "The ID of the document to update."],
+    text_content: Annotated[str, "The text content to insert into the document"],
+) -> Annotated[str, "The response from the batchUpdate API as a JSON string."]:
+    """
+    Updates an existing Google Docs document using the batchUpdate API endpoint.
+    """
+    try:
+        document = json.loads(await get_document(context, document_id))
+
+        end_index = document["body"]["content"][-1]["endIndex"]
+
+        service = build_docs_service(context.authorization.token)
+
+        requests = [
+            {
+                "insertText": {
+                    "location": {
+                        "index": int(end_index) - 1,
+                    },
+                    "text": text_content,
+                }
+            }
+        ]
+
+        # Execute the documents().batchUpdate() method
+        response = (
+            service.documents()
+            .batchUpdate(documentId=document_id, body={"requests": requests})
+            .execute()
+        )
+
+        return json.dumps(response)
+
+    except HttpError as e:
+        raise ToolExecutionError(
+            f"HttpError during execution of '{insert_text_at_end_of_document.__name__}' tool.",
+            str(e),
+        )
+    except Exception as e:
+        raise ToolExecutionError(
+            f"Unexpected Error encountered during execution of '{insert_text_at_end_of_document.__name__}' tool.",
+            str(e),
+        )
+
+
 # Uses https://developers.google.com/docs/api/reference/rest/v1/documents/create
 @tool(
     requires_auth=Google(
         scopes=[
-            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/documents",
         ],
     )
 )

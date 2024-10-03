@@ -24,8 +24,8 @@ async def list_documents(
     corpora: Annotated[Optional[Corpora], "The source of files to list"] = Corpora.USER,
     order_by: Annotated[
         Optional[OrderBy],
-        "Sort order. Defaults to listing the most recently updated documents first",
-    ] = OrderBy.UPDATED_TIME_DESC,
+        "Sort order. Defaults to listing the most recently modified documents first",
+    ] = OrderBy.MODIFIED_TIME_DESC,
     supports_all_drives: Annotated[
         Optional[bool],
         "Whether the requesting application supports both My Drives and shared drives",

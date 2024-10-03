@@ -2,7 +2,7 @@
 name = "arcade_google"
 version = "0.1.0"
 description = "Arcade tools for the entire google suite"
-authors = ["ArcadeAI Dev Team<dev@arcade-ai.com>"]
+authors = ["Eric Gustin <eric@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
