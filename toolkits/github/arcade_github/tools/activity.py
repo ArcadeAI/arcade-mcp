@@ -4,13 +4,13 @@ import httpx
 
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import GitHubApp
+from arcade.sdk.auth import GitHub
 from arcade_github.tools.utils import get_github_json_headers, get_url, handle_github_response
 
 
 # Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#star-a-repository-for-the-authenticated-user and https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#unstar-a-repository-for-the-authenticated-user
 # Example `arcade chat` usage: "star the vscode repo owned by microsoft"
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def set_starred(
     context: ToolContext,
     owner: Annotated[str, "The owner of the repository"],

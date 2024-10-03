@@ -5,11 +5,11 @@ import httpx
 from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import X
 
 
 # Users Lookup Tools. See developer docs for additional available query parameters: https://developer.x.com/en/docs/x-api/users/lookup/api-reference
-@tool(requires_auth=OAuth2(provider_id="x", scopes=["users.read", "tweet.read"]))
+@tool(requires_auth=X(scopes=["users.read", "tweet.read"]))
 async def lookup_single_user_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],

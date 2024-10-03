@@ -5,7 +5,7 @@ import httpx
 
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import GitHubApp
+from arcade.sdk.auth import GitHub
 from arcade_github.tools.models import (
     ActivityType,
     RepoSortProperty,
@@ -24,7 +24,7 @@ from arcade_github.tools.utils import (
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository and returns only the stargazers_count field.
 # Example arcade chat usage: "How many stargazers does the <OWNER>/<REPO> repo have?"
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def count_stargazers(
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
@@ -49,7 +49,7 @@ async def count_stargazers(
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
 # Example arcade chat usage: "List all repositories for the <ORG> organization. Sort by creation date in descending order."
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def list_org_repositories(
     context: ToolContext,
     org: Annotated[str, "The organization name. The name is not case sensitive"],
@@ -111,7 +111,7 @@ async def list_org_repositories(
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
 # Example arcade chat usage: "Tell me about the <OWNER>/<REPO> repo."
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def get_repository(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
@@ -166,7 +166,7 @@ async def get_repository(
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
 # Example arcade chat usage: "List all merges into main for the <OWNER>/<REPO> repo in the last week by <USER>"
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def list_repository_activities(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
@@ -260,7 +260,7 @@ async def list_repository_activities(
 # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
 # Example arcade chat usage: "List all review comments for the <OWNER>/<REPO> repo. Sort by update date in descending order."
 # TODO: Improve the 'since' input parameter such that language model can more easily specify a valid date/time.
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def list_review_comments_in_a_repository(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],

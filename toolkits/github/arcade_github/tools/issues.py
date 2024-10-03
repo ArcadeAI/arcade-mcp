@@ -5,7 +5,7 @@ import httpx
 
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
-from arcade.sdk.auth import GitHubApp
+from arcade.sdk.auth import GitHub
 from arcade_github.tools.utils import (
     get_github_json_headers,
     get_url,
@@ -16,7 +16,7 @@ from arcade_github.tools.utils import (
 
 # Implements https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#create-an-issue
 # Example `arcade chat` usage: "create an issue in the <REPO> repo owned by <OWNER> titled 'Found a bug' with the body 'I'm having a problem with this.' Assign it to <USER> and label it 'bug'"
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def create_issue(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
@@ -85,7 +85,7 @@ async def create_issue(
 
 # Implements https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
 # Example `arcade chat` usage: "create a comment in the vscode repo owned by microsoft for issue 1347 that says 'Me too'"
-@tool(requires_auth=GitHubApp())
+@tool(requires_auth=GitHub())
 async def create_issue_comment(
     context: ToolContext,
     owner: Annotated[str, "The account owner of the repository. The name is not case sensitive."],
