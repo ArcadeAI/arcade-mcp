@@ -39,47 +39,40 @@ class OAuth2(ToolAuthorization):
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
-    def get_provider(self) -> str:
-        return "google"
+    provider_id: str = "google"
 
 
 class Slack(OAuth2):
     """Marks a tool as requiring Slack (user token) authorization."""
 
-    def get_provider(self) -> str:
-        return "slack"
+    provider_id: str = "slack"
 
 
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
-    def get_provider(self) -> str:
-        return "github"
+    provider_id: str = "github"
 
 
 class X(OAuth2):
     """Marks a tool as requiring X (Twitter) authorization."""
 
-    def get_provider(self) -> str:
-        return "x"
+    provider_id: str = "x"
 
 
 class LinkedIn(OAuth2):
     """Marks a tool as requiring LinkedIn authorization."""
 
-    def get_provider(self) -> str:
-        return "linkedin"
+    provider_id: str = "linkedin"
 
 
 class Spotify(OAuth2):
     """Marks a tool as requiring Spotify authorization."""
 
-    def get_provider(self) -> str:
-        return "spotify"
+    provider_id: str = "spotify"
 
 
 class Zoom(OAuth2):
     """Marks a tool as requiring Zoom authorization."""
 
-    def get_provider(self) -> str:
-        return "zoom"
+    provider_id: str = "zoom"
