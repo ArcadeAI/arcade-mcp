@@ -80,6 +80,15 @@ class OAuth2Requirement(BaseModel):
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
+    # Provider ID and Type needed for the Arcade Engine to look up the auth provider.
+    # However, the developer generally does not need to set these directly.
+    # Instead, they will use:
+    #    @tool(requires_auth=Google(scopes=["profile", "email"]))
+    # or
+    #    client.auth.authorize(provider=AuthProvider.google, scopes=["profile", "email"])
+    #
+    # The Arcade SDK translates these into the appropriate provider ID and type.
+    # The only time the developer will set these is if they are using a custom auth provider.
     provider_id: Optional[str] = None
     """A unique provider ID."""
 
@@ -205,8 +214,15 @@ class ToolAuthorizationContext(BaseModel):
     token: str | None = None
     """The token for the tool invocation."""
 
-    user_info: dict = {}
-    """The user information provided by the authorization server (if any)."""
+    user_info: dict = Field(default={})
+    """
+    The user information provided by the authorization server (if any).
+
+    Some providers can provide structured user info,
+    for example an internal provider-specific user ID.
+    For those providers that support retrieving user info,
+    the Engine can automatically pass that to tool invocations.
+    """
 
 
 class ToolContext(BaseModel):

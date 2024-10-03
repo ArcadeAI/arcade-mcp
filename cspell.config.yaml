@@ -6,6 +6,7 @@ dictionaries: []
 words:
   - conlist
   - fastapi
+  - httpx
   - openai
   - pydantic
   - pyproject

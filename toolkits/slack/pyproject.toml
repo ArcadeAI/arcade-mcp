@@ -2,7 +2,7 @@
 name = "arcade_slack"
 version = "0.1.0"
 description = "Slack tools for LLMs"
-authors = ["Nate Barbettini <nate@arcade-ai.com>"]
+authors = ["Arcade AI <dev@arcade-ai.com"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -7,6 +7,68 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import LinkedIn
 
+LINKEDIN_BASE_URL = "https://api.linkedin.com/v2"
+
+
+async def _send_linkedin_request(
+    context: ToolContext,
+    method: str,
+    endpoint: str,
+    params: dict | None = None,
+    json_data: dict | None = None,
+) -> httpx.Response:
+    """
+    Send an asynchronous request to the LinkedIn API.
+
+    Args:
+        context: The tool context containing the authorization token.
+        method: The HTTP method (GET, POST, PUT, DELETE, etc.).
+        endpoint: The API endpoint path (e.g., "/ugcPosts").
+        params: Query parameters to include in the request.
+        json_data: JSON data to include in the request body.
+
+    Returns:
+        The response object from the API request.
+
+    Raises:
+        ToolExecutionError: If the request fails for any reason.
+    """
+    url = f"{LINKEDIN_BASE_URL}{endpoint}"
+    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.request(
+                method, url, headers=headers, params=params, json=json_data
+            )
+            response.raise_for_status()
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to send request to LinkedIn API: {e}")
+
+    return response
+
+
+def _handle_linkedin_api_error(response: httpx.Response):
+    """
+    Handle errors from the LinkedIn API by mapping common status codes to ToolExecutionErrors.
+
+    Args:
+        response: The response object from the API request.
+
+    Raises:
+        ToolExecutionError: If the response contains an error status code.
+    """
+    status_code_map = {
+        401: ToolExecutionError("Unauthorized: Invalid or expired token"),
+        403: ToolExecutionError("Forbidden: User does not have Spotify Premium"),
+        429: ToolExecutionError("Too Many Requests: Rate limit exceeded"),
+    }
+
+    if response.status_code in status_code_map:
+        raise status_code_map[response.status_code]
+    elif response.status_code >= 400:
+        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+
 
 @tool(
     requires_auth=LinkedIn(
@@ -18,11 +80,7 @@ async def create_text_post(
     text: Annotated[str, "The text content of the post"],
 ) -> Annotated[str, "URL of the shared post"]:
     """Share a new text post to LinkedIn."""
-    url = "https://api.linkedin.com/v2/ugcPosts"
-    headers = {
-        "Authorization": f"Bearer {context.authorization.token}",
-        "Content-Type": "application/json",
-    }
+    endpoint = "/ugcPosts"
 
     # The LinkedIn user ID is required to create a post, even though we're using the user's access token.
     # Arcade Engine gets the current user's info from LinkedIn and automatically populates context.authorization.user_info.
@@ -48,20 +106,9 @@ async def create_text_post(
         "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"},
     }
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(url, headers=headers, json=payload)
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to share post to LinkedIn: {e}") from e
-
-    if response.status_code == 201:
+    response = await _send_linkedin_request(context, "POST", endpoint, json=payload)
+    if response.status_code >= 200 and response.status_code < 300:
         share_id = response.json().get("id")
         return f"https://www.linkedin.com/feed/update/{share_id}/"
-    elif response.status_code == 401:
-        raise ToolExecutionError("Unauthorized: Invalid or expired token")
-    elif response.status_code == 403:
-        raise ToolExecutionError("Forbidden: Access denied")
-    elif response.status_code == 429:
-        raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
     else:
-        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+        _handle_linkedin_api_error(response)

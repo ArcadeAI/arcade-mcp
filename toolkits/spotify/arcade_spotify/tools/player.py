@@ -7,6 +7,68 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Spotify
 
+SPOTIFY_BASE_URL = "https://api.spotify.com/v1"
+
+
+async def _send_spotify_request(
+    context: ToolContext,
+    method: str,
+    endpoint: str,
+    params: dict | None = None,
+    json_data: dict | None = None,
+) -> httpx.Response:
+    """
+    Send an asynchronous request to the Spotify API.
+
+    Args:
+        context: The tool context containing the authorization token.
+        method: The HTTP method (GET, POST, PUT, DELETE, etc.).
+        endpoint: The API endpoint path (e.g., "/me/player/play").
+        params: Query parameters to include in the request.
+        json_data: JSON data to include in the request body.
+
+    Returns:
+        The response object from the API request.
+
+    Raises:
+        ToolExecutionError: If the request fails for any reason.
+    """
+    url = f"{SPOTIFY_BASE_URL}{endpoint}"
+    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.request(
+                method, url, headers=headers, params=params, json=json_data
+            )
+            response.raise_for_status()
+        except httpx.RequestError as e:
+            raise ToolExecutionError(f"Failed to send request to Spotify API: {e}")
+
+    return response
+
+
+def _handle_spotify_api_error(response: httpx.Response):
+    """
+    Handle errors from the Spotify API by mapping common status codes to ToolExecutionErrors.
+
+    Args:
+        response: The response object from the API request.
+
+    Raises:
+        ToolExecutionError: If the response contains an error status code.
+    """
+    status_code_map = {
+        401: ToolExecutionError("Unauthorized: Invalid or expired token"),
+        403: ToolExecutionError("Forbidden: User does not have Spotify Premium"),
+        429: ToolExecutionError("Too Many Requests: Rate limit exceeded"),
+    }
+
+    if response.status_code in status_code_map:
+        raise status_code_map[response.status_code]
+    elif response.status_code >= 400:
+        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+
 
 @tool(
     requires_auth=Spotify(
@@ -21,26 +83,14 @@ async def pause(
     ] = None,
 ) -> Annotated[str, "Success string confirming the pause"]:
     """Pause the current track"""
-    url = "https://api.spotify.com/v1/me/player/pause"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    endpoint = "/me/player/pause"
     params = {"device_id": device_id} if device_id else {}
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.put(url, params=params, headers=headers)
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to pause the current track: {e}")
-
+    response = await _send_spotify_request(context, "PUT", endpoint, params=params)
     if response.status_code >= 200 and response.status_code < 300:
         return "Playback paused"
-    elif response.status_code == 401:
-        raise ToolExecutionError("Unauthorized: Invalid or expired token")
-    elif response.status_code == 403:
-        raise ToolExecutionError("Forbidden: User does not have Spotify Premium")
-    elif response.status_code == 429:
-        raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
     else:
-        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+        _handle_spotify_api_error(response)
 
 
 @tool(
@@ -56,26 +106,14 @@ async def resume(
     ] = None,
 ) -> Annotated[str, "Success string confirming the playback resume"]:
     """Resume the current track, if any"""
-    url = "https://api.spotify.com/v1/me/player/play"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    endpoint = "/me/player/play"
     params = {"device_id": device_id} if device_id else {}
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.put(url, headers=headers, params=params, json={})
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to resume playback: {e}")
-
+    response = await _send_spotify_request(context, "PUT", endpoint, params=params)
     if response.status_code >= 200 and response.status_code < 300:
         return "Playback resumed"
-    elif response.status_code == 401:
-        raise ToolExecutionError("Unauthorized: Invalid or expired token")
-    elif response.status_code == 403:
-        raise ToolExecutionError("Forbidden: User does not have Spotify Premium")
-    elif response.status_code == 429:
-        raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
     else:
-        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+        _handle_spotify_api_error(response)
 
 
 @tool(
@@ -87,19 +125,13 @@ async def get_playback_state(
     context: ToolContext,
 ) -> Annotated[dict, "Information about the user's current playback state"]:
     """Get information about the user's current playback state, including track or episode, progress, and active device."""
-    url = "https://api.spotify.com/v1/me/player"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
-    params = {}
+    endpoint = "/me/player"
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url, headers=headers, params=params)
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to get playback state: {e}")
-
-    if response.status_code == 200:
+    response = await _send_spotify_request(context, "GET", endpoint)
+    if response.status_code >= 200 and response.status_code < 300:
         data = response.json()
 
+        # TODO: Return a more structured model
         result = {
             "device_name": data.get("device", {}).get("name"),
             "currently_playing_type": data.get("currently_playing_type"),
@@ -125,11 +157,5 @@ async def get_playback_state(
                 "episode_spotify_url": item.get("external_urls", {}).get("spotify"),
             })
         return result
-    elif response.status_code == 401:
-        raise ToolExecutionError("Unauthorized: Invalid or expired token")
-    elif response.status_code == 403:
-        raise ToolExecutionError("Forbidden: Access to the resource is denied")
-    elif response.status_code == 429:
-        raise ToolExecutionError("Too Many Requests: Rate limit exceeded")
     else:
-        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+        _handle_spotify_api_error(response)
