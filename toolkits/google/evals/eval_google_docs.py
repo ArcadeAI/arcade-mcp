@@ -76,23 +76,17 @@ def docs_eval_suite() -> EvalSuite:
                 get_document_by_id,
                 {
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
-                    "suggestions_view_mode": None,
-                    "include_tabs_content": None,
                 },
             ),
             (
                 get_document_by_id,
                 {
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
-                    "suggestions_view_mode": None,
-                    "include_tabs_content": None,
                 },
             ),
         ],
         critics=[
             BinaryCritic(critic_field="document_id", weight=0.6),
-            BinaryCritic(critic_field="suggestions_view_mode", weight=0.2),
-            BinaryCritic(critic_field="include_tabs_content", weight=0.2),
         ],
         additional_messages=additional_messages,
     )
@@ -131,16 +125,12 @@ def docs_eval_suite() -> EvalSuite:
                 get_document_by_id,
                 {
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
-                    "suggestions_view_mode": None,
-                    "include_tabs_content": None,
                 },
             ),
             (
                 get_document_by_id,
                 {
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
-                    "suggestions_view_mode": None,
-                    "include_tabs_content": None,
                 },
             ),
         ],

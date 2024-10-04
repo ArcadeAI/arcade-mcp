@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Optional
+from typing import Annotated
 
 from googleapiclient.errors import HttpError
 
@@ -7,7 +7,7 @@ from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
-from arcade_google.tools.utils import build_docs_service, remove_none_values
+from arcade_google.tools.utils import build_docs_service
 
 
 # Uses https://developers.google.com/docs/api/reference/rest/v1/documents/get
@@ -23,13 +23,6 @@ from arcade_google.tools.utils import build_docs_service, remove_none_values
 async def get_document_by_id(
     context: ToolContext,
     document_id: Annotated[str, "The ID of the document to retrieve."],
-    suggestions_view_mode: Annotated[
-        Optional[str], "The suggestions view mode to apply to the document"
-    ] = None,
-    include_tabs_content: Annotated[
-        Optional[bool],
-        "Whether to populate the Document.tabs field instead of the text content fields",
-    ] = None,
 ) -> Annotated[dict, "The document contents as a dictionary"]:
     """
     Get the latest version of the specified Google Docs document.
@@ -37,14 +30,8 @@ async def get_document_by_id(
     try:
         service = build_docs_service(context.authorization.token)
 
-        params = {
-            "suggestionsViewMode": suggestions_view_mode,
-            "includeTabsContent": include_tabs_content,
-        }
-        params = remove_none_values(params)
-
         # Execute the documents().get() method. Returns a Document object https://developers.google.com/docs/api/reference/rest/v1/documents#Document
-        request = service.documents().get(documentId=document_id, **params)
+        request = service.documents().get(documentId=document_id)
         response = request.execute()
 
     except HttpError as e:
