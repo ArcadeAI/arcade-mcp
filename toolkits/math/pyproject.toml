@@ -2,7 +2,7 @@
 name = "arcade_math"
 version = "0.1.0"
 description = "Math toolkit for Arcade"
-authors = ["Arcade AI <dev@arcade-ai.com"]
+authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 
 [tool.poetry.dependencies]

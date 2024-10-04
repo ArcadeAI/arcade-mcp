@@ -182,6 +182,7 @@ def chat(
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
+    prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
         None,
@@ -219,23 +220,10 @@ def chat(
         # start messages conversation
         history: list[dict[str, Any]] = []
 
-        chat_header = Text.assemble(
-            "\n",
-            (
-                "=== Arcade AI Chat ===",
-                "bold magenta underline",
-            ),
-            "\n",
-            "\n",
-            "Chatting with Arcade Engine at ",
-            (
-                config.engine_url,
-                "bold blue",
-            ),
-        )
-        if stream:
-            chat_header.append(" (streaming)")
-        console.print(chat_header)
+        if prompt:
+            history.append({"role": "system", "content": prompt})
+
+        display_arcade_chat_header(config, stream)
 
         # Try to hit /health endpoint on engine and warn if it is down
         log_engine_health(client)
@@ -329,6 +317,26 @@ def config(
     else:
         console.print(f"❌ Invalid action: {action}", style="bold red")
         raise typer.Exit(code=1)
+
+
+def display_arcade_chat_header(config: Config, stream: bool) -> None:
+    chat_header = Text.assemble(
+        "\n",
+        (
+            "=== Arcade AI Chat ===",
+            "bold magenta underline",
+        ),
+        "\n",
+        "\n",
+        "Chatting with Arcade Engine at ",
+        (
+            config.engine_url,
+            "bold blue",
+        ),
+    )
+    if stream:
+        chat_header.append(" (streaming)")
+    console.print(chat_header)
 
 
 def log_engine_health(client: Arcade) -> None:

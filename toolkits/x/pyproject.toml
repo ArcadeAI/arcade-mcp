@@ -2,7 +2,7 @@
 name = "arcade_x"
 version = "0.1.0"
 description = "LLM tools for interacting with X (Twitter)"
-authors = ["Arcade AI <dev@arcade-ai.com"]
+authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

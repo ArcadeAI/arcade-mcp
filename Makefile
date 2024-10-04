@@ -6,6 +6,16 @@ install: ## Install the poetry environment and install the pre-commit hooks
 	@cd arcade && poetry install --all-extras
 	@cd arcade && poetry run pre-commit install
 
+
+.PHONY: install-toolkits
+install-toolkits: ## Install dependencies for all toolkits
+	@echo "🚀 Installing dependencies for all toolkits"
+	@for dir in toolkits/*/ ; do \
+		echo "📦 Installing dependencies for $$dir"; \
+		(cd $$dir && poetry lock && poetry install); \
+	done
+
+
 .PHONY: check
 check: ## Run code quality tools.
 	@echo "🚀 Checking Poetry lock file consistency with 'pyproject.toml': Running poetry check --lock"
