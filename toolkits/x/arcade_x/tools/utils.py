@@ -28,7 +28,7 @@ def parse_search_recent_tweets_response(response_data: Any) -> dict:
     """
 
     if not sanity_check_tweets_data(response_data):
-        return response_data
+        return {"data": []}
 
     for tweet in response_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
