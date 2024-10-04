@@ -6,17 +6,23 @@
       "type": "python",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["main:app", "--app-dir", "${workspaceFolder}/examples/fastapi/arcade_example_fastapi", "--port", "8002"],
+      "args": [
+        "main:app",
+        "--app-dir",
+        "${workspaceFolder}/examples/fastapi/arcade_example_fastapi",
+        "--port",
+        "8002"
+      ],
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
     },
     {
-      "name": "Debug `arcade dev --no-auth`",
+      "name": "Debug `arcade actorup --no-auth`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["dev", "--no-auth"],
+      "args": ["actorup", "--no-auth"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

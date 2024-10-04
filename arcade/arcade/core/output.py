@@ -15,8 +15,7 @@ class ToolOutputFactory:
         *,
         data: T | None = None,
     ) -> ToolCallOutput:
-        value = data.result if data and hasattr(data, "result") and data.result else ""
-
+        value = getattr(data, "result", "") if data else ""
         return ToolCallOutput(value=value)
 
     def fail(self, *, message: str, developer_message: str | None = None) -> ToolCallOutput:

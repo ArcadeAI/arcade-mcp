@@ -26,6 +26,7 @@ from arcade_github.tools.utils import (
 # Example arcade chat usage: "How many stargazers does the <OWNER>/<REPO> repo have?"
 @tool(requires_auth=GitHub())
 async def count_stargazers(
+    context: ToolContext,
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
 ) -> Annotated[int, "The number of stargazers (stars) for the specified repository"]:
@@ -36,15 +37,17 @@ async def count_stargazers(
     ```
     """
 
+    headers = get_github_json_headers(context.authorization.token)
+
     url = get_url("repo", owner=owner, repo=name)
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
+        response = await client.get(url, headers=headers)
 
     handle_github_response(response, url)
 
     data = response.json()
     stargazers_count = data.get("stargazers_count", 0)
-    return f"The repository {owner}/{name} has {stargazers_count} stargazers."
+    return stargazers_count
 
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
