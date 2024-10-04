@@ -6,7 +6,11 @@ from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import X
-from arcade_x.tools.utils import get_tweet_url, parse_search_recent_tweets_response
+from arcade_x.tools.utils import (
+    expand_urls_in_tweets,
+    get_tweet_url,
+    parse_search_recent_tweets_response,
+)
 
 TWEETS_URL = "https://api.x.com/2/tweets"
 
@@ -88,23 +92,12 @@ async def search_recent_tweets_by_username(
 
     response_data = response.json()
 
-    for tweet_data in response_data["data"]:
-        if "entities" in tweet_data and "urls" in tweet_data["entities"]:
-            for url_entity in tweet_data["entities"]["urls"]:
-                short_url = url_entity["url"]
-                expanded_url = url_entity["expanded_url"]
-                tweet_data["text"] = tweet_data["text"].replace(short_url, expanded_url)
-            tweet_data["entities"].pop("urls")
-            # TODO: Create mentioned profile urls and add to the tweet text?
-        # if "entities" in tweet_data and "mentions" in tweet_data["entities"]:
-        #     for mention_entity in tweet_data["entities"]["mentions"]:
-        #         mentioned_
-
-    # Todo: expand author description URLs?
+    # Expand the urls that are in the tweets
+    expand_urls_in_tweets(response_data.get("data", []), delete_entities=True)
 
     tweets_data = parse_search_recent_tweets_response(response_data)
 
-    return tweets_data  # LLM doesnt really do what i want to do with this data. Do we even want to expand urls in tweets?
+    return tweets_data
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
@@ -119,7 +112,7 @@ async def search_recent_tweets_by_keywords(
     max_results: Annotated[
         int, "The maximum number of results to return. Cannot be less than 10"
     ] = 10,
-) -> Annotated[str, "JSON string of the search results"]:
+) -> Annotated[dict, "Dictionary containing the search results"]:
     """
     Search for recent tweets (last 7 days) on X (Twitter) by required keywords and phrases. Includes replies and reposts
     One of the following input parametersMUST be provided: keywords, phrases
@@ -134,7 +127,7 @@ async def search_recent_tweets_by_keywords(
         "Authorization": f"Bearer {context.authorization.token}",
         "Content-Type": "application/json",
     }
-    query = " ".join([f'"{phrase}"' for phrase in (phrases or [])]) + " " + " "
+    query = "".join([f'"{phrase}" ' for phrase in (phrases or [])])
     if keywords:
         query += " ".join(keywords or [])
 
@@ -152,6 +145,11 @@ async def search_recent_tweets_by_keywords(
             f"Failed to search recent tweets during execution of '{search_recent_tweets_by_keywords.__name__}' tool. Request returned an error: {response.status_code} {response.text}"
         )
 
-    tweets_data = parse_search_recent_tweets_response(response)
+    response_data = response.json()
+
+    # Expand the urls that are in the tweets
+    expand_urls_in_tweets(response_data.get("data", []), delete_entities=True)
+
+    tweets_data = parse_search_recent_tweets_response(response_data)
 
     return tweets_data

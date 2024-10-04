@@ -6,6 +6,7 @@ from arcade.core.errors import ToolExecutionError
 from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import X
+from arcade_x.tools.utils import expand_urls_in_user_description, expand_urls_in_user_url
 
 
 # Users Lookup Tools. See developer docs for additional available query parameters: https://developer.x.com/en/docs/x-api/users/lookup/api-reference
@@ -32,26 +33,8 @@ async def lookup_single_user_by_username(
     # Parse the response JSON
     user_data = response.json()["data"]
 
-    # Resolve t.co links to their expanded URLs in the description
-    description_urls = user_data.get("entities", {}).get("description", {}).get("urls", [])
-    description = user_data.get("description", "")
-    for url_info in description_urls:
-        t_co_link = url_info["url"]
-        expanded_url = url_info["expanded_url"]
-        description = description.replace(t_co_link, expanded_url)
-    user_data["description"] = description
-
-    # Resolve t.co links to their expanded URLs in the url
-    url_urls = user_data.get("entities", {}).get("url", {}).get("urls", [])
-    url = user_data.get("url", "")
-    for url_info in url_urls:
-        t_co_link = url_info["url"]
-        expanded_url = url_info["expanded_url"]
-        url = url.replace(t_co_link, expanded_url)
-    user_data["url"] = url
-
-    # Entities is no longer needed now that we have expanded the t.co links
-    user_data.pop("entities", None)
+    expand_urls_in_user_description(user_data, delete_entities=False)
+    expand_urls_in_user_url(user_data, delete_entities=True)
 
     """
     Example response["data"] structure:
