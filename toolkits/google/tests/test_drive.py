@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from arcade_google.tools.drive import list_documents
 from arcade_google.tools.models import Corpora, OrderBy
+from arcade_google.tools.utils import build_drive_service
 from googleapiclient.errors import HttpError
 
 from arcade.core.errors import ToolExecutionError
@@ -17,7 +18,7 @@ def mock_context():
 
 @pytest.fixture
 def mock_service():
-    with patch("arcade_google.tools.drive.build_drive_service") as mock_build_service:
+    with patch("arcade_google.tools.drive." + build_drive_service.__name__) as mock_build_service:
         yield mock_build_service.return_value
 
 

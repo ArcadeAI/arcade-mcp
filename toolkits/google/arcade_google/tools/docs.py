@@ -16,11 +16,11 @@ from arcade_google.tools.utils import build_docs_service, remove_none_values
 @tool(
     requires_auth=Google(
         scopes=[
-            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/documents.readonly",
         ],
     )
 )
-async def get_document(
+async def get_document_by_id(
     context: ToolContext,
     document_id: Annotated[str, "The ID of the document to retrieve."],
     suggestions_view_mode: Annotated[
@@ -49,12 +49,12 @@ async def get_document(
 
     except HttpError as e:
         raise ToolExecutionError(
-            f"HttpError during execution of '{get_document.__name__}' tool.",
+            f"HttpError during execution of '{get_document_by_id.__name__}' tool.",
             str(e),
         )
     except Exception as e:
         raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{get_document.__name__}' tool.",
+            f"Unexpected Error encountered during execution of '{get_document_by_id.__name__}' tool.",
             str(e),
         )
     else:
@@ -79,7 +79,7 @@ async def insert_text_at_end_of_document(
     Updates an existing Google Docs document using the batchUpdate API endpoint.
     """
     try:
-        document = json.loads(await get_document(context, document_id))
+        document = json.loads(await get_document_by_id(context, document_id))
 
         end_index = document["body"]["content"][-1]["endIndex"]
 
@@ -164,7 +164,7 @@ async def create_blank_document(
 @tool(
     requires_auth=Google(
         scopes=[
-            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/documents",
         ],
     )
 )

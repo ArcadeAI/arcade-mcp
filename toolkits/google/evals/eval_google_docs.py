@@ -2,7 +2,7 @@ import arcade_google
 from arcade_google.tools.docs import (
     create_blank_document,
     create_document_from_text,
-    get_document,
+    get_document_by_id,
     insert_text_at_end_of_document,
 )
 
@@ -73,7 +73,7 @@ def docs_eval_suite() -> EvalSuite:
         user_message="Can you read me the contents of Tst9 doc and also Tst10 doc please",
         expected_tool_calls=[
             (
-                get_document,
+                get_document_by_id,
                 {
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
                     "suggestions_view_mode": None,
@@ -81,7 +81,7 @@ def docs_eval_suite() -> EvalSuite:
                 },
             ),
             (
-                get_document,
+                get_document_by_id,
                 {
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
                     "suggestions_view_mode": None,
@@ -128,7 +128,7 @@ def docs_eval_suite() -> EvalSuite:
                 },
             ),
             (
-                get_document,
+                get_document_by_id,
                 {
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
                     "suggestions_view_mode": None,
@@ -136,7 +136,7 @@ def docs_eval_suite() -> EvalSuite:
                 },
             ),
             (
-                get_document,
+                get_document_by_id,
                 {
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
                     "suggestions_view_mode": None,
