@@ -95,9 +95,9 @@ async def search_recent_tweets_by_username(
     # Expand the urls that are in the tweets
     expand_urls_in_tweets(response_data.get("data", []), delete_entities=True)
 
-    tweets_data = parse_search_recent_tweets_response(response_data)
+    parse_search_recent_tweets_response(response_data)
 
-    return tweets_data
+    return response_data
 
 
 @tool(requires_auth=X(scopes=["tweet.read", "users.read"]))
@@ -150,6 +150,6 @@ async def search_recent_tweets_by_keywords(
     # Expand the urls that are in the tweets
     expand_urls_in_tweets(response_data.get("data", []), delete_entities=True)
 
-    tweets_data = parse_search_recent_tweets_response(response_data)
+    parse_search_recent_tweets_response(response_data)
 
-    return tweets_data
+    return response_data
