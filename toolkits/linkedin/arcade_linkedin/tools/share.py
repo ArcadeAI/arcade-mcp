@@ -106,7 +106,7 @@ async def create_text_post(
         "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"},
     }
 
-    response = await _send_linkedin_request(context, "POST", endpoint, json=payload)
+    response = await _send_linkedin_request(context, "POST", endpoint, json_data=payload)
     if response.status_code >= 200 and response.status_code < 300:
         share_id = response.json().get("id")
         return f"https://www.linkedin.com/feed/update/{share_id}/"
