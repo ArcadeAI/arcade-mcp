@@ -21,7 +21,7 @@ def start_servers(
     host: str,
     port: int,
     engine_config: str | None,
-    engine_env: dict[str, str] | None = None,
+    engine_env: str | None = None,
     debug: bool = False,
 ) -> None:
     """
@@ -31,20 +31,27 @@ def start_servers(
         host: Host for the actor server.
         port: Port for the actor server.
         engine_config: Path to the engine configuration file.
+        engine_env: Path to the engine environment file.
+        debug: Whether to run in debug mode.
     """
     # Validate host and port
     host = _validate_host(host)
     port = _validate_port(port)
 
     # Ensure engine_config is provided and validated
-    engine_config = _get_engine_config(engine_config)
+    engine_config = _get_config_file(engine_config, default_filename="engine.yaml")
+
+    # Ensure engine_env is provided or found and either way, validated
+    env_file = _get_config_file(engine_env, default_filename="arcade.env")
 
     # Prepare command-line arguments for the actor server and engine
     actor_cmd = _build_actor_command(host, port, debug)
-    engine_cmd = _build_engine_command(engine_config)
+
+    # even if the user didn't pass an env file we may have found it in the default locations
+    engine_cmd = _build_engine_command(engine_config, engine_env=env_file if env_file else None)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, engine_cmd, engine_env, debug)
+    _manage_processes(actor_cmd, engine_cmd, debug=debug)
 
 
 def _validate_host(host: str) -> str:
@@ -90,42 +97,44 @@ def _validate_port(port: int) -> int:
     return port
 
 
-def _get_engine_config(engine_config: str | None) -> str:
+def _get_config_file(file_path: str | None, default_filename: str = "engine.yaml") -> str:
     """
-    Determines and validates the engine config file path.
+    Determines and validates the config file path.
 
     Args:
-        engine_config: Optional path provided by the user.
+        file_path: Optional path provided by the user.
+        default_filename: The default filename to look for.
 
     Returns:
-        The resolved engine config file path.
+        The resolved config file path.
 
     Raises:
-        RuntimeError: If the config file is not found or invalid.
+        RuntimeError: If the config file is not found.
     """
-    if engine_config:
-        engine_config_path = Path(os.path.expanduser(engine_config)).resolve()
-        if not engine_config_path.is_file():
-            console.print(
-                f"❌ Engine config file not found at {engine_config_path}", style="bold red"
-            )
-            raise RuntimeError("Engine config file not found.")
+    if file_path:
+        config_path = Path(os.path.expanduser(file_path)).resolve()
+        if not config_path.is_file():
+            console.print(f"❌ Config file not found at {config_path}", style="bold red")
+            raise RuntimeError(f"Config file not found at {config_path}")
+        return str(config_path)
 
-    elif Path(os.path.expanduser("~/.arcade/engine.yaml")).is_file():
-        engine_config_path = Path(os.path.expanduser("~/.arcade/engine.yaml"))
-        console.print(
-            f"Using default engine config file at {engine_config_path}", style="bold green"
-        )
-    else:
-        # Look for engine.yaml in the current directory
-        engine_config_path = Path(os.getcwd()) / "engine.yaml"
-        if not engine_config_path.is_file():
-            console.print(
-                "❌ Engine config file not specified and not found in current directory.",
-                style="bold red",
-            )
-            raise RuntimeError("Engine config file not specified.")
-    return str(engine_config_path)
+    # Look for the file in the current working directory
+    config_path = Path(os.getcwd()) / default_filename
+    if config_path.is_file():
+        console.print(f"Using config file at {config_path}", style="bold green")
+        return str(config_path)
+
+    # Look for the file in the user's home directory under .arcade/
+    home_config_path = Path.home() / ".arcade" / default_filename
+    if home_config_path.is_file():
+        console.print(f"Using config file at {home_config_path}", style="bold green")
+        return str(home_config_path)
+
+    console.print(
+        f"❌ Config file '{default_filename}' not found in any of the default locations.",
+        style="bold red",
+    )
+    raise RuntimeError(f"Config file '{default_filename}' not found.")
 
 
 def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
@@ -161,12 +170,13 @@ def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
     return cmd
 
 
-def _build_engine_command(engine_config: str) -> list[str]:
+def _build_engine_command(engine_config: str, engine_env: str | None = None) -> list[str]:
     """
     Builds the command to start the engine.
 
     Args:
         engine_config: Path to the engine configuration file.
+        engine_env: Path to the engine environment file.
 
     Returns:
         The command as a list.
@@ -184,6 +194,10 @@ def _build_engine_command(engine_config: str) -> list[str]:
         "-c",
         engine_config,
     ]
+    if engine_env:
+        cmd.append("-e")
+        cmd.append(engine_env)
+
     return cmd
 
 

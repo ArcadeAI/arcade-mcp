@@ -496,14 +496,16 @@ def dev(
     engine_config: str = typer.Option(
         None, "-c", "--config", help="Path to the engine configuration file."
     ),
+    env_file: str = typer.Option(
+        None, "-e", "--env-file", help="Path to the environment variables file."
+    ),
     debug: bool = typer.Option(False, "-d", "--debug", help="Show debug information"),
 ) -> None:
     """
     Start both the actor and engine servers.
     """
     try:
-        # TODO: pass Engine env vars from here
-        start_servers(host, port, engine_config, engine_env=None, debug=debug)
+        start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
     except Exception as e:
         error_message = f"❌ Failed to start servers: {escape(str(e))}"
         console.print(error_message, style="bold red")

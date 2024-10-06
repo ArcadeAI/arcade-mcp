@@ -137,22 +137,27 @@ class BaseActor(Actor):
                 **tool_request.inputs or {},
             )
 
+        end_time = time.time()  # End time in seconds
+        duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
+
         if output.error:
             logger.warning(
                 f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
             )
             logger.warning(f"{invocation_id} | Tool error: {output.error.message}")
-            logger.debug(
+            logger.warning(
                 f"{invocation_id} | Tool developer message: {output.error.developer_message}"
+            )
+            logger.debug(
+                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
         else:
             logger.info(
                 f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
             )
-            logger.debug(f"{invocation_id} | Tool output: {output}")
-
-        end_time = time.time()  # End time in seconds
-        duration_ms = (end_time - start_time) * 1000  # Convert to milliseconds
+            logger.debug(
+                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
+            )
 
         return ToolCallResponse(
             invocation_id=invocation_id,
