@@ -71,6 +71,12 @@ class NotFoundError(APIStatusError):
     status_code = 404
 
 
+class APITimeoutError(APIStatusError):
+    """408 Request Timeout"""
+
+    status_code = 408
+
+
 class RateLimitError(APIStatusError):
     """429 Too Many Requests"""
 

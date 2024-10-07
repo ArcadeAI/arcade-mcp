@@ -5,6 +5,7 @@ import httpx
 from httpx import Timeout
 
 from arcade.client.errors import (
+    APITimeoutError,
     BadRequestError,
     InternalServerError,
     NotFoundError,
@@ -81,6 +82,7 @@ class BaseArcadeClient:
             401: UnauthorizedError,
             403: PermissionDeniedError,
             404: NotFoundError,
+            408: APITimeoutError,
             429: RateLimitError,
             500: InternalServerError,
         }

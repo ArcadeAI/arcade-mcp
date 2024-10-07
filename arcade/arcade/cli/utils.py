@@ -1,5 +1,4 @@
 import importlib.util
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Union
@@ -14,6 +13,7 @@ from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade.client.client import Arcade
+from arcade.client.errors import APITimeoutError
 from arcade.client.schema import AuthResponse
 from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
@@ -364,8 +364,10 @@ def wait_for_authorization_completion(client: Arcade, tool_authorization: dict |
     auth_response = AuthResponse.model_validate(tool_authorization)
 
     while auth_response.status != "completed":
-        time.sleep(0.5)
-        auth_response = client.auth.status(auth_response)
+        try:
+            auth_response = client.auth.status(auth_response)
+        except APITimeoutError:
+            continue
 
 
 def get_tool_authorization(
