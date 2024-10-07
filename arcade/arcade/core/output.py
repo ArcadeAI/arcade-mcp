@@ -18,10 +18,19 @@ class ToolOutputFactory:
         value = getattr(data, "result", "") if data else ""
         return ToolCallOutput(value=value)
 
-    def fail(self, *, message: str, developer_message: str | None = None) -> ToolCallOutput:
+    def fail(
+        self,
+        *,
+        message: str,
+        developer_message: str | None = None,
+        traceback_info: str | None = None,
+    ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
-                message=message, developer_message=developer_message, can_retry=False
+                message=message,
+                developer_message=developer_message,
+                can_retry=False,
+                traceback_info=traceback_info,
             )
         )
 
@@ -32,6 +41,7 @@ class ToolOutputFactory:
         developer_message: str | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
+        traceback_info: str | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(

@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import Any, Callable
 
 from pydantic import BaseModel, ValidationError
@@ -8,6 +9,7 @@ from arcade.core.errors import (
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
+    ToolSerializationError,
 )
 from arcade.core.output import output_factory
 from arcade.core.schema import ToolCallOutput, ToolContext, ToolDefinition
@@ -58,20 +60,24 @@ class ToolExecutor:
                 retry_after_ms=e.retry_after_ms,
             )
 
-        except ToolInputError as e:
+        except ToolSerializationError as e:
             return output_factory.fail(message=e.message, developer_message=e.developer_message)
 
-        except ToolOutputError as e:
-            return output_factory.fail(message=e.message, developer_message=e.developer_message)
-
-        except ToolRuntimeError as e:  # Catch any remaining tool-related errors
+        # should catch all tool exceptions due to the try/except in the tool decorator
+        except ToolRuntimeError as e:
             return output_factory.fail(
-                message=f"Error in execution: {e.message}", developer_message=e.developer_message
+                message=e.message,
+                developer_message=e.developer_message,
+                traceback_info=e.traceback_info(),
             )
 
         # if we get here we're in trouble
         except Exception as e:
-            return output_factory.fail(message="Error in execution", developer_message=str(e))
+            return output_factory.fail(
+                message="Error in execution",
+                developer_message=str(e),
+                traceback_info=traceback.format_exc(),
+            )
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

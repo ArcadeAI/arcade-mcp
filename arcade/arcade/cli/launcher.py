@@ -229,7 +229,7 @@ def _manage_processes(
     _setup_signal_handlers(terminate_processes)
 
     retry_count = 0
-    max_retries = 3  # Define the maximum number of retries
+    max_retries = 1  # Define the maximum number of retries
 
     while retry_count <= max_retries:
         try:
@@ -336,10 +336,15 @@ def _stream_output(process: subprocess.Popen, name: str) -> None:
         with pipe:
             for line in iter(pipe.readline, ""):
                 line = line.rstrip()
+
+                if "DEBUG" in line:
+                    line = line.replace("DEBUG", "[#87CEFA]DEBUG[/#87CEFA]", 1)
+                if "INFO" in line:
+                    line = line.replace("INFO", "[#109a10]INFO[/#109a10]", 1)
                 if "WARNING" in line:
-                    line = line.replace("WARNING", "[orange]WARNING[/orange]")
+                    line = line.replace("WARNING", "[#FFA500]WARNING[/#FFA500]", 1)
                 if "ERROR" in line:
-                    line = line.replace("ERROR", "[red]ERROR[/red]")
+                    line = line.replace("ERROR", "[#FF0000]ERROR[/#FF0000]", 1)
                 console.print(f"[{style}]{name}>[/{style}] {line}")
 
     threading.Thread(target=stream, args=(process.stdout, stdout_style), daemon=True).start()

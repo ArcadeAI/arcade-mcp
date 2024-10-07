@@ -151,6 +151,8 @@ class BaseActor(Actor):
             logger.debug(
                 f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
+            if output.error.traceback_info:
+                logger.debug(f"{invocation_id} | Tool traceback: {output.error.traceback_info}")
         else:
             logger.info(
                 f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} success"

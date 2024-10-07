@@ -1,3 +1,8 @@
+from arcade.core.errors import RetryableToolError, ToolExecutionError
+
+__all__ = ["SDKError", "WeightError", "ToolExecutionError", "RetryableToolError"]
+
+
 class SDKError(Exception):
     """Base class for all SDK errors."""
 

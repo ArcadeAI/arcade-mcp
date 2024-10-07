@@ -1,13 +1,14 @@
+import functools
 import inspect
-from typing import Callable, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union
 
 from arcade.core.utils import snake_to_pascal_case
 from arcade.sdk.auth import ToolAuthorization
+from arcade.sdk.error import ToolExecutionError
 
 T = TypeVar("T")
 
 
-# TODO change desc to description
 def tool(
     func: Callable | None = None,
     desc: str | None = None,
@@ -18,12 +19,43 @@ def tool(
         func_name = str(getattr(func, "__name__", None))
         tool_name = name or snake_to_pascal_case(func_name)
 
-        setattr(func, "__tool_name__", tool_name)  # noqa: B010 (Do not call `setattr` with a constant attribute value)
-        setattr(func, "__tool_description__", desc or inspect.cleandoc(func.__doc__ or ""))  # noqa: B010
-        setattr(func, "__tool_requires_auth__", requires_auth)  # noqa: B010
+        func.__tool_name__ = tool_name  # type: ignore[attr-defined]
+        func.__tool_description__ = desc or inspect.cleandoc(func.__doc__ or "")  # type: ignore[attr-defined]
+        func.__tool_requires_auth__ = requires_auth  # type: ignore[attr-defined]
 
-        return func
+        if inspect.iscoroutinefunction(func):
 
-    if func:  # This means the decorator is used without parameters
+            @functools.wraps(func)
+            async def func_with_error_handling(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return await func(*args, **kwargs)
+
+                # make sure developer raised ToolExecutionError is not
+                # reraised incorrectly.
+                except ToolExecutionError:
+                    raise
+                except Exception as e:
+                    raise ToolExecutionError(
+                        message=f"Error in execution of {tool_name}",
+                        developer_message=f"Error in {func_name}: {e!s}",
+                    ) from e
+
+        else:
+
+            @functools.wraps(func)
+            def func_with_error_handling(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return func(*args, **kwargs)
+                except ToolExecutionError:
+                    raise
+                except Exception as e:
+                    raise ToolExecutionError(
+                        message=f"Error in execution of {tool_name}",
+                        developer_message=f"Error in {func_name}: {e!s}",
+                    ) from e
+
+        return func_with_error_handling
+
+    if func:
         return decorator(func)
     return decorator
