@@ -19,6 +19,9 @@ from .models import Corpora, OrderBy
 async def list_documents(
     context: ToolContext,
     corpora: Annotated[Optional[Corpora], "The source of files to list"] = Corpora.USER,
+    title_keywords: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document title"
+    ] = None,
     order_by: Annotated[
         Optional[OrderBy],
         "Sort order. Defaults to listing the most recently modified documents first",
@@ -27,7 +30,7 @@ async def list_documents(
         Optional[bool],
         "Whether the requesting application supports both My Drives and shared drives",
     ] = False,
-    limit: Annotated[Optional[int], "The number of documents to list"] = 25,
+    limit: Annotated[Optional[int], "The number of documents to list"] = 50,
 ) -> Annotated[
     dict,
     "A dictionary containing 'documents_count' (number of documents returned) and 'documents' (a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
@@ -41,9 +44,17 @@ async def list_documents(
 
     service = build_drive_service(context.authorization.token)
 
+    query = "mimeType = 'application/vnd.google-apps.document' and trashed = false"
+    if title_keywords:
+        # Escape single quotes in title_keywords
+        title_keywords = [keyword.replace("'", "\\'") for keyword in title_keywords]
+        # Only support logically ANDed keywords in query for now
+        keyword_queries = [f"name contains '{keyword}'" for keyword in title_keywords]
+        query += " and " + " and ".join(keyword_queries)
+
     # Prepare the request parameters
     params = {
-        "q": "mimeType = 'application/vnd.google-apps.document' and trashed = false",
+        "q": query,
         "pageSize": page_size,
         "orderBy": order_by.value,
         "corpora": corpora.value,

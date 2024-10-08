@@ -53,6 +53,27 @@ def drive_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
+        name="List documents in Google Drive based on title keywords",
+        user_message="list all documents that have title that contains the word'greedy' and also the phrase 'Joe's algo'",
+        expected_tool_calls=[
+            (
+                list_documents,
+                {
+                    "corpora": Corpora.USER,
+                    "title_keywords": ["greedy", "Joe's algo"],
+                    "order_by": OrderBy.MODIFIED_TIME_DESC,
+                    "supports_all_drives": False,
+                    "limit": 50,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="order_by", weight=0.25),
+            BinaryCritic(critic_field="title_keywords", weight=0.75),
+        ],
+    )
+
+    suite.add_case(
         name="List documents in shared drives",
         user_message="List the 5 documents from all drives that nobody has touched in forever, including shared ones.",
         expected_tool_calls=[
