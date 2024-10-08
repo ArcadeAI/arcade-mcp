@@ -91,7 +91,9 @@ class ToolExecutor:
             inputs = input_model(**kwargs)
 
         except ValidationError as e:
-            raise ToolInputError(message="Error in input", developer_message=str(e)) from e
+            raise ToolInputError(
+                message="Error in tool input deserialization", developer_message=str(e)
+            ) from e
 
         return inputs
 

@@ -47,9 +47,11 @@ class ToolRuntimeError(RuntimeError):
         self.message = message
         self.developer_message = developer_message
 
-    def traceback_info(self) -> str:
+    def traceback_info(self) -> str | None:
         # return the traceback information of the parent exception
-        return "\n".join(traceback.format_exception(self.__cause__))
+        if self.__cause__:
+            return "\n".join(traceback.format_exception(self.__cause__))
+        return None
 
 
 class ToolExecutionError(ToolRuntimeError):
