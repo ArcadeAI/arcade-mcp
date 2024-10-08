@@ -119,66 +119,56 @@ async def list_events(
     """
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 
-    try:
-        # Get the calendar's time zone
-        calendar = service.calendars().get(calendarId=calendar_id).execute()
-        time_zone = calendar["timeZone"]
+    # Get the calendar's time zone
+    calendar = service.calendars().get(calendarId=calendar_id).execute()
+    time_zone = calendar["timeZone"]
 
-        # Convert enum values to datetime with timezone offset
-        start_datetime = datetime.combine(
-            min_day.to_date(time_zone), min_time_slot.to_time()
-        ).astimezone(ZoneInfo(time_zone))
-        end_datetime = datetime.combine(
-            max_day.to_date(time_zone), max_time_slot.to_time()
-        ).astimezone(ZoneInfo(time_zone))
+    # Convert enum values to datetime with timezone offset
+    start_datetime = datetime.combine(
+        min_day.to_date(time_zone), min_time_slot.to_time()
+    ).astimezone(ZoneInfo(time_zone))
+    end_datetime = datetime.combine(max_day.to_date(time_zone), max_time_slot.to_time()).astimezone(
+        ZoneInfo(time_zone)
+    )
 
-        if start_datetime > end_datetime:
-            start_datetime, end_datetime = end_datetime, start_datetime
+    if start_datetime > end_datetime:
+        start_datetime, end_datetime = end_datetime, start_datetime
 
-        events_result = (
-            service.events()
-            .list(
-                calendarId=calendar_id,
-                timeMin=start_datetime.isoformat(),
-                timeMax=end_datetime.isoformat(),
-                maxResults=max_results,
-                singleEvents=True,
-                orderBy="startTime",
-            )
-            .execute()
+    events_result = (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            timeMin=start_datetime.isoformat(),
+            timeMax=end_datetime.isoformat(),
+            maxResults=max_results,
+            singleEvents=True,
+            orderBy="startTime",
         )
+        .execute()
+    )
 
-        items_keys = [
-            "attachments",
-            "attendees",
-            "creator",
-            "description",
-            "end",
-            "eventType",
-            "htmlLink",
-            "id",
-            "location",
-            "organizer",
-            "start",
-            "summary",
-            "visibility",
-        ]
+    items_keys = [
+        "attachments",
+        "attendees",
+        "creator",
+        "description",
+        "end",
+        "eventType",
+        "htmlLink",
+        "id",
+        "location",
+        "organizer",
+        "start",
+        "summary",
+        "visibility",
+    ]
 
-        events = [
-            {key: event[key] for key in items_keys if key in event}
-            for event in events_result.get("items", [])
-        ]
+    events = [
+        {key: event[key] for key in items_keys if key in event}
+        for event in events_result.get("items", [])
+    ]
 
-        return {"events_count": len(events), "events": events}
-    except HttpError as e:
-        raise ToolExecutionError(
-            f"HttpError during execution of '{list_events.__name__}' tool.", str(e)
-        )
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{list_events.__name__}' tool.",
-            str(e),
-        )
+    return {"events_count": len(events), "events": events}
 
 
 @tool(
@@ -233,76 +223,66 @@ async def update_event(
     """
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 
+    calendar = service.calendars().get(calendarId="primary").execute()
+    time_zone = calendar["timeZone"]
+
     try:
-        calendar = service.calendars().get(calendarId="primary").execute()
-        time_zone = calendar["timeZone"]
-
-        try:
-            event = service.events().get(calendarId="primary", eventId=event_id).execute()
-        except HttpError:  # TODO: This is a first pass. We should do better.
-            valid_events_with_id = (
-                service.events()
-                .list(
-                    calendarId="primary",
-                    timeMin=(datetime.now() - timedelta(days=2)).isoformat(),
-                    timeMax=(datetime.now() - timedelta(days=2)).isoformat(),
-                    maxResults=50,
-                    singleEvents=True,
-                    orderBy="startTime",
-                )
-                .execute()
-            )
-            raise RetryableToolError(
-                f"Event with ID {event_id} not found.",
-                additional_prompt_content=f"Here is list of valid events. The event_id parameter must match one of these: {valid_events_with_id}",
-                retry_after_ms=1000,
-                developer_message=f"Event with ID {event_id} not found. Please try again with a valid event ID.",
-            )
-
-        update_fields = {
-            "start": _update_datetime(updated_start_day, updated_start_time, time_zone),
-            "end": _update_datetime(updated_end_day, updated_end_time, time_zone),
-            "calendarId": updated_calendar_id,
-            "sendUpdates": send_updates.value if send_updates else None,
-            "summary": updated_summary,
-            "description": updated_description,
-            "location": updated_location,
-            "visibility": updated_visibility.value if updated_visibility else None,
-        }
-
-        event.update({k: v for k, v in update_fields.items() if v is not None})
-
-        if attendee_emails_to_remove:
-            event["attendees"] = [
-                attendee
-                for attendee in event.get("attendees", [])
-                if attendee.get("email", "") not in attendee_emails_to_remove
-            ]
-        if attendee_emails_to_add:
-            event["attendees"] = event.get("attendees", []) + [
-                {"email": email} for email in attendee_emails_to_add
-            ]
-
-        updated_event = (
+        event = service.events().get(calendarId="primary", eventId=event_id).execute()
+    except HttpError:  # TODO: This is a first pass. We should do better.
+        valid_events_with_id = (
             service.events()
-            .update(
+            .list(
                 calendarId="primary",
-                eventId=event_id,
-                sendUpdates=send_updates.value,
-                body=event,
+                timeMin=(datetime.now() - timedelta(days=2)).isoformat(),
+                timeMax=(datetime.now() - timedelta(days=2)).isoformat(),
+                maxResults=50,
+                singleEvents=True,
+                orderBy="startTime",
             )
             .execute()
         )
-        return f"Event with ID {event_id} successfully updated at {updated_event['updated']}. View updated event at {updated_event['htmlLink']}"
-    except HttpError as e:
-        raise ToolExecutionError(
-            f"HttpError during execution of '{update_event.__name__}' tool.", str(e)
+        raise RetryableToolError(
+            f"Event with ID {event_id} not found.",
+            additional_prompt_content=f"Here is list of valid events. The event_id parameter must match one of these: {valid_events_with_id}",
+            retry_after_ms=1000,
+            developer_message=f"Event with ID {event_id} not found. Please try again with a valid event ID.",
         )
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{update_event.__name__}' tool.",
-            str(e),
+
+    update_fields = {
+        "start": _update_datetime(updated_start_day, updated_start_time, time_zone),
+        "end": _update_datetime(updated_end_day, updated_end_time, time_zone),
+        "calendarId": updated_calendar_id,
+        "sendUpdates": send_updates.value if send_updates else None,
+        "summary": updated_summary,
+        "description": updated_description,
+        "location": updated_location,
+        "visibility": updated_visibility.value if updated_visibility else None,
+    }
+
+    event.update({k: v for k, v in update_fields.items() if v is not None})
+
+    if attendee_emails_to_remove:
+        event["attendees"] = [
+            attendee
+            for attendee in event.get("attendees", [])
+            if attendee.get("email", "") not in attendee_emails_to_remove
+        ]
+    if attendee_emails_to_add:
+        event["attendees"] = event.get("attendees", []) + [
+            {"email": email} for email in attendee_emails_to_add
+        ]
+
+    updated_event = (
+        service.events()
+        .update(
+            calendarId="primary",
+            eventId=event_id,
+            sendUpdates=send_updates.value,
+            body=event,
         )
+        .execute()
+    )
+    return f"Event with ID {event_id} successfully updated at {updated_event['updated']}. View updated event at {updated_event['htmlLink']}"
 
 
 @tool(
@@ -321,26 +301,16 @@ async def delete_event(
     """Delete an event from Google Calendar."""
     service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
 
-    try:
-        service.events().delete(
-            calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value
-        ).execute()
+    service.events().delete(
+        calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value
+    ).execute()
 
-        notification_message = ""
-        if send_updates == SendUpdatesOptions.ALL:
-            notification_message = "Notifications were sent to all attendees."
-        elif send_updates == SendUpdatesOptions.EXTERNAL_ONLY:
-            notification_message = "Notifications were sent to external attendees only."
-        elif send_updates == SendUpdatesOptions.NONE:
-            notification_message = "No notifications were sent to attendees."
-    except HttpError as e:
-        raise ToolExecutionError(
-            f"HttpError during execution of '{delete_event.__name__}' tool.", str(e)
-        )
-    except Exception as e:
-        raise ToolExecutionError(
-            f"Unexpected Error encountered during execution of '{delete_event.__name__}' tool.",
-            str(e),
-        )
-    else:
-        return f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. {notification_message}"
+    notification_message = ""
+    if send_updates == SendUpdatesOptions.ALL:
+        notification_message = "Notifications were sent to all attendees."
+    elif send_updates == SendUpdatesOptions.EXTERNAL_ONLY:
+        notification_message = "Notifications were sent to external attendees only."
+    elif send_updates == SendUpdatesOptions.NONE:
+        notification_message = "No notifications were sent to attendees."
+
+    return f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. {notification_message}"
