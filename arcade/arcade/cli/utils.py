@@ -365,7 +365,7 @@ def wait_for_authorization_completion(client: Arcade, tool_authorization: dict |
 
     while auth_response.status != "completed":
         try:
-            auth_response = client.auth.status(auth_response)
+            auth_response = client.auth.status(auth_response, wait=60)
         except APITimeoutError:
             continue
 
