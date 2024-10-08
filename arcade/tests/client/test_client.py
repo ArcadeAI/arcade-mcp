@@ -171,6 +171,13 @@ def test_arcade_auth_poll_authorization(test_sync_client, mock_response, monkeyp
     assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
 
 
+def test_arcade_auth_long_poll_authorization(test_sync_client, mock_response, monkeypatch):
+    """Test Arcade.auth.poll_authorization method with long polling."""
+    monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: AUTH_RESPONSE_DATA)
+    auth_response = test_sync_client.auth.status("auth_123", wait=1)
+    assert auth_response == AuthResponse(**AUTH_RESPONSE_DATA)
+
+
 def test_arcade_tool_run(test_sync_client, mock_response, monkeypatch):
     """Test Arcade.tools.run method."""
     monkeypatch.setattr(Arcade, "_execute_request", lambda *args, **kwargs: TOOL_RESPONSE_DATA)
