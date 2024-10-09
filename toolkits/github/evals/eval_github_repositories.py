@@ -1,4 +1,5 @@
 import arcade_github
+from arcade_github.tools.models import SortDirection
 from arcade_github.tools.repositories import (
     count_stargazers,
     get_repository,
@@ -66,7 +67,7 @@ def github_repositories_eval_suite() -> EvalSuite:
                     "org": "ArcadeAI",
                     "repo_type": "all",
                     "sort": "created",
-                    "sort_direction": "desc",
+                    "sort_direction": SortDirection.DESC,
                 },
             )
         ],
@@ -108,7 +109,7 @@ def github_repositories_eval_suite() -> EvalSuite:
                 {
                     "owner": "ArcadeAI",
                     "repo": "test",
-                    "direction": "desc",
+                    "direction": SortDirection.DESC,
                     "per_page": 30,
                     "actor": "TestUser",
                     "time_period": "month",
@@ -138,7 +139,7 @@ def github_repositories_eval_suite() -> EvalSuite:
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "sort": "created",
-                    "direction": "desc",
+                    "direction": SortDirection.DESC,
                     "per_page": 30,
                     "page": 1,
                     "include_extra_data": False,

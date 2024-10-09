@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any, ClassVar
+
+import pytz  # You may need to install pytz if not already installed
+from dateutil import parser
 
 from arcade.sdk.error import WeightError
 
@@ -47,6 +51,17 @@ class BinaryCritic(Critic):
         Raises:
             TypeError: If the casting is not possible.
         """
+        # In case both are strings.
+        if actual == "None":
+            actual = None
+        if expected == "None":
+            expected = None
+        if expected is None:
+            # No need to cast; return actual as is
+            return actual
+        if actual is None:
+            # No need to cast; return None
+            return None
         expected_type = type(expected)
         try:
             return expected_type(actual)
@@ -67,7 +82,11 @@ class BinaryCritic(Critic):
             dict[str, float | bool]: A dictionary containing the match status and score.
         """
         # Cast actual to the type of expected
-        actual_casted = self.cast_actual(expected, actual)
+        try:
+            actual_casted = self.cast_actual(expected, actual)
+        # TODO log or something better here
+        except TypeError:
+            actual_casted = actual
 
         match = expected == actual_casted
         return {"match": match, "score": self.weight if match else 0.0}
@@ -187,3 +206,56 @@ class SimilarityCritic(Critic):
             "match": similarity >= self.similarity_threshold,
             "score": min(similarity * self.weight, self.weight),
         }
+
+
+@dataclass
+class DatetimeCritic(Critic):
+    """
+    A critic that evaluates the closeness of datetime values within a specified tolerance.
+
+    Attributes:
+        tolerance: Acceptable timedelta between expected and actual datetimes.
+        max_difference: Maximum timedelta for a partial score.
+        default_timezone: The default timezone to use if datetime lacks tzinfo.
+    """
+
+    critic_field: str
+    weight: float
+    tolerance: timedelta = timedelta(seconds=500)
+    max_difference: timedelta = timedelta(hours=2)
+
+    def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
+        """Evaluates the closeness of datetime values within a specified tolerance."""
+
+        # Attempt to parse expected and actual datetime strings
+        try:
+            expected_dt = parser.parse(expected)
+            actual_dt = parser.parse(actual)
+        except (ValueError, TypeError):
+            # If parsing fails, return score 0
+            return {"match": False, "score": 0.0}
+
+        # Convert both datetimes to UTC for accurate comparison
+        expected_utc = expected_dt.astimezone(pytz.utc)
+        actual_utc = actual_dt.astimezone(pytz.utc)
+
+        # Compute the absolute time difference in seconds
+        time_diff_seconds = abs((expected_utc - actual_utc).total_seconds())
+
+        # Convert tolerances to seconds
+        tolerance_seconds = self.tolerance.total_seconds()
+        max_difference_seconds = self.max_difference.total_seconds()
+
+        if time_diff_seconds <= tolerance_seconds:
+            # Full score if within tolerance
+            return {"match": True, "score": self.weight}
+        elif time_diff_seconds >= max_difference_seconds:
+            # No score if beyond max_difference
+            return {"match": False, "score": 0.0}
+        else:
+            # Partial score based on time difference
+            ratio = 1 - (time_diff_seconds / max_difference_seconds)
+            # Ensure ratio is not negative
+            ratio = max(ratio, 0)
+            score = self.weight * ratio
+            return {"match": False, "score": score}

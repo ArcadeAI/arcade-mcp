@@ -33,7 +33,7 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
             dt = dt.replace(tzinfo=ZoneInfo(time_zone))
     except ValueError as e:
         raise ValueError(
-            f"Invalid datetime format: '{datetime_str}'. Expected ISO 8601 format, e.g., '2023-12-31T15:30:00'."
+            f"Invalid datetime format: '{datetime_str}'. Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
         ) from e
     return dt
 
@@ -50,10 +50,12 @@ async def create_event(
     context: ToolContext,
     summary: Annotated[str, "The title of the event"],
     start_datetime: Annotated[
-        str, "The datetime when the event starts in ISO 8601 format, e.g., '2023-12-31T15:30:00'."
+        str,
+        "The datetime when the event starts in ISO 8601 format, e.g., '2024-12-31T15:30:00'.",
     ],
     end_datetime: Annotated[
-        str, "The datetime when the event ends in ISO 8601 format, e.g., '2023-12-31T17:30:00'."
+        str,
+        "The datetime when the event ends in ISO 8601 format, e.g., '2024-12-31T17:30:00'.",
     ],
     calendar_id: Annotated[
         str, "The ID of the calendar to create the event in, usually 'primary'."
@@ -106,11 +108,11 @@ async def list_events(
     context: ToolContext,
     min_end_datetime: Annotated[
         str,
-        "Filter by events that end on or after this datetime in ISO 8601 format, e.g., '2023-09-15T09:00:00'.",
+        "Filter by events that end on or after this datetime in ISO 8601 format, e.g., '2024-09-15T09:00:00'.",
     ],
     max_start_datetime: Annotated[
         str,
-        "Filter by events that start before this datetime in ISO 8601 format, e.g., '2023-09-16T17:00:00'.",
+        "Filter by events that start before this datetime in ISO 8601 format, e.g., '2024-09-16T17:00:00'.",
     ],
     calendar_id: Annotated[str, "The ID of the calendar to list events from"] = "primary",
     max_results: Annotated[int, "The maximum number of events to return"] = 10,
@@ -122,10 +124,10 @@ async def list_events(
     max_start_datetime serves as the upper bound (exclusive) for an event's start time.
 
     For example:
-    If min_end_datetime is set to 2023-09-15T09:00:00 and max_start_datetime is set to 2023-09-16T17:00:00,
+    If min_end_datetime is set to 2024-09-15T09:00:00 and max_start_datetime is set to 2024-09-16T17:00:00,
     the function will return events that:
-    1. End after 09:00 on September 15, 2023 (exclusive)
-    2. Start before 17:00 on September 16, 2023 (exclusive)
+    1. End after 09:00 on September 15, 2024 (exclusive)
+    2. Start before 17:00 on September 16, 2024 (exclusive)
     This means an event starting at 08:00 on September 15 and ending at 10:00 on September 15 would be included,
     but an event starting at 17:00 on September 16 would not be included.
     """
@@ -189,11 +191,11 @@ async def update_event(
     event_id: Annotated[str, "The ID of the event to update"],
     updated_start_datetime: Annotated[
         str | None,
-        "The updated datetime that the event starts in ISO 8601 format, e.g., '2023-12-31T15:30:00'.",
+        "The updated datetime that the event starts in ISO 8601 format, e.g., '2024-12-31T15:30:00'.",
     ] = None,
     updated_end_datetime: Annotated[
         str | None,
-        "The updated datetime that the event ends in ISO 8601 format, e.g., '2023-12-31T17:30:00'.",
+        "The updated datetime that the event ends in ISO 8601 format, e.g., '2024-12-31T17:30:00'.",
     ] = None,
     updated_calendar_id: Annotated[
         str | None, "The updated ID of the calendar containing the event."
@@ -211,7 +213,7 @@ async def update_event(
         "The list of attendee emails to remove. Must be valid email addresses e.g., username@domain.com.",
     ] = None,
     send_updates: Annotated[
-        SendUpdatesOptions, "Guests who should receive notifications about the event update."
+        SendUpdatesOptions, "Should attendees be notified of the update? (none, all, external_only)"
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[
     str,

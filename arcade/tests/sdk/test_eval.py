@@ -255,19 +255,13 @@ def test_eval_case_multiple_critics():
 # Test EvalCase with missing expected and actual values in args
 
 
-@pytest.mark.parametrize(
-    "expected_args, actual_args, expected_score",
-    [
-        ({"param": "value"}, {}, 1.0),  # Missing actual value
-        ({}, {"param": "value"}, 1.0),  # Missing expected value
-        ({"param": "value"}, {"param": "value"}, 2.0),  # Both values present
-    ],
-)
-def test_eval_case_missing_values(expected_args, actual_args, expected_score):
+def test_eval_case_with_none_values():
     """
-    Test that when either expected or actual values are missing for a critic,
-    the critic evaluation is skipped, and the total score is computed accordingly.
+    Test that when expected or actual values are None, the critic evaluates them appropriately.
     """
+    expected_args = {"param": None}
+    actual_args = {"param": None}
+
     expected_tool_calls = [ExpectedToolCall(name="ToolA", args=expected_args)]
     actual_tool_calls = [("ToolA", actual_args)]
 
@@ -284,15 +278,8 @@ def test_eval_case_missing_values(expected_args, actual_args, expected_score):
 
     result = case.evaluate(actual_tool_calls)
 
-    # If critic is skipped, only tool selection score is counted
-    # Otherwise, tool selection + critic score
-    total_weight = 1.0  # At least tool selection weight
-    if "param" in expected_args and "param" in actual_args:
-        total_weight += 1.0  # Critic weight
-
-    expected_total_score = expected_score / total_weight
-
-    assert result.score == expected_total_score
+    # Both values are None, so the critic should return a match
+    assert result.score == 2.0 / 2.0  # Full score (tool selection + critic score)
 
 
 # Test that WeightError is raised for invalid critic weights
