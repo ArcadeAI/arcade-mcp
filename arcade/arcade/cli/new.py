@@ -21,22 +21,23 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     """
     Ask a question via input() and return the answer.
     """
-    if default:
-        question = f"{question} [{default}]"
     answer = typer.prompt(question, default=default)
     if not answer and default:
         return default
     return str(answer)
 
 
-def create_directory(path: str) -> None:
+def create_directory(path: str) -> bool:
     """
     Create a directory if it doesn't exist.
+    Returns True if the directory was created, False if failed to create.
     """
     try:
-        os.makedirs(path, exist_ok=True)
+        os.makedirs(path, exist_ok=False)
     except Exception as e:
         console.print(f"[red]Failed to create directory {path}: {e}[/red]")
+        return False
+    return True
 
 
 def create_file(path: str, content: str) -> None:
@@ -91,19 +92,37 @@ def create_new_toolkit(directory: str) -> None:
         )
         return
 
+    # Check if the toolkit name is already taken
+
     description = ask_question("Description of the toolkit?")
     author_name = ask_question("Author's name?")
     author_email = ask_question("Author's email?")
     author = f"{author_name} <{author_email}>"
 
-    generate_test_dir = ask_question("Generate test directory? (yes/no)", "yes") == "yes"
-    generate_eval_dir = ask_question("Generate eval directory? (yes/no)", "yes") == "yes"
+    generate_test_dir = ask_question("Generate test directory? (yes/no)", "yes").lower() in [
+        "yes",
+        "y",
+        "ye",
+        "yea",
+        "yeah",
+        "true",
+    ]
+    generate_eval_dir = ask_question("Generate eval directory? (yes/no)", "yes").lower() in [
+        "yes",
+        "y",
+        "ye",
+        "yea",
+        "yeah",
+        "true",
+    ]
 
     top_level_dir = os.path.join(directory, name)
     toolkit_dir = os.path.join(directory, name, toolkit_name)
 
     # Create the top level toolkit directory
-    create_directory(top_level_dir)
+    if not create_directory(top_level_dir):
+        console.print(f"[red]Toolkit '{name}' already exists.[/red]")
+        return
 
     # Create the toolkit directory
     create_directory(toolkit_dir)
@@ -123,13 +142,14 @@ def create_new_toolkit(directory: str) -> None:
         os.path.join(toolkit_dir, "tools", "hello.py"),
         dedent(
             f"""
+        from typing import Annotated
         from arcade.sdk import tool
 
         @tool
-        def hello() -> str:
+        def hello(name: Annotated[str, "The name of the person to greet"]) -> str:
             {docstring}
 
-            return "Hello, World!"
+            return "Hello, " + name + "!"
         """
         ).strip(),
     )
@@ -144,5 +164,64 @@ def create_new_toolkit(directory: str) -> None:
     # If the user wants to generate an eval directory
     if generate_eval_dir:
         create_directory(os.path.join(top_level_dir, "evals"))
+
+        # Create the eval_hello.py file
+        stripped_toolkit_name = toolkit_name.replace("arcade_", "")
+        create_file(
+            os.path.join(top_level_dir, "evals", "eval_hello.py"),
+            dedent(
+                f"""
+                import {toolkit_name}
+                from {toolkit_name}.tools.hello import hello
+
+                from arcade.core.catalog import ToolCatalog
+                from arcade.sdk.eval import (
+                    EvalRubric,
+                    EvalSuite,
+                    SimilarityCritic,
+                    tool_eval,
+                )
+
+                # Evaluation rubric
+                rubric = EvalRubric(
+                    fail_threshold=0.85,
+                    warn_threshold=0.95,
+                )
+
+
+                catalog = ToolCatalog()
+                catalog.add_module({toolkit_name})
+
+
+                @tool_eval()
+                def {stripped_toolkit_name}_eval_suite():
+                    suite = EvalSuite(
+                        name="{stripped_toolkit_name} Tools Evaluation",
+                        system_message="You are an AI assistant with access to {stripped_toolkit_name} tools. Use them to help the user with their tasks.",
+                        catalog=catalog,
+                        rubric=rubric,
+                    )
+
+                    suite.add_case(
+                        name="Saying hello",
+                        user_message="Say hello to the developer!!!!",
+                        expected_tool_calls=[
+                            (
+                                hello,
+                                {{
+                                    "name": "developer"
+                                }}
+                            )
+                        ],
+                        rubric=rubric,
+                        critics=[
+                            SimilarityCritic(critic_field="name", weight=0.5),
+                        ],
+                    )
+
+                    return suite
+                """
+            ).strip(),
+        )
 
     console.print(f"[green]Toolkit {toolkit_name} has been created.[/green]")
