@@ -89,6 +89,7 @@ def calendar_eval_suite() -> EvalSuite:
                     "calendar_id": "primary",
                     "attendee_emails": ["johndoe@example.com"],
                     "visibility": EventVisibility.DEFAULT,
+                    "description": "Team Meeting",
                 },
             )
         ],

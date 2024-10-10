@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, ClassVar
 
-import pytz  # You may need to install pytz if not already installed
+import pytz
 from dateutil import parser
 
 from arcade.sdk.error import WeightError
@@ -75,11 +75,11 @@ class BinaryCritic(Critic):
         Evaluates whether the expected and actual values are exactly equal after casting.
 
         Args:
-            expected (Any): The expected value.
-            actual (Any): The actual value to compare, cast to the type of expected.
+            expected: The expected value.
+            actual: The actual value to compare, cast to the type of expected.
 
         Returns:
-            dict[str, float | bool]: A dictionary containing the match status and score.
+            dict: A dictionary containing the match status and score.
         """
         # Cast actual to the type of expected
         try:
@@ -223,6 +223,16 @@ class DatetimeCritic(Critic):
     weight: float
     tolerance: timedelta = timedelta(seconds=500)
     max_difference: timedelta = timedelta(hours=2)
+    default_timezone: str | None = None  # default_timezone remains optional
+
+    def __post_init__(self) -> None:
+        if self.default_timezone:
+            try:
+                pytz.timezone(self.default_timezone)
+            except pytz.UnknownTimeZoneError:
+                # Default to UTC if timezone is invalid
+                print(f"Unknown timezone '{self.default_timezone}', defaulting to UTC.")
+                self.default_timezone = "UTC"
 
     def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
         """Evaluates the closeness of datetime values within a specified tolerance."""
@@ -234,6 +244,21 @@ class DatetimeCritic(Critic):
         except (ValueError, TypeError):
             # If parsing fails, return score 0
             return {"match": False, "score": 0.0}
+
+        # Handle timezone information
+        if expected_dt.tzinfo is None:
+            tz = pytz.timezone(self.default_timezone or "UTC")
+            expected_dt = tz.localize(expected_dt)
+        else:
+            # If datetime has tzinfo, proceed without altering
+            pass
+
+        if actual_dt.tzinfo is None:
+            tz = pytz.timezone(self.default_timezone or "UTC")
+            actual_dt = tz.localize(actual_dt)
+        else:
+            # If datetime has tzinfo, proceed without altering
+            pass
 
         # Convert both datetimes to UTC for accurate comparison
         expected_utc = expected_dt.astimezone(pytz.utc)
