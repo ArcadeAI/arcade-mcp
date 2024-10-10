@@ -1,12 +1,38 @@
-import datetime
 import re
 from base64 import urlsafe_b64decode
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
 from arcade_google.tools.models import Day, TimeSlot
+
+
+def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
+    """
+    Parse a datetime string in ISO 8601 format and ensure it is timezone-aware.
+
+    Args:
+        datetime_str (str): The datetime string to parse. Expected format: 'YYYY-MM-DDTHH:MM:SS'.
+        time_zone (str): The timezone to apply if the datetime string is naive.
+
+    Returns:
+        datetime: A timezone-aware datetime object.
+
+    Raises:
+        ValueError: If the datetime string is not in the correct format.
+    """
+    try:
+        dt = datetime.fromisoformat(datetime_str)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo(time_zone))
+    except ValueError as e:
+        raise ValueError(
+            f"Invalid datetime format: '{datetime_str}'. Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
+        ) from e
+    return dt
 
 
 class DateRange(Enum):
@@ -19,24 +45,24 @@ class DateRange(Enum):
     THIS_YEAR = "this_year"
 
     def to_date_query(self):
-        today = datetime.datetime.now()
+        today = datetime.now()
         result = "after:"
         comparison_date = today
 
         if self == DateRange.YESTERDAY:
-            comparison_date = today - datetime.timedelta(days=1)
+            comparison_date = today - timedelta(days=1)
         elif self == DateRange.LAST_7_DAYS:
-            comparison_date = today - datetime.timedelta(days=7)
+            comparison_date = today - timedelta(days=7)
         elif self == DateRange.LAST_30_DAYS:
-            comparison_date = today - datetime.timedelta(days=30)
+            comparison_date = today - timedelta(days=30)
         elif self == DateRange.THIS_MONTH:
             comparison_date = today.replace(day=1)
         elif self == DateRange.LAST_MONTH:
-            comparison_date = (today.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+            comparison_date = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
         elif self == DateRange.THIS_YEAR:
             comparison_date = today.replace(month=1, day=1)
         elif self == DateRange.LAST_MONTH:
-            comparison_date = (today.replace(month=1, day=1) - datetime.timedelta(days=1)).replace(
+            comparison_date = (today.replace(month=1, day=1) - timedelta(days=1)).replace(
                 month=1, day=1
             )
 

@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import Annotated
-from zoneinfo import ZoneInfo
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -11,31 +10,7 @@ from arcade.core.schema import ToolContext
 from arcade.sdk import tool
 from arcade.sdk.auth import Google
 from arcade_google.tools.models import EventVisibility, SendUpdatesOptions
-
-
-def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
-    """
-    Parse a datetime string in ISO 8601 format and ensure it is timezone-aware.
-
-    Args:
-        datetime_str (str): The datetime string to parse. Expected format: 'YYYY-MM-DDTHH:MM:SS'.
-        time_zone (str): The timezone to apply if the datetime string is naive.
-
-    Returns:
-        datetime: A timezone-aware datetime object.
-
-    Raises:
-        ValueError: If the datetime string is not in the correct format.
-    """
-    try:
-        dt = datetime.fromisoformat(datetime_str)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=ZoneInfo(time_zone))
-    except ValueError as e:
-        raise ValueError(
-            f"Invalid datetime format: '{datetime_str}'. Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
-        ) from e
-    return dt
+from arcade_google.tools.utils import parse_datetime
 
 
 @tool(
