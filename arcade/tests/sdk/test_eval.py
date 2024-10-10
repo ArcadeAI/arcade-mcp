@@ -365,31 +365,7 @@ def test_similarity_critic_unsupported_metric():
             True,
             1.0,
         ),
-        # Test with valid default timezone and naive datetimes
-        (
-            {"critic_field": "start_datetime", "weight": 1.0, "default_timezone": "UTC"},
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:00:00",
-            True,
-            1.0,
-        ),
-        # Test with invalid timezone name (should default to UTC)
-        (
-            {"critic_field": "start_datetime", "weight": 1.0, "default_timezone": "Invalid/Zone"},
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:00:00",
-            True,
-            1.0,
-        ),
-        # Test with timezone-aware datetimes and default timezone provided
-        (
-            {"critic_field": "start_datetime", "weight": 1.0, "default_timezone": "UTC"},
-            "2024-09-26T12:00:00-05:00",
-            "2024-09-26T12:00:00-05:00",
-            True,
-            1.0,
-        ),
-        # Test naive datetimes without default timezone (assumes UTC)
+        # Test naive datetimes
         (
             {"critic_field": "start_datetime", "weight": 1.0},
             "2024-09-26T12:00:00",

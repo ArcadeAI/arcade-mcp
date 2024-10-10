@@ -209,6 +209,7 @@ class SimilarityCritic(Critic):
 
 
 @dataclass
+@dataclass
 class DatetimeCritic(Critic):
     """
     A critic that evaluates the closeness of datetime values within a specified tolerance.
@@ -216,23 +217,12 @@ class DatetimeCritic(Critic):
     Attributes:
         tolerance: Acceptable timedelta between expected and actual datetimes.
         max_difference: Maximum timedelta for a partial score.
-        default_timezone: The default timezone to use if datetime lacks tzinfo.
     """
 
     critic_field: str
     weight: float
     tolerance: timedelta = timedelta(seconds=500)
     max_difference: timedelta = timedelta(hours=2)
-    default_timezone: str | None = None  # default_timezone remains optional
-
-    def __post_init__(self) -> None:
-        if self.default_timezone:
-            try:
-                pytz.timezone(self.default_timezone)
-            except pytz.UnknownTimeZoneError:
-                # Default to UTC if timezone is invalid
-                print(f"Unknown timezone '{self.default_timezone}', defaulting to UTC.")
-                self.default_timezone = "UTC"
 
     def evaluate(self, expected: str, actual: str) -> dict[str, float | bool]:
         """Evaluates the closeness of datetime values within a specified tolerance."""
@@ -245,27 +235,24 @@ class DatetimeCritic(Critic):
             # If parsing fails, return score 0
             return {"match": False, "score": 0.0}
 
-        # Handle timezone information
-        if expected_dt.tzinfo is None:
-            tz = pytz.timezone(self.default_timezone or "UTC")
-            expected_dt = tz.localize(expected_dt)
+        # Handle cases based on presence of tzinfo
+        if expected_dt.tzinfo is None and actual_dt.tzinfo is None:
+            # Both datetimes are naive, compare directly
+            time_diff_seconds = abs((expected_dt - actual_dt).total_seconds())
+        elif expected_dt.tzinfo is not None and actual_dt.tzinfo is not None:
+            # Both datetimes have tzinfo, compare in UTC
+            expected_utc = expected_dt.astimezone(pytz.utc)
+            actual_utc = actual_dt.astimezone(pytz.utc)
+            time_diff_seconds = abs((expected_utc - actual_utc).total_seconds())
         else:
-            # If datetime has tzinfo, proceed without altering
-            pass
-
-        if actual_dt.tzinfo is None:
-            tz = pytz.timezone(self.default_timezone or "UTC")
-            actual_dt = tz.localize(actual_dt)
-        else:
-            # If datetime has tzinfo, proceed without altering
-            pass
-
-        # Convert both datetimes to UTC for accurate comparison
-        expected_utc = expected_dt.astimezone(pytz.utc)
-        actual_utc = actual_dt.astimezone(pytz.utc)
-
-        # Compute the absolute time difference in seconds
-        time_diff_seconds = abs((expected_utc - actual_utc).total_seconds())
+            # One datetime has tzinfo and the other doesn't
+            # Compare naive datetime with the other's naive equivalent
+            if expected_dt.tzinfo is not None:
+                expected_naive = expected_dt.replace(tzinfo=None)
+                time_diff_seconds = abs((expected_naive - actual_dt).total_seconds())
+            else:
+                actual_naive = actual_dt.replace(tzinfo=None)
+                time_diff_seconds = abs((expected_dt - actual_naive).total_seconds())
 
         # Convert tolerances to seconds
         tolerance_seconds = self.tolerance.total_seconds()

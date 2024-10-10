@@ -164,8 +164,9 @@ def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool
                 else:
                     total_failed += 1
 
-                # Display one-line summary for each case
-                console.print(f"{status} {case['name']} -- Score: {evaluation.score:.2f}")
+                # Display one-line summary for each case with score as a percentage
+                score_percentage = evaluation.score * 100
+                console.print(f"{status} {case['name']} -- Score: {score_percentage:.2f}%")
 
                 if show_details:
                     # Show detailed information for each case
@@ -206,12 +207,13 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
             weight = critic_result["weight"]
             expected = critic_result["expected"]
             actual = critic_result["actual"]
+
             result_lines.append(
                 f"[bold]{field}:[/bold] "
-                f"[{match_color}]Match: {critic_result['match']}, "
-                f"Score: {score:.2f}/{weight:.2f}[/{match_color}]"
-                f"\n    Expected: {expected}"
-                f"\n    Actual: {actual}"
+                f"[{match_color}]Match: {critic_result['match']}"
+                f"\n     Score: {score:.2f}/{weight:.2f}[/{match_color}]"
+                f"\n     Expected: {expected}"
+                f"\n     Actual: {actual}"
             )
     return "\n".join(result_lines)
 

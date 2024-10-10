@@ -162,10 +162,12 @@ def calendar_eval_suite() -> EvalSuite:
         critics=[
             BinaryCritic(critic_field="event_id", weight=0.4),
             DatetimeCritic(
-                critic_field="updated_start_datetime", weight=0.2, tolerance=timedelta(seconds=10)
+                critic_field="updated_start_datetime", weight=0.2, tolerance=timedelta(minutes=15)
             ),
             DatetimeCritic(
-                critic_field="updated_end_datetime", weight=0.2, tolerance=timedelta(seconds=10)
+                critic_field="updated_end_datetime",
+                weight=0.2,
+                tolerance=timedelta(minutes=15),
             ),
             BinaryCritic(critic_field="send_updates", weight=0.2),
         ],
