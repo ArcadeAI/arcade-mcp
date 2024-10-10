@@ -1,8 +1,12 @@
 import arcade_github
-from arcade_github.tools.models import DiffSide, ReviewCommentSubjectType  # Add these imports
+from arcade_github.tools.models import (
+    DiffSide,
+    ReviewCommentSubjectType,
+    SortDirection,
+)
 from arcade_github.tools.pull_requests import (
     create_reply_for_review_comment,
-    create_review_comment,  # Add this import
+    create_review_comment,
     get_pull_request,
     list_pull_request_commits,
     list_pull_requests,
@@ -169,7 +173,7 @@ def github_pull_requests_eval_suite() -> EvalSuite:
                     "repo": "test",
                     "pull_number": 72,
                     "sort": "updated",
-                    "direction": "asc",
+                    "direction": SortDirection.ASC,
                 },
             )
         ],

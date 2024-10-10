@@ -1,10 +1,19 @@
+from datetime import timedelta
+
 import arcade_google
-from arcade_google.tools.calendar import create_event, delete_event, list_events, update_event
-from arcade_google.tools.models import Day, EventVisibility, TimeSlot
+from arcade_google.tools.calendar import (
+    EventVisibility,
+    SendUpdatesOptions,
+    create_event,
+    delete_event,
+    list_events,
+    update_event,
+)
 
 from arcade.core.catalog import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
+    DatetimeCritic,
     EvalRubric,
     EvalSuite,
     tool_eval,
@@ -16,10 +25,8 @@ rubric = EvalRubric(
     warn_threshold=0.95,
 )
 
-
 catalog = ToolCatalog()
 catalog.add_module(arcade_google)
-
 
 history_after_list_events = [
     {"role": "user", "content": "do i have any events on my calendar for today?"},
@@ -36,7 +43,7 @@ history_after_list_events = [
                 "type": "function",
                 "function": {
                     "name": "Google_ListEvents",
-                    "arguments": '{"max_day":"today","max_time_slot":"23:45","min_day":"today","min_time_slot":"00:00"}',
+                    "arguments": '{"min_end_datetime":"2024-09-26T00:00:00-07:00","max_start_datetime":"2024-09-27T00:00:00-07:00"}',
                 },
             }
         ],
@@ -59,7 +66,9 @@ def calendar_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Calendar tools."""
     suite = EvalSuite(
         name="Calendar Tools Evaluation",
-        system_message="You are an AI assistant that can create and list events using the provided tools.",
+        system_message=(
+            "You are an AI assistant that can create, list, update, and delete events using the provided tools. Today is 2024-09-26"
+        ),
         catalog=catalog,
         rubric=rubric,
     )
@@ -67,32 +76,34 @@ def calendar_eval_suite() -> EvalSuite:
     # Cases for create_event
     suite.add_case(
         name="Create calendar event",
-        user_message="Create a meeting for 'Team Meeting' starting next thursday from 11:45pm to 12:15am. Invite johndoe@example.com",
+        user_message=(
+            "Create a meeting for 'Team Meeting' starting on September 26, 2024, from 11:45pm to 12:15am. Invite johndoe@example.com"
+        ),
         expected_tool_calls=[
             (
                 create_event,
                 {
                     "summary": "Team Meeting",
-                    "start_date": Day.NEXT_THURSDAY.value,
-                    "start_time": TimeSlot._2345.value,
-                    "end_date": Day.NEXT_FRIDAY.value,
-                    "end_time": TimeSlot._0015.value,
+                    "start_datetime": "2024-09-26T23:45:00",
+                    "end_datetime": "2024-09-27T00:15:00",
                     "calendar_id": "primary",
                     "attendee_emails": ["johndoe@example.com"],
-                    "description": None,
-                    "location": None,
                     "visibility": EventVisibility.DEFAULT,
+                    "description": "Team Meeting",
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="summary", weight=0.15),
-            BinaryCritic(critic_field="start_date", weight=0.15),
-            BinaryCritic(critic_field="start_time", weight=0.15),
-            BinaryCritic(critic_field="end_date", weight=0.15),
-            BinaryCritic(critic_field="end_time", weight=0.15),
-            BinaryCritic(critic_field="attendee_emails", weight=0.15),
+            BinaryCritic(critic_field="summary", weight=0.2),
+            DatetimeCritic(
+                critic_field="start_datetime", weight=0.2, tolerance=timedelta(seconds=10)
+            ),
+            DatetimeCritic(
+                critic_field="end_datetime", weight=0.2, tolerance=timedelta(seconds=10)
+            ),
+            BinaryCritic(critic_field="attendee_emails", weight=0.2),
             BinaryCritic(critic_field="description", weight=0.1),
+            BinaryCritic(critic_field="location", weight=0.1),
         ],
     )
 
@@ -104,49 +115,61 @@ def calendar_eval_suite() -> EvalSuite:
             (
                 list_events,
                 {
-                    "min_day": Day.TODAY.value,
-                    "min_time_slot": TimeSlot._0000.value,
-                    "max_day": Day.TOMORROW.value,
-                    "max_time_slot": TimeSlot._0000.value,
+                    "min_end_datetime": "2024-09-26T00:00:00",
+                    "max_start_datetime": "2024-09-27T00:00:00",
                     "calendar_id": "primary",
-                    "event_types": None,
                     "max_results": 10,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="min_day", weight=0.1),
-            BinaryCritic(critic_field="min_time_slot", weight=0.1),
-            BinaryCritic(critic_field="max_day", weight=0.1),
-            BinaryCritic(critic_field="max_time_slot", weight=0.1),
-            BinaryCritic(critic_field="calendar_id", weight=0.1),
-            BinaryCritic(critic_field="event_types", weight=0.1),
-            BinaryCritic(critic_field="max_results", weight=0.1),
+            DatetimeCritic(
+                critic_field="min_end_datetime", weight=0.3, tolerance=timedelta(hours=1)
+            ),
+            DatetimeCritic(
+                critic_field="max_start_datetime", weight=0.3, tolerance=timedelta(hours=1)
+            ),
+            BinaryCritic(critic_field="calendar_id", weight=0.2),
+            BinaryCritic(critic_field="max_results", weight=0.2),
         ],
     )
 
     # Cases for update_event
     suite.add_case(
         name="Update a calendar event",
-        user_message="Oh no! I cant make it to the API Test since i have lunch with an old friend at that time. Change the meeting to 3pm to 4pm please.",
+        user_message=(
+            "Oh no! I can't make it to the API Test since I have lunch with an old friend at that time. "
+            "Change the meeting my meeting tomorrow at 3pm to 4pm. Let everyone know."
+        ),
         expected_tool_calls=[
             (
                 update_event,
                 {
                     "event_id": "00099992228181818181",
-                    "updated_start_day": Day.TODAY.value,
-                    "updated_start_time": TimeSlot._1500.value,
-                    "updated_end_day": Day.TODAY.value,
-                    "updated_end_time": TimeSlot._1600.value,
+                    "updated_start_datetime": "2024-09-27T16:00:00",
+                    "updated_end_datetime": "2024-09-27T18:00:00",
+                    "updated_calendar_id": "primary",
+                    "updated_summary": "API Test",
+                    "updated_description": "API Test",
+                    "updated_location": "611 Gateway Blvd",
+                    "updated_visibility": EventVisibility.DEFAULT,
+                    "attendee_emails_to_add": None,
+                    "attendee_emails_to_remove": None,
+                    "send_updates": SendUpdatesOptions.ALL,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="event_id", weight=0.2),
-            BinaryCritic(critic_field="updated_start_day", weight=0.1),
-            BinaryCritic(critic_field="updated_start_time", weight=0.1),
-            BinaryCritic(critic_field="updated_end_day", weight=0.1),
-            BinaryCritic(critic_field="updated_end_time", weight=0.1),
+            BinaryCritic(critic_field="event_id", weight=0.4),
+            DatetimeCritic(
+                critic_field="updated_start_datetime", weight=0.2, tolerance=timedelta(minutes=15)
+            ),
+            DatetimeCritic(
+                critic_field="updated_end_datetime",
+                weight=0.2,
+                tolerance=timedelta(minutes=15),
+            ),
+            BinaryCritic(critic_field="send_updates", weight=0.2),
         ],
         additional_messages=history_after_list_events,
     )
@@ -154,14 +177,16 @@ def calendar_eval_suite() -> EvalSuite:
     # Cases for delete_event
     suite.add_case(
         name="Delete a calendar event",
-        user_message="I don't need to have focus time today. Please delete it from my calendar. Don't send any notifications.",
+        user_message=(
+            "I don't need to have focus time today. Please delete it from my calendar. Don't send any notifications."
+        ),
         expected_tool_calls=[
             (
                 delete_event,
                 {
                     "event_id": "gr5g18lf88tfpp3vkareukkc7g",
                     "calendar_id": "primary",
-                    "send_updates": "none",
+                    "send_updates": SendUpdatesOptions.NONE,
                 },
             )
         ],

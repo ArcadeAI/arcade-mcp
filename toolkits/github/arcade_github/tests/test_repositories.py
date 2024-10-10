@@ -48,7 +48,7 @@ async def test_error_responses(
         if status_code == 422:
             await list_org_repositories(mock_context, "org", repo_type=RepoType.ALL)
         elif status_code == 301:
-            await count_stargazers("owner", "repo")
+            await count_stargazers(mock_context, "owner", "repo")
         elif status_code == 404:
             await list_org_repositories(mock_context, "non_existent_org")
         elif status_code == 503:
@@ -66,8 +66,8 @@ async def test_list_repository_activities_invalid_cursor(mock_context, mock_clie
 
 
 @pytest.mark.asyncio
-async def test_count_stargazers_success(mock_client):
+async def test_count_stargazers_success(mock_context, mock_client):
     mock_client.get.return_value = Response(200, json={"stargazers_count": 42})
 
-    result = await count_stargazers("owner", "repo")
-    assert result == "The repository owner/repo has 42 stargazers."
+    result = await count_stargazers(mock_context, "owner", "repo")
+    assert result == 42

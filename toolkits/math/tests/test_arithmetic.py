@@ -9,6 +9,8 @@ from arcade_math.tools.arithmetic import (
     sum_range,
 )
 
+from arcade.sdk.error import ToolExecutionError
+
 
 def test_add():
     assert add(1, 2) == 3
@@ -29,7 +31,7 @@ def test_multiply():
 def test_divide():
     assert divide(6, 3) == 2.0
     assert divide(5, 2) == 2.5
-    with pytest.raises(ZeroDivisionError):
+    with pytest.raises(ToolExecutionError):
         divide(1, 0)
 
 

@@ -25,6 +25,7 @@ from pydantic_core import PydanticUndefined
 
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
+    TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
     InputParameter,
     OAuth2Requirement,
@@ -214,6 +215,45 @@ class ToolCatalog(BaseModel):
             if tool.tool == func:
                 return tool.definition
         raise ValueError(f"Tool {func} not found in the catalog.")
+
+    def get_tool_by_name(
+        self, name: str, version: Optional[str] = None, separator: str = TOOL_NAME_SEPARATOR
+    ) -> MaterializedTool:
+        """
+        Get a tool from the catalog by name, optionally including the toolkit name.
+
+        Args:
+            name: The name of the tool, potentially including the toolkit name separated by the `separator`.
+            version: The version of the toolkit. Defaults to None.
+            separator: The separator between toolkit and tool names. Defaults to `TOOL_NAME_SEPARATOR`.
+
+        Returns:
+            MaterializedTool: The matching tool from the catalog.
+
+        Raises:
+            ValueError: If the tool is not found in the catalog.
+        """
+        if separator in name:
+            toolkit_name, tool_name = name.split(separator, 1)
+            fq_name = FullyQualifiedName(
+                name=tool_name, toolkit_name=toolkit_name, toolkit_version=version
+            )
+            return self.get_tool(fq_name)
+        else:
+            # No toolkit name provided, search tools with matching tool name
+            matching_tools = [
+                tool
+                for fq_name, tool in self._tools.items()
+                if fq_name.name.lower() == name.lower()
+                and (
+                    version is None
+                    or (fq_name.toolkit_version or "").lower() == (version or "").lower()
+                )
+            ]
+            if matching_tools:
+                return matching_tools[0]
+
+        raise ValueError(f"Tool {name} not found in the catalog.")
 
     def get_tool(self, name: FullyQualifiedName) -> MaterializedTool:
         """

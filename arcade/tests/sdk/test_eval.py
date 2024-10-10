@@ -1,8 +1,13 @@
+from datetime import timedelta
+
 import pytest
+import pytz
+from dateutil import parser
 
 from arcade.sdk.error import WeightError
 from arcade.sdk.eval import (
     BinaryCritic,
+    DatetimeCritic,
     EvalRubric,
     ExpectedToolCall,
     NumericCritic,
@@ -255,19 +260,13 @@ def test_eval_case_multiple_critics():
 # Test EvalCase with missing expected and actual values in args
 
 
-@pytest.mark.parametrize(
-    "expected_args, actual_args, expected_score",
-    [
-        ({"param": "value"}, {}, 1.0),  # Missing actual value
-        ({}, {"param": "value"}, 1.0),  # Missing expected value
-        ({"param": "value"}, {"param": "value"}, 2.0),  # Both values present
-    ],
-)
-def test_eval_case_missing_values(expected_args, actual_args, expected_score):
+def test_eval_case_with_none_values():
     """
-    Test that when either expected or actual values are missing for a critic,
-    the critic evaluation is skipped, and the total score is computed accordingly.
+    Test that when expected or actual values are None, the critic evaluates them appropriately.
     """
+    expected_args = {"param": None}
+    actual_args = {"param": None}
+
     expected_tool_calls = [ExpectedToolCall(name="ToolA", args=expected_args)]
     actual_tool_calls = [("ToolA", actual_args)]
 
@@ -284,15 +283,8 @@ def test_eval_case_missing_values(expected_args, actual_args, expected_score):
 
     result = case.evaluate(actual_tool_calls)
 
-    # If critic is skipped, only tool selection score is counted
-    # Otherwise, tool selection + critic score
-    total_weight = 1.0  # At least tool selection weight
-    if "param" in expected_args and "param" in actual_args:
-        total_weight += 1.0  # Critic weight
-
-    expected_total_score = expected_score / total_weight
-
-    assert result.score == expected_total_score
+    # Both values are None, so the critic should return a match
+    assert result.score == 2.0 / 2.0  # Full score (tool selection + critic score)
 
 
 # Test that WeightError is raised for invalid critic weights
@@ -340,3 +332,136 @@ def test_similarity_critic_unsupported_metric():
     """
     with pytest.raises(ValueError):
         SimilarityCritic(critic_field="text", weight=1.0, metric="unsupported_metric")
+
+
+# Test DatetimeCritic
+
+
+# Parameterized tests for DatetimeCritic with various datetime formats and default timezones
+@pytest.mark.parametrize(
+    "critic_params, expected, actual, expected_match, expected_score",
+    [
+        # Test with time component and timezone
+        (
+            {"critic_field": "start_datetime", "weight": 1.0},
+            "2024-09-26T12:00:00-07:00",
+            "2024-09-26T12:00:00-07:00",
+            True,
+            1.0,
+        ),
+        # Test without time component (dates only)
+        (
+            {"critic_field": "start_datetime", "weight": 1.0},
+            "2024-09-26",
+            "2024-09-26",
+            True,
+            1.0,
+        ),
+        # Test with and without timezone (assumes UTC)
+        (
+            {"critic_field": "start_datetime", "weight": 1.0},
+            "2024-09-26T12:00:00Z",
+            "2024-09-26T12:00:00",
+            True,
+            1.0,
+        ),
+        # Test naive datetimes
+        (
+            {"critic_field": "start_datetime", "weight": 1.0},
+            "2024-09-26T12:00:00",
+            "2024-09-26T12:00:00",
+            True,
+            1.0,
+        ),
+    ],
+)
+def test_datetime_critic_basic(critic_params, expected, actual, expected_match, expected_score):
+    """
+    Test DatetimeCritic with various datetime formats and default timezones.
+    """
+    critic = DatetimeCritic(**critic_params)
+    result = critic.evaluate(expected, actual)
+    assert result["match"] == expected_match
+    assert result["score"] == expected_score
+
+
+# Parameterized tests for DatetimeCritic's handling of tolerances and max differences
+@pytest.mark.parametrize(
+    "critic_params, expected, actual, expected_match, expected_score_func",
+    [
+        # Test time difference within tolerance
+        (
+            {"critic_field": "start_datetime", "weight": 1.0, "tolerance": timedelta(seconds=60)},
+            "2024-09-26T12:00:00",
+            "2024-09-26T12:00:30",
+            True,
+            lambda critic: critic.weight,
+        ),
+        # Test time difference outside tolerance but within max_difference
+        (
+            {
+                "critic_field": "start_datetime",
+                "weight": 1.0,
+                "tolerance": timedelta(seconds=60),
+                "max_difference": timedelta(minutes=5),
+            },
+            "2024-09-26T12:00:00",
+            "2024-09-26T12:04:00",
+            False,
+            lambda critic: critic.weight * (1 - (240 / 300)),
+        ),
+        # Test time difference exceeds max_difference
+        (
+            {
+                "critic_field": "start_datetime",
+                "weight": 1.0,
+                "max_difference": timedelta(minutes=5),
+            },
+            "2024-09-26T12:00:00",
+            "2024-09-26T12:10:00",
+            False,
+            lambda critic: 0.0,
+        ),
+    ],
+)
+def test_datetime_critic_tolerances(
+    critic_params, expected, actual, expected_match, expected_score_func
+):
+    """
+    Test DatetimeCritic's handling of tolerances and max differences.
+    """
+    critic = DatetimeCritic(**critic_params)
+    result = critic.evaluate(expected, actual)
+    assert result["match"] == expected_match
+    expected_score = expected_score_func(critic)
+    assert pytest.approx(result["score"], abs=1e-6) == expected_score
+
+
+def test_datetime_critic_naive_and_timezone_aware():
+    """
+    Test DatetimeCritic when comparing naive and timezone-aware datetimes.
+    """
+    critic = DatetimeCritic(critic_field="start_datetime", weight=1.0)
+    expected = "2024-09-26T12:00:00Z"
+    actual = "2024-09-26T07:00:00"
+    result = critic.evaluate(expected, actual)
+    assert result["match"] is False
+
+    # Compute expected score based on time difference
+    expected_dt = parser.parse(expected)
+    actual_dt = parser.parse(actual)
+    if actual_dt.tzinfo is None:
+        actual_dt = pytz.utc.localize(actual_dt)
+    if expected_dt.tzinfo is None:
+        expected_dt = pytz.utc.localize(expected_dt)
+
+    time_diff_seconds = abs((expected_dt - actual_dt).total_seconds())
+    if time_diff_seconds <= critic.tolerance.total_seconds():
+        expected_score = critic.weight
+    elif time_diff_seconds >= critic.max_difference.total_seconds():
+        expected_score = 0.0
+    else:
+        ratio = 1 - (time_diff_seconds / critic.max_difference.total_seconds())
+        expected_score = critic.weight * ratio
+
+    assert pytest.approx(result["score"], abs=1e-6) == expected_score

@@ -68,7 +68,6 @@ def test_get_tool(toolkit_version: str | None, expected_tool):
         name="SampleTool", toolkit_name="SampleToolkit", toolkit_version=toolkit_version
     )
     tool = catalog.get_tool(fq_name)
-
     assert tool.tool == expected_tool
 
 
@@ -102,3 +101,38 @@ def test_add_toolkit_type_error():
         assert "Type error encountered while adding tool invalid_tool from mock_module" in str(
             exc_info.value
         )
+
+
+def test_get_tool_by_name():
+    catalog = ToolCatalog()
+    catalog.add_tool(sample_tool, "sample_toolkit")
+
+    tool = catalog.get_tool_by_name("SampleToolkit.SampleTool")
+    assert tool.tool == sample_tool
+    assert tool.name == "SampleTool"
+    assert tool.meta.toolkit == "sample_toolkit"
+    assert tool.version is None
+
+    with pytest.raises(ValueError):
+        catalog.get_tool_by_name("nonexistent_toolkit.SampleTool")
+
+
+def test_get_tool_by_name_with_version():
+    catalog = ToolCatalog()
+    catalog.add_tool(sample_tool, "sample_toolkit")
+
+    tool = catalog.get_tool_by_name("SampleToolkit.SampleTool")
+    assert tool.tool == sample_tool
+    assert tool.name == "SampleTool"
+    assert tool.meta.toolkit == "sample_toolkit"
+
+    with pytest.raises(ValueError):
+        catalog.get_tool_by_name("SampleToolkit.SampleTool", version="2.0.0")
+
+
+def test_get_tool_by_name_with_invalid_version():
+    catalog = ToolCatalog()
+    catalog.add_tool(sample_tool, "SampleToolkit")
+
+    with pytest.raises(ValueError):
+        catalog.get_tool_by_name("SampleToolkit.SampleTool", version="2.0.0")
