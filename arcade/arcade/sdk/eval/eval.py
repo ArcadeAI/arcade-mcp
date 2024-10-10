@@ -241,8 +241,12 @@ class EvalCase:
             evaluation_result.score = 0.0
             evaluation_result.passed = False
             expected_count = len(self.expected_tool_calls)
+            expected_tool_names = ", ".join(
+                tool_call.name for tool_call in self.expected_tool_calls
+            )
             evaluation_result.failure_reason = (
-                f"Expected {expected_count} tool call(s), but got {actual_count}"
+                f"Expected {expected_count} tool call(s), but got {actual_count}. "
+                + f"\nExpected tool calls: {expected_tool_names}.\nActual tool calls: {', '.join(actual_tools)}"
             )
             return evaluation_result
 

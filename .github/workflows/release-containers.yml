@@ -5,13 +5,13 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - '*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., v0.1.0)'
+        description: 'Version to release (e.g., 0.1.0)'
         required: true
-        default: 'v0.0.1'
+        default: '0.0.1'
 
 env:
   REGISTRY: ghcr.io
@@ -94,7 +94,7 @@ jobs:
 
     - name: Generate release notes
       id: generate_release_notes
-      if: github.event_name != 'push'
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
       run: |
         echo "Release notes for version ${{ env.VERSION }}" > release_notes.md
         echo "" >> release_notes.md
@@ -103,7 +103,7 @@ jobs:
 
     - name: Create Release
       id: create_release
-      if: github.event_name != 'push'
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,7 +116,7 @@ jobs:
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push'
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -127,7 +127,7 @@ jobs:
 
     - name: Upload Python Tar Asset
       uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push'
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -138,13 +138,29 @@ jobs:
 
     - name: Upload Python Whl Asset
       uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push'
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./arcade/dist/${{ env.WHL_NAME }}
         asset_name: ${{ env.WHL_NAME }}
+        asset_content_type: application/zip
+
+    - name: Zip Full Dist
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
+      run: tar -cvf python-package-distributions.tar.gz ./dist
+
+
+    - name: Upload Full Dist
+      uses: actions/upload-release-asset@v1
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: python-package-distributions.tar.gz
+        asset_name: python-package-distributions.tar.gz
         asset_content_type: application/zip
 
     - name: Upload the distribution packages
