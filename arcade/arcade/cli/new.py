@@ -99,22 +99,13 @@ def create_new_toolkit(directory: str) -> None:
     author_email = ask_question("Author's email?")
     author = f"{author_name} <{author_email}>"
 
-    generate_test_dir = ask_question("Generate test directory? (yes/no)", "yes").lower() in [
-        "yes",
-        "y",
-        "ye",
-        "yea",
-        "yeah",
-        "true",
-    ]
-    generate_eval_dir = ask_question("Generate eval directory? (yes/no)", "yes").lower() in [
-        "yes",
-        "y",
-        "ye",
-        "yea",
-        "yeah",
-        "true",
-    ]
+    yes_options = ["yes", "y", "ye", "yea", "yeah", "true"]
+    generate_test_dir = (
+        ask_question("Generate test directory? (yes/no)", "yes").lower() in yes_options
+    )
+    generate_eval_dir = (
+        ask_question("Generate eval directory? (yes/no)", "yes").lower() in yes_options
+    )
 
     top_level_dir = os.path.join(directory, name)
     toolkit_dir = os.path.join(directory, name, toolkit_name)
