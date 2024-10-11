@@ -16,7 +16,8 @@ except ImportError:
         "Use `pip install arcade-ai[evals]` to install the required dependencies for evaluation."
     )
 
-from arcade.client.client import AsyncArcade
+from openai import AsyncOpenAI
+
 from arcade.sdk.error import WeightError
 
 if TYPE_CHECKING:
@@ -520,12 +521,12 @@ class EvalSuite:
         )
         self.cases.append(new_case)
 
-    async def run(self, client: AsyncArcade, model: str) -> dict[str, Any]:
+    async def run(self, client: AsyncOpenAI, model: str) -> dict[str, Any]:
         """
         Run the evaluation suite.
 
         Args:
-            client: The AsyncArcade client instance.
+            client: The AsyncOpenAI client instance.
             model: The model to evaluate.
 
         Returns:
@@ -651,11 +652,11 @@ def tool_eval() -> Callable[[Callable], Callable]:
                 raise TypeError("Eval function must return an EvalSuite")
             suite.max_concurrent = max_concurrency
             results = []
-            async with AsyncArcade(
+            async with AsyncOpenAI(
                 api_key=config.api.key,
                 base_url=config.engine_url,
             ) as client:
-                result = await suite.run(client, model)  # type: ignore[arg-type]
+                result = await suite.run(client, model)
                 results.append(result)
             return results
 

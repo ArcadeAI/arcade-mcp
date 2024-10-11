@@ -8,7 +8,7 @@ from typing import Any, Optional
 from urllib.parse import urlencode
 
 import typer
-from openai import OpenAIError
+from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
@@ -256,7 +256,10 @@ def chat(
             history.append({"role": "user", "content": user_input})
 
             try:
-                chat_result = handle_chat_interaction(client, model, history, user_email, stream)
+                openai_client = OpenAI(api_key=config.api.key, base_url=config.engine_url)
+                chat_result = handle_chat_interaction(
+                    openai_client, model, history, user_email, stream
+                )
             except OpenAIError as e:
                 console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
                 continue
@@ -273,7 +276,7 @@ def chat(
                 try:
                     history.pop()
                     chat_result = handle_chat_interaction(
-                        client, model, history, user_email, stream
+                        openai_client, model, history, user_email, stream
                     )
                 except OpenAIError as e:
                     console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")

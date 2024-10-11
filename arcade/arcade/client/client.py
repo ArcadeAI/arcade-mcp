@@ -1,8 +1,7 @@
+import json
 from typing import Any, TypeVar, Union
 
 from httpx import Timeout
-from openai import AsyncOpenAI, OpenAI
-from openai.resources.chat import AsyncChat, Chat
 
 from arcade.client.base import (
     AsyncArcadeClient,
@@ -120,7 +119,7 @@ class ToolResource(BaseResource[ClientT]):
         tool_name: str,
         user_id: str,
         tool_version: str | None = None,
-        inputs: dict[str, Any] | None = None,
+        inputs: dict[str, Any] | str | None = None,
     ) -> ExecuteToolResponse:
         """
         Send a request to execute a tool and return the response.
@@ -131,6 +130,12 @@ class ToolResource(BaseResource[ClientT]):
             tool_version: The version of the tool to execute (if not provided, the latest version will be used).
             inputs: The inputs for the tool.
         """
+        if not isinstance(inputs, str):
+            try:
+                inputs = json.dumps(inputs)
+            except Exception:
+                raise ValueError("Inputs must be a valid JSON object or serializable dictionary")
+
         request_data = {
             "tool_name": tool_name,
             "user_id": user_id,
@@ -399,12 +404,6 @@ class Arcade(SyncArcadeClient):
         self.auth: AuthResource = AuthResource(self)
         self.tools: ToolResource = ToolResource(self)
         self.health: HealthResource = HealthResource(self)
-        chat_url = self._chat_url(self._base_url)
-        self._openai_client = OpenAI(base_url=chat_url, api_key=self._api_key)
-
-    @property
-    def chat(self) -> Chat:
-        return self._openai_client.chat
 
     def _execute_request(self, method: str, url: str, **kwargs: Any) -> Any:
         """
@@ -422,12 +421,6 @@ class AsyncArcade(AsyncArcadeClient):
         self.auth: AsyncAuthResource = AsyncAuthResource(self)
         self.tools: AsyncToolResource = AsyncToolResource(self)
         self.health: AsyncHealthResource = AsyncHealthResource(self)
-        chat_url = self._chat_url(self._base_url)
-        self._openai_client = AsyncOpenAI(base_url=chat_url, api_key=self._api_key)
-
-    @property
-    def chat(self) -> AsyncChat:
-        return self._openai_client.chat
 
     async def _execute_request(self, method: str, url: str, **kwargs: Any) -> Any:
         """

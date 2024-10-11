@@ -1,11 +1,8 @@
-import os
 from enum import Enum
 
 from pydantic import BaseModel, Field
 
 from arcade.core.schema import ToolAuthorizationContext, ToolCallOutput
-
-OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION", "v1")
 
 
 class AuthProvider(str, Enum):

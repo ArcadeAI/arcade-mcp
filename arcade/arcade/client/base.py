@@ -13,7 +13,6 @@ from arcade.client.errors import (
     RateLimitError,
     UnauthorizedError,
 )
-from arcade.client.schema import OPENAI_API_VERSION
 
 T = TypeVar("T")
 ResponseT = TypeVar("ResponseT")
@@ -22,11 +21,15 @@ ResponseT = TypeVar("ResponseT")
 class BaseResource(Generic[T]):
     """Base class for all resources."""
 
-    _path: str
+    _path: str = ""
+    _version: str = "v1"
 
     def __init__(self, client: T) -> None:
         self._client = client
-        self._resource_path = self._client._base_url + self._path  # type: ignore[attr-defined]
+        self._resource_path = urljoin(
+            self._client._base_url,  # type: ignore[attr-defined]
+            f"{self._version}/{self._path}",
+        )
 
 
 class BaseArcadeClient:
@@ -37,8 +40,8 @@ class BaseArcadeClient:
         base_url: str | None = None,
         api_key: str | None = None,
         headers: dict[str, str] | None = None,
-        timeout: float | Timeout = 10.0,
-        retries: int = 3,
+        timeout: float | Timeout = 30.0,
+        retries: int = 1,
     ):
         """
         Initialize the BaseArcadeClient.
@@ -69,12 +72,6 @@ class BaseArcadeClient:
         Build the full URL for a given path.
         """
         return urljoin(self._base_url, path)
-
-    def _chat_url(self, base_url: str) -> str:
-        chat_url = str(base_url)
-        if not base_url.endswith(OPENAI_API_VERSION):
-            chat_url = f"{base_url}/{OPENAI_API_VERSION}"
-        return chat_url
 
     def _handle_http_error(self, e: httpx.HTTPStatusError) -> None:
         error_map = {

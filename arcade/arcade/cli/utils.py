@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Callable, Union
 
 import typer
+from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
@@ -247,7 +248,7 @@ class ChatInteractionResult:
 
 
 def handle_chat_interaction(
-    client: Arcade, model: str, history: list[dict], user_email: str | None, stream: bool = False
+    client: OpenAI, model: str, history: list[dict], user_email: str | None, stream: bool = False
 ) -> ChatInteractionResult:
     """
     Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
