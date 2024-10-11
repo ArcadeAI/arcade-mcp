@@ -34,6 +34,9 @@ def create_directory(path: str) -> bool:
     """
     try:
         os.makedirs(path, exist_ok=False)
+    except FileExistsError:
+        console.print(f"[red]Directory '{path}' already exists.[/red]")
+        return False
     except Exception as e:
         console.print(f"[red]Failed to create directory {path}: {e}[/red]")
         return False
@@ -92,8 +95,6 @@ def create_new_toolkit(directory: str) -> None:
         )
         return
 
-    # Check if the toolkit name is already taken
-
     description = ask_question("Description of the toolkit?")
     author_name = ask_question("Author's name?")
     author_email = ask_question("Author's email?")
@@ -112,7 +113,6 @@ def create_new_toolkit(directory: str) -> None:
 
     # Create the top level toolkit directory
     if not create_directory(top_level_dir):
-        console.print(f"[red]Toolkit '{name}' already exists.[/red]")
         return
 
     # Create the toolkit directory
@@ -151,6 +151,29 @@ def create_new_toolkit(directory: str) -> None:
     # If the user wants to generate a test directory
     if generate_test_dir:
         create_directory(os.path.join(top_level_dir, "tests"))
+
+        # Create the __init__.py file in the tests directory
+        create_file(os.path.join(top_level_dir, "tests", "__init__.py"), "")
+
+        # Create the test_hello.py file in the tests directory
+        stripped_toolkit_name = toolkit_name.replace("arcade_", "")
+        create_file(
+            os.path.join(top_level_dir, "tests", f"test_{stripped_toolkit_name}.py"),
+            dedent(
+                f"""
+            import pytest
+            from arcade.sdk.error import ToolExecutionError
+            from {toolkit_name}.tools.hello import hello
+
+            def test_hello():
+                assert hello("developer") == "Hello, developer!"
+
+            def test_hello_raises_error():
+                with pytest.raises(ToolExecutionError):
+                    hello(1)
+            """
+            ).strip(),
+        )
 
     # If the user wants to generate an eval directory
     if generate_eval_dir:
