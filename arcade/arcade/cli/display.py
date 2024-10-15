@@ -116,11 +116,12 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
         if message["role"] == "assistant":
             for tool_call in message.get("tool_calls", []):
                 console.print(
-                    f"[bright_black][bold]Called tool '{tool_call['function']['name']}'[/bold]\n[bold]Parameters:[/bold]{tool_call['function']['arguments']}[/bright_black]"
+                    f"[bold]Called tool '{tool_call['function']['name']}' with parameters:[/bold] {tool_call['function']['arguments']}",
+                    style="dim",
                 )
         elif message["role"] == "tool":
             console.print(
-                f"[bright_black][bold]'{message['name']}' tool returned:[/bold]{message['content']}[/bright_black]"
+                f"[bold]'{message['name']}' tool returned:[/bold] {message['content']}", style="dim"
             )
 
 

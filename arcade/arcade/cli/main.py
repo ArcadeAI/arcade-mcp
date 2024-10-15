@@ -76,8 +76,13 @@ def login(
         callback_uri = "http://localhost:9905/callback"
         params = urlencode({"callback_uri": callback_uri, "state": state})
         login_url = f"https://{host}/api/v1/auth/cli_login?{params}"
+
         console.print("Opening a browser to log you in...")
-        webbrowser.open(login_url)
+        if not webbrowser.open(login_url):
+            console.print(
+                f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {login_url}",
+                style="dim",
+            )
 
         # Wait for the server thread to finish
         server_thread.join()
@@ -230,7 +235,6 @@ def chat(
 
     client = Arcade(api_key=config.api.key, base_url=config.engine_url)
     user_email = config.user.email if config.user else None
-    user_attribution = f"({user_email})" if user_email else ""
 
     try:
         # start messages conversation
@@ -245,7 +249,7 @@ def chat(
         log_engine_health(client)
 
         while True:
-            console.print(f"\n[magenta][bold]User[/bold] {user_attribution}:[/magenta] ")
+            console.print(f"\n[magenta][bold]User[/bold] ({user_email}):[/magenta] ")
 
             # Use input() instead of console.input() to leverage readline history
             user_input = input()
@@ -331,7 +335,8 @@ def config(
             console.print("✅ Configuration updated successfully.", style="bold green")
         else:
             console.print(
-                f"❌ Invalid configuration name: {name} in section: {section}", style="bold red"
+                f"❌ Invalid configuration name: {name} in section: {section}",
+                style="bold red",
             )
             raise typer.Exit(code=1)
     else:
@@ -350,7 +355,10 @@ def evals(
         help="Maximum number of concurrent evaluations (default: 1)",
     ),
     models: str = typer.Option(
-        "gpt-4o", "--models", "-m", help="The models to use for evaluation (default: gpt-4o)"
+        "gpt-4o",
+        "--models",
+        "-m",
+        help="The models to use for evaluation (default: gpt-4o)",
     ),
     host: str = typer.Option(
         None,
@@ -409,7 +417,8 @@ def evals(
     if show_details:
         suite_label = "suite" if len(eval_suites) == 1 else "suites"
         console.print(
-            f"\nFound {len(eval_suites)} {suite_label} in the evaluation files.", style="bold"
+            f"\nFound {len(eval_suites)} {suite_label} in the evaluation files.",
+            style="bold",
         )
 
     async def run_evaluations() -> None:
@@ -466,7 +475,9 @@ def dev(
 @cli.command(help="Start a local Arcade Actor server", rich_help_panel="Launch", hidden=True)
 def actorup(
     host: str = typer.Option(
-        "127.0.0.1", help="Host for the app, from settings by default.", show_default=True
+        "127.0.0.1",
+        help="Host for the app, from settings by default.",
+        show_default=True,
     ),
     port: int = typer.Option(
         "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True

@@ -127,7 +127,7 @@ def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) ->
             if role == "":
                 role = choice.delta.role or ""
                 if role == "assistant":
-                    console.print(f"\n[bold blue]Assistant ({model}):[/bold blue] ")
+                    console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
             if chunk_message:
                 full_message += chunk_message
                 markdown_chunk = Markdown(full_message)
@@ -292,10 +292,10 @@ def handle_chat_interaction(
         if role == "assistant":
             message_content = markdownify_urls(message_content)
             console.print(
-                f"\n[bold blue]Assistant ({model}):[/bold blue] ", Markdown(message_content)
+                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ", Markdown(message_content)
             )
         else:
-            console.print(f"\n[bold magenta]{role}:[/bold magenta] {message_content}")
+            console.print(f"\n[bold]{role}:[/bold] {message_content}")
 
     history += tool_messages
     history.append({"role": role, "content": message_content})
