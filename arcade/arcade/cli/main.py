@@ -273,7 +273,7 @@ def chat(
             tool_authorization = chat_result.tool_authorization
 
             # wait for tool authorizations to complete, if any
-            if is_authorization_pending(tool_authorization):
+            if tool_authorization and is_authorization_pending(tool_authorization):
                 chat_result = handle_tool_authorization(
                     client, tool_authorization, history, openai_client, model, user_email, stream
                 )

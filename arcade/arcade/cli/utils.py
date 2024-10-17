@@ -326,11 +326,9 @@ def handle_tool_authorization(
     user_email: str | None,
     stream: bool,
 ) -> ChatInteractionResult:
-    authorization_url: str | None = None
-
     with Live(console=console, refresh_per_second=4) as live:
         if "authorization_url" in tool_authorization:
-            authorization_url = tool_authorization["authorization_url"]
+            authorization_url = str(tool_authorization["authorization_url"])
             webbrowser.open(authorization_url)
             message = (
                 "You'll need to authorize this action in your browser.\n\n"
