@@ -1,15 +1,18 @@
 import importlib.util
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
 import typer
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from rich.console import Console
+from rich.live import Live
 from rich.markdown import Markdown
+from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
@@ -120,22 +123,30 @@ def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) ->
     tool_messages = []
     tool_authorization = None
     role = ""
+    printed_role: bool = False
+
     with Live(console=console, refresh_per_second=10) as live:
         for chunk in stream:
             choice = chunk.choices[0]
-            chunk_message = choice.delta.content
-            if role == "":
-                role = choice.delta.role or ""
-                if role == "assistant":
-                    console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
-            if chunk_message:
-                full_message += chunk_message
-                markdown_chunk = Markdown(full_message)
-                live.update(markdown_chunk)
+            role = choice.delta.role or role
 
             # Display and get tool messages if they exist
             tool_messages += get_tool_messages(choice)  # type: ignore[arg-type]
             tool_authorization = get_tool_authorization(choice)
+
+            chunk_message = choice.delta.content
+
+            if role == "assistant" and tool_authorization:
+                continue  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
+
+            if role == "assistant" and not printed_role:
+                console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
+                printed_role = True
+
+            if chunk_message:
+                full_message += chunk_message
+                markdown_chunk = Markdown(full_message)
+                live.update(markdown_chunk)
 
         # Markdownify URLs in the final message if applicable
         if role == "assistant":
@@ -289,7 +300,10 @@ def handle_chat_interaction(
         tool_authorization = get_tool_authorization(response.choices[0])
 
         role = response.choices[0].message.role
-        if role == "assistant":
+
+        if role == "assistant" and tool_authorization:
+            pass  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
+        elif role == "assistant":
             message_content = markdownify_urls(message_content)
             console.print(
                 f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ", Markdown(message_content)
@@ -301,6 +315,42 @@ def handle_chat_interaction(
     history.append({"role": role, "content": message_content})
 
     return ChatInteractionResult(history, tool_messages, tool_authorization)
+
+
+def handle_tool_authorization(
+    arcade_client: Arcade,
+    tool_authorization: dict,
+    history: list[dict[str, Any]],
+    openai_client: OpenAI,
+    model: str,
+    user_email: str | None,
+    stream: bool,
+) -> ChatInteractionResult:
+    authorization_url: str | None = None
+
+    with Live(console=console, refresh_per_second=4) as live:
+        if "authorization_url" in tool_authorization:
+            authorization_url = tool_authorization["authorization_url"]
+            webbrowser.open(authorization_url)
+            message = (
+                "You'll need to authorize this action in your browser.\n\n"
+                f"If a browser doesn't open automatically, click [this link]({authorization_url}) "
+                f"or copy this URL and paste it into your browser:\n\n{authorization_url}"
+            )
+            live.update(Markdown(message, style="dim"))
+
+        wait_for_authorization_completion(arcade_client, tool_authorization)
+
+        message = "Thanks for authorizing the action! Sending your request..."
+        live.update(Text(message, style="dim"))
+
+    try:
+        history.pop()
+        chat_result = handle_chat_interaction(openai_client, model, history, user_email, stream)
+    except OpenAIError as e:
+        console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
+
+    return chat_result
 
 
 def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
