@@ -88,18 +88,19 @@ build-backend = "poetry.core.masonry.api"
 
 def create_new_toolkit(directory: str) -> None:
     """Generate a new Toolkit package based on user input."""
-    name = ask_question("Name of the new toolkit?")
-    toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
+    while True:
+        name = ask_question("Name of the new toolkit?")
+        toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
-    # Check for illegal characters in the toolkit name
-    if not re.match(r"^[\w_]+$", toolkit_name):
-        console.print(
-            dedent(
-                "[red]Toolkit name contains illegal characters. \
-            Only alphanumeric characters and underscores are allowed.[/red]"
+        # Check for illegal characters in the toolkit name
+        if re.match(r"^[\w_]+$", toolkit_name):
+            break
+        else:
+            console.print(
+                "[red]Toolkit name contains illegal characters. "
+                "Only alphanumeric characters and underscores are allowed. "
+                "Please try again.[/red]"
             )
-        )
-        return
 
     description = ask_question("Description of the toolkit?")
     author_name = ask_question("Author's name?")
