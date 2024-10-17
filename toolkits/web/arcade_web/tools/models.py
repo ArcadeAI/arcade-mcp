@@ -8,5 +8,4 @@ class Formats(str, Enum):
     RAW_HTML = "rawHtml"
     LINKS = "links"
     SCREENSHOT = "screenshot"
-    EXTRACT = "extract"
     SCREENSHOT_AT_FULL_PAGE = "screenshot@fullPage"

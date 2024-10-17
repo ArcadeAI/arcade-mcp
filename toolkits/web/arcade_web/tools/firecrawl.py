@@ -25,7 +25,7 @@ async def scrape_url(
     wait_for: Annotated[
         Optional[int],
         "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load.",
-    ] = 0,
+    ] = 10,
     timeout: Annotated[Optional[int], "Timeout in milliseconds for the request"] = 30000,
 ) -> Annotated[dict[str, Any], "Scraped data in specified formats"]:
     """Scrape a URL using Firecrawl and return the data in specified formats."""
@@ -69,8 +69,8 @@ async def crawl_website(
     async_crawl: Annotated[bool, "Run the crawl asynchronously"] = True,
 ) -> Annotated[dict[str, Any], "Crawl status and data"]:
     """
-    Crawl a website using Firecrawl. If the crawl is async, then returns the crawl ID.
-    If the crawl is syncronouse, then returns the crawl data.
+    Crawl a website using Firecrawl. If the crawl is asynchronous, then returns the crawl ID.
+    If the crawl is synchronous, then returns the crawl data.
     """
 
     api_key = get_secret("FIRECRAWL_API_KEY")
@@ -90,6 +90,10 @@ async def crawl_website(
 
     if async_crawl:
         response = app.async_crawl_url(url, params=params)
+        if (
+            "url" in response
+        ):  # Url isn't clickable, so removing it since only the ID is needed to check status
+            del response["url"]
     else:
         response = app.crawl_url(url, params=params)
 
@@ -134,7 +138,7 @@ async def get_crawl_data(
 
 @tool
 async def cancel_crawl(
-    crawl_id: Annotated[str, "The ID of the asyncronous crawl job to cancel"],
+    crawl_id: Annotated[str, "The ID of the asynchronous crawl job to cancel"],
 ) -> Annotated[dict[str, Any], "Cancellation status information"]:
     """
     Cancel an asynchronous crawl job that is in progress using the Firecrawl API.
