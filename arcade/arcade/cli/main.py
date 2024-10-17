@@ -264,22 +264,28 @@ def chat(
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
+
+                history = chat_result.history
+                tool_messages = chat_result.tool_messages
+                tool_authorization = chat_result.tool_authorization
+
+                # wait for tool authorizations to complete, if any
+                if tool_authorization and is_authorization_pending(tool_authorization):
+                    chat_result = handle_tool_authorization(
+                        client,
+                        tool_authorization,
+                        history,
+                        openai_client,
+                        model,
+                        user_email,
+                        stream,
+                    )
+                    history = chat_result.history
+                    tool_messages = chat_result.tool_messages
+
             except OpenAIError as e:
                 console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
                 continue
-
-            history = chat_result.history
-            tool_messages = chat_result.tool_messages
-            tool_authorization = chat_result.tool_authorization
-
-            # wait for tool authorizations to complete, if any
-            if tool_authorization and is_authorization_pending(tool_authorization):
-                chat_result = handle_tool_authorization(
-                    client, tool_authorization, history, openai_client, model, user_email, stream
-                )
-                history = chat_result.history
-                tool_messages = chat_result.tool_messages
-
             if debug:
                 display_tool_messages(tool_messages)
 

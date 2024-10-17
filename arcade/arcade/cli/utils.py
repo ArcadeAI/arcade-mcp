@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, Union
 
 import typer
-from openai import OpenAI, OpenAIError
+from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
@@ -342,13 +342,8 @@ def handle_tool_authorization(
         message = "Thanks for authorizing the action! Sending your request..."
         live.update(Text(message, style="dim"))
 
-    try:
-        history.pop()
-        chat_result = handle_chat_interaction(openai_client, model, history, user_email, stream)
-    except OpenAIError as e:
-        console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
-
-    return chat_result
+    history.pop()
+    return handle_chat_interaction(openai_client, model, history, user_email, stream)
 
 
 def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
