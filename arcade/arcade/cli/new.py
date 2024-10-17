@@ -1,6 +1,6 @@
 import os
 import re
-from importlib.metadata import get_version
+from importlib.metadata import version as get_version
 from textwrap import dedent
 from typing import Optional
 
