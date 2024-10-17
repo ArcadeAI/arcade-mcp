@@ -1,3 +1,3 @@
-from arcade.core.version import VERSION
+from importlib.metadata import version as get_version
 
-__version__ = VERSION
+__version__ = get_version("arcade-ai")

@@ -1,18 +1,24 @@
 import os
 import re
+from importlib.metadata import get_version
 from textwrap import dedent
 from typing import Optional
 
 import typer
 from rich.console import Console
 
-from arcade.core.version import VERSION
-
 console = Console()
+
+# Retrieve the installed version of arcade-ai
+try:
+    VERSION = get_version("arcade-ai")
+except Exception as e:
+    console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
+    VERSION = "0.0.0"  # Default version if unable to fetch
 
 DEFAULT_VERSIONS = {
     "python": "^3.10",
-    "arcade-ai": f"^{VERSION}",
+    "arcade-ai": f"~{VERSION}",  # allow patch version updates
     "pytest": "^8.3.0",
 }
 
@@ -238,4 +244,4 @@ def create_new_toolkit(directory: str) -> None:
             ).strip(),
         )
 
-    console.print(f"[green]Toolkit {toolkit_name} has been created.[/green]")
+    console.print(f"[green]Toolkit {toolkit_name} has been created in {top_level_dir} [/green]")
