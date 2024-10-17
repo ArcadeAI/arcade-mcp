@@ -1,27 +1,10 @@
-import os
-from enum import Enum
 from typing import Annotated, Any, Optional
 
 from firecrawl import FirecrawlApp
 
 from arcade.sdk import tool
-
-
-class Formats(str, Enum):
-    MARKDOWN = "markdown"
-    HTML = "html"
-    RAW_HTML = "rawHtml"
-    LINKS = "links"
-    SCREENSHOT = "screenshot"
-    EXTRACT = "extract"
-    SCREENSHOT_AT_FULL_PAGE = "screenshot@fullPage"
-
-
-def get_secret(name: str, default: Optional[Any] = None) -> Any:
-    secret = os.getenv(name)
-    if secret is None and default is not None:
-        return default
-    return secret
+from arcade_web.tools.models import Formats
+from arcade_web.tools.utils import get_secret
 
 
 # TODO: Support actions. This would enable clicking, scrolling, screenshotting, etc.
@@ -31,7 +14,7 @@ def get_secret(name: str, default: Optional[Any] = None) -> Any:
 async def scrape_url(
     url: Annotated[str, "URL to scrape"],
     formats: Annotated[
-        list[Formats] | None, "Formats to retrieve. Defaults to ['markdown']."
+        Optional[list[Formats]], "Formats to retrieve. Defaults to ['markdown']."
     ] = None,
     only_main_content: Annotated[
         Optional[bool],
@@ -54,10 +37,10 @@ async def scrape_url(
     app = FirecrawlApp(api_key=api_key)
     params = {
         "formats": formats,
-        "only_main_content": only_main_content,
-        "include_tags": include_tags or [],
-        "exclude_tags": exclude_tags or [],
-        "wait_for": wait_for,
+        "onlyMainContent": only_main_content,
+        "includeTags": include_tags or [],
+        "excludeTags": exclude_tags or [],
+        "waitFor": wait_for,
         "timeout": timeout,
     }
     response = app.scrape_url(url, params=params)
@@ -83,9 +66,12 @@ async def crawl_website(
         Optional[str],
         "The URL to send a POST request to when the crawl is started, updated and completed.",
     ] = None,
-    async_crawl: Annotated[bool, "Run the crawl asynchronously"] = False,
+    async_crawl: Annotated[bool, "Run the crawl asynchronously"] = True,
 ) -> Annotated[dict[str, Any], "Crawl status and data"]:
-    """Crawl a website using Firecrawl and return the crawl status and data."""
+    """
+    Crawl a website using Firecrawl. If the crawl is async, then returns the crawl ID.
+    If the crawl is syncronouse, then returns the crawl data.
+    """
 
     api_key = get_secret("FIRECRAWL_API_KEY")
 
