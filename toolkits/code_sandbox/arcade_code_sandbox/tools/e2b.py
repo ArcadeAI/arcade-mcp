@@ -1,55 +1,45 @@
-import base64
-import os
-from typing import Annotated, Any, Optional
+from typing import Annotated
 
 from e2b_code_interpreter import Sandbox
 
 from arcade.sdk import tool
-
-
-def get_secret(name: str, default: Optional[Any] = None) -> Any:
-    secret = os.getenv(name)
-    if secret is None:
-        if default is not None:
-            return default
-        raise ValueError(f"Secret {name} is not set.")
-    return secret
+from arcade_code_sandbox.tools.models import E2BSupportedLanguage
+from arcade_code_sandbox.tools.utils import get_secret
 
 
 @tool
 def run_code(
     code: Annotated[str, "The code to run"],
-    language: Annotated[str, "The language of the code"] = "python",
-) -> Annotated[str, "The text representation of the executed code's output"]:
+    language: Annotated[
+        E2BSupportedLanguage, "The language of the code"
+    ] = E2BSupportedLanguage.PYTHON,
+) -> Annotated[str, "The sandbox execution as a JSON string"]:
     """
     Run code in a sandbox and return the output.
     """
     api_key = get_secret("E2B_API_KEY")
-    sbx = Sandbox(api_key=api_key)  # By default the sandbox is alive for 5 minutes
-    execution = sbx.run_code(code=code, language=language)  # Execute Python inside the sandbox
-    sbx.kill()
 
-    return str(execution)
+    with Sandbox(api_key=api_key) as sbx:
+        execution = sbx.run_code(code=code, language=language)
+
+    return execution.to_json()
 
 
 @tool
-def create_static_matplotlib_charts(
-    code: Annotated[str, "The code to run"],
-    language: Annotated[str, "The language of the code"] = "python",
-) -> Annotated[str, "The text representation of the executed code's output"]:
+def create_static_matplotlib_chart(
+    code: Annotated[str, "The Python code to run"],
+) -> Annotated[list[str], "The base64 encoded image"]:
     """
-    Run the provided code to generate static matplotlib chart(s). The resulting charts are converted to images, encoded in base64 format, and then decoded into a string for return.
+    Run the provided Python code to generate a static matplotlib chart. The resulting chart is is returned as a base64 encoded image.
     """
     api_key = get_secret("E2B_API_KEY")
-    sbx = Sandbox(api_key=api_key)  # By default the sandbox is alive for 5 minutes
-    execution = sbx.run_code(code=code, language=language)  # Execute Python inside the sandbox
-    # There's only one result in this case - the plot displayed with `plt.show()`
-    first_result = execution.results[0]
 
-    if first_result.png:
-        # Save the png to a file. The png is in base64 format.
-        with open("chart.png", "wb") as f:
-            f.write(base64.b64decode(first_result.png))
-        print("Chart saved as chart.png")
+    with Sandbox(api_key=api_key) as sbx:
+        execution = sbx.run_code(code=code)
 
-    return "Successfully created static matplotlib chart(s) and saved as chart.png"
+    base64_images = []
+    for result in execution.results:
+        if result.png:
+            base64_images.append(result.png)
+
+    return base64_images
