@@ -25,21 +25,23 @@ def run_code(
     return execution.to_json()
 
 
+# Note: Not recommended to use tool_choice='generate' with this tool since it contains base64 encoded image.
 @tool
 def create_static_matplotlib_chart(
     code: Annotated[str, "The Python code to run"],
-) -> Annotated[list[str], "The base64 encoded image"]:
+) -> Annotated[dict, "A dictionary with the following keys: base64_image, logs, error"]:
     """
-    Run the provided Python code to generate a static matplotlib chart. The resulting chart is is returned as a base64 encoded image.
+    Run the provided Python code to generate a static matplotlib chart. The resulting chart is returned as a base64 encoded image.
     """
     api_key = get_secret("E2B_API_KEY")
 
     with Sandbox(api_key=api_key) as sbx:
         execution = sbx.run_code(code=code)
 
-    base64_images = []
-    for result in execution.results:
-        if result.png:
-            base64_images.append(result.png)
+    result = {
+        "base64_image": execution.results[0].png if execution.results else None,
+        "logs": execution.logs.to_json(),
+        "error": execution.error.to_json() if execution.error else None,
+    }
 
-    return base64_images
+    return result
