@@ -6,6 +6,8 @@ from arcade.sdk import tool
 from arcade_code_sandbox.tools.models import E2BSupportedLanguage
 from arcade_code_sandbox.tools.utils import get_secret
 
+# See https://e2b.dev/docs to learn more about E2B
+
 
 @tool
 def run_code(
