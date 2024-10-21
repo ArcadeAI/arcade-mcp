@@ -106,12 +106,13 @@ def _get_config_file(
     Args:
         file_path: Optional path provided by the user.
         default_filename: The default filename to look for.
+        optional: Whether the config file is optional.
 
     Returns:
-        The resolved config file path.
+        The resolved config file path. None if the file is optional and not found.
 
     Raises:
-        RuntimeError: If the config file is not found.
+        RuntimeError: If the config file is not found and is not optional.
     """
     if file_path:
         config_path = Path(os.path.expanduser(file_path)).resolve()
