@@ -1,6 +1,8 @@
 .DS_Store
-arcade.toml
-docker/arcade.toml
+arcade.toml # Deprecated in favor of credentials.yaml
+credentials.yaml
+docker/arcade.toml # Deprecated in favor of credentials.yaml
+docker/credentials.yaml
 
 *.lock
 

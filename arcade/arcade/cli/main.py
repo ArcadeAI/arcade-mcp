@@ -16,7 +16,6 @@ from rich.text import Text
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.display import (
     display_arcade_chat_header,
-    display_config_as_table,
     display_eval_results,
     display_tool_details,
     display_tool_messages,
@@ -34,7 +33,6 @@ from arcade.cli.utils import (
     is_authorization_pending,
     load_eval_suites,
     log_engine_health,
-    validate_and_get_config,
 )
 from arcade.client import Arcade
 
@@ -99,13 +97,27 @@ def logout() -> None:
     Logs the user out of Arcade Cloud.
     """
 
-    # If ~/.arcade/arcade.toml exists, delete it
-    config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
-    if os.path.exists(config_file_path):
-        os.remove(config_file_path)
-        console.print("You're now logged out.", style="bold")
-    else:
+    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+    config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
+
+    files_to_remove = [
+        path for path in [config_file_path, deprecated_config_file_path] if os.path.exists(path)
+    ]
+
+    if not files_to_remove:
         console.print("You're not logged in.", style="bold red")
+        return
+
+    for file_path in files_to_remove:
+        os.remove(file_path)
+
+    if deprecated_config_file_path in files_to_remove:
+        console.print(
+            f"Deprecation Notice: {deprecated_config_file_path} is deprecated in favor of {config_file_path}. The migration will be performed automatically upon your next login.",
+            style="bold yellow",
+        )
+
+    console.print("You're now logged out.", style="bold")
 
 
 @cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
@@ -297,48 +309,6 @@ def chat(
         error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
         console.print(error_message, style="bold red")
         raise typer.Exit()
-
-
-@cli.command(help="Show/edit the local Arcade configuration", rich_help_panel="User")
-def config(
-    action: str = typer.Argument("show", help="The action to take (show/edit)"),
-    key: str = typer.Option(
-        None, "--key", "-k", help="The configuration key to edit (e.g., 'api.key')"
-    ),
-    val: str = typer.Option(None, "--val", "-v", help="The value of the configuration to edit"),
-) -> None:
-    """
-    Show/edit configuration details of the Arcade Engine
-    """
-    config = validate_and_get_config()
-
-    if action == "show":
-        display_config_as_table(config)
-    elif action == "edit":
-        if not key or val is None:
-            console.print("❌ Key and value must be provided for editing.", style="bold red")
-            raise typer.Exit(code=1)
-
-        keys = key.split(".")
-        if len(keys) != 2:
-            console.print("❌ Invalid key format. Use 'section.name' format.", style="bold red")
-            raise typer.Exit(code=1)
-
-        section, name = keys
-        section_dict = getattr(config, section, None)
-        if section_dict and hasattr(section_dict, name):
-            setattr(section_dict, name, val)
-            config.save_to_file()
-            console.print("✅ Configuration updated successfully.", style="bold green")
-        else:
-            console.print(
-                f"❌ Invalid configuration name: {name} in section: {section}",
-                style="bold red",
-            )
-            raise typer.Exit(code=1)
-    else:
-        console.print(f"❌ Invalid action: {action}", style="bold red")
-        raise typer.Exit(code=1)
 
 
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")

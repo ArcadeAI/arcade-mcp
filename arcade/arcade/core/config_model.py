@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 
 import idna
 import toml
+import yaml
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 
@@ -90,11 +91,18 @@ class Config(BaseConfig):
         return Path(config_path).resolve()
 
     @classmethod
+    def get_deprecated_config_file_path(cls) -> Path:
+        """
+        Get the path to the deprecated Arcade configuration file.
+        """
+        return cls.get_config_dir_path() / "arcade.toml"
+
+    @classmethod
     def get_config_file_path(cls) -> Path:
         """
         Get the path to the Arcade configuration file.
         """
-        return cls.get_config_dir_path() / "arcade.toml"
+        return cls.get_config_dir_path() / "credentials.yaml"
 
     def _generate_engine_url_cache_key(self) -> str:
         """
@@ -196,7 +204,7 @@ class Config(BaseConfig):
     @classmethod
     def load_from_file(cls) -> "Config":
         """
-        Load the configuration from the TOML file in the configuration directory.
+        Load the configuration from the YAML file in the configuration directory.
 
         If no configuration file exists, this method will create a new one with default values.
         The default configuration includes:
@@ -204,27 +212,45 @@ class Config(BaseConfig):
         - A default Engine configuration (host: "api.arcade-ai.com", port: None, tls: True)
         - No user configuration
 
-        This behavior ensures that the application always has a valid configuration to work with,
-        but it may not be suitable for all use cases. If a specific configuration is required,
-        ensure that the configuration file exists before calling this method.
+        If a deprecated TOML configuration file is found, it will be automatically converted
+        to the new YAML format. This ensures that the application always has a valid configuration
+        to work with, but it may not be suitable for all use cases. If a specific configuration
+        is required, ensure that the configuration file exists before calling this method.
 
         Returns:
             Config: The loaded or newly created configuration.
 
         Raises:
-            ValueError: If the existing configuration file is invalid.
+            ValueError: If the existing configuration file is invalid or cannot be converted.
         """
         cls.ensure_config_dir_exists()
 
         config_file_path = cls.get_config_file_path()
-        if not config_file_path.exists():
-            # Create a file using the default configuration
-            default_config = cls.model_construct(
-                api=ApiConfig.model_construct(), engine=EngineConfig()
-            )
-            default_config.save_to_file()
+        deprecated_config_file_path = cls.get_deprecated_config_file_path()
 
-        config_data = toml.loads(config_file_path.read_text())
+        if not config_file_path.exists():
+            if deprecated_config_file_path.exists():
+                # If the user is using the deprecated config file, then convert it to the new yaml format
+                try:
+                    old_config: dict[str, Any] = toml.load(deprecated_config_file_path)
+                    with open(config_file_path, "w") as f:
+                        yaml.dump(old_config, f)
+                    os.remove(deprecated_config_file_path)
+                    print(
+                        f"\033[1;33mDeprecation Notice: Automatically migrated the deprecated config file {deprecated_config_file_path} to {config_file_path}\033[0m"
+                    )
+                except Exception as e:
+                    raise OSError(
+                        f"Invalid configuration file at {deprecated_config_file_path} could not be automatically converted to the new format. Please manually migrate to {config_file_path} by running `arcade logout && arcade login`."
+                    ) from e
+            else:
+                # Create a file using the default configuration
+                default_config = cls.model_construct(
+                    api=ApiConfig.model_construct(), engine=EngineConfig()
+                )
+                default_config.save_to_file()
+
+        config_data = yaml.safe_load(config_file_path.read_text())
 
         try:
             return cls(**config_data)
@@ -252,8 +278,8 @@ class Config(BaseConfig):
 
     def save_to_file(self) -> None:
         """
-        Save the configuration to the TOML file in the configuration directory.
+        Save the configuration to the YAML file in the configuration directory.
         """
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
-        config_file_path.write_text(toml.dumps(self.model_dump()))
+        config_file_path.write_text(yaml.dump(self.model_dump()))
