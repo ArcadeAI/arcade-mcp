@@ -130,10 +130,10 @@ def new(
 )
 def show(
     toolkit: Optional[str] = typer.Option(
-        None, "-t", "--toolkit", help="The toolkit to show the tools of"
+        None, "-T", "--toolkit", help="The toolkit to show the tools of"
     ),
     tool: Optional[str] = typer.Option(
-        None, "-T", "--tool", help="The specific tool to show details for"
+        None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: Optional[str] = typer.Option(
         None,
@@ -176,8 +176,8 @@ def show(
                 (
                     t
                     for t in tools
-                    if t.get_fully_qualified_name().name == tool
-                    or str(t.get_fully_qualified_name()) == tool
+                    if t.get_fully_qualified_name().name.lower() == tool.lower()
+                    or str(t.get_fully_qualified_name()).lower() == tool.lower()
                 ),
                 None,
             )
