@@ -81,6 +81,9 @@ def compute_base_url(
     """
     Compute the base URL for the Arcade Engine from the provided overrides.
 
+    force_no_tls takes precedence over force_tls. For example, if both are set to True,
+    the resulting URL will use http.
+
     The port is included in the URL unless the host is a fully qualified domain name
     (excluding IP addresses) and no port is specified. Handles IPv4, IPv6, IDNs, and
     hostnames with underscores.
@@ -101,23 +104,18 @@ def compute_base_url(
 
     Returns:
         str: The fully constructed URL for the Arcade Engine.
-
-    Raises:
-        ValueError: If the engine configuration is missing or incomplete.
     """
     # Determine TLS setting based on input flags
-    if force_tls:
-        is_tls = True
-    elif force_no_tls:
+    if force_no_tls:
         is_tls = False
+    elif force_tls:
+        is_tls = True
     else:
-        is_tls = None
+        is_tls = host != "localhost"
 
-    # Special case for "localhost" and nothing else specified:
-    # default to dev port and no TLS for convenience
-    if host == "localhost":
-        port = port or 9099
-        is_tls = False if is_tls is None else is_tls
+    # "localhost" defaults to dev port if not specified
+    if host == "localhost" and port is None:
+        port = 9099
 
     protocol = "https" if is_tls else "http"
 
