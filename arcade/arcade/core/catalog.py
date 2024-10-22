@@ -384,7 +384,7 @@ def create_output_definition(func: Callable) -> ToolOutput:
         )
 
     if hasattr(return_type, "__metadata__"):
-        description = return_type.__metadata__[0] if return_type.__metadata__ else None
+        description = return_type.__metadata__[0] if return_type.__metadata__ else None  # type: ignore[attr-defined]
         return_type = return_type.__origin__
 
     # Unwrap Optional types
@@ -542,7 +542,7 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     # Special case: Enum can be enumerated on the wire
     elif issubclass(type_to_check, Enum):
         is_enum = True
-        enum_values = [e.value for e in type_to_check]
+        enum_values = [e.value for e in type_to_check]  # type: ignore[attr-defined]
 
     return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None)
 
