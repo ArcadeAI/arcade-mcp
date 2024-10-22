@@ -236,28 +236,3 @@ def display_arcade_chat_header(base_url: str, stream: bool) -> None:
     if stream:
         chat_header.append(" (streaming)")
     console.print(chat_header)
-
-
-def display_config_as_table(config) -> None:  # type: ignore[no-untyped-def]
-    """
-    Display the configuration details as a table using Rich library.
-    """
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("Section")
-    table.add_column("Name")
-    table.add_column("Value")
-
-    for section_name in config.model_dump():
-        section = getattr(config, section_name)
-        if section:
-            section = section.dict()
-            first = True
-            for name, value in section.items():
-                if first:
-                    table.add_row(section_name, name, str(value))
-                    first = False
-                else:
-                    table.add_row("", name, str(value))
-            table.add_row("", "", "")
-
-    console.print(table)
