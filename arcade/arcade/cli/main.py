@@ -149,7 +149,7 @@ def show(
     tool: Optional[str] = typer.Option(
         None, "-T", "--tool", help="The specific tool to show details for"
     ),
-    host: Optional[str] = typer.Option(
+    host: str = typer.Option(
         DEFAULT_ENGINE_HOST,
         "-h",
         "--host",
