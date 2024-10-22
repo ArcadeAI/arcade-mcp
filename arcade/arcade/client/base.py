@@ -37,7 +37,7 @@ class BaseArcadeClient:
 
     def __init__(
         self,
-        base_url: str | None = None,
+        base_url: str = "https://api.arcade-ai.com",
         api_key: str | None = None,
         headers: dict[str, str] | None = None,
         timeout: float | Timeout = 30.0,
