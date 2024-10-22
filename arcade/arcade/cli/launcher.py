@@ -184,7 +184,7 @@ def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
     return cmd
 
 
-def _build_engine_command(engine_config: str, engine_env: str | None = None) -> list[str]:
+def _build_engine_command(engine_config: str | None, engine_env: str | None = None) -> list[str]:
     """
     Builds the command to start the engine.
 
@@ -195,6 +195,11 @@ def _build_engine_command(engine_config: str, engine_env: str | None = None) -> 
     Returns:
         The command as a list.
     """
+    # This should never happen, but we'll check regardless
+    if not engine_config:
+        console.print("❌ Engine configuration file not found", style="bold red")
+        sys.exit(1)
+
     engine_bin = shutil.which("arcade-engine")
     if not engine_bin:
         console.print(
