@@ -9,6 +9,7 @@ import yaml
 from rich.console import Console
 
 from arcade.cli.constants import LOGIN_FAILED_HTML, LOGIN_SUCCESS_HTML
+from arcade.cli.utils import create_new_env_file
 
 console = Console()
 
@@ -118,6 +119,9 @@ def check_existing_login() -> bool:
     Returns:
         bool: True if the user is already logged in, False otherwise.
     """
+    # Create a new env file if one doesn't already exist
+    create_new_env_file()
+
     deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
 
