@@ -14,6 +14,7 @@ from rich.markup import escape
 from rich.text import Text
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST
 from arcade.cli.display import (
     display_arcade_chat_header,
     display_eval_results,
@@ -24,8 +25,8 @@ from arcade.cli.display import (
 from arcade.cli.launcher import start_servers
 from arcade.cli.utils import (
     OrderCommands,
+    compute_base_url,
     create_cli_catalog,
-    get_config_with_overrides,
     get_eval_files,
     get_tools_from_engine,
     handle_chat_interaction,
@@ -33,6 +34,7 @@ from arcade.cli.utils import (
     is_authorization_pending,
     load_eval_suites,
     log_engine_health,
+    validate_and_get_config,
 )
 from arcade.client import Arcade
 
@@ -50,7 +52,7 @@ console = Console()
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
 def login(
     host: str = typer.Option(
-        "cloud.arcade-ai.com",
+        DEFAULT_CLOUD_HOST,
         "-h",
         "--host",
         help="The Arcade Cloud host to log in to.",
@@ -218,7 +220,7 @@ def chat(
     prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
-        None,
+        DEFAULT_ENGINE_HOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
@@ -243,9 +245,10 @@ def chat(
     """
     Chat with a language model.
     """
-    config = get_config_with_overrides(force_tls, force_no_tls, host, port)
+    config = validate_and_get_config()
+    base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
 
-    client = Arcade(api_key=config.api.key, base_url=config.engine_url)
+    client = Arcade(api_key=config.api.key, base_url=base_url)
     user_email = config.user.email if config.user else None
 
     try:
@@ -255,7 +258,7 @@ def chat(
         if prompt:
             history.append({"role": "system", "content": prompt})
 
-        display_arcade_chat_header(config, stream)
+        display_arcade_chat_header(base_url, stream)
 
         # Try to hit /health endpoint on engine and warn if it is down
         log_engine_health(client)
@@ -272,7 +275,7 @@ def chat(
             history.append({"role": "user", "content": user_input})
 
             try:
-                openai_client = OpenAI(api_key=config.api.key, base_url=config.engine_url)
+                openai_client = OpenAI(api_key=config.api.key, base_url=base_url)
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
@@ -328,7 +331,7 @@ def evals(
         help="The models to use for evaluation (default: gpt-4o)",
     ),
     host: str = typer.Option(
-        None,
+        DEFAULT_ENGINE_HOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
@@ -354,7 +357,8 @@ def evals(
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
-    config = get_config_with_overrides(force_tls, force_no_tls, host, port)
+    config = validate_and_get_config()
+    base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
 
@@ -366,12 +370,12 @@ def evals(
         console.print(
             Text.assemble(
                 ("\nRunning evaluations against Arcade Engine at ", "bold"),
-                (config.engine_url, "bold blue"),
+                (base_url, "bold blue"),
             )
         )
 
     # Try to hit /health endpoint on engine and warn if it is down
-    with Arcade(api_key=config.api.key, base_url=config.engine_url) as client:
+    with Arcade(api_key=config.api.key, base_url=base_url) as client:
         log_engine_health(client)  # type: ignore[arg-type]
 
     # Use the new function to load eval suites
@@ -400,7 +404,12 @@ def evals(
             )
             for model in models_list:
                 task = asyncio.create_task(
-                    suite_func(config=config, model=model, max_concurrency=max_concurrent)
+                    suite_func(
+                        config=config,
+                        base_url=base_url,
+                        model=model,
+                        max_concurrency=max_concurrent,
+                    )
                 )
                 tasks.append(task)
 

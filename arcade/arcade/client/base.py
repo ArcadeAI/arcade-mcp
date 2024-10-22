@@ -53,10 +53,9 @@ class BaseArcadeClient:
             timeout: Request timeout in seconds.
             retries: Number of retries for failed requests.
         """
-        if base_url is None or api_key is None:
+        if api_key is None:
             from arcade.core.config import config
 
-            base_url = base_url or config.engine_url
             api_key = api_key or config.api.key
         self._base_url = base_url
         self._api_key = api_key

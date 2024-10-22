@@ -5,7 +5,6 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from arcade.core.config_model import Config
 from arcade.core.schema import ToolDefinition
 
 if TYPE_CHECKING:
@@ -219,7 +218,7 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
     return "\n".join(result_lines)
 
 
-def display_arcade_chat_header(config: Config, stream: bool) -> None:
+def display_arcade_chat_header(base_url: str, stream: bool) -> None:
     chat_header = Text.assemble(
         "\n",
         (
@@ -230,7 +229,7 @@ def display_arcade_chat_header(config: Config, stream: bool) -> None:
         "\n",
         "Chatting with Arcade Engine at ",
         (
-            config.engine_url,
+            base_url,
             "bold blue",
         ),
     )

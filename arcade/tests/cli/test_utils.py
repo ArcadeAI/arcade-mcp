@@ -1,11 +1,11 @@
 import pytest
 
-from arcade.cli.utils import apply_config_overrides
-from arcade.core.config_model import ApiConfig, Config, EngineConfig
+from arcade.cli.utils import compute_base_url
 
 DEFAULT_HOST = "api.arcade-ai.com"
+LOCALHOST = "localhost"
 DEFAULT_PORT = None
-DEFAULT_TLS = True
+DEFAULT_VERSION = "v1"
 
 
 @pytest.mark.parametrize(
@@ -13,14 +13,14 @@ DEFAULT_TLS = True
     [
         pytest.param(
             {
-                "host_input": None,
+                "host_input": DEFAULT_HOST,
                 "port_input": None,
-                "tls_input": None,
+                "force_tls": False,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": DEFAULT_HOST,
-                "port": DEFAULT_PORT,
-                "tls": DEFAULT_TLS,
+                "base_url": f"http://{DEFAULT_HOST}/{DEFAULT_VERSION}",
             },
             id="noop",
         ),
@@ -28,108 +28,102 @@ DEFAULT_TLS = True
             {
                 "host_input": "api2.arcade-ai.com",
                 "port_input": None,
-                "tls_input": None,
+                "force_tls": False,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": "api2.arcade-ai.com",
-                "port": DEFAULT_PORT,
-                "tls": DEFAULT_TLS,
+                "base_url": f"https://api2.arcade-ai.com/{DEFAULT_VERSION}",
             },
             id="set host",
         ),
         pytest.param(
             {
-                "host_input": None,
+                "host_input": DEFAULT_HOST,
                 "port_input": 6789,
-                "tls_input": None,
+                "force_tls": False,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": DEFAULT_HOST,
-                "port": 6789,
-                "tls": DEFAULT_TLS,
+                "base_url": f"https://{DEFAULT_HOST}:6789/{DEFAULT_VERSION}",
             },
             id="set port",
         ),
         pytest.param(
             {
-                "host_input": None,
+                "host_input": DEFAULT_HOST,
                 "port_input": None,
-                "tls_input": False,
+                "force_tls": False,
+                "force_no_tls": True,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": DEFAULT_HOST,
-                "port": DEFAULT_PORT,
-                "tls": False,
+                "base_url": f"http://{DEFAULT_HOST}/{DEFAULT_VERSION}",
             },
-            id="set TLS to False",
+            id="force no TLS",
         ),
         pytest.param(
             {
-                "host_input": None,
+                "host_input": DEFAULT_HOST,
                 "port_input": None,
-                "tls_input": True,
+                "force_tls": True,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": DEFAULT_HOST,
-                "port": DEFAULT_PORT,
-                "tls": True,
+                "base_url": f"https://{DEFAULT_HOST}/{DEFAULT_VERSION}",
             },
-            id="set TLS to True",
+            id="force TLS",
         ),
         pytest.param(
             {
-                "host_input": "localhost",
+                "host_input": LOCALHOST,
                 "port_input": None,
-                "tls_input": None,
+                "force_tls": False,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": "localhost",
-                "port": 9099,
-                "tls": False,
+                "base_url": f"http://{LOCALHOST}:9099",
             },
             id="localhost and no port or TLS specified",
         ),
         pytest.param(
             {
-                "host_input": "localhost",
+                "host_input": LOCALHOST,
                 "port_input": 1234,
-                "tls_input": None,
+                "force_tls": False,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": "localhost",
-                "port": 1234,
-                "tls": False,
+                "base_url": f"http://{LOCALHOST}:1234",
             },
             id="localhost and port specified",
         ),
         pytest.param(
             {
-                "host_input": "localhost",
+                "host_input": LOCALHOST,
                 "port_input": None,
-                "tls_input": True,
+                "force_tls": True,
+                "force_no_tls": False,
+                "api_version": DEFAULT_VERSION,
             },
             {
-                "host": "localhost",
-                "port": 9099,
-                "tls": True,
+                "base_url": f"https://{LOCALHOST}:9099",
             },
-            id="localhost and TLS specified",
+            id="localhost and force TLS",
         ),
     ],
 )
-def test_apply_config_overrides(inputs: dict, expected_outputs: dict):
-    # Set fake default values for testing
-    config = Config(
-        api=ApiConfig(key="fake_api_key"),
-        engine=EngineConfig(
-            host=DEFAULT_HOST,
-            port=DEFAULT_PORT,
-            tls=DEFAULT_TLS,
-        ),
+def test_compute_base_url(inputs: dict, expected_outputs: dict):
+    base_url = compute_base_url(
+        inputs["force_tls"],
+        inputs["force_no_tls"],
+        inputs["host_input"],
+        inputs["port_input"],
+        inputs["api_version"],
     )
 
-    apply_config_overrides(config, inputs["host_input"], inputs["port_input"], inputs["tls_input"])
-
-    assert config.engine.host == expected_outputs["host"]
-    assert config.engine.port == expected_outputs["port"]
-    assert config.engine.tls == expected_outputs["tls"]
+    assert base_url == expected_outputs["base_url"]

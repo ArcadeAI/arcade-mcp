@@ -644,6 +644,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
         @functools.wraps(func)
         async def wrapper(
             config: Config,
+            base_url: str,
             model: str,
             max_concurrency: int = 1,
         ) -> list[dict[str, Any]]:
@@ -654,7 +655,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             results = []
             async with AsyncOpenAI(
                 api_key=config.api.key,
-                base_url=config.engine_url,
+                base_url=base_url,
             ) as client:
                 result = await suite.run(client, model)
                 results.append(result)
