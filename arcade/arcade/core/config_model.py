@@ -129,8 +129,6 @@ class Config(BaseConfig):
         6. Hostnames with underscores (common in development environments) are supported.
         7. Pre-existing port specifications in the host are respected.
 
-        The resulting URL is always suffixed with '/v1' to specify the API version.
-
         Returns:
             str: The fully constructed URL for the Arcade Engine.
 
@@ -175,14 +173,14 @@ class Config(BaseConfig):
         if ":" in parsed_host.netloc and not is_ip:
             host, existing_port = parsed_host.netloc.rsplit(":", 1)
             if existing_port.isdigit():
-                return f"{protocol}://{parsed_host.netloc}/{self.api.version}"
+                return f"{protocol}://{parsed_host.netloc}"
 
         if is_fqdn and self.engine.port is None:
-            return f"{protocol}://{encoded_host}/{self.api.version}"
+            return f"{protocol}://{encoded_host}"
         elif self.engine.port is not None:
-            return f"{protocol}://{encoded_host}:{self.engine.port}/{self.api.version}"
+            return f"{protocol}://{encoded_host}:{self.engine.port}"
         else:
-            return f"{protocol}://{encoded_host}/{self.api.version}"
+            return f"{protocol}://{encoded_host}"
 
     @classmethod
     def ensure_config_dir_exists(cls) -> None:

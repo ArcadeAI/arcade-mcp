@@ -8,6 +8,8 @@ from typing import Any, Optional
 from urllib.parse import urlencode
 
 import typer
+from arcadepy import Arcade
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
@@ -36,7 +38,6 @@ from arcade.cli.utils import (
     log_engine_health,
     validate_and_get_config,
 )
-from arcade.client import Arcade
 
 cli = typer.Typer(
     cls=OrderCommands,
@@ -260,7 +261,7 @@ def chat(
             history.append({"role": "user", "content": user_input})
 
             try:
-                openai_client = OpenAI(api_key=config.api.key, base_url=config.engine_url)
+                openai_client = OpenAI(api_key=config.api.key, base_url=config.engine_url + "/v1")
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
@@ -273,7 +274,7 @@ def chat(
                 if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
-                        tool_authorization,
+                        AuthorizationResponse.model_validate(tool_authorization),
                         history,
                         openai_client,
                         model,
