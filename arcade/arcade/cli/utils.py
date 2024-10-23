@@ -5,11 +5,13 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, cast
 from urllib.parse import urlparse
 
 import idna
 import typer
+from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
@@ -21,9 +23,6 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcade.client.client import Arcade
-from arcade.client.errors import APITimeoutError, EngineNotHealthyError, EngineOfflineError
-from arcade.client.schema import AuthResponse
 from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import ApiConfig, Config
 from arcade.core.errors import ToolkitLoadError
@@ -47,6 +46,7 @@ def create_cli_catalog(
     Load toolkits from the python environment.
     """
     if toolkit:
+        toolkit = toolkit.lower()
         try:
             prefixed_toolkit = "arcade_" + toolkit
             toolkits = [Toolkit.from_package(prefixed_toolkit)]
@@ -161,6 +161,17 @@ def get_tools_from_engine(
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
     config = validate_and_get_config()
+    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    client = Arcade(api_key=config.api.key, base_url=base_url)
+
+    tools = []
+    # TODO: This is a hack! limit=100 is a workaround for broken(?) pagination in Stainless
+    for page in client.tools.list(limit=100, toolkit=toolkit or NOT_GIVEN).iter_pages():
+        for item in page:
+            tools.append(ToolDefinition.model_validate(item.model_dump()))
+
+    return tools
+    config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
     client = Arcade(api_key=config.api.key, base_url=base_url)
     return client.tools.list_tools(toolkit=toolkit)
@@ -264,9 +275,22 @@ def validate_and_get_config(
 
 def log_engine_health(client: Arcade) -> None:
     try:
-        client.health.check()
+        result = client.health.check(timeout=2)
+        if result.healthy:
+            return
 
-    except EngineNotHealthyError as e:
+        console.print(
+            "⚠️ Warning: Arcade Engine is unhealthy",
+            style="bold yellow",
+        )
+
+    except APIConnectionError:
+        console.print(
+            "⚠️ Warning: Arcade Engine was unreachable. (Is it running?)",
+            style="bold yellow",
+        )
+
+    except APIStatusError as e:
         console.print(
             "[bold][yellow]⚠️ Warning: "
             + str(e)
@@ -276,11 +300,6 @@ def log_engine_health(client: Arcade) -> None:
             + str(e.status_code)
             + "[/red]"
             + "[yellow])[/yellow][/bold]"
-        )
-    except EngineOfflineError:
-        console.print(
-            "⚠️ Warning: Arcade Engine was unreachable. (Is it running?)",
-            style="bold yellow",
         )
 
 
@@ -352,7 +371,7 @@ def handle_chat_interaction(
 
 def handle_tool_authorization(
     arcade_client: Arcade,
-    tool_authorization: dict,
+    tool_authorization: AuthorizationResponse,
     history: list[dict[str, Any]],
     openai_client: OpenAI,
     model: str,
@@ -360,8 +379,8 @@ def handle_tool_authorization(
     stream: bool,
 ) -> ChatInteractionResult:
     with Live(console=console, refresh_per_second=4) as live:
-        if "authorization_url" in tool_authorization:
-            authorization_url = str(tool_authorization["authorization_url"])
+        if tool_authorization.authorization_url:
+            authorization_url = str(tool_authorization.authorization_url)
             webbrowser.open(authorization_url)
             message = (
                 "You'll need to authorize this action in your browser.\n\n"
@@ -379,18 +398,25 @@ def handle_tool_authorization(
     return handle_chat_interaction(openai_client, model, history, user_email, stream)
 
 
-def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
+def wait_for_authorization_completion(
+    client: Arcade, tool_authorization: AuthorizationResponse | None
+) -> None:
     """
     Wait for the authorization for a tool call to complete i.e., wait for the user to click on
     the approval link and authorize Arcade.
     """
     if tool_authorization is None:
         return
-    auth_response = AuthResponse.model_validate(tool_authorization)
+
+    auth_response = AuthorizationResponse.model_validate(tool_authorization)
 
     while auth_response.status != "completed":
         try:
-            auth_response = client.auth.status(auth_response, wait=60)
+            auth_response = client.auth.status(
+                authorization_id=cast(str, auth_response.authorization_id),
+                scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
+                wait=59,
+            )
         except APITimeoutError:
             continue
 

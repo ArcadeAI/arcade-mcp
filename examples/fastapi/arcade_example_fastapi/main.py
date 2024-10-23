@@ -2,17 +2,17 @@ import os
 
 import arcade_math
 from fastapi import FastAPI, HTTPException
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from arcade.actor.fastapi.actor import FastAPIActor
-from arcade.client import AsyncArcade
 from arcade.core.config import config
 from arcade.core.toolkit import Toolkit
 
 if not config.api or not config.api.key:
     raise ValueError("Arcade API key not set. Please run `arcade login`.")
 
-client = AsyncArcade(api_key=config.api.key)
+client = AsyncOpenAI(api_key=config.api.key, base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 

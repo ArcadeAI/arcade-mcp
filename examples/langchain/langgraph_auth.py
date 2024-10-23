@@ -1,5 +1,7 @@
-import time  # Import time for polling delays
+from typing import cast
 
+from arcadepy import NOT_GIVEN, Arcade
+from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 from google.oauth2.credentials import Credentials
 from langchain_google_community import GmailToolkit
 from langchain_google_community.gmail.utils import (
@@ -13,28 +15,33 @@ from langgraph.prebuilt import create_react_agent
 # %pip install -qU langchain-google-community[gmail]
 # %pip install -qU langchain-openai
 # %pip install -qU langgraph
-from arcade.client import Arcade, AuthProvider
 
 client = Arcade()
 
 # Start the authorization process for the tool "ListEmails"
 auth_response = client.auth.authorize(
-    provider=AuthProvider.google,
-    scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    auth_requirement=AuthRequirement(
+        provider_id="google",
+        oauth2=AuthRequirementOauth2(
+            scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+        ),
+    ),
     user_id="sam@arcade-ai.com",
 )
 
 # If authorization is not completed, prompt the user and poll for status
 if auth_response.status != "completed":
     print("Please complete the authorization challenge in your browser before continuing:")
-    print(auth_response.auth_url)
+    print(auth_response.authorization_url)
     input("Press Enter to continue...")
 
     # Poll for authorization status using the auth polling method
     while auth_response.status != "completed":
-        # Wait before polling again to avoid spamming the server
-        time.sleep(4)
-        auth_response = client.auth.status(auth_response)
+        auth_response = client.auth.status(
+            authorization_id=cast(str, auth_response.authorization_id),
+            scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
+            wait=30,  # Long poll
+        )
 
 # Authorization is completed; proceed with obtaining credentials
 creds = Credentials(auth_response.context.token)

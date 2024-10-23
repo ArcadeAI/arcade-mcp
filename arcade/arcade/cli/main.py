@@ -8,6 +8,8 @@ from typing import Any, Optional
 from urllib.parse import urlencode
 
 import typer
+from arcadepy import Arcade
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
@@ -36,7 +38,6 @@ from arcade.cli.utils import (
     log_engine_health,
     validate_and_get_config,
 )
-from arcade.client import Arcade
 
 cli = typer.Typer(
     cls=OrderCommands,
@@ -144,10 +145,10 @@ def new(
 )
 def show(
     toolkit: Optional[str] = typer.Option(
-        None, "-t", "--toolkit", help="The toolkit to show the tools of"
+        None, "-T", "--toolkit", help="The toolkit to show the tools of"
     ),
     tool: Optional[str] = typer.Option(
-        None, "-T", "--tool", help="The specific tool to show details for"
+        None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: str = typer.Option(
         DEFAULT_ENGINE_HOST,
@@ -190,8 +191,8 @@ def show(
                 (
                     t
                     for t in tools
-                    if t.get_fully_qualified_name().name == tool
-                    or str(t.get_fully_qualified_name()) == tool
+                    if t.get_fully_qualified_name().name.lower() == tool.lower()
+                    or str(t.get_fully_qualified_name()).lower() == tool.lower()
                 ),
                 None,
             )
@@ -275,7 +276,8 @@ def chat(
             history.append({"role": "user", "content": user_input})
 
             try:
-                openai_client = OpenAI(api_key=config.api.key, base_url=base_url)
+                # TODO fixup configuration to remove this + "/v1" workaround
+                openai_client = OpenAI(api_key=config.api.key, base_url=base_url + "/v1")
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
@@ -288,7 +290,7 @@ def chat(
                 if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
-                        tool_authorization,
+                        AuthorizationResponse.model_validate(tool_authorization),
                         history,
                         openai_client,
                         model,
@@ -376,7 +378,7 @@ def evals(
 
     # Try to hit /health endpoint on engine and warn if it is down
     with Arcade(api_key=config.api.key, base_url=base_url) as client:
-        log_engine_health(client)  # type: ignore[arg-type]
+        log_engine_health(client)
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)

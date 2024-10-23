@@ -1,12 +1,10 @@
-import json
 import os
 from typing import Any, TypedDict
 
+from arcadepy import Arcade
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.errors import NodeInterrupt
 from langgraph.graph import END, START, StateGraph
-
-from arcade.client import Arcade
 
 client = Arcade(api_key=os.environ["ARCADE_API_KEY"])
 
@@ -26,11 +24,10 @@ def step_1(state: State, config) -> State:
     if challenge.status != "completed":
         raise NodeInterrupt(f"Please visit this URL to authorize: {challenge.auth_url}")
 
-    result = client.tools.run(
+    result = client.tools.execute(
         tool_name="ListEmails",
         user_id=user_id,
-        tool_version="default",
-        inputs=json.dumps({"n_emails": 5}),
+        inputs={"n_emails": 5},
     )
     return {"emails": result}
 
