@@ -1,6 +1,8 @@
 from arcadepy import Arcade
 
-client = Arcade()
+client = Arcade(
+    base_url="http://localhost:9099",
+)
 
 user_id = "you@example.com"
 

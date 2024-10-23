@@ -261,6 +261,7 @@ def chat(
             history.append({"role": "user", "content": user_input})
 
             try:
+                # TODO fixup configuration to remove this + "/v1" workaround
                 openai_client = OpenAI(api_key=config.api.key, base_url=config.engine_url + "/v1")
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream

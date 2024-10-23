@@ -654,7 +654,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             results = []
             async with AsyncOpenAI(
                 api_key=config.api.key,
-                base_url=config.engine_url + "/v1",
+                base_url=config.engine_url + "/v1",  # TODO remove
             ) as client:
                 result = await suite.run(client, model)
                 results.append(result)

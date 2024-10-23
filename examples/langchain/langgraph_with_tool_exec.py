@@ -1,4 +1,3 @@
-import json
 import os
 from typing import Any, TypedDict
 
@@ -25,11 +24,10 @@ def step_1(state: State, config) -> State:
     if challenge.status != "completed":
         raise NodeInterrupt(f"Please visit this URL to authorize: {challenge.auth_url}")
 
-    result = client.tools.run(
+    result = client.tools.execute(
         tool_name="ListEmails",
         user_id=user_id,
-        tool_version="default",
-        inputs=json.dumps({"n_emails": 5}),
+        inputs={"n_emails": 5},
     )
     return {"emails": result}
 

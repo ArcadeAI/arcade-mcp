@@ -12,7 +12,7 @@ from arcade.core.toolkit import Toolkit
 if not config.api or not config.api.key:
     raise ValueError("Arcade API key not set. Please run `arcade login`.")
 
-client = AsyncOpenAI(api_key=config.api.key, base_url="http://localhost:9099")
+client = AsyncOpenAI(api_key=config.api.key, base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
