@@ -24,7 +24,7 @@ from typer.core import TyperGroup
 from typer.models import Context
 
 from arcade.core.catalog import ToolCatalog
-from arcade.core.config_model import ApiConfig, Config
+from arcade.core.config_model import Config
 from arcade.core.errors import ToolkitLoadError
 from arcade.core.schema import ToolDefinition
 from arcade.core.toolkit import Toolkit
@@ -76,7 +76,6 @@ def compute_base_url(
     force_no_tls: bool,
     host: str,
     port: int | None,
-    api_version: str = ApiConfig.model_fields["version"].default,
 ) -> str:
     """
     Compute the base URL for the Arcade Engine from the provided overrides.
@@ -143,14 +142,14 @@ def compute_base_url(
     if ":" in parsed_host.netloc and not is_ip:
         host, existing_port = parsed_host.netloc.rsplit(":", 1)
         if existing_port.isdigit():
-            return f"{protocol}://{parsed_host.netloc}/{api_version}"
+            return f"{protocol}://{parsed_host.netloc}"
 
     if is_fqdn and port is None:
-        return f"{protocol}://{encoded_host}/{api_version}"
+        return f"{protocol}://{encoded_host}"
     elif port is not None:
-        return f"{protocol}://{encoded_host}:{port}/{api_version}"
+        return f"{protocol}://{encoded_host}:{port}"
     else:
-        return f"{protocol}://{encoded_host}/{api_version}"
+        return f"{protocol}://{encoded_host}"
 
 
 def get_tools_from_engine(
@@ -171,10 +170,6 @@ def get_tools_from_engine(
             tools.append(ToolDefinition.model_validate(item.model_dump()))
 
     return tools
-    config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
-    client = Arcade(api_key=config.api.key, base_url=base_url)
-    return client.tools.list_tools(toolkit=toolkit)
 
 
 def get_tool_messages(choice: dict) -> list[dict]:

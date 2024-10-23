@@ -247,7 +247,7 @@ def chat(
     Chat with a language model.
     """
     config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
+    base_url = compute_base_url(force_tls, force_no_tls, host, port)
 
     client = Arcade(api_key=config.api.key, base_url=base_url)
     user_email = config.user.email if config.user else None
@@ -360,7 +360,7 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port, config.api.version)
+    base_url = compute_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
 

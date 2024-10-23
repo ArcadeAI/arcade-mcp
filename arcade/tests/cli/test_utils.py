@@ -5,7 +5,6 @@ from arcade.cli.utils import compute_base_url
 DEFAULT_HOST = "api.arcade-ai.com"
 LOCALHOST = "localhost"
 DEFAULT_PORT = None
-DEFAULT_VERSION = "v1"
 DEFAULT_FORCE_TLS = False
 DEFAULT_FORCE_NO_TLS = False
 
@@ -19,9 +18,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://api.arcade-ai.com/v1",
+            "https://api.arcade-ai.com",
             id="default",
         ),
         pytest.param(
@@ -30,9 +28,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost",
         ),
         pytest.param(
@@ -41,9 +38,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://api.arcade-ai.com:9099/v1",
+            "https://api.arcade-ai.com:9099",
             id="custom port",
         ),
         pytest.param(
@@ -52,9 +48,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost with custom port",
         ),
         pytest.param(
@@ -63,9 +58,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": True,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://api.arcade-ai.com/v1",
+            "https://api.arcade-ai.com",
             id="force TLS",
         ),
         pytest.param(
@@ -74,9 +68,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": True,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://localhost:9099/v1",
+            "https://localhost:9099",
             id="localhost with force TLS",
         ),
         pytest.param(
@@ -85,9 +78,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": True,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://api.arcade-ai.com:9099/v1",
+            "https://api.arcade-ai.com:9099",
             id="custom port with force TLS",
         ),
         pytest.param(
@@ -96,9 +88,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": True,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": DEFAULT_VERSION,
             },
-            "https://localhost:9099/v1",
+            "https://localhost:9099",
             id="localhost with custom port and force TLS",
         ),
         pytest.param(
@@ -107,9 +98,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://api.arcade-ai.com/v1",
+            "http://api.arcade-ai.com",
             id="force no TLS",
         ),
         pytest.param(
@@ -118,9 +108,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost with force no TLS",
         ),
         pytest.param(
@@ -129,9 +118,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://api.arcade-ai.com:9099/v1",
+            "http://api.arcade-ai.com:9099",
             id="custom port with force no TLS",
         ),
         pytest.param(
@@ -140,9 +128,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost with custom port and force no TLS",
         ),
         pytest.param(
@@ -151,9 +138,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": True,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://api.arcade-ai.com/v1",
+            "http://api.arcade-ai.com",
             id="force TLS and no TLS",
         ),
         pytest.param(
@@ -162,9 +148,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": True,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost with force TLS and no TLS",
         ),
         pytest.param(
@@ -173,9 +158,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": True,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://api.arcade-ai.com:9099/v1",
+            "http://api.arcade-ai.com:9099",
             id="custom port with force TLS and no TLS",
         ),
         pytest.param(
@@ -184,9 +168,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": 9099,
                 "force_tls": True,
                 "force_no_tls": True,
-                "api_version": DEFAULT_VERSION,
             },
-            "http://localhost:9099/v1",
+            "http://localhost:9099",
             id="localhost with custom port, force TLS and no TLS",
         ),
         pytest.param(
@@ -195,9 +178,8 @@ DEFAULT_FORCE_NO_TLS = False
                 "port_input": DEFAULT_PORT,
                 "force_tls": DEFAULT_FORCE_TLS,
                 "force_no_tls": DEFAULT_FORCE_NO_TLS,
-                "api_version": "v12",
             },
-            "https://arandomhost.com/v12",
+            "https://arandomhost.com",
             id="random host",
         ),
     ],
@@ -208,7 +190,6 @@ def test_compute_base_url(inputs: dict, expected_output: str):
         inputs["force_no_tls"],
         inputs["host_input"],
         inputs["port_input"],
-        inputs["api_version"],
     )
 
     assert base_url == expected_output
