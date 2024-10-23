@@ -22,7 +22,6 @@ client = Arcade()
 auth_response = client.auth.authorize(
     auth_requirement=AuthRequirement(
         provider_id="google",
-        provider_type="oauth2",
         oauth2=AuthRequirementOauth2(
             scopes=["https://www.googleapis.com/auth/gmail.readonly"],
         ),
