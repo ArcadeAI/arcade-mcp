@@ -404,7 +404,7 @@ def evals(
 
     # Try to hit /health endpoint on engine and warn if it is down
     with Arcade(api_key=config.api.key, base_url=config.engine_url) as client:
-        log_engine_health(client)  # type: ignore[arg-type]
+        log_engine_health(client)
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
