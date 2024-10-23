@@ -242,7 +242,7 @@ def log_engine_health(client: Arcade) -> None:
             return
 
         console.print(
-            f"⚠️ Warning: Arcade Engine returned healthy: {result.healthy}",
+            "⚠️ Warning: Arcade Engine is unhealthy",
             style="bold yellow",
         )
 
