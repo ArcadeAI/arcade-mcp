@@ -1,5 +1,6 @@
 import time  # Import time for polling delays
 
+from arcadepy import Arcade
 from google.oauth2.credentials import Credentials
 from langchain_google_community import GmailToolkit
 from langchain_google_community.gmail.utils import (
@@ -13,13 +14,12 @@ from langgraph.prebuilt import create_react_agent
 # %pip install -qU langchain-google-community[gmail]
 # %pip install -qU langchain-openai
 # %pip install -qU langgraph
-from arcade.client import Arcade, AuthProvider
 
 client = Arcade()
 
 # Start the authorization process for the tool "ListEmails"
 auth_response = client.auth.authorize(
-    provider=AuthProvider.google,
+    provider="google",
     scopes=["https://www.googleapis.com/auth/gmail.readonly"],
     user_id="sam@arcade-ai.com",
 )
