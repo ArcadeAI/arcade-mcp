@@ -98,10 +98,9 @@ def get_tools_from_engine(
     client = Arcade(api_key=config.api.key, base_url=config.engine_url)
 
     tools = []
-    # TODO: This is a hack! limit=100 is a workaround for broken(?) pagination in Stainless
-    for page in client.tools.list(limit=100, toolkit=toolkit or NOT_GIVEN).iter_pages():
-        for item in page:
-            tools.append(ToolDefinition.model_validate(item.model_dump()))
+    page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
+    for tool in page_iterator:
+        tools.append(ToolDefinition.model_validate(tool.model_dump()))
 
     return tools
 

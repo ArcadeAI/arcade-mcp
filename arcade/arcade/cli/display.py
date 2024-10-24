@@ -30,6 +30,7 @@ def display_tools_table(tools: list[ToolDefinition]) -> None:
             tool.toolkit.name,
             tool.toolkit.version,
         )
+    console.print(f"Found {len(tools)} tools.")
     console.print(table)
 
 
