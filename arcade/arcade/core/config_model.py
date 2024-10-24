@@ -119,7 +119,7 @@ class Config(BaseConfig):
         config_data = yaml.safe_load(config_file_path.read_text())
 
         try:
-            return cls(**config_data)
+            return cls(**config_data["cloud"])
         except ValidationError as e:
             # Get only the errors with {type:missing} and combine them
             # into a nicely-formatted string message.
@@ -164,6 +164,7 @@ class Config(BaseConfig):
             # If the user is using the deprecated config file, then convert it to the new yaml format
             try:
                 old_config: dict[str, Any] = toml.load(deprecated_config_file_path)
+                old_config = {"cloud": old_config}
                 with open(cls.get_config_file_path(), "w") as f:
                     yaml.dump(old_config, f)
                 os.remove(deprecated_config_file_path)

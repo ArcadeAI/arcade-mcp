@@ -63,7 +63,7 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
 
         # TODO don't overwrite existing config
         config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
-        new_config = {"api": {"key": api_key}, "user": {"email": email}}
+        new_config = {"cloud": {"api": {"key": api_key}, "user": {"email": email}}}
         with open(config_file_path, "w") as f:
             yaml.dump(new_config, f)
 
