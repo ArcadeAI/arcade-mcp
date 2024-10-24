@@ -110,27 +110,11 @@ class Config(BaseConfig):
         cls.ensure_config_dir_exists()
 
         config_file_path = cls.get_config_file_path()
-        deprecated_config_file_path = cls.get_deprecated_config_file_path()
 
-        if not config_file_path.exists():
-            if deprecated_config_file_path.exists():
-                # If the user is using the deprecated config file, then convert it to the new yaml format
-                try:
-                    old_config: dict[str, Any] = toml.load(deprecated_config_file_path)
-                    with open(config_file_path, "w") as f:
-                        yaml.dump(old_config, f)
-                    os.remove(deprecated_config_file_path)
-                    print(
-                        f"\033[1;33mDeprecation Notice: Automatically migrated the deprecated config file {deprecated_config_file_path} to {config_file_path}\033[0m"
-                    )
-                except Exception as e:
-                    raise OSError(
-                        f"Invalid configuration file at {deprecated_config_file_path} could not be automatically converted to the new format. Please manually migrate to {config_file_path} by running `arcade logout && arcade login`."
-                    ) from e
-            else:
-                # Create a file using the default configuration
-                default_config = cls.model_construct(api=ApiConfig.model_construct())
-                default_config.save_to_file()
+        if not config_file_path.exists() and not cls._migrate_deprecated_config_file():
+            # Create a file using the default configuration
+            default_config = cls.model_construct(api=ApiConfig.model_construct())
+            default_config.save_to_file()
 
         config_data = yaml.safe_load(config_file_path.read_text())
 
@@ -165,3 +149,30 @@ class Config(BaseConfig):
         Config.ensure_config_dir_exists()
         config_file_path = Config.get_config_file_path()
         config_file_path.write_text(yaml.dump(self.model_dump()))
+
+    @classmethod
+    def _migrate_deprecated_config_file(cls) -> bool:
+        """
+        Migrate the deprecated config file to the new format if the deprecated config file exists.
+
+        Returns:
+            bool: True if the migration occurred, False otherwise.
+        """
+        deprecated_config_file_path = Config.get_deprecated_config_file_path()
+
+        if deprecated_config_file_path.exists():
+            # If the user is using the deprecated config file, then convert it to the new yaml format
+            try:
+                old_config: dict[str, Any] = toml.load(deprecated_config_file_path)
+                with open(cls.get_config_file_path(), "w") as f:
+                    yaml.dump(old_config, f)
+                os.remove(deprecated_config_file_path)
+                print(
+                    f"\033[1;33mAutomatically migrated the deprecated config file {deprecated_config_file_path} to {cls.get_config_file_path()}\033[0m"
+                )
+            except Exception as e:
+                raise OSError(
+                    f"Invalid configuration file at {deprecated_config_file_path} could not be automatically converted to the new format. Please manually migrate to {cls.get_config_file_path()} by running `arcade logout && arcade login`."
+                ) from e
+            return True
+        return False

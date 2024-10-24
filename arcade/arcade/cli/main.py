@@ -29,6 +29,7 @@ from arcade.cli.utils import (
     OrderCommands,
     compute_base_url,
     create_cli_catalog,
+    delete_deprecated_config_file,
     get_eval_files,
     get_tools_from_engine,
     handle_chat_interaction,
@@ -99,28 +100,15 @@ def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
     """
+    delete_deprecated_config_file()
 
-    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+    # If ~/.arcade/credentials.yaml exists, delete it
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
-
-    files_to_remove = [
-        path for path in [config_file_path, deprecated_config_file_path] if os.path.exists(path)
-    ]
-
-    if not files_to_remove:
+    if os.path.exists(config_file_path):
+        os.remove(config_file_path)
+        console.print("You're now logged out.", style="bold")
+    else:
         console.print("You're not logged in.", style="bold red")
-        return
-
-    for file_path in files_to_remove:
-        os.remove(file_path)
-
-    if deprecated_config_file_path in files_to_remove:
-        console.print(
-            f"Deprecation Notice: {deprecated_config_file_path} is deprecated in favor of {config_file_path}. The migration will be performed automatically upon your next login.",
-            style="bold yellow",
-        )
-
-    console.print("You're now logged out.", style="bold")
 
 
 @cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
@@ -151,7 +139,7 @@ def show(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        None,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
@@ -179,7 +167,7 @@ def show(
     """
 
     try:
-        if host == "localhost":
+        if not host:
             catalog = create_cli_catalog(toolkit=toolkit)
             tools = [t.definition for t in list(catalog)]
         else:

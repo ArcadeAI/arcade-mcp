@@ -529,7 +529,7 @@ def create_new_env_file() -> None:
     env_file = os.path.expanduser("~/.arcade/arcade.env")
     if not os.path.exists(env_file):
         template_path = os.path.join(
-            os.path.dirname(__file__), "..", "templates", "template-arcade.env"
+            os.path.dirname(__file__), "..", "templates", "arcade.template.env"
         )
         os.makedirs(os.path.dirname(env_file), exist_ok=True)
 
@@ -538,3 +538,30 @@ def create_new_env_file() -> None:
             new_env_file.write(template_contents)
 
         console.print(f"Created new environment file at {env_file}", style="bold green")
+
+
+def is_config_file_deprecated() -> bool:
+    """
+    Check if the user is using the deprecated config file.
+
+    Returns:
+        bool: True if the user is using the deprecated config file, False otherwise.
+    """
+    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+    if os.path.exists(deprecated_config_file_path):
+        console.print(
+            f"Deprecation Notice: You are using a deprecated config file at {deprecated_config_file_path}. Please migrate to the new format by running,\n\n\t$ arcade logout && arcade login\n",
+            style="bold yellow",
+        )
+        return True
+    return False
+
+
+def delete_deprecated_config_file() -> None:
+    """
+    Delete the deprecated config file if it exists.
+    """
+    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+
+    if os.path.exists(deprecated_config_file_path):
+        os.remove(deprecated_config_file_path)

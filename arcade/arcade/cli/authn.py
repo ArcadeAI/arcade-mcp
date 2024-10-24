@@ -4,12 +4,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 from urllib.parse import parse_qs
 
-import toml
 import yaml
 from rich.console import Console
 
 from arcade.cli.constants import LOGIN_FAILED_HTML, LOGIN_SUCCESS_HTML
-from arcade.cli.utils import create_new_env_file
+from arcade.cli.utils import create_new_env_file, is_config_file_deprecated
 
 console = Console()
 
@@ -117,32 +116,18 @@ def check_existing_login() -> bool:
     Check if the user is already logged in by verifying the config file.
 
     Returns:
-        bool: True if the user is already logged in, False otherwise.
+        bool: True if the user is already logged in or is using the deprecated config file, False otherwise.
     """
+    if is_config_file_deprecated():
+        return True
+
     # Create a new env file if one doesn't already exist
     create_new_env_file()
 
-    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
 
-    if not os.path.exists(deprecated_config_file_path) and not os.path.exists(config_file_path):
+    if not os.path.exists(config_file_path):
         return False
-
-    if os.path.exists(deprecated_config_file_path):
-        # If the user is using the deprecated config file, then convert it to the new yaml format
-        try:
-            old_config: dict[str, Any] = toml.load(deprecated_config_file_path)
-            with open(config_file_path, "w") as f:
-                yaml.dump(old_config, f)
-            console.print(
-                f"Deprecation Notice: Automatically converted deprecated config file {deprecated_config_file_path} to {config_file_path}",
-                style="bold yellow",
-            )
-            os.remove(deprecated_config_file_path)
-        except Exception:
-            raise OSError(
-                f"Invalid configuration file at {deprecated_config_file_path} could not be automatically converted to the new format. Please manually migrate to {config_file_path} by running `arcade logout && arcade login`."
-            )
 
     if os.path.exists(config_file_path):
         try:
