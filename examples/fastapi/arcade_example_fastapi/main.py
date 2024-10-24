@@ -7,12 +7,8 @@ from pydantic import BaseModel
 
 from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.sdk import Toolkit
-from arcade.sdk.config import config
 
-if not config.api or not config.api.key:
-    raise ValueError("Arcade API key not set. Please run `arcade login`.")
-
-client = AsyncOpenAI(api_key=config.api.key, base_url="http://localhost:9099/v1")
+client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
@@ -23,6 +19,7 @@ actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 class ChatRequest(BaseModel):
     message: str
+    user_id: str
 
 
 @app.post("/chat")
@@ -46,7 +43,7 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
                 # "Slack.SendMessageToChannel",
             ],
             tool_choice=tool_choice,
-            user=config.user.email if config.user else None,
+            user=request.user_id,
         )
 
     except Exception as e:

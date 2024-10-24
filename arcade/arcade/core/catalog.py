@@ -219,8 +219,7 @@ class ToolCatalog(BaseModel):
     def get_tool_by_name(
         self, name: str, version: Optional[str] = None, separator: str = TOOL_NAME_SEPARATOR
     ) -> MaterializedTool:
-        """
-        Get a tool from the catalog by name, optionally including the toolkit name.
+        """Get a tool from the catalog by name.
 
         Args:
             name: The name of the tool, potentially including the toolkit name separated by the `separator`.

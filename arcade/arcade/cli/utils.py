@@ -183,7 +183,7 @@ def validate_and_get_config(
     """
     Validates the configuration, user, and returns the Config object
     """
-    from arcade.sdk.config import config
+    from arcade.core.config import config
 
     if validate_engine and (not config.engine or not config.engine_url):
         console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
