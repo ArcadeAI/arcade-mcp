@@ -11,7 +11,7 @@ from arcade_github.tools.repositories import (
 )
 from httpx import Response
 
-from arcade.core.errors import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

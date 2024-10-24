@@ -16,8 +16,8 @@ from arcade_google.tools.gmail import (
 from arcade_google.tools.utils import parse_draft_email, parse_email
 from googleapiclient.errors import HttpError
 
-from arcade.core.errors import ToolExecutionError
-from arcade.core.schema import ToolAuthorizationContext, ToolContext
+from arcade.sdk import ToolAuthorizationContext, ToolContext
+from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

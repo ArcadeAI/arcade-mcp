@@ -3,10 +3,9 @@ from typing import Annotated, Optional
 
 import httpx
 
-from arcade.core.errors import RetryableToolError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
+from arcade.sdk.errors import RetryableToolError
 from arcade_github.tools.models import (
     DiffSide,
     PRSortProperty,

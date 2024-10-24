@@ -6,7 +6,7 @@ from arcade_google.tools.models import Corpora, OrderBy
 from arcade_google.tools.utils import build_drive_service
 from googleapiclient.errors import HttpError
 
-from arcade.core.errors import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

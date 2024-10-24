@@ -18,10 +18,10 @@ except ImportError:
 
 from openai import AsyncOpenAI
 
-from arcade.sdk.error import WeightError
+from arcade.sdk.errors import WeightError
 
 if TYPE_CHECKING:
-    from arcade.core.catalog import ToolCatalog
+    from arcade.sdk import ToolCatalog
     from arcade.sdk.eval.critic import Critic
 
 

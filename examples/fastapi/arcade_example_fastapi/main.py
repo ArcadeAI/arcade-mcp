@@ -6,8 +6,8 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from arcade.actor.fastapi.actor import FastAPIActor
-from arcade.core.config import config
-from arcade.core.toolkit import Toolkit
+from arcade.sdk import Toolkit
+from arcade.sdk.config import config
 
 if not config.api or not config.api.key:
     raise ValueError("Arcade API key not set. Please run `arcade login`.")

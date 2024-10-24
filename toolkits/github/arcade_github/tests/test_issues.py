@@ -4,7 +4,7 @@ import pytest
 from arcade_github.tools.issues import create_issue, create_issue_comment
 from httpx import Response
 
-from arcade.core.errors import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

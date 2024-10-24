@@ -2,10 +2,9 @@ from typing import Annotated
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import LinkedIn
+from arcade.sdk.errors import ToolExecutionError
 
 LINKEDIN_BASE_URL = "https://api.linkedin.com/v2"
 

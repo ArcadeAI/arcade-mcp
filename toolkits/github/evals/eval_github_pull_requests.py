@@ -14,7 +14,7 @@ from arcade_github.tools.pull_requests import (
     update_pull_request,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

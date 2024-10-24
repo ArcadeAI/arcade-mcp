@@ -4,7 +4,7 @@ from arcade_github.tools.issues import (
     create_issue_comment,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

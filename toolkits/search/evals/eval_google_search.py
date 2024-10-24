@@ -1,7 +1,7 @@
 import arcade_search
 from arcade_search.tools.google import search_google
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     EvalRubric,
     EvalSuite,

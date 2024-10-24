@@ -6,7 +6,7 @@ from arcade.core.catalog import ToolCatalog
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import ToolCallError, ToolCallOutput, ToolContext
 from arcade.sdk import tool
-from arcade.sdk.error import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 @tool

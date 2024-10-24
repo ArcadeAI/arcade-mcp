@@ -16,7 +16,7 @@ from arcade_github.tools.pull_requests import (
 )
 from httpx import Response
 
-from arcade.core.errors import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 @pytest.fixture

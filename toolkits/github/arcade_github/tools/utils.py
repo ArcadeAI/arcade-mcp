@@ -1,4 +1,4 @@
-from arcade.core.errors import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 from arcade_github.tools.constants import ENDPOINTS, GITHUB_API_BASE_URL
 
 

@@ -18,11 +18,10 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
 from arcade.core.errors import ToolkitLoadError
 from arcade.core.schema import ToolDefinition
-from arcade.core.toolkit import Toolkit
+from arcade.sdk import ToolCatalog, Toolkit
 
 console = Console()
 
@@ -184,7 +183,7 @@ def validate_and_get_config(
     """
     Validates the configuration, user, and returns the Config object
     """
-    from arcade.core.config import config
+    from arcade.sdk.config import config
 
     if validate_engine and (not config.engine or not config.engine_url):
         console.print("❌ Engine configuration not found or URL is missing.", style="bold red")

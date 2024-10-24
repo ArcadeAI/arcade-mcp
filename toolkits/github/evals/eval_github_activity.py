@@ -1,7 +1,7 @@
 import arcade_github
 from arcade_github.tools.activity import set_starred
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

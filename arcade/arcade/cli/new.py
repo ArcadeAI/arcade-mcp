@@ -169,7 +169,7 @@ def create_new_toolkit(directory: str) -> None:
             dedent(
                 f"""
             import pytest
-            from arcade.sdk.error import ToolExecutionError
+            from arcade.sdk.errors import ToolExecutionError
             from {toolkit_name}.tools.hello import hello
 
             def test_hello():
@@ -195,7 +195,7 @@ def create_new_toolkit(directory: str) -> None:
                 import {toolkit_name}
                 from {toolkit_name}.tools.hello import hello
 
-                from arcade.core.catalog import ToolCatalog
+                from arcade.sdk import ToolCatalog
                 from arcade.sdk.eval import (
                     EvalRubric,
                     EvalSuite,

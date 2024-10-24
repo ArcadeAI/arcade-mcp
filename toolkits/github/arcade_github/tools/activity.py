@@ -2,8 +2,7 @@ from typing import Annotated
 
 import httpx
 
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
 from arcade_github.tools.utils import get_github_json_headers, get_url, handle_github_response
 

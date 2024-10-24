@@ -6,7 +6,7 @@ from arcade_x.tools.tweets import post_tweet
 # search_recent_tweets_by_keywords,
 # search_recent_tweets_by_username,
 # from arcade_x.tools.users import lookup_single_user_by_username
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     EvalRubric,
     EvalSuite,

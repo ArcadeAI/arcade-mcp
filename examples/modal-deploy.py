@@ -29,7 +29,7 @@ def fastapi_app():
     from fastapi import FastAPI
 
     from arcade.actor.fastapi.actor import FastAPIActor
-    from arcade.core.toolkit import Toolkit
+    from arcade.sdk import Toolkit
 
     web_app = FastAPI()
 

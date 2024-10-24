@@ -1,7 +1,7 @@
 import arcade_math
 from arcade_math.tools.arithmetic import add, sqrt
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

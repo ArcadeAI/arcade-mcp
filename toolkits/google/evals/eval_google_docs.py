@@ -6,7 +6,7 @@ from arcade_google.tools.docs import (
     insert_text_at_end_of_document,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

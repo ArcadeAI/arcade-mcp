@@ -8,7 +8,7 @@ from arcade_web.tools.firecrawl import (
     scrape_url,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

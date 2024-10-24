@@ -2,7 +2,7 @@ import arcade_google
 from arcade_google.tools.drive import list_documents
 from arcade_google.tools.models import Corpora, OrderBy
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,

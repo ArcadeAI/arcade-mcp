@@ -10,7 +10,7 @@ from arcade_web.tools.firecrawl import (
     scrape_url,
 )
 
-from arcade.sdk.error import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

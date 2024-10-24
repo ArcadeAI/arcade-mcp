@@ -9,7 +9,7 @@ from arcade_math.tools.arithmetic import (
     sum_range,
 )
 
-from arcade.sdk.error import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 
 def test_add():

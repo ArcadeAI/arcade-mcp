@@ -4,7 +4,7 @@ from typing import Any, Callable, TypeVar, Union
 
 from arcade.core.utils import snake_to_pascal_case
 from arcade.sdk.auth import ToolAuthorization
-from arcade.sdk.error import ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 T = TypeVar("T")
 

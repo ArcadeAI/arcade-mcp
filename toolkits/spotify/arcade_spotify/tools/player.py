@@ -2,10 +2,9 @@ from typing import Annotated, Optional
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
+from arcade.sdk.errors import ToolExecutionError
 
 SPOTIFY_BASE_URL = "https://api.spotify.com/v1"
 

@@ -8,7 +8,7 @@ from arcade_github.tools.repositories import (
     list_review_comments_in_a_repository,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
