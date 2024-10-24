@@ -18,6 +18,7 @@ pydantic = "^2.7.0"
 typer = "^0.9.0"
 rich = "^13.7.1"
 toml = "^0.10.2"
+pyyaml = "^6.0"
 tomlkit = "^0.12.4"
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
 arcadepy = "~0.1.1"
