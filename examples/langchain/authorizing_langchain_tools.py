@@ -16,35 +16,23 @@ api_key = os.getenv("ARCADE_API_KEY")
 # Initialize the Arcade client
 client = Arcade(api_key=api_key)
 
-# Define the authorization requirement for Gmail
+# Start the authorization process for Gmail
 # see all possible gmail scopes here:
 # https://developers.google.com/gmail/api/auth/scopes
-auth_requirement = AuthRequirement(
-    provider_id="google",
-    oauth2=AuthRequirementOauth2(
-        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-    ),
-)
-
-# Start the authorization process
 user_id = "user@example.com"
-auth_response = client.auth.authorize(
-    auth_requirement=auth_requirement,
+auth_response = client.auth.start(
     user_id=user_id,
+    provider="google",
+    scopes=["https://www.googleapis.com/auth/gmail.readonly"]
 )
 
 # Prompt the user to authorize if not already completed
 if auth_response.status != "completed":
     print("Please authorize the application in your browser:")
     print(auth_response.authorization_url)
-    input("Press Enter after completing authorization...")
-
-    # Poll for authorization status
-    while auth_response.status != "completed":
-        auth_response = client.auth.status(
-            authorization_id=auth_response.authorization_id,
-            wait=30,  # Wait for up to 30 seconds
-        )
+    
+# Wait for the user to complete the authorization process, if necessary...
+auth_response = client.auth.wait_for_completion(auth_response)
 
 # Obtain credentials using the authorization context
 creds = Credentials(auth_response.context.token)
