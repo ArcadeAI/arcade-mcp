@@ -100,18 +100,75 @@ I starred the ArcadeAI/arcade-ai repo on Github for you!
 You can use Ctrl-C to exit the chat at any time.
 
 
-### Features
-TODO
+## Features
+Arcade AI integrates with a variety of services to provide a seamless experience for developers and users.
 
-You can find all of Arcade AI's capabilities and how to use them in our [documentation](https://docs.arcade-ai.com)
+1. **Hosted Tools**: Arcade AI offers a number of prebuilt toolkits that are ready to use out of the box. These toolkits can be used to interact with a variety of services.
+1. **Custom Tools**: Developers can build their own tools to integrate with Arcade AI.
+1. **Auth Providers**: Arcade AI integrates with a variety of auth providers to enable users to seamlessly and securely allow Arcade AI tools to access their data.
 
-### TODO Feature 1
 
-TODO
+You can find all of Arcade AI's capabilities and how to use them in our [documentation](https://docs.arcade-ai.com).
 
-```bash
+### Arcade AI Hosted Tools
+<img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/gmail.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/google_calendar.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/google_docs.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/google_drive.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/serpapi.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/web.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<br><br>
+Arcade AI offers a number of prebuilt toolkits that can be used to interact with a variety of services.
+
+```python
+from arcadepy import Arcade
+
+client = Arcade()
+
+USER_ID = "you@example.com"
+TOOL_NAME = "Github.SetStarred"
+
+# Perform User Authorization
+auth_response = client.tools.authorize(
+    tool_name=TOOL_NAME,
+    user_id=USER_ID,
+)
+if auth_response.status != "completed":
+    print(f"Click this link to authorize: {auth_response.auth_url}")
+    input("After you have authorized, press Enter to continue...")
+
+# Run the tool
+inputs = {"owner": "ArcadeAI", "name": "Hello-World", "starred": True}
+response = client.tools.run(
+    tool_name=TOOL_NAME,
+    inputs=inputs,
+    user_id=USER_ID,
+)
+print(response)
 
 ```
+
+### Building Your Own Tools
+
+Learn how to build your own tools by following our [creating a custom toolkit guide](https://docs.arcade-ai.com/tools/overview).
+
+### Evaluating Tools
+
+Arcade AI enables you to evaluate your custom tools to ensure they function correctly with the AI assistant, including defining evaluation cases and using different critics.
+
+Learn how to evaluate your tools by following our [evaluating tools guide](https://docs.arcade-ai.com/home/evaluate-tools/create-an-evaluation-suite).
+
+### Auth
+
+Learn how to use Arcade AI to obtain user authorization for accessing third-party services in our [authorizing agents with Arcade AI guide](https://docs.arcade-ai.com/home/get-a-token-for-a-user).
+
+Learn how to use Arcade AI's auth providers to enable tools and agents to call other services on behalf of users in our [tools with auth guide](https://docs.arcade-ai.com/home/build-tools/create-a-tool-with-auth).
+
+To see all available auth providers, refer to the [auth providers documentation](https://docs.arcade-ai.com/integrations).
+
 
 
 ## Contributing
@@ -121,11 +178,6 @@ We love contributions! Please read our [contributing guide](CONTRIBUTING.md) bef
 ## Contributors
 
 TODO when repo is public. Use https://contrib.rocks/
-
-## License Disclaimer
-
-TODO
-
 
 <p align="right" style="font-size: 14px; color: #555; margin-top: 20px;">
     <a href="#readme-top" style="text-decoration: none; color: #007bff; font-weight: bold;">
