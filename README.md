@@ -123,6 +123,7 @@ You can find all of Arcade AI's capabilities and how to use them in our [documen
 <br><br>
 Arcade AI offers a number of prebuilt toolkits that can be used to interact with a variety of services.
 
+#### Calling tools directly
 ```python
 from arcadepy import Arcade
 
@@ -151,6 +152,33 @@ print(response)
 
 ```
 
+#### Calling tools with the LLM API
+```python
+import os
+from openai import OpenAI
+
+USER_ID = "you@example.com"
+PROMPT = "Star the ArcadeAI/arcade-ai repository."
+TOOL_NAME = "Github.SetStarred"
+# Use "generate" to have the LLM generate a response after the tool executes. Use 'execute' to get the tool's output directly.
+TOOL_CHOICE = "generate"
+
+client = OpenAI(
+    base_url="https://api.arcade-ai.com",
+    api_key=os.environ.get("ARCADE_API_KEY"))
+
+response = client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": PROMPT},
+    ],
+    model="gpt-4o-mini",
+    user=USER_ID,
+    tools=[TOOL_NAME],
+    tool_choice=TOOL_CHOICE,
+)
+print(response.choices[0].message.content)
+```
+
 ### Building Your Own Tools
 
 Learn how to build your own tools by following our [creating a custom toolkit guide](https://docs.arcade-ai.com/tools/overview).
@@ -162,6 +190,16 @@ Arcade AI enables you to evaluate your custom tools to ensure they function corr
 Learn how to evaluate your tools by following our [evaluating tools guide](https://docs.arcade-ai.com/home/evaluate-tools/create-an-evaluation-suite).
 
 ### Auth
+<img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/google.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/linkedin.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/msft.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/spotify.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/zoom.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/oauth2.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<br><br>
 
 Learn how to use Arcade AI to obtain user authorization for accessing third-party services in our [authorizing agents with Arcade AI guide](https://docs.arcade-ai.com/home/get-a-token-for-a-user).
 
@@ -169,7 +207,15 @@ Learn how to use Arcade AI's auth providers to enable tools and agents to call o
 
 To see all available auth providers, refer to the [auth providers documentation](https://docs.arcade-ai.com/integrations).
 
+### Models
+<img src="https://docs.arcade-ai.com/images/icons/openai.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/anthropic.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/ollama.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<img src="https://docs.arcade-ai.com/images/icons/groq.png" alt="" width="30" height="30" style="vertical-align: top;" />
+<br><br>
+Arcade AI supports a variety of model providers when using the Arcade AI LLM API.
 
+To see all available models, refer to the [models documentation](https://docs.arcade-ai.com/integrations/models/openai).
 
 ## Contributing
 
@@ -177,7 +223,9 @@ We love contributions! Please read our [contributing guide](CONTRIBUTING.md) bef
 
 ## Contributors
 
-TODO when repo is public. Use https://contrib.rocks/
+<a href="https://github.com/ArcadeAI/arcade-ai/graphs/contributors">
+  <img alt="contributors" src="https://contrib.rocks/image?repo=ArcadeAI/arcade-ai"/>
+</a>
 
 <p align="right" style="font-size: 14px; color: #555; margin-top: 20px;">
     <a href="#readme-top" style="text-decoration: none; color: #007bff; font-weight: bold;">
