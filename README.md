@@ -41,7 +41,7 @@
     <a href="https://github.com/ArcadeAI/arcade-js" target="_blank">JavaScript Client</a>
 </p>
 
-# <img src="https://docs.arcade-ai.com/images/logo/arcadeai.png" alt="" width="30" height="30" style="vertical-align: middle;" />rcade AI
+# <img src="https://docs.arcade-ai.com/images/logo/arcadeai.png" alt="" width="30" height="30" style="vertical-align: bottom;" />rcade AI
 
 Arcade AI empowers any developer to seamlessly integrate large language models (LLMs) with real-world systems, enabling secure, user-authenticated interactions with data and services.
 
