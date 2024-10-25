@@ -25,7 +25,7 @@
 
 ## Overview
 
-`arcade-langchain` allows you to use Arcade AI tools in your LangChain and LangGraph applications.
+`langchain-arcade` allows you to use Arcade AI tools in your LangChain and LangGraph applications.
 
 ## Installation
 

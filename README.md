@@ -43,11 +43,11 @@
 
 ## What is Arcade AI?
 
-[Arcade AI](https://arcade-ai.com?ref=github) offers developer-focused tooling and APIs designed to improve the capabilities of LLM applications (like agents).
+[Arcade AI](https://arcade-ai.com?ref=github) offers developer-focused tooling and APIs designed to improve the capabilities of LLM applications and agents.
 
-By providing an authentication and authorization layer for agents and the tools they use, Arcade AI connects agentic applications with your users' data and services - like accessing their gmail, github, zoom, spotify, linkedin, and more.
+By providing an authentication and authorization layer for agents and the tools agents use, Arcade AI connects agentic applications with your users' data and services - like accessing their Gmail, GitHub, Zoom, Spotify, LinkedIn, and more.
 
-For more, check out our [documentation](https://docs.arcade-ai.com).
+To learn more, check out our [documentation](https://docs.arcade-ai.com).
 
 _Pst. hey, you, join our stargazers! It's free!_
 
@@ -59,9 +59,9 @@ _Pst. hey, you, join our stargazers! It's free!_
 
 ### Requirements
 
-1. An **[Arcade AI account](https://arcade-ai.typeform.com/early-access)** (Currently link to join the waitlist)
-2. **Python 3.10+** verify your Python version by running `python --version` or `python3 --version` in your terminal
-3. **pip** the Python package installer that is typically included with Python
+1. An **[Arcade AI account](https://arcade-ai.typeform.com/early-access)** (current a waitlist)
+2. **Python 3.10+**. Verify your Python version by running `python --version` or `python3 --version` in your terminal
+3. **pip**, the Python package installer that is typically included with Python
 
 ### Installation
 
@@ -79,10 +79,9 @@ This will open a browser window to login.
 
 ### Verify Installation using `arcade chat`
 
-The `arcade-ai` package comes with a CLI app called `arcade chat` that is
-used to test tools as you develop them.
+The `arcade-ai` package comes with a CLI app called `arcade chat` that is used to test tools as you develop them.
 
-By default, `arcade chat` will connect to the hosted version of Arcade AI at `api.arcade-ai.com` with the Arcade Cloud hosted tools (found in `toolkits`).
+By default, `arcade chat` will connect to the hosted version of Arcade AI with built-in tools (found in `toolkits`).
 
 ```bash
 arcade chat
@@ -109,9 +108,9 @@ You can use Ctrl-C to exit the chat at any time.
 
 ### Arcade Engine APIs
 
--   **`/auth`**: Generic OAuth2 flow for authorizing agents across many services
--   **`/tools`**: Manage, authorize, and execute tools. Tool-calling where the tool **are actually called**
--   **`/llm`**: An OpenAI-compatible LLM API that enables tool execution with new `tool_choice` options:
+-   **`/auth`**: Generic OAuth 2.0 flow for authorizing agents across many services
+-   **`/tools`**: Manage, authorize, and execute tools. Tool-calling where the tools are **actually called**
+-   **`/chat`**: An OpenAI-compatible LLM API that enables tool execution with new `tool_choice` options:
     1. `tool_choice='execute'`: Return the predicted tool call's output as content in the response
     2. `tool_choice='generate'`: Generate a response informed by predicted tool call(s) execution.
 

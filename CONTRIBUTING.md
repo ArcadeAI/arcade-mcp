@@ -9,7 +9,7 @@ You can contribute in many ways:
 
 ## Report Bugs
 
-Report bugs at https://github.com/spartee/arcade-ai/issues
+Report bugs at https://github.com/ArcadeAI/arcade-ai/issues
 
 If you are reporting a bug, please include:
 
@@ -29,11 +29,11 @@ Anything tagged with "enhancement" and "help wanted" is open to whoever wants to
 
 ## Write Documentation
 
-Cookiecutter PyPackage could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
+Arcade AI could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
 
 ## Submit Feedback
 
-The best way to send feedback is to file an issue at https://github.com/spartee/arcade-ai/issues.
+The best way to send feedback is to file an issue at https://github.com/ArcadeAI/arcade-ai/issues.
 
 If you are proposing a new feature:
 

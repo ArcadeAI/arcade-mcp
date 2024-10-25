@@ -1,7 +1,6 @@
 import os
 
 from arcadepy import Arcade
-from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 from google.oauth2.credentials import Credentials
 from langchain_google_community import GmailToolkit
 from langchain_google_community.gmail.utils import (
@@ -21,16 +20,14 @@ client = Arcade(api_key=api_key)
 # https://developers.google.com/gmail/api/auth/scopes
 user_id = "user@example.com"
 auth_response = client.auth.start(
-    user_id=user_id,
-    provider="google",
-    scopes=["https://www.googleapis.com/auth/gmail.readonly"]
+    user_id=user_id, provider="google", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
 )
 
 # Prompt the user to authorize if not already completed
 if auth_response.status != "completed":
     print("Please authorize the application in your browser:")
     print(auth_response.authorization_url)
-    
+
 # Wait for the user to complete the authorization process, if necessary...
 auth_response = client.auth.wait_for_completion(auth_response)
 

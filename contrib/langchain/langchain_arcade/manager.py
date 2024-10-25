@@ -140,7 +140,7 @@ class ArcadeToolManager:
 
         Example:
             >>> manager = ArcadeToolManager(api_key="...")
-            >>> manager.init_tools(tools=["Searc"])
+            >>> manager.init_tools(toolkits=["Search"])
             >>> manager.is_authorized("auth_123")
         """
         return self.client.auth.status(authorization_id=authorization_id).status == "completed"
