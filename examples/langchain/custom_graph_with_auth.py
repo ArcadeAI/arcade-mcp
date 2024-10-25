@@ -1,3 +1,4 @@
+import os
 import time
 
 # Import necessary classes and modules
@@ -8,13 +9,19 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 
+arcade_api_key = os.environ["ARCADE_API_KEY"]
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
 # Initialize the tool manager and fetch tools compatible with langgraph
-tool_manager = ArcadeToolManager()
-tools = tool_manager.get_tools(langgraph=True)
+tool_manager = ArcadeToolManager(api_key=arcade_api_key)
+tools = tool_manager.get_tools(
+    toolkits=["Github"],
+    langgraph=True,  # use langgraph-specific behavior
+)
 tool_node = ToolNode(tools)
 
 # Create a language model instance and bind it with the tools
-model = ChatOpenAI(model="gpt-4o")
+model = ChatOpenAI(model="gpt-4o", api_key=openai_api_key)
 model_with_tools = model.bind_tools(tools)
 
 
@@ -84,7 +91,7 @@ inputs = {
 config = {
     "configurable": {
         "thread_id": "4",
-        "user_id": "sam@arcade-ai.com",
+        "user_id": "user@example.com",
     }
 }
 

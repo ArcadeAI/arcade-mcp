@@ -13,10 +13,17 @@ prompt = hub.pull("hwchase17/openai-functions-agent")
 
 # Get all the tools available in Arcade
 manager = ArcadeToolManager(api_key=arcade_api_key)
-tools = manager.get_tools(langgraph=False)
 
-# specify which Arcade tools to use
-tools = manager.get_tools(tools=["Search.SearchGoogle"])
+# Tool names follow the format "ToolkitName.ToolName"
+tools = manager.get_tools(tools=["Web.ScrapeUrl"])
+print(manager.tools)
+
+# clear and init new tools from a toolkit
+manager.init_tools(toolkits=["Search"])
+print(manager.tools)
+# get more tools
+tools = manager.get_tools(toolkits=["Math"])
+print(manager.tools)
 
 # init the LLM
 llm = ChatOpenAI(api_key=openai_api_key)
@@ -25,5 +32,6 @@ llm = ChatOpenAI(api_key=openai_api_key)
 agent = create_openai_functions_agent(llm, tools, prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-# Execute using agent_executor
+# Try a few examples
 agent_executor.invoke({"input": "Lookup Seymour Cray on Google"})
+agent_executor.invoke({"input": "What is 1234567890 * 9876543210?"})

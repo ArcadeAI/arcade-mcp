@@ -1,16 +1,21 @@
+import os
+
 # Import necessary modules and classes
 from langchain_arcade import ArcadeToolManager
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
+arcade_api_key = os.environ["ARCADE_API_KEY"]
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
 # Initialize the tool manager that fetches
 # tools from arcade and wraps them as langgraph tools
-tool_manager = ArcadeToolManager()
+tool_manager = ArcadeToolManager(api_key=arcade_api_key)
 tools = tool_manager.get_tools(langgraph=True)
 
 # Create an instance of the AI language model
-model = ChatOpenAI(model="gpt-4o")
+model = ChatOpenAI(model="gpt-4o", api_key=openai_api_key)
 
 # Init a prebuilt agent that can use tools
 # in a REACT style langgraph
@@ -25,7 +30,7 @@ inputs = {
 config = {
     "configurable": {
         "thread_id": "2",
-        "user_id": "sam@arcade-ai.com",
+        "user_id": "user@example.com",
     }
 }
 

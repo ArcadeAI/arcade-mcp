@@ -1,53 +1,72 @@
+import os
 import time
 
-from langchain_arcade import ArcadeToolkit
+from configuration import AgentConfigurable
+from langchain_arcade import ArcadeToolManager
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
-from studio.configuration import AgentConfigurable
 
-# Initialize the Arcade Toolkit with tools
-toolkit = ArcadeToolkit()
+# Initialize the Arcade Tool Manager with your API key
+arcade_api_key = os.getenv("ARCADE_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+toolkit = ArcadeToolManager(api_key=arcade_api_key)
+# Retrieve tools compatible with LangGraph
 tools = toolkit.get_tools(langgraph=True)
 tool_node = ToolNode(tools)
 
-# Define the model
-model = ChatOpenAI(model="gpt-4o")
+# Initialize the language model with your OpenAI API key
+model = ChatOpenAI(model="gpt-4o", api_key=openai_api_key)
+# make the model aware of the tools
 model_with_tools = model.bind_tools(tools)
 
 
-# Define the agent node
+# Define the agent function that invokes the model
 def call_agent(state):
     messages = state["messages"]
     response = model_with_tools.invoke(messages)
-    return {"messages": [response]}
+    # Return the updated message history
+    return {"messages": [*messages, response]}
 
 
+# Function to determine the next step based on the model's response
 def should_continue(state: MessagesState):
-    messages = state["messages"]
-    last_message = messages[-1]
+    last_message = state["messages"][-1]
     if last_message.tool_calls:
-        if toolkit.requires_auth(last_message.tool_calls[0]["name"]):
+        tool_name = last_message.tool_calls[0]["name"]
+        if toolkit.requires_auth(tool_name):
+            # If the tool requires authorization, proceed to the authorization step
             return "authorization"
         else:
+            # If no authorization is needed, proceed to execute the tool
             return "tools"
+    # If no tool calls are present, end the workflow
     return END
 
 
+# Function to handle tool authorization
 def authorize(state: MessagesState, config: dict):
     user_id = config["configurable"].get("user_id")
     tool_name = state["messages"][-1].tool_calls[0]["name"]
     auth_response = toolkit.authorize(tool_name, user_id)
+
     if auth_response.status == "completed":
-        return {"messages": state["messages"][-1]}
+        # Authorization is complete; proceed to the next step
+        return {"messages": state["messages"]}
     else:
-        print(f"Visit the following URL to authorize: {auth_response.authorization_url}")
+        # Prompt the user to complete authorization
+        print("Please authorize the application in your browser:")
+        print(auth_response.authorization_url)
+        input("Press Enter after completing authorization...")
+
+        # Poll for authorization status
         while not toolkit.is_authorized(auth_response.authorization_id):
             time.sleep(3)
-        return {"messages": state["messages"][-1]}
+        return {"messages": state["messages"]}
 
 
-# Build the graph
+# Build the workflow graph
 workflow = StateGraph(MessagesState, AgentConfigurable)
 
 # Add nodes to the graph

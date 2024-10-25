@@ -41,13 +41,13 @@
     <a href="https://github.com/ArcadeAI/arcade-js" target="_blank">JavaScript Client</a>
 </p>
 
-# <img src="https://docs.arcade-ai.com/images/logo/arcadeai-title-dark.png" alt="" width="139.98" height="27.84" style="vertical-align: bottom;" />
-
-Arcade AI empowers any developer to seamlessly integrate large language models (LLMs) with real-world systems, enabling secure, user-authenticated interactions with data and services.
-
 ## What is Arcade AI?
 
-[Arcade AI](https://arcade-ai.com?ref=github) bridges the gap between powerful AI models and practical applications by making it easy for developers to build tools that perform real-world actions on behalf of users. With Arcade AI, unlock the true potential of AI in your applications. Check out our [documentation](https://docs.arcade-ai.com).
+[Arcade AI](https://arcade-ai.com?ref=github) offers developer-focused tooling and APIs designed to improve the capabilities of LLM applications (like agents).
+
+By providing an authentication and authorization layer for agents and the tools they use, Arcade AI connects agentic applications with your users' data and services - like accessing their gmail, github, zoom, spotify, linkedin, and more.
+
+For more, check out our [documentation](https://docs.arcade-ai.com).
 
 _Pst. hey, you, join our stargazers! It's free!_
 
@@ -55,12 +55,11 @@ _Pst. hey, you, join our stargazers! It's free!_
   <img src="https://img.shields.io/github/stars/arcadeai/arcade-ai.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
 </a>
 
-## How to use it?
-
-We provide a hosted version of Arcade AI that you can use immediately.
+## Quickstart
 
 ### Requirements
-1. A free **[Arcade AI account](https://arcade-ai.com/signup)**
+
+1. An **[Arcade AI account](https://arcade-ai.typeform.com/early-access)** (Currently link to join the waitlist)
 2. **Python 3.10+** verify your Python version by running `python --version` or `python3 --version` in your terminal
 3. **pip** the Python package installer that is typically included with Python
 
@@ -70,11 +69,20 @@ We provide a hosted version of Arcade AI that you can use immediately.
 pip install 'arcade-ai[fastapi]'
 ```
 
+Then login to your account (we're working through the waitlist as fast as we can!)
+
 ```bash
 arcade login
 ```
 
-### Verify Installation
+This will open a browser window to login.
+
+### Verify Installation using `arcade chat`
+
+The `arcade-ai` package comes with a CLI app called `arcade chat` that is
+used to test tools as you develop them.
+
+By default, `arcade chat` will connect to the hosted version of Arcade AI at `api.arcade-ai.com` with the Arcade Cloud hosted tools (found in `toolkits`).
 
 ```bash
 arcade chat
@@ -99,23 +107,24 @@ I starred the ArcadeAI/arcade-ai repo on Github for you!
 
 You can use Ctrl-C to exit the chat at any time.
 
+### Arcade Engine APIs
 
-## Features
-Arcade AI integrates with a variety of services to provide a seamless experience for developers and users.
+-   **`/auth`**: Generic OAuth2 flow for authorizing agents across many services
+-   **`/tools`**: Manage, authorize, and execute tools. Tool-calling where the tool **are actually called**
+-   **`/llm`**: An OpenAI-compatible LLM API that enables tool execution with new `tool_choice` options:
+    1. `tool_choice='execute'`: Return the predicted tool call's output as content in the response
+    2. `tool_choice='generate'`: Generate a response informed by predicted tool call(s) execution.
 
-1. **Hosted Tools**: Arcade AI offers a number of prebuilt toolkits that are ready to use out of the box. These toolkits can be used to interact with a variety of services.
-1. **Custom Tools**: Developers can build their own tools to integrate with Arcade AI.
-1. **Auth Providers**: Arcade AI integrates with a variety of auth providers to enable users to seamlessly and securely allow Arcade AI tools to access their data.
+See the full API spec [here](https://reference.arcade-ai.com).
 
+### Arcade Cloud Engine
 
-You can find all of Arcade AI's capabilities and how to use them in our [documentation](https://docs.arcade-ai.com).
-
-### Arcade AI Hosted Tools
 <img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/gmail.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_calendar.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_docs.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_drive.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/serpapi.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/web.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" />
 <br><br>
 Arcade AI offers a number of prebuilt toolkits that can be used to interact with a variety of services.
 
 #### Calling tools directly
+
 ```python
 from arcadepy import Arcade
 
@@ -145,6 +154,7 @@ print(response)
 ```
 
 #### Calling tools with the LLM API
+
 ```python
 import os
 from openai import OpenAI
@@ -182,6 +192,7 @@ Arcade AI enables you to evaluate your custom tools to ensure they function corr
 Learn how to evaluate your tools by following our [evaluating tools guide](https://docs.arcade-ai.com/home/evaluate-tools/create-an-evaluation-suite).
 
 ### Auth
+
 <img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/linkedin.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/msft.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/spotify.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/zoom.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/oauth2.png" alt="" width="30" height="30" style="vertical-align: top;" />
 <br><br>
 
@@ -192,6 +203,7 @@ Learn how to use Arcade AI's auth providers to enable tools and agents to call o
 To see all available auth providers, refer to the [auth providers documentation](https://docs.arcade-ai.com/integrations).
 
 ### Models
+
 <img src="https://docs.arcade-ai.com/images/icons/openai.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/anthropic.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/ollama.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/groq.png" alt="" width="30" height="30" style="vertical-align: top;" />
 <br><br>
 Arcade AI supports a variety of model providers when using the Arcade AI LLM API.

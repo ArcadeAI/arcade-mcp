@@ -1,6 +1,6 @@
 from typing import Any, Callable
 
-from arcadepy import Arcade
+from arcadepy import NOT_GIVEN, Arcade
 from arcadepy.types.shared import ToolDefinition
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import StructuredTool
@@ -13,7 +13,6 @@ try:
 except ImportError:
     LANGGRAPH_ENABLED = False
 
-# Mapping of Arcade value types to Python types
 # Mapping of Arcade value types to Python types
 TYPE_MAPPING = {
     "string": str,
@@ -34,7 +33,10 @@ def get_python_type(val_type: str) -> Any:
     Returns:
         Corresponding Python type.
     """
-    return TYPE_MAPPING.get(val_type, Any)
+    _type = TYPE_MAPPING.get(val_type)
+    if _type is None:
+        raise ValueError(f"Invalid value type: {val_type}")
+    return _type
 
 
 def tool_definition_to_pydantic_model(tool_def: ToolDefinition) -> type[BaseModel]:
@@ -46,19 +48,24 @@ def tool_definition_to_pydantic_model(tool_def: ToolDefinition) -> type[BaseMode
     Returns:
         A Pydantic BaseModel class representing the tool's input schema.
     """
-    fields: dict[str, Any] = {}
-    for param in tool_def.inputs.parameters:
-        param_type = get_python_type(param.value_schema.val_type)
-        if param_type == list:  # type: ignore[type-comparison]  # noqa: E721
-            inner_type = get_python_type(param.value_schema.inner_val_type)
-            param_type = list[inner_type]
-        param_description = param.description or "No description provided."
-        default = ... if param.required else None
-        fields[param.name] = (
-            param_type,
-            Field(default=default, description=param_description),
+    try:
+        fields: dict[str, Any] = {}
+        for param in tool_def.inputs.parameters or []:
+            param_type = get_python_type(param.value_schema.val_type)
+            if param_type == list and param.value_schema.inner_val_type:  # noqa: E721
+                inner_type: type[Any] = get_python_type(param.value_schema.inner_val_type)
+                param_type = list[inner_type]  # type: ignore[valid-type]
+            param_description = param.description or "No description provided."
+            default = ... if param.required else None
+            fields[param.name] = (
+                param_type,
+                Field(default=default, description=param_description),
+            )
+        return create_model(f"{tool_def.name}Args", **fields)
+    except ValueError as e:
+        raise ValueError(
+            f"Error converting {tool_def.name} parameters into pydantic model for langchain: {e}"
         )
-    return create_model(f"{tool_def.name}Args", **fields)
 
 
 def create_tool_function(
@@ -83,7 +90,9 @@ def create_tool_function(
     if langgraph and not LANGGRAPH_ENABLED:
         raise ImportError("LangGraph is not installed. Please install it to use this feature.")
 
-    requires_authorization = tool_def.requirements.authorization is not None
+    requires_authorization = (
+        tool_def.requirements is not None and tool_def.requirements.authorization is not None
+    )
 
     def tool_function(config: RunnableConfig, **kwargs: Any) -> Any:
         """Execute the Arcade tool with the given parameters.
@@ -116,11 +125,15 @@ def create_tool_function(
                 return {"error": auth_message}
 
         # Execute the tool with provided inputs
-        execute_response = client.tools.execute(tool_name=tool_name, inputs=kwargs, user_id=user_id)
+        execute_response = client.tools.execute(
+            tool_name=tool_name,
+            inputs=kwargs,
+            user_id=user_id if user_id is not None else NOT_GIVEN,
+        )
 
         if execute_response.success:
-            return execute_response.output.value
-        error_message = execute_response.output.error
+            return execute_response.output.value  # type: ignore[union-attr]
+        error_message = str(execute_response.output.error)  # type: ignore[union-attr]
         if langgraph:
             raise NodeInterrupt(error_message)
         return {"error": error_message}
