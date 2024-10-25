@@ -49,7 +49,7 @@ Arcade AI empowers any developer to seamlessly integrate large language models (
 
 [Arcade AI](https://arcade-ai.com?ref=github) bridges the gap between powerful AI models and practical applications by making it easy for developers to build tools that perform real-world actions on behalf of users. With Arcade AI, unlock the true potential of AI in your applications. Check out our [documentation](https://docs.arcade-ai.com).
 
-_Pst. hey, you, join our stargazers! It's free.99 to show your support :)_
+_Pst. hey, you, join our stargazers! It's free!_
 
 <a href="https://github.com/arcadeai/arcade-ai">
   <img src="https://img.shields.io/github/stars/arcadeai/arcade-ai.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
