@@ -172,7 +172,8 @@ class ArcadeToolManager:
                     all_tools.extend(self.client.tools.list(toolkit=tk))
         else:
             # retrieve all tools
-            all_tools = self.client.tools.list().items
+            page_iterator = self.client.tools.list()
+            all_tools.extend(page_iterator)
 
         tool_definitions: dict[str, ToolDefinition] = {}
 
