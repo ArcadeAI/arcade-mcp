@@ -60,7 +60,7 @@ _Pst. hey, you, join our stargazers! It's free!_
 We provide a hosted version of Arcade AI that you can use immediately.
 
 ### Requirements
-1. **A free [Arcade AI account](https://arcade-ai.com/signup)**
+1. A free **[Arcade AI account](https://arcade-ai.com/signup)**
 2. **Python 3.10+** verify your Python version by running `python --version` or `python3 --version` in your terminal
 3. **pip** the Python package installer that is typically included with Python
 
