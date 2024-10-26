@@ -106,79 +106,141 @@ I starred the ArcadeAI/arcade-ai repo on Github for you!
 
 You can use Ctrl-C to exit the chat at any time.
 
-### Arcade Engine APIs
+## Arcade Cloud
 
--   **`/auth`**: Generic OAuth 2.0 flow for authorizing agents across many services
--   **`/tools`**: Manage, authorize, and execute tools. Tool-calling where the tools are **actually called**
--   **`/chat`**: An OpenAI-compatible LLM API that enables tool execution with new `tool_choice` options:
-    1. `tool_choice='execute'`: Return the predicted tool call's output as content in the response
-    2. `tool_choice='generate'`: Generate a response informed by predicted tool call(s) execution.
+Arcade Cloud is a hosted version of the Arcade AI engine that hosts a number of prebuilt toolkits for interacting with a variety of services.
 
-See the full API spec [here](https://reference.arcade-ai.com).
+### Prebuilt Toolkits
 
-### Arcade Cloud Engine
+Arcade AI offers a number of prebuilt toolkits that can be used by agents to interact with a variety of services.
 
-<img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/gmail.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_calendar.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_docs.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google_drive.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/serpapi.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/web.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" />
-<br><br>
-Arcade AI offers a number of prebuilt toolkits that can be used to interact with a variety of services.
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center;">Service</th>
+      <th style="text-align: center;">Auth Type</th>
+      <th style="text-align: center;">Toolkit</th>
+      <th style="text-align: center;">Documentation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/github.png" alt="GitHub" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/github">Github</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/github">GitHub Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/gmail.png" alt="Gmail" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/gmail">Google</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/gmail">Gmail Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_calendar.png" alt="Google Calendar" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/calendar">Google</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/calendar">Google Calendar Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_docs.png" alt="Google Docs" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/docs">Google</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/docs">Google Docs Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_drive.png" alt="Google Drive" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/drive">Google</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/drive">Google Drive Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/serpapi.png" alt="Search" width="30" /></td>
+      <td style="text-align: center;">API Key</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/search">Search</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/search">Search Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="Slack" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/slack">Slack</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/slack">Slack Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/web.png" alt="Web" width="30" /></td>
+      <td style="text-align: center;">API Key</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/web">Web</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/web">Web Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="Twitter" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/x">X</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/X">X Toolkit Docs</a></td>
+    </tr>
+  </tbody>
+</table>
 
-#### Calling tools directly
+<br>
 
-```python
-from arcadepy import Arcade
+### Supported Auth Providers
 
-client = Arcade()
-
-USER_ID = "you@example.com"
-TOOL_NAME = "Github.SetStarred"
-
-# Perform User Authorization
-auth_response = client.tools.authorize(
-    tool_name=TOOL_NAME,
-    user_id=USER_ID,
-)
-if auth_response.status != "completed":
-    print(f"Click this link to authorize: {auth_response.auth_url}")
-    input("After you have authorized, press Enter to continue...")
-
-# Run the tool
-inputs = {"owner": "ArcadeAI", "name": "Hello-World", "starred": True}
-response = client.tools.run(
-    tool_name=TOOL_NAME,
-    inputs=inputs,
-    user_id=USER_ID,
-)
-print(response)
-
-```
-
-#### Calling tools with the LLM API
-
-```python
-import os
-from openai import OpenAI
-
-USER_ID = "you@example.com"
-PROMPT = "Star the ArcadeAI/arcade-ai repository."
-TOOL_NAME = "Github.SetStarred"
-# Use "generate" to have the LLM generate a response after the tool executes. Use 'execute' to get the tool's output directly.
-TOOL_CHOICE = "generate"
-
-client = OpenAI(
-    base_url="https://api.arcade-ai.com",
-    api_key=os.environ.get("ARCADE_API_KEY"))
-
-response = client.chat.completions.create(
-    messages=[
-        {"role": "user", "content": PROMPT},
-    ],
-    model="gpt-4o-mini",
-    user=USER_ID,
-    tools=[TOOL_NAME],
-    tool_choice=TOOL_CHOICE,
-)
-print(response.choices[0].message.content)
-```
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center;">Provider</th>
+      <th style="text-align: center;">Name</th>
+      <th style="text-align: center;">Documentation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/github.png" alt="GitHub" width="30" /></td>
+      <td style="text-align: center;">github</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/github">GitHub Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google.png" alt="Google" width="30" /></td>
+      <td style="text-align: center;">google</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/google">Google Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/linkedin.png" alt="LinkedIn" width="30" /></td>
+      <td style="text-align: center;">linkedin</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/linkedin">LinkedIn Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/msft.png" alt="Microsoft" width="30" /></td>
+      <td style="text-align: center;">microsoft</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/microsoft">Microsoft Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="Slack" width="30" /></td>
+      <td style="text-align: center;">slack</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/slack">Slack Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/spotify.png" alt="Spotify" width="30" /></td>
+      <td style="text-align: center;">spotify</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/spotify">Spotify Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="X" width="30" /></td>
+      <td style="text-align: center;">x</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/X">X Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/zoom.png" alt="Zoom" width="30" /></td>
+      <td style="text-align: center;">zoom</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/zoom">Zoom Auth Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/oauth2.png" alt="OAuth 2.0" width="30" /></td>
+      <td style="text-align: center;">oauth2</td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/oauth-2.0">Generic OAuth2 Auth Docs</a></td>
+    </tr>
+  </tbody>
+</table>
 
 ### Building Your Own Tools
 
@@ -189,17 +251,6 @@ Learn how to build your own tools by following our [creating a custom toolkit gu
 Arcade AI enables you to evaluate your custom tools to ensure they function correctly with the AI assistant, including defining evaluation cases and using different critics.
 
 Learn how to evaluate your tools by following our [evaluating tools guide](https://docs.arcade-ai.com/home/evaluate-tools/create-an-evaluation-suite).
-
-### Auth
-
-<img src="https://docs.arcade-ai.com/images/icons/github.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/google.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/linkedin.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/msft.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/slack.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/spotify.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/zoom.png" alt="" width="30" height="30" style="vertical-align: top;" /><img src="https://docs.arcade-ai.com/images/icons/oauth2.png" alt="" width="30" height="30" style="vertical-align: top;" />
-<br><br>
-
-Learn how to use Arcade AI to obtain user authorization for accessing third-party services in our [authorizing agents with Arcade AI guide](https://docs.arcade-ai.com/home/get-a-token-for-a-user).
-
-Learn how to use Arcade AI's auth providers to enable tools and agents to call other services on behalf of users in our [tools with auth guide](https://docs.arcade-ai.com/home/build-tools/create-a-tool-with-auth).
-
-To see all available auth providers, refer to the [auth providers documentation](https://docs.arcade-ai.com/integrations).
 
 ### Models
 
