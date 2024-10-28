@@ -1,5 +1,5 @@
 import arcade_github
-from arcade_github.tools.activity import set_starred
+from arcade_github.tools.activity import list_stargazers, set_starred
 
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
@@ -68,6 +68,46 @@ def github_activity_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="owner", weight=0.3),
             BinaryCritic(critic_field="name", weight=0.3),
             BinaryCritic(critic_field="starred", weight=0.4),
+        ],
+    )
+
+    suite.add_case(
+        name="List stargazers for a repository",
+        user_message="List 42 stargazers for the ArcadeAI/arcade-ai repository.",
+        expected_tool_calls=[
+            (
+                list_stargazers,
+                {
+                    "owner": "ArcadeAI",
+                    "repo": "arcade-ai",
+                    "limit": 42,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="owner", weight=0.3),
+            BinaryCritic(critic_field="repo", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.4),
+        ],
+    )
+
+    suite.add_case(
+        name="List stargazers for a repository",
+        user_message="List all of the stargazers for the ArcadeAI/arcade-ai repo",
+        expected_tool_calls=[
+            (
+                list_stargazers,
+                {
+                    "owner": "ArcadeAI",
+                    "repo": "arcade-ai",
+                    "limit": None,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="owner", weight=0.3),
+            BinaryCritic(critic_field="repo", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.4),
         ],
     )
 
