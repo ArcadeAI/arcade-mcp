@@ -125,31 +125,31 @@ Arcade AI offers a number of prebuilt toolkits that can be used by agents to int
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/github.png" alt="GitHub" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/github">Github</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/github">GitHub Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Github/github">GitHub Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/gmail.png" alt="Gmail" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/gmail">Google</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/gmail">Gmail Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Google/gmail">Gmail Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_calendar.png" alt="Google Calendar" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/calendar">Google</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/calendar">Google Calendar Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Google/calendar">Google Calendar Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_docs.png" alt="Google Docs" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/docs">Google</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/docs">Google Docs Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Google/docs">Google Docs Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/google_drive.png" alt="Google Drive" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/google/arcade_google/tools/drive">Google</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/google/drive">Google Drive Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Google/drive">Google Drive Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/serpapi.png" alt="Search" width="30" /></td>
@@ -167,13 +167,13 @@ Arcade AI offers a number of prebuilt toolkits that can be used by agents to int
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/web.png" alt="Web" width="30" /></td>
       <td style="text-align: center;">API Key</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/web">Web</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/web">Web Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Web/web">Web Toolkit Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="Twitter" width="30" /></td>
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/x">X</a></td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/X">X Toolkit Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/x">X Toolkit Docs</a></td>
     </tr>
   </tbody>
 </table>
@@ -224,7 +224,7 @@ Arcade AI offers a number of prebuilt toolkits that can be used by agents to int
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/twitter.png" alt="X" width="30" /></td>
       <td style="text-align: center;">x</td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/X">X Auth Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/x">X Auth Docs</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/zoom.png" alt="Zoom" width="30" /></td>
@@ -234,7 +234,7 @@ Arcade AI offers a number of prebuilt toolkits that can be used by agents to int
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/oauth2.png" alt="OAuth 2.0" width="30" /></td>
       <td style="text-align: center;">oauth2</td>
-      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/oauth-2.0">Generic OAuth2 Auth Docs</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/auth/oauth2">Generic OAuth2 Auth Docs</a></td>
     </tr>
   </tbody>
 </table>
@@ -295,7 +295,7 @@ For more information, refer to the [models documentation](https://docs.arcade-ai
 
 ### Building Your Own Tools
 
-Learn how to build your own tools by following our [creating a custom toolkit guide](https://docs.arcade-ai.com/tools/overview).
+Learn how to build your own tools by following our [creating a custom toolkit guide](https://docs.arcade-ai.com/home/build-tools/create-a-toolkit).
 
 ### Evaluating Tools
 
