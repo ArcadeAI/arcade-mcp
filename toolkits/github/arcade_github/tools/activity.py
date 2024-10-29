@@ -56,7 +56,7 @@ async def list_stargazers(
     url = get_url("repo_stargazers", owner=owner, repo=repo)
     headers = get_github_json_headers(context.authorization.token)
 
-    per_page = 30
+    per_page = min(limit, 100)
     page = 1
     stargazers = []
 
