@@ -10,4 +10,5 @@ ENDPOINTS = {
     "player_seek_to_position": "/me/player/seek",
     "tracks_get_track": "/tracks/{track_id}",
     "tracks_get_recommendations": "/recommendations",
+    "tracks_get_audio_features": "/audio-features",
 }

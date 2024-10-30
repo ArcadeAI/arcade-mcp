@@ -23,7 +23,7 @@ async def adjust_playback_position(
         "The relative position from the current playback position in milliseconds to seek to",
     ] = None,
 ) -> Annotated[dict, "The updated playback state"]:
-    """Adjust the playback position within the current track.
+    """Adjust the playback position within the currently playing track.
 
     Knowledge of the current playback state is NOT needed to use this tool as it handles
     clamping the position to valid start/end boundaries to prevent overshooting or negative values.
@@ -91,7 +91,7 @@ async def skip_to_previous_track(
 async def skip_to_next_track(
     context: ToolContext,
 ) -> Annotated[dict, "The updated playback state"]:
-    """Skip to the next track, if any"""
+    """Skip to the next track in the user's queue, if any"""
     url = get_url("player_skip_to_next")
 
     response = await send_spotify_request(context, "POST", url)
@@ -169,7 +169,7 @@ async def resume_playback(
         scopes=["user-read-playback-state", "user-modify-playback-state"],
     )
 )
-async def start_track_playback(
+async def start_tracks_playback_by_id(
     context: ToolContext,
     track_ids: Annotated[
         list[str],
