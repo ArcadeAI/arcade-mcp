@@ -5,16 +5,20 @@ from typing import Optional
 @dataclass
 class PlaybackState:
     is_playing: Optional[bool] = None
-    progress_ms: Optional[int] = None  # Progress into the currently playing track or episode
-    device_name: Optional[str] = None  # A human-readable name for the device, e.g., "iPhone"
-    device_id: Optional[str] = None  # The device ID
+    progress_ms: Optional[int] = (
+        None  # Progress into the currently playing track or episode in milliseconds
+    )
+    device_name: Optional[str] = None
+    device_id: Optional[str] = None
     currently_playing_type: Optional[str] = None
+    album_id: Optional[str] = None
     album_name: Optional[str] = None
     album_artists: list[str] = field(default_factory=list)
     album_spotify_url: Optional[str] = None
+    track_id: Optional[str] = None
     track_name: Optional[str] = None
     track_artists: list[str] = field(default_factory=list)
-    show_name: Optional[str] = None
+    show_id: Optional[str] = None
     show_spotify_url: Optional[str] = None
     episode_name: Optional[str] = None
     episode_spotify_url: Optional[str] = None

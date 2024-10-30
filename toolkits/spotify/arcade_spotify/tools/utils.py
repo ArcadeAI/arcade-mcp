@@ -108,16 +108,20 @@ def convert_to_playback_state(data: dict) -> PlaybackState:
         item = data.get("item", {})
         album = item.get("album", {})
         playback_state.album_name = album.get("name")
+        playback_state.album_id = album.get("id")
         playback_state.album_artists = [artist.get("name") for artist in album.get("artists", [])]
         playback_state.album_spotify_url = album.get("external_urls", {}).get("spotify")
         playback_state.track_name = item.get("name")
+        playback_state.track_id = item.get("id")
         playback_state.track_artists = [artist.get("name") for artist in item.get("artists", [])]
     elif data.get("currently_playing_type") == "episode":
         item = data.get("item", {})
         show = item.get("show", {})
         playback_state.show_name = show.get("name")
+        playback_state.show_id = show.get("id")
         playback_state.show_spotify_url = show.get("external_urls", {}).get("spotify")
         playback_state.episode_name = item.get("name")
+        playback_state.episode_id = item.get("id")
         playback_state.episode_spotify_url = item.get("external_urls", {}).get("spotify")
 
     return playback_state
