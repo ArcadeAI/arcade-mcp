@@ -1,7 +1,6 @@
 import httpx
 
 from arcade.core.schema import ToolContext
-from arcade.sdk.errors import ToolExecutionError
 from arcade_spotify.tools.constants import ENDPOINTS, SPOTIFY_BASE_URL
 from arcade_spotify.tools.models import PlaybackState
 
@@ -35,35 +34,6 @@ async def send_spotify_request(
         response = await client.request(method, url, headers=headers, params=params, json=json_data)
 
     return response
-
-
-def handle_spotify_response(response: httpx.Response, url: str):
-    """Handle Spotify API response
-
-    Raise the appropriate exceptions for non-200 status codes.
-
-    Args:
-        response: The response object from the API request.
-        url: The URL of the API endpoint.
-
-    Raises:
-        ToolExecutionError: If the response contains an error status code.
-    """
-    if 200 <= response.status_code < 300:
-        return
-
-    error_messages = {
-        401: "Unauthorized: Invalid or expired token",
-        403: "Forbidden: User does not have Spotify Premium, or wrong consumer key, bad nonce, expired timestamp, etc.",
-        429: "Too Many Requests: Rate limit exceeded",
-    }
-
-    error_message = error_messages.get(
-        response.status_code,
-        f"Failed to process request: {response.text}. Status code: {response.status_code}",
-    )
-
-    raise ToolExecutionError(f"Error accessing '{url}': {error_message}")
 
 
 def handle_404_playback_state(response, message, is_playing: bool) -> dict | None:

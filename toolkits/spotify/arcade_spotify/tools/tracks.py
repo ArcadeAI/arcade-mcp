@@ -4,7 +4,6 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
 from arcade_spotify.tools.utils import (
     get_url,
-    handle_spotify_response,
     send_spotify_request,
 )
 
@@ -18,7 +17,7 @@ async def get_track_from_id(
     url = get_url("tracks_get_track", track_id=track_id)
 
     response = await send_spotify_request(context, "GET", url)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
     return response.json()
 
 
@@ -92,7 +91,9 @@ async def get_recommendations(
         "The target valence of the recommended tracks (between 0 and 1)",
     ] = None,
 ) -> Annotated[dict, "A list of recommended tracks"]:
-    """Get track (song) recommendations based on seed artists, genres, and tracks"""
+    """Get track (song) recommendations based on seed artists, genres, and tracks
+    If a provided target value is outside of the expected range, it will clamp to the nearest valid value.
+    """
     url = get_url("tracks_get_recommendations")
     params = {
         "seed_artists": seed_artists,
@@ -117,7 +118,7 @@ async def get_recommendations(
     params = {k: v for k, v in params.items() if v is not None}
 
     response = await send_spotify_request(context, "GET", url, params=params)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
     return response.json()
 
 
@@ -131,5 +132,5 @@ async def get_tracks_audio_features(
     params = {"ids": ",".join(track_ids)}
 
     response = await send_spotify_request(context, "GET", url, params=params)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
     return response.json()

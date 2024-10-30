@@ -2,11 +2,11 @@ from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
+from arcade.sdk.errors import RetryableToolError
 from arcade_spotify.tools.utils import (
     convert_to_playback_state,
     get_url,
     handle_404_playback_state,
-    handle_spotify_response,
     send_spotify_request,
 )
 
@@ -36,8 +36,10 @@ async def adjust_playback_position(
         Either absolute_position_ms or relative_position_ms must be provided, but not both.
     """
     if (absolute_position_ms is None) == (relative_position_ms is None):
-        raise ValueError(
-            "Either absolute_position_ms or relative_position_ms must be provided, but not both"
+        raise RetryableToolError(
+            "Either absolute_position_ms or relative_position_ms must be provided, but not both",
+            additional_prompt_content="Provide a value for either absolute_position_ms or relative_position_ms, but not both.",
+            retry_after_ms=500,
         )
 
     if relative_position_ms is not None:
@@ -59,7 +61,7 @@ async def adjust_playback_position(
     if playback_state:
         return playback_state
 
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state = await get_playback_state(context)
     return playback_state
@@ -79,7 +81,7 @@ async def skip_to_previous_track(
     if playback_state:
         return playback_state
 
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state = await get_playback_state(context)
 
@@ -100,7 +102,7 @@ async def skip_to_next_track(
     if playback_state:
         return playback_state
 
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state = await get_playback_state(context)
 
@@ -127,7 +129,7 @@ async def pause_playback(
     url = get_url("player_pause_playback")
 
     response = await send_spotify_request(context, "PUT", url)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state["is_playing"] = False
     return playback_state
@@ -157,7 +159,7 @@ async def resume_playback(
     url = get_url("player_modify_playback")
 
     response = await send_spotify_request(context, "PUT", url)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state["is_playing"] = True
     return playback_state
@@ -188,7 +190,7 @@ async def start_tracks_playback_by_id(
     }
 
     response = await send_spotify_request(context, "PUT", url, json_data=body)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
 
     playback_state = await get_playback_state(context)
     return playback_state
@@ -204,7 +206,7 @@ async def get_playback_state(
     """
     url = get_url("player_get_playback_state")
     response = await send_spotify_request(context, "GET", url)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
     data = {"is_playing": False} if response.status_code == 204 else response.json()
     return convert_to_playback_state(data).to_dict()
 
@@ -216,6 +218,6 @@ async def get_currently_playing(
     """Get information about the user's currently playing track"""
     url = get_url("player_get_currently_playing")
     response = await send_spotify_request(context, "GET", url)
-    handle_spotify_response(response, url)
+    response.raise_for_status()
     data = {"is_playing": False} if response.status_code == 204 else response.json()
     return convert_to_playback_state(data).to_dict()
