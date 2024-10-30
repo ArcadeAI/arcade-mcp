@@ -32,13 +32,7 @@ async def send_spotify_request(
     headers = {"Authorization": f"Bearer {context.authorization.token}"}
 
     async with httpx.AsyncClient() as client:
-        try:
-            response = await client.request(
-                method, url, headers=headers, params=params, json=json_data
-            )
-            response.raise_for_status()
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to send request to Spotify API: {e}")
+        response = await client.request(method, url, headers=headers, params=params, json=json_data)
 
     return response
 
@@ -72,6 +66,14 @@ def handle_spotify_response(response: httpx.Response, url: str):
     raise ToolExecutionError(f"Error accessing '{url}': {error_message}")
 
 
+def handle_404_playback_state(response, message, is_playing: bool) -> dict | None:
+    if response.status_code == 404:
+        return convert_to_playback_state({
+            "is_playing": is_playing,
+            "message": message,
+        }).to_dict()
+
+
 def get_url(endpoint: str, **kwargs) -> str:
     """
     Get the full Spotify URL for a given endpoint.
@@ -98,6 +100,8 @@ def convert_to_playback_state(data: dict) -> PlaybackState:
         device_id=data.get("device", {}).get("id"),
         currently_playing_type=data.get("currently_playing_type"),
         is_playing=data.get("is_playing"),
+        progress_ms=data.get("progress_ms"),
+        message=data.get("message"),
     )
 
     if data.get("currently_playing_type") == "track":
