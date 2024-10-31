@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import httpx
 
@@ -38,3 +38,56 @@ async def set_starred(
 
     action = "starred" if starred else "unstarred"
     return f"Successfully {action} the repository {owner}/{name}"
+
+
+# Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#list-stargazers
+# Example `arcade chat` usage: "list the stargazers for the ArcadeAI/arcade-ai repo"
+@tool(requires_auth=GitHub())
+async def list_stargazers(
+    context: ToolContext,
+    owner: Annotated[str, "The owner of the repository"],
+    repo: Annotated[str, "The name of the repository"],
+    limit: Annotated[
+        Optional[int],
+        "The maximum number of stargazers to return. If not provided, all stargazers will be returned.",
+    ] = None,
+) -> Annotated[dict, "A dictionary containing the stargazers for the specified repository"]:
+    """List the stargazers for a GitHub repository."""
+    url = get_url("repo_stargazers", owner=owner, repo=repo)
+    headers = get_github_json_headers(context.authorization.token)
+
+    per_page = min(limit, 100)
+    page = 1
+    stargazers = []
+
+    if limit is None:
+        limit = 2**64 - 1
+
+    async with httpx.AsyncClient() as client:
+        while len(stargazers) < limit:
+            response = await client.get(
+                url, headers=headers, params={"per_page": per_page, "page": page}
+            )
+            handle_github_response(response, url)
+
+            data = response.json()
+            if not data:
+                break
+
+            stargazers.extend([
+                {
+                    "login": stargazer.get("login"),
+                    "id": stargazer.get("id"),
+                    "node_id": stargazer.get("node_id"),
+                    "html_url": stargazer.get("html_url"),
+                }
+                for stargazer in data
+            ])
+
+            if len(data) < per_page:
+                break
+
+            page += 1
+
+    stargazers = stargazers[:limit]
+    return {"number_of_stargazers": len(stargazers), "stargazers": stargazers}

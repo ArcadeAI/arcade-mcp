@@ -1,162 +1,223 @@
 from typing import Annotated, Optional
 
-import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
-from arcade.sdk.errors import ToolExecutionError
+from arcade.sdk.errors import RetryableToolError
+from arcade_spotify.tools.utils import (
+    convert_to_playback_state,
+    get_url,
+    handle_404_playback_state,
+    send_spotify_request,
+)
 
-SPOTIFY_BASE_URL = "https://api.spotify.com/v1"
 
-
-async def _send_spotify_request(
+# NOTE: This tool only works for Spotify Premium users
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
+async def adjust_playback_position(
     context: ToolContext,
-    method: str,
-    endpoint: str,
-    params: dict | None = None,
-    json_data: dict | None = None,
-) -> httpx.Response:
+    absolute_position_ms: Annotated[
+        Optional[int], "The absolute position in milliseconds to seek to"
+    ] = None,
+    relative_position_ms: Annotated[
+        Optional[int],
+        "The relative position from the current playback position in milliseconds to seek to",
+    ] = None,
+) -> Annotated[dict, "The updated playback state"]:
+    """Adjust the playback position within the currently playing track.
+
+    Knowledge of the current playback state is NOT needed to use this tool as it handles
+    clamping the position to valid start/end boundaries to prevent overshooting or negative values.
+
+    This tool allows you to seek to a specific position within the currently playing track.
+    You can either provide an absolute position in milliseconds or a relative position from
+    the current playback position in milliseconds.
+
+    Note:
+        Either absolute_position_ms or relative_position_ms must be provided, but not both.
     """
-    Send an asynchronous request to the Spotify API.
+    if (absolute_position_ms is None) == (relative_position_ms is None):
+        raise RetryableToolError(
+            "Either absolute_position_ms or relative_position_ms must be provided, but not both",
+            additional_prompt_content="Provide a value for either absolute_position_ms or relative_position_ms, but not both.",
+            retry_after_ms=500,
+        )
 
-    Args:
-        context: The tool context containing the authorization token.
-        method: The HTTP method (GET, POST, PUT, DELETE, etc.).
-        endpoint: The API endpoint path (e.g., "/me/player/play").
-        params: Query parameters to include in the request.
-        json_data: JSON data to include in the request body.
+    if relative_position_ms is not None:
+        playback_state = await get_playback_state(context)
+        if playback_state.get("device_id") is None:
+            playback_state["message"] = "No track to adjust position"
+            return playback_state
 
-    Returns:
-        The response object from the API request.
+        absolute_position_ms = playback_state["progress_ms"] + relative_position_ms
 
-    Raises:
-        ToolExecutionError: If the request fails for any reason.
-    """
-    url = f"{SPOTIFY_BASE_URL}{endpoint}"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    absolute_position_ms = max(0, absolute_position_ms)
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.request(
-                method, url, headers=headers, params=params, json=json_data
-            )
-            response.raise_for_status()
-        except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to send request to Spotify API: {e}")
+    url = get_url("player_seek_to_position")
+    params = {"position_ms": absolute_position_ms}
 
-    return response
+    response = await send_spotify_request(context, "PUT", url, params=params)
+
+    playback_state = handle_404_playback_state(response, "No track to adjust position", False)
+    if playback_state:
+        return playback_state
+
+    response.raise_for_status()
+
+    playback_state = await get_playback_state(context)
+    return playback_state
 
 
-def _handle_spotify_api_error(response: httpx.Response):
-    """
-    Handle errors from the Spotify API by mapping common status codes to ToolExecutionErrors.
+# NOTE: This tool only works for Spotify Premium users
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
+async def skip_to_previous_track(
+    context: ToolContext,
+) -> Annotated[dict, "The updated playback state"]:
+    """Skip to the previous track in the user's queue, if any"""
+    url = get_url("player_skip_to_previous")
 
-    Args:
-        response: The response object from the API request.
+    response = await send_spotify_request(context, "POST", url)
 
-    Raises:
-        ToolExecutionError: If the response contains an error status code.
-    """
-    status_code_map = {
-        401: ToolExecutionError("Unauthorized: Invalid or expired token"),
-        403: ToolExecutionError("Forbidden: User does not have Spotify Premium"),
-        429: ToolExecutionError("Too Many Requests: Rate limit exceeded"),
+    playback_state = handle_404_playback_state(response, "No track to go back to", False)
+    if playback_state:
+        return playback_state
+
+    response.raise_for_status()
+
+    playback_state = await get_playback_state(context)
+
+    return playback_state
+
+
+# NOTE: This tool only works for Spotify Premium users
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
+async def skip_to_next_track(
+    context: ToolContext,
+) -> Annotated[dict, "The updated playback state"]:
+    """Skip to the next track in the user's queue, if any"""
+    url = get_url("player_skip_to_next")
+
+    response = await send_spotify_request(context, "POST", url)
+
+    playback_state = handle_404_playback_state(response, "No track to skip", False)
+    if playback_state:
+        return playback_state
+
+    response.raise_for_status()
+
+    playback_state = await get_playback_state(context)
+
+    return playback_state
+
+
+# NOTE: This tool only works for Spotify Premium users
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
+async def pause_playback(
+    context: ToolContext,
+) -> Annotated[dict, "The updated playback state"]:
+    """Pause the currently playing track, if any"""
+    playback_state = await get_playback_state(context)
+
+    # There is no current state, therefore nothing to pause
+    if playback_state.get("device_id") is None:
+        playback_state["message"] = "No track to pause"
+        return playback_state
+    # Track is already paused
+    if playback_state.get("is_playing") is False:
+        playback_state["message"] = "Track is already paused"
+        return playback_state
+
+    url = get_url("player_pause_playback")
+
+    response = await send_spotify_request(context, "PUT", url)
+    response.raise_for_status()
+
+    playback_state["is_playing"] = False
+    return playback_state
+
+
+# NOTE: This tool only works for Spotify Premium users
+@tool(
+    requires_auth=Spotify(
+        scopes=["user-read-playback-state", "user-modify-playback-state"],
+    )
+)
+async def resume_playback(
+    context: ToolContext,
+) -> Annotated[dict, "The updated playback state"]:
+    """Resume the currently playing track, if any"""
+    playback_state = await get_playback_state(context)
+
+    # There is no current state, therefore nothing to resume
+    if playback_state.get("device_id") is None:
+        playback_state["message"] = "No track to resume"
+        return playback_state
+    # Track is already playing
+    if playback_state.get("is_playing") is True:
+        playback_state["message"] = "Track is already playing"
+        return playback_state
+
+    url = get_url("player_modify_playback")
+
+    response = await send_spotify_request(context, "PUT", url)
+    response.raise_for_status()
+
+    playback_state["is_playing"] = True
+    return playback_state
+
+
+# NOTE: This tool only works for Spotify Premium users
+@tool(
+    requires_auth=Spotify(
+        scopes=["user-read-playback-state", "user-modify-playback-state"],
+    )
+)
+async def start_tracks_playback_by_id(
+    context: ToolContext,
+    track_ids: Annotated[
+        list[str],
+        "A list of Spotify track (song) IDs to play. Order of execution is not guarenteed.",
+    ],
+    position_ms: Annotated[
+        Optional[int],
+        "The position in milliseconds to start the first track from",
+    ] = 0,
+) -> Annotated[dict, "The updated playback state"]:
+    """Start playback of a list of tracks (songs)"""
+    url = get_url("player_modify_playback")
+    body = {
+        "uris": [f"spotify:track:{track_id}" for track_id in track_ids],
+        "position_ms": position_ms,
     }
 
-    if response.status_code in status_code_map:
-        raise status_code_map[response.status_code]
-    elif response.status_code >= 400:
-        raise ToolExecutionError(f"Error: {response.status_code} - {response.text}")
+    response = await send_spotify_request(context, "PUT", url, json_data=body)
+    response.raise_for_status()
+
+    playback_state = await get_playback_state(context)
+    return playback_state
 
 
-@tool(
-    requires_auth=Spotify(
-        scopes=["user-modify-playback-state"],
-    )
-)
-async def pause(
-    context: ToolContext,
-    device_id: Annotated[
-        Optional[str],
-        "The id of the device this command is targeting. If omitted, the active device is targeted.",
-    ] = None,
-) -> Annotated[str, "Success string confirming the pause"]:
-    """Pause the current track"""
-    endpoint = "/me/player/pause"
-    params = {"device_id": device_id} if device_id else {}
-
-    response = await _send_spotify_request(context, "PUT", endpoint, params=params)
-    if response.status_code >= 200 and response.status_code < 300:
-        return "Playback paused"
-    else:
-        _handle_spotify_api_error(response)
-
-
-@tool(
-    requires_auth=Spotify(
-        scopes=["user-modify-playback-state"],
-    )
-)
-async def resume(
-    context: ToolContext,
-    device_id: Annotated[
-        Optional[str],
-        "The id of the device this command is targeting. If omitted, the active device is targeted.",
-    ] = None,
-) -> Annotated[str, "Success string confirming the playback resume"]:
-    """Resume the current track, if any"""
-    endpoint = "/me/player/play"
-    params = {"device_id": device_id} if device_id else {}
-
-    response = await _send_spotify_request(context, "PUT", endpoint, params=params)
-    if response.status_code >= 200 and response.status_code < 300:
-        return "Playback resumed"
-    else:
-        _handle_spotify_api_error(response)
-
-
-@tool(
-    requires_auth=Spotify(
-        scopes=["user-read-playback-state"],
-    )
-)
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state"]))
 async def get_playback_state(
     context: ToolContext,
 ) -> Annotated[dict, "Information about the user's current playback state"]:
-    """Get information about the user's current playback state, including track or episode, progress, and active device."""
-    endpoint = "/me/player"
+    """
+    Get information about the user's current playback state, including track or episode, and active device.
+    This tool does not perform any actions. Use other tools to control playback.
+    """
+    url = get_url("player_get_playback_state")
+    response = await send_spotify_request(context, "GET", url)
+    response.raise_for_status()
+    data = {"is_playing": False} if response.status_code == 204 else response.json()
+    return convert_to_playback_state(data).to_dict()
 
-    response = await _send_spotify_request(context, "GET", endpoint)
-    if response.status_code == 204:
-        return {"status": "Playback not available or active"}
-    elif response.status_code == 200:
-        data = response.json()
 
-        # TODO: Return a more structured model
-        result = {
-            "device_name": data.get("device", {}).get("name"),
-            "currently_playing_type": data.get("currently_playing_type"),
-        }
-
-        if data.get("currently_playing_type") == "track":
-            item = data.get("item", {})
-            album = item.get("album", {})
-            result.update({
-                "album_name": album.get("name"),
-                "album_artists": [artist.get("name") for artist in album.get("artists", [])],
-                "album_spotify_url": album.get("external_urls", {}).get("spotify"),
-                "track_name": item.get("name"),
-                "track_artists": [artist.get("name") for artist in item.get("artists", [])],
-            })
-        elif data.get("currently_playing_type") == "episode":
-            item = data.get("item", {})
-            show = item.get("show", {})
-            result.update({
-                "show_name": show.get("name"),
-                "show_spotify_url": show.get("external_urls", {}).get("spotify"),
-                "episode_name": item.get("name"),
-                "episode_spotify_url": item.get("external_urls", {}).get("spotify"),
-            })
-        return result
-    else:
-        _handle_spotify_api_error(response)
+@tool(requires_auth=Spotify(scopes=["user-read-currently-playing"]))
+async def get_currently_playing(
+    context: ToolContext,
+) -> Annotated[dict, "Information about the user's currently playing track"]:
+    """Get information about the user's currently playing track"""
+    url = get_url("player_get_currently_playing")
+    response = await send_spotify_request(context, "GET", url)
+    response.raise_for_status()
+    data = {"is_playing": False} if response.status_code == 204 else response.json()
+    return convert_to_playback_state(data).to_dict()
