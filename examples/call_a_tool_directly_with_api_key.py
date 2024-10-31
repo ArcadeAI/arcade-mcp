@@ -1,11 +1,11 @@
+"""
+This example demonstrates how to directly call a tool that requires an API key.
+"""
+
 import os
 
 from arcade_web.tools.models import Formats
 from arcadepy import Arcade
-
-"""
-This example demonstrates how to directly call a tool that requires an API key.
-"""
 
 
 def call_an_api_key_tool(client, user_id):
@@ -40,7 +40,7 @@ def call_an_api_key_tool(client, user_id):
 
 if __name__ == "__main__":
     client = Arcade(
-        base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade locally, or any base_url if you're hosting elsewhere
+        base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
         api_key=os.environ[
             "ARCADE_API_KEY"
         ],  # Alternatively, set the API key as an environment variable and Arcade will automatically use it

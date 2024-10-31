@@ -1,3 +1,7 @@
+"""
+This example demonstrates how to get an authorization token for a user and then use it to make a request to the Google API on behalf of the user.
+"""
+
 import os
 
 from arcadepy import Arcade
@@ -54,11 +58,14 @@ def use_auth_token(token):
 
 
 if __name__ == "__main__":
+    arcade_api_key = os.environ[
+        "ARCADE_API_KEY"
+    ]  # If you forget your arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
+    cloud_host = "https://api.arcade-ai.com"
+
     client = Arcade(
-        base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade locally, or any base_url if you're hosting elsewhere
-        api_key=os.environ[
-            "ARCADE_API_KEY"
-        ],  # Alternatively, set the API key as an environment variable and Arcade will automatically use it
+        base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade locally, or any base_url if you're hosting elsewhere
+        api_key=arcade_api_key,
     )
 
     user_id = "you@example.com"

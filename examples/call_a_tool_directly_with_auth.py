@@ -1,11 +1,11 @@
+"""
+This example demonstrates how to directly call a tool that requires authorization.
+"""
+
 import json
 import os
 
 from arcadepy import Arcade
-
-"""
-This example demonstrates how to directly call a tool that requires authorization.
-"""
 
 
 def call_auth_tool(client, user_id):
@@ -48,7 +48,7 @@ def call_auth_tool(client, user_id):
 
 if __name__ == "__main__":
     client = Arcade(
-        base_url="http://localhost:9099",  # Alternatively, use http://localhost:9099 if you are running Arcade locally, or any base_url if you're hosting elsewhere
+        base_url="http://localhost:9099",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
         api_key=os.environ[
             "ARCADE_API_KEY"
         ],  # Alternatively, set the API key as an environment variable and Arcade will automatically use it
