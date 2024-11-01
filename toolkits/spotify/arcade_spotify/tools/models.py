@@ -30,6 +30,22 @@ class PlaybackState:
         return {k: v for k, v in asdict(self).items() if v is not None and v != []}
 
 
+@dataclass
+class Device:
+    id: str
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    volume_percent: int
+    supports_volume: bool
+
+    def to_dict(self) -> dict:
+        """Convert the Device instance to a dictionary."""
+        return asdict(self)
+
+
 class SearchType(str, Enum):
     ALBUM = "album"
     ARTIST = "artist"

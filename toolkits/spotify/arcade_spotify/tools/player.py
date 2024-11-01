@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
 from arcade.sdk.errors import RetryableToolError
-from arcade_spotify.tools.models import SearchType
+from arcade_spotify.tools.models import Device, SearchType
 from arcade_spotify.tools.search import search
 from arcade_spotify.tools.utils import (
     convert_to_playback_state,
@@ -185,13 +185,25 @@ async def start_tracks_playback_by_id(
     ] = 0,
 ) -> Annotated[dict, "The updated playback state"]:
     """Start playback of a list of tracks (songs)"""
+
+    devices = [
+        Device(**device) for device in (await get_available_devices(context)).get("devices", [])
+    ]
+
+    # If no active device is available, pick the first one. Otherwise, Spotify defaults to the active device.
+    device_id = None
+    if devices and not any(device.is_active for device in devices):
+        device_id = devices[0].id
+
+    params = {"device_id": device_id} if device_id else {}
+
     url = get_url("player_modify_playback")
     body = {
         "uris": [f"spotify:track:{track_id}" for track_id in track_ids],
         "position_ms": position_ms,
     }
 
-    response = await send_spotify_request(context, "PUT", url, json_data=body)
+    response = await send_spotify_request(context, "PUT", url, params=params, json_data=body)
     playback_state = handle_404_playback_state(
         response, "Cannot start playback because no active device is available", False
     )
@@ -231,6 +243,7 @@ async def get_currently_playing(
     return convert_to_playback_state(data).to_dict()
 
 
+# NOTE: This tool only works for Spotify Premium users
 @tool(
     requires_auth=Spotify(
         scopes=["user-read-playback-state", "user-modify-playback-state"],
@@ -256,6 +269,7 @@ async def play_artist_by_name(
     return playback_state
 
 
+# NOTE: This tool only works for Spotify Premium users
 @tool(
     requires_auth=Spotify(
         scopes=["user-read-playback-state", "user-modify-playback-state"],
@@ -286,3 +300,15 @@ async def play_track_by_name(
     playback_state = await start_tracks_playback_by_id(context, [track_id])
 
     return playback_state
+
+
+# NOTE: This tool only works for Spotify Premium users
+@tool(requires_auth=Spotify(scopes=["user-read-playback-state"]))
+async def get_available_devices(
+    context: ToolContext,
+) -> Annotated[dict, "The available devices"]:
+    """Get the available devices"""
+    url = get_url("player_get_available_devices")
+    response = await send_spotify_request(context, "GET", url)
+    response.raise_for_status()
+    return response.json()
