@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
+import requests
 from rich.console import Console
 
 console = Console(highlight=False)
@@ -28,8 +29,8 @@ if os.environ.get("HOMEBREW_REPOSITORY") is not None:
 
 
 def start_servers(
-    host: str,
-    port: int,
+    actor_host: str,
+    actor_port: int,
     engine_config: str | None,
     engine_env: str | None = None,
     debug: bool = False,
@@ -45,8 +46,8 @@ def start_servers(
         debug: Whether to run in debug mode.
     """
     # Validate host and port
-    host = _validate_host(host)
-    port = _validate_port(port)
+    actor_host = _validate_host(actor_host)
+    actor_port = _validate_port(actor_port)
 
     # Ensure engine_config is provided and validated
     engine_config = _get_config_file(engine_config, default_filename="engine.yaml")
@@ -55,13 +56,13 @@ def start_servers(
     env_file = _get_config_file(engine_env, default_filename="arcade.env", optional=True)
 
     # Prepare command-line arguments for the actor server and engine
-    actor_cmd = _build_actor_command(host, port, debug)
+    actor_cmd = _build_actor_command(actor_host, actor_port, debug)
 
     # even if the user didn't pass an env file we may have found it in the default locations
     engine_cmd = _build_engine_command(engine_config, engine_env=env_file if env_file else None)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, engine_cmd, debug=debug)
+    _manage_processes(actor_cmd, actor_port, engine_cmd, debug=debug)
 
 
 def _validate_host(host: str) -> str:
@@ -239,6 +240,7 @@ def _build_engine_command(engine_config: str | None, engine_env: str | None = No
 
 def _manage_processes(
     actor_cmd: list[str],
+    actor_port: int,
     engine_cmd: list[str],
     engine_env: dict[str, str] | None = None,
     debug: bool = False,
@@ -273,8 +275,7 @@ def _manage_processes(
             console.print("Starting actor server...", style="bold green")
             actor_process = _start_process("Actor", actor_cmd, debug=debug)
 
-            # Wait a bit to ensure actor is up
-            time.sleep(2)
+            _wait_for_healthy_actor(actor_port)
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
@@ -354,6 +355,22 @@ def _start_process(
     except Exception as e:
         console.print(f"❌ Failed to start {name}: {e}", style="bold red")
         raise RuntimeError(f"Failed to start {name}")
+
+
+def _wait_for_healthy_actor(actor_port: int) -> None:
+    """Wait until an HTTP request to `localhost:actor_port/health` returns 200"""
+    health_url = f"http://localhost:{actor_port}/actor/health"
+    while True:
+        time.sleep(1)
+        try:
+            response = requests.get(health_url, timeout=1)
+            if response.status_code == 200:
+                break
+        except requests.ConnectionError:
+            pass
+        except requests.Timeout:
+            pass
+        console.print("Waiting for actor to start...", style="bold yellow")
 
 
 def _stream_output(process: subprocess.Popen, name: str) -> None:
