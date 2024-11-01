@@ -27,8 +27,9 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
     # If not already authorized, then wait for the user to authorize the permissions required by the tool
     if auth_response.status != "completed":
         print(f"Click this link to authorize: {auth_response.authorization_url}")
-        input("After you have authorized, press Enter to continue...")
-        # client.auth.wait_for_completion(auth_response.authorization_id)
+
+    # Wait for the user to complete the auth flow, if necessary
+    client.auth.wait_for_completion(auth_response)
 
     # Prepare the inputs to the tool as a dictionary where keys are the names of the parameters expected by the tool and the values are the actual values to pass to the tool
     inputs = {"n_emails": 5}
