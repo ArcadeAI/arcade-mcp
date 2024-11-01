@@ -64,6 +64,7 @@ def login(
     """
 
     if check_existing_login():
+        console.print("Delete ~/.arcade/credentials.yaml to log in as a different user.\n")
         return
 
     # Start the HTTP server in a new thread
