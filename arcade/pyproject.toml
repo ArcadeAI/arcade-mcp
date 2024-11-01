@@ -38,6 +38,7 @@ pytz = {version = "^2024.1", optional = true}
 python-dateutil = {version = "^2.8.2", optional = true}
 
 pyreadline3 = {version = "^3.5.4", platform = "win32"}
+types-requests = "^2.32.0.20241016"
 [tool.poetry.extras]
 fastapi = ["fastapi", "uvicorn", "opentelemetry-instrumentation-fastapi", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-exporter-otlp-proto-common"]
 evals = ["scipy", "numpy", "scikit-learn", "pytz", "python-dateutil"]
