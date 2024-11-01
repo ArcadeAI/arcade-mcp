@@ -277,7 +277,7 @@ def _manage_processes(
             console.print("Starting actor server...", style="bold green")
             actor_process = _start_process("Actor", actor_cmd, debug=debug)
 
-            _wait_for_healthy_actor(actor_host, actor_port)
+            _wait_for_healthy_actor(actor_process, actor_host, actor_port)
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
@@ -359,9 +359,11 @@ def _start_process(
         raise RuntimeError(f"Failed to start {name}")
 
 
-def _wait_for_healthy_actor(actor_host: str, actor_port: int) -> None:
+def _wait_for_healthy_actor(
+    actor_process: subprocess.Popen, actor_host: str, actor_port: int
+) -> None:
     """Wait until an HTTP request to `host:port/actor/health` returns 200"""
-    while True:
+    while not actor_process.poll():
         time.sleep(1)
         try:
             conn = http.client.HTTPConnection(actor_host, actor_port, timeout=1)
