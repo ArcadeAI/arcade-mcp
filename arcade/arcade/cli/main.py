@@ -1,6 +1,5 @@
 import asyncio
 import os
-import readline
 import threading
 import uuid
 import webbrowser
@@ -234,6 +233,14 @@ def chat(
     """
     Chat with a language model.
     """
+    try:
+        import readline
+    except ImportError:
+        console.print(
+            "Readline is not available on this platform. Command history will be limited.",
+            style="dim",
+        )
+
     config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
 
