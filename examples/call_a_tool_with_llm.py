@@ -1,8 +1,5 @@
 """
 This example shows how to call a tool that requires authorization with an LLM using the OpenAI Python client.
-Arcade AI supports using models that are not OpenAI models, such as Anthropic's Claude. To use a non-OpenAI model,
-simple use the model name in the `model` parameter just as you would with an OpenAI model.
-Don't forget to set the model provider's API key in your arcade.env file!
 """
 
 import os
