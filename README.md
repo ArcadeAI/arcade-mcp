@@ -48,8 +48,8 @@ To learn more, check out our [documentation](https://docs.arcade-ai.com).
 
 _Pst. hey, you, give us a star if you like it!_
 
-<a href="https://github.com/arcadeai/arcade-ai">
-  <img src="https://img.shields.io/github/stars/arcadeai/arcade-ai.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
+<a href="https://github.com/ArcadeAI/arcade-ai">
+  <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-ai.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
 </a>
 
 ## Quickstart
@@ -162,6 +162,12 @@ Arcade AI offers a number of prebuilt toolkits that can be used by agents to int
       <td style="text-align: center;">OAuth</td>
       <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/slack">Slack</a></td>
       <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/slack">Slack Toolkit Docs</a></td>
+    </tr>
+    <tr>
+      <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/spotify.png" alt="Spotify" width="30" /></td>
+      <td style="text-align: center;">OAuth</td>
+      <td style="text-align: center;"><a href="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/spotify">Spotify</a></td>
+      <td style="text-align: center;"><a href="https://docs.arcade-ai.com/integrations/toolkits/Spotify/spotify">Spotify Toolkit Spotify</a></td>
     </tr>
     <tr>
       <td style="text-align: center;"><img src="https://docs.arcade-ai.com/images/icons/web.png" alt="Web" width="30" /></td>
