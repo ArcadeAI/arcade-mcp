@@ -4,7 +4,7 @@ This example demonstrates how to directly call a tool that does not require auth
 
 import os
 
-from arcadepy import Arcade
+from arcadepy import Arcade  # pip install arcade-py
 
 
 def call_non_auth_tool(client, user_id):

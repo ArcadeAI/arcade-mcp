@@ -4,8 +4,8 @@ This example demonstrates how to directly call a tool that requires an API key.
 
 import os
 
-from arcade_web.tools.models import Formats
-from arcadepy import Arcade
+from arcade_web.tools.models import Formats  # pip install arcade-web
+from arcadepy import Arcade  # pip install arcade-py
 
 
 def call_an_api_key_tool(client, user_id):
