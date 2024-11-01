@@ -363,7 +363,8 @@ def _wait_for_healthy_actor(
     actor_process: subprocess.Popen, actor_host: str, actor_port: int
 ) -> None:
     """Wait until an HTTP request to `host:port/actor/health` returns 200"""
-    while not actor_process.poll():
+
+    while not actor_process.poll():  # Stop waiting if the actor process has exited
         time.sleep(1)
         try:
             conn = http.client.HTTPConnection(actor_host, actor_port, timeout=1)
@@ -376,7 +377,7 @@ def _wait_for_healthy_actor(
             pass  # Handle expected exceptions gracefully
         console.print("Waiting for actor to start...", style="bold yellow")
 
-    time.sleep(1)
+    time.sleep(1)  # Wait just a little longer for everything to settle (discovered experimentally)
     console.print("Actor is healthy", style="bold green")
 
 
