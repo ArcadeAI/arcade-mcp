@@ -375,6 +375,7 @@ def _wait_for_healthy_actor(
         except (socket.gaierror, http.client.HTTPException, ConnectionRefusedError, TimeoutError):
             pass  # Handle expected exceptions gracefully
         console.print("Waiting for actor to start...", style="bold yellow")
+    console.print("Actor is healthy", style="bold green")
 
 
 def _stream_output(process: subprocess.Popen, name: str) -> None:
