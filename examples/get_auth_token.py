@@ -13,7 +13,7 @@ from google.oauth2.credentials import Credentials  # pip install google-auth
 from googleapiclient.discovery import build  # pip install google-api-python-client
 
 
-def get_auth_token(client, user_id):
+def get_auth_token(client: Arcade, user_id: str) -> str:
     """Get an authorization token for a user.
 
     In this example, we are
@@ -40,7 +40,7 @@ def get_auth_token(client, user_id):
     return auth_response.context.token
 
 
-def use_auth_token(token):
+def use_auth_token(token: str) -> None:
     """Use an authorization token to make a request to the Google API on behalf of a user.
 
     In this example, we are

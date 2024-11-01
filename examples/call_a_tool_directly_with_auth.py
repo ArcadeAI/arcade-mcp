@@ -8,7 +8,7 @@ import os
 from arcadepy import Arcade  # pip install arcade-py
 
 
-def call_auth_tool(client, user_id):
+def call_auth_tool(client: Arcade, user_id: str) -> None:
     """Directly call a prebuilt tool that requires authorization.
 
     In this example, we are

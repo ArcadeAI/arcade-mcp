@@ -10,7 +10,7 @@ import os
 from openai import OpenAI
 
 
-def call_tool_with_openai(client):
+def call_tool_with_openai(client: OpenAI) -> dict:
     response = client.chat.completions.create(
         messages=[
             {"role": "user", "content": "Star the ArcadeAI/arcade-ai repository."},

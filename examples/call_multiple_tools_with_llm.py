@@ -16,7 +16,7 @@ import os
 from openai import OpenAI
 
 
-def call_tool(client, user_id, tool, message, history):
+def call_tool(client: OpenAI, user_id: str, tool: str, message: dict, history: list[dict]) -> str:
     """Make a tool call with a specific tool and message."""
     response = client.chat.completions.create(
         messages=[
@@ -31,7 +31,7 @@ def call_tool(client, user_id, tool, message, history):
     return response.choices[0].message.content
 
 
-def call_tools_with_llm(client, user_id, user_country_code):
+def call_tools_with_llm(client: OpenAI, user_id: str, user_country_code: str) -> list[dict]:
     """Use an LLM to execute the sequence of tools to get recommendations and start playback."""
     tools = [
         "Spotify.GetCurrentlyPlaying",
@@ -46,7 +46,11 @@ def call_tools_with_llm(client, user_id, user_country_code):
         {"role": "user", "content": "Retrieve its audio features."},
         {
             "role": "user",
-            "content": "Get song recommendations similar to it. Do not include the currently playing song in the recommendations or any remixed versions of the song.",
+            "content": "Get song recommendations similar to it. "
+            "Do not include the currently playing song in the recommendations "
+            "or any remixed versions of the song. "
+            "Also only include tracks that are available in the user's country. "
+            f"The current user resides in {user_country_code}.",
         },
         {"role": "user", "content": "Start playing the recommended songs. Just one tool call."},
         {"role": "user", "content": "Get the currently playing song."},
@@ -67,11 +71,11 @@ def call_tools_with_llm(client, user_id, user_country_code):
 
 if __name__ == "__main__":
     arcade_api_key = os.environ.get("ARCADE_API_KEY")
-    local_host = "http://localhost:9099/v1"
+    cloud_host = "https://api.arcade-ai.com/v1"
 
     openai_client = OpenAI(
         api_key=arcade_api_key,
-        base_url=local_host,
+        base_url=cloud_host,
     )
 
     user_id = "you@example.com"

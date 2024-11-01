@@ -41,7 +41,9 @@ def call_tool(client: Arcade, tool_name: str, user_id: str, inputs: str | dict =
     return response.output.value
 
 
-def recommend_similar_songs(client, provider_to_scopes, tools, user_id, user_country_code):
+def recommend_similar_songs(
+    client: Arcade, provider_to_scopes: dict, tools: list[str], user_id: str, user_country_code: str
+) -> None:
     """Execute the sequence of tools to get recommendations and start playback."""
     get_permissions(client, provider_to_scopes, user_id)
 
@@ -149,7 +151,7 @@ def recommend_similar_songs(client, provider_to_scopes, tools, user_id, user_cou
 
 
 if __name__ == "__main__":
-    client = Arcade(base_url="http://localhost:9099")
+    client = Arcade(base_url="https://api.arcade-ai.com")
 
     # Necessary scopes for the tools we are calling:
     provider_to_scopes = {

@@ -8,7 +8,7 @@ from arcade_web.tools.models import Formats  # pip install arcade-web
 from arcadepy import Arcade  # pip install arcade-py
 
 
-def call_an_api_key_tool(client, user_id):
+def call_an_api_key_tool(client: Arcade, user_id: str) -> None:
     """Directly call a tool that requires an API key.
 
     In this example, we are
