@@ -11,4 +11,5 @@ ENDPOINTS = {
     "tracks_get_track": "/tracks/{track_id}",
     "tracks_get_recommendations": "/recommendations",
     "tracks_get_audio_features": "/audio-features",
+    "search": "/search",
 }

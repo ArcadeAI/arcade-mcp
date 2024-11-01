@@ -3,6 +3,8 @@ from arcade_spotify.tools.player import (
     get_currently_playing,
     get_playback_state,
     pause_playback,
+    play_artist_by_name,
+    play_track_by_name,
     resume_playback,
     skip_to_next_track,
     skip_to_previous_track,
@@ -15,7 +17,7 @@ from arcade.sdk.eval import (
     EvalSuite,
     tool_eval,
 )
-from arcade.sdk.eval.critic import NumericCritic
+from arcade.sdk.eval.critic import BinaryCritic, NumericCritic, SimilarityCritic
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -32,10 +34,12 @@ catalog.add_tool(resume_playback, "Spotify")
 catalog.add_tool(start_tracks_playback_by_id, "Spotify")
 catalog.add_tool(get_playback_state, "Spotify")
 catalog.add_tool(get_currently_playing, "Spotify")
+catalog.add_tool(play_artist_by_name, "Spotify")
+catalog.add_tool(play_track_by_name, "Spotify")
 
 
 @tool_eval()
-def spotify_eval_suite() -> EvalSuite:
+def spotify_player_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Spotify "player" tools."""
     suite = EvalSuite(
         name="Spotify Tools Evaluation",
@@ -118,6 +122,10 @@ def spotify_eval_suite() -> EvalSuite:
                 },
             )
         ],
+        critics=[
+            BinaryCritic(critic_field="track_ids", weight=0.5),
+            NumericCritic(critic_field="position_ms", weight=0.5, value_range=(9000, 11000)),
+        ],
     )
 
     suite.add_case(
@@ -130,6 +138,35 @@ def spotify_eval_suite() -> EvalSuite:
         name="Get playback state",
         user_message="what device is playing music rn?",
         expected_tool_calls=[(get_playback_state, {})],
+    )
+
+    suite.add_case(
+        name="Play artist by name",
+        user_message="play pearl jam",
+        expected_tool_calls=[
+            (
+                play_artist_by_name,
+                {"name": "Pearl Jam"},
+            )
+        ],
+        critics=[
+            SimilarityCritic(critic_field="name", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="Play track by name",
+        user_message="it would be really great if I could listen to strobe by deadmau5 right now.",
+        expected_tool_calls=[
+            (
+                play_track_by_name,
+                {"track_name": "strobe", "artist_name": "deadmau5"},
+            )
+        ],
+        critics=[
+            SimilarityCritic(critic_field="track_name", weight=0.5),
+            SimilarityCritic(critic_field="artist_name", weight=0.5),
+        ],
     )
 
     return suite
