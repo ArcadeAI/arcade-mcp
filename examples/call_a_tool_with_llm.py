@@ -26,11 +26,10 @@ if __name__ == "__main__":
         "ARCADE_API_KEY"
     )  # If you forget your Arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
     cloud_host = "https://api.arcade-ai.com" + "/v1"
-    local_host = "http://localhost:9099/v1"  # TODO: Try running Arcade locally and use this host! For help, check out the docs: https://docs.arcade-ai.com/home
 
     openai_client = OpenAI(
         api_key=arcade_api_key,
-        base_url=local_host,  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
+        base_url=cloud_host,  # Alternatively, use http://localhost:9099/v1 if you are running Arcade Engine locally
     )
 
     chat_result = call_tool_with_openai(openai_client)
