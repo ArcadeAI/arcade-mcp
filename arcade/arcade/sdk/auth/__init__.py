@@ -1,11 +1,23 @@
-from arcade.core.auth import GitHub, Google, OAuth2, Slack, ToolAuthorization, X
+from arcade.core.auth import (
+    GitHub,
+    Google,
+    LinkedIn,
+    OAuth2,
+    Slack,
+    Spotify,
+    ToolAuthorization,
+    X,
+    Zoom,
+)
 
 __all__ = [
     "GitHub",
     "Google",
+    "LinkedIn",
     "OAuth2",
     "Slack",
-    "X",
-    "OAuth2",
+    "Spotify",
     "ToolAuthorization",
+    "X",
+    "Zoom",
 ]

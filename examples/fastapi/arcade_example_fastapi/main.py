@@ -8,11 +8,11 @@ from pydantic import BaseModel
 from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.sdk import Toolkit
 
-client = AsyncOpenAI(api_key=os.environ.get("ARCADE_API_KEY"), base_url="http://localhost:9099/v1")
+client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
-actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+actor_secret = os.environ["ARCADE_ACTOR_SECRET"]
 actor = FastAPIActor(app, secret=actor_secret)
 actor.register_toolkit(Toolkit.from_module(arcade_math))
 
@@ -38,6 +38,8 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
                 "Math.Multiply",
                 "Math.Divide",
                 "Math.Sqrt",
+                # Other tools can be added as needed:
+                # "Math.SumList"
             ],
             tool_choice=tool_choice,
             user=request.user_id,
