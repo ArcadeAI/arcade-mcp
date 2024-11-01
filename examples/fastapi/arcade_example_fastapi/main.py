@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.sdk import Toolkit
 
-client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
+client = AsyncOpenAI(api_key=os.environ.get("ARCADE_API_KEY"), base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
@@ -19,7 +19,7 @@ actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 class ChatRequest(BaseModel):
     message: str
-    user_id: str
+    user_id: str | None = None
 
 
 @app.post("/chat")
@@ -33,14 +33,11 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             model="gpt-4o-mini",
             max_tokens=500,
             tools=[
-                # "Google.GetEmails",
-                # "Google.SearchEmailsByHeader",
-                # "Google.WriteDraft",
-                # "GitHub.CountStargazers",
-                # "GitHub.SetStarred",
-                # "GitHub.SearchIssues",
-                # "Slack.SendDmToUser",
-                # "Slack.SendMessageToChannel",
+                "Math.Add",
+                "Math.Subtract",
+                "Math.Multiply",
+                "Math.Divide",
+                "Math.Sqrt",
             ],
             tool_choice=tool_choice,
             user=request.user_id,
