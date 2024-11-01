@@ -55,6 +55,8 @@ class BaseActor(Actor):
 
         self.secret = self._set_secret(secret, disable_auth)
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
+
+        self.tool_counter = None
         if otel_meter:
             self.tool_counter = otel_meter.create_counter(
                 "tool_call", "requests", "Total number of tools called"
