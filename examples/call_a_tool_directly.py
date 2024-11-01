@@ -2,8 +2,6 @@
 This example demonstrates how to directly call a tool that does not require authorization.
 """
 
-import os
-
 from arcadepy import Arcade  # pip install arcade-py
 
 
@@ -32,14 +30,10 @@ def call_non_auth_tool(client: Arcade, user_id: str) -> None:
 
 
 if __name__ == "__main__":
-    arcade_api_key = os.environ[
-        "ARCADE_API_KEY"
-    ]  # If you forget your arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
     cloud_host = "https://api.arcade-ai.com"
 
     client = Arcade(
         base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
-        api_key=arcade_api_key,
     )
 
     user_id = "you@example.com"

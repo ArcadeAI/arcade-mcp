@@ -3,7 +3,6 @@ This example demonstrates how to directly call a tool that requires authorizatio
 """
 
 import json
-import os
 
 from arcadepy import Arcade  # pip install arcade-py
 
@@ -20,7 +19,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
     """
     # Start the authorization process
     auth_response = client.tools.authorize(
-        tool_name="Google.ListEmails",  # TODO: Does the toolkit need to be installed if I'm not using api.arcade-ai.com as the base_url?
+        tool_name="Google.ListEmails",
         user_id=user_id,
     )
 
@@ -50,9 +49,6 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 if __name__ == "__main__":
     client = Arcade(
         base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
-        api_key=os.environ[
-            "ARCADE_API_KEY"
-        ],  # Alternatively, set the API key as an environment variable and Arcade will automatically use it
     )
 
     user_id = "you@example.com"
