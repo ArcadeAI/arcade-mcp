@@ -2,8 +2,6 @@
 This example demonstrates how to directly call a tool that requires authorization.
 """
 
-import json
-
 from arcadepy import Arcade  # pip install arcade-py
 
 
@@ -36,9 +34,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
     # Execute the tool
     response = client.tools.execute(
         tool_name="Google.ListEmails",
-        inputs=json.dumps(
-            inputs
-        ),  # TODO why do i need to use json.dumps for this I thought this was fixed?
+        inputs=inputs,
         user_id=user_id,
     )
 
@@ -48,7 +44,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 
 if __name__ == "__main__":
     client = Arcade(
-        base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
+        base_url="http://localhost:9099",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
     )
 
     user_id = "you@example.com"

@@ -10,7 +10,6 @@ Steps:
 5. Inform the user which recommended song is now playing
 """
 
-import json
 from typing import Any
 
 from arcadepy import Arcade  # pip install arcade-py
@@ -85,7 +84,7 @@ def recommend_similar_songs(
         client,
         get_tracks_audio_features_tool,
         user_id,
-        inputs=json.dumps({"track_ids": [current_track_id]}),
+        inputs={"track_ids": [current_track_id]},
     )
 
     # Step 2.5: Use the previous tool output to construct the inputs for the following tool calls
@@ -109,9 +108,7 @@ def recommend_similar_songs(
     print(
         f"Getting recommendations similar to '{current_track_name}' by {', '.join(current_track_artists)} - {current_track_spotify_url}"
     )
-    response = call_tool(
-        client, get_recommendations_tool, user_id, inputs=json.dumps(recommendation_params)
-    )
+    response = call_tool(client, get_recommendations_tool, user_id, inputs=recommendation_params)
 
     # Step 3.5: Use the previous tool output to construct the inputs for the following tool calls
     # Filter out remixes and the same song from the recommendations
@@ -140,7 +137,7 @@ def recommend_similar_songs(
         client,
         start_tracks_playback_tool,
         user_id,
-        inputs=json.dumps({"track_ids": track_ids}),
+        inputs={"track_ids": track_ids},
     )
 
     # Step 5: Inform the user which recommended song is now playing
