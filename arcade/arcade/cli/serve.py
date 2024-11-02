@@ -103,7 +103,8 @@ def serve_default_actor(
     else:
         logger.info("Serving the following toolkits:")
         for toolkit in toolkits:
-            logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {len(toolkit.tools)} tools")
+            num_tools = sum(len(tools) for tools in toolkit.tools.values())
+            logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {num_tools} tools")
 
     actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
     if not disable_auth and not actor_secret:
