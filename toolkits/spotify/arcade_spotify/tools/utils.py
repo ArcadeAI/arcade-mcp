@@ -38,10 +38,9 @@ async def send_spotify_request(
 
 def handle_404_playback_state(response, message, is_playing: bool) -> dict | None:
     if response.status_code == 404:
-        return convert_to_playback_state({
-            "is_playing": is_playing,
-            "message": message,
-        }).to_dict()
+        return str(
+            convert_to_playback_state({"is_playing": is_playing, "message": message}).to_dict()
+        )
 
 
 def get_url(endpoint: str, **kwargs) -> str:

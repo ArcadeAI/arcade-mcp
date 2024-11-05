@@ -24,7 +24,7 @@ async def adjust_playback_position(
         Optional[int],
         "The relative position from the current playback position in milliseconds to seek to",
     ] = None,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Adjust the playback position within the currently playing track.
 
     Knowledge of the current playback state is NOT needed to use this tool as it handles
@@ -47,8 +47,7 @@ async def adjust_playback_position(
     if relative_position_ms is not None:
         playback_state = await get_playback_state(context)
         if playback_state.get("device_id") is None:
-            playback_state["message"] = "No track to adjust position"
-            return playback_state
+            return "No track to adjust position"
 
         absolute_position_ms = playback_state["progress_ms"] + relative_position_ms
 
@@ -72,7 +71,7 @@ async def adjust_playback_position(
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def skip_to_previous_track(
     context: ToolContext,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Skip to the previous track in the user's queue, if any"""
     url = get_url("player_skip_to_previous")
 
@@ -91,7 +90,7 @@ async def skip_to_previous_track(
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def skip_to_next_track(
     context: ToolContext,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Skip to the next track in the user's queue, if any"""
     url = get_url("player_skip_to_next")
 
@@ -110,18 +109,16 @@ async def skip_to_next_track(
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def pause_playback(
     context: ToolContext,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Pause the currently playing track, if any"""
     playback_state = await get_playback_state(context)
 
     # There is no current state, therefore nothing to pause
     if playback_state.get("device_id") is None:
-        playback_state["message"] = "No track to pause"
-        return playback_state
+        return "No track to pause"
     # Track is already paused
     if playback_state.get("is_playing") is False:
-        playback_state["message"] = "Track is already paused"
-        return playback_state
+        return "Track is already paused"
 
     url = get_url("player_pause_playback")
 
@@ -139,18 +136,16 @@ async def pause_playback(
 )
 async def resume_playback(
     context: ToolContext,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Resume the currently playing track, if any"""
     playback_state = await get_playback_state(context)
 
     # There is no current state, therefore nothing to resume
     if playback_state.get("device_id") is None:
-        playback_state["message"] = "No track to resume"
-        return playback_state
+        return "No track to resume"
     # Track is already playing
     if playback_state.get("is_playing") is True:
-        playback_state["message"] = "Track is already playing"
-        return playback_state
+        return "Track is already playing"
 
     url = get_url("player_modify_playback")
 
@@ -176,7 +171,7 @@ async def start_tracks_playback_by_id(
         Optional[int],
         "The position in milliseconds to start the first track from",
     ] = 0,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Start playback of a list of tracks (songs)"""
 
     devices = [
@@ -244,7 +239,7 @@ async def get_currently_playing(
 async def play_artist_by_name(
     context: ToolContext,
     name: Annotated[str, "The name of the artist to play"],
-) -> Annotated[str, "The updated playback state"]:
+) -> Annotated[str, "Success/failure message"]:
     """Plays a song by an artist and queues four more songs by the same artist"""
     q = f"artist:{name}"
     search_results = await search(context, q, [SearchType.TRACK], 5)
@@ -256,9 +251,9 @@ async def play_artist_by_name(
             retry_after_ms=500,
         )
     track_ids = [item["id"] for item in search_results["tracks"]["items"]]
-    await start_tracks_playback_by_id(context, track_ids)
+    response = await start_tracks_playback_by_id(context, track_ids)
 
-    return "Playback started"
+    return response
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -271,7 +266,7 @@ async def play_track_by_name(
     context: ToolContext,
     track_name: Annotated[str, "The name of the track to play"],
     artist_name: Annotated[Optional[str], "The name of the artist of the track"] = None,
-) -> Annotated[str, "Success message"]:
+) -> Annotated[str, "Success/failure message"]:
     """Plays a song by name"""
     q = f"track:{track_name}"
     if artist_name:
@@ -289,9 +284,9 @@ async def play_track_by_name(
         )
 
     track_id = search_results["tracks"]["items"][0]["id"]
-    await start_tracks_playback_by_id(context, [track_id])
+    response = await start_tracks_playback_by_id(context, [track_id])
 
-    return "Playback started"
+    return response
 
 
 # NOTE: This tool only works for Spotify Premium users
