@@ -8,7 +8,6 @@ from arcade_spotify.tools.search import search
 from arcade_spotify.tools.utils import (
     convert_to_playback_state,
     get_url,
-    handle_404_playback_state,
     send_spotify_request,
 )
 
@@ -58,9 +57,8 @@ async def adjust_playback_position(
 
     response = await send_spotify_request(context, "PUT", url, params=params)
 
-    playback_state = handle_404_playback_state(response, "No track to adjust position", False)
-    if playback_state:
-        return playback_state
+    if response.status_code == 404:
+        return "No track to adjust position"
 
     response.raise_for_status()
 
@@ -77,9 +75,8 @@ async def skip_to_previous_track(
 
     response = await send_spotify_request(context, "POST", url)
 
-    playback_state = handle_404_playback_state(response, "No track to go back to", False)
-    if playback_state:
-        return playback_state
+    if response.status_code == 404:
+        return "No track to go back to"
 
     response.raise_for_status()
 
@@ -96,9 +93,8 @@ async def skip_to_next_track(
 
     response = await send_spotify_request(context, "POST", url)
 
-    playback_state = handle_404_playback_state(response, "No track to skip", False)
-    if playback_state:
-        return playback_state
+    if response.status_code == 404:
+        return "No track to skip"
 
     response.raise_for_status()
 
@@ -192,11 +188,9 @@ async def start_tracks_playback_by_id(
     }
 
     response = await send_spotify_request(context, "PUT", url, params=params, json_data=body)
-    playback_state = handle_404_playback_state(
-        response, "Cannot start playback because no active device is available", False
-    )
-    if playback_state:
-        return playback_state
+
+    if response.status_code == 404:
+        return "Cannot start playback because no active device is available"
 
     response.raise_for_status()
 
