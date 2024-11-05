@@ -244,7 +244,7 @@ async def get_currently_playing(
 async def play_artist_by_name(
     context: ToolContext,
     name: Annotated[str, "The name of the artist to play"],
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "The updated playback state"]:
     """Plays a song by an artist and queues four more songs by the same artist"""
     q = f"artist:{name}"
     search_results = await search(context, q, [SearchType.TRACK], 5)
