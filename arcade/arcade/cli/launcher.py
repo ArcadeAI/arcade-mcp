@@ -364,7 +364,7 @@ def _wait_for_healthy_actor(
 ) -> None:
     """Wait until an HTTP request to `host:port/actor/health` returns 200"""
 
-    while not actor_process.poll():  # Stop waiting if the actor process has exited
+    while actor_process.poll() is None:  # Continue waiting UNLESS the actor process has exited
         time.sleep(1)
         try:
             conn = http.client.HTTPConnection(actor_host, actor_port, timeout=1)

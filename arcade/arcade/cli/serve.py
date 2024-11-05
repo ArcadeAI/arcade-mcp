@@ -98,13 +98,12 @@ def serve_default_actor(
 
     toolkits = Toolkit.find_all_arcade_toolkits()
     if not toolkits:
-        logger.error("No toolkits found in Python environment. Exiting...")
-        return
-    else:
-        logger.info("Serving the following toolkits:")
-        for toolkit in toolkits:
-            num_tools = sum(len(tools) for tools in toolkit.tools.values())
-            logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {num_tools} tools")
+        raise RuntimeError("No toolkits found in Python environment.")
+
+    logger.info("Serving the following toolkits:")
+    for toolkit in toolkits:
+        num_tools = sum(len(tools) for tools in toolkit.tools.values())
+        logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {num_tools} tools")
 
     actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
     if not disable_auth and not actor_secret:
