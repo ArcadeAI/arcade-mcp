@@ -24,7 +24,7 @@ async def adjust_playback_position(
         Optional[int],
         "The relative position from the current playback position in milliseconds to seek to",
     ] = None,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Adjust the playback position within the currently playing track.
 
     Knowledge of the current playback state is NOT needed to use this tool as it handles
@@ -65,15 +65,14 @@ async def adjust_playback_position(
 
     response.raise_for_status()
 
-    playback_state = await get_playback_state(context)
-    return playback_state
+    return "Playback position adjusted"
 
 
 # NOTE: This tool only works for Spotify Premium users
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def skip_to_previous_track(
     context: ToolContext,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Skip to the previous track in the user's queue, if any"""
     url = get_url("player_skip_to_previous")
 
@@ -85,16 +84,14 @@ async def skip_to_previous_track(
 
     response.raise_for_status()
 
-    playback_state = await get_playback_state(context)
-
-    return playback_state
+    return "Playback skipped to previous track"
 
 
 # NOTE: This tool only works for Spotify Premium users
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def skip_to_next_track(
     context: ToolContext,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Skip to the next track in the user's queue, if any"""
     url = get_url("player_skip_to_next")
 
@@ -106,16 +103,14 @@ async def skip_to_next_track(
 
     response.raise_for_status()
 
-    playback_state = await get_playback_state(context)
-
-    return playback_state
+    return "Playback skipped to next track"
 
 
 # NOTE: This tool only works for Spotify Premium users
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state", "user-modify-playback-state"]))
 async def pause_playback(
     context: ToolContext,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Pause the currently playing track, if any"""
     playback_state = await get_playback_state(context)
 
@@ -133,8 +128,7 @@ async def pause_playback(
     response = await send_spotify_request(context, "PUT", url)
     response.raise_for_status()
 
-    playback_state["is_playing"] = False
-    return playback_state
+    return "Playback paused"
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -145,7 +139,7 @@ async def pause_playback(
 )
 async def resume_playback(
     context: ToolContext,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Resume the currently playing track, if any"""
     playback_state = await get_playback_state(context)
 
@@ -163,8 +157,7 @@ async def resume_playback(
     response = await send_spotify_request(context, "PUT", url)
     response.raise_for_status()
 
-    playback_state["is_playing"] = True
-    return playback_state
+    return "Playback resumed"
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -183,7 +176,7 @@ async def start_tracks_playback_by_id(
         Optional[int],
         "The position in milliseconds to start the first track from",
     ] = 0,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Start playback of a list of tracks (songs)"""
 
     devices = [
@@ -212,8 +205,7 @@ async def start_tracks_playback_by_id(
 
     response.raise_for_status()
 
-    playback_state = await get_playback_state(context)
-    return playback_state
+    return "Playback started"
 
 
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state"]))
@@ -264,9 +256,9 @@ async def play_artist_by_name(
             retry_after_ms=500,
         )
     track_ids = [item["id"] for item in search_results["tracks"]["items"]]
-    playback_state = await start_tracks_playback_by_id(context, track_ids)
+    await start_tracks_playback_by_id(context, track_ids)
 
-    return playback_state
+    return "Playback started"
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -279,7 +271,7 @@ async def play_track_by_name(
     context: ToolContext,
     track_name: Annotated[str, "The name of the track to play"],
     artist_name: Annotated[Optional[str], "The name of the artist of the track"] = None,
-) -> Annotated[dict, "The updated playback state"]:
+) -> Annotated[str, "Success message"]:
     """Plays a song by name"""
     q = f"track:{track_name}"
     if artist_name:
@@ -297,9 +289,9 @@ async def play_track_by_name(
         )
 
     track_id = search_results["tracks"]["items"][0]["id"]
-    playback_state = await start_tracks_playback_by_id(context, [track_id])
+    await start_tracks_playback_by_id(context, [track_id])
 
-    return playback_state
+    return "Playback started"
 
 
 # NOTE: This tool only works for Spotify Premium users
