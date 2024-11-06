@@ -142,7 +142,13 @@ def show(
         DEFAULT_ENGINE_HOST,
         "-h",
         "--host",
-        help="The Arcade Engine address to send chat requests to.",
+        help="The Arcade Engine address to show the tools/toolkits of.",
+    ),
+    local: bool = typer.Option(
+        False,
+        "--local",
+        "-l",
+        help="Show the local environment's catalog instead of an Arcade Engine's catalog.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -165,9 +171,8 @@ def show(
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    local_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
     try:
-        if host in local_hosts:
+        if local:
             catalog = create_cli_catalog(toolkit=toolkit)
             tools = [t.definition for t in list(catalog)]
         else:

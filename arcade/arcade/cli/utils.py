@@ -78,6 +78,8 @@ def compute_base_url(
     """
     Compute the base URL for the Arcade Engine from the provided overrides.
 
+    Treats 127.0.0.1 and 0.0.0.0 as aliases for localhost.
+
     force_no_tls takes precedence over force_tls. For example, if both are set to True,
     the resulting URL will use http.
 
@@ -102,6 +104,9 @@ def compute_base_url(
     Returns:
         str: The fully constructed URL for the Arcade Engine.
     """
+    # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
+    host = "localhost" if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
+
     # Determine TLS setting based on input flags
     if force_no_tls:
         is_tls = False
