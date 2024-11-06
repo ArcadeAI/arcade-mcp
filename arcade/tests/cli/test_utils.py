@@ -1,6 +1,6 @@
 import pytest
 
-from arcade.cli.utils import compute_base_url
+from arcade.cli.utils import compute_engine_base_url
 
 DEFAULT_HOST = "api.arcade-ai.com"
 LOCALHOST = "localhost"
@@ -185,7 +185,7 @@ DEFAULT_FORCE_NO_TLS = False
     ],
 )
 def test_compute_base_url(inputs: dict, expected_output: str):
-    base_url = compute_base_url(
+    base_url = compute_engine_base_url(
         inputs["force_tls"],
         inputs["force_no_tls"],
         inputs["host_input"],

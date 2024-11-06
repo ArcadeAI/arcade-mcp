@@ -4,7 +4,6 @@ import threading
 import uuid
 import webbrowser
 from typing import Any, Optional
-from urllib.parse import urlencode
 
 import typer
 from arcadepy import Arcade
@@ -26,7 +25,8 @@ from arcade.cli.display import (
 from arcade.cli.launcher import start_servers
 from arcade.cli.utils import (
     OrderCommands,
-    compute_base_url,
+    compute_engine_base_url,
+    compute_login_url,
     create_cli_catalog,
     delete_deprecated_config_file,
     get_eval_files,
@@ -58,6 +58,12 @@ def login(
         "--host",
         help="The Arcade Cloud host to log in to.",
     ),
+    port: Optional[int] = typer.Option(
+        None,
+        "-p",
+        "--port",
+        help="The port of the Arcade Cloud host (if running locally).",
+    ),
 ) -> None:
     """
     Logs the user into Arcade Cloud.
@@ -75,9 +81,7 @@ def login(
 
     try:
         # Open the browser for user login
-        callback_uri = "http://localhost:9905/callback"
-        params = urlencode({"callback_uri": callback_uri, "state": state})
-        login_url = f"https://{host}/api/v1/auth/cli_login?{params}"
+        login_url = compute_login_url(host, state, port)
 
         console.print("Opening a browser to log you in...")
         if not webbrowser.open(login_url):
@@ -142,7 +146,13 @@ def show(
         DEFAULT_ENGINE_HOST,
         "-h",
         "--host",
-        help="The Arcade Engine address to send chat requests to.",
+        help="The Arcade Engine address to show the tools/toolkits of.",
+    ),
+    local: bool = typer.Option(
+        False,
+        "--local",
+        "-l",
+        help="Show the local environment's catalog instead of an Arcade Engine's catalog.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -165,9 +175,8 @@ def show(
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    local_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
     try:
-        if host in local_hosts:
+        if local:
             catalog = create_cli_catalog(toolkit=toolkit)
             tools = [t.definition for t in list(catalog)]
         else:
@@ -243,7 +252,7 @@ def chat(
         )
 
     config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     client = Arcade(api_key=config.api.key, base_url=base_url)
     user_email = config.user.email if config.user else None
@@ -358,7 +367,7 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
 

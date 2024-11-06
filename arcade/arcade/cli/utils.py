@@ -5,7 +5,8 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Union, cast
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
+from uuid import UUID
 
 import idna
 import typer
@@ -69,7 +70,7 @@ def create_cli_catalog(
     return catalog
 
 
-def compute_base_url(
+def compute_engine_base_url(
     force_tls: bool,
     force_no_tls: bool,
     host: str,
@@ -150,6 +151,25 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
+def compute_login_url(host: str, state: UUID, port: int | None) -> str:
+    """
+    Compute the full URL for the CLI login endpoint.
+    """
+    callback_uri = "http://localhost:9905/callback"
+    params = urlencode({"callback_uri": callback_uri, "state": state})
+
+    port = port if port else "8000"
+
+    login_base_url = (
+        f"http://localhost:{port}"
+        if host in ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
+        else f"https://{host}"
+    )
+    endpoint = "/api/v1/auth/cli_login"
+
+    return f"{login_base_url}{endpoint}?{params}"
+
+
 def get_tools_from_engine(
     host: str,
     port: int | None = None,
@@ -158,7 +178,7 @@ def get_tools_from_engine(
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
     config = validate_and_get_config()
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+    base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
     client = Arcade(api_key=config.api.key, base_url=base_url)
 
     tools = []
