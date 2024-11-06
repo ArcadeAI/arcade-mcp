@@ -12,7 +12,7 @@ def call_tool_with_openai(client: OpenAI) -> dict:
         messages=[
             {"role": "user", "content": "Star the ArcadeAI/arcade-ai repository."},
         ],
-        model="gpt-4o-mini",  # TODO: Try "claude-3-5-sonnet-20240620" or other models from our supported model providers. Checkout out our docs for a full list: https://docs.arcade-ai.com/home
+        model="gpt-4o-mini",  # TODO: Try "claude-3-5-sonnet-20240620" or other models from our supported model providers. Checkout out our docs for a full list: https://docs.arcade-ai.com/integrations
         user="you@example.com",
         tools=["Github.SetStarred"],
         tool_choice="generate",  # TODO: Try "execute" and note any differences

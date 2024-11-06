@@ -28,7 +28,7 @@ def call_tool(client: OpenAI, user_id: str, tool: str, message: dict, history: l
         tools=[tool],
         tool_choice="generate",
     )
-    return response.choices[0].message.content
+    return response
 
 
 def call_tools_with_llm(client: OpenAI, user_id: str, user_country_code: str) -> list[dict]:
@@ -59,12 +59,15 @@ def call_tools_with_llm(client: OpenAI, user_id: str, user_country_code: str) ->
     history = []
     for i in range(len(messages)):
         response = call_tool(client, user_id, tools[i], messages[i], history)
-        print("\n\n", response)
-        if "https://accounts.spotify.com/authorize?" in response:
+        print("\n\n", response.choices[0].message.content)
+        if (
+            response.choices[0].tool_authorizations
+            and response.choices[0].tool_authorizations[0].get("status") == "pending"
+        ):
             input("\nPress Enter once you have authorized...")
             response = call_tool(client, user_id, tools[i], messages[i], history)
         history.append(messages[i])
-        history.append({"role": "assistant", "content": response})
+        history.append({"role": "assistant", "content": response.choices[0].message.content})
 
     return history
 

@@ -3,10 +3,6 @@ This example demonstrates how to get an authorization token for a user and then 
 """
 
 from arcadepy import Arcade
-from arcadepy.types.auth_authorize_params import (
-    AuthRequirement,
-    AuthRequirementOauth2,
-)
 from google.oauth2.credentials import Credentials  # pip install google-auth
 from googleapiclient.discovery import build  # pip install google-api-python-client
 
@@ -21,19 +17,13 @@ def get_auth_token(client: Arcade, user_id: str) -> str:
         4. Using the authorization token to make a request to the Google API on behalf of the user
     """
     # Start the authorization process
-    auth_response = client.auth.authorize(
-        auth_requirement=AuthRequirement(
-            provider_id="google",
-            oauth2=AuthRequirementOauth2(
-                scopes=["https://www.googleapis.com/auth/gmail.readonly"],
-            ),
-        ),
-        user_id=user_id,
+    auth_response = client.auth.start(
+        user_id, "google", scopes=["https://www.googleapis.com/auth/gmail.readonly"]
     )
 
     if auth_response.status != "completed":
         print(f"Click this link to authorize: {auth_response.authorization_url}")
-        client.auth.wait_for_completion(auth_response.id)
+        auth_response = client.auth.wait_for_completion(auth_response)
 
     return auth_response.context.token
 
@@ -43,7 +33,7 @@ def use_auth_token(token: str) -> None:
 
     In this example, we are
         1. Using the authorization token that we got from the authorization process to make a request to the Google API
-        2. Printing the response from the Google API
+        client.auth.wait_for_completion(auth_response)
     """
     # Use the token from the authorization response
     creds = Credentials(token)
