@@ -162,7 +162,7 @@ def compute_login_url(host: str, state: str, port: int | None) -> str:
     callback_uri = "http://localhost:9905/callback"
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
-    port = port if port else "8000"
+    port = port if port else 8000
 
     login_base_url = (
         f"http://localhost:{port}"
