@@ -265,6 +265,8 @@ def chat(
 
             # Use input() instead of console.input() to leverage readline history
             user_input = input()
+            while not user_input.strip():
+                user_input = input()
 
             # Add the input to history
             readline.add_history(user_input)
