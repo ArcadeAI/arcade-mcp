@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
-from uuid import UUID
 
 import idna
 import typer
@@ -156,7 +155,7 @@ def compute_engine_base_url(
         return f"{protocol}://{encoded_host}"
 
 
-def compute_login_url(host: str, state: UUID, port: int | None) -> str:
+def compute_login_url(host: str, state: str, port: int | None) -> str:
     """
     Compute the full URL for the CLI login endpoint.
     """
