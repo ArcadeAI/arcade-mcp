@@ -1,6 +1,7 @@
 SPOTIFY_BASE_URL = "https://api.spotify.com/v1"
 
 ENDPOINTS = {
+    "player_get_available_devices": "/me/player/devices",
     "player_get_playback_state": "/me/player",
     "player_get_currently_playing": "/me/player/currently-playing",
     "player_modify_playback": "/me/player/play",
@@ -11,4 +12,5 @@ ENDPOINTS = {
     "tracks_get_track": "/tracks/{track_id}",
     "tracks_get_recommendations": "/recommendations",
     "tracks_get_audio_features": "/audio-features",
+    "search": "/search",
 }

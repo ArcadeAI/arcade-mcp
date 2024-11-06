@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import Optional
 
 
@@ -29,3 +30,29 @@ class PlaybackState:
     def to_dict(self) -> dict:
         """Convert the PlaybackState instance to a dictionary, excluding None values."""
         return {k: v for k, v in asdict(self).items() if v is not None and v != []}
+
+
+@dataclass
+class Device:
+    id: str
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    volume_percent: int
+    supports_volume: bool
+
+    def to_dict(self) -> dict:
+        """Convert the Device instance to a dictionary."""
+        return asdict(self)
+
+
+class SearchType(str, Enum):
+    ALBUM = "album"
+    ARTIST = "artist"
+    PLAYLIST = "playlist"
+    TRACK = "track"
+    SHOW = "show"
+    EPISODE = "episode"
+    AUDIOBOOK = "audiobook"

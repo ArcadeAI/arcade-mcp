@@ -40,6 +40,17 @@
       "cwd": "${workspaceFolder}"
     },
     {
+      "name": "Debug `arcade dev`",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/arcade/run_cli.py",
+      "args": ["dev"],
+      "console": "integratedTerminal",
+      "jinja": true,
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "name": "Debug `arcade evals -d` on current file",
       "type": "python",
       "request": "launch",

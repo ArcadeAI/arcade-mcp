@@ -1,6 +1,5 @@
 import asyncio
 import os
-import readline
 import threading
 import uuid
 import webbrowser
@@ -65,6 +64,7 @@ def login(
     """
 
     if check_existing_login():
+        console.print("Delete ~/.arcade/credentials.yaml to log in as a different user.\n")
         return
 
     # Start the HTTP server in a new thread
@@ -234,6 +234,14 @@ def chat(
     """
     Chat with a language model.
     """
+    try:
+        import readline
+    except ImportError:
+        console.print(
+            "Readline is not available on this platform. Command history will be limited.",
+            style="dim",
+        )
+
     config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
 

@@ -133,14 +133,12 @@ def check_existing_login() -> bool:
         try:
             with open(config_file_path) as f:
                 config: dict[str, Any] = yaml.safe_load(f)
-            api_key = config.get("api", {}).get("key")
-            email = config.get("user", {}).get("email")
+            cloud_config = config.get("cloud", {})
+            api_key = cloud_config.get("api", {}).get("key")
+            email = cloud_config.get("user", {}).get("email")
 
             if api_key and email:
-                console.print(
-                    f"You're already logged in as {email}. "
-                    f"Delete {config_file_path} to log in as a different user."
-                )
+                console.print(f"You're already logged in as {email}. ", style="bold green")
                 return True
         except yaml.YAMLError:
             console.print(

@@ -12,14 +12,14 @@ client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://loca
 
 app = FastAPI()
 
-actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+actor_secret = os.environ["ARCADE_ACTOR_SECRET"]
 actor = FastAPIActor(app, secret=actor_secret)
 actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):
     message: str
-    user_id: str
+    user_id: str | None = None
 
 
 @app.post("/chat")
@@ -33,14 +33,13 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             model="gpt-4o-mini",
             max_tokens=500,
             tools=[
-                # "Google.GetEmails",
-                # "Google.SearchEmailsByHeader",
-                # "Google.WriteDraft",
-                # "GitHub.CountStargazers",
-                # "GitHub.SetStarred",
-                # "GitHub.SearchIssues",
-                # "Slack.SendDmToUser",
-                # "Slack.SendMessageToChannel",
+                "Math.Add",
+                "Math.Subtract",
+                "Math.Multiply",
+                "Math.Divide",
+                "Math.Sqrt",
+                # Other tools can be added as needed:
+                # "Math.SumList"
             ],
             tool_choice=tool_choice,
             user=request.user_id,

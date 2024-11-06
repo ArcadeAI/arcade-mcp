@@ -130,7 +130,7 @@ history_3 = [
 
 
 @tool_eval()
-def spotify_eval_suite() -> EvalSuite:
+def spotify_tracks_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Spotify "track" tools."""
     suite = EvalSuite(
         name="Spotify Tools Evaluation",

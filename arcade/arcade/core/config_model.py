@@ -118,6 +118,14 @@ class Config(BaseConfig):
 
         config_data = yaml.safe_load(config_file_path.read_text())
 
+        if config_data is None:
+            raise ValueError(
+                "Invalid credentials.yaml file. Please ensure it is a valid YAML file."
+            )
+
+        if "cloud" not in config_data:
+            raise ValueError("Invalid credentials.yaml file. Expected a 'cloud' key.")
+
         try:
             return cls(**config_data["cloud"])
         except ValidationError as e:
