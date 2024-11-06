@@ -10,7 +10,7 @@ Steps:
 5. Inform the user which recommended song is now playing
 """
 
-from typing import Any
+from typing import Any, Optional
 
 from arcadepy import Arcade  # pip install arcade-py
 
@@ -30,8 +30,11 @@ def get_permissions(client: Arcade, provider_to_scopes: dict, user_id: str) -> N
             input("After you have authorized, press Enter to continue...")
 
 
-def call_tool(client: Arcade, tool_name: str, user_id: str, inputs: str | dict = "") -> Any:
+def call_tool(client: Arcade, tool_name: str, user_id: str, inputs: Optional[dict] = None) -> Any:
     """Call a single tool."""
+    if inputs is None:
+        inputs = {}
+
     response = client.tools.execute(
         tool_name=tool_name,
         inputs=inputs,
