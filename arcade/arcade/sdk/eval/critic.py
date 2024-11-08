@@ -6,7 +6,7 @@ from typing import Any, ClassVar
 import pytz
 from dateutil import parser
 
-from arcade.sdk.error import WeightError
+from arcade.sdk.errors import WeightError
 
 
 @dataclass

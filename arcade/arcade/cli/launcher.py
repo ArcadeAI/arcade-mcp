@@ -1,9 +1,11 @@
+import http.client
 import io
 import ipaddress
 import logging
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -16,10 +18,20 @@ from rich.console import Console
 console = Console(highlight=False)
 logger = logging.getLogger(__name__)
 
+known_engine_config_locations = [
+    "/etc/arcade-ai",
+    "/etc/arcade-engine",
+    "/opt/homebrew/etc/arcade-engine",
+]
+
+if os.environ.get("HOMEBREW_REPOSITORY") is not None:
+    homebrew_home = os.path.join(os.environ["HOMEBREW_REPOSITORY"], "etc", "arcade-engine")
+    known_engine_config_locations.append(homebrew_home)
+
 
 def start_servers(
-    host: str,
-    port: int,
+    actor_host: str,
+    actor_port: int,
     engine_config: str | None,
     engine_env: str | None = None,
     debug: bool = False,
@@ -35,23 +47,23 @@ def start_servers(
         debug: Whether to run in debug mode.
     """
     # Validate host and port
-    host = _validate_host(host)
-    port = _validate_port(port)
+    actor_host = _validate_host(actor_host)
+    actor_port = _validate_port(actor_port)
 
     # Ensure engine_config is provided and validated
     engine_config = _get_config_file(engine_config, default_filename="engine.yaml")
 
     # Ensure engine_env is provided or found and either way, validated
-    env_file = _get_config_file(engine_env, default_filename="arcade.env")
+    env_file = _get_config_file(engine_env, default_filename="arcade.env", optional=True)
 
     # Prepare command-line arguments for the actor server and engine
-    actor_cmd = _build_actor_command(host, port, debug)
+    actor_cmd = _build_actor_command(actor_host, actor_port, debug)
 
     # even if the user didn't pass an env file we may have found it in the default locations
     engine_cmd = _build_engine_command(engine_config, engine_env=env_file if env_file else None)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, engine_cmd, debug=debug)
+    _manage_processes(actor_cmd, actor_host, actor_port, engine_cmd, debug=debug)
 
 
 def _validate_host(host: str) -> str:
@@ -97,19 +109,22 @@ def _validate_port(port: int) -> int:
     return port
 
 
-def _get_config_file(file_path: str | None, default_filename: str = "engine.yaml") -> str:
+def _get_config_file(
+    file_path: str | None, default_filename: str = "engine.yaml", optional: bool = False
+) -> str | None:
     """
     Determines and validates the config file path.
 
     Args:
         file_path: Optional path provided by the user.
         default_filename: The default filename to look for.
+        optional: Whether the config file is optional.
 
     Returns:
-        The resolved config file path.
+        The resolved config file path. None if the file is optional and not found.
 
     Raises:
-        RuntimeError: If the config file is not found.
+        RuntimeError: If the config file is not found and is not optional.
     """
     if file_path:
         config_path = Path(os.path.expanduser(file_path)).resolve()
@@ -130,8 +145,26 @@ def _get_config_file(file_path: str | None, default_filename: str = "engine.yaml
         console.print(f"Using config file at {home_config_path}", style="bold green")
         return str(home_config_path)
 
+    # Look for known installation directories
+    for path in known_engine_config_locations:
+        etc_path = Path(path) / default_filename
+        if etc_path.is_file():
+            console.print(f"Using config file at {etc_path}", style="bold green")
+            return str(etc_path)
+
+    if optional:
+        console.print(
+            f"⚠️ Optional config file '{default_filename}' not found in either of the default locations: "
+            f"1) current working directory: {Path.cwd() / default_filename}, or "
+            f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
+            style="bold yellow",
+        )
+        return None
+
     console.print(
-        f"❌ Config file '{default_filename}' not found in any of the default locations.",
+        f"❌ Config file '{default_filename}' not found in any of the default locations: "
+        f"1) current working directory: {Path.cwd() / default_filename}, or "
+        f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
         style="bold red",
     )
     raise RuntimeError(f"Config file '{default_filename}' not found.")
@@ -170,7 +203,7 @@ def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
     return cmd
 
 
-def _build_engine_command(engine_config: str, engine_env: str | None = None) -> list[str]:
+def _build_engine_command(engine_config: str | None, engine_env: str | None = None) -> list[str]:
     """
     Builds the command to start the engine.
 
@@ -181,6 +214,11 @@ def _build_engine_command(engine_config: str, engine_env: str | None = None) -> 
     Returns:
         The command as a list.
     """
+    # This should never happen, but we'll check regardless
+    if not engine_config:
+        console.print("❌ Engine configuration file not found", style="bold red")
+        sys.exit(1)
+
     engine_bin = shutil.which("arcade-engine")
     if not engine_bin:
         console.print(
@@ -203,6 +241,8 @@ def _build_engine_command(engine_config: str, engine_env: str | None = None) -> 
 
 def _manage_processes(
     actor_cmd: list[str],
+    actor_host: str,
+    actor_port: int,
     engine_cmd: list[str],
     engine_env: dict[str, str] | None = None,
     debug: bool = False,
@@ -237,8 +277,7 @@ def _manage_processes(
             console.print("Starting actor server...", style="bold green")
             actor_process = _start_process("Actor", actor_cmd, debug=debug)
 
-            # Wait a bit to ensure actor is up
-            time.sleep(2)
+            _wait_for_healthy_actor(actor_process, actor_host, actor_port)
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
@@ -318,6 +357,28 @@ def _start_process(
     except Exception as e:
         console.print(f"❌ Failed to start {name}: {e}", style="bold red")
         raise RuntimeError(f"Failed to start {name}")
+
+
+def _wait_for_healthy_actor(
+    actor_process: subprocess.Popen, actor_host: str, actor_port: int
+) -> None:
+    """Wait until an HTTP request to `host:port/actor/health` returns 200"""
+
+    while actor_process.poll() is None:  # Continue waiting UNLESS the actor process has exited
+        time.sleep(1)
+        try:
+            conn = http.client.HTTPConnection(actor_host, actor_port, timeout=1)
+            conn.request("GET", "/actor/health")
+            res = conn.getresponse()
+            if res.status == 200:
+                break
+            conn.close()
+        except (socket.gaierror, http.client.HTTPException, ConnectionRefusedError, TimeoutError):
+            pass  # Handle expected exceptions gracefully
+        console.print("Waiting for actor to start...", style="bold yellow")
+
+    time.sleep(1)  # Wait just a little longer for everything to settle (discovered experimentally)
+    console.print("Actor is healthy", style="bold green")
 
 
 def _stream_output(process: subprocess.Popen, name: str) -> None:

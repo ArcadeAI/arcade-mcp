@@ -10,7 +10,7 @@ from arcade_google.tools.calendar import (
     update_event,
 )
 
-from arcade.core.catalog import ToolCatalog
+from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     DatetimeCritic,

@@ -4,6 +4,7 @@ ignorePaths:
 dictionaryDefinitions: []
 dictionaries: []
 words:
+  - arcadepy
   - conlist
   - fastapi
   - httpx

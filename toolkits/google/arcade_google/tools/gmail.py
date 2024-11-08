@@ -8,10 +8,9 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
-from arcade.sdk.error import RetryableToolError
+from arcade.sdk.errors import RetryableToolError
 from arcade_google.tools.utils import (
     DateRange,
     build_query_string,

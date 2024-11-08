@@ -1,18 +1,24 @@
 import os
 import re
+from importlib.metadata import version as get_version
 from textwrap import dedent
 from typing import Optional
 
 import typer
 from rich.console import Console
 
-from arcade.core.version import VERSION
-
 console = Console()
+
+# Retrieve the installed version of arcade-ai
+try:
+    VERSION = get_version("arcade-ai")
+except Exception as e:
+    console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
+    VERSION = "0.0.0"  # Default version if unable to fetch
 
 DEFAULT_VERSIONS = {
     "python": "^3.10",
-    "arcade-ai": f"^{VERSION}",
+    "arcade-ai": f"~{VERSION}",  # allow patch version updates
     "pytest": "^8.3.0",
 }
 
@@ -82,18 +88,19 @@ build-backend = "poetry.core.masonry.api"
 
 def create_new_toolkit(directory: str) -> None:
     """Generate a new Toolkit package based on user input."""
-    name = ask_question("Name of the new toolkit?")
-    toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
+    while True:
+        name = ask_question("Name of the new toolkit?")
+        toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
-    # Check for illegal characters in the toolkit name
-    if not re.match(r"^[\w_]+$", toolkit_name):
-        console.print(
-            dedent(
-                "[red]Toolkit name contains illegal characters. \
-            Only alphanumeric characters and underscores are allowed.[/red]"
+        # Check for illegal characters in the toolkit name
+        if re.match(r"^[\w_]+$", toolkit_name):
+            break
+        else:
+            console.print(
+                "[red]Toolkit name contains illegal characters. "
+                "Only alphanumeric characters and underscores are allowed. "
+                "Please try again.[/red]"
             )
-        )
-        return
 
     description = ask_question("Description of the toolkit?")
     author_name = ask_question("Author's name?")
@@ -162,7 +169,7 @@ def create_new_toolkit(directory: str) -> None:
             dedent(
                 f"""
             import pytest
-            from arcade.sdk.error import ToolExecutionError
+            from arcade.sdk.errors import ToolExecutionError
             from {toolkit_name}.tools.hello import hello
 
             def test_hello():
@@ -188,7 +195,7 @@ def create_new_toolkit(directory: str) -> None:
                 import {toolkit_name}
                 from {toolkit_name}.tools.hello import hello
 
-                from arcade.core.catalog import ToolCatalog
+                from arcade.sdk import ToolCatalog
                 from arcade.sdk.eval import (
                     EvalRubric,
                     EvalSuite,
@@ -238,4 +245,4 @@ def create_new_toolkit(directory: str) -> None:
             ).strip(),
         )
 
-    console.print(f"[green]Toolkit {toolkit_name} has been created.[/green]")
+    console.print(f"[green]Toolkit {toolkit_name} has been created in {top_level_dir} [/green]")

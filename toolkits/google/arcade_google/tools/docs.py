@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 from arcade_google.tools.utils import build_docs_service
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade-ai"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 packages = [
     {include="arcade", from="."}
@@ -18,8 +18,10 @@ pydantic = "^2.7.0"
 typer = "^0.9.0"
 rich = "^13.7.1"
 toml = "^0.10.2"
+pyyaml = "^6.0"
 tomlkit = "^0.12.4"
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
+arcadepy = "~0.1.2"
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
 types-python-dateutil = "2.9.0.20241003"
@@ -35,6 +37,7 @@ scikit-learn = {version = "^1.5.0", optional = true}
 pytz = {version = "^2024.1", optional = true}
 python-dateutil = {version = "^2.8.2", optional = true}
 
+pyreadline3 = {version = "^3.5.4", platform = "win32"}
 [tool.poetry.extras]
 fastapi = ["fastapi", "uvicorn", "opentelemetry-instrumentation-fastapi", "opentelemetry-exporter-otlp-proto-http", "opentelemetry-exporter-otlp-proto-common"]
 evals = ["scipy", "numpy", "scikit-learn", "pytz", "python-dateutil"]
@@ -49,6 +52,7 @@ pytest-asyncio = "^0.23.7"
 types-toml = "^0.10.8"
 types-pytz = "^2024.1"
 types-python-dateutil = "^2.8.2"
+types-PyYAML = "^6.0.0"
 poetry-plugin-export = "^1.7.0"
 
 [tool.poetry.scripts]

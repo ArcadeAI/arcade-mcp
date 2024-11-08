@@ -2,10 +2,9 @@ from typing import Annotated
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import X
+from arcade.sdk.errors import ToolExecutionError
 from arcade_x.tools.utils import (
     expand_urls_in_tweets,
     get_tweet_url,

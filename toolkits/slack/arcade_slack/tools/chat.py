@@ -3,10 +3,9 @@ from typing import Annotated
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from arcade.core.errors import RetryableToolError, ToolExecutionError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 @tool(

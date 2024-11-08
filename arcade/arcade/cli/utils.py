@@ -1,26 +1,31 @@
 import importlib.util
+import ipaddress
+import os
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Union
+from typing import Any, Callable, Union, cast
+from urllib.parse import urlencode, urlparse
 
+import idna
 import typer
+from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from rich.console import Console
+from rich.live import Live
 from rich.markdown import Markdown
+from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcade.client.client import Arcade
-from arcade.client.errors import APITimeoutError, EngineNotHealthyError, EngineOfflineError
-from arcade.client.schema import AuthResponse
-from arcade.core.catalog import ToolCatalog
 from arcade.core.config_model import Config
 from arcade.core.errors import ToolkitLoadError
 from arcade.core.schema import ToolDefinition
-from arcade.core.toolkit import Toolkit
+from arcade.sdk import ToolCatalog, Toolkit
 
 console = Console()
 
@@ -39,6 +44,7 @@ def create_cli_catalog(
     Load toolkits from the python environment.
     """
     if toolkit:
+        toolkit = toolkit.lower()
         try:
             prefixed_toolkit = "arcade_" + toolkit
             toolkits = [Toolkit.from_package(prefixed_toolkit)]
@@ -63,25 +69,109 @@ def create_cli_catalog(
     return catalog
 
 
-def get_config_with_overrides(
+def compute_engine_base_url(
     force_tls: bool,
     force_no_tls: bool,
-    host_input: str | None = None,
-    port_input: int | None = None,
-) -> Config:
+    host: str,
+    port: int | None,
+) -> str:
     """
-    Get the config with CLI-specific optional overrides applied.
-    """
-    config = validate_and_get_config()
+    Compute the base URL for the Arcade Engine from the provided overrides.
 
-    if not force_tls and not force_no_tls:
-        tls_input = None
-    elif force_no_tls:
-        tls_input = False
+    Treats 127.0.0.1 and 0.0.0.0 as aliases for localhost.
+
+    force_no_tls takes precedence over force_tls. For example, if both are set to True,
+    the resulting URL will use http.
+
+    The port is included in the URL unless the host is a fully qualified domain name
+    (excluding IP addresses) and no port is specified. Handles IPv4, IPv6, IDNs, and
+    hostnames with underscores.
+
+    This property exists to provide a consistent and correctly formatted URL for
+    connecting to the Arcade Engine, taking into account various configuration
+    options and edge cases. It ensures that:
+
+    1. The correct protocol (http/https) is used based on the TLS setting.
+    2. IPv4 and IPv6 addresses are properly formatted.
+    3. Internationalized Domain Names (IDNs) are correctly encoded.
+    4. Fully Qualified Domain Names (FQDNs) are identified and handled appropriately.
+    5. Ports are included when necessary, respecting common conventions for FQDNs.
+    6. Hostnames with underscores (common in development environments) are supported.
+    7. Pre-existing port specifications in the host are respected.
+
+    The resulting URL is always suffixed with api_version to specify the API version.
+
+    Returns:
+        str: The fully constructed URL for the Arcade Engine.
+    """
+    # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
+    host = "localhost" if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
+
+    # Determine TLS setting based on input flags
+    if force_no_tls:
+        is_tls = False
+    elif force_tls:
+        is_tls = True
     else:
-        tls_input = True
-    apply_config_overrides(config, host_input, port_input, tls_input)
-    return config
+        is_tls = host != "localhost"
+
+    # "localhost" defaults to dev port if not specified
+    if host == "localhost" and port is None:
+        port = 9099
+
+    protocol = "https" if is_tls else "http"
+
+    # Handle potential IDNs
+    try:
+        encoded_host = idna.encode(host).decode("ascii")
+    except idna.IDNAError:
+        encoded_host = host
+
+    # Check if the host is a valid IP address (IPv4 or IPv6)
+    try:
+        ipaddress.ip_address(encoded_host)
+        is_ip = True
+    except ValueError:
+        is_ip = False
+
+    # Parse the host, handling potential IPv6 addresses
+    host_for_parsing = f"[{encoded_host}]" if is_ip and ":" in encoded_host else encoded_host
+    parsed_host = urlparse(f"//{host_for_parsing}")
+
+    # Check if the host is a fully qualified domain name (excluding IP addresses)
+    is_fqdn = "." in parsed_host.netloc and not is_ip and "_" not in parsed_host.netloc
+
+    # Handle hosts that might already include a port
+    if ":" in parsed_host.netloc and not is_ip:
+        host, existing_port = parsed_host.netloc.rsplit(":", 1)
+        if existing_port.isdigit():
+            return f"{protocol}://{parsed_host.netloc}"
+
+    if is_fqdn and port is None:
+        return f"{protocol}://{encoded_host}"
+    elif port is not None:
+        return f"{protocol}://{encoded_host}:{port}"
+    else:
+        return f"{protocol}://{encoded_host}"
+
+
+def compute_login_url(host: str, state: str, port: int | None) -> str:
+    """
+    Compute the full URL for the CLI login endpoint.
+    """
+    callback_uri = "http://localhost:9905/callback"
+    params = urlencode({"callback_uri": callback_uri, "state": state})
+
+    port = port if port else 8000
+
+    login_base_url = (
+        f"http://localhost:{port}"
+        if host in ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
+        else f"https://{host}"
+    )
+    endpoint = "/api/v1/auth/cli_login"
+
+    return f"{login_base_url}{endpoint}?{params}"
 
 
 def get_tools_from_engine(
@@ -91,9 +181,16 @@ def get_tools_from_engine(
     force_no_tls: bool = False,
     toolkit: str | None = None,
 ) -> list[ToolDefinition]:
-    config = get_config_with_overrides(force_tls, force_no_tls, host, port)
-    client = Arcade(api_key=config.api.key, base_url=config.engine_url)
-    return client.tools.list_tools(toolkit=toolkit)
+    config = validate_and_get_config()
+    base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
+    client = Arcade(api_key=config.api.key, base_url=base_url)
+
+    tools = []
+    page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
+    for tool in page_iterator:
+        tools.append(ToolDefinition.model_validate(tool.model_dump()))
+
+    return tools
 
 
 def get_tool_messages(choice: dict) -> list[dict]:
@@ -120,22 +217,30 @@ def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) ->
     tool_messages = []
     tool_authorization = None
     role = ""
+    printed_role: bool = False
+
     with Live(console=console, refresh_per_second=10) as live:
         for chunk in stream:
             choice = chunk.choices[0]
-            chunk_message = choice.delta.content
-            if role == "":
-                role = choice.delta.role or ""
-                if role == "assistant":
-                    console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
-            if chunk_message:
-                full_message += chunk_message
-                markdown_chunk = Markdown(full_message)
-                live.update(markdown_chunk)
+            role = choice.delta.role or role
 
             # Display and get tool messages if they exist
             tool_messages += get_tool_messages(choice)  # type: ignore[arg-type]
             tool_authorization = get_tool_authorization(choice)
+
+            chunk_message = choice.delta.content
+
+            if role == "assistant" and tool_authorization:
+                continue  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
+
+            if role == "assistant" and not printed_role:
+                console.print(f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ")
+                printed_role = True
+
+            if chunk_message:
+                full_message += chunk_message
+                markdown_chunk = Markdown(full_message)
+                live.update(markdown_chunk)
 
         # Markdownify URLs in the final message if applicable
         if role == "assistant":
@@ -160,7 +265,6 @@ def markdownify_urls(message: str) -> str:
 
 
 def validate_and_get_config(
-    validate_engine: bool = True,
     validate_api: bool = True,
     validate_user: bool = True,
 ) -> Config:
@@ -168,10 +272,6 @@ def validate_and_get_config(
     Validates the configuration, user, and returns the Config object
     """
     from arcade.core.config import config
-
-    if validate_engine and (not config.engine or not config.engine_url):
-        console.print("❌ Engine configuration not found or URL is missing.", style="bold red")
-        raise typer.Exit(code=1)
 
     if validate_api and (not config.api or not config.api.key):
         console.print(
@@ -189,40 +289,24 @@ def validate_and_get_config(
     return config
 
 
-def apply_config_overrides(
-    config: Config, host_input: str | None, port_input: int | None, tls_input: bool | None
-) -> None:
-    """
-    Apply optional config overrides (passed by the user) to the config object.
-    """
-
-    if not config.engine:
-        # Should not happen, validate_and_get_config ensures that `engine` is set
-        raise ValueError("Engine configuration not found in config.")
-
-    # Special case for "localhost" and nothing else specified:
-    # default to dev port and no TLS for convenience
-    if host_input == "localhost":
-        if port_input is None:
-            port_input = 9099
-        if tls_input is None:
-            tls_input = False
-
-    if host_input:
-        config.engine.host = host_input
-
-    if port_input is not None:
-        config.engine.port = port_input
-
-    if tls_input is not None:
-        config.engine.tls = tls_input
-
-
 def log_engine_health(client: Arcade) -> None:
     try:
-        client.health.check()
+        result = client.health.check(timeout=2)
+        if result.healthy:
+            return
 
-    except EngineNotHealthyError as e:
+        console.print(
+            "⚠️ Warning: Arcade Engine is unhealthy",
+            style="bold yellow",
+        )
+
+    except APIConnectionError:
+        console.print(
+            "⚠️ Warning: Arcade Engine was unreachable. (Is it running?)",
+            style="bold yellow",
+        )
+
+    except APIStatusError as e:
         console.print(
             "[bold][yellow]⚠️ Warning: "
             + str(e)
@@ -232,11 +316,6 @@ def log_engine_health(client: Arcade) -> None:
             + str(e.status_code)
             + "[/red]"
             + "[yellow])[/yellow][/bold]"
-        )
-    except EngineOfflineError:
-        console.print(
-            "⚠️ Warning: Arcade Engine was unreachable. (Is it running?)",
-            style="bold yellow",
         )
 
 
@@ -289,7 +368,10 @@ def handle_chat_interaction(
         tool_authorization = get_tool_authorization(response.choices[0])
 
         role = response.choices[0].message.role
-        if role == "assistant":
+
+        if role == "assistant" and tool_authorization:
+            pass  # Skip the message if it's an auth request (handled later in handle_tool_authorization)
+        elif role == "assistant":
             message_content = markdownify_urls(message_content)
             console.print(
                 f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ", Markdown(message_content)
@@ -303,18 +385,54 @@ def handle_chat_interaction(
     return ChatInteractionResult(history, tool_messages, tool_authorization)
 
 
-def wait_for_authorization_completion(client: Arcade, tool_authorization: dict | None) -> None:
+def handle_tool_authorization(
+    arcade_client: Arcade,
+    tool_authorization: AuthorizationResponse,
+    history: list[dict[str, Any]],
+    openai_client: OpenAI,
+    model: str,
+    user_email: str | None,
+    stream: bool,
+) -> ChatInteractionResult:
+    with Live(console=console, refresh_per_second=4) as live:
+        if tool_authorization.authorization_url:
+            authorization_url = str(tool_authorization.authorization_url)
+            webbrowser.open(authorization_url)
+            message = (
+                "You'll need to authorize this action in your browser.\n\n"
+                f"If a browser doesn't open automatically, click [this link]({authorization_url}) "
+                f"or copy this URL and paste it into your browser:\n\n{authorization_url}"
+            )
+            live.update(Markdown(message, style="dim"))
+
+        wait_for_authorization_completion(arcade_client, tool_authorization)
+
+        message = "Thanks for authorizing the action! Sending your request..."
+        live.update(Text(message, style="dim"))
+
+    history.pop()
+    return handle_chat_interaction(openai_client, model, history, user_email, stream)
+
+
+def wait_for_authorization_completion(
+    client: Arcade, tool_authorization: AuthorizationResponse | None
+) -> None:
     """
     Wait for the authorization for a tool call to complete i.e., wait for the user to click on
     the approval link and authorize Arcade.
     """
     if tool_authorization is None:
         return
-    auth_response = AuthResponse.model_validate(tool_authorization)
+
+    auth_response = AuthorizationResponse.model_validate(tool_authorization)
 
     while auth_response.status != "completed":
         try:
-            auth_response = client.auth.status(auth_response, wait=60)
+            auth_response = client.auth.status(
+                authorization_id=cast(str, auth_response.authorization_id),
+                scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
+                wait=59,
+            )
         except APITimeoutError:
             continue
 
@@ -424,3 +542,48 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
         eval_suites.extend(eval_suite_funcs)
 
     return eval_suites
+
+
+def create_new_env_file() -> None:
+    """
+    Create a new env file if one doesn't already exist.
+    """
+    env_file = os.path.expanduser("~/.arcade/arcade.env")
+    if not os.path.exists(env_file):
+        template_path = os.path.join(
+            os.path.dirname(__file__), "..", "templates", "arcade.template.env"
+        )
+        os.makedirs(os.path.dirname(env_file), exist_ok=True)
+
+        with open(template_path) as template_file, open(env_file, "w") as new_env_file:
+            template_contents = template_file.read()
+            new_env_file.write(template_contents)
+
+        console.print(f"Created new environment file at {env_file}", style="bold green")
+
+
+def is_config_file_deprecated() -> bool:
+    """
+    Check if the user is using the deprecated config file.
+
+    Returns:
+        bool: True if the user is using the deprecated config file, False otherwise.
+    """
+    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+    if os.path.exists(deprecated_config_file_path):
+        console.print(
+            f"Deprecation Notice: You are using a deprecated config file at {deprecated_config_file_path}. Please migrate to the new format by running,\n\n\t$ arcade logout && arcade login\n",
+            style="bold yellow",
+        )
+        return True
+    return False
+
+
+def delete_deprecated_config_file() -> None:
+    """
+    Delete the deprecated config file if it exists.
+    """
+    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
+
+    if os.path.exists(deprecated_config_file_path):
+        os.remove(deprecated_config_file_path)

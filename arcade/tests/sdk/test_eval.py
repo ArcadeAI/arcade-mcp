@@ -4,7 +4,7 @@ import pytest
 import pytz
 from dateutil import parser
 
-from arcade.sdk.error import WeightError
+from arcade.sdk.errors import WeightError
 from arcade.sdk.eval import (
     BinaryCritic,
     DatetimeCritic,

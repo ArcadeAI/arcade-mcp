@@ -2,27 +2,24 @@ import os
 
 import arcade_math
 from fastapi import FastAPI, HTTPException
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from arcade.actor.fastapi.actor import FastAPIActor
-from arcade.client import AsyncArcade
-from arcade.core.config import config
-from arcade.core.toolkit import Toolkit
+from arcade.sdk import Toolkit
 
-if not config.api or not config.api.key:
-    raise ValueError("Arcade API key not set. Please run `arcade login`.")
-
-client = AsyncArcade(api_key=config.api.key)
+client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
-actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+actor_secret = os.environ["ARCADE_ACTOR_SECRET"]
 actor = FastAPIActor(app, secret=actor_secret)
 actor.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):
     message: str
+    user_id: str | None = None
 
 
 @app.post("/chat")
@@ -36,17 +33,16 @@ async def postChat(request: ChatRequest, tool_choice: str = "execute"):
             model="gpt-4o-mini",
             max_tokens=500,
             tools=[
-                # "Google.GetEmails",
-                # "Google.SearchEmailsByHeader",
-                # "Google.WriteDraft",
-                # "GitHub.CountStargazers",
-                # "GitHub.SetStarred",
-                # "GitHub.SearchIssues",
-                # "Slack.SendDmToUser",
-                # "Slack.SendMessageToChannel",
+                "Math.Add",
+                "Math.Subtract",
+                "Math.Multiply",
+                "Math.Divide",
+                "Math.Sqrt",
+                # Other tools can be added as needed:
+                # "Math.SumList"
             ],
             tool_choice=tool_choice,
-            user=config.user.email if config.user else None,
+            user=request.user_id,
         )
 
     except Exception as e:

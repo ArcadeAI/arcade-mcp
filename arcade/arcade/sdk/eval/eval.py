@@ -18,10 +18,10 @@ except ImportError:
 
 from openai import AsyncOpenAI
 
-from arcade.sdk.error import WeightError
+from arcade.sdk.errors import WeightError
 
 if TYPE_CHECKING:
-    from arcade.core.catalog import ToolCatalog
+    from arcade.sdk import ToolCatalog
     from arcade.sdk.eval.critic import Critic
 
 
@@ -644,6 +644,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
         @functools.wraps(func)
         async def wrapper(
             config: Config,
+            base_url: str,
             model: str,
             max_concurrency: int = 1,
         ) -> list[dict[str, Any]]:
@@ -654,7 +655,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             results = []
             async with AsyncOpenAI(
                 api_key=config.api.key,
-                base_url=config.engine_url,
+                base_url=base_url + "/v1",
             ) as client:
                 result = await suite.run(client, model)
                 results.append(result)

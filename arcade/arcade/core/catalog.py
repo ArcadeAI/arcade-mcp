@@ -23,6 +23,8 @@ from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from arcade.core.annotations import Inferrable
+from arcade.core.auth import OAuth2, ToolAuthorization
 from arcade.core.errors import ToolDefinitionError
 from arcade.core.schema import (
     TOOL_NAME_SEPARATOR,
@@ -46,8 +48,6 @@ from arcade.core.utils import (
     is_union,
     snake_to_pascal_case,
 )
-from arcade.sdk.annotations import Inferrable
-from arcade.sdk.auth import OAuth2, ToolAuthorization
 
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
@@ -219,8 +219,7 @@ class ToolCatalog(BaseModel):
     def get_tool_by_name(
         self, name: str, version: Optional[str] = None, separator: str = TOOL_NAME_SEPARATOR
     ) -> MaterializedTool:
-        """
-        Get a tool from the catalog by name, optionally including the toolkit name.
+        """Get a tool from the catalog by name.
 
         Args:
             name: The name of the tool, potentially including the toolkit name separated by the `separator`.

@@ -2,10 +2,9 @@ from typing import Annotated, Optional
 
 import httpx
 
-from arcade.core.errors import ToolExecutionError
-from arcade.core.schema import ToolContext
-from arcade.sdk import tool
+from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Zoom
+from arcade.sdk.errors import ToolExecutionError
 
 ZOOM_BASE_URL = "https://api.zoom.us/v2"
 
