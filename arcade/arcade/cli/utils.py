@@ -3,7 +3,9 @@ import ipaddress
 import os
 import webbrowser
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
 
@@ -34,6 +36,13 @@ class OrderCommands(TyperGroup):
     def list_commands(self, ctx: Context) -> list[str]:  # type: ignore[override]
         """Return list of commands in the order appear."""
         return list(self.commands)  # get commands using self.commands
+
+
+class ChatCommand(str, Enum):
+    HELP = "/?"
+    CLEAR = "/clear"
+    SHOW = "/show"
+    EXIT = "/exit"
 
 
 def create_cli_catalog(
@@ -587,3 +596,73 @@ def delete_deprecated_config_file() -> None:
 
     if os.path.exists(deprecated_config_file_path):
         os.remove(deprecated_config_file_path)
+
+
+def get_user_input() -> str:
+    """
+    Get input from the user, handling multi-line input.
+    """
+    MULTI_LINE_PROMPT = '"""'
+    user_input = input()
+    # Handle multi-line input
+    if user_input.startswith(MULTI_LINE_PROMPT):
+        user_input = user_input[len(MULTI_LINE_PROMPT) :]
+
+        while not user_input.endswith(MULTI_LINE_PROMPT):
+            line = input()
+            if not line:
+                print()
+            user_input += "\n" + line
+
+        user_input = user_input.rstrip(MULTI_LINE_PROMPT)
+    else:
+        # Handle single-line input
+        while not user_input.strip():
+            user_input = input()
+
+    return user_input.strip()
+
+
+def display_chat_help() -> None:
+    """Display the help message for arcade chat."""
+    help_message = dedent(f"""\
+        [default]
+        Available Commands:
+          {ChatCommand.SHOW:<10} Show all available tools
+          {ChatCommand.CLEAR:<10} Clear the chat history
+          {ChatCommand.HELP:<10} Help for a command
+          {ChatCommand.EXIT:<10} Exit the chat
+
+        Use \"\"\" to begin & end a multi-line message[/default]
+    """)
+    console.print(help_message)
+
+
+def handle_user_command(
+    user_input: str, history: list, host: str, port: int, force_tls: bool, force_no_tls: bool
+) -> bool:
+    """
+    Handle user commands during `arcade chat` and return True if a command was processed, otherwise False.
+    """
+    if user_input == ChatCommand.HELP:
+        display_chat_help()
+        return True
+    elif user_input == ChatCommand.EXIT:
+        raise KeyboardInterrupt
+    elif user_input == ChatCommand.CLEAR:
+        history.clear()
+        return True
+    elif user_input == ChatCommand.SHOW:
+        from arcade.cli.main import show
+
+        show(
+            toolkit=None,
+            tool=None,
+            host=host,
+            port=port,
+            force_tls=force_tls,
+            force_no_tls=force_no_tls,
+            debug=False,
+        )
+        return True
+    return False

@@ -31,8 +31,10 @@ from arcade.cli.utils import (
     delete_deprecated_config_file,
     get_eval_files,
     get_tools_from_engine,
+    get_user_input,
     handle_chat_interaction,
     handle_tool_authorization,
+    handle_user_command,
     is_authorization_pending,
     load_eval_suites,
     log_engine_health,
@@ -270,15 +272,18 @@ def chat(
         log_engine_health(client)
 
         while True:
-            console.print(f"\n[magenta][bold]User[/bold] ({user_email}):[/magenta] ")
+            console.print(
+                f"\n[magenta][bold]User[/bold] {user_email}: [/magenta]"
+                + "([bold][default]/?[/default][/bold] for help)"
+            )
 
-            # Use input() instead of console.input() to leverage readline history
-            user_input = input()
-            while not user_input.strip():
-                user_input = input()
+            user_input = get_user_input()
 
             # Add the input to history
             readline.add_history(user_input)
+
+            if handle_user_command(user_input, history, host, port, force_tls, force_no_tls):
+                continue
 
             history.append({"role": "user", "content": user_input})
 
