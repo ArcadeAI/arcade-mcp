@@ -97,8 +97,6 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo "Setting version to $(VERSION)"
 	@make set-version
 
-
-
 	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	@mkdir -p dist/toolkits
 
