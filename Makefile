@@ -57,7 +57,9 @@ unset-version: ## Set the version in the pyproject.toml file
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
 	@echo "🚀 Creating wheel file"
+	@cp README.md arcade/README.md
 	@cd arcade && poetry build
+	@rm -f arcade/README.md
 
 .PHONY: clean-build
 clean-build: ## clean build artifacts
@@ -95,12 +97,16 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo "Setting version to $(VERSION)"
 	@make set-version
 
+
+
 	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	@mkdir -p dist/toolkits
 
 	# Build the main arcade project
 	@echo "🛠️ Building arcade project wheel..."
+	@cp README.md arcade/README.md
 	@cd arcade && poetry build
+	@rm -f arcade/README.md
 
 	# Copy the main arcade project wheel to the dist directory
 	@cp arcade/dist/*.whl dist/
