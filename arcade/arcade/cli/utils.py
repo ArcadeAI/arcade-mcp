@@ -639,7 +639,13 @@ def display_chat_help() -> None:
 
 
 def handle_user_command(
-    user_input: str, history: list, host: str, port: int, force_tls: bool, force_no_tls: bool
+    user_input: str,
+    history: list,
+    host: str,
+    port: int,
+    force_tls: bool,
+    force_no_tls: bool,
+    show: Callable,
 ) -> bool:
     """
     Handle user commands during `arcade chat` and return True if a command was processed, otherwise False.
@@ -650,11 +656,10 @@ def handle_user_command(
     elif user_input == ChatCommand.EXIT:
         raise KeyboardInterrupt
     elif user_input == ChatCommand.CLEAR:
+        console.print("Chat history cleared.", style="bold green")
         history.clear()
         return True
     elif user_input == ChatCommand.SHOW:
-        from arcade.cli.main import show
-
         show(
             toolkit=None,
             tool=None,
@@ -666,3 +671,14 @@ def handle_user_command(
         )
         return True
     return False
+
+
+def parse_user_command(user_input: str) -> ChatCommand | None:
+    """
+    Parse the user command and return the corresponding ChatCommand enum.
+    Returns None if the input is not a valid chat command.
+    """
+    try:
+        return ChatCommand(user_input)
+    except ValueError:
+        return None

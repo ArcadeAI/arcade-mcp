@@ -282,7 +282,7 @@ def chat(
             # Add the input to history
             readline.add_history(user_input)
 
-            if handle_user_command(user_input, history, host, port, force_tls, force_no_tls):
+            if handle_user_command(user_input, history, host, port, force_tls, force_no_tls, show):
                 continue
 
             history.append({"role": "user", "content": user_input})
