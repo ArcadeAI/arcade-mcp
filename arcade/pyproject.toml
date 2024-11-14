@@ -55,6 +55,7 @@ types-pytz = "^2024.1"
 types-python-dateutil = "^2.8.2"
 types-PyYAML = "^6.0.0"
 poetry-plugin-export = "^1.7.0"
+Jinja2 = ">=2.7,<4.0.0"
 
 [tool.poetry.scripts]
 arcade = "arcade.cli.main:cli"
