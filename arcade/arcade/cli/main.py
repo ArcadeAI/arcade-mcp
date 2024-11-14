@@ -124,10 +124,10 @@ def new(
     """
     Creates a new toolkit with the given name, description, and result type.
     """
-    from arcade.cli.new2 import create_toolkit_template
+    from arcade.cli.new import create_toolkit
 
     try:
-        create_toolkit_template(directory)
+        create_toolkit(directory)
     except Exception as e:
         error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
         console.print(error_message, style="bold red")
