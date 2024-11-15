@@ -1,0 +1,14 @@
+# Stop the editor from looking for .editorconfig files in the parent directories
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+end_of_line = lf
+indent_style = space
+indent_size = 4
+max_line_length = 100 # This is also set in .ruff.toml for ruff
+
+[*.{json,jsonc,yml,yaml}]
+indent_style = space
+indent_size = 2 # This is also set in .prettierrc.toml

@@ -1,5 +1,6 @@
 import re
 import shutil
+from datetime import datetime
 from importlib.metadata import version as get_version
 from pathlib import Path
 from typing import Optional
@@ -48,23 +49,27 @@ def create_package(env: Environment, template_path: Path, output_path: Path, con
     if TEMPLATE_IGNORE_PATTERN.match(template_path.name):
         return
 
-    if template_path.is_dir():
-        folder_name = render_template(env, template_path.name, context)
-        new_dir_path = output_path / folder_name
-        new_dir_path.mkdir(parents=True, exist_ok=True)
+    try:
+        if template_path.is_dir():
+            folder_name = render_template(env, template_path.name, context)
+            new_dir_path = output_path / folder_name
+            new_dir_path.mkdir(parents=True, exist_ok=True)
 
-        for item in template_path.iterdir():
-            create_package(env, item, new_dir_path, context)
+            for item in template_path.iterdir():
+                create_package(env, item, new_dir_path, context)
 
-    else:
-        # Render the file name
-        file_name = render_template(env, template_path.name, context)
-        with open(template_path) as f:
-            content = f.read()
-        # Render the file content
-        content = render_template(env, content, context)
+        else:
+            # Render the file name
+            file_name = render_template(env, template_path.name, context)
+            with open(template_path) as f:
+                content = f.read()
+            # Render the file content
+            content = render_template(env, content, context)
 
-        write_template(output_path / file_name, content)
+            write_template(output_path / file_name, content)
+    except Exception as e:
+        console.print(f"[red]Failed to create package: {e}[/red]")
+        raise
 
 
 def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
@@ -97,7 +102,7 @@ def create_toolkit(output_directory: str) -> None:
             )
 
     toolkit_description = ask_question("Description of the toolkit?")
-    toolkit_author_name = ask_question("Author's name?")
+    toolkit_author_name = ask_question("Github owner username?")
     toolkit_author_email = ask_question("Author's email?")
 
     context = {
@@ -106,7 +111,8 @@ def create_toolkit(output_directory: str) -> None:
         "toolkit_description": toolkit_description,
         "toolkit_author_name": toolkit_author_name,
         "toolkit_author_email": toolkit_author_email,
-        "arcade_version": f"^{ARCADE_VERSION.rsplit('.', 1)[0]}.*",
+        "arcade_version": f"{ARCADE_VERSION.rsplit('.', 1)[0]}.*",
+        "creation_year": datetime.now().year,
     }
     template_directory = Path(__file__).parent.parent / "templates" / "{{ toolkit_name }}"
 
