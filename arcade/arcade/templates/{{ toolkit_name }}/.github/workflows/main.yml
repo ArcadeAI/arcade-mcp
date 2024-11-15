@@ -1,4 +1,4 @@
-name: Main
+name: Main{% raw %}
 
 on:
   push:
@@ -56,3 +56,4 @@ jobs:
 
       - name: Test with tox
         run: tox
+{% endraw %}

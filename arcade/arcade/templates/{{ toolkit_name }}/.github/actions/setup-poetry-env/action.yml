@@ -1,4 +1,4 @@
-name: "setup-poetry-env"
+name: "setup-poetry-env"{% raw %}
 description: "Composite action to setup the Python and poetry environment."
 
 inputs:
@@ -35,3 +35,4 @@ runs:
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction --all-extras
       shell: bash
+{% endraw %}
