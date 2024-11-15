@@ -21,7 +21,7 @@ catalog.add_module({{ package_name }})
 
 
 @tool_eval()
-def {{ toolkit_name }}_eval_suite():
+def {{ toolkit_name }}_eval_suite() -> EvalSuite:  # type: ignore[no-any-unimported]
     suite = EvalSuite(
         name="{{ toolkit_name }} Tools Evaluation",
         system_message="You are an AI assistant with access to {{ toolkit_name }} tools. Use them to help the user with their tasks.",

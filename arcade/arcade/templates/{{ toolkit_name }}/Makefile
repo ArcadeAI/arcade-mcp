@@ -1,7 +1,7 @@
 .PHONY: help
 
 help:
-	@echo "🛠️ {{ toolkit_name }} Commands:\n"
+	@echo "🛠️ local_file_management Commands:\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: install
@@ -41,3 +41,17 @@ coverage: ## Generate coverage report
 	coverage report
 	@echo "Generating coverage report"
 	coverage html
+
+.PHONY: bump-version
+bump-version: ## Bump the version in the pyproject.toml file
+	@echo "🚀 Bumping version in pyproject.toml"
+	poetry version patch
+
+.PHONY: check
+check: ## Run code quality tools.
+	@echo "🚀 Checking Poetry lock file consistency with 'pyproject.toml': Running poetry check --lock"
+	@poetry check --lock
+	@echo "🚀 Linting code: Running pre-commit"
+	@poetry run pre-commit run -a
+	@echo "🚀 Static type checking: Running mypy"
+	@poetry run mypy $(git ls-files '*.py')
