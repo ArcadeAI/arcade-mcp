@@ -14,6 +14,9 @@ from arcade_google.tools.utils import (
     DateRange,
     build_query_string,
     fetch_messages,
+    get_draft_url,
+    get_email_in_trash_url,
+    get_sent_email_url,
     parse_draft_email,
     parse_email,
     remove_none_values,
@@ -59,7 +62,9 @@ async def send_email(
     # Send the email
     sent_message = service.users().messages().send(userId="me", body=email).execute()
 
-    return parse_email(sent_message)
+    email = parse_email(sent_message)
+    email["url"] = get_sent_email_url(sent_message["id"])
+    return email
 
 
 @tool(
@@ -80,7 +85,9 @@ async def send_draft_email(
     # Send the draft email
     sent_message = service.users().drafts().send(userId="me", body={"id": email_id}).execute()
 
-    return parse_email(sent_message)
+    email = parse_email(sent_message)
+    email["url"] = get_sent_email_url(sent_message["id"])
+    return email
 
 
 # Draft Management Tools
@@ -118,7 +125,9 @@ async def write_draft_email(
     draft = {"message": {"raw": raw_message}}
 
     draft_message = service.users().drafts().create(userId="me", body=draft).execute()
-    return parse_draft_email(draft_message)
+    email = parse_draft_email(draft_message)
+    email["url"] = get_draft_url(draft_message["id"])
+    return email
 
 
 @tool(
@@ -160,7 +169,9 @@ async def update_draft_email(
         service.users().drafts().update(userId="me", id=draft_email_id, body=draft).execute()
     )
 
-    return parse_draft_email(updated_draft_message)
+    email = parse_draft_email(updated_draft_message)
+    email["url"] = get_draft_url(updated_draft_message["id"])
+    return email
 
 
 @tool(
@@ -203,7 +214,9 @@ async def trash_email(
     # Trash the email
     trashed_email = service.users().messages().trash(userId="me", id=email_id).execute()
 
-    return parse_email(trashed_email)
+    email = parse_email(trashed_email)
+    email["url"] = get_email_in_trash_url(trashed_email["id"])
+    return email
 
 
 # Draft Search Tools
