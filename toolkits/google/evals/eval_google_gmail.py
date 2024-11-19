@@ -1,7 +1,11 @@
 import arcade_google
 from arcade_google.tools.gmail import (
+    get_thread,
+    list_threads,
+    search_threads,
     send_email,
 )
+from arcade_google.tools.utils import DateRange
 
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
@@ -54,6 +58,59 @@ def gmail_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="recipient", weight=0.25),
             BinaryCritic(critic_field="cc", weight=0.25),
             BinaryCritic(critic_field="bcc", weight=0.125),
+        ],
+    )
+
+    suite.add_case(
+        name="List threads",
+        user_message="Get 42 threads like right now i even wanna see the ones in my trash",
+        expected_tool_calls=[
+            (
+                list_threads,
+                {"max_results": 42, "include_spam_trash": True},
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="max_results", weight=0.5),
+            BinaryCritic(critic_field="include_spam_trash", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search threads",
+        user_message="Search for threads from johndoe@example.com to janedoe@example.com about that talk about 'Arcade AI' from yesterday",
+        expected_tool_calls=[
+            (
+                search_threads,
+                {
+                    "sender": "johndoe@example.com",
+                    "recipient": "janedoe@example.com",
+                    "body": "Arcade AI",
+                    "date_range": DateRange.YESTERDAY,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="sender", weight=0.25),
+            BinaryCritic(critic_field="recipient", weight=0.25),
+            SimilarityCritic(critic_field="body", weight=0.25),
+            BinaryCritic(critic_field="date_range", weight=0.25),
+        ],
+    )
+
+    suite.add_case(
+        name="Get a thread by ID",
+        user_message="Get the thread r-124325435467568867667878874565464564563523424323524235242412",
+        expected_tool_calls=[
+            (
+                get_thread,
+                {
+                    "thread_id": "r-124325435467568867667878874565464564563523424323524235242412",
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="thread_id", weight=1.0),
         ],
     )
 

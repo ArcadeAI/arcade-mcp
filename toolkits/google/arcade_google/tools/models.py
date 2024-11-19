@@ -232,7 +232,9 @@ class SendUpdatesOptions(Enum):
     EXTERNAL_ONLY = "externalOnly"  # Notifications are sent to non-Google Calendar guests only.
 
 
-# Utils for Google Drive tools
+# ---------------------------------------------------------------------------- #
+# Google Drive Models and Enums
+# ---------------------------------------------------------------------------- #
 class Corpora(str, Enum):
     """
     Bodies of items (files/documents) to which the query applies.

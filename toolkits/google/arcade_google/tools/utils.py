@@ -82,16 +82,17 @@ def parse_email(email_data: dict[str, Any]) -> Optional[dict[str, str]]:
         Optional[Dict[str, str]]: Parsed email details or None if parsing fails.
     """
     try:
-        payload = email_data["payload"]
-        headers = {d["name"].lower(): d["value"] for d in payload["headers"]}
+        payload = email_data.get("payload", {})
+        headers = {d["name"].lower(): d["value"] for d in payload.get("headers", [])}
 
         body_data = _get_email_body(payload)
 
         return {
             "id": email_data.get("id", ""),
+            "thread_id": email_data.get("threadId", ""),
             "from": headers.get("from", ""),
             "date": headers.get("date", ""),
-            "subject": headers.get("subject", "No subject"),
+            "subject": headers.get("subject", ""),
             "body": _clean_email_body(body_data) if body_data else "",
         }
     except Exception as e:
@@ -110,17 +111,18 @@ def parse_draft_email(draft_email_data: dict[str, Any]) -> Optional[dict[str, st
         Optional[Dict[str, str]]: Parsed draft email details or None if parsing fails.
     """
     try:
-        message = draft_email_data["message"]
-        payload = message["payload"]
-        headers = {d["name"].lower(): d["value"] for d in payload["headers"]}
+        message = draft_email_data.get("message", {})
+        payload = message.get("payload", {})
+        headers = {d["name"].lower(): d["value"] for d in payload.get("headers", [])}
 
         body_data = _get_email_body(payload)
 
         return {
             "id": draft_email_data.get("id", ""),
+            "thread_id": draft_email_data.get("threadId", ""),
             "from": headers.get("from", ""),
             "date": headers.get("internaldate", ""),
-            "subject": headers.get("subject", "No subject"),
+            "subject": headers.get("subject", ""),
             "body": _clean_email_body(body_data) if body_data else "",
         }
     except Exception as e:
@@ -226,7 +228,7 @@ def _update_datetime(day: Day | None, time: TimeSlot | None, time_zone: str) -> 
 
 def build_query_string(sender, recipient, subject, body, date_range):
     """
-    Helper function to build a query string for Gmail list_emails_by_header tool.
+    Helper function to build a query string for Gmail list_emails_by_header and search_threads tools.
     """
     query = []
     if sender:
