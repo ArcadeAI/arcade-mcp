@@ -6,7 +6,7 @@ authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.112.0"
+fastapi = "^0.115.3"
 arcade-ai = {path = "../../arcade", develop = true}
 arcade_math = {path = "../../toolkits/math", develop = true}
 arcade_google = {path = "../../toolkits/google", develop = true}
