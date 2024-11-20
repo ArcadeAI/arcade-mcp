@@ -79,7 +79,7 @@ def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
         shutil.rmtree(toolkit_path)
 
 
-def create_toolkit(output_directory: str) -> None:
+def create_new_toolkit(output_directory: str) -> None:
     """Create a new toolkit from a template with user input."""
     toolkit_directory = Path(output_directory)
     while True:
