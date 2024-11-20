@@ -36,24 +36,6 @@ select = [
     "TRY",
 ]
 
-# TODO work to remove these
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
-    # raise from (cli specific)
-    "B904", # Previously "TRY200"
-    # Depends function in arg string
-    "B008",
-    # raise from (cli specific)
-    "B904",
-    # long message exceptions
-    "TRY003",
-    # subprocess.Popen
-    "S603",
-]
-
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
 
