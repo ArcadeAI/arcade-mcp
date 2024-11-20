@@ -62,7 +62,7 @@ def gmail_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="List threads",
+        name="Simple list threads",
         user_message="Get 42 threads like right now i even wanna see the ones in my trash",
         expected_tool_calls=[
             (
@@ -73,6 +73,49 @@ def gmail_eval_suite() -> EvalSuite:
         critics=[
             BinaryCritic(critic_field="max_results", weight=0.5),
             BinaryCritic(critic_field="include_spam_trash", weight=0.5),
+        ],
+    )
+
+    history = [
+        {"role": "user", "content": "list 1 thread"},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_X8V5Hw9iJ3wfB8WMZf8omAMi",
+                    "type": "function",
+                    "function": {"name": "Google_ListThreads", "arguments": '{"max_results":1}'},
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "content": '{"next_page_token":"10321400718999360131","num_threads":1,"threads":[{"historyId":"61691","id":"1934a8f8deccb749","snippet":"Hi Joe, I hope this email finds you well. Thank you for being a part of our community."}]}',
+            "tool_call_id": "call_X8V5Hw9iJ3wfB8WMZf8omAMi",
+            "name": "Google_ListThreads",
+        },
+        {
+            "role": "assistant",
+            "content": "Here is one email thread:\n\n- **Snippet:** Hi Joe, I hope this email finds you well. Thank you for being a part of our community.\n- **Thread ID:** 1934a8f8deccb749\n- **History ID:** 61691",
+        },
+    ]
+    suite.add_case(
+        name="List threads with history",
+        user_message="Get the next 5 threads",
+        additional_messages=history,
+        expected_tool_calls=[
+            (
+                list_threads,
+                {
+                    "max_results": 5,
+                    "page_token": "10321400718999360131",
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="max_results", weight=0.2),
+            BinaryCritic(critic_field="page_token", weight=0.8),
         ],
     )
 
