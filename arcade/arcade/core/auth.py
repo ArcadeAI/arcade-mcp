@@ -29,6 +29,12 @@ class OAuth2(ToolAuthorization):
     """The scope(s) needed for the authorized action."""
 
 
+class Discord(OAuth2):
+    """Marks a tool as requiring Discord authorization."""
+
+    provider_id: str = "discord"
+
+
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
