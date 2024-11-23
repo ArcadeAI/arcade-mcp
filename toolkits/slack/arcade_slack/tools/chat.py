@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -6,6 +6,12 @@ from slack_sdk.errors import SlackApiError
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_slack.models import ConversationType
+from arcade_slack.utils import (
+    format_channel_metadata,
+    format_channels,
+    format_users,
+)
 
 
 @tool(
@@ -62,16 +68,6 @@ def send_dm_to_user(
         )
 
 
-def format_users(userListResponse: dict) -> str:
-    csv_string = "All active Slack users:\n\nname,real_name\n"
-    for user in userListResponse["members"]:
-        if not user.get("deleted", False):
-            name = user.get("name", "")
-            real_name = user.get("profile", {}).get("real_name", "")
-            csv_string += f"{name},{real_name}\n"
-    return csv_string.strip()
-
-
 @tool(
     requires_auth=Slack(
         scopes=[
@@ -121,10 +117,135 @@ def send_message_to_channel(
         )
 
 
-def format_channels(channels_response: dict) -> str:
-    csv_string = "All active Slack channels:\n\nname\n"
-    for channel in channels_response["channels"]:
-        if not channel.get("is_archived", False):
-            name = channel.get("name", "")
-            csv_string += f"{name}\n"
-    return csv_string.strip()
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+def list_conversations(
+    context: ToolContext,
+    conversation_types: Annotated[
+        Optional[list[ConversationType]], "The type of conversations to list"
+    ] = None,
+    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list. Defaults to 100."
+    ] = 100,
+) -> Annotated[dict, "The conversations"]:
+    """List Slack conversations that the user has access to given the provided filters."""
+
+    if conversation_types is None:
+        types = ",".join(conv_type.value for conv_type in ConversationType)
+    else:
+        types = ",".join(conv_type.value for conv_type in conversation_types)
+
+    next_page_token = None
+    conversations = []
+
+    slackClient = WebClient(token=context.authorization.token)
+
+    while len(conversations) < limit:
+        iteration_limit = min(limit - len(conversations), 1000)
+        response = slackClient.conversations_list(
+            types=types,
+            exclude_archived=exclude_archived,
+            limit=iteration_limit,
+            next_page_token=next_page_token,
+        )
+
+        channels = [format_channel_metadata(channel) for channel in response.get("channels", [])]
+        conversations.extend(channels)
+        next_page_token = response.get("next_page_token")
+
+        if not next_page_token:
+            break
+
+    return {"conversations": conversations, "num_conversations": len(conversations)}
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read"],
+    )
+)
+def list_public_channels(
+    context: ToolContext,
+    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list. Defaults to 100."
+    ] = 100,
+) -> Annotated[dict, "The public channels"]:
+    """List all channels in Slack."""
+
+    return list_conversations(
+        context,
+        conversation_types=[ConversationType.PUBLIC_CHANNEL],
+        exclude_archived=exclude_archived,
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["groups:read"],
+    )
+)
+def list_private_channels(
+    context: ToolContext,
+    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list. Defaults to 100."
+    ] = 100,
+) -> Annotated[dict, "The private channels"]:
+    """List all private channels in Slack."""
+
+    return list_conversations(
+        context,
+        conversation_types=[ConversationType.PRIVATE_CHANNEL],
+        exclude_archived=exclude_archived,
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["mpim:read"],
+    )
+)
+def list_group_direct_message_channels(
+    context: ToolContext,
+    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list. Defaults to 100."
+    ] = 100,
+) -> Annotated[dict, "The group direct message channels"]:
+    """List all group direct message channels in Slack."""
+
+    return list_conversations(
+        context,
+        conversation_types=[ConversationType.MPIM],
+        exclude_archived=exclude_archived,
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["im:read"],
+    )
+)
+def list_direct_message_channels(
+    context: ToolContext,
+    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list. Defaults to 100."
+    ] = 100,
+) -> Annotated[dict, "The direct message channels"]:
+    """List all direct message channels in Slack."""
+
+    return list_conversations(
+        context,
+        conversation_types=[ConversationType.IM],
+        exclude_archived=exclude_archived,
+        limit=limit,
+    )
