@@ -7,6 +7,7 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from arcade_slack.models import ConversationType
+from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     format_channel_metadata,
     format_channels,
@@ -122,17 +123,17 @@ def send_message_to_channel(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def list_conversations(
+def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
         Optional[list[ConversationType]], "The type of conversations to list"
     ] = None,
     exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to 100."
-    ] = 100,
-) -> Annotated[dict, "The conversations"]:
-    """List Slack conversations that the user has access to given the provided filters."""
+        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
+    ] = -1,
+) -> Annotated[dict, "The conversations metadata"]:
+    """List metadata for Slack conversations that the user has access to given the provided filters."""
 
     if conversation_types is None:
         types = ",".join(conv_type.value for conv_type in ConversationType)
@@ -144,8 +145,10 @@ def list_conversations(
 
     slackClient = WebClient(token=context.authorization.token)
 
-    while len(conversations) < limit:
-        iteration_limit = min(limit - len(conversations), 1000)
+    while limit == -1 or len(conversations) < limit:
+        iteration_limit = (
+            200 if limit == -1 else min(limit - len(conversations), 200)
+        )  # Slack recommends max 200 results at a time
         response = slackClient.conversations_list(
             types=types,
             exclude_archived=exclude_archived,
@@ -160,7 +163,7 @@ def list_conversations(
         if not next_page_token:
             break
 
-    return {"conversations": conversations, "num_conversations": len(conversations)}
+    return {"conversations": conversations}
 
 
 @tool(
@@ -168,16 +171,16 @@ def list_conversations(
         scopes=["channels:read"],
     )
 )
-def list_public_channels(
+def list_public_channels_metadata(
     context: ToolContext,
     exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to 100."
-    ] = 100,
+        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
+    ] = -1,
 ) -> Annotated[dict, "The public channels"]:
-    """List all channels in Slack."""
+    """List metadata for public channels in Slack."""
 
-    return list_conversations(
+    return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PUBLIC_CHANNEL],
         exclude_archived=exclude_archived,
@@ -190,16 +193,16 @@ def list_public_channels(
         scopes=["groups:read"],
     )
 )
-def list_private_channels(
+def list_private_channels_metadata(
     context: ToolContext,
     exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to 100."
-    ] = 100,
+        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
+    ] = -1,
 ) -> Annotated[dict, "The private channels"]:
-    """List all private channels in Slack."""
+    """List metadata for private channels in Slack."""
 
-    return list_conversations(
+    return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PRIVATE_CHANNEL],
         exclude_archived=exclude_archived,
@@ -212,16 +215,16 @@ def list_private_channels(
         scopes=["mpim:read"],
     )
 )
-def list_group_direct_message_channels(
+def list_group_direct_message_channels_metadata(
     context: ToolContext,
     exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to 100."
-    ] = 100,
+        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
+    ] = -1,
 ) -> Annotated[dict, "The group direct message channels"]:
-    """List all group direct message channels in Slack."""
+    """List metadata for group direct message channels in Slack."""
 
-    return list_conversations(
+    return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.MPIM],
         exclude_archived=exclude_archived,
@@ -234,18 +237,127 @@ def list_group_direct_message_channels(
         scopes=["im:read"],
     )
 )
-def list_direct_message_channels(
+def list_direct_message_channels_metadata(
     context: ToolContext,
     exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to 100."
-    ] = 100,
-) -> Annotated[dict, "The direct message channels"]:
-    """List all direct message channels in Slack."""
+        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
+    ] = -1,
+) -> Annotated[dict, "The direct message channels metadata"]:
+    """List metadata for direct message channels in Slack."""
 
-    return list_conversations(
+    return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.IM],
         exclude_archived=exclude_archived,
         limit=limit,
     )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+def get_conversation_metadata_by_id(
+    context: ToolContext,
+    conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
+) -> Annotated[dict, "The conversation metadata"]:
+    """Get the metadata of a conversation in Slack."""
+
+    slackClient = WebClient(token=context.authorization.token)
+    try:
+        response = slackClient.conversations_info(channel=conversation_id, include_num_members=True)
+        return format_channel_metadata(response["channel"])
+
+    except SlackApiError as e:
+        if e.response["error"] == "channel_not_found":
+            conversations = list_conversations_metadata(context, limit=-1)
+            conversation_ids = ", ".join(
+                conversation["id"] for conversation in conversations["conversations"]
+            )
+
+            raise RetryableToolError(
+                "Conversation not found",
+                developer_message=f"Conversation with ID '{conversation_id}' not found.",
+                additional_prompt_content=f"Available conversation IDs: {conversation_ids}",
+                retry_after_ms=500,
+            )
+        raise
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+def get_conversation_metadata_by_name(
+    context: ToolContext,
+    conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
+) -> Annotated[dict, "The conversation metadata"]:
+    """Get the metadata of a conversation in Slack."""
+    conversations = list_conversations_metadata(context, limit=-1)
+
+    for conversation in conversations["conversations"]:
+        # Check if the conversation has a 'name' attribute and it's not None
+        if conversation.get("name") and conversation["name"].lower() == conversation_name.lower():
+            return conversation
+
+    conversation_names = ", ".join(
+        conversation["name"]
+        for conversation in conversations["conversations"]
+        if conversation.get("name")
+    )
+
+    raise RetryableToolError(
+        "Conversation not found",
+        developer_message=f"Conversation with name '{conversation_name}' not found.",
+        additional_prompt_content=f"Available conversation names: {conversation_names}",
+        retry_after_ms=500,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+def get_conversation_members_by_id(
+    context: ToolContext,
+    conversation_id: Annotated[str, "The ID of the conversation to get members for"],
+    limit: Annotated[
+        int, "The maximum number of members to return. Defaults to -1 (no limit)"
+    ] = -1,
+) -> Annotated[dict, "The conversation members' IDs and Names"]:
+    """Get the members of a conversation in Slack."""
+
+    slackClient = WebClient(token=context.authorization.token)
+    member_ids = []
+    next_page_token = None
+
+    # Get the member ids
+    while limit == -1 or len(member_ids) < limit:
+        iteration_limit = (
+            200 if limit == -1 else min(limit - len(member_ids), 200)
+        )  # Slack recommends max 200 results at a time
+        response = slackClient.conversations_members(
+            channel=conversation_id, cursor=next_page_token, limit=iteration_limit
+        )
+        member_ids.extend(response["members"])
+        next_page_token = response.get("response_metadata", {}).get("next_cursor")
+
+        if not next_page_token:
+            break
+
+    # Get the members' info
+    members = []
+    for member_id in member_ids:
+        member = get_user_info_by_id(context, member_id)
+        members.append({
+            "id": member.get("id"),
+            "name": member.get("name"),
+            "email": member.get("profile", {}).get("email"),
+            "is_bot": member.get("is_bot"),
+        })
+
+    return {"members": members}

@@ -52,5 +52,6 @@ def format_channel_metadata(channel: dict) -> dict:
         "is_private": channel.get("is_private"),
         "is_archived": channel.get("is_archived"),
         "is_member": channel.get("is_member"),
+        "num_members": channel.get("num_members"),
         "purpose": channel.get("purpose", {}).get("value"),
     }
