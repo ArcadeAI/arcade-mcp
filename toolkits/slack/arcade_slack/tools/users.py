@@ -1,10 +1,10 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from slack_sdk import WebClient
 
-from arcade.core.errors import ToolExecutionError
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
+from arcade_slack.utils import extract_basic_user_info, is_user_a_bot, is_user_deleted
 
 
 @tool(
@@ -20,12 +20,8 @@ def get_user_info_by_id(
 
     slackClient = WebClient(token=context.authorization.token)
     response = slackClient.users_info(user=user_id)
-    if not response.get("ok"):
-        raise ToolExecutionError(
-            "Failed to get user info.",
-            developer_message=f"Failed to get user info: {response.get('error')}",
-        )
-    return response.get("user", {})
+
+    return extract_basic_user_info(response.get("user", {}))
 
 
 @tool(
@@ -35,9 +31,12 @@ def get_user_info_by_id(
 )
 def list_users(
     context: ToolContext,
-    limit: Annotated[int, "The maximum number of users to return. Defaults to -1 (no limit)"] = -1,
+    exclude_bots: Annotated[Optional[bool], "Whether to exclude bots from the results"] = True,
+    limit: Annotated[
+        Optional[int], "The maximum number of users to return. Defaults to -1 (no limit)"
+    ] = -1,
 ) -> Annotated[dict, "The users' info"]:
-    """List all users in Slack team."""
+    """List all users in the authenticated user's Slack team."""
 
     slackClient = WebClient(token=context.authorization.token)
     users = []
@@ -48,16 +47,14 @@ def list_users(
             200 if limit == -1 else min(limit - len(users), 200)
         )  # Slack recommends max 200 results at a time
         response = slackClient.users_list(cursor=next_page_token, limit=iteration_limit)
-        if not response.get("ok"):
-            raise ToolExecutionError(
-                "Failed to get user info.",
-                developer_message=f"Failed to get user info: {response.get('error')}",
-            )
+        if response.get("ok"):
+            for user in response.get("members", []):
+                if not is_user_deleted(user) and (not exclude_bots or not is_user_a_bot(user)):
+                    users.append(extract_basic_user_info(user))
 
-        users.extend(response.get("members", []))
         next_page_token = response.get("response_metadata", {}).get("next_cursor")
 
         if not next_page_token:
             break
 
-    return {"users": users}  # TODO: Returns too much info. Filter out a lot of it.
+    return {"users": users}

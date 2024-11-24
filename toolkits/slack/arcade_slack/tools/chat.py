@@ -9,7 +9,7 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
-    format_channel_metadata,
+    extract_basic_channel_metadata,
     format_channels,
     format_users,
 )
@@ -118,6 +118,8 @@ def send_message_to_channel(
         )
 
 
+# TODO: Exclude archived by default
+# TODO: Only include conversations where is_member is true
 @tool(
     requires_auth=Slack(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
@@ -156,7 +158,9 @@ def list_conversations_metadata(
             next_page_token=next_page_token,
         )
 
-        channels = [format_channel_metadata(channel) for channel in response.get("channels", [])]
+        channels = [
+            extract_basic_channel_metadata(channel) for channel in response.get("channels", [])
+        ]
         conversations.extend(channels)
         next_page_token = response.get("next_page_token")
 
@@ -166,6 +170,7 @@ def list_conversations_metadata(
     return {"conversations": conversations}
 
 
+# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["channels:read"],
@@ -188,6 +193,7 @@ def list_public_channels_metadata(
     )
 
 
+# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["groups:read"],
@@ -210,6 +216,7 @@ def list_private_channels_metadata(
     )
 
 
+# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["mpim:read"],
@@ -232,6 +239,8 @@ def list_group_direct_message_channels_metadata(
     )
 
 
+# TODO: Exclude bot DMs by default?
+# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["im:read"],
@@ -268,7 +277,7 @@ def get_conversation_metadata_by_id(
     slackClient = WebClient(token=context.authorization.token)
     try:
         response = slackClient.conversations_info(channel=conversation_id, include_num_members=True)
-        return format_channel_metadata(response["channel"])
+        return extract_basic_channel_metadata(response["channel"])
 
     except SlackApiError as e:
         if e.response["error"] == "channel_not_found":
@@ -322,11 +331,11 @@ def get_conversation_metadata_by_name(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def get_conversation_members_by_id(
+def get_members_from_conversation_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
     limit: Annotated[
-        int, "The maximum number of members to return. Defaults to -1 (no limit)"
+        Optional[int], "The maximum number of members to return. Defaults to -1 (no limit)"
     ] = -1,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack."""
@@ -350,14 +359,45 @@ def get_conversation_members_by_id(
             break
 
     # Get the members' info
-    members = []
-    for member_id in member_ids:
-        member = get_user_info_by_id(context, member_id)
-        members.append({
-            "id": member.get("id"),
-            "name": member.get("name"),
-            "email": member.get("profile", {}).get("email"),
-            "is_bot": member.get("is_bot"),
-        })
+    members = [get_user_info_by_id(context, member_id) for member_id in member_ids]
 
     return {"members": members}
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+def get_members_from_conversation_name(
+    context: ToolContext,
+    conversation_name: Annotated[str, "The name of the conversation to get members for"],
+    limit: Annotated[
+        Optional[int], "The maximum number of members to return. Defaults to -1 (no limit)"
+    ] = -1,
+) -> Annotated[dict, "The conversation members' IDs and Names"]:
+    """Get the members of a conversation in Slack by the conversation's name."""
+
+    conversations = list_conversations_metadata(context, limit=-1)
+
+    conversation_id = None
+    for conversation in conversations["conversations"]:
+        if conversation.get("name") and conversation["name"].lower() == conversation_name.lower():
+            conversation_id = conversation["id"]
+            break
+
+    if not conversation_id:
+        conversation_names = ", ".join(
+            conversation["name"]
+            for conversation in conversations["conversations"]
+            if conversation.get("name")
+        )
+        raise RetryableToolError(
+            "Conversation not found",
+            developer_message=f"Conversation with name '{conversation_name}' not found.",
+            additional_prompt_content=f"Available conversation names: {conversation_names}",
+            retry_after_ms=500,
+        )
+
+    # Use the existing function to get members by conversation ID
+    return get_members_from_conversation_id(context, conversation_id, limit)
