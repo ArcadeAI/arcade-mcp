@@ -87,7 +87,7 @@ This connects to the Arcade Cloud Engine (`api.arcade-ai.com`) with all pre-buil
 
 For example, try:
 
-```
+```text
 User (dev@arcade-ai.com):
 > star the ArcadeAI/arcade-ai repo on Github
 ```
@@ -96,7 +96,7 @@ Arcade AI will prompt you to authorize with GitHub and will star the [ArcadeAI/a
 
 You'll see:
 
-```
+```text
 Assistant (gpt-4o):
 I starred the ArcadeAI/arcade-ai repo on Github for you!
 ```

@@ -1,12 +1,14 @@
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_google.tools.gmail import (
     delete_draft_email,
+    get_thread,
     list_draft_emails,
     list_emails,
     list_emails_by_header,
+    list_threads,
+    search_threads,
     send_draft_email,
     send_email,
     trash_email,
@@ -40,8 +42,11 @@ async def test_send_email(mock_build, mock_context):
         recipient="test@example.com",
     )
 
-    assert "Email with ID" in result
-    assert "sent" in result
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert "thread_id" in result
+    assert "subject" in result
+    assert "body" in result
 
     # Test http error
     mock_service.users().messages().send().execute.side_effect = HttpError(
@@ -72,8 +77,11 @@ async def test_write_draft_email(mock_build, mock_context):
         recipient="draft@example.com",
     )
 
-    assert "Draft email with ID" in result
-    assert "created" in result
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert "thread_id" in result
+    assert "subject" in result
+    assert "body" in result
 
     # Test http error
     mock_service.users().drafts().create().execute.side_effect = HttpError(
@@ -105,8 +113,11 @@ async def test_update_draft_email(mock_build, mock_context):
         recipient="updated@example.com",
     )
 
-    assert "Draft email with ID" in result
-    assert "updated" in result
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert "thread_id" in result
+    assert "subject" in result
+    assert "body" in result
 
     # Test http error
     mock_service.users().drafts().update().execute.side_effect = HttpError(
@@ -133,8 +144,11 @@ async def test_send_draft_email(mock_build, mock_context):
     # Test happy path
     result = await send_draft_email(context=mock_context, email_id="draft456")
 
-    assert "Draft email with ID" in result
-    assert "sent" in result
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert "thread_id" in result
+    assert "subject" in result
+    assert "body" in result
 
     # Test http error
     mock_service.users().drafts().send().execute.side_effect = HttpError(
@@ -226,12 +240,10 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     # Test happy path
     result = await list_draft_emails(context=mock_context, n_drafts=2)
 
-    assert isinstance(result, str)
-    result_json = json.loads(result)
-    assert isinstance(result_json, dict)
-    assert "emails" in result_json
-    assert len(result_json["emails"]) == 1
-    assert all("id" in draft and "subject" in draft for draft in result_json["emails"])
+    assert isinstance(result, dict)
+    assert "emails" in result
+    assert len(result["emails"]) == 1
+    assert all("id" in draft and "subject" in draft for draft in result["emails"])
 
     # Test http error
     mock_service.users().drafts().list().execute.side_effect = HttpError(
@@ -301,12 +313,10 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     # Test happy path
     result = await list_emails_by_header(context=mock_context, sender="noreply@github.com", limit=2)
 
-    assert isinstance(result, str)
-    result_json = json.loads(result)
-    assert isinstance(result_json, dict)
-    assert "emails" in result_json
-    assert len(result_json["emails"]) == 2
-    assert all("id" in email and "subject" in email for email in result_json["emails"])
+    assert isinstance(result, dict)
+    assert "emails" in result
+    assert len(result["emails"]) == 2
+    assert all("id" in email and "subject" in email for email in result["emails"])
 
     # Test http error
     mock_service.users().messages().list().execute.side_effect = HttpError(
@@ -375,16 +385,13 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     # Test happy path
     result = await list_emails(context=mock_context, n_emails=1)
 
-    # Assert the result
-    assert isinstance(result, str)
-    result_json = json.loads(result)
-    assert isinstance(result_json, dict)
-    assert "emails" in result_json
-    assert len(result_json["emails"]) == 1
-    assert "id" in result_json["emails"][0]
-    assert "subject" in result_json["emails"][0]
-    assert "date" in result_json["emails"][0]
-    assert "body" in result_json["emails"][0]
+    assert isinstance(result, dict)
+    assert "emails" in result
+    assert len(result["emails"]) == 1
+    assert "id" in result["emails"][0]
+    assert "subject" in result["emails"][0]
+    assert "date" in result["emails"][0]
+    assert "body" in result["emails"][0]
 
     # Test http error
     mock_service.users().messages().list().execute.side_effect = HttpError(
@@ -406,10 +413,11 @@ async def test_trash_email(mock_build, mock_context):
     email_id = "123456"
     result = await trash_email(context=mock_context, email_id=email_id)
 
-    assert (
-        f"Email with ID {email_id} trashed successfully: https://mail.google.com/mail/u/0/#trash/{email_id}"
-        == result
-    )
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert "thread_id" in result
+    assert "subject" in result
+    assert "body" in result
 
     # Test http error
     mock_service.users().messages().trash().execute.side_effect = HttpError(
@@ -419,3 +427,155 @@ async def test_trash_email(mock_build, mock_context):
 
     with pytest.raises(ToolExecutionError):
         await trash_email(context=mock_context, email_id="nonexistent_email")
+
+
+@pytest.mark.asyncio
+@patch("arcade_google.tools.gmail.build")
+async def test_search_threads(mock_build, mock_context):
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+
+    # Setup mock response data
+    mock_threads_list_response = {
+        "threads": [
+            {
+                "id": "thread1",
+                "snippet": "Thread snippet 1",
+            },
+            {
+                "id": "thread2",
+                "snippet": "Thread snippet 2",
+            },
+        ],
+        "nextPageToken": "next_token_123",
+        "resultSizeEstimate": 2,
+    }
+
+    # Mock the Gmail API threads().list() method
+    mock_service.users().threads().list().execute.return_value = mock_threads_list_response
+
+    # Test happy path
+    result = await search_threads(
+        context=mock_context,
+        sender="test@example.com",
+        max_results=2,
+    )
+
+    assert isinstance(result, dict)
+    assert "threads" in result
+    assert len(result["threads"]) == 2
+    assert result["threads"][0]["id"] == "thread1"
+    assert "next_page_token" in result
+
+    # Test error handling
+    mock_service.users().threads().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    with pytest.raises(ToolExecutionError):
+        await search_threads(
+            context=mock_context,
+            sender="test@example.com",
+            max_results=2,
+        )
+
+
+@pytest.mark.asyncio
+@patch("arcade_google.tools.gmail.build")
+async def test_list_threads(mock_build, mock_context):
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+
+    # Setup mock response data
+    mock_threads_list_response = {
+        "threads": [
+            {
+                "id": "thread1",
+                "snippet": "Thread snippet 1",
+            },
+            {
+                "id": "thread2",
+                "snippet": "Thread snippet 2",
+            },
+        ],
+        "nextPageToken": "next_token_123",
+        "resultSizeEstimate": 2,
+    }
+
+    # Mock the Gmail API threads().list() method
+    mock_service.users().threads().list().execute.return_value = mock_threads_list_response
+
+    # Test happy path
+    result = await list_threads(
+        context=mock_context,
+        max_results=2,
+    )
+
+    assert isinstance(result, dict)
+    assert "threads" in result
+    assert len(result["threads"]) == 2
+    assert result["threads"][0]["id"] == "thread1"
+    assert "next_page_token" in result
+
+    # Test error handling
+    mock_service.users().threads().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    with pytest.raises(ToolExecutionError):
+        await list_threads(
+            context=mock_context,
+            max_results=2,
+        )
+
+
+@pytest.mark.asyncio
+@patch("arcade_google.tools.gmail.build")
+async def test_get_thread(mock_build, mock_context):
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+
+    # Setup mock response data
+    mock_thread_get_response = {
+        "id": "thread1",
+        "messages": [
+            {
+                "id": "message1",
+                "snippet": "Message snippet 1",
+            },
+            {
+                "id": "message2",
+                "snippet": "Message snippet 2",
+            },
+        ],
+    }
+
+    # Mock the Gmail API threads().get() method
+    mock_service.users().threads().get().execute.return_value = mock_thread_get_response
+
+    # Test happy path
+    result = await get_thread(
+        context=mock_context,
+        thread_id="thread1",
+    )
+
+    assert isinstance(result, dict)
+    assert "id" in result
+    assert result["id"] == "thread1"
+    assert "messages" in result
+    assert len(result["messages"]) == 2
+    assert result["messages"][0]["id"] == "message1"
+
+    # Test error handling
+    mock_service.users().threads().get().execute.side_effect = HttpError(
+        resp=MagicMock(status=404),
+        content=b'{"error": {"message": "Thread not found"}}',
+    )
+
+    with pytest.raises(ToolExecutionError):
+        await get_thread(
+            context=mock_context,
+            thread_id="invalid_thread",
+        )

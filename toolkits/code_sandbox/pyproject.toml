@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "arcade_code_sandbox"
+version = "0.1.0"
+description = "LLM tools for running code in a sandbox"
+authors = ["Arcade AI <dev@arcade-ai.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade-ai = "0.1.*"
+e2b-code-interpreter = "^1.0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

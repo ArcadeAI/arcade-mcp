@@ -1,5 +1,4 @@
 import base64
-import json
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from typing import Annotated, Optional
@@ -20,6 +19,7 @@ from arcade_google.tools.utils import (
     get_sent_email_url,
     parse_draft_email,
     parse_email,
+    remove_none_values,
 )
 
 
@@ -36,7 +36,7 @@ async def send_email(
     recipient: Annotated[str, "The recipient of the email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the email"] = None,
-) -> Annotated[str, "A confirmation message with the sent email ID and URL"]:
+) -> Annotated[dict, "A dictionary containing the sent email details"]:
     """
     Send an email using the Gmail API.
     """
@@ -61,7 +61,10 @@ async def send_email(
 
     # Send the email
     sent_message = service.users().messages().send(userId="me", body=email).execute()
-    return f"Email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
+
+    email = parse_email(sent_message)
+    email["url"] = get_sent_email_url(sent_message["id"])
+    return email
 
 
 @tool(
@@ -71,7 +74,7 @@ async def send_email(
 )
 async def send_draft_email(
     context: ToolContext, email_id: Annotated[str, "The ID of the draft to send"]
-) -> Annotated[str, "A confirmation message with the sent email ID and URL"]:
+) -> Annotated[dict, "A dictionary containing the sent email details"]:
     """
     Send a draft email using the Gmail API.
     """
@@ -82,10 +85,9 @@ async def send_draft_email(
     # Send the draft email
     sent_message = service.users().drafts().send(userId="me", body={"id": email_id}).execute()
 
-    # Construct the URL to the sent email
-    return (
-        f"Draft email with ID {sent_message['id']} sent: {get_sent_email_url(sent_message['id'])}"
-    )
+    email = parse_email(sent_message)
+    email["url"] = get_sent_email_url(sent_message["id"])
+    return email
 
 
 # Draft Management Tools
@@ -101,7 +103,7 @@ async def write_draft_email(
     recipient: Annotated[str, "The recipient of the draft email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
-) -> Annotated[str, "A confirmation message with the draft email ID and URL"]:
+) -> Annotated[dict, "A dictionary containing the created draft email details"]:
     """
     Compose a new email draft using the Gmail API.
     """
@@ -123,9 +125,9 @@ async def write_draft_email(
     draft = {"message": {"raw": raw_message}}
 
     draft_message = service.users().drafts().create(userId="me", body=draft).execute()
-    return (
-        f"Draft email with ID {draft_message['id']} created: {get_draft_url(draft_message['id'])}"
-    )
+    email = parse_draft_email(draft_message)
+    email["url"] = get_draft_url(draft_message["id"])
+    return email
 
 
 @tool(
@@ -141,7 +143,7 @@ async def update_draft_email(
     recipient: Annotated[str, "The recipient of the draft email"],
     cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
     bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
-) -> Annotated[str, "A confirmation message with the updated draft email ID and URL"]:
+) -> Annotated[dict, "A dictionary containing the updated draft email details"]:
     """
     Update an existing email draft using the Gmail API.
     """
@@ -166,7 +168,10 @@ async def update_draft_email(
     updated_draft_message = (
         service.users().drafts().update(userId="me", id=draft_email_id, body=draft).execute()
     )
-    return f"Draft email with ID {updated_draft_message['id']} updated: {get_draft_url(updated_draft_message['id'])}"
+
+    email = parse_draft_email(updated_draft_message)
+    email["url"] = get_draft_url(updated_draft_message["id"])
+    return email
 
 
 @tool(
@@ -198,7 +203,7 @@ async def delete_draft_email(
 )
 async def trash_email(
     context: ToolContext, email_id: Annotated[str, "The ID of the email to trash"]
-) -> Annotated[str, "A confirmation message with the trashed email ID and URL"]:
+) -> Annotated[dict, "A dictionary containing the trashed email details"]:
     """
     Move an email to the trash folder using the Gmail API.
     """
@@ -207,9 +212,11 @@ async def trash_email(
     service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
 
     # Trash the email
-    service.users().messages().trash(userId="me", id=email_id).execute()
+    trashed_email = service.users().messages().trash(userId="me", id=email_id).execute()
 
-    return f"Email with ID {email_id} trashed successfully: {get_email_in_trash_url(email_id)}"
+    email = parse_email(trashed_email)
+    email["url"] = get_email_in_trash_url(trashed_email["id"])
+    return email
 
 
 # Draft Search Tools
@@ -221,7 +228,7 @@ async def trash_email(
 async def list_draft_emails(
     context: ToolContext,
     n_drafts: Annotated[int, "Number of draft emails to read"] = 5,
-) -> Annotated[str, "A JSON string containing a list of draft email details and their IDs"]:
+) -> Annotated[dict, "A dictionary containing a list of draft email details"]:
     """
     Lists draft emails in the user's draft mailbox using the Gmail API.
     """
@@ -245,7 +252,7 @@ async def list_draft_emails(
         except Exception as e:
             print(f"Error reading draft email {draft_id}: {e}")
 
-    return json.dumps({"emails": emails})
+    return {"emails": emails}
 
 
 # Email Search Tools
@@ -263,11 +270,11 @@ async def list_emails_by_header(
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
     limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
 ) -> Annotated[
-    str, "A JSON string containing a list of email details matching the search criteria"
+    dict, "A dictionary containing a list of email details matching the search criteria"
 ]:
     """
     Search for emails by header using the Gmail API.
-    At least one of the following parametersMUST be provided: sender, recipient, subject, body.
+    At least one of the following parameters MUST be provided: sender, recipient, subject, body.
     """
     if not any([sender, recipient, subject, body]):
         raise RetryableToolError(
@@ -281,10 +288,10 @@ async def list_emails_by_header(
     messages = fetch_messages(service, query, limit)
 
     if not messages:
-        return json.dumps({"emails": []})
+        return {"emails": []}
 
     emails = process_messages(service, messages)
-    return json.dumps({"emails": emails})
+    return {"emails": emails}
 
 
 def process_messages(service, messages):
@@ -307,7 +314,7 @@ def process_messages(service, messages):
 async def list_emails(
     context: ToolContext,
     n_emails: Annotated[int, "Number of emails to read"] = 5,
-) -> Annotated[str, "A JSON string containing a list of email details"]:
+) -> Annotated[dict, "A dictionary containing a list of email details"]:
     """
     Read emails from a Gmail account and extract plain text content.
     """
@@ -329,4 +336,109 @@ async def list_emails(
         except Exception as e:
             print(f"Error reading email {msg['id']}: {e}")
 
-    return json.dumps({"emails": emails})
+    return {"emails": emails}
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def search_threads(
+    context: ToolContext,
+    page_token: Annotated[
+        Optional[str], "Page token to retrieve a specific page of results in the list"
+    ] = None,
+    max_results: Annotated[int, "The maximum number of threads to return"] = 10,
+    include_spam_trash: Annotated[bool, "Whether to include spam and trash in the results"] = False,
+    label_ids: Annotated[Optional[list[str]], "The IDs of labels to filter by"] = None,
+    sender: Annotated[Optional[str], "The name or email address of the sender of the email"] = None,
+    recipient: Annotated[Optional[str], "The name or email address of the recipient"] = None,
+    subject: Annotated[Optional[str], "Words to find in the subject of the email"] = None,
+    body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
+    date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
+) -> Annotated[dict, "A dictionary containing a list of thread details"]:
+    """Search for threads in the user's mailbox"""
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+
+    query = (
+        build_query_string(sender, recipient, subject, body, date_range)
+        if any([sender, recipient, subject, body, date_range])
+        else None
+    )
+
+    params = {
+        "userId": "me",
+        "maxResults": min(max_results, 500),
+        "pageToken": page_token,
+        "includeSpamTrash": include_spam_trash,
+        "labelIds": label_ids,
+        "q": query,
+    }
+    params = remove_none_values(params)
+
+    threads = []
+    next_page_token = None
+    # Paginate through thread pages until we have the desired number of threads
+    while len(threads) < max_results:
+        response = service.users().threads().list(**params).execute()
+
+        threads.extend(response.get("threads", []))
+        next_page_token = response.get("nextPageToken")
+
+        if not next_page_token:
+            break
+
+        params["pageToken"] = next_page_token
+        params["maxResults"] = min(max_results - len(threads), 500)
+
+    return {
+        "threads": threads,
+        "num_threads": len(threads),
+        "next_page_token": next_page_token,
+    }
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def list_threads(
+    context: ToolContext,
+    page_token: Annotated[
+        Optional[str], "Page token to retrieve a specific page of results in the list"
+    ] = None,
+    max_results: Annotated[int, "The maximum number of threads to return"] = 10,
+    include_spam_trash: Annotated[bool, "Whether to include spam and trash in the results"] = False,
+) -> Annotated[dict, "A dictionary containing a list of thread details"]:
+    """List threads in the user's mailbox."""
+    return await search_threads(context, page_token, max_results, include_spam_trash)
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def get_thread(
+    context: ToolContext,
+    thread_id: Annotated[str, "The ID of the thread to retrieve"],
+    metadata_headers: Annotated[
+        Optional[list[str]], "When given and format is METADATA, only include headers specified."
+    ] = None,
+) -> Annotated[dict, "A dictionary containing the thread details"]:
+    """Get the specified thread by ID."""
+    params = {
+        "userId": "me",
+        "id": thread_id,
+        "format": "full",
+        "metadataHeaders": metadata_headers,
+    }
+    params = remove_none_values(params)
+
+    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    thread = service.users().threads().get(**params).execute()
+    thread["messages"] = [parse_email(message) for message in thread.get("messages", [])]
+
+    return thread
