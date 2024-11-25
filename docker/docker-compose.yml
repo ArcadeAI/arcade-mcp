@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  engine:
+    image: ghcr.io/arcadeai/engine:latest
+    volumes:
+      - ./docker.engine.yaml:/bin/engine.yaml
+      - ./.env:/bin/.env
+    ports:
+      - "9099:9099"
+    depends_on:
+      redis:
+        condition: service_healthy
+      actor:
+        condition: service_started
+    networks:
+      arcade-network:
+
+  actor:
+    image: ghcr.io/arcadeai/arcade-ai:latest
+    ports:
+      - "8002:8001"
+    networks:
+      arcade-network:
+
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8004:8001"
+    depends_on:
+      actor:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      arcade-network:
+
+networks:
+  arcade-network:
+    driver: bridge

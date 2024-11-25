@@ -1,0 +1,76 @@
+telemetry:
+  environment: local
+  logging:
+    level: info
+    encoding: console
+
+api:
+  development: true
+  host: 0.0.0.0
+  port: 9099
+  rate_limit:
+    redis:
+      addr: ${env:REDIS_HOST}:${env:REDIS_PORT}
+      password: ${env:REDIS_PASSWORD}
+      time_unit: m
+      limit: ${env:RATE_LIMIT_REQS_PER_MIN}
+      write_timeout: 10
+      read_timeout: 10
+
+llm:
+  models:
+    - id: openai
+      openai:
+        api_key: ${env:OPENAI_API_KEY}
+
+tools:
+  directors:
+    - id: default
+      enabled: true
+      actors:
+        - id: main
+          enabled: true
+          http:
+            uri: ${env:ACTOR_URL}
+            timeout: 80
+            retry: 3
+
+auth:
+  token_store:
+    redis:
+      addr: ${env:REDIS_HOST}:${env:REDIS_PORT}
+      password: ${env:REDIS_PASSWORD}
+
+  providers:
+    - id: github
+      enabled: false
+      client_id: ${env:GITHUB_CLIENT_ID}
+      client_secret: ${env:GITHUB_CLIENT_SECRET}
+    - id: google
+      enabled: false
+      client_id: ${env:GOOGLE_CLIENT_ID}
+      client_secret: ${env:GOOGLE_CLIENT_SECRET}
+    - id: linkedin
+      enabled: false
+      client_id: ${env:LINKEDIN_CLIENT_ID}
+      client_secret: ${env:LINKEDIN_CLIENT_SECRET}
+    - id: microsoft
+      enabled: false
+      client_id: ${env:MICROSOFT_CLIENT_ID}
+      client_secret: ${env:MICROSOFT_CLIENT_SECRET}
+    - id: slack
+      enabled: false
+      client_id: ${env:SLACK_CLIENT_ID}
+      client_secret: ${env:SLACK_CLIENT_SECRET}
+    - id: spotify
+      enabled: false
+      client_id: ${env:SPOTIFY_CLIENT_ID}
+      client_secret: ${env:SPOTIFY_CLIENT_SECRET}
+    - id: x
+      enabled: false
+      client_id: ${env:X_CLIENT_ID}
+      client_secret: ${env:X_CLIENT_SECRET}
+    - id: zoom
+      enabled: false
+      client_id: ${env:ZOOM_CLIENT_ID}
+      client_secret: ${env:ZOOM_CLIENT_SECRET}
