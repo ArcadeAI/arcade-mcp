@@ -16,6 +16,7 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 ruff = "^0.7.4"
+arcade-ai = {version = "{{ arcade_version }}", extras = ["fastapi", "evals"]}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
