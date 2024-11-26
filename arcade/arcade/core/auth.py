@@ -35,6 +35,12 @@ class Discord(OAuth2):
     provider_id: str = "discord"
 
 
+class Dropbox(OAuth2):
+    """Marks a tool as requiring Dropbox authorization."""
+
+    provider_id: str = "dropbox"
+
+
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
