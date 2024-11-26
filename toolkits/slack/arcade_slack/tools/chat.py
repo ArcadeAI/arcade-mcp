@@ -1,3 +1,4 @@
+import time
 from typing import Annotated, Optional
 
 from slack_sdk import WebClient
@@ -10,6 +11,7 @@ from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     extract_basic_channel_metadata,
+    filter_conversations,
     format_channels,
     format_users,
 )
@@ -118,8 +120,6 @@ def send_message_to_channel(
         )
 
 
-# TODO: Exclude archived by default
-# TODO: Only include conversations where is_member is true
 @tool(
     requires_auth=Slack(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
@@ -135,7 +135,7 @@ def list_conversations_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The conversations metadata"]:
-    """List metadata for Slack conversations that the user has access to given the provided filters."""
+    """List metadata for Slack conversations that the user is a member of given the provided filters."""
 
     if conversation_types is None:
         types = ",".join(conv_type.value for conv_type in ConversationType)
@@ -167,10 +167,11 @@ def list_conversations_metadata(
         if not next_page_token:
             break
 
+    conversations = filter_conversations(conversations)
+
     return {"conversations": conversations}
 
 
-# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["channels:read"],
@@ -183,7 +184,7 @@ def list_public_channels_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The public channels"]:
-    """List metadata for public channels in Slack."""
+    """List metadata for public channels in Slack that the user is a member of."""
 
     return list_conversations_metadata(
         context,
@@ -206,7 +207,7 @@ def list_private_channels_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The private channels"]:
-    """List metadata for private channels in Slack."""
+    """List metadata for private channels in Slack that the user is a member of."""
 
     return list_conversations_metadata(
         context,
@@ -229,7 +230,7 @@ def list_group_direct_message_channels_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The group direct message channels"]:
-    """List metadata for group direct message channels in Slack."""
+    """List metadata for group direct message channels in Slack that the user is a member of."""
 
     return list_conversations_metadata(
         context,
@@ -239,8 +240,8 @@ def list_group_direct_message_channels_metadata(
     )
 
 
-# TODO: Exclude bot DMs by default?
-# TODO: Exclude archived by default
+# Note: Bots are included in the results.
+# Note: Direct messages with no conversation history are included in the results.
 @tool(
     requires_auth=Slack(
         scopes=["im:read"],
@@ -253,7 +254,7 @@ def list_direct_message_channels_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The direct message channels metadata"]:
-    """List metadata for direct message channels in Slack."""
+    """List metadata for direct message channels in Slack that the user is a member of."""
 
     return list_conversations_metadata(
         context,
@@ -337,8 +338,8 @@ def get_members_from_conversation_id(
     limit: Annotated[
         Optional[int], "The maximum number of members to return. Defaults to -1 (no limit)"
     ] = -1,
-) -> Annotated[dict, "The conversation members' IDs and Names"]:
-    """Get the members of a conversation in Slack."""
+) -> Annotated[dict, "Information about each member in the conversation"]:
+    """Get information about the members in a conversation in Slack."""
 
     slackClient = WebClient(token=context.authorization.token)
     member_ids = []
@@ -359,6 +360,7 @@ def get_members_from_conversation_id(
             break
 
     # Get the members' info
+    # TODO: This will probably hit rate limits. We should probably call list_users() and then filter the results instead.
     members = [get_user_info_by_id(context, member_id) for member_id in member_ids]
 
     return {"members": members}
@@ -401,3 +403,47 @@ def get_members_from_conversation_name(
 
     # Use the existing function to get members by conversation ID
     return get_members_from_conversation_id(context, conversation_id, limit)
+
+
+# TODO: Add pagination
+# TODO: Add support for unix timestamps
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
+    )
+)
+def get_conversation_history_by_id(
+    context: ToolContext,
+    conversation_id: Annotated[str, "The ID of the conversation to get history for"],
+    oldest_relative: Annotated[
+        Optional[str],
+        "The oldest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
+    ] = "00:00:00",
+    latest_relative: Annotated[
+        Optional[str],
+        "The latest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
+    ] = "00:00:00",
+    limit: Annotated[
+        Optional[int], "The maximum number of messages to return. Defaults to 20."
+    ] = 20,
+) -> Annotated[dict, "The conversation history"]:
+    """Get the history of a conversation in Slack."""
+    days, hours, minutes = map(int, latest_relative.split(":"))
+    latest_seconds = days * 86400 + hours * 3600 + minutes * 60
+    current_unix_timestamp = int(time.time())
+    latest_unix_timestamp = current_unix_timestamp - latest_seconds
+
+    days, hours, minutes = map(int, oldest_relative.split(":"))
+    oldest_seconds = days * 86400 + hours * 3600 + minutes * 60
+    oldest_unix_timestamp = current_unix_timestamp - oldest_seconds
+
+    slackClient = WebClient(token=context.authorization.token)
+    response = slackClient.conversations_history(
+        channel=conversation_id,
+        limit=limit,
+        include_all_metadata=True,
+        oldest=oldest_unix_timestamp,
+        latest=latest_unix_timestamp,
+    )
+    messages = response.get("messages", [])
+    return {"messages": messages}

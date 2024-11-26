@@ -45,16 +45,27 @@ def get_conversation_type(channel: dict) -> ConversationType:
 
 
 def extract_basic_channel_metadata(channel: dict) -> dict:
-    return {
+    conversation_type = get_conversation_type(channel)
+
+    metadata = {
         "id": channel.get("id"),
         "name": channel.get("name"),
-        "conversation_type": get_conversation_type(channel),
-        "is_private": channel.get("is_private"),
-        "is_archived": channel.get("is_archived"),
-        "is_member": channel.get("is_member"),
-        "num_members": channel.get("num_members"),
-        "purpose": channel.get("purpose", {}).get("value"),
+        "conversation_type": conversation_type,
+        "is_private": channel.get("is_private", True),
+        "is_archived": channel.get("is_archived", False),
+        "is_member": channel.get("is_member", True),
+        "purpose": channel.get("purpose", {}).get("value", ""),
+        "num_members": channel.get("num_members", 0),
     }
+
+    if conversation_type == ConversationType.IM.value:
+        metadata["num_members"] = 2
+        metadata["user"] = channel.get("user")
+        metadata["is_user_deleted"] = channel.get("is_user_deleted")
+    elif conversation_type == ConversationType.MPIM.value:
+        metadata["num_members"] = len(channel.get("name", "").split("--"))
+
+    return metadata
 
 
 def extract_basic_user_info(user_info: dict) -> dict:
@@ -90,3 +101,8 @@ def is_user_deleted(user: dict) -> bool:
     See https://api.slack.com/types/user for the structure of the user object.
     """
     return user.get("deleted", False)
+
+
+def filter_conversations(conversations: list[dict]) -> list[dict]:
+    """Filter out conversations that the user is not a member of."""
+    return [conversation for conversation in conversations if conversation["is_member"]]
