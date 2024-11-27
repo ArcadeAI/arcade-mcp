@@ -25,6 +25,19 @@ check: ## Run code quality tools.
 	@echo "🚀 Static type checking: Running mypy"
 	@cd arcade && poetry run mypy $(git ls-files '*.py')
 
+
+.PHONY: check-toolkits
+check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
+	@echo "🚀 Running 'make check' in each toolkit with a Makefile"
+	@for dir in toolkits/*/ ; do \
+		if [ -f "$$dir/Makefile" ]; then \
+			echo "🛠️ Checking toolkit $$dir"; \
+			(cd "$$dir" && make check); \
+		else \
+			echo "🛠️ Skipping toolkit $$dir (no Makefile found)"; \
+		fi; \
+	done
+
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
@@ -143,5 +156,7 @@ clean-dist: ## Clean all built distributions
 help:
 	@echo "🛠️ Arcade AI Dev Commands:\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+
 
 .DEFAULT_GOAL := help
