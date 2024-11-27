@@ -29,6 +29,12 @@ class OAuth2(ToolAuthorization):
     """The scope(s) needed for the authorized action."""
 
 
+class Atlassian(OAuth2):
+    """Marks a tool as requiring Atlassian authorization."""
+
+    provider_id: str = "atlassian"
+
+
 class Discord(OAuth2):
     """Marks a tool as requiring Discord authorization."""
 
