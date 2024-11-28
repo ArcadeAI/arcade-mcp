@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+import httpx
 import pytest
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
@@ -34,16 +35,15 @@ async def test_post_tweet_success(tool_context, mock_httpx_client):
 async def test_post_tweet_failure(tool_context, mock_httpx_client):
     """Test failure when posting a tweet due to API error."""
     # Mock response for a failed tweet post
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    mock_response.text = "Bad Request"
-    mock_httpx_client.post.return_value = mock_response
+    mock_response = httpx.HTTPStatusError(
+        "Bad Request", request=MagicMock(), response=MagicMock(status_code=400)
+    )
+    mock_httpx_client.post.side_effect = mock_response
 
     tweet_text = "Hello, world!"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await post_tweet(tool_context, tweet_text)
 
-    assert "Error posting tweet" in str(exc_info.value)
     mock_httpx_client.post.assert_called_once()
 
 
@@ -66,16 +66,15 @@ async def test_delete_tweet_by_id_success(tool_context, mock_httpx_client):
 async def test_delete_tweet_by_id_failure(tool_context, mock_httpx_client):
     """Test failure when deleting a tweet due to API error."""
     # Mock response for a failed tweet deletion
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.text = "Not Found"
-    mock_httpx_client.delete.return_value = mock_response
+    mock_response = httpx.HTTPStatusError(
+        "Internal Server Error", request=MagicMock(), response=MagicMock(status_code=404)
+    )
+    mock_httpx_client.delete.side_effect = mock_response
 
     tweet_id = "1234567890"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await delete_tweet_by_id(tool_context, tweet_id)
 
-    assert "Error deleting tweet" in str(exc_info.value)
     mock_httpx_client.delete.assert_called_once()
 
 
@@ -114,16 +113,15 @@ async def test_search_recent_tweets_by_username_success(tool_context, mock_httpx
 async def test_search_recent_tweets_by_username_failure(tool_context, mock_httpx_client):
     """Test failure when searching tweets due to API error."""
     # Mock response for a failed tweet search
-    mock_response = MagicMock()
-    mock_response.status_code = 500
-    mock_response.text = "Internal Server Error"
-    mock_httpx_client.get.return_value = mock_response
+    mock_response = httpx.HTTPStatusError(
+        "Internal Server Error", request=MagicMock(), response=MagicMock(status_code=500)
+    )
+    mock_httpx_client.get.side_effect = mock_response
 
     username = "testuser"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await search_recent_tweets_by_username(tool_context, username)
 
-    assert "Error searching recent tweets by username" in str(exc_info.value)
     mock_httpx_client.get.assert_called_once()
 
 
@@ -179,15 +177,14 @@ async def test_lookup_tweet_by_id_success(tool_context, mock_httpx_client):
 @pytest.mark.asyncio
 async def test_lookup_tweet_by_id_failure(tool_context, mock_httpx_client):
     """Test failure when looking up a tweet due to API error."""
-    # Use MagicMock for the response
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.text = "Not Found"
-    mock_httpx_client.get.return_value = mock_response
+    # Mock response for a failed tweet lookup
+    mock_response = httpx.HTTPStatusError(
+        "Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+    )
+    mock_httpx_client.get.side_effect = mock_response
 
     tweet_id = "1234567890"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await lookup_tweet_by_id(tool_context, tweet_id)
 
-    assert "Error looking up tweet" in str(exc_info.value)
     mock_httpx_client.get.assert_called_once()

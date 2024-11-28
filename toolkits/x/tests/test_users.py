@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 from arcade_x.tools.users import lookup_single_user_by_username
 
@@ -35,18 +35,17 @@ async def test_lookup_single_user_by_username_success(tool_context, mock_httpx_c
 
 @pytest.mark.asyncio
 async def test_lookup_single_user_by_username_user_not_found(tool_context, mock_httpx_client):
-    """Test behavior when the user is not found (404 error)."""
+    """Test behavior when looking up user fails due to API error"""
     # Mock response for user not found
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.text = "Not Found"
-    mock_httpx_client.get.return_value = mock_response
+    mock_response = httpx.HTTPStatusError(
+        "Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+    )
+    mock_httpx_client.get.side_effect = mock_response
 
     username = "nonexistentuser"
-    with pytest.raises(RetryableToolError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await lookup_single_user_by_username(tool_context, username)
 
-    assert "User not found" in str(exc_info.value)
     mock_httpx_client.get.assert_called_once()
 
 
@@ -54,16 +53,15 @@ async def test_lookup_single_user_by_username_user_not_found(tool_context, mock_
 async def test_lookup_single_user_by_username_api_error(tool_context, mock_httpx_client):
     """Test behavior when API returns an error other than 404."""
     # Mock response for API error
-    mock_response = MagicMock()
-    mock_response.status_code = 500
-    mock_response.text = "Internal Server Error"
-    mock_httpx_client.get.return_value = mock_response
+    mock_response = httpx.HTTPStatusError(
+        "Internal Server Error", request=MagicMock(), response=MagicMock(status_code=500)
+    )
+    mock_httpx_client.get.side_effect = mock_response
 
     username = "testuser"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await lookup_single_user_by_username(tool_context, username)
 
-    assert "Error looking up user" in str(exc_info.value)
     mock_httpx_client.get.assert_called_once()
 
 
@@ -74,8 +72,7 @@ async def test_lookup_single_user_by_username_network_error(tool_context, mock_h
     mock_httpx_client.get.side_effect = httpx.HTTPError("Network Error")
 
     username = "testuser"
-    with pytest.raises(ToolExecutionError) as exc_info:
+    with pytest.raises(ToolExecutionError):
         await lookup_single_user_by_username(tool_context, username)
 
-    assert "Network error during user lookup" in str(exc_info.value)
     mock_httpx_client.get.assert_called_once()

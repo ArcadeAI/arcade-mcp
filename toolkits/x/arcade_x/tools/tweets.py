@@ -3,7 +3,7 @@ from typing import Annotated, Any
 import httpx
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import X
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import RetryableToolError
 
 from arcade_x.tools.utils import (
     expand_urls_in_tweets,
@@ -35,13 +35,7 @@ async def post_tweet(
 
     async with httpx.AsyncClient() as client:
         response = await client.post(TWEETS_URL, headers=headers, json=payload, timeout=10)
-
-    if response.status_code != 201:
-        error_message = response.text
-        raise ToolExecutionError(  # noqa: TRY003
-            "Error posting tweet",
-            developer_message=f"Twitter API Error: {response.status_code} {error_message}",
-        )
+        response.raise_for_status()
 
     tweet_id = response.json()["data"]["id"]
     return f"Tweet with id {tweet_id} posted successfully. URL: {get_tweet_url(tweet_id)}"
@@ -59,13 +53,7 @@ async def delete_tweet_by_id(
 
     async with httpx.AsyncClient() as client:
         response = await client.delete(url, headers=headers, timeout=10)
-
-    if response.status_code != 200:
-        error_message = response.text
-        raise ToolExecutionError(  # noqa: TRY003
-            "Error deleting tweet",
-            developer_message=f"Twitter API Error: {response.status_code} {error_message}",
-        )
+        response.raise_for_status()
 
     return f"Tweet with id {tweet_id} deleted successfully."
 
@@ -93,13 +81,7 @@ async def search_recent_tweets_by_username(
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params, timeout=10)
-
-    if response.status_code != 200:
-        error_message = response.text
-        raise ToolExecutionError(  # noqa: TRY003
-            "Error searching recent tweets by username",
-            developer_message=f"Twitter API Error: {response.status_code} {error_message}",
-        )
+        response.raise_for_status()
 
     response_data: dict[str, Any] = response.json()
 
@@ -158,13 +140,7 @@ async def search_recent_tweets_by_keywords(
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params, timeout=10)
-
-    if response.status_code != 200:
-        error_message = response.text
-        raise ToolExecutionError(  # noqa: TRY003
-            "Error searching recent tweets by keywords",
-            developer_message=f"Twitter API Error: {response.status_code} {error_message}",
-        )
+        response.raise_for_status()
 
     response_data: dict[str, Any] = response.json()
 
@@ -196,13 +172,7 @@ async def lookup_tweet_by_id(
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params, timeout=10)
-
-    if response.status_code != 200:
-        error_message = response.text
-        raise ToolExecutionError(  # noqa: TRY003
-            "Error looking up tweet",
-            developer_message=f"Twitter API Error: {response.status_code} {error_message}",
-        )
+        response.raise_for_status()
 
     response_data: dict[str, Any] = response.json()
 

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "arcade_x"
-version = "0.1.0"
-description = "LLM tools for interacting with X (twitter)"
-authors = ["arcadeai <dev@arcade-ai.com>"]
+version = "0.1.3"
+description = "LLM tools for interacting with X (Twitter)"
+authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -17,7 +17,6 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 ruff = "^0.7.4"
-arcade-ai = {version = "0.1.*", extras = ["fastapi", "evals"]}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -121,8 +121,8 @@ def x_eval_suite() -> EvalSuite:
             (
                 search_recent_tweets_by_keywords,
                 {
-                    "keywords": ["Arcade AI"],
-                    "phrases": [],
+                    "keywords": [],
+                    "phrases": ["Arcade AI"],
                     "max_results": 10,
                 },
             )
@@ -130,11 +130,11 @@ def x_eval_suite() -> EvalSuite:
         critics=[
             BinaryCritic(
                 critic_field="keywords",
-                weight=0.9,
+                weight=0.1,
             ),
             BinaryCritic(
                 critic_field="phrases",
-                weight=0.1,
+                weight=0.9,
             ),
         ],
     )

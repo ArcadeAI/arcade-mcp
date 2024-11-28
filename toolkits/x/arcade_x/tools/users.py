@@ -3,7 +3,7 @@ from typing import Annotated
 import httpx
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import X
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import RetryableToolError
 
 from arcade_x.tools.utils import (
     expand_urls_in_user_description,
@@ -44,36 +44,21 @@ async def lookup_single_user_by_username(
     ])
     url = f"https://api.x.com/2/users/by/username/{username}?user.fields={user_fields}"
 
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, headers=headers, timeout=10)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, timeout=10)
+        if response.status_code == 404:
+            # User not found
+            raise RetryableToolError(  # noqa: TRY003
+                "User not found",
+                developer_message=f"User with username '{username}' not found.",
+                additional_prompt_content="Please check the username and try again.",
+                retry_after_ms=500,  # Play nice with X API rate limits
+            )
+        response.raise_for_status()
+    # Parse the response JSON
+    user_data = response.json()["data"]
 
-        if response.status_code != 200:
-            error_message = response.text
-            if response.status_code == 404:
-                # User not found
-                raise RetryableToolError(  # noqa: TRY003
-                    "User not found",
-                    developer_message=f"User with username '{username}' not found.",
-                    additional_prompt_content="Please check the username and try again.",
-                    retry_after_ms=500,  # Play nice with X API rate limits
-                )
-            else:
-                raise ToolExecutionError(  # noqa: TRY003
-                    "Error looking up user",
-                    developer_message=f"X API Error: {response.status_code} {error_message}",
-                )
-        else:
-            # Parse the response JSON
-            user_data = response.json()["data"]
+    user_data = expand_urls_in_user_description(user_data, delete_entities=False)
+    user_data = expand_urls_in_user_url(user_data, delete_entities=True)
 
-            user_data = expand_urls_in_user_description(user_data, delete_entities=False)
-            user_data = expand_urls_in_user_url(user_data, delete_entities=True)
-
-            return {"data": user_data}
-
-    except httpx.HTTPError as e:
-        raise ToolExecutionError(  # noqa: TRY003
-            "Network error during user lookup",
-            developer_message=str(e),
-        ) from e
+    return {"data": user_data}

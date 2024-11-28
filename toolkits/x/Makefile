@@ -23,12 +23,8 @@ build: clean-build ## Build wheel file using poetry
 
 .PHONY: clean-build
 clean-build: ## clean build artifacts
-	rm -rf dist
-
-.PHONY: clean-dist
-clean-dist: ## Clean all built distributions
 	@echo "🗑️ Cleaning dist directory"
-	@rm -rf dist
+	rm -rf dist
 
 .PHONY: test
 test: ## Test the code with pytest
