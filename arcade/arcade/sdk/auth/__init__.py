@@ -1,5 +1,7 @@
 from arcade.core.auth import (
+    Atlassian,
     Discord,
+    Dropbox,
     GitHub,
     Google,
     LinkedIn,
@@ -12,7 +14,9 @@ from arcade.core.auth import (
 )
 
 __all__ = [
+    "Atlassian",
     "Discord",
+    "Dropbox",
     "GitHub",
     "Google",
     "LinkedIn",
