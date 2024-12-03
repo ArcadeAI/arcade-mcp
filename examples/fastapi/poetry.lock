@@ -43,7 +43,7 @@ files = []
 develop = true
 
 [package.dependencies]
-arcadepy = "~0.1.2"
+arcadepy = "~0.2.0"
 loguru = "^0.7.0"
 openai = "^1.36.0"
 pydantic = "^2.7.0"
