@@ -13,6 +13,11 @@ install: ## Install the poetry environment and install the pre-commit hooks
 	else \
 		echo "📦 Poetry is already installed"; \
 	fi
+	@echo "📦 Checking for poetry.lock file"
+	@if [ ! -f poetry.lock ]; then \
+		echo "📦 Creating poetry.lock file"; \
+		poetry lock; \
+	fi
 	@echo "🚀 Installing package in development mode with all extras"
 	poetry install --all-extras
 

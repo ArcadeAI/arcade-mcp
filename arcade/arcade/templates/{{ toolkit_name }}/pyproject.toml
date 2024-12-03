@@ -1,7 +1,6 @@
 [tool.poetry]
 name = "{{ package_name }}"
 version = "0.0.1"
-readme = "README.md"
 description = "{{ toolkit_description }}"
 authors = ["{{ toolkit_author_name }} <{{ toolkit_author_email }}>"]
 
@@ -16,14 +15,13 @@ mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
 ruff = "^0.7.4"
-arcade-ai = {version = "{{ arcade_version }}", extras = ["fastapi", "evals"]}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
-files = ["**/*.py"]
+files = ["{{ package_name }}/**/*.py"]
 python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"

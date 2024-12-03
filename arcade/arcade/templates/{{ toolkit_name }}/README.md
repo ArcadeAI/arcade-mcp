@@ -42,3 +42,32 @@
 1. Navigate to your Github repository and click on Releases
 2. Create a new tag that corresponds to the version in your toolkit's `pyproject.toml` file
    > Note: This will be 0.0.1 for your first release
+
+## How to install the toolkit:
+1. Run `make install` from the root of the repository
+
+## How to run tests:
+1. Run `make test` from the root of the repository
+
+## How to run evals:
+1. [Install the Arcade Engine Locally](https://docs.arcade-ai.com/home/install/local)
+2. Install extra dependencies needed for evals:
+   ```bash
+   pip install 'arcade-ai[fastapi,evals]'
+   ```
+3. Log into Arcade AI:
+   ```bash
+   arcade login
+   ```
+4. Start the Arcade Engine and Actor:
+   ```bash
+   arcade dev
+   ```
+5. In a separate terminal, navigate to the `evals` directory:
+   ```bash
+   cd evals
+   ```
+5. Run the evals:
+   ```bash
+   arcade evals --host localhost --details
+   ```
