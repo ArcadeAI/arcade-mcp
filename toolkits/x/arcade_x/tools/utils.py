@@ -28,7 +28,7 @@ def parse_search_recent_tweets_response(response_data: dict[str, Any]) -> dict[s
     Returns the modified response data with added 'tweet_url', 'author_username', and 'author_name'.
     """
     if not sanity_check_tweets_data(response_data):
-        return {"data": []}
+        return {"data": [], "next_token": ""}
 
     # Add 'tweet_url' to each tweet
     for tweet in response_data["data"]:
@@ -110,3 +110,16 @@ def expand_urls_in_user_url(user_data: dict, delete_entities: bool = True) -> di
     if delete_entities:
         new_user_data.pop("entities", None)
     return new_user_data
+
+
+def remove_none_values(params: dict) -> dict:
+    """
+    Remove key/value pairs with None values from a dictionary.
+
+    Args:
+        params: The dictionary to clean
+
+    Returns:
+        A new dictionary with None values removed
+    """
+    return {k: v for k, v in params.items() if v is not None}

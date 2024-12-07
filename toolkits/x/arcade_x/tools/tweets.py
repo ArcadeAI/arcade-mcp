@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -10,6 +10,7 @@ from arcade_x.tools.utils import (
     get_headers_with_token,
     get_tweet_url,
     parse_search_recent_tweets_response,
+    remove_none_values,
 )
 
 TWEETS_URL = "https://api.x.com/2/tweets"
@@ -63,8 +64,11 @@ async def search_recent_tweets_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the X (Twitter) user to look up"],
     max_results: Annotated[
-        int, "The maximum number of results to return. Cannot be less than 10"
+        int, "The maximum number of results to return. Must be in range [1, 100] inclusive"
     ] = 10,
+    next_token: Annotated[
+        Optional[str], "The pagination token starting from which to return results"
+    ] = None,
 ) -> Annotated[dict[str, Any], "Dictionary containing the search results"]:
     """Search for recent tweets (last 7 days) on X (Twitter) by username.
     Includes replies and reposts."""
@@ -72,8 +76,13 @@ async def search_recent_tweets_by_username(
     headers = get_headers_with_token(context)
     params: dict[str, int | str] = {
         "query": f"from:{username}",
-        "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
+        "max_results": min(
+            max(max_results, 10), 100
+        ),  # X API does not allow 'max_results' less than 10 or greater than 100
+        "next_token": next_token,
     }
+    params = remove_none_values(params)
+
     url = (
         "https://api.x.com/2/tweets/search/recent?"
         "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
@@ -106,8 +115,11 @@ async def search_recent_tweets_by_keywords(
         list[str] | None, "List of phrases that must be present in the tweet"
     ] = None,
     max_results: Annotated[
-        int, "The maximum number of results to return. Cannot be less than 10"
+        int, "The maximum number of results to return. Must be in range [1, 100] inclusive"
     ] = 10,
+    next_token: Annotated[
+        Optional[str], "The pagination token starting from which to return results"
+    ] = None,
 ) -> Annotated[dict[str, Any], "Dictionary containing the search results"]:
     """
     Search for recent tweets (last 7 days) on X (Twitter) by required keywords and phrases.
@@ -131,8 +143,13 @@ async def search_recent_tweets_by_keywords(
 
     params: dict[str, int | str] = {
         "query": query.strip(),
-        "max_results": max(max_results, 10),  # X API does not allow 'max_results' less than 10
+        "max_results": min(
+            max(max_results, 10), 100
+        ),  # X API does not allow 'max_results' less than 10 or greater than 100
+        "next_token": next_token,
     }
+    params = remove_none_values(params)
+
     url = (
         "https://api.x.com/2/tweets/search/recent?"
         "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
