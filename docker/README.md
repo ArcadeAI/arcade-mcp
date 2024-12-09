@@ -69,7 +69,7 @@ You should receive a response indicating that the engine is healthy:
 { "status": "healthy" }
 ```
 
-You can also view the swagger docs at `http://localhost:9099/swagger/index.html`
+You can also view the OpenAPI (Swagger) docs at `http://localhost:9099/swagger/index.html`
 
 ## Adding Authentication Providers
 
