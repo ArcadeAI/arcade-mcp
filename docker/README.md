@@ -73,7 +73,7 @@ You can also view the swagger docs at `http://localhost:9099/swagger/index.html`
 
 ## Adding Authentication Providers
 
-Arcade AI supports various authentication providers. To add an auth provider, follow these steps:
+Arcade AI supports various authentication providers. To configure an auth provider, follow these steps:
 
 ### 1. Enable the Auth Provider in the Configuration
 
