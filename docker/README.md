@@ -28,7 +28,7 @@ cd arcade-ai/docker
 Copy the example environment file to `.env`:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 Open the `.env` file in your preferred text editor and fill in the required values. At a minimum, you **must** provide the `OPENAI_API_KEY`:
