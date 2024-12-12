@@ -39,8 +39,10 @@ class OrderCommands(TyperGroup):
 
 
 class ChatCommand(str, Enum):
-    HELP = "/?"
+    HELP = "/help"
+    HELP_ALT = "/?"
     CLEAR = "/clear"
+    HISTORY = "/history"
     SHOW = "/show"
     EXIT = "/exit"
 
@@ -628,12 +630,13 @@ def display_chat_help() -> None:
     help_message = dedent(f"""\
         [default]
         Available Commands:
-          {ChatCommand.SHOW:<10} Show all available tools
-          {ChatCommand.CLEAR:<10} Clear the chat history
-          {ChatCommand.HELP:<10} Help for a command
-          {ChatCommand.EXIT:<10} Exit the chat
+          {ChatCommand.SHOW.value:<13} Show all available tools
+          {ChatCommand.HISTORY.value:<13} Show the chat history
+          {ChatCommand.CLEAR.value:<13} Clear the chat history
+          {ChatCommand.EXIT.value:<13} Exit the chat
+          {ChatCommand.HELP_ALT.value}, {ChatCommand.HELP.value:<9} Help for a command
 
-        Use \"\"\" to begin & end a multi-line message[/default]
+        Surround in \"\"\" for multi-line messages[/default]
     """)
     console.print(help_message)
 
@@ -650,11 +653,14 @@ def handle_user_command(
     """
     Handle user commands during `arcade chat` and return True if a command was processed, otherwise False.
     """
-    if user_input == ChatCommand.HELP:
+    if user_input in [ChatCommand.HELP, ChatCommand.HELP_ALT]:
         display_chat_help()
         return True
     elif user_input == ChatCommand.EXIT:
         raise KeyboardInterrupt
+    elif user_input == ChatCommand.HISTORY:
+        console.print(history)
+        return True
     elif user_input == ChatCommand.CLEAR:
         console.print("Chat history cleared.", style="bold green")
         history.clear()
