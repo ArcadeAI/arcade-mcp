@@ -45,12 +45,14 @@ If you plan to use other Large Language Model (LLM) providers, add their API key
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
+_For a list of supported LLM providers, see the [Arcade AI documentation](https://docs.arcade-ai.com/integrations/models)._
+
 ### 3. Run Docker Compose
 
 Start the Arcade AI services using Docker Compose:
 
 ```bash
-docker compose up -p arcade
+docker compose -p arcade up
 ```
 
 This command will build and start all the services defined in the `docker-compose.yml` file.
