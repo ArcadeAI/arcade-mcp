@@ -345,10 +345,15 @@ def evals(
         help="The models to use for evaluation (default: gpt-4o)",
     ),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        "localhost",
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
+    ),
+    cloud: bool = typer.Option(
+        False,
+        "--cloud",
+        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
     ),
     port: int = typer.Option(
         None,
@@ -372,6 +377,8 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     config = validate_and_get_config()
+
+    host = DEFAULT_ENGINE_HOST if cloud else host
     base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
@@ -380,13 +387,12 @@ def evals(
     if not eval_files:
         return
 
-    if show_details:
-        console.print(
-            Text.assemble(
-                ("\nRunning evaluations against Arcade Engine at ", "bold"),
-                (base_url, "bold blue"),
-            )
+    console.print(
+        Text.assemble(
+            ("\nRunning evaluations against Arcade Engine at ", "bold"),
+            (base_url, "bold blue"),
         )
+    )
 
     # Try to hit /health endpoint on engine and warn if it is down
     with Arcade(api_key=config.api.key, base_url=base_url) as client:
