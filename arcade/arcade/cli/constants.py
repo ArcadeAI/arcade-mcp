@@ -1,5 +1,6 @@
 DEFAULT_CLOUD_HOST = "cloud.arcade-ai.com"
 DEFAULT_ENGINE_HOST = "api.arcade-ai.com"
+LOCALHOST = "localhost"
 
 _style_block = b"""
 <link rel="icon" href="https://cdn.arcade-ai.com/favicons/favicon.ico" sizes="any">

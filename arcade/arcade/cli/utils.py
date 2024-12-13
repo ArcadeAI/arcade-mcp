@@ -24,6 +24,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
+from arcade.cli.constants import LOCALHOST
 from arcade.core.config_model import Config
 from arcade.core.errors import ToolkitLoadError
 from arcade.core.schema import ToolDefinition
@@ -114,7 +115,7 @@ def compute_engine_base_url(
         str: The fully constructed URL for the Arcade Engine.
     """
     # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
-    host = "localhost" if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
+    host = LOCALHOST if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
 
     # Determine TLS setting based on input flags
     if force_no_tls:
@@ -122,10 +123,10 @@ def compute_engine_base_url(
     elif force_tls:
         is_tls = True
     else:
-        is_tls = host != "localhost"
+        is_tls = host != LOCALHOST
 
     # "localhost" defaults to dev port if not specified
-    if host == "localhost" and port is None:
+    if host == LOCALHOST and port is None:
         port = 9099
 
     protocol = "https" if is_tls else "http"
@@ -168,14 +169,14 @@ def compute_login_url(host: str, state: str, port: int | None) -> str:
     """
     Compute the full URL for the CLI login endpoint.
     """
-    callback_uri = "http://localhost:9905/callback"
+    callback_uri = f"http://{LOCALHOST}:9905/callback"
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
     port = port if port else 8000
 
     login_base_url = (
-        f"http://localhost:{port}"
-        if host in ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
+        f"http://{LOCALHOST}:{port}"
+        if host in [LOCALHOST, "127.0.0.1", "0.0.0.0"]  # noqa: S104
         else f"https://{host}"
     )
     endpoint = "/api/v1/auth/cli_login"

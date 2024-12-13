@@ -14,7 +14,7 @@ from rich.markup import escape
 from rich.text import Text
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST
+from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
 from arcade.cli.display import (
     display_arcade_chat_header,
     display_eval_results,
@@ -345,7 +345,7 @@ def evals(
         help="The models to use for evaluation (default: gpt-4o)",
     ),
     host: str = typer.Option(
-        "localhost",
+        LOCALHOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
