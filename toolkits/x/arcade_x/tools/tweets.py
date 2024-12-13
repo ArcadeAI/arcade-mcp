@@ -6,6 +6,7 @@ from arcade.sdk.auth import X
 from arcade.sdk.errors import RetryableToolError
 
 from arcade_x.tools.utils import (
+    expand_long_tweet,
     expand_urls_in_tweets,
     get_headers_with_token,
     get_tweet_url,
@@ -85,7 +86,7 @@ async def search_recent_tweets_by_username(
 
     url = (
         "https://api.x.com/2/tweets/search/recent?"
-        "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
+        "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities,note_tweet"
     )
 
     async with httpx.AsyncClient() as client:
@@ -93,6 +94,9 @@ async def search_recent_tweets_by_username(
         response.raise_for_status()
 
     response_data: dict[str, Any] = response.json()
+
+    for tweet in response_data["data"]:
+        tweet = expand_long_tweet(tweet)
 
     # Expand the URLs that are in the tweets
     response_data["data"] = expand_urls_in_tweets(
@@ -152,7 +156,7 @@ async def search_recent_tweets_by_keywords(
 
     url = (
         "https://api.x.com/2/tweets/search/recent?"
-        "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities"
+        "expansions=author_id&user.fields=id,name,username,entities&tweet.fields=entities,note_tweet"
     )
 
     async with httpx.AsyncClient() as client:
@@ -160,6 +164,9 @@ async def search_recent_tweets_by_keywords(
         response.raise_for_status()
 
     response_data: dict[str, Any] = response.json()
+
+    for tweet in response_data["data"]:
+        tweet = expand_long_tweet(tweet)
 
     # Expand the URLs that are in the tweets
     response_data["data"] = expand_urls_in_tweets(
@@ -183,7 +190,7 @@ async def lookup_tweet_by_id(
     params = {
         "expansions": "author_id",
         "user.fields": "id,name,username,entities",
-        "tweet.fields": "entities",
+        "tweet.fields": "entities,note_tweet",
     }
     url = f"{TWEETS_URL}/{tweet_id}"
 
@@ -196,6 +203,8 @@ async def lookup_tweet_by_id(
     # Get the tweet data
     tweet_data = response_data.get("data")
     if tweet_data:
+        tweet_data = expand_long_tweet(tweet_data)
+
         # Expand the URLs that are in the tweet
         expanded_tweet_list = expand_urls_in_tweets([tweet_data], delete_entities=True)
         response_data["data"] = expanded_tweet_list[0]

@@ -13,6 +13,19 @@ from arcade_x.tools.tweets import (
 )
 from arcade_x.tools.utils import get_tweet_url
 
+full_tweet_text = (
+    "This is a super long tweet that exceeds 280 characters and I want to see if the tool will "
+    "successfully handle long tweets so I will continue to write this tweet until I have "
+    "exceeded the 280 character count. So far I have typed 'e' 28 times! Now its 29! Did you "
+    "know that the oldest tree in the world is... wait I actually don't know this fact."
+)
+truncated_tweet_text = (
+    "This is a super long tweet that exceeds 280 characters and I want to see if the tool will "
+    "successfully handle long tweets so I will continue to write this tweet until I have "
+    "exceeded the 280 character count. So far I have typed 'e' 28 times! Now its 29! Did you "
+    "know that the..."
+)
+
 
 @pytest.mark.asyncio
 async def test_post_tweet_success(tool_context, mock_httpx_client):
@@ -88,7 +101,15 @@ async def test_search_recent_tweets_by_username_success(tool_context, mock_httpx
         "data": [
             {
                 "id": "1234567890",
-                "text": "Test tweet",
+                "note_tweet": {
+                    "entities": {
+                        "mentions": [
+                            {"end": 19, "id": "00000000", "start": 4, "username": "aUsername"}
+                        ]
+                    },
+                    "text": full_tweet_text,
+                },
+                "text": truncated_tweet_text,
                 "entities": {
                     "urls": [
                         {"url": "https://t.co/short", "expanded_url": "https://example.com/long"}
@@ -105,7 +126,7 @@ async def test_search_recent_tweets_by_username_success(tool_context, mock_httpx
 
     assert "data" in result
     assert len(result["data"]) == 1
-    assert result["data"][0]["text"] == "Test tweet"
+    assert result["data"][0]["text"] == full_tweet_text
     mock_httpx_client.get.assert_called_once()
 
 
@@ -132,7 +153,21 @@ async def test_search_recent_tweets_by_keywords_success(tool_context, mock_httpx
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "data": [{"id": "1234567890", "text": "Keyword tweet", "entities": {}}],
+        "data": [
+            {
+                "id": "1234567890",
+                "note_tweet": {
+                    "entities": {
+                        "mentions": [
+                            {"end": 19, "id": "00000000", "start": 4, "username": "aUsername"}
+                        ]
+                    },
+                    "text": full_tweet_text,
+                },
+                "text": truncated_tweet_text,
+                "entities": {},
+            }
+        ],
         "includes": {"users": [{"id": "0987654321", "name": "Test User", "username": "testuser"}]},
     }
     mock_httpx_client.get.return_value = mock_response
@@ -142,7 +177,7 @@ async def test_search_recent_tweets_by_keywords_success(tool_context, mock_httpx
 
     assert "data" in result
     assert len(result["data"]) == 1
-    assert result["data"][0]["text"] == "Keyword tweet"
+    assert result["data"][0]["text"] == full_tweet_text
     mock_httpx_client.get.assert_called_once()
 
 
@@ -162,7 +197,17 @@ async def test_lookup_tweet_by_id_success(tool_context, mock_httpx_client):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "data": {"id": "1234567890", "text": "Lookup tweet", "entities": {}}
+        "data": {
+            "id": "1234567890",
+            "note_tweet": {
+                "entities": {
+                    "mentions": [{"end": 19, "id": "00000000", "start": 4, "username": "aUsername"}]
+                },
+                "text": full_tweet_text,
+            },
+            "text": truncated_tweet_text,
+            "entities": {},
+        }
     }
     mock_httpx_client.get.return_value = mock_response
 
@@ -170,7 +215,7 @@ async def test_lookup_tweet_by_id_success(tool_context, mock_httpx_client):
     result = await lookup_tweet_by_id(tool_context, tweet_id)
 
     assert "data" in result
-    assert result["data"]["text"] == "Lookup tweet"
+    assert result["data"]["text"] == full_tweet_text
     mock_httpx_client.get.assert_called_once()
 
 
