@@ -6,7 +6,7 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from arcade.sdk import Toolkit
-from arcade.worker.fastapi.actor import FastAPIWorker
+from arcade.worker.fastapi.worker import FastAPIWorker
 
 client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
 

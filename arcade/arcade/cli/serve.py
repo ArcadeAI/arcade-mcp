@@ -24,7 +24,7 @@ except ImportError:
     )
 
 from arcade.sdk import Toolkit
-from arcade.worker.fastapi.actor import FastAPIWorker
+from arcade.worker.fastapi.worker import FastAPIWorker
 
 
 class InterceptHandler(logging.Handler):
