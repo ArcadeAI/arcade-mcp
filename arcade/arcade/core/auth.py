@@ -14,10 +14,13 @@ class ToolAuthorization(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     provider_kind: str
-    """The unique provider kind (ID) configured in Arcade."""
+    """The unique provider kind configured in Arcade."""
 
     provider_type: AuthProviderType
     """The type of the authorization provider."""
+
+    provider_id: Optional[str] = None
+    """Optional unique identifier to distinguish between multiple providers of the same kind."""
 
 
 class OAuth2(ToolAuthorization):

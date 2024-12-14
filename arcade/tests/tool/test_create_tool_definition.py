@@ -51,6 +51,7 @@ def func_with_name_and_description():
     requires_auth=OAuth2(
         provider_kind="example",
         scopes=["scope1", "scope2"],
+        provider_id="my_example_provider123",
     ),
 )
 def func_with_auth_requirement():
@@ -59,7 +60,10 @@ def func_with_auth_requirement():
 
 @tool(
     desc="A function that requires Google authorization",
-    requires_auth=Google(scopes=["https://www.googleapis.com/auth/gmail.readonly"]),
+    requires_auth=Google(
+        provider_id="my_google_provider123",
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    ),
 )
 def func_with_google_auth_requirement():
     pass
@@ -67,7 +71,9 @@ def func_with_google_auth_requirement():
 
 @tool(
     desc="A function that requires GitHub authorization",
-    requires_auth=GitHub(),
+    requires_auth=GitHub(
+        provider_id="my_github_provider123",
+    ),
 )
 def func_with_github_auth_requirement():
     pass
@@ -75,7 +81,10 @@ def func_with_github_auth_requirement():
 
 @tool(
     desc="A function that requires Slack user authorization",
-    requires_auth=Slack(scopes=["chat:write", "channels:history"]),
+    requires_auth=Slack(
+        provider_id="my_slack_provider123",
+        scopes=["chat:write", "channels:history"],
+    ),
 )
 def func_with_slack_user_auth_requirement():
     pass
@@ -83,7 +92,10 @@ def func_with_slack_user_auth_requirement():
 
 @tool(
     desc="A function that requires X (Twitter) authorization",
-    requires_auth=X(scopes=["tweet.write"]),
+    requires_auth=X(
+        provider_id="my_x_provider123",
+        scopes=["tweet.write"],
+    ),
 )
 def func_with_x_requirement():
     pass
@@ -259,6 +271,7 @@ def func_with_complex_return() -> dict[str, str]:
                     authorization=ToolAuthRequirement(
                         provider_kind="example",
                         provider_type="oauth2",
+                        provider_id="my_example_provider123",
                         oauth2=OAuth2Requirement(
                             authority="https://example.com/oauth2/auth",
                             scopes=["scope1", "scope2"],
@@ -275,6 +288,7 @@ def func_with_complex_return() -> dict[str, str]:
                     authorization=ToolAuthRequirement(
                         provider_kind="google",
                         provider_type="oauth2",
+                        provider_id="my_google_provider123",
                         oauth2=OAuth2Requirement(
                             scopes=["https://www.googleapis.com/auth/gmail.readonly"],
                         ),
@@ -288,7 +302,10 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_kind="github", provider_type="oauth2", oauth2=OAuth2Requirement()
+                        provider_kind="github",
+                        provider_type="oauth2",
+                        provider_id="my_github_provider123",
+                        oauth2=OAuth2Requirement(),
                     )
                 )
             },
@@ -301,6 +318,7 @@ def func_with_complex_return() -> dict[str, str]:
                     authorization=ToolAuthRequirement(
                         provider_kind="slack",
                         provider_type="oauth2",
+                        provider_id="my_slack_provider123",
                         oauth2=OAuth2Requirement(
                             scopes=["chat:write", "channels:history"],
                         ),
