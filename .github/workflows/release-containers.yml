@@ -69,7 +69,7 @@ jobs:
           echo "VERSION=$(date +'%Y.%-m.%-d').dev0" >> $GITHUB_ENV
         fi
 
-    - name: Build and push Actor image
+    - name: Build and push Worker image
       id: build
       run: |
         make docker VERSION=${{ env.VERSION }}
@@ -80,7 +80,7 @@ jobs:
       if: github.event_name == 'push'
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
-      run: gh workflow -R ArcadeAI/Team run Deploy -f actor-version=${{ env.VERSION }}
+      run: gh workflow -R ArcadeAI/Team run Deploy -f worker-version=${{ env.VERSION }}
 
     - name: Set TAR and WHL names
       run: |

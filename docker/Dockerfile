@@ -48,5 +48,5 @@ RUN set -e; \
 # Expose the port
 EXPOSE $PORT
 
-# Run the arcade actorup (hidden cli command)
-CMD arcade actorup --host $HOST --port $PORT $([ "$OTEL_ENABLE" = "true" ] && echo "--otel-enable")
+# Run the arcade workerup (hidden cli command)
+CMD arcade workerup --host $HOST --port $PORT $([ "$OTEL_ENABLE" = "true" ] && echo "--otel-enable")

@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
-from arcade.actor.core.auth import validate_engine_token
+from arcade.worker.core.auth import validate_engine_token
 
 
 # Dependency function to validate JWT

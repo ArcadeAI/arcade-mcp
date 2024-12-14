@@ -18,11 +18,11 @@
       "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
     },
     {
-      "name": "Debug `arcade actorup --no-auth`",
+      "name": "Debug `arcade workerup --no-auth`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["actorup", "--no-auth"],
+      "args": ["workerup", "--no-auth"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

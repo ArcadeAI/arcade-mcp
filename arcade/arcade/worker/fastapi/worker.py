@@ -5,18 +5,18 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from opentelemetry.metrics import Meter
 
-from arcade.actor.core.base import (
-    BaseActor,
+from arcade.worker.core.base import (
+    BaseWorker,
     Router,
 )
-from arcade.actor.core.common import RequestData
-from arcade.actor.fastapi.auth import validate_engine_request
-from arcade.actor.utils import is_async_callable
+from arcade.worker.core.common import RequestData
+from arcade.worker.fastapi.auth import validate_engine_request
+from arcade.worker.utils import is_async_callable
 
 
-class FastAPIActor(BaseActor):
+class FastAPIWorker(BaseWorker):
     """
-    An Arcade Actor that is hosted inside a FastAPI app.
+    An Arcade Worker that is hosted inside a FastAPI app.
     """
 
     def __init__(
@@ -41,7 +41,7 @@ security = HTTPBearer()  # Authorization: Bearer <xxx>
 
 
 class FastAPIRouter(Router):
-    def __init__(self, app: FastAPI, actor: BaseActor) -> None:
+    def __init__(self, app: FastAPI, actor: BaseWorker) -> None:
         self.app = app
         self.actor = actor
 

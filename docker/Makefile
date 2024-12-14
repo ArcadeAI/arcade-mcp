@@ -9,7 +9,7 @@ ECR_ENDPOINT ?= 471112909428.dkr.ecr.us-east-1.amazonaws.com
 VERSION ?= 0.1.0.dev0
 COMMIT ?= $(shell git describe --dirty --always --abbrev=15)
 BUILD_DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-IMAGE_NAME ?= actor
+IMAGE_NAME ?= worker
 PORT ?= 8002
 
 
@@ -57,7 +57,7 @@ ecr-login: # Login to ECR
 
 .PHONY: help
 help:
-	@echo "🛠️ Actor Docker Commands:\n"
+	@echo "🛠️ Worker Docker Commands:\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help

@@ -38,7 +38,7 @@ def test_init_with_enable_true(
     handler = OTELHandler(app, enable=True)
 
     # Verify that the resource is set correctly
-    assert handler.resource.attributes["service.name"] == "arcade-actor"
+    assert handler.resource.attributes["service.name"] == "arcade-worker"
     assert "environment" in handler.resource.attributes
 
     # Verify that initialization methods are called

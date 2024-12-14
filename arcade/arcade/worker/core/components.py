@@ -2,8 +2,8 @@ from typing import Any
 
 from opentelemetry import trace
 
-from arcade.actor.core.common import Actor, ActorComponent, RequestData, Router
 from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
+from arcade.worker.core.common import Actor, ActorComponent, RequestData, Router
 
 
 class CatalogComponent(ActorComponent):

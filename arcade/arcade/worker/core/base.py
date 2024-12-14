@@ -7,13 +7,6 @@ from typing import Any, Callable, ClassVar
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade.actor.core.common import Actor, Router
-from arcade.actor.core.components import (
-    ActorComponent,
-    CallToolComponent,
-    CatalogComponent,
-    HealthCheckComponent,
-)
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
@@ -21,14 +14,21 @@ from arcade.core.schema import (
     ToolCallResponse,
     ToolDefinition,
 )
+from arcade.worker.core.common import Actor, Router
+from arcade.worker.core.components import (
+    ActorComponent,
+    CallToolComponent,
+    CatalogComponent,
+    HealthCheckComponent,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class BaseActor(Actor):
+class BaseWorker(Actor):
     """
-    A base actor class that provides a default implementation for registering tools and invoking them.
-    Actor implementations for specific web frameworks will inherit from this class.
+    A base worker class that provides a default implementation for registering tools and invoking them.
+    Worker implementations for specific web frameworks will inherit from this class.
     """
 
     base_path = "/actor"  # By default, prefix all our routes with /actor

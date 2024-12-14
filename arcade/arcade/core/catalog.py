@@ -108,7 +108,7 @@ class MaterializedTool(BaseModel):
 
 
 class ToolCatalog(BaseModel):
-    """Singleton class that holds all tools for a given actor"""
+    """Singleton class that holds all tools for a given worker"""
 
     _tools: dict[FullyQualifiedName, MaterializedTool] = {}
 
