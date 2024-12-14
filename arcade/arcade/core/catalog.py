@@ -296,7 +296,7 @@ class ToolCatalog(BaseModel):
         auth_requirement = getattr(tool, "__tool_requires_auth__", None)
         if isinstance(auth_requirement, ToolAuthorization):
             new_auth_requirement = ToolAuthRequirement(
-                provider_id=auth_requirement.provider_id,
+                provider_kind=auth_requirement.provider_kind,
                 provider_type=auth_requirement.provider_type,
             )
             if isinstance(auth_requirement, OAuth2):

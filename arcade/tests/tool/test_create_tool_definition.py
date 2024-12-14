@@ -49,7 +49,7 @@ def func_with_name_and_description():
 @tool(
     desc="A function that requires authentication",
     requires_auth=OAuth2(
-        provider_id="example",
+        provider_kind="example",
         scopes=["scope1", "scope2"],
     ),
 )
@@ -257,7 +257,7 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_id="example",
+                        provider_kind="example",
                         provider_type="oauth2",
                         oauth2=OAuth2Requirement(
                             authority="https://example.com/oauth2/auth",
@@ -273,7 +273,7 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_id="google",
+                        provider_kind="google",
                         provider_type="oauth2",
                         oauth2=OAuth2Requirement(
                             scopes=["https://www.googleapis.com/auth/gmail.readonly"],
@@ -288,7 +288,7 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_id="github", provider_type="oauth2", oauth2=OAuth2Requirement()
+                        provider_kind="github", provider_type="oauth2", oauth2=OAuth2Requirement()
                     )
                 )
             },
@@ -299,7 +299,7 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_id="slack",
+                        provider_kind="slack",
                         provider_type="oauth2",
                         oauth2=OAuth2Requirement(
                             scopes=["chat:write", "channels:history"],

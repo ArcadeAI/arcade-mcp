@@ -151,9 +151,9 @@
             {
               "type": "object",
               "properties": {
-                "provider_id": {
+                "provider_kind": {
                   "type": "string",
-                  "description": "A unique provider ID."
+                  "description": "A unique provider kind (ID)."
                 },
                 "provider_type": {
                   "type": "string",
@@ -172,7 +172,7 @@
                   "additionalProperties": false
                 }
               },
-              "required": ["provider_id", "provider_type"],
+              "required": ["provider_kind", "provider_type"],
               "additionalProperties": false
             }
           ]

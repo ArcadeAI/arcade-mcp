@@ -13,8 +13,8 @@ class ToolAuthorization(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    provider_id: str
-    """The unique provider ID configured in Arcade."""
+    provider_kind: str
+    """The unique provider kind (ID) configured in Arcade."""
 
     provider_type: AuthProviderType
     """The type of the authorization provider."""
@@ -32,58 +32,58 @@ class OAuth2(ToolAuthorization):
 class Atlassian(OAuth2):
     """Marks a tool as requiring Atlassian authorization."""
 
-    provider_id: str = "atlassian"
+    provider_kind: str = "atlassian"
 
 
 class Discord(OAuth2):
     """Marks a tool as requiring Discord authorization."""
 
-    provider_id: str = "discord"
+    provider_kind: str = "discord"
 
 
 class Dropbox(OAuth2):
     """Marks a tool as requiring Dropbox authorization."""
 
-    provider_id: str = "dropbox"
+    provider_kind: str = "dropbox"
 
 
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
-    provider_id: str = "google"
+    provider_kind: str = "google"
 
 
 class Slack(OAuth2):
     """Marks a tool as requiring Slack (user token) authorization."""
 
-    provider_id: str = "slack"
+    provider_kind: str = "slack"
 
 
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
-    provider_id: str = "github"
+    provider_kind: str = "github"
 
 
 class X(OAuth2):
     """Marks a tool as requiring X (Twitter) authorization."""
 
-    provider_id: str = "x"
+    provider_kind: str = "x"
 
 
 class LinkedIn(OAuth2):
     """Marks a tool as requiring LinkedIn authorization."""
 
-    provider_id: str = "linkedin"
+    provider_kind: str = "linkedin"
 
 
 class Spotify(OAuth2):
     """Marks a tool as requiring Spotify authorization."""
 
-    provider_id: str = "spotify"
+    provider_kind: str = "spotify"
 
 
 class Zoom(OAuth2):
     """Marks a tool as requiring Zoom authorization."""
 
-    provider_id: str = "zoom"
+    provider_kind: str = "zoom"

@@ -39,7 +39,7 @@ def test_tool_decorator_with_all_options():
         name="TestTool",
         desc="Test description",
         requires_auth=OAuth2(
-            provider_id="example",
+            provider_kind="example",
             scopes=["test_scope", "another.scope"],
         ),
     )
