@@ -14,26 +14,26 @@ from arcade.core.schema import (
     ToolCallResponse,
     ToolDefinition,
 )
-from arcade.worker.core.common import Actor, Router
+from arcade.worker.core.common import Router, Worker
 from arcade.worker.core.components import (
-    ActorComponent,
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
+    WorkerComponent,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class BaseWorker(Actor):
+class BaseWorker(Worker):
     """
     A base worker class that provides a default implementation for registering tools and invoking them.
     Worker implementations for specific web frameworks will inherit from this class.
     """
 
-    base_path = "/actor"  # By default, prefix all our routes with /actor
+    base_path = "/worker"  # By default, prefix all our routes with /worker
 
-    default_components: ClassVar[tuple[type[ActorComponent], ...]] = (
+    default_components: ClassVar[tuple[type[WorkerComponent], ...]] = (
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
@@ -43,14 +43,14 @@ class BaseWorker(Actor):
         self, secret: str | None = None, disable_auth: bool = False, otel_meter: Meter | None = None
     ) -> None:
         """
-        Initialize the BaseActor with an empty ToolCatalog.
-        If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
+        Initialize the BaseWorker with an empty ToolCatalog.
+        If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
         """
         self.catalog = ToolCatalog()
         self.disable_auth = disable_auth
         if disable_auth:
             logger.warning(
-                "Warning: Actor is running without authentication. Not recommended for production."
+                "Warning: Worker is running without authentication. Not recommended for production."
             )
 
         self.secret = self._set_secret(secret, disable_auth)
@@ -71,12 +71,12 @@ class BaseWorker(Actor):
             return secret
 
         # If secret is not provided, try to get it from environment variables
-        env_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+        env_secret = os.environ.get("ARCADE_WORKER_SECRET")
         if env_secret:
             return env_secret
 
         raise ValueError(
-            "No secret provided for actor. Set the ARCADE_ACTOR_SECRET environment variable."
+            "No secret provided for worker. Set the ARCADE_WORKER_SECRET environment variable."
         )
 
     def get_catalog(self) -> list[ToolDefinition]:
@@ -173,7 +173,7 @@ class BaseWorker(Actor):
 
     def health_check(self) -> dict[str, Any]:
         """
-        Provide a health check that serves as a heartbeat of actor health.
+        Provide a health check that serves as a heartbeat of worker health.
         """
         return {"status": "ok", "tool_count": len(self.catalog)}
 
