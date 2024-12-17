@@ -14,7 +14,7 @@ class ToolAuthorization(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     provider_id: str
-    """The unique provider kind configured in Arcade."""
+    """The provider ID configured in Arcade."""
 
     provider_type: AuthProviderType
     """The type of the authorization provider."""

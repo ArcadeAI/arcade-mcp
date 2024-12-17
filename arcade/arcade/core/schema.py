@@ -90,7 +90,7 @@ class ToolAuthRequirement(BaseModel):
     # The Arcade SDK translates these into the appropriate provider kind and type.
     # The only time the developer will set these is if they are using a custom auth provider.
     provider_id: Optional[str] = None
-    """A unique provider kind"""
+    """The provider ID."""
 
     provider_type: str
     """The provider type."""

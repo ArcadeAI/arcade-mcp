@@ -153,7 +153,7 @@
               "properties": {
                 "provider_id": {
                   "type": "string",
-                  "description": "A unique provider kind."
+                  "description": "The provider ID."
                 },
                 "provider_type": {
                   "type": "string",
@@ -161,7 +161,7 @@
                 },
                 "id": {
                   "type": "string",
-                  "description": "Optional unique identifier to distinguish between multiple providers of the same kind."
+                  "description": "Optional unique identifier to distinguish between multiple providers with the same provider_id."
                 },
                 "oauth2": {
                   "type": "object",
