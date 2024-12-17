@@ -151,7 +151,7 @@
             {
               "type": "object",
               "properties": {
-                "provider_kind": {
+                "provider_id": {
                   "type": "string",
                   "description": "A unique provider kind."
                 },
@@ -159,7 +159,7 @@
                   "type": "string",
                   "description": "The provider type."
                 },
-                "provider_id": {
+                "id": {
                   "type": "string",
                   "description": "Optional unique identifier to distinguish between multiple providers of the same kind."
                 },
@@ -176,7 +176,7 @@
                   "additionalProperties": false
                 }
               },
-              "required": ["provider_kind", "provider_type"],
+              "required": ["provider_id", "provider_type"],
               "additionalProperties": false
             }
           ]

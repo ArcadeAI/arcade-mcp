@@ -13,14 +13,14 @@ class ToolAuthorization(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    provider_kind: str
+    provider_id: str
     """The unique provider kind configured in Arcade."""
 
     provider_type: AuthProviderType
     """The type of the authorization provider."""
 
-    provider_id: Optional[str] = None
-    """Optional unique identifier to distinguish between multiple providers of the same kind."""
+    id: Optional[str] = None
+    """Optional unique identifier to distinguish between multiple providers with the same provider_id."""
 
 
 class OAuth2(ToolAuthorization):
@@ -35,58 +35,58 @@ class OAuth2(ToolAuthorization):
 class Atlassian(OAuth2):
     """Marks a tool as requiring Atlassian authorization."""
 
-    provider_kind: str = "atlassian"
+    provider_id: str = "atlassian"
 
 
 class Discord(OAuth2):
     """Marks a tool as requiring Discord authorization."""
 
-    provider_kind: str = "discord"
+    provider_id: str = "discord"
 
 
 class Dropbox(OAuth2):
     """Marks a tool as requiring Dropbox authorization."""
 
-    provider_kind: str = "dropbox"
+    provider_id: str = "dropbox"
 
 
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
-    provider_kind: str = "google"
+    provider_id: str = "google"
 
 
 class Slack(OAuth2):
     """Marks a tool as requiring Slack (user token) authorization."""
 
-    provider_kind: str = "slack"
+    provider_id: str = "slack"
 
 
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
-    provider_kind: str = "github"
+    provider_id: str = "github"
 
 
 class X(OAuth2):
     """Marks a tool as requiring X (Twitter) authorization."""
 
-    provider_kind: str = "x"
+    provider_id: str = "x"
 
 
 class LinkedIn(OAuth2):
     """Marks a tool as requiring LinkedIn authorization."""
 
-    provider_kind: str = "linkedin"
+    provider_id: str = "linkedin"
 
 
 class Spotify(OAuth2):
     """Marks a tool as requiring Spotify authorization."""
 
-    provider_kind: str = "spotify"
+    provider_id: str = "spotify"
 
 
 class Zoom(OAuth2):
     """Marks a tool as requiring Zoom authorization."""
 
-    provider_kind: str = "zoom"
+    provider_id: str = "zoom"

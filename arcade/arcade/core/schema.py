@@ -80,23 +80,23 @@ class OAuth2Requirement(BaseModel):
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
-    # Provider Kind, Type, and ID needed for the Arcade Engine to look up the auth provider.
+    # Provider ID, Type, and ID needed for the Arcade Engine to look up the auth provider.
     # However, the developer generally does not need to set these directly.
     # Instead, they will use:
-    #    @tool(requires_auth=Google(provider_id="my_google_provider123", scopes=["profile", "email"]))
+    #    @tool(requires_auth=Google(id="my_google_provider123", scopes=["profile", "email"]))
     # or
-    #    client.auth.authorize(provider=AuthProvider.google, provider_id="my_google_provider123", scopes=["profile", "email"])
+    #    client.auth.authorize(provider=AuthProvider.google, id="my_google_provider123", scopes=["profile", "email"])
     #
     # The Arcade SDK translates these into the appropriate provider kind and type.
     # The only time the developer will set these is if they are using a custom auth provider.
-    provider_kind: Optional[str] = None
+    provider_id: Optional[str] = None
     """A unique provider kind"""
 
     provider_type: str
     """The provider type."""
 
-    provider_id: Optional[str] = None
-    """Optional unique identifier to distinguish between multiple providers of the same kind."""
+    id: Optional[str] = None
+    """Optional unique identifier to distinguish between multiple providers with the same provider_id."""
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""
