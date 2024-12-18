@@ -3,11 +3,11 @@ from .eval import EvalRubric, EvalSuite, ExpectedToolCall, tool_eval
 
 __all__ = [
     "BinaryCritic",
-    "SimilarityCritic",
-    "NumericCritic",
     "DatetimeCritic",
     "EvalRubric",
     "EvalSuite",
     "ExpectedToolCall",
+    "NumericCritic",
+    "SimilarityCritic",
     "tool_eval",
 ]
