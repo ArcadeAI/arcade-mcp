@@ -345,7 +345,7 @@ class EvalCase:
     def _create_cost_matrix(
         self,
         actual_tool_calls: list[tuple[str, dict[str, Any]]],
-        expected_tool_calls: list[ExpectedToolCall],
+        expected_tool_calls: list[NamedExpectedToolCall],
     ) -> np.ndarray:
         """
         Create a cost matrix for the assignment problem.
