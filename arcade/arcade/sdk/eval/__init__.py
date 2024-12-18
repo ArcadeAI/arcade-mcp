@@ -1,5 +1,5 @@
 from .critic import BinaryCritic, DatetimeCritic, NumericCritic, SimilarityCritic
-from .eval import EvalRubric, EvalSuite, ExpectedToolCall, tool_eval
+from .eval import EvalRubric, EvalSuite, ExpectedToolCall, NamedExpectedToolCall, tool_eval
 
 __all__ = [
     "BinaryCritic",
@@ -7,6 +7,7 @@ __all__ = [
     "EvalRubric",
     "EvalSuite",
     "ExpectedToolCall",
+    "NamedExpectedToolCall",
     "NumericCritic",
     "SimilarityCritic",
     "tool_eval",

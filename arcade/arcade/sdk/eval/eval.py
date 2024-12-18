@@ -165,7 +165,7 @@ class EvalCase:
         name: A descriptive name for this evaluation case.
         system_message: The system message to be sent to the AI model.
         user_message: The user input to be sent to the AI model.
-        expected_tool_calls: A list of ExpectedToolCall objects representing the expected tool calls.
+        expected_tool_calls: A list of NamedExpectedToolCall objects representing the expected tool calls.
         critics: A list of Critic objects used to evaluate tool arguments.
         additional_messages: Optional list of additional context messages.
         rubric: An EvalRubric object defining pass/fail criteria and tool selection behavior.
@@ -415,6 +415,28 @@ class EvalSuite:
     rubric: EvalRubric = field(default_factory=EvalRubric)
     max_concurrent: int = 1
 
+    def _convert_to_named_expected_tool_call(
+        self, tc: ExpectedToolCall | tuple[Callable, dict[str, Any]]
+    ) -> NamedExpectedToolCall:
+        """
+        Convert an ExpectedToolCall or a tuple to a NamedExpectedToolCall
+        with default arguments populated.
+
+        Args:
+            tc: The tool call, either as an ExpectedToolCall or a tuple.
+
+        Returns:
+            A NamedExpectedToolCall instance.
+        """
+        if isinstance(tc, tuple):
+            func, args = tc
+        else:
+            func = tc.func
+            args = tc.args
+        args_with_defaults = self._fill_args_with_defaults(func, args)
+        tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
+        return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
+
     def add_case(
         self,
         name: str,
@@ -437,19 +459,9 @@ class EvalSuite:
             rubric: The evaluation rubric for this case.
             additional_messages: Optional list of additional messages for context.
         """
-        expected_tool_calls_with_defaults = []
-        for tc in expected_tool_calls:
-            # Fill in default arguments here
-            if isinstance(tc, tuple):
-                func, args = tc
-            else:
-                func = tc.func
-                args = tc.args
-            args_with_defaults = self._fill_args_with_defaults(func, args)
-            tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
-            expected_tool_calls_with_defaults.append(
-                NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
-            )
+        expected_tool_calls_with_defaults = [
+            self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls
+        ]
 
         case = EvalCase(
             name=name,
@@ -525,17 +537,7 @@ class EvalSuite:
 
         expected = last_case.expected_tool_calls
         if expected_tool_calls:
-            expected = []
-            for tc in expected_tool_calls:
-                if isinstance(tc, tuple):
-                    func, args = tc
-                else:
-                    func = tc.func
-                    args = tc.args
-                # Fill in default arguments here
-                args_with_defaults = self._fill_args_with_defaults(func, args)
-                tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
-                expected.append(NamedExpectedToolCall(name=tool_name, args=args_with_defaults))
+            expected = [self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls]
 
         # Create a new case, copying from the last one and updating fields
         new_case = EvalCase(

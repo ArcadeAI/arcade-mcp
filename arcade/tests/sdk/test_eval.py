@@ -9,7 +9,7 @@ from arcade.sdk.eval import (
     BinaryCritic,
     DatetimeCritic,
     EvalRubric,
-    ExpectedToolCall,
+    NamedExpectedToolCall,
     NumericCritic,
     SimilarityCritic,
 )
@@ -142,8 +142,8 @@ def test_eval_case_evaluate():
     """
     # Define expected tool calls and actual tool calls
     expected_tool_calls = [
-        ExpectedToolCall(name="ToolA", args={"param": "value1"}),
-        ExpectedToolCall(name="ToolB", args={"param": "value2"}),
+        NamedExpectedToolCall(name="ToolA", args={"param": "value1"}),
+        NamedExpectedToolCall(name="ToolB", args={"param": "value2"}),
     ]
     actual_tool_calls = [
         ("ToolA", {"param": "value1"}),
@@ -189,7 +189,7 @@ def test_eval_case_evaluate_mismatched_tools():
     the expected tool calls to ensure tool selection scoring is correct.
     """
     expected_tool_calls = [
-        ExpectedToolCall(name="ToolA", args={"param": "value"}),
+        NamedExpectedToolCall(name="ToolA", args={"param": "value"}),
     ]
     actual_tool_calls = [
         ("ToolB", {"param": "value"}),
@@ -225,7 +225,7 @@ def test_eval_case_multiple_critics():
     to ensure individual critic scores are correctly combined into the total score.
     """
     expected_tool_calls = [
-        ExpectedToolCall(name="ToolA", args={"param1": "value1", "param2": "value2"}),
+        NamedExpectedToolCall(name="ToolA", args={"param1": "value1", "param2": "value2"}),
     ]
     actual_tool_calls = [
         ("ToolA", {"param1": "value1", "param2": "wrong_value"}),
@@ -267,7 +267,7 @@ def test_eval_case_with_none_values():
     expected_args = {"param": None}
     actual_args = {"param": None}
 
-    expected_tool_calls = [ExpectedToolCall(name="ToolA", args=expected_args)]
+    expected_tool_calls = [NamedExpectedToolCall(name="ToolA", args=expected_args)]
     actual_tool_calls = [("ToolA", actual_args)]
 
     critics = [BinaryCritic(critic_field="param", weight=1.0)]
