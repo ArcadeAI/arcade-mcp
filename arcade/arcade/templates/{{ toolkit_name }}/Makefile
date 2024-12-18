@@ -13,11 +13,6 @@ install: ## Install the poetry environment and install the pre-commit hooks
 	else \
 		echo "📦 Poetry is already installed"; \
 	fi
-	@echo "📦 Checking for poetry.lock file"
-	@if [ ! -f poetry.lock ]; then \
-		echo "📦 Creating poetry.lock file"; \
-		poetry lock; \
-	fi
 	@echo "🚀 Installing package in development mode with all extras"
 	poetry install --all-extras
 
@@ -28,12 +23,8 @@ build: clean-build ## Build wheel file using poetry
 
 .PHONY: clean-build
 clean-build: ## clean build artifacts
-	rm -rf dist
-
-.PHONY: clean-dist
-clean-dist: ## Clean all built distributions
 	@echo "🗑️ Cleaning dist directory"
-	@rm -rf dist
+	rm -rf dist
 
 .PHONY: test
 test: ## Test the code with pytest
