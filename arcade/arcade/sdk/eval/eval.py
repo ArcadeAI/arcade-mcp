@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 @dataclass
 class ExpectedToolCall:
     """
-    Represents an expected tool call with its name and arguments.
+    Represents an expected tool call with the function itself and arguments.
 
     Attributes:
         func: The function itself.
@@ -352,7 +352,7 @@ class EvalCase:
 
         Args:
             actual_tool_calls: A list of tuples of actual tool calls.
-            expected_tool_calls: A list of ExpectedToolCall instances.
+            expected_tool_calls: A list of NamedExpectedToolCall instances.
 
         Returns:
             A numpy array representing the cost matrix.
