@@ -1,19 +1,22 @@
 from datetime import timedelta
+from unittest.mock import Mock
 
 import pytest
 import pytz
 from dateutil import parser
 
+from arcade.sdk import tool
 from arcade.sdk.errors import WeightError
 from arcade.sdk.eval import (
     BinaryCritic,
     DatetimeCritic,
     EvalRubric,
+    ExpectedToolCall,
     NamedExpectedToolCall,
     NumericCritic,
     SimilarityCritic,
 )
-from arcade.sdk.eval.eval import EvalCase, EvaluationResult
+from arcade.sdk.eval.eval import EvalCase, EvalSuite, EvaluationResult
 
 # Test BinaryCritic.evaluate()
 
@@ -465,3 +468,104 @@ def test_datetime_critic_naive_and_timezone_aware():
         expected_score = critic.weight * ratio
 
     assert pytest.approx(result["score"], abs=1e-6) == expected_score
+
+
+# Test EvalSuite.add_case()
+def test_eval_suite_add_case():
+    """
+    Test that add_case correctly adds a new evaluation case to the suite.
+    """
+
+    @tool
+    def mock_tool(param: str):
+        pass
+
+    mock_catalog = Mock()
+    mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
+
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    expected_tool_calls = [
+        ExpectedToolCall(
+            func=mock_tool,
+            args={"param": "value"},
+        ),
+        (
+            mock_tool,
+            {"param": "value"},
+        ),
+    ]
+
+    suite.add_case(
+        name="TestCase",
+        user_message="User message",
+        expected_tool_calls=expected_tool_calls,
+    )
+
+    assert len(suite.cases) == 1
+    case = suite.cases[0]
+    assert len(case.expected_tool_calls) == 2
+    assert case.name == "TestCase"
+    assert case.user_message == "User message"
+    assert case.system_message == "System message"
+    assert case.expected_tool_calls[0] == NamedExpectedToolCall(
+        name="MockTool", args={"param": "value"}
+    )
+    assert case.expected_tool_calls[1] == NamedExpectedToolCall(
+        name="MockTool", args={"param": "value"}
+    )
+
+
+# Test EvalSuite.extend_case()
+def test_eval_suite_extend_case():
+    """
+    Test that extend_case correctly extends the last added case with new information.
+    """
+
+    @tool
+    def mock_tool(param: str):
+        pass
+
+    mock_catalog = Mock()
+    mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
+
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    expected_tool_calls = [
+        ExpectedToolCall(
+            func=mock_tool,
+            args={"param": "value"},
+        ),
+        (
+            mock_tool,
+            {"param": "value"},
+        ),
+    ]
+
+    suite.add_case(
+        name="InitialCase",
+        user_message="Initial user message",
+        expected_tool_calls=expected_tool_calls,
+    )
+
+    suite.extend_case(
+        name="ExtendedCase",
+        user_message="Extended user message",
+        expected_tool_calls=expected_tool_calls,
+    )
+
+    assert len(suite.cases) == 2
+    initial_case = suite.cases[0]
+    extended_case = suite.cases[1]
+
+    assert initial_case.name == "InitialCase"
+    assert extended_case.name == "ExtendedCase"
+    assert extended_case.user_message == "Extended user message"
+    assert extended_case.system_message == "System message"
+    assert len(extended_case.expected_tool_calls) == 2
+    assert extended_case.expected_tool_calls[0] == NamedExpectedToolCall(
+        name="MockTool", args={"param": "value"}
+    )
+    assert extended_case.expected_tool_calls[1] == NamedExpectedToolCall(
+        name="MockTool", args={"param": "value"}
+    )
