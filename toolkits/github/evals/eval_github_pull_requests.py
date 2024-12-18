@@ -1,3 +1,12 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    SimilarityCritic,
+    tool_eval,
+)
+
 import arcade_github
 from arcade_github.tools.models import (
     DiffSide,
@@ -12,15 +21,6 @@ from arcade_github.tools.pull_requests import (
     list_pull_requests,
     list_review_comments_on_pull_request,
     update_pull_request,
-)
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    SimilarityCritic,
-    tool_eval,
 )
 
 # Evaluation rubric

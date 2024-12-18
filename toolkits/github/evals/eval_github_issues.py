@@ -1,9 +1,3 @@
-import arcade_github
-from arcade_github.tools.issues import (
-    create_issue,
-    create_issue_comment,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -11,6 +5,12 @@ from arcade.sdk.eval import (
     EvalSuite,
     SimilarityCritic,
     tool_eval,
+)
+
+import arcade_github
+from arcade_github.tools.issues import (
+    create_issue,
+    create_issue_comment,
 )
 
 # Evaluation rubric

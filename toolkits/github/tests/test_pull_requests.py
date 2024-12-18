@@ -1,6 +1,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from httpx import Response
+
 from arcade_github.tools.models import (
     DiffSide,
     ReviewCommentSubjectType,
@@ -14,9 +17,6 @@ from arcade_github.tools.pull_requests import (
     list_review_comments_on_pull_request,
     update_pull_request,
 )
-from httpx import Response
-
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 @pytest.fixture

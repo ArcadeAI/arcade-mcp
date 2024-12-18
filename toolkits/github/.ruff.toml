@@ -40,7 +40,6 @@ select = [
 "**/tests/*" = ["S101", "E501"]
 "**/evals/*" = ["S101", "E501"]
 
-
 [format]
 preview = true
 skip-magic-trailing-comma = false

@@ -1,7 +1,3 @@
-import arcade_code_sandbox
-from arcade_code_sandbox.tools.e2b import create_static_matplotlib_chart, run_code
-from arcade_code_sandbox.tools.models import E2BSupportedLanguage
-
 from arcade.core.catalog import ToolCatalog
 from arcade.sdk.eval import (
     EvalRubric,
@@ -9,6 +5,10 @@ from arcade.sdk.eval import (
     tool_eval,
 )
 from arcade.sdk.eval.critic import BinaryCritic, SimilarityCritic
+
+import arcade_code_sandbox
+from arcade_code_sandbox.tools.e2b import create_static_matplotlib_chart, run_code
+from arcade_code_sandbox.tools.models import E2BSupportedLanguage
 
 merge_sort_code = """
 def merge_sort(arr):

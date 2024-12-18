@@ -1,6 +1,3 @@
-import arcade_github
-from arcade_github.tools.activity import list_stargazers, set_starred
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -8,6 +5,9 @@ from arcade.sdk.eval import (
     EvalSuite,
     tool_eval,
 )
+
+import arcade_github
+from arcade_github.tools.activity import list_stargazers, set_starred
 
 # Evaluation rubric
 rubric = EvalRubric(
