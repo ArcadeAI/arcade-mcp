@@ -47,7 +47,7 @@ async def create_event(
     service = build(
         "calendar",
         "v3",
-        credentials=Credentials(context.authorization.token if context.authorization else ""),
+        credentials=Credentials(context.get_auth_token_or_empty()),
     )
 
     # Get the calendar's time zone
@@ -115,7 +115,7 @@ async def list_events(
     service = build(
         "calendar",
         "v3",
-        credentials=Credentials(context.authorization.token if context.authorization else ""),
+        credentials=Credentials(context.get_auth_token_or_empty()),
     )
 
     # Get the calendar's time zone
@@ -216,8 +216,7 @@ async def update_event(
     `updated_start_datetime` and `updated_end_datetime` are
     independent and can be provided separately.
     """
-    auth_token = context.authorization.token if context.authorization else ""
-    service = build("calendar", "v3", credentials=Credentials(auth_token))
+    service = build("calendar", "v3", credentials=Credentials(context.get_auth_token_or_empty()))
 
     calendar = service.calendars().get(calendarId="primary").execute()
     time_zone = calendar["timeZone"]
@@ -315,8 +314,7 @@ async def delete_event(
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
-    auth_token = context.authorization.token if context.authorization else ""
-    service = build("calendar", "v3", credentials=Credentials(auth_token))
+    service = build("calendar", "v3", credentials=Credentials(context.get_auth_token_or_empty()))
 
     service.events().delete(
         calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value

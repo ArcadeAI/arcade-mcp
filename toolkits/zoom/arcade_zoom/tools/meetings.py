@@ -33,7 +33,7 @@ async def _send_zoom_request(
         ToolExecutionError: If the request fails for any reason.
     """
     url = f"{ZOOM_BASE_URL}{endpoint}"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    headers = {"Authorization": f"Bearer {context.get_auth_token_or_empty()}"}
 
     async with httpx.AsyncClient() as client:
         try:

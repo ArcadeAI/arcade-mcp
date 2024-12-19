@@ -69,7 +69,7 @@ async def create_issue(
         "assignees": assignees,
     }
     data = remove_none_values(data)
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)
@@ -132,7 +132,7 @@ async def create_issue_comment(
     data = {
         "body": body,
     }
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)

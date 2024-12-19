@@ -21,9 +21,11 @@ class PlaybackState:
     track_spotify_url: Optional[str] = None
     track_artists: list[str] = field(default_factory=list)
     track_artists_ids: list[str] = field(default_factory=list)
+    show_name: Optional[str] = None
     show_id: Optional[str] = None
     show_spotify_url: Optional[str] = None
     episode_name: Optional[str] = None
+    episode_id: Optional[str] = None
     episode_spotify_url: Optional[str] = None
     message: Optional[str] = None
 

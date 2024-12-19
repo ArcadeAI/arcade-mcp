@@ -37,7 +37,7 @@ async def count_stargazers(
     ```
     """
 
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     url = get_url("repo", owner=owner, repo=name)
     async with httpx.AsyncClient() as client:
@@ -85,7 +85,7 @@ async def list_org_repositories(
         "page": page,
     }
 
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -146,7 +146,7 @@ async def get_repository(
     ```
     """
     url = get_url("repo", owner=owner, repo=repo)
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
@@ -246,7 +246,7 @@ async def list_repository_activities(
     }
     params = remove_none_values(params)
 
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -327,7 +327,7 @@ async def list_review_comments_in_a_repository(
         "since": since,
     }
     params = remove_none_values(params)
-    headers = get_github_json_headers(context.authorization.token if context.authorization else "")
+    headers = get_github_json_headers(context.get_auth_token_or_empty())
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)

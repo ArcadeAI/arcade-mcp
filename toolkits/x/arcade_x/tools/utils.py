@@ -17,7 +17,7 @@ def get_headers_with_token(context: ToolContext) -> dict[str, str]:
             developer_message="Token is not set in the ToolContext.",
         )
     return {
-        "Authorization": f"Bearer {context.authorization.token}",
+        "Authorization": f"Bearer {context.get_auth_token_or_empty()}",
         "Content-Type": "application/json",
     }
 
