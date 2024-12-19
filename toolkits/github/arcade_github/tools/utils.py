@@ -31,7 +31,7 @@ def handle_github_response(response: httpx.Response, url: str) -> None:
         response.status_code, f"Failed to process request. Status code: {response.status_code}"
     )
 
-    raise ToolExecutionError(f"Error accessing '{url}': {error_message}")  # noqa: TRY003
+    raise ToolExecutionError(f"Error accessing '{url}': {error_message}")
 
 
 def get_github_json_headers(token: str | None) -> dict:

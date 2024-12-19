@@ -132,7 +132,7 @@ async def search_recent_tweets_by_keywords(
     """
 
     if not any([keywords, phrases]):
-        raise RetryableToolError(  # noqa: TRY003
+        raise RetryableToolError(
             "No keywords or phrases provided",
             developer_message="Predicted inputs didn't contain any keywords or phrases",
             additional_prompt_content="Please provide at least one keyword or phrase for search",

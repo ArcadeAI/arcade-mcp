@@ -237,7 +237,7 @@ async def update_event(
             )
             .execute()
         )
-        raise RetryableToolError(  # noqa: B904, TRY003
+        raise RetryableToolError(  # noqa: B904
             f"Event with ID {event_id} not found.",
             additional_prompt_content=(
                 f"Here is a list of valid events. The event_id parameter must match one of these: "

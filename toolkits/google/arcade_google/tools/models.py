@@ -105,7 +105,7 @@ class Day(Enum):
         if self in next_week_offsets:
             return today + timedelta(days=(next_week_offsets[self] - weekday + 7) % 7)
 
-        raise ValueError(f"Invalid Day enum value: {self}")  # noqa: TRY003
+        raise ValueError(f"Invalid Day enum value: {self}")
 
 
 class TimeSlot(Enum):
