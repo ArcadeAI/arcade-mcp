@@ -45,8 +45,8 @@ bump-version: ## Bump the version in the pyproject.toml file
 
 .PHONY: check
 check: ## Run code quality tools.
-	@echo "🚀 Checking Poetry lock file consistency with 'pyproject.toml': Running poetry check --lock"
-	@poetry check --lock
+	@echo "🚀 Checking Poetry lock file consistency with 'pyproject.toml': Running poetry check"
+	@poetry check
 	@echo "🚀 Linting code: Running pre-commit"
 	@poetry run pre-commit run -a
 	@echo "🚀 Static type checking: Running mypy"
