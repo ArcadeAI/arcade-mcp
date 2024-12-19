@@ -1,6 +1,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from arcade.sdk.errors import ToolExecutionError
+from googleapiclient.errors import HttpError
+
 from arcade_google.tools.docs import (
     create_blank_document,
     create_document_from_text,
@@ -8,9 +11,6 @@ from arcade_google.tools.docs import (
     insert_text_at_end_of_document,
 )
 from arcade_google.tools.utils import build_docs_service
-from googleapiclient.errors import HttpError
-
-from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture
