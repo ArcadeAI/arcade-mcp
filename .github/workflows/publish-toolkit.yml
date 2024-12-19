@@ -1,0 +1,74 @@
+name: Publish Toolkit
+
+on:
+  workflow_dispatch:
+    inputs:
+      toolkit:
+        description: 'The directory of the toolkit to publish'
+        required: true
+
+jobs:
+  release-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - name: Set toolkit input
+      id: set-toolkit
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          # Extract toolkit name from changed files
+          TOOLKIT=this_is_for_testing
+          echo "toolkit=$TOOLKIT" >> $GITHUB_OUTPUT
+        else
+          echo "toolkit=${{ inputs.toolkit }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Install Python Dependencies
+      run: pip install ./arcade
+
+    - name: Test Toolkit
+      id: Test_Toolkit
+      working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
+      run: |
+        make check
+        make install
+        make test
+
+    - name: Publish Toolkit
+      id: Publish_Toolkit
+      working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
+      run: |
+        poetry build
+        # Extract version from pyproject.toml using poetry and save it
+        VERSION=$(poetry version -s)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+        poetry publish
+
+    - name: Send status to Slack
+      if: always()
+      uses: slackapi/slack-github-action@v2.0.0
+      with:
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook-type: webhook-trigger
+        payload: |
+          status: "${{ (steps.Test_Toolkit.outcome == 'failure' || steps.Publish_Toolkit.outcome == 'failure') && 'Failed' || 'Success' }}"
+          toolkit: ${{ steps.set-toolkit.outputs.toolkit }}
+          version: ${{ steps.Publish_Toolkit.outputs.version }}
+          url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

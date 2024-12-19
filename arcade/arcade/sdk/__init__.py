@@ -5,9 +5,9 @@ from arcade.core.toolkit import Toolkit
 from .tool import tool
 
 __all__ = [
-    "tool",
     "ToolAuthorizationContext",
-    "ToolContext",
     "ToolCatalog",
+    "ToolContext",
     "Toolkit",
+    "tool",
 ]

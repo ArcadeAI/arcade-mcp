@@ -671,6 +671,7 @@ def handle_user_command(
             toolkit=None,
             tool=None,
             host=host,
+            local=False,
             port=port,
             force_tls=force_tls,
             force_no_tls=force_no_tls,

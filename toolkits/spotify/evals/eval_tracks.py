@@ -9,6 +9,7 @@ from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     tool_eval,
 )
 
@@ -143,9 +144,9 @@ def spotify_tracks_eval_suite() -> EvalSuite:
         name="Get information about a track",
         user_message="can you get more info about that song",
         expected_tool_calls=[
-            (
-                get_track_from_id,
-                {
+            ExpectedToolCall(
+                func=get_track_from_id,
+                args={
                     "track_id": "03gaqN3aWm9TQxuHay0G8R",
                 },
             )
@@ -160,9 +161,9 @@ def spotify_tracks_eval_suite() -> EvalSuite:
         name="Get audio features for a track",
         user_message="what bpm is that song?",
         expected_tool_calls=[
-            (
-                get_tracks_audio_features,
-                {
+            ExpectedToolCall(
+                func=get_tracks_audio_features,
+                args={
                     "track_ids": [
                         "14CQdqVFygEls6szbfwuTL",
                         "5r9fTbn6YZVxHKaU4Rze3t",
@@ -180,9 +181,9 @@ def spotify_tracks_eval_suite() -> EvalSuite:
         name="Get recommendations based on a specific track",
         user_message="Give me 6 recommendations based on this song.",
         expected_tool_calls=[
-            (
-                get_recommendations,
-                {
+            ExpectedToolCall(
+                func=get_recommendations,
+                args={
                     "seed_artists": ["4ev14fn325vhWuykve3QtA"],
                     "seed_genres": [],  # None provided in the history
                     "seed_tracks": ["14CQdqVFygEls6szbfwuTL"],

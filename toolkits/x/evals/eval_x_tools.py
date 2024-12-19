@@ -3,6 +3,7 @@ from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     tool_eval,
 )
 
@@ -77,9 +78,11 @@ def x_eval_suite() -> EvalSuite:
             "at Arcade AI!'"
         ),
         expected_tool_calls=[
-            (
-                post_tweet,
-                {"tweet_text": "Hello World! Exciting stuff is happening over at Arcade AI!"},
+            ExpectedToolCall(
+                func=post_tweet,
+                args={
+                    "tweet_text": "Hello World! Exciting stuff is happening over at Arcade AI!",
+                },
             )
         ],
         critics=[
@@ -94,9 +97,9 @@ def x_eval_suite() -> EvalSuite:
         name="Delete a tweet by ID",
         user_message="Please delete the tweet with ID '148975632'.",
         expected_tool_calls=[
-            (
-                delete_tweet_by_id,
-                {"tweet_id": "148975632"},
+            ExpectedToolCall(
+                func=delete_tweet_by_id,
+                args={"tweet_id": "148975632"},
             )
         ],
         critics=[
@@ -111,9 +114,9 @@ def x_eval_suite() -> EvalSuite:
         name="Search recent tweets by username",
         user_message="Show me the recent tweets from 'elonmusk'.",
         expected_tool_calls=[
-            (
-                search_recent_tweets_by_username,
-                {"username": "elonmusk", "max_results": 10},
+            ExpectedToolCall(
+                func=search_recent_tweets_by_username,
+                args={"username": "elonmusk", "max_results": 10},
             )
         ],
         critics=[
@@ -129,9 +132,9 @@ def x_eval_suite() -> EvalSuite:
         user_message="Get the next 42",
         additional_messages=search_recent_tweets_by_username_history,
         expected_tool_calls=[
-            (
-                search_recent_tweets_by_username,
-                {
+            ExpectedToolCall(
+                func=search_recent_tweets_by_username,
+                args={
                     "username": "elonmusk",
                     "max_results": 42,
                     "next_token": "b26v89c19zqg8o3frr3tekall7a7ooom3sctaw30rz62l",
@@ -158,9 +161,9 @@ def x_eval_suite() -> EvalSuite:
         name="Lookup user by username",
         user_message="Can you get information about the user '@jack'?",
         expected_tool_calls=[
-            (
-                lookup_single_user_by_username,
-                {"username": "jack"},
+            ExpectedToolCall(
+                func=lookup_single_user_by_username,
+                args={"username": "jack"},
             )
         ],
         critics=[
@@ -176,9 +179,9 @@ def x_eval_suite() -> EvalSuite:
         name="Search recent tweets by keywords",
         user_message="Find recent tweets containing 'Arcade AI'.",
         expected_tool_calls=[
-            (
-                search_recent_tweets_by_keywords,
-                {
+            ExpectedToolCall(
+                func=search_recent_tweets_by_keywords,
+                args={
                     "keywords": None,
                     "phrases": ["Arcade AI"],
                     "max_results": 10,
@@ -202,11 +205,9 @@ def x_eval_suite() -> EvalSuite:
         name="Lookup tweet by ID",
         user_message="Can you provide details about the tweet with ID '123456789'?",
         expected_tool_calls=[
-            (
-                lookup_tweet_by_id,
-                {
-                    "tweet_id": "123456789",
-                },
+            ExpectedToolCall(
+                func=lookup_tweet_by_id,
+                args={"tweet_id": "123456789"},
             )
         ],
         critics=[
