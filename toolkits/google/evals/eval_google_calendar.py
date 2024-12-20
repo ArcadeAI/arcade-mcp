@@ -1,15 +1,5 @@
 from datetime import timedelta
 
-import arcade_google
-from arcade_google.tools.calendar import (
-    EventVisibility,
-    SendUpdatesOptions,
-    create_event,
-    delete_event,
-    list_events,
-    update_event,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -18,6 +8,16 @@ from arcade.sdk.eval import (
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
+)
+
+import arcade_google
+from arcade_google.tools.calendar import (
+    EventVisibility,
+    SendUpdatesOptions,
+    create_event,
+    delete_event,
+    list_events,
+    update_event,
 )
 
 # Evaluation rubric

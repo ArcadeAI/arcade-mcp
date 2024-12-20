@@ -1,3 +1,14 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    NumericCritic,
+    SimilarityCritic,
+    tool_eval,
+)
+
 from arcade_spotify.tools.player import (
     adjust_playback_position,
     get_currently_playing,
@@ -9,17 +20,6 @@ from arcade_spotify.tools.player import (
     skip_to_next_track,
     skip_to_previous_track,
     start_tracks_playback_by_id,
-)
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    ExpectedToolCall,
-    NumericCritic,
-    SimilarityCritic,
-    tool_eval,
 )
 
 # Evaluation rubric

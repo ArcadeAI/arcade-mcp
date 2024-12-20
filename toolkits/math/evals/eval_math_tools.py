@@ -1,6 +1,3 @@
-import arcade_math
-from arcade_math.tools.arithmetic import add, sqrt
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -9,6 +6,9 @@ from arcade.sdk.eval import (
     ExpectedToolCall,
     tool_eval,
 )
+
+import arcade_math
+from arcade_math.tools.arithmetic import add, sqrt
 
 # Evaluation rubric
 rubric = EvalRubric(

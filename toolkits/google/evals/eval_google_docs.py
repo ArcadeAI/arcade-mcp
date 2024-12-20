@@ -1,11 +1,3 @@
-import arcade_google
-from arcade_google.tools.docs import (
-    create_blank_document,
-    create_document_from_text,
-    get_document_by_id,
-    insert_text_at_end_of_document,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -14,6 +6,14 @@ from arcade.sdk.eval import (
     ExpectedToolCall,
     SimilarityCritic,
     tool_eval,
+)
+
+import arcade_google
+from arcade_google.tools.docs import (
+    create_blank_document,
+    create_document_from_text,
+    get_document_by_id,
+    insert_text_at_end_of_document,
 )
 
 # Evaluation rubric

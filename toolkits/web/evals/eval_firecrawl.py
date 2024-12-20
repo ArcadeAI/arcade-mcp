@@ -1,13 +1,3 @@
-import arcade_web
-from arcade_web.tools.firecrawl import (
-    cancel_crawl,
-    crawl_website,
-    get_crawl_data,
-    get_crawl_status,
-    map_website,
-    scrape_url,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -17,6 +7,16 @@ from arcade.sdk.eval import (
     NumericCritic,
     SimilarityCritic,
     tool_eval,
+)
+
+import arcade_web
+from arcade_web.tools.firecrawl import (
+    cancel_crawl,
+    crawl_website,
+    get_crawl_data,
+    get_crawl_status,
+    map_website,
+    scrape_url,
 )
 
 # Evaluation rubric

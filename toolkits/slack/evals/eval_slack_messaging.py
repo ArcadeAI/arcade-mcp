@@ -1,6 +1,3 @@
-import arcade_slack
-from arcade_slack.tools.chat import send_dm_to_user, send_message_to_channel
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -10,6 +7,9 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+
+import arcade_slack
+from arcade_slack.tools.chat import send_dm_to_user, send_message_to_channel
 
 # Evaluation rubric
 rubric = EvalRubric(

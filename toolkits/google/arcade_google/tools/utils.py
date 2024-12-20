@@ -31,7 +31,7 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=ZoneInfo(time_zone))
     except ValueError as e:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(
             f"Invalid datetime format: '{datetime_str}'. "
             "Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
         ) from e

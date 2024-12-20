@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from arcade.sdk import ToolAuthorizationContext, ToolContext
+from arcade.sdk.errors import ToolExecutionError
+from googleapiclient.errors import HttpError
+
 from arcade_google.tools.gmail import (
     delete_draft_email,
     get_thread,
@@ -16,10 +20,6 @@ from arcade_google.tools.gmail import (
     write_draft_email,
 )
 from arcade_google.tools.utils import parse_draft_email, parse_email
-from googleapiclient.errors import HttpError
-
-from arcade.sdk import ToolAuthorizationContext, ToolContext
-from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

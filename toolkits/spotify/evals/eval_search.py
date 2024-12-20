@@ -1,6 +1,3 @@
-from arcade_spotify.tools.models import SearchType
-from arcade_spotify.tools.search import search
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -10,6 +7,9 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+
+from arcade_spotify.tools.models import SearchType
+from arcade_spotify.tools.search import search
 
 # Evaluation rubric
 rubric = EvalRubric(

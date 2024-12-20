@@ -1,9 +1,3 @@
-from arcade_spotify.tools.tracks import (
-    get_recommendations,
-    get_track_from_id,
-    get_tracks_audio_features,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -11,6 +5,12 @@ from arcade.sdk.eval import (
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
+)
+
+from arcade_spotify.tools.tracks import (
+    get_recommendations,
+    get_track_from_id,
+    get_tracks_audio_features,
 )
 
 # Evaluation rubric

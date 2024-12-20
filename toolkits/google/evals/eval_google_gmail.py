@@ -1,12 +1,3 @@
-import arcade_google
-from arcade_google.tools.gmail import (
-    get_thread,
-    list_threads,
-    search_threads,
-    send_email,
-)
-from arcade_google.tools.utils import DateRange
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
@@ -16,6 +7,15 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+
+import arcade_google
+from arcade_google.tools.gmail import (
+    get_thread,
+    list_threads,
+    search_threads,
+    send_email,
+)
+from arcade_google.tools.utils import DateRange
 
 # Evaluation rubric
 rubric = EvalRubric(
