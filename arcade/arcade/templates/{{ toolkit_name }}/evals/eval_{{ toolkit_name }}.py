@@ -2,6 +2,7 @@ from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     SimilarityCritic,
     tool_eval,
 )
@@ -35,7 +36,12 @@ def {{ toolkit_name }}_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Saying hello",
         user_message="He's actually right here, say hi to him!",
-        expected_tool_calls=[(say_hello, {"name": "John Doe"})],
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=say_hello,
+                args={"name": "John Doe"}
+            )
+        ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="name", weight=0.5),
