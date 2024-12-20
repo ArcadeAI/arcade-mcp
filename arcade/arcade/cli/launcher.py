@@ -3,7 +3,6 @@ import io
 import ipaddress
 import logging
 import os
-import platform
 import shutil
 import signal
 import socket
@@ -169,44 +168,12 @@ def _get_config_file(
         style="bold red",
     )
     console.print(
-        f"⚠️  The '{default_filename}' configuration file is essential.\n"
-        "   Please follow the installation instructions below.\n",
-        style="bold yellow",
-    )
-    _print_installation_instructions()
-    raise RuntimeError(f"Config file '{default_filename}' not found.")
-
-
-def _print_installation_instructions():
-    os_name = platform.system()
-
-    if os_name == "Darwin":  # macOS
-        console.print(
-            "✅ Install the Arcade Engine on macOS (Homebrew):\n"
-            "   brew install ArcadeAI/tap/arcade-engine\n",
-            style="bold green",
-        )
-    elif os_name == "Linux":
-        console.print(
-            "✅ Install the Arcade Engine on Ubuntu/Debian (APT):\n"
-            "   wget -qO - https://deb.arcade-ai.com/public-key.asc | sudo apt-key add -\n"
-            '   echo "deb https://deb.arcade-ai.com/ubuntu stable main" | sudo tee /etc/apt/sources.list.d/arcade-ai.list\n'
-            "   sudo apt update\n"
-            "   sudo apt install arcade-engine\n",
-            style="bold green",
-        )
-    else:
-        console.print(
-            "✅ Install the Arcade Engine on your operating system:\n"
-            "   Download the appropriate binary from the Arcade AI Releases page (https://www.arcade-ai.com/releases)\n"
-            "   and add it to your system's PATH\n",
-            style="bold green",
-        )
-
-    console.print(
-        "✅ For more details, visit the documentation: https://docs.arcade-ai.com/home/install/local\n",
+        "INFO: Please install the Arcade Engine by following the instructions at:\n"
+        "      https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
         style="bold green",
     )
+
+    raise RuntimeError(f"Config file '{default_filename}' not found.")
 
 
 def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
