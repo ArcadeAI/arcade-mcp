@@ -28,7 +28,10 @@ async def send_spotify_request(
     Raises:
         ToolExecutionError: If the request fails for any reason.
     """
-    headers = {"Authorization": f"Bearer {context.get_auth_token_or_empty()}"}
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         response = await client.request(method, url, headers=headers, params=params, json=json_data)

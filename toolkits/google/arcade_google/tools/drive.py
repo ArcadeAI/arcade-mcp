@@ -44,7 +44,9 @@ async def list_documents(
     page_token = None  # The page token is used for continuing a previous request on the next page
     files: list[dict[str, Any]] = []
 
-    service = build_drive_service(context.get_auth_token_or_empty())
+    service = build_drive_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     query = "mimeType = 'application/vnd.google-apps.document' and trashed = false"
     if title_keywords:

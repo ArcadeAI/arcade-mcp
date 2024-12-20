@@ -23,7 +23,9 @@ async def get_document_by_id(
     """
     Get the latest version of the specified Google Docs document.
     """
-    service = build_docs_service(context.get_auth_token_or_empty())
+    service = build_docs_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     # Execute the documents().get() method. Returns a Document object
     # https://developers.google.com/docs/api/reference/rest/v1/documents#Document
@@ -53,7 +55,9 @@ async def insert_text_at_end_of_document(
 
     end_index = document["body"]["content"][-1]["endIndex"]
 
-    service = build_docs_service(context.get_auth_token_or_empty())
+    service = build_docs_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     requests = [
         {
@@ -91,7 +95,9 @@ async def create_blank_document(
     """
     Create a blank Google Docs document with the specified title.
     """
-    service = build_docs_service(context.get_auth_token_or_empty())
+    service = build_docs_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     body = {"title": title}
 
@@ -127,7 +133,9 @@ async def create_document_from_text(
     # First, create a blank document
     document = await create_blank_document(context, title)
 
-    service = build_docs_service(context.get_auth_token_or_empty())
+    service = build_docs_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     requests = [
         {

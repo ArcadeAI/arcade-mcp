@@ -1,8 +1,8 @@
 from typing import Annotated, Any, Optional
 
+from arcade.sdk import tool
 from firecrawl import FirecrawlApp
 
-from arcade.sdk import tool
 from arcade_web.tools.models import Formats
 from arcade_web.tools.utils import get_secret
 
@@ -24,7 +24,8 @@ async def scrape_url(
     exclude_tags: Annotated[list[str] | None, "List of tags to exclude from the output"] = None,
     wait_for: Annotated[
         Optional[int],
-        "Specify a delay in milliseconds before fetching the content, allowing the page sufficient time to load.",
+        "Specify a delay in milliseconds before fetching the content, allowing the page "
+        "sufficient time to load.",
     ] = 10,
     timeout: Annotated[Optional[int], "Timeout in milliseconds for the request"] = 30000,
 ) -> Annotated[dict[str, Any], "Scraped data in specified formats"]:
@@ -45,7 +46,7 @@ async def scrape_url(
     }
     response = app.scrape_url(url, params=params)
 
-    return response
+    return dict(response)
 
 
 # TODO: Support scrapeOptions.
@@ -59,7 +60,8 @@ async def crawl_website(
     limit: Annotated[int, "Limit the number of pages to crawl"] = 10,
     allow_backward_links: Annotated[
         bool,
-        "Enable navigation to previously linked pages and enable crawling sublinks that are not children of the 'url' input parameter.",
+        "Enable navigation to previously linked pages and enable crawling "
+        "sublinks that are not children of the 'url' input parameter.",
     ] = False,
     allow_external_links: Annotated[bool, "Allow following links to external websites"] = False,
     webhook: Annotated[
@@ -97,7 +99,7 @@ async def crawl_website(
     else:
         response = app.crawl_url(url, params=params)
 
-    return response
+    return dict(response)
 
 
 @tool
@@ -116,10 +118,11 @@ async def get_crawl_status(
     if "data" in crawl_status:
         del crawl_status["data"]
 
-    return crawl_status
+    return dict(crawl_status)
 
 
-# TODO: Support responses greater than 10 MB. If the response is greater than 10 MB, then the Firecrawl API response will have a next_url field.
+# TODO: Support responses greater than 10 MB. If the response is greater than 10 MB,
+#       then the Firecrawl API response will have a next_url field.
 @tool
 async def get_crawl_data(
     crawl_id: Annotated[str, "The ID of the crawl job"],
@@ -133,7 +136,7 @@ async def get_crawl_data(
     app = FirecrawlApp(api_key=api_key)
     crawl_data = app.check_crawl_status(crawl_id)
 
-    return crawl_data
+    return dict(crawl_data)
 
 
 @tool
@@ -149,7 +152,7 @@ async def cancel_crawl(
     app = FirecrawlApp(api_key=api_key)
     cancellation_status = app.cancel_crawl(crawl_id)
 
-    return cancellation_status
+    return dict(cancellation_status)
 
 
 @tool
@@ -167,7 +170,7 @@ async def map_website(
     api_key = get_secret("FIRECRAWL_API_KEY")
 
     app = FirecrawlApp(api_key=api_key)
-    params = {
+    params: dict[str, Any] = {
         "ignoreSitemap": ignore_sitemap,
         "includeSubdomains": include_subdomains,
         "limit": limit,
@@ -177,4 +180,4 @@ async def map_website(
 
     map_result = app.map_url(url, params=params)
 
-    return map_result
+    return dict(map_result)

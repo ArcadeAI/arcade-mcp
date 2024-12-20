@@ -26,7 +26,9 @@ async def set_starred(
     ```
     """
     url = get_url("user_starred", owner=owner, repo=name)
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         if starred:
@@ -55,7 +57,9 @@ async def list_stargazers(
 ) -> Annotated[dict, "A dictionary containing the stargazers for the specified repository"]:
     """List the stargazers for a GitHub repository."""
     url = get_url("repo_stargazers", owner=owner, repo=repo)
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     if limit is None:
         limit = 2**64 - 1

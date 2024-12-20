@@ -47,7 +47,11 @@ async def create_event(
     service = build(
         "calendar",
         "v3",
-        credentials=Credentials(context.get_auth_token_or_empty()),
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
     )
 
     # Get the calendar's time zone
@@ -115,7 +119,11 @@ async def list_events(
     service = build(
         "calendar",
         "v3",
-        credentials=Credentials(context.get_auth_token_or_empty()),
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
     )
 
     # Get the calendar's time zone
@@ -216,7 +224,15 @@ async def update_event(
     `updated_start_datetime` and `updated_end_datetime` are
     independent and can be provided separately.
     """
-    service = build("calendar", "v3", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     calendar = service.calendars().get(calendarId="primary").execute()
     time_zone = calendar["timeZone"]
@@ -236,7 +252,7 @@ async def update_event(
             )
             .execute()
         )
-        raise RetryableToolError(  # noqa: B904
+        raise RetryableToolError(
             f"Event with ID {event_id} not found.",
             additional_prompt_content=(
                 f"Here is a list of valid events. The event_id parameter must match one of these: "
@@ -314,7 +330,15 @@ async def delete_event(
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
-    service = build("calendar", "v3", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     service.events().delete(
         calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value

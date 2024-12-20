@@ -37,7 +37,7 @@ select = [
 ]
 
 [lint.per-file-ignores]
-"*" = ["TRY003"]
+"*" = ["TRY003", "B904"]
 "**/tests/*" = ["S101", "E501"]
 "**/evals/*" = ["S101", "E501"]
 

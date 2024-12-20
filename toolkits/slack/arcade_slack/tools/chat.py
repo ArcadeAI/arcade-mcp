@@ -28,7 +28,11 @@ def send_dm_to_user(
     message: Annotated[str, "The message you want to send"],
 ) -> Annotated[dict, "The response from the Slack API"]:
     """Send a direct message to a user in Slack."""
-    slackClient = WebClient(token=context.get_auth_token_or_empty())
+    slackClient = WebClient(
+        token=context.authorization.token
+        if context.authorization and context.authorization.token
+        else ""
+    )
 
     # Step 1: Retrieve the user's Slack ID based on their username
     userListResponse = slackClient.users_list()
@@ -79,7 +83,11 @@ def send_message_to_channel(
 ) -> Annotated[dict, "The response from the Slack API"]:
     """Send a message to a channel in Slack."""
 
-    slackClient = WebClient(token=context.get_auth_token_or_empty())
+    slackClient = WebClient(
+        token=context.authorization.token
+        if context.authorization and context.authorization.token
+        else ""
+    )
 
     # Step 1: Retrieve the list of channels
     channels_response = slackClient.conversations_list()

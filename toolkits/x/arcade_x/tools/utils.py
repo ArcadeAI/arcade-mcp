@@ -16,8 +16,11 @@ def get_headers_with_token(context: ToolContext) -> dict[str, str]:
             "Missing Token. Authorization is required to post a tweet.",
             developer_message="Token is not set in the ToolContext.",
         )
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
     return {
-        "Authorization": f"Bearer {context.get_auth_token_or_empty()}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 

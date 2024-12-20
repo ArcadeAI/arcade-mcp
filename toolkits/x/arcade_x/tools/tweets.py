@@ -75,7 +75,7 @@ async def search_recent_tweets_by_username(
     Includes replies and reposts."""
 
     headers = get_headers_with_token(context)
-    params: dict[str, int | str] = {
+    params: dict[str, Any] = {
         "query": f"from:{username}",
         "max_results": min(
             max(max_results, 10), 100
@@ -145,7 +145,7 @@ async def search_recent_tweets_by_keywords(
     if keywords:
         query += " ".join(keywords or [])
 
-    params: dict[str, int | str] = {
+    params: dict[str, Any] = {
         "query": query.strip(),
         "max_results": min(
             max(max_results, 10), 100

@@ -32,7 +32,10 @@ async def _send_linkedin_request(
         ToolExecutionError: If the request fails for any reason.
     """
     url = f"{LINKEDIN_BASE_URL}{endpoint}"
-    headers = {"Authorization": f"Bearer {context.get_auth_token_or_empty()}"}
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         try:
@@ -41,7 +44,7 @@ async def _send_linkedin_request(
             )
             response.raise_for_status()
         except httpx.RequestError as e:
-            raise ToolExecutionError(f"Failed to send request to LinkedIn API: {e}")  # noqa: B904
+            raise ToolExecutionError(f"Failed to send request to LinkedIn API: {e}")
 
     return response
 

@@ -42,7 +42,15 @@ async def send_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = EmailMessage()
     message.set_content(body)
@@ -80,7 +88,15 @@ async def send_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Send the draft email
     sent_message = service.users().drafts().send(userId="me", body={"id": email_id}).execute()
@@ -108,7 +124,15 @@ async def write_draft_email(
     Compose a new email draft using the Gmail API.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = MIMEText(body)
     message["to"] = recipient
@@ -149,7 +173,15 @@ async def update_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = MIMEText(body)
     message["to"] = recipient
@@ -188,7 +220,15 @@ async def delete_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Delete the draft
     service.users().drafts().delete(userId="me", id=draft_email_id).execute()
@@ -209,7 +249,15 @@ async def trash_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Trash the email
     trashed_email = service.users().messages().trash(userId="me", id=email_id).execute()
@@ -233,7 +281,15 @@ async def list_draft_emails(
     Lists draft emails in the user's draft mailbox using the Gmail API.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     listed_drafts = service.users().drafts().list(userId="me").execute()
 
@@ -286,7 +342,15 @@ async def list_emails_by_header(
 
     query = build_query_string(sender, recipient, subject, body, date_range)
 
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
     messages = fetch_messages(service, query, limit)
 
     if not messages:
@@ -321,7 +385,15 @@ async def list_emails(
     Read emails from a Gmail account and extract plain text content.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     messages = service.users().messages().list(userId="me").execute().get("messages", [])
 
@@ -361,7 +433,15 @@ async def search_threads(
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
 ) -> Annotated[dict, "A dictionary containing a list of thread details"]:
     """Search for threads in the user's mailbox"""
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     query = (
         build_query_string(sender, recipient, subject, body, date_range)
@@ -442,7 +522,15 @@ async def get_thread(
     }
     params = remove_none_values(params)
 
-    service = build("gmail", "v1", credentials=Credentials(context.get_auth_token_or_empty()))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
     thread = service.users().threads().get(**params).execute()
     thread["messages"] = [parse_email(message) for message in thread.get("messages", [])]
 

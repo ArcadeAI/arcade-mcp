@@ -76,7 +76,9 @@ async def list_pull_requests(
         "direction": direction,  # defaults to desc when sort is 'created'/'not specified', else asc
     }
     params = remove_none_values(params)
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -140,8 +142,12 @@ async def get_pull_request(
     ```
     """
     url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
-    diff_headers = get_github_diff_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    diff_headers = get_github_diff_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
@@ -232,7 +238,9 @@ async def update_pull_request(
     }
     data = remove_none_values(data)
 
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.patch(url, headers=headers, json=data)
@@ -289,7 +297,9 @@ async def list_pull_request_commits(
         "page": page,
     }
 
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -362,7 +372,9 @@ async def create_reply_for_review_comment(
         comment_id=comment_id,
     )
 
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     data = {"body": body}
 
@@ -426,7 +438,9 @@ async def list_review_comments_on_pull_request(
     }
     params = remove_none_values(params)
 
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -586,7 +600,9 @@ async def create_review_comment(
         "start_side": start_side,
     }
     data = remove_none_values(data)
-    headers = get_github_json_headers(context.get_auth_token_or_empty())
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)
