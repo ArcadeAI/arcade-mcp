@@ -39,15 +39,12 @@ jobs:
         python-version: '3.12'
         cache: 'pip'
 
-    - name: Install Python Dependencies
-      run: pip install ./arcade
-
     - name: Test Toolkit
       id: Test_Toolkit
       working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
       run: |
-        make check
         make install
+        make check
         make test
 
     - name: Publish Toolkit
