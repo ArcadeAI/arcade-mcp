@@ -168,8 +168,8 @@ def _get_config_file(
         style="bold red",
     )
     console.print(
-        "INFO: Please install the Arcade Engine by following the instructions at:\n"
-        "      https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
+        "TIP: Please install the Arcade Engine by following the instructions at:\n"
+        "     https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
         style="bold green",
     )
 
