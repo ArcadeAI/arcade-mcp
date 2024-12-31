@@ -1,6 +1,8 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from arcade.sdk.errors import ToolExecutionError
+
 from arcade_web.tools.firecrawl import (
     cancel_crawl,
     crawl_website,
@@ -9,8 +11,6 @@ from arcade_web.tools.firecrawl import (
     map_website,
     scrape_url,
 )
-
-from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture

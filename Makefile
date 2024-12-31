@@ -108,8 +108,8 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo "Setting version to $(VERSION)"
 	@make set-version
 
-	@echo "🛠️ Building all projects and copying wheels to ./dist"
-	@mkdir -p dist/toolkits
+	# @echo "🛠️ Building all projects and copying wheels to ./dist"
+	@mkdir -p dist
 
 	# Build the main arcade project
 	@echo "🛠️ Building arcade project wheel..."
@@ -123,19 +123,15 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 
 	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	# Build and copy wheels for each toolkit
-	@for toolkit_dir in toolkits/*; do \
-		if [ -d "$$toolkit_dir" ]; then \
-			toolkit_name=$$(basename "$$toolkit_dir"); \
-			echo "Building $$toolkit_name project..."; \
-			cd "$$toolkit_dir" && poetry version $(VERSION); \
-            awk '{gsub(/arcade-ai = "0.1.\*"/, "arcade-ai = \"$(VERSION)\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
-            poetry build; \
-			cp dist/*.whl ../../dist/toolkits; \
-            poetry version 0.1.0; \
-            awk '{gsub(/arcade-ai = "$(VERSION)"/, "arcade-ai = \"0.1.\*\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
-			cd -; \
-		fi; \
-	done
+	# @for toolkit_dir in toolkits/*; do \
+	# 	if [ -d "$$toolkit_dir" ]; then \
+	# 		toolkit_name=$$(basename "$$toolkit_dir"); \
+	# 		echo "Building $$toolkit_name project..."; \
+    #         poetry build; \
+	# 		cp dist/*.whl ../../dist/toolkits; \
+	# 		cd -; \
+	# 	fi; \
+	# done
 
 	@echo "✅ All toolkits built and wheels copied to ./dist"
 

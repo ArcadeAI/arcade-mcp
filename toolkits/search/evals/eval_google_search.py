@@ -1,14 +1,15 @@
-import arcade_search
-from arcade_search.tools.google import search_google
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     NumericCritic,
     SimilarityCritic,
     tool_eval,
 )
+
+import arcade_search
+from arcade_search.tools.google import search_google
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -36,9 +37,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Simple search query with default results",
         user_message="Search for 'Climate change effects on polar bears' on Google.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "Climate change effects on polar bears",
                     "n_results": 5,
                 },
@@ -54,9 +55,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with specific number of results",
         user_message="Find the top 3 articles about quantum computing.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "articles about quantum computing",
                     "n_results": 3,
                 },
@@ -77,9 +78,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with 'n' results specified in words",
         user_message="Give me five recipes for vegan lasagna.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "recipes for vegan lasagna",
                     "n_results": 5,
                 },
@@ -100,9 +101,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Ambiguous number of results",
         user_message="Find articles about climate change impacts 10.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "articles about climate change impacts 10",
                     "n_results": 5,
                 },
@@ -118,16 +119,16 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with multiple instructions",
         user_message="Search for the latest news on electric cars, and tell me about Tesla's new model.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "latest news on electric cars",
                     "n_results": 5,
                 },
             ),
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "Tesla's new model",
                     "n_results": 5,
                 },
@@ -143,9 +144,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search with stop words and filler words",
         user_message="Could you please search for the best ways to learn French?",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "best ways to learn French",
                     "n_results": 5,
                 },
@@ -169,9 +170,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with special characters",
         user_message="Find me '@OpenAI's latest research papers'",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "@OpenAI's latest research papers",
                     "n_results": 5,
                 },
@@ -187,9 +188,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with complex instructions",
         user_message="I need information about the impact of deforestation in the Amazon over the past decade.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "impact of deforestation in the Amazon over the past decade",
                     "n_results": 5,
                 },
@@ -205,9 +206,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query in a different language",
         user_message="Busca información sobre la economía de España.",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "economía de España",
                     "n_results": 5,
                 },
@@ -223,9 +224,9 @@ def google_search_eval_suite() -> EvalSuite:
         name="Search query with numeric data",
         user_message="What was the population of Japan in 2020?",
         expected_tool_calls=[
-            (
-                search_google,
-                {
+            ExpectedToolCall(
+                func=search_google,
+                args={
                     "query": "population of Japan in 2020",
                     "n_results": 5,
                 },

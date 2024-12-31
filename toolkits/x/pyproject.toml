@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_x"
-version = "0.1.3"
+version = "0.1.7"
 description = "LLM tools for interacting with X (Twitter)"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
@@ -8,6 +8,7 @@ authors = ["Arcade AI <dev@arcade-ai.com>"]
 python = "^3.10"
 arcade-ai = "0.1.*"
 httpx = "^0.27.2"
+
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"
 pytest-cov = "^4.0.0"

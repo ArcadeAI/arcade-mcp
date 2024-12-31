@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
 from arcade.sdk.errors import RetryableToolError
+
 from arcade_spotify.tools.models import Device, SearchType
 from arcade_spotify.tools.search import search
 from arcade_spotify.tools.utils import (
@@ -39,7 +40,10 @@ async def adjust_playback_position(
     if (absolute_position_ms is None) == (relative_position_ms is None):
         raise RetryableToolError(
             "Either absolute_position_ms or relative_position_ms must be provided, but not both",
-            additional_prompt_content="Provide a value for either absolute_position_ms or relative_position_ms, but not both.",
+            additional_prompt_content=(
+                "Provide a value for either absolute_position_ms or "
+                "relative_position_ms, but not both."
+            ),
             retry_after_ms=500,
         )
 
@@ -50,7 +54,7 @@ async def adjust_playback_position(
 
         absolute_position_ms = playback_state["progress_ms"] + relative_position_ms
 
-    absolute_position_ms = max(0, absolute_position_ms)
+    absolute_position_ms = max(0, absolute_position_ms or 0)
 
     url = get_url("player_seek_to_position")
     params = {"position_ms": absolute_position_ms}
@@ -174,7 +178,8 @@ async def start_tracks_playback_by_id(
         Device(**device) for device in (await get_available_devices(context)).get("devices", [])
     ]
 
-    # If no active device is available, pick the first one. Otherwise, Spotify defaults to the active device.
+    # If no active device is available, pick the first one.
+    # Otherwise, Spotify defaults to the active device.
     device_id = None
     if devices and not any(device.is_active for device in devices):
         device_id = devices[0].id
@@ -202,7 +207,8 @@ async def get_playback_state(
     context: ToolContext,
 ) -> Annotated[dict, "Information about the user's current playback state"]:
     """
-    Get information about the user's current playback state, including track or episode, and active device.
+    Get information about the user's current playback state,
+    including track or episode, and active device.
     This tool does not perform any actions. Use other tools to control playback.
     """
     url = get_url("player_get_playback_state")
@@ -247,7 +253,7 @@ async def play_artist_by_name(
     track_ids = [item["id"] for item in search_results["tracks"]["items"]]
     response = await start_tracks_playback_by_id(context, track_ids)
 
-    return response
+    return str(response)
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -280,7 +286,7 @@ async def play_track_by_name(
     track_id = search_results["tracks"]["items"][0]["id"]
     response = await start_tracks_playback_by_id(context, [track_id])
 
-    return response
+    return str(response)
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -292,4 +298,4 @@ async def get_available_devices(
     url = get_url("player_get_available_devices")
     response = await send_spotify_request(context, "GET", url)
     response.raise_for_status()
-    return response.json()
+    return dict(response.json())

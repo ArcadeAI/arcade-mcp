@@ -1,7 +1,6 @@
 from typing import Annotated
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import LinkedIn
 from arcade.sdk.errors import ToolExecutionError
@@ -33,7 +32,10 @@ async def _send_linkedin_request(
         ToolExecutionError: If the request fails for any reason.
     """
     url = f"{LINKEDIN_BASE_URL}{endpoint}"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         try:
@@ -47,7 +49,7 @@ async def _send_linkedin_request(
     return response
 
 
-def _handle_linkedin_api_error(response: httpx.Response):
+def _handle_linkedin_api_error(response: httpx.Response) -> None:
     """
     Handle errors from the LinkedIn API by mapping common status codes to ToolExecutionErrors.
 
@@ -81,11 +83,13 @@ async def create_text_post(
     """Share a new text post to LinkedIn."""
     endpoint = "/ugcPosts"
 
-    # The LinkedIn user ID is required to create a post, even though we're using the user's access token.
-    # Arcade Engine gets the current user's info from LinkedIn and automatically populates context.authorization.user_info.
+    # The LinkedIn user ID is required to create a post, even though we're using
+    # the user's access token.
+    # Arcade Engine gets the current user's info from LinkedIn and automatically
+    # populates context.authorization.user_info.
     # LinkedIn calls the user ID "sub" in their user_info data payload. See:
     # https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2#api-request-to-retreive-member-details
-    user_id = context.authorization.user_info.get("sub")
+    user_id = context.authorization.user_info.get("sub") if context.authorization else None
     if not user_id:
         raise ToolExecutionError(
             "User ID not found.",
@@ -109,5 +113,6 @@ async def create_text_post(
     if response.status_code >= 200 and response.status_code < 300:
         share_id = response.json().get("id")
         return f"https://www.linkedin.com/feed/update/{share_id}/"
-    else:
-        _handle_linkedin_api_error(response)
+
+    _handle_linkedin_api_error(response)
+    return ""

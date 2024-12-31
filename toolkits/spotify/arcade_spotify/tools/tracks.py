@@ -2,6 +2,7 @@ from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
+
 from arcade_spotify.tools.utils import (
     get_url,
     send_spotify_request,
@@ -18,7 +19,7 @@ async def get_track_from_id(
 
     response = await send_spotify_request(context, "GET", url)
     response.raise_for_status()
-    return response.json()
+    return dict(response.json())
 
 
 @tool(requires_auth=Spotify())
@@ -92,7 +93,8 @@ async def get_recommendations(
     ] = None,
 ) -> Annotated[dict, "A list of recommended tracks"]:
     """Get track (song) recommendations based on seed artists, genres, and tracks
-    If a provided target value is outside of the expected range, it will clamp to the nearest valid value.
+    If a provided target value is outside of the expected range,
+    it will clamp to the nearest valid value.
     """
     url = get_url("tracks_get_recommendations")
     params = {
@@ -119,7 +121,7 @@ async def get_recommendations(
 
     response = await send_spotify_request(context, "GET", url, params=params)
     response.raise_for_status()
-    return response.json()
+    return dict(response.json())
 
 
 @tool(requires_auth=Spotify())
@@ -133,4 +135,4 @@ async def get_tracks_audio_features(
 
     response = await send_spotify_request(context, "GET", url, params=params)
     response.raise_for_status()
-    return response.json()
+    return dict(response.json())

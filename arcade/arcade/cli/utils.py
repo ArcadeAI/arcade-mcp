@@ -24,6 +24,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
+from arcade.cli.constants import LOCALHOST
 from arcade.core.config_model import Config
 from arcade.core.errors import ToolkitLoadError
 from arcade.core.schema import ToolDefinition
@@ -39,8 +40,10 @@ class OrderCommands(TyperGroup):
 
 
 class ChatCommand(str, Enum):
-    HELP = "/?"
+    HELP = "/help"
+    HELP_ALT = "/?"
     CLEAR = "/clear"
+    HISTORY = "/history"
     SHOW = "/show"
     EXIT = "/exit"
 
@@ -114,7 +117,7 @@ def compute_engine_base_url(
         str: The fully constructed URL for the Arcade Engine.
     """
     # "Use 127.0.0.1" and "0.0.0.0" as aliases for "localhost"
-    host = "localhost" if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
+    host = LOCALHOST if host in ["127.0.0.1", "0.0.0.0"] else host  # noqa: S104
 
     # Determine TLS setting based on input flags
     if force_no_tls:
@@ -122,10 +125,10 @@ def compute_engine_base_url(
     elif force_tls:
         is_tls = True
     else:
-        is_tls = host != "localhost"
+        is_tls = host != LOCALHOST
 
     # "localhost" defaults to dev port if not specified
-    if host == "localhost" and port is None:
+    if host == LOCALHOST and port is None:
         port = 9099
 
     protocol = "https" if is_tls else "http"
@@ -168,14 +171,14 @@ def compute_login_url(host: str, state: str, port: int | None) -> str:
     """
     Compute the full URL for the CLI login endpoint.
     """
-    callback_uri = "http://localhost:9905/callback"
+    callback_uri = f"http://{LOCALHOST}:9905/callback"
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
     port = port if port else 8000
 
     login_base_url = (
-        f"http://localhost:{port}"
-        if host in ["localhost", "127.0.0.1", "0.0.0.0"]  # noqa: S104
+        f"http://{LOCALHOST}:{port}"
+        if host in [LOCALHOST, "127.0.0.1", "0.0.0.0"]  # noqa: S104
         else f"https://{host}"
     )
     endpoint = "/api/v1/auth/cli_login"
@@ -628,12 +631,13 @@ def display_chat_help() -> None:
     help_message = dedent(f"""\
         [default]
         Available Commands:
-          {ChatCommand.SHOW:<10} Show all available tools
-          {ChatCommand.CLEAR:<10} Clear the chat history
-          {ChatCommand.HELP:<10} Help for a command
-          {ChatCommand.EXIT:<10} Exit the chat
+          {ChatCommand.SHOW.value:<13} Show all available tools
+          {ChatCommand.HISTORY.value:<13} Show the chat history
+          {ChatCommand.CLEAR.value:<13} Clear the chat history
+          {ChatCommand.EXIT.value:<13} Exit the chat
+          {ChatCommand.HELP_ALT.value}, {ChatCommand.HELP.value:<9} Help for a command
 
-        Use \"\"\" to begin & end a multi-line message[/default]
+        Surround in \"\"\" for multi-line messages[/default]
     """)
     console.print(help_message)
 
@@ -650,11 +654,14 @@ def handle_user_command(
     """
     Handle user commands during `arcade chat` and return True if a command was processed, otherwise False.
     """
-    if user_input == ChatCommand.HELP:
+    if user_input in [ChatCommand.HELP, ChatCommand.HELP_ALT]:
         display_chat_help()
         return True
     elif user_input == ChatCommand.EXIT:
         raise KeyboardInterrupt
+    elif user_input == ChatCommand.HISTORY:
+        console.print(history)
+        return True
     elif user_input == ChatCommand.CLEAR:
         console.print("Chat history cleared.", style="bold green")
         history.clear()
@@ -664,6 +671,7 @@ def handle_user_command(
             toolkit=None,
             tool=None,
             host=host,
+            local=False,
             port=port,
             force_tls=force_tls,
             force_no_tls=force_no_tls,

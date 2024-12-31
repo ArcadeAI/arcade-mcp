@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from enum import Enum
 from zoneinfo import ZoneInfo
 
@@ -14,7 +14,7 @@ class DateRange(Enum):
     THIS_MONTH = "this_month"
     NEXT_MONTH = "next_month"
 
-    def to_date_range(self):
+    def to_date_range(self) -> tuple[date, date]:
         today = datetime.now().date()
         if self == DateRange.TODAY:
             return today, today + timedelta(days=1)
@@ -67,7 +67,7 @@ class Day(Enum):
     NEXT_FRIDAY = "next_friday"
     NEXT_SATURDAY = "next_saturday"
 
-    def to_date(self, time_zone_name: str):
+    def to_date(self, time_zone_name: str) -> date:
         time_zone = ZoneInfo(time_zone_name)
         today = datetime.now(time_zone).date()
         weekday = today.weekday()
@@ -206,7 +206,7 @@ class TimeSlot(Enum):
     _2330 = "23:30"
     _2345 = "23:45"
 
-    def to_time(self):
+    def to_time(self) -> time:
         return datetime.strptime(self.value, "%H:%M").time()
 
 
@@ -254,43 +254,91 @@ class OrderBy(str, Enum):
     Each key has both ascending and descending options.
     """
 
-    CREATED_TIME = "createdTime"  # When the file was created (ascending)
-    CREATED_TIME_DESC = "createdTime desc"  # When the file was created (descending)
-    FOLDER = "folder"  # The folder ID, sorted using alphabetical ordering (ascending)
-    FOLDER_DESC = "folder desc"  # The folder ID, sorted using alphabetical ordering (descending)
+    CREATED_TIME = (
+        # When the file was created (ascending)
+        "createdTime"
+    )
+    CREATED_TIME_DESC = (
+        # When the file was created (descending)
+        "createdTime desc"
+    )
+    FOLDER = (
+        # The folder ID, sorted using alphabetical ordering (ascending)
+        "folder"
+    )
+    FOLDER_DESC = (
+        # The folder ID, sorted using alphabetical ordering (descending)
+        "folder desc"
+    )
     MODIFIED_BY_ME_TIME = (
-        "modifiedByMeTime"  # The last time the file was modified by the user (ascending)
+        # The last time the file was modified by the user (ascending)
+        "modifiedByMeTime"
     )
     MODIFIED_BY_ME_TIME_DESC = (
-        "modifiedByMeTime desc"  # The last time the file was modified by the user (descending)
+        # The last time the file was modified by the user (descending)
+        "modifiedByMeTime desc"
     )
-    MODIFIED_TIME = "modifiedTime"  # The last time the file was modified by anyone (ascending)
+    MODIFIED_TIME = (
+        # The last time the file was modified by anyone (ascending)
+        "modifiedTime"
+    )
     MODIFIED_TIME_DESC = (
-        "modifiedTime desc"  # The last time the file was modified by anyone (descending)
+        # The last time the file was modified by anyone (descending)
+        "modifiedTime desc"
     )
-    NAME = "name"  # The name of the file, sorted using alphabetical ordering (e.g., 1, 12, 2, 22) (ascending)
-    NAME_DESC = "name desc"  # The name of the file, sorted using alphabetical ordering (e.g., 1, 12, 2, 22) (descending)
-    NAME_NATURAL = "name_natural"  # The name of the file, sorted using natural sort ordering (e.g., 1, 2, 12, 22) (ascending)
-    NAME_NATURAL_DESC = "name_natural desc"  # The name of the file, sorted using natural sort ordering (e.g., 1, 2, 12, 22) (descending)
+    NAME = (
+        # The name of the file, sorted using alphabetical ordering (e.g., 1, 12, 2, 22) (ascending)
+        "name"
+    )
+    NAME_DESC = (
+        # The name of the file, sorted using alphabetical ordering (e.g., 1, 12, 2, 22) (descending)
+        "name desc"
+    )
+    NAME_NATURAL = (
+        # The name of the file, sorted using natural sort ordering (e.g., 1, 2, 12, 22) (ascending)
+        "name_natural"
+    )
+    NAME_NATURAL_DESC = (
+        # The name of the file, sorted using natural sort ordering (e.g., 1, 2, 12, 22) (descending)
+        "name_natural desc"
+    )
     QUOTA_BYTES_USED = (
-        "quotaBytesUsed"  # The number of storage quota bytes used by the file (ascending)
+        # The number of storage quota bytes used by the file (ascending)
+        "quotaBytesUsed"
     )
     QUOTA_BYTES_USED_DESC = (
-        "quotaBytesUsed desc"  # The number of storage quota bytes used by the file (descending)
+        # The number of storage quota bytes used by the file (descending)
+        "quotaBytesUsed desc"
     )
-    RECENCY = "recency"  # The most recent timestamp from the file's date-time fields (ascending)
+    RECENCY = (
+        # The most recent timestamp from the file's date-time fields (ascending)
+        "recency"
+    )
     RECENCY_DESC = (
-        "recency desc"  # The most recent timestamp from the file's date-time fields (descending)
+        # The most recent timestamp from the file's date-time fields (descending)
+        "recency desc"
     )
     SHARED_WITH_ME_TIME = (
-        "sharedWithMeTime"  # When the file was shared with the user, if applicable (ascending)
+        # When the file was shared with the user, if applicable (ascending)
+        "sharedWithMeTime"
     )
-    SHARED_WITH_ME_TIME_DESC = "sharedWithMeTime desc"  # When the file was shared with the user, if applicable (descending)
-    STARRED = "starred"  # Whether the user has starred the file (ascending)
-    STARRED_DESC = "starred desc"  # Whether the user has starred the file (descending)
+    SHARED_WITH_ME_TIME_DESC = (
+        # When the file was shared with the user, if applicable (descending)
+        "sharedWithMeTime desc"
+    )
+    STARRED = (
+        # Whether the user has starred the file (ascending)
+        "starred"
+    )
+    STARRED_DESC = (
+        # Whether the user has starred the file (descending)
+        "starred desc"
+    )
     VIEWED_BY_ME_TIME = (
-        "viewedByMeTime"  # The last time the file was viewed by the user (ascending)
+        # The last time the file was viewed by the user (ascending)
+        "viewedByMeTime"
     )
     VIEWED_BY_ME_TIME_DESC = (
-        "viewedByMeTime desc"  # The last time the file was viewed by the user (descending)
+        # The last time the file was viewed by the user (descending)
+        "viewedByMeTime desc"
     )

@@ -2,9 +2,9 @@ import json
 from typing import Annotated, Optional
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
+
 from arcade_github.tools.utils import (
     get_github_json_headers,
     get_url,
@@ -14,7 +14,10 @@ from arcade_github.tools.utils import (
 
 
 # Implements https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#create-an-issue
-# Example `arcade chat` usage: "create an issue in the <REPO> repo owned by <OWNER> titled 'Found a bug' with the body 'I'm having a problem with this.' Assign it to <USER> and label it 'bug'"
+# Example `arcade chat` usage:
+#   "create an issue in the <REPO> repo owned by <OWNER> titled
+#   'Found a bug' with the body 'I'm having a problem with this.'
+#   Assign it to <USER> and label it 'bug'"
 @tool(requires_auth=GitHub())
 async def create_issue(
     context: ToolContext,
@@ -32,18 +35,29 @@ async def create_issue(
     labels: Annotated[Optional[list[str]], "Labels to associate with this issue."] = None,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the pull requests. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str,
-    "A JSON string containing the created issue's details, including id, url, title, body, state, html_url, creation and update timestamps, user, assignees, and labels. If include_extra_data is True, returns all available data about the issue.",
+    "A JSON string containing the created issue's details, including id, url, title, body, state, "
+    "html_url, creation and update timestamps, user, assignees, and labels. "
+    "If include_extra_data is True, returns all available data about the issue.",
 ]:
     """
     Create an issue in a GitHub repository.
 
     Example:
     ```
-    create_issue(owner="octocat", repo="Hello-World", title="Found a bug", body="I'm having a problem with this.", assignees=["octocat"], milestone=1, labels=["bug"])
+    create_issue(
+        owner="octocat",
+        repo="Hello-World",
+        title="Found a bug",
+        body="I'm having a problem with this.",
+        assignees=["octocat"],
+        milestone=1,
+        labels=["bug"],
+    )
     ```
     """
     url = get_url("repo_issues", owner=owner, repo=repo)
@@ -55,7 +69,9 @@ async def create_issue(
         "assignees": assignees,
     }
     data = remove_none_values(data)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)
@@ -83,7 +99,8 @@ async def create_issue(
 
 
 # Implements https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
-# Example `arcade chat` usage: "create a comment in the vscode repo owned by microsoft for issue 1347 that says 'Me too'"
+# Example `arcade chat` usage:
+#   "create a comment in the vscode repo owned by microsoft for issue 1347 that says 'Me too'"
 @tool(requires_auth=GitHub())
 async def create_issue_comment(
     context: ToolContext,
@@ -96,11 +113,14 @@ async def create_issue_comment(
     body: Annotated[str, "The contents of the comment."],
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the pull requests. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str,
-    "A JSON string containing the created comment's details, including id, url, body, user, and creation and update timestamps. If include_extra_data is True, returns all available data about the comment.",
+    "A JSON string containing the created comment's details, including id, url, body, user, "
+    "and creation and update timestamps. If include_extra_data is True, returns all available "
+    "data about the comment.",
 ]:
     """
     Create a comment on an issue in a GitHub repository.
@@ -114,7 +134,9 @@ async def create_issue_comment(
     data = {
         "body": body,
     }
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)

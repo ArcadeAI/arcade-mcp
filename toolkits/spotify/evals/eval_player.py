@@ -1,3 +1,14 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    NumericCritic,
+    SimilarityCritic,
+    tool_eval,
+)
+
 from arcade_spotify.tools.player import (
     adjust_playback_position,
     get_currently_playing,
@@ -10,14 +21,6 @@ from arcade_spotify.tools.player import (
     skip_to_previous_track,
     start_tracks_playback_by_id,
 )
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    EvalRubric,
-    EvalSuite,
-    tool_eval,
-)
-from arcade.sdk.eval.critic import BinaryCritic, NumericCritic, SimilarityCritic
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -52,11 +55,9 @@ def spotify_player_eval_suite() -> EvalSuite:
         name="Adjust playback position",
         user_message="can you skip to the 10th second of the song",
         expected_tool_calls=[
-            (
-                adjust_playback_position,
-                {
-                    "absolute_position_ms": 10000,
-                },
+            ExpectedToolCall(
+                func=adjust_playback_position,
+                args={"absolute_position_ms": 10000},
             )
         ],
         critics=[
@@ -70,11 +71,9 @@ def spotify_player_eval_suite() -> EvalSuite:
         name="Adjust playback position relative to current position",
         user_message="go back 10 seconds",
         expected_tool_calls=[
-            (
-                adjust_playback_position,
-                {
-                    "relative_position_ms": -10000,
-                },
+            ExpectedToolCall(
+                func=adjust_playback_position,
+                args={"relative_position_ms": -10000},
             )
         ],
         critics=[
@@ -89,34 +88,37 @@ def spotify_player_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Skip to previous track",
         user_message="oops i didn't mean to skip that song, go back",
-        expected_tool_calls=[(skip_to_previous_track, {})],
+        expected_tool_calls=[ExpectedToolCall(func=skip_to_previous_track, args={})],
     )
 
     suite.add_case(
         name="Skip to next track",
         user_message="skip this song and also the next one",
-        expected_tool_calls=[(skip_to_next_track, {}), (skip_to_next_track, {})],
+        expected_tool_calls=[
+            ExpectedToolCall(func=skip_to_next_track, args={}),
+            ExpectedToolCall(func=skip_to_next_track, args={}),
+        ],
     )
 
     suite.add_case(
         name="Pause playback",
         user_message="wait im getting a text, stop playing it please",
-        expected_tool_calls=[(pause_playback, {})],
+        expected_tool_calls=[ExpectedToolCall(func=pause_playback, args={})],
     )
 
     suite.add_case(
         name="Resume playback",
         user_message="ok i'm back, you can press play again",
-        expected_tool_calls=[(resume_playback, {})],
+        expected_tool_calls=[ExpectedToolCall(func=resume_playback, args={})],
     )
 
     suite.add_case(
         name="Start playback of a list of tracks",
         user_message="Play these two 03gaqN3aWm9TQxuHay0G8R, 03gaqN3aWm9TQxuHay0G8R. But start at the 10th second of the first track",
         expected_tool_calls=[
-            (
-                start_tracks_playback_by_id,
-                {
+            ExpectedToolCall(
+                func=start_tracks_playback_by_id,
+                args={
                     "track_ids": ["03gaqN3aWm9TQxuHay0G8R", "03gaqN3aWm9TQxuHay0G8R"],
                     "position_ms": 10000,
                 },
@@ -131,22 +133,22 @@ def spotify_player_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Get playback state",
         user_message="what's the name of this song and who plays it?",
-        expected_tool_calls=[(get_currently_playing, {})],
+        expected_tool_calls=[ExpectedToolCall(func=get_currently_playing, args={})],
     )
 
     suite.add_case(
         name="Get playback state",
         user_message="what device is playing music rn?",
-        expected_tool_calls=[(get_playback_state, {})],
+        expected_tool_calls=[ExpectedToolCall(func=get_playback_state, args={})],
     )
 
     suite.add_case(
         name="Play artist by name",
         user_message="play pearl jam",
         expected_tool_calls=[
-            (
-                play_artist_by_name,
-                {"name": "Pearl Jam"},
+            ExpectedToolCall(
+                func=play_artist_by_name,
+                args={"name": "Pearl Jam"},
             )
         ],
         critics=[
@@ -158,9 +160,9 @@ def spotify_player_eval_suite() -> EvalSuite:
         name="Play track by name",
         user_message="it would be really great if I could listen to strobe by deadmau5 right now.",
         expected_tool_calls=[
-            (
-                play_track_by_name,
-                {"track_name": "strobe", "artist_name": "deadmau5"},
+            ExpectedToolCall(
+                func=play_track_by_name,
+                args={"track_name": "strobe", "artist_name": "deadmau5"},
             )
         ],
         critics=[

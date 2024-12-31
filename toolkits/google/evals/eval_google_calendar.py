@@ -1,5 +1,15 @@
 from datetime import timedelta
 
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    DatetimeCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    tool_eval,
+)
+
 import arcade_google
 from arcade_google.tools.calendar import (
     EventVisibility,
@@ -8,15 +18,6 @@ from arcade_google.tools.calendar import (
     delete_event,
     list_events,
     update_event,
-)
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    DatetimeCritic,
-    EvalRubric,
-    EvalSuite,
-    tool_eval,
 )
 
 # Evaluation rubric
@@ -80,9 +81,9 @@ def calendar_eval_suite() -> EvalSuite:
             "Create a meeting for 'Team Meeting' starting on September 26, 2024, from 11:45pm to 12:15am. Invite johndoe@example.com"
         ),
         expected_tool_calls=[
-            (
-                create_event,
-                {
+            ExpectedToolCall(
+                func=create_event,
+                args={
                     "summary": "Team Meeting",
                     "start_datetime": "2024-09-26T23:45:00",
                     "end_datetime": "2024-09-27T00:15:00",
@@ -112,9 +113,9 @@ def calendar_eval_suite() -> EvalSuite:
         name="List calendar events",
         user_message="Do I have any events on my calendar today?",
         expected_tool_calls=[
-            (
-                list_events,
-                {
+            ExpectedToolCall(
+                func=list_events,
+                args={
                     "min_end_datetime": "2024-09-26T00:00:00",
                     "max_start_datetime": "2024-09-27T00:00:00",
                     "calendar_id": "primary",
@@ -142,9 +143,9 @@ def calendar_eval_suite() -> EvalSuite:
             "Change the meeting my meeting tomorrow at 3pm to 4pm. Let everyone know."
         ),
         expected_tool_calls=[
-            (
-                update_event,
-                {
+            ExpectedToolCall(
+                func=update_event,
+                args={
                     "event_id": "00099992228181818181",
                     "updated_start_datetime": "2024-09-27T16:00:00",
                     "updated_end_datetime": "2024-09-27T18:00:00",
@@ -181,9 +182,9 @@ def calendar_eval_suite() -> EvalSuite:
             "I don't need to have focus time today. Please delete it from my calendar. Don't send any notifications."
         ),
         expected_tool_calls=[
-            (
-                delete_event,
-                {
+            ExpectedToolCall(
+                func=delete_event,
+                args={
                     "event_id": "gr5g18lf88tfpp3vkareukkc7g",
                     "calendar_id": "primary",
                     "send_updates": SendUpdatesOptions.NONE,

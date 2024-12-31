@@ -1,0 +1,38 @@
+name: Check Toolkits
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-toolkits:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v45
+      with:
+        files: |
+          toolkits/**
+
+    - name: List all added files
+      env:
+        CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        GITHUB_TOKEN: ${{ secrets.PAT }}
+      run: |
+        dirs=$(echo "${CHANGED_FILES}" | tr ' ' '\n' | grep "toolkits/" | cut -d'/' -f2 | sort -u)
+        echo "$dirs" | while read -r dir; do
+          echo "$dir"
+          gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit=${dir}
+        done

@@ -14,23 +14,20 @@ from rich.markup import escape
 from rich.text import Text
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST
+from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
 from arcade.cli.display import (
     display_arcade_chat_header,
     display_eval_results,
-    display_tool_details,
     display_tool_messages,
-    display_tools_table,
 )
 from arcade.cli.launcher import start_servers
+from arcade.cli.show import show_logic
 from arcade.cli.utils import (
     OrderCommands,
     compute_engine_base_url,
     compute_login_url,
-    create_cli_catalog,
     delete_deprecated_config_file,
     get_eval_files,
-    get_tools_from_engine,
     get_user_input,
     handle_chat_interaction,
     handle_tool_authorization,
@@ -177,38 +174,7 @@ def show(
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    try:
-        if local:
-            catalog = create_cli_catalog(toolkit=toolkit)
-            tools = [t.definition for t in list(catalog)]
-        else:
-            tools = get_tools_from_engine(host, port, force_tls, force_no_tls, toolkit)
-
-        if tool:
-            # Display detailed information for the specified tool
-            tool_def = next(
-                (
-                    t
-                    for t in tools
-                    if t.get_fully_qualified_name().name.lower() == tool.lower()
-                    or str(t.get_fully_qualified_name()).lower() == tool.lower()
-                ),
-                None,
-            )
-            if not tool_def:
-                console.print(f"❌ Tool '{tool}' not found.", style="bold red")
-                typer.Exit(code=1)
-            else:
-                display_tool_details(tool_def)
-        else:
-            # Display the list of tools as a table
-            display_tools_table(tools)
-
-    except Exception as e:
-        if debug:
-            raise
-        error_message = f"❌ Failed to list tools: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+    show_logic(toolkit, tool, host, local, port, force_tls, force_no_tls, debug)
 
 
 @cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
@@ -282,7 +248,9 @@ def chat(
             # Add the input to history
             readline.add_history(user_input)
 
-            if handle_user_command(user_input, history, host, port, force_tls, force_no_tls, show):
+            if handle_user_command(
+                user_input, history, host, port, force_tls, force_no_tls, show_logic
+            ):
                 continue
 
             history.append({"role": "user", "content": user_input})
@@ -345,10 +313,15 @@ def evals(
         help="The models to use for evaluation (default: gpt-4o)",
     ),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        LOCALHOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
+    ),
+    cloud: bool = typer.Option(
+        False,
+        "--cloud",
+        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
     ),
     port: int = typer.Option(
         None,
@@ -372,6 +345,8 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     config = validate_and_get_config()
+
+    host = DEFAULT_ENGINE_HOST if cloud else host
     base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
@@ -380,13 +355,12 @@ def evals(
     if not eval_files:
         return
 
-    if show_details:
-        console.print(
-            Text.assemble(
-                ("\nRunning evaluations against Arcade Engine at ", "bold"),
-                (base_url, "bold blue"),
-            )
+    console.print(
+        Text.assemble(
+            ("\nRunning evaluations against Arcade Engine at ", "bold"),
+            (base_url, "bold blue"),
         )
+    )
 
     # Try to hit /health endpoint on engine and warn if it is down
     with Arcade(api_key=config.api.key, base_url=base_url) as client:

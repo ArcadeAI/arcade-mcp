@@ -1,8 +1,12 @@
+from typing import Any
+
+import httpx
 from arcade.sdk.errors import ToolExecutionError
+
 from arcade_github.tools.constants import ENDPOINTS, GITHUB_API_BASE_URL
 
 
-def handle_github_response(response: dict, url: str) -> None:
+def handle_github_response(response: httpx.Response, url: str) -> None:
     """
     Handle GitHub API response and raise appropriate exceptions for non-200 status codes.
 
@@ -30,13 +34,14 @@ def handle_github_response(response: dict, url: str) -> None:
     raise ToolExecutionError(f"Error accessing '{url}': {error_message}")
 
 
-def get_github_json_headers(token: str) -> dict:
+def get_github_json_headers(token: str | None) -> dict:
     """
     Generate common headers for GitHub API requests.
 
     :param token: The authorization token
     :return: A dictionary of headers
     """
+    token = token or ""
     return {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -44,13 +49,14 @@ def get_github_json_headers(token: str) -> dict:
     }
 
 
-def get_github_diff_headers(token: str) -> dict:
+def get_github_diff_headers(token: str | None) -> dict:
     """
     Generate headers for GitHub API requests for diff content.
 
     :param token: The authorization token
     :return: A dictionary of headers
     """
+    token = token or ""
     return {
         "Accept": "application/vnd.github.diff",
         "Authorization": f"Bearer {token}",
@@ -68,7 +74,7 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-def get_url(endpoint: str, **kwargs) -> str:
+def get_url(endpoint: str, **kwargs: Any) -> str:
     """
     Get the full URL for a given endpoint.
 

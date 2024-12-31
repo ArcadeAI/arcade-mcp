@@ -234,6 +234,10 @@ class ToolContext(BaseModel):
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
 
+    def get_auth_token_or_empty(self) -> str:
+        """Retrieve the authorization token, or return an empty string if not available."""
+        return self.authorization.token if self.authorization and self.authorization.token else ""
+
 
 class ToolCallRequest(BaseModel):
     """The request to call (invoke) a tool."""

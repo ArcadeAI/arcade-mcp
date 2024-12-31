@@ -75,7 +75,7 @@ async def search_recent_tweets_by_username(
     Includes replies and reposts."""
 
     headers = get_headers_with_token(context)
-    params: dict[str, int | str] = {
+    params: dict[str, Any] = {
         "query": f"from:{username}",
         "max_results": min(
             max(max_results, 10), 100
@@ -132,7 +132,7 @@ async def search_recent_tweets_by_keywords(
     """
 
     if not any([keywords, phrases]):
-        raise RetryableToolError(  # noqa: TRY003
+        raise RetryableToolError(
             "No keywords or phrases provided",
             developer_message="Predicted inputs didn't contain any keywords or phrases",
             additional_prompt_content="Please provide at least one keyword or phrase for search",
@@ -145,7 +145,7 @@ async def search_recent_tweets_by_keywords(
     if keywords:
         query += " ".join(keywords or [])
 
-    params: dict[str, int | str] = {
+    params: dict[str, Any] = {
         "query": query.strip(),
         "max_results": min(
             max(max_results, 10), 100

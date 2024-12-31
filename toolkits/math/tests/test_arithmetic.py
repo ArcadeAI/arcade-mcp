@@ -1,4 +1,6 @@
 import pytest
+from arcade.sdk.errors import ToolExecutionError
+
 from arcade_math.tools.arithmetic import (
     add,
     divide,
@@ -8,8 +10,6 @@ from arcade_math.tools.arithmetic import (
     sum_list,
     sum_range,
 )
-
-from arcade.sdk.errors import ToolExecutionError
 
 
 def test_add():

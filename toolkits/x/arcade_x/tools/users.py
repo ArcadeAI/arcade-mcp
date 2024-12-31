@@ -48,7 +48,7 @@ async def lookup_single_user_by_username(
         response = await client.get(url, headers=headers, timeout=10)
         if response.status_code == 404:
             # User not found
-            raise RetryableToolError(  # noqa: TRY003
+            raise RetryableToolError(
                 "User not found",
                 developer_message=f"User with username '{username}' not found.",
                 additional_prompt_content="Please check the username and try again.",

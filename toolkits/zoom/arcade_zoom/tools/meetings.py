@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Zoom
 from arcade.sdk.errors import ToolExecutionError
@@ -33,7 +32,10 @@ async def _send_zoom_request(
         ToolExecutionError: If the request fails for any reason.
     """
     url = f"{ZOOM_BASE_URL}{endpoint}"
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         try:
@@ -47,7 +49,7 @@ async def _send_zoom_request(
     return response
 
 
-def _handle_zoom_api_error(response: httpx.Response):
+def _handle_zoom_api_error(response: httpx.Response) -> None:
     """
     Handle errors from the Zoom API by mapping common status codes to ToolExecutionErrors.
 
@@ -85,10 +87,12 @@ async def list_upcoming_meetings(
     endpoint = f"/users/{user_id}/upcoming_meetings"
 
     response = await _send_zoom_request(context, "GET", endpoint)
-    if response.status_code >= 200 and response.status_code < 300:
-        return response.json()
-    else:
+
+    if not (200 <= response.status_code < 300):
         _handle_zoom_api_error(response)
+
+    response_json = response.json()
+    return dict(response_json)
 
 
 @tool(
@@ -107,7 +111,9 @@ async def get_meeting_invitation(
     endpoint = f"/meetings/{meeting_id}/invitation"
 
     response = await _send_zoom_request(context, "GET", endpoint)
-    if response.status_code >= 200 and response.status_code < 300:
-        return response.json()
-    else:
+
+    if not (200 <= response.status_code < 300):
         _handle_zoom_api_error(response)
+
+    response_json = response.json()
+    return dict(response_json)

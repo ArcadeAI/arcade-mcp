@@ -1,7 +1,8 @@
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
+
 from arcade_google.tools.utils import build_drive_service, remove_none_values
 
 from .models import Corpora, OrderBy
@@ -9,7 +10,8 @@ from .models import Corpora, OrderBy
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
 # Example `arcade chat` query: `list my 5 most recently modified documents`
-# TODO: Support query with natural language. Currently, the tool expects a fully formed query string as input with the syntax defined here: https://developers.google.com/drive/api/guides/search-files
+# TODO: Support query with natural language. Currently, the tool expects a fully formed query
+#       string as input with the syntax defined here: https://developers.google.com/drive/api/guides/search-files
 @tool(
     requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/drive.readonly"],
@@ -17,31 +19,34 @@ from .models import Corpora, OrderBy
 )
 async def list_documents(
     context: ToolContext,
-    corpora: Annotated[Optional[Corpora], "The source of files to list"] = Corpora.USER,
+    corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
     title_keywords: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document title"
     ] = None,
     order_by: Annotated[
-        Optional[OrderBy],
+        OrderBy,
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = OrderBy.MODIFIED_TIME_DESC,
     supports_all_drives: Annotated[
-        Optional[bool],
+        bool,
         "Whether the requesting application supports both My Drives and shared drives",
     ] = False,
-    limit: Annotated[Optional[int], "The number of documents to list"] = 50,
+    limit: Annotated[int, "The number of documents to list"] = 50,
 ) -> Annotated[
     dict,
-    "A dictionary containing 'documents_count' (number of documents returned) and 'documents' (a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
+    "A dictionary containing 'documents_count' (number of documents returned) and 'documents' "
+    "(a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
 ]:
     """
     List documents in the user's Google Drive. Excludes documents that are in the trash.
     """
     page_size = min(10, limit)
     page_token = None  # The page token is used for continuing a previous request on the next page
-    files = []
+    files: list[dict[str, Any]] = []
 
-    service = build_drive_service(context.authorization.token)
+    service = build_drive_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     query = "mimeType = 'application/vnd.google-apps.document' and trashed = false"
     if title_keywords:

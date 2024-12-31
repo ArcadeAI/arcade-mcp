@@ -1,13 +1,14 @@
-import arcade_github
-from arcade_github.tools.activity import list_stargazers, set_starred
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     tool_eval,
 )
+
+import arcade_github
+from arcade_github.tools.activity import list_stargazers, set_starred
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -35,9 +36,9 @@ def github_activity_eval_suite() -> EvalSuite:
         name="Star a repository",
         user_message="Star the test repository that is owned by ArcadeAI.",
         expected_tool_calls=[
-            (
-                set_starred,
-                {
+            ExpectedToolCall(
+                func=set_starred,
+                args={
                     "owner": "ArcadeAI",
                     "name": "test",
                     "starred": True,
@@ -55,9 +56,9 @@ def github_activity_eval_suite() -> EvalSuite:
         name="Unstar a repository",
         user_message="Unstar the ArcadeAI/test repository.",
         expected_tool_calls=[
-            (
-                set_starred,
-                {
+            ExpectedToolCall(
+                func=set_starred,
+                args={
                     "owner": "ArcadeAI",
                     "name": "test",
                     "starred": False,
@@ -75,9 +76,9 @@ def github_activity_eval_suite() -> EvalSuite:
         name="List stargazers for a repository",
         user_message="List 42 stargazers for the ArcadeAI/arcade-ai repository.",
         expected_tool_calls=[
-            (
-                list_stargazers,
-                {
+            ExpectedToolCall(
+                func=list_stargazers,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "arcade-ai",
                     "limit": 42,
@@ -95,9 +96,9 @@ def github_activity_eval_suite() -> EvalSuite:
         name="List stargazers for a repository",
         user_message="List all of the stargazers for the ArcadeAI/arcade-ai repo",
         expected_tool_calls=[
-            (
-                list_stargazers,
-                {
+            ExpectedToolCall(
+                func=list_stargazers,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "arcade-ai",
                     "limit": None,

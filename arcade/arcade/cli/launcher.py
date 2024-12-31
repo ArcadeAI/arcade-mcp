@@ -154,19 +154,25 @@ def _get_config_file(
 
     if optional:
         console.print(
-            f"⚠️ Optional config file '{default_filename}' not found in either of the default locations: "
-            f"1) current working directory: {Path.cwd() / default_filename}, or "
-            f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
+            f"⚠️  Optional config file '{default_filename}' not found in either of the default locations: "
+            f"   1) Current working directory: {Path.cwd() / default_filename}, or "
+            f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}.",
             style="bold yellow",
         )
         return None
 
     console.print(
-        f"❌ Config file '{default_filename}' not found in any of the default locations: "
-        f"1) current working directory: {Path.cwd() / default_filename}, or "
-        f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
+        f"❌ Error: Required config file '{default_filename}' not found in any of the default locations:\n"
+        f"   1) Current working directory: {Path.cwd() / default_filename}, or\n"
+        f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}\n",
         style="bold red",
     )
+    console.print(
+        "TIP: Please install the Arcade Engine by following the instructions at:\n"
+        "     https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
+        style="bold green",
+    )
+
     raise RuntimeError(f"Config file '{default_filename}' not found.")
 
 

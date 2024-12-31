@@ -1,18 +1,19 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    SimilarityCritic,
+    tool_eval,
+)
+
 import arcade_google
 from arcade_google.tools.docs import (
     create_blank_document,
     create_document_from_text,
     get_document_by_id,
     insert_text_at_end_of_document,
-)
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    SimilarityCritic,
-    tool_eval,
 )
 
 # Evaluation rubric
@@ -72,15 +73,15 @@ def docs_eval_suite() -> EvalSuite:
         name="Get document content",
         user_message="Can you read me the contents of Tst9 doc and also Tst10 doc please",
         expected_tool_calls=[
-            (
-                get_document_by_id,
-                {
+            ExpectedToolCall(
+                func=get_document_by_id,
+                args={
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
                 },
             ),
-            (
-                get_document_by_id,
-                {
+            ExpectedToolCall(
+                func=get_document_by_id,
+                args={
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
                 },
             ),
@@ -95,9 +96,9 @@ def docs_eval_suite() -> EvalSuite:
         name="Insert text at end of document",
         user_message="Please add the text 'This is a new paragraph.' to the end of Tst4.",
         expected_tool_calls=[
-            (
-                insert_text_at_end_of_document,
-                {
+            ExpectedToolCall(
+                func=insert_text_at_end_of_document,
+                args={
                     "document_id": "1-gFGNWmwLxEiKa6NNixLNq3X-phXRMORVZfVTfBg8Sc",
                     "text_content": "This is a new paragraph.",
                 },
@@ -114,22 +115,22 @@ def docs_eval_suite() -> EvalSuite:
         name="Read the contents of two documents and then insert text at end of a different document.",
         user_message="Can you read me the contents of Tst9 doc and also Tst10 doc please. Also, please add the text 'This is a new paragraph.' to the end of Tst4.",
         expected_tool_calls=[
-            (
-                insert_text_at_end_of_document,
-                {
+            ExpectedToolCall(
+                func=insert_text_at_end_of_document,
+                args={
                     "document_id": "1-gFGNWmwLxEiKa6NNixLNq3X-phXRMORVZfVTfBg8Sc",
                     "text_content": "This is a new paragraph.",
                 },
             ),
-            (
-                get_document_by_id,
-                {
+            ExpectedToolCall(
+                func=get_document_by_id,
+                args={
                     "document_id": "1eTSWd-5zQds8K9OWYygwtCFMUyuuMize3bh3HaRsKts",
                 },
             ),
-            (
-                get_document_by_id,
-                {
+            ExpectedToolCall(
+                func=get_document_by_id,
+                args={
                     "document_id": "1e0rCoT1Yd14WuuEvd3hSUcN_-VD3df4T3Q08uLm3TWc",
                 },
             ),
@@ -146,9 +147,9 @@ def docs_eval_suite() -> EvalSuite:
         name="Create blank document",
         user_message="Create a new Doc titled 'Meeting Notes'.",
         expected_tool_calls=[
-            (
-                create_blank_document,
-                {
+            ExpectedToolCall(
+                func=create_blank_document,
+                args={
                     "title": "Meeting Notes",
                 },
             )
@@ -162,9 +163,9 @@ def docs_eval_suite() -> EvalSuite:
         name="Create document from text",
         user_message="Create a new doc called To-Do List with the content 'Buy groceries, Call mom, Finish report'.",
         expected_tool_calls=[
-            (
-                create_document_from_text,
-                {
+            ExpectedToolCall(
+                func=create_document_from_text,
+                args={
                     "title": "To-Do List",
                     "text_content": "Buy groceries\nCall mom\nFinish report",
                 },

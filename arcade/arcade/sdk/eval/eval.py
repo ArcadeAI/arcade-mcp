@@ -28,7 +28,21 @@ if TYPE_CHECKING:
 @dataclass
 class ExpectedToolCall:
     """
-    Represents an expected tool call with its name and arguments.
+    Represents an expected tool call with the function itself and arguments.
+
+    Attributes:
+        func: The function itself.
+        args: A dictionary containing the expected arguments for the tool.
+    """
+
+    func: Callable
+    args: dict[str, Any]
+
+
+@dataclass
+class NamedExpectedToolCall:
+    """
+    Represents a tool call with its name and arguments.
 
     Attributes:
         name: The name of the tool.
@@ -151,7 +165,7 @@ class EvalCase:
         name: A descriptive name for this evaluation case.
         system_message: The system message to be sent to the AI model.
         user_message: The user input to be sent to the AI model.
-        expected_tool_calls: A list of ExpectedToolCall objects representing the expected tool calls.
+        expected_tool_calls: A list of NamedExpectedToolCall objects representing the expected tool calls.
         critics: A list of Critic objects used to evaluate tool arguments.
         additional_messages: Optional list of additional context messages.
         rubric: An EvalRubric object defining pass/fail criteria and tool selection behavior.
@@ -160,7 +174,7 @@ class EvalCase:
     name: str
     system_message: str
     user_message: str
-    expected_tool_calls: list[ExpectedToolCall]
+    expected_tool_calls: list[NamedExpectedToolCall]
     critics: list["Critic"] | None = None
     additional_messages: list[dict[str, str]] = field(default_factory=list)
     rubric: EvalRubric = field(default_factory=EvalRubric)
@@ -331,14 +345,14 @@ class EvalCase:
     def _create_cost_matrix(
         self,
         actual_tool_calls: list[tuple[str, dict[str, Any]]],
-        expected_tool_calls: list[ExpectedToolCall],
+        expected_tool_calls: list[NamedExpectedToolCall],
     ) -> np.ndarray:
         """
         Create a cost matrix for the assignment problem.
 
         Args:
             actual_tool_calls: A list of tuples of actual tool calls.
-            expected_tool_calls: A list of ExpectedToolCall instances.
+            expected_tool_calls: A list of NamedExpectedToolCall instances.
 
         Returns:
             A numpy array representing the cost matrix.
@@ -401,11 +415,33 @@ class EvalSuite:
     rubric: EvalRubric = field(default_factory=EvalRubric)
     max_concurrent: int = 1
 
+    def _convert_to_named_expected_tool_call(
+        self, tc: ExpectedToolCall | tuple[Callable, dict[str, Any]]
+    ) -> NamedExpectedToolCall:
+        """
+        Convert an ExpectedToolCall or a tuple to a NamedExpectedToolCall
+        with default arguments populated.
+
+        Args:
+            tc: The tool call, either as an ExpectedToolCall or a tuple.
+
+        Returns:
+            A NamedExpectedToolCall instance.
+        """
+        if isinstance(tc, tuple):
+            func, args = tc
+        else:
+            func = tc.func
+            args = tc.args
+        args_with_defaults = self._fill_args_with_defaults(func, args)
+        tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
+        return NamedExpectedToolCall(name=tool_name, args=args_with_defaults)
+
     def add_case(
         self,
         name: str,
         user_message: str,
-        expected_tool_calls: list[tuple[Callable, dict[str, Any]]],
+        expected_tool_calls: list[ExpectedToolCall] | list[tuple[Callable, dict[str, Any]]],
         critics: list["Critic"] | None = None,
         system_message: str | None = None,
         rubric: EvalRubric | None = None,
@@ -417,24 +453,21 @@ class EvalSuite:
         Args:
             name: The name of the evaluation case.
             user_message: The user's input message.
-            expected_tool_calls: A list of expected tool calls as tuples of (function, args).
+            expected_tool_calls: A list of expected tool calls as ExpectedToolCall instances.
             critics: List of critics to evaluate the tool arguments.
             system_message: The system message to be used.
             rubric: The evaluation rubric for this case.
             additional_messages: Optional list of additional messages for context.
         """
-        expected = []
-        for func, args in expected_tool_calls:
-            # Fill in default arguments here
-            args_with_defaults = self._fill_args_with_defaults(func, args)
-            tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
-            expected.append(ExpectedToolCall(name=tool_name, args=args_with_defaults))
+        expected_tool_calls_with_defaults = [
+            self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls
+        ]
 
         case = EvalCase(
             name=name,
             system_message=system_message or self.system_message,
             user_message=user_message,
-            expected_tool_calls=expected,
+            expected_tool_calls=expected_tool_calls_with_defaults,
             rubric=rubric or self.rubric,
             critics=critics,
             additional_messages=additional_messages or [],
@@ -470,7 +503,9 @@ class EvalSuite:
         name: str,
         user_message: str,
         system_message: str | None = None,
-        expected_tool_calls: list[tuple[Callable, dict[str, Any]]] | None = None,
+        expected_tool_calls: list[ExpectedToolCall]
+        | list[tuple[Callable, dict[str, Any]]]
+        | None = None,
         rubric: EvalRubric | None = None,
         critics: list["Critic"] | None = None,
         additional_messages: list[dict[str, str]] | None = None,
@@ -502,12 +537,7 @@ class EvalSuite:
 
         expected = last_case.expected_tool_calls
         if expected_tool_calls:
-            expected = []
-            for func, args in expected_tool_calls:
-                # Fill in default arguments here
-                args_with_defaults = self._fill_args_with_defaults(func, args)
-                tool_name = str(self.catalog.find_tool_by_func(func).get_fully_qualified_name())
-                expected.append(ExpectedToolCall(name=tool_name, args=args_with_defaults))
+            expected = [self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls]
 
         # Create a new case, copying from the last one and updating fields
         new_case = EvalCase(

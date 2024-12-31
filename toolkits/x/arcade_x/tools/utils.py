@@ -12,12 +12,15 @@ def get_tweet_url(tweet_id: str) -> str:
 def get_headers_with_token(context: ToolContext) -> dict[str, str]:
     """Get the headers for a request to the X API."""
     if context.authorization is None or context.authorization.token is None:
-        raise ToolExecutionError(  # noqa: TRY003
+        raise ToolExecutionError(
             "Missing Token. Authorization is required to post a tweet.",
             developer_message="Token is not set in the ToolContext.",
         )
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
     return {
-        "Authorization": f"Bearer {context.authorization.token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 

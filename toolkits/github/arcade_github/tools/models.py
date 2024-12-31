@@ -29,7 +29,8 @@ class DiffSide(str, Enum):
     """
     The side of the diff that the pull request's changes appear on.
     Use LEFT for deletions that appear in red.
-    Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context
+    Use RIGHT for additions that appear in green or unchanged
+        lines that appear in white and are shown for context
     """
 
     LEFT = "LEFT"

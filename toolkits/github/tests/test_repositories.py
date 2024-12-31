@@ -1,6 +1,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from arcade.sdk.errors import ToolExecutionError
+from httpx import Response
+
 from arcade_github.tools.models import RepoType
 from arcade_github.tools.repositories import (
     count_stargazers,
@@ -9,9 +12,6 @@ from arcade_github.tools.repositories import (
     list_repository_activities,
     list_review_comments_in_a_repository,
 )
-from httpx import Response
-
-from arcade.sdk.errors import ToolExecutionError
 
 
 @pytest.fixture
