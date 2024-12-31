@@ -407,8 +407,8 @@ def handle_tool_authorization(
     stream: bool,
 ) -> ChatInteractionResult:
     with Live(console=console, refresh_per_second=4) as live:
-        if tool_authorization.authorization_url:
-            authorization_url = str(tool_authorization.authorization_url)
+        if tool_authorization.url:
+            authorization_url = str(tool_authorization.url)
             webbrowser.open(authorization_url)
             message = (
                 "You'll need to authorize this action in your browser.\n\n"
@@ -441,7 +441,7 @@ def wait_for_authorization_completion(
     while auth_response.status != "completed":
         try:
             auth_response = client.auth.status(
-                authorization_id=cast(str, auth_response.authorization_id),
+                authorization_id=cast(str, auth_response.id),
                 scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
                 wait=59,
             )

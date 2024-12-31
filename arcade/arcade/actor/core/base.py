@@ -122,11 +122,11 @@ class BaseActor(Actor):
                     "environment": self.environment,
                 },
             )
-        invocation_id = tool_request.invocation_id or ""
+        execution_id = tool_request.execution_id or ""
         logger.info(
-            f"{invocation_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
+            f"{execution_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
         )
-        logger.debug(f"{invocation_id} | Tool inputs: {tool_request.inputs}")
+        logger.debug(f"{execution_id} | Tool inputs: {tool_request.inputs}")
 
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("RunTool"):
@@ -144,27 +144,27 @@ class BaseActor(Actor):
 
         if output.error:
             logger.warning(
-                f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
+                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
             )
-            logger.warning(f"{invocation_id} | Tool error: {output.error.message}")
+            logger.warning(f"{execution_id} | Tool error: {output.error.message}")
             logger.warning(
-                f"{invocation_id} | Tool developer message: {output.error.developer_message}"
+                f"{execution_id} | Tool developer message: {output.error.developer_message}"
             )
             logger.debug(
-                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
+                f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
             if output.error.traceback_info:
-                logger.debug(f"{invocation_id} | Tool traceback: {output.error.traceback_info}")
+                logger.debug(f"{execution_id} | Tool traceback: {output.error.traceback_info}")
         else:
             logger.info(
-                f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
+                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
             )
             logger.debug(
-                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
+                f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
 
         return ToolCallResponse(
-            invocation_id=invocation_id,
+            execution_id=execution_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),
             success=not output.error,

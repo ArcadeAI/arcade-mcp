@@ -244,8 +244,8 @@ class ToolCallRequest(BaseModel):
 
     run_id: str | None = None
     """The globally-unique run ID provided by the Engine."""
-    invocation_id: str | None = None
-    """The globally-unique ID for this tool invocation in the run."""
+    execution_id: str | None = None
+    """The globally-unique ID for this tool execution in the run."""
     created_at: str | None = None
     """The timestamp when the tool invocation was created."""
     tool: ToolReference
@@ -311,13 +311,13 @@ class ToolCallOutput(BaseModel):
 class ToolCallResponse(BaseModel):
     """The response to a tool invocation."""
 
-    invocation_id: str
-    """The globally-unique ID for this tool invocation."""
+    execution_id: str
+    """The globally-unique ID for this tool execution."""
     finished_at: str
-    """The timestamp when the tool invocation finished."""
+    """The timestamp when the tool execution finished."""
     duration: float
-    """The duration of the tool invocation in milliseconds (ms)."""
+    """The duration of the tool execution in milliseconds (ms)."""
     success: bool
-    """Whether the tool invocation was successful."""
+    """Whether the tool execution was successful."""
     output: ToolCallOutput | None = None
     """The output of the tool invocation."""
