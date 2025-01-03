@@ -29,11 +29,11 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Debug `arcade chat -s -h localhost`",
+      "name": "Debug `arcade chat -s -d -h localhost`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["chat", "-s", "-h", "localhost"],
+      "args": ["chat", "-d", "-h", "localhost"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,
