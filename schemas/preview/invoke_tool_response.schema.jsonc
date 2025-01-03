@@ -7,9 +7,9 @@
       "type": "string",
       "format": "uri"
     },
-    "invocation_id": {
+    "execution_id": {
       "type": "string",
-      "description": "ID of this specific tool call"
+      "description": "The globally-unique ID for this tool execution."
     },
     "duration": {
       "type": "number",
@@ -17,11 +17,12 @@
     },
     "finished_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "The timestamp when the tool execution finished."
     },
     "success": {
       "type": "boolean",
-      "description": "Whether the tool call was successful"
+      "description": "Whether the tool execution was successful"
     },
     "output": {
       // Can be null/omitted, in the case of a null-returning (void) function
@@ -81,14 +82,14 @@
             "requires_authorization": {
               "type": "object",
               "properties": {
-                "authorization_url": {
+                "id": {
+                  "type": "string",
+                  "description": "The ID for checking the status of the authorization"
+                },
+                "url": {
                   "type": "string",
                   "format": "uri",
                   "description": "The URL to redirect the user to for authorization"
-                },
-                "authorization_id": {
-                  "type": "string",
-                  "description": "The ID for checking the status of the authorization"
                 },
                 "scopes": {
                   "type": "array",
@@ -102,7 +103,7 @@
                   "description": "The status of the authorization"
                 }
               },
-              "required": ["status"],
+              "required": ["id", "status"],
               "additionalProperties": false
             }
           },

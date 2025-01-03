@@ -198,9 +198,14 @@ def get_tools_from_engine(
     client = Arcade(api_key=config.api.key, base_url=base_url)
 
     tools = []
-    page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
-    for tool in page_iterator:
-        tools.append(ToolDefinition.model_validate(tool.model_dump()))
+    try:
+        page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
+        for tool in page_iterator:
+            tools.append(ToolDefinition.model_validate(tool.model_dump()))
+    except APIConnectionError:
+        console.print(
+            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)", style="bold red"
+        )
 
     return tools
 
@@ -407,8 +412,8 @@ def handle_tool_authorization(
     stream: bool,
 ) -> ChatInteractionResult:
     with Live(console=console, refresh_per_second=4) as live:
-        if tool_authorization.authorization_url:
-            authorization_url = str(tool_authorization.authorization_url)
+        if tool_authorization.url:  # type: ignore[attr-defined]
+            authorization_url = str(tool_authorization.url)  # type: ignore[attr-defined]
             webbrowser.open(authorization_url)
             message = (
                 "You'll need to authorize this action in your browser.\n\n"
@@ -441,7 +446,7 @@ def wait_for_authorization_completion(
     while auth_response.status != "completed":
         try:
             auth_response = client.auth.status(
-                authorization_id=cast(str, auth_response.authorization_id),
+                authorization_id=cast(str, auth_response.id),  # type: ignore[attr-defined]
                 scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
                 wait=59,
             )
