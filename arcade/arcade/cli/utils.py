@@ -198,9 +198,14 @@ def get_tools_from_engine(
     client = Arcade(api_key=config.api.key, base_url=base_url)
 
     tools = []
-    page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
-    for tool in page_iterator:
-        tools.append(ToolDefinition.model_validate(tool.model_dump()))
+    try:
+        page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
+        for tool in page_iterator:
+            tools.append(ToolDefinition.model_validate(tool.model_dump()))
+    except APIConnectionError:
+        console.print(
+            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)", style="bold red"
+        )
 
     return tools
 
