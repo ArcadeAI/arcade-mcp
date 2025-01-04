@@ -143,7 +143,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_with_description,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="product_name",
@@ -160,7 +160,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_optional,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="product_name",
@@ -177,7 +177,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_annotated_description,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="product_name",
@@ -194,7 +194,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_annotated_name_and_description,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="ProductName",
@@ -211,7 +211,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_default,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="product_name",
@@ -228,7 +228,7 @@ def read_products(
         pytest.param(
             func_takes_pydantic_field_default_factory,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="product_name",
@@ -245,7 +245,7 @@ def read_products(
         pytest.param(
             read_products,
             {
-                "inputs": ToolInput(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="action",
