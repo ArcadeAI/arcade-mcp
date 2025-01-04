@@ -37,8 +37,8 @@ class ToolExecutor:
             func_args = inputs.model_dump()
 
             # inject ToolContext, if the target function supports it
-            if definition.inputs.tool_context_parameter_name is not None:
-                func_args[definition.inputs.tool_context_parameter_name] = context
+            if definition.input.tool_context_parameter_name is not None:
+                func_args[definition.input.tool_context_parameter_name] = context
 
             # execute the tool function
             if asyncio.iscoroutinefunction(func):

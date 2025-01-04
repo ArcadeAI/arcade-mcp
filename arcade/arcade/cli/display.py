@@ -49,7 +49,7 @@ def display_tool_details(tool: ToolDefinition) -> None:
     )
 
     # Inputs Panel
-    inputs = tool.inputs.parameters
+    inputs = tool.input.parameters
     if inputs:
         inputs_table = Table(show_header=True, header_style="bold green")
         inputs_table.add_column("Name", style="cyan")

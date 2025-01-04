@@ -42,7 +42,7 @@ class InputParameter(BaseModel):
     )
 
 
-class ToolInputs(BaseModel):
+class ToolInput(BaseModel):
     """The inputs that a tool accepts."""
 
     parameters: list[InputParameter]
@@ -179,7 +179,7 @@ class ToolDefinition(BaseModel):
     toolkit: ToolkitDefinition
     """The toolkit that contains the tool."""
 
-    inputs: ToolInputs
+    input: ToolInput
     """The inputs that the tool accepts."""
 
     output: ToolOutput
