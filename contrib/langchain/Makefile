@@ -7,7 +7,7 @@ install: ## Install the poetry environment and install the pre-commit hooks
 		exit 1; \
 	fi
 	@echo "🚀 Creating virtual environment using pyenv and poetry"
-	@poetry install --all-extras --version 1.8.5
+	@poetry install --all-extras
 	@poetry run pre-commit install
 
 .PHONY: check

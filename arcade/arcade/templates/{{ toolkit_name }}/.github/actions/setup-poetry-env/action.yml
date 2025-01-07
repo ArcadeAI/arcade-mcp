@@ -34,6 +34,6 @@ runs:
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --all-extras --version 1.8.5
+      run: poetry install --no-interaction --all-extras
       shell: bash
 {% endraw %}

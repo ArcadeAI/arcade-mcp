@@ -3,7 +3,7 @@ VERSION ?= "0.1.0.dev0"
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
 	@echo "🚀 Creating virtual environment using pyenv and poetry"
-	@cd arcade && poetry install --all-extras --version 1.8.5
+	@cd arcade && poetry install --all-extras
 	@cd arcade && poetry run pre-commit install
 
 
@@ -12,7 +12,7 @@ install-toolkits: ## Install dependencies for all toolkits
 	@echo "🚀 Installing dependencies for all toolkits"
 	@for dir in toolkits/*/ ; do \
 		echo "📦 Installing dependencies for $$dir"; \
-		(cd $$dir && poetry lock && poetry install --version 1.8.5); \
+		(cd $$dir && poetry lock && poetry install ); \
 	done
 
 

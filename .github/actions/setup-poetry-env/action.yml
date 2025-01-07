@@ -34,5 +34,5 @@ runs:
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: cd arcade && poetry install --no-interaction --all-extras --version 1.8.5
+      run: cd arcade && poetry install --no-interaction --all-extras
       shell: bash
