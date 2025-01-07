@@ -12,7 +12,7 @@ install-toolkits: ## Install dependencies for all toolkits
 	@echo "🚀 Installing dependencies for all toolkits"
 	@for dir in toolkits/*/ ; do \
 		echo "📦 Installing dependencies for $$dir"; \
-		(cd $$dir && poetry lock && poetry install ); \
+		(cd $$dir && poetry lock && poetry install); \
 	done
 
 
