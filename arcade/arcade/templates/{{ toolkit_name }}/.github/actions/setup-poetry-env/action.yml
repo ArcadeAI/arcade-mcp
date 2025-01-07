@@ -18,7 +18,7 @@ runs:
     - name: Install Poetry
       uses: snok/install-poetry@v1
       with:
-        version: 1.8.3
+        version: 1.8.5
         virtualenvs-in-project: true
 
     - name: Generate poetry.lock
@@ -34,6 +34,6 @@ runs:
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --all-extras
+      run: poetry install --no-interaction --all-extras --version 1.8.5
       shell: bash
 {% endraw %}

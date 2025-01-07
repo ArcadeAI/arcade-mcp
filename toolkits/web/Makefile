@@ -14,7 +14,7 @@ install: ## Install the poetry environment and install the pre-commit hooks
 		echo "📦 Poetry is already installed"; \
 	fi
 	@echo "🚀 Installing package in development mode with all extras"
-	poetry install --all-extras
+	poetry install --all-extras --version 1.8.5
 
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
