@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_google"
-version = "0.1.8"
+version = "0.1.9"
 description = "Arcade tools for the entire google suite"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
