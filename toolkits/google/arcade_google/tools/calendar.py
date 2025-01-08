@@ -176,7 +176,7 @@ async def list_events(
 
 @tool(
     requires_auth=Google(
-        scopes=["https://www.googleapis.com/auth/calendar"],
+        scopes=["https://www.googleapis.com/auth/calendar.events"],
     )
 )
 async def update_event(
