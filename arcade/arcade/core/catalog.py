@@ -34,7 +34,7 @@ from arcade.core.schema import (
     ToolAuthRequirement,
     ToolContext,
     ToolDefinition,
-    ToolInputs,
+    ToolInput,
     ToolkitDefinition,
     ToolOutput,
     ToolRequirements,
@@ -108,7 +108,7 @@ class MaterializedTool(BaseModel):
 
 
 class ToolCatalog(BaseModel):
-    """Singleton class that holds all tools for a given actor"""
+    """Singleton class that holds all tools for a given worker"""
 
     _tools: dict[FullyQualifiedName, MaterializedTool] = {}
 
@@ -317,7 +317,7 @@ class ToolCatalog(BaseModel):
             fully_qualified_name=str(fully_qualified_name),
             description=tool_description,
             toolkit=toolkit_definition,
-            inputs=create_input_definition(tool),
+            input=create_input_definition(tool),
             output=create_output_definition(tool),
             requirements=ToolRequirements(
                 authorization=auth_requirement,
@@ -325,7 +325,7 @@ class ToolCatalog(BaseModel):
         )
 
 
-def create_input_definition(func: Callable) -> ToolInputs:
+def create_input_definition(func: Callable) -> ToolInput:
     """
     Create an input model for a function based on its parameters.
     """
@@ -363,7 +363,7 @@ def create_input_definition(func: Callable) -> ToolInputs:
             )
         )
 
-    return ToolInputs(
+    return ToolInput(
         parameters=input_parameters, tool_context_parameter_name=tool_context_param_name
     )
 

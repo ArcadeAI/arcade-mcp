@@ -5,16 +5,16 @@ from fastapi import FastAPI, HTTPException
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 
-from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.sdk import Toolkit
+from arcade.worker.fastapi.worker import FastAPIWorker
 
 client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://localhost:9099/v1")
 
 app = FastAPI()
 
-actor_secret = os.environ["ARCADE_ACTOR_SECRET"]
-actor = FastAPIActor(app, secret=actor_secret)
-actor.register_toolkit(Toolkit.from_module(arcade_math))
+worker_secret = os.environ["ARCADE_WORKER_SECRET"]
+worker = FastAPIWorker(app, secret=worker_secret)
+worker.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):

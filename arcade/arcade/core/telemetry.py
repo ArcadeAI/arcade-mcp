@@ -38,7 +38,7 @@ class OTELHandler:
                 "🔎 Initializing OpenTelemetry. Use environment variables to configure the connection"
             )
             self.resource = Resource(
-                attributes={SERVICE_NAME: "arcade-actor", "environment": self.environment}
+                attributes={SERVICE_NAME: "arcade-worker", "environment": self.environment}
             )
 
             self._init_tracer()

@@ -5,18 +5,18 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from opentelemetry.metrics import Meter
 
-from arcade.actor.core.base import (
-    BaseActor,
+from arcade.worker.core.base import (
+    BaseWorker,
     Router,
 )
-from arcade.actor.core.common import RequestData
-from arcade.actor.fastapi.auth import validate_engine_request
-from arcade.actor.utils import is_async_callable
+from arcade.worker.core.common import RequestData
+from arcade.worker.fastapi.auth import validate_engine_request
+from arcade.worker.utils import is_async_callable
 
 
-class FastAPIActor(BaseActor):
+class FastAPIWorker(BaseWorker):
     """
-    An Arcade Actor that is hosted inside a FastAPI app.
+    An Arcade Worker that is hosted inside a FastAPI app.
     """
 
     def __init__(
@@ -28,8 +28,8 @@ class FastAPIActor(BaseActor):
         otel_meter: Meter | None = None,
     ) -> None:
         """
-        Initialize the FastAPIActor with a FastAPI app instance.
-        If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
+        Initialize the FastAPIWorker with a FastAPI app instance.
+        If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
         """
         super().__init__(secret, disable_auth, otel_meter)
         self.app = app
@@ -41,28 +41,28 @@ security = HTTPBearer()  # Authorization: Bearer <xxx>
 
 
 class FastAPIRouter(Router):
-    def __init__(self, app: FastAPI, actor: BaseActor) -> None:
+    def __init__(self, app: FastAPI, worker: BaseWorker) -> None:
         self.app = app
-        self.actor = actor
+        self.worker = worker
 
     def _wrap_handler(self, handler: Callable, require_auth: bool = True) -> Callable:
         """
         Wrap the handler to handle FastAPI-specific request and response.
         """
 
-        use_auth_for_route = not self.actor.disable_auth and require_auth
+        use_auth_for_route = not self.worker.disable_auth and require_auth
 
-        def call_validate_engine_request(actor_secret: str) -> Callable:
+        def call_validate_engine_request(worker_secret: str) -> Callable:
             async def dependency(
                 credentials: HTTPAuthorizationCredentials = Depends(security),
             ) -> None:
-                await validate_engine_request(actor_secret, credentials)
+                await validate_engine_request(worker_secret, credentials)
 
             return dependency
 
         async def wrapped_handler(
             request: Request,
-            _: None = Depends(call_validate_engine_request(self.actor.secret))
+            _: None = Depends(call_validate_engine_request(self.worker.secret))
             if use_auth_for_route
             else None,
         ) -> Any:
@@ -87,7 +87,7 @@ class FastAPIRouter(Router):
         Add a route to the FastAPI application.
         """
         self.app.add_api_route(
-            f"{self.actor.base_path}/{endpoint_path}",
+            f"{self.worker.base_path}/{endpoint_path}",
             self._wrap_handler(handler, require_auth),
             methods=[method],
         )

@@ -7,4 +7,4 @@ for toolkit in $(echo $TOOLKITS | tr "," " "); do
 done
 
 echo "Starting arcade..."
-arcade actorup --host $HOST --port $PORT $([ "$OTEL_ENABLE" = "true" ] && echo "--otel-enable")
+arcade workerup --host $HOST --port $PORT $([ "$OTEL_ENABLE" = "true" ] && echo "--otel-enable")

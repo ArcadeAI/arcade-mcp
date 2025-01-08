@@ -2,13 +2,13 @@ from typing import Any
 
 from opentelemetry import trace
 
-from arcade.actor.core.common import Actor, ActorComponent, RequestData, Router
 from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
+from arcade.worker.core.common import RequestData, Router, Worker, WorkerComponent
 
 
-class CatalogComponent(ActorComponent):
-    def __init__(self, actor: Actor) -> None:
-        self.actor = actor
+class CatalogComponent(WorkerComponent):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
 
     def register(self, router: Router) -> None:
         """
@@ -22,12 +22,12 @@ class CatalogComponent(ActorComponent):
         """
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("Catalog"):
-            return self.actor.get_catalog()
+            return self.worker.get_catalog()
 
 
-class CallToolComponent(ActorComponent):
-    def __init__(self, actor: Actor) -> None:
-        self.actor = actor
+class CallToolComponent(WorkerComponent):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
 
     def register(self, router: Router) -> None:
         """
@@ -43,12 +43,12 @@ class CallToolComponent(ActorComponent):
         with tracer.start_as_current_span("CallTool"):
             call_tool_request_data = request.body_json
             call_tool_request = ToolCallRequest.model_validate(call_tool_request_data)
-            return await self.actor.call_tool(call_tool_request)
+            return await self.worker.call_tool(call_tool_request)
 
 
-class HealthCheckComponent(ActorComponent):
-    def __init__(self, actor: Actor) -> None:
-        self.actor = actor
+class HealthCheckComponent(WorkerComponent):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
 
     def register(self, router: Router) -> None:
         """
@@ -62,4 +62,4 @@ class HealthCheckComponent(ActorComponent):
         """
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("HealthCheck"):
-            return self.actor.health_check()
+            return self.worker.health_check()

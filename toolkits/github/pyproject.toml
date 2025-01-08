@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_github"
-version = "0.1.7"
+version = "0.1.8"
 description = "LLM tools for interacting with Github"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 

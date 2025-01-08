@@ -8,7 +8,7 @@ from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 
 class RequestData(BaseModel):
     """
-    The raw data for a request to an actor.
+    The raw data for a request to a worker.
     This is not intended to represent everything about an HTTP request,
     but just the essential info a framework integration will need to extract from the request.
     """
@@ -23,7 +23,7 @@ class RequestData(BaseModel):
 
 class Router(ABC):
     """
-    A router is responsible for adding routes to the underlying framework hosting the actor.
+    A router is responsible for adding routes to the underlying framework hosting the worker.
     """
 
     @abstractmethod
@@ -36,37 +36,37 @@ class Router(ABC):
         pass
 
 
-class Actor(ABC):
+class Worker(ABC):
     """
-    An Actor represents a collection of tools that is hosted inside a web framework
+    A Worker represents a collection of tools that is hosted inside a web framework
     and can be called by an Engine.
     """
 
     @abstractmethod
     def get_catalog(self) -> list[ToolDefinition]:
         """
-        Get the catalog of tools available in the actor.
+        Get the catalog of tools available in the worker.
         """
         pass
 
     @abstractmethod
     async def call_tool(self, request: ToolCallRequest) -> ToolCallResponse:
         """
-        Send a request to call a tool to the Actor
+        Send a request to call a tool to the Worker
         """
         pass
 
     @abstractmethod
     def health_check(self) -> dict[str, Any]:
         """
-        Perform a health check of the actor
+        Perform a health check of the worker
         """
         pass
 
 
-class ActorComponent(ABC):
-    def __init__(self, actor: Actor) -> None:
-        self.actor = actor
+class WorkerComponent(ABC):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
 
     @abstractmethod
     def register(self, router: Router) -> None:

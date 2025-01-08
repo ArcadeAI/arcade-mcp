@@ -64,7 +64,7 @@ def test_create_tool_def2(test_case):
     tool_def = ToolCatalog.create_tool_definition(generated_func, "1.0")
 
     for i, input_type in enumerate(input_types):
-        param = tool_def.inputs.parameters[i]
+        param = tool_def.input.parameters[i]
         assert (
             param.value_schema.val_type == get_wire_type(input_type)
         ), f"Parameter {param.name} has value type {param.value_schema.val_type} but {input_type} was expected at index {i}"

@@ -418,9 +418,9 @@ def evals(
 
 @cli.command(help="Launch Arcade AI locally for tool dev", rich_help_panel="Launch")
 def dev(
-    host: str = typer.Option("127.0.0.1", help="Host for the actor server.", show_default=True),
+    host: str = typer.Option("127.0.0.1", help="Host for the worker server.", show_default=True),
     port: int = typer.Option(
-        8002, "-p", "--port", help="Port for the actor server.", show_default=True
+        8002, "-p", "--port", help="Port for the worker server.", show_default=True
     ),
     engine_config: str = typer.Option(
         None, "-c", "--config", help="Path to the engine configuration file."
@@ -431,7 +431,7 @@ def dev(
     debug: bool = typer.Option(False, "-d", "--debug", help="Show debug information"),
 ) -> None:
     """
-    Start both the actor and engine servers.
+    Start both the worker and engine servers.
     """
     try:
         start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
@@ -441,8 +441,8 @@ def dev(
         typer.Exit(code=1)
 
 
-@cli.command(help="Start a local Arcade Actor server", rich_help_panel="Launch", hidden=True)
-def actorup(
+@cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
+def workerup(
     host: str = typer.Option(
         "127.0.0.1",
         help="Host for the app, from settings by default.",
@@ -454,7 +454,7 @@ def actorup(
     disable_auth: bool = typer.Option(
         False,
         "--no-auth",
-        help="Disable authentication for the actor. Not recommended for production.",
+        help="Disable authentication for the worker. Not recommended for production.",
         show_default=True,
     ),
     otel_enable: bool = typer.Option(
@@ -463,18 +463,18 @@ def actorup(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Starts the actor with host, port, and reload options. Uses
-    Uvicorn as ASGI actor. Parameters allow runtime configuration.
+    Starts the worker with host, port, and reload options. Uses
+    Uvicorn as ASGI worker. Parameters allow runtime configuration.
     """
-    from arcade.cli.serve import serve_default_actor
+    from arcade.cli.serve import serve_default_worker
 
     try:
-        serve_default_actor(
+        serve_default_worker(
             host, port, disable_auth=disable_auth, enable_otel=otel_enable, debug=debug
         )
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        error_message = f"❌ Failed to start Arcade Actor: {escape(str(e))}"
+        error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)

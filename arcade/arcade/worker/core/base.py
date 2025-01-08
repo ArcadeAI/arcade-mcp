@@ -7,13 +7,6 @@ from typing import Any, Callable, ClassVar
 from opentelemetry import trace
 from opentelemetry.metrics import Meter
 
-from arcade.actor.core.common import Actor, Router
-from arcade.actor.core.components import (
-    ActorComponent,
-    CallToolComponent,
-    CatalogComponent,
-    HealthCheckComponent,
-)
 from arcade.core.catalog import ToolCatalog, Toolkit
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import (
@@ -21,19 +14,26 @@ from arcade.core.schema import (
     ToolCallResponse,
     ToolDefinition,
 )
+from arcade.worker.core.common import Router, Worker
+from arcade.worker.core.components import (
+    CallToolComponent,
+    CatalogComponent,
+    HealthCheckComponent,
+    WorkerComponent,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class BaseActor(Actor):
+class BaseWorker(Worker):
     """
-    A base actor class that provides a default implementation for registering tools and invoking them.
-    Actor implementations for specific web frameworks will inherit from this class.
+    A base worker class that provides a default implementation for registering tools and invoking them.
+    Worker implementations for specific web frameworks will inherit from this class.
     """
 
-    base_path = "/actor"  # By default, prefix all our routes with /actor
+    base_path = "/worker"  # By default, prefix all our routes with /worker
 
-    default_components: ClassVar[tuple[type[ActorComponent], ...]] = (
+    default_components: ClassVar[tuple[type[WorkerComponent], ...]] = (
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
@@ -43,14 +43,14 @@ class BaseActor(Actor):
         self, secret: str | None = None, disable_auth: bool = False, otel_meter: Meter | None = None
     ) -> None:
         """
-        Initialize the BaseActor with an empty ToolCatalog.
-        If no secret is provided, the actor will use the ARCADE_ACTOR_SECRET environment variable.
+        Initialize the BaseWorker with an empty ToolCatalog.
+        If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
         """
         self.catalog = ToolCatalog()
         self.disable_auth = disable_auth
         if disable_auth:
             logger.warning(
-                "Warning: Actor is running without authentication. Not recommended for production."
+                "Warning: Worker is running without authentication. Not recommended for production."
             )
 
         self.secret = self._set_secret(secret, disable_auth)
@@ -71,12 +71,12 @@ class BaseActor(Actor):
             return secret
 
         # If secret is not provided, try to get it from environment variables
-        env_secret = os.environ.get("ARCADE_ACTOR_SECRET")
+        env_secret = os.environ.get("ARCADE_WORKER_SECRET")
         if env_secret:
             return env_secret
 
         raise ValueError(
-            "No secret provided for actor. Set the ARCADE_ACTOR_SECRET environment variable."
+            "No secret provided for worker. Set the ARCADE_WORKER_SECRET environment variable."
         )
 
     def get_catalog(self) -> list[ToolDefinition]:
@@ -122,11 +122,11 @@ class BaseActor(Actor):
                     "environment": self.environment,
                 },
             )
-        invocation_id = tool_request.invocation_id or ""
+        execution_id = tool_request.execution_id or ""
         logger.info(
-            f"{invocation_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
+            f"{execution_id} | Calling tool: {tool_fqname} version: {tool_request.tool.version}"
         )
-        logger.debug(f"{invocation_id} | Tool inputs: {tool_request.inputs}")
+        logger.debug(f"{execution_id} | Tool inputs: {tool_request.inputs}")
 
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("RunTool"):
@@ -144,27 +144,27 @@ class BaseActor(Actor):
 
         if output.error:
             logger.warning(
-                f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
+                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} failed"
             )
-            logger.warning(f"{invocation_id} | Tool error: {output.error.message}")
+            logger.warning(f"{execution_id} | Tool error: {output.error.message}")
             logger.warning(
-                f"{invocation_id} | Tool developer message: {output.error.developer_message}"
+                f"{execution_id} | Tool developer message: {output.error.developer_message}"
             )
             logger.debug(
-                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
+                f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
             if output.error.traceback_info:
-                logger.debug(f"{invocation_id} | Tool traceback: {output.error.traceback_info}")
+                logger.debug(f"{execution_id} | Tool traceback: {output.error.traceback_info}")
         else:
             logger.info(
-                f"{invocation_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
+                f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
             )
             logger.debug(
-                f"{invocation_id} | duration: {duration_ms}ms | Tool output: {output.value}"
+                f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
 
         return ToolCallResponse(
-            invocation_id=invocation_id,
+            execution_id=execution_id,
             duration=duration_ms,
             finished_at=datetime.now().isoformat(),
             success=not output.error,
@@ -173,7 +173,7 @@ class BaseActor(Actor):
 
     def health_check(self) -> dict[str, Any]:
         """
-        Provide a health check that serves as a heartbeat of actor health.
+        Provide a health check that serves as a heartbeat of worker health.
         """
         return {"status": "ok", "tool_count": len(self.catalog)}
 

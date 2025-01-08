@@ -42,7 +42,7 @@ RUN python -m pip install -r ./requirements.txt
 # Expose the port
 EXPOSE $PORT
 
-# Run the arcade actorup (hidden cli command)
+# Run the arcade workerup (hidden cli command)
 COPY docker/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 CMD ["/app/start.sh"]

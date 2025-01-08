@@ -59,7 +59,7 @@
    ```bash
    arcade login
    ```
-4. Start the Arcade Engine and Actor:
+4. Start the Arcade Engine and Worker:
    ```bash
    arcade dev
    ```

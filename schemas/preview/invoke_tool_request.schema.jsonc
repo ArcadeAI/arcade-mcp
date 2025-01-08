@@ -9,11 +9,11 @@
     },
     "run_id": {
       "type": "string",
-      "description": "ID of the overall run"
+      "description": "The globally-unique run ID provided by the Engine."
     },
-    "invocation_id": {
+    "execution_id": {
       "type": "string",
-      "description": "ID of this specific tool call"
+      "description": "The globally-unique ID for this tool execution in the run."
     },
     "created_at": {
       "type": "string",

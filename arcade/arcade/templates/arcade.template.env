@@ -14,10 +14,10 @@ ARCADE_API_PORT=9099
 # ANTHROPIC_API_KEY=
 # GROQ_API_KEY=
 
-### Actor Configuration ###
+### Worker Configuration ###
 
-ARCADE_ACTOR_URI=http://localhost:8002
-# ARCADE_ACTOR_SECRET=
+ARCADE_WORKER_URI=http://localhost:8002
+# ARCADE_WORKER_SECRET=
 
 ### Token Storage ###
 # REDIS_HOST=

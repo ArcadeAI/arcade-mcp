@@ -9,7 +9,7 @@ from arcade.core.schema import (
     OAuth2Requirement,
     ToolAuthRequirement,
     ToolContext,
-    ToolInputs,
+    ToolInput,
     ToolOutput,
     ToolRequirements,
     ValueSchema,
@@ -313,7 +313,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_non_inferrable_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -330,7 +330,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_renamed_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="ParamOne",
@@ -347,7 +347,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_enum_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -364,7 +364,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_dict_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -381,7 +381,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_string_literal_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -398,7 +398,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_param_with_default,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -418,7 +418,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_optional_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -438,7 +438,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_optional_param_with_default_None,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -458,7 +458,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_optional_param_with_default_value,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -478,7 +478,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_optional_param_with_bar_syntax,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -498,7 +498,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_mixed_params,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -523,7 +523,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_list_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -542,7 +542,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_list_float_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -561,7 +561,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_list_of_enums_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -580,7 +580,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_complex_param,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[
                         InputParameter(
                             name="param1",
@@ -597,9 +597,9 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_context,
             {
-                "inputs": ToolInputs(
+                "input": ToolInput(
                     parameters=[], tool_context_parameter_name="my_context"
-                ),  # ToolContext type is not an input param, but it's stored in the inputs field
+                ),  # ToolContext type is not an input param, but it's stored in the input field
             },
             id="func_with_context",
         ),
@@ -607,7 +607,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_list_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="array", inner_val_type="string", enum=None),
                     available_modes=["value", "error"],
@@ -619,7 +619,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_known_list_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="string", enum=["value1", "value2"]),
                     available_modes=["value", "error"],
@@ -631,7 +631,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_enum_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="string", enum=["foo bar", "baz"]),
                     available_modes=["value", "error"],
@@ -643,7 +643,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_annotated_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="string", enum=None),
                     available_modes=["value", "error"],
@@ -655,7 +655,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_optional_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="string", enum=None),
                     available_modes=["value", "error", "null"],
@@ -667,7 +667,7 @@ def func_with_complex_return() -> dict[str, str]:
         pytest.param(
             func_with_complex_return,
             {
-                "inputs": ToolInputs(parameters=[]),
+                "input": ToolInput(parameters=[]),
                 "output": ToolOutput(
                     value_schema=ValueSchema(val_type="json", enum=None),
                     available_modes=["value", "error"],

@@ -19,19 +19,19 @@ class SigningAlgorithm(str, Enum):
     HS256 = "HS256"
 
 
-def validate_engine_token(actor_secret: str, token: str) -> TokenValidationResult:
+def validate_engine_token(worker_secret: str, token: str) -> TokenValidationResult:
     try:
         payload = jwt.decode(
             token,
-            actor_secret,
+            worker_secret,
             algorithms=[SigningAlgorithm.HS256],
             verify=True,
-            audience="actor",
+            audience="worker",
         )
     except jwt.InvalidSignatureError as e:
         logger.warning(
-            "Invalid signature. Is the Arcade Engine configured with the Actor secret '%s'?",
-            actor_secret,
+            "Invalid signature. Is the Arcade Engine configured with the Worker secret '%s'?",
+            worker_secret,
         )
         return TokenValidationResult(valid=False, error=str(e))
 

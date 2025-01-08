@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_slack"
-version = "0.1.7"
+version = "0.1.8"
 description = "Slack tools for LLMs"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
