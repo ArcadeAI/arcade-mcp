@@ -12,6 +12,7 @@ from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
+from tqdm import tqdm
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
@@ -310,7 +311,7 @@ def evals(
         "gpt-4o",
         "--models",
         "-m",
-        help="The models to use for evaluation (default: gpt-4o)",
+        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models.",
     ),
     host: str = typer.Option(
         LOCALHOST,
@@ -401,10 +402,14 @@ def evals(
                 )
                 tasks.append(task)
 
-        # TODO add a progress bar here
+        # Track progress and results as suite functions complete
+        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
+            results = []
+            for f in asyncio.as_completed(tasks):
+                results.append(await f)
+                pbar.update(1)
+
         # TODO error handling on each eval
-        # Wait for all suite functions to complete
-        results = await asyncio.gather(*tasks)
         all_evaluations.extend(results)
         display_eval_results(all_evaluations, show_details=show_details)
 

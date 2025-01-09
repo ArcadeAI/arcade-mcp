@@ -26,6 +26,7 @@ openai = "^1.36.0" # TODO: relax to an earlier version that still has what we ne
 arcadepy = "~0.2.0"
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
+tqdm = "^4.1.0"
 types-python-dateutil = "2.9.0.20241003"
 types-pytz = "2024.2.0.20241003"
 opentelemetry-instrumentation-fastapi = {version = "0.48b0", optional = true}
