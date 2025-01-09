@@ -49,19 +49,33 @@ jobs:
         make check
         make test
 
+    - name: Check Version
+      id: Check_Version
+      working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
+      run: |
+        VERSION=$(poetry version -s)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+        PACKAGE=$(poetry version | cut -d' ' -f1)
+
+        if pip index versions $PACKAGE | grep -q "^$VERSION$"; then
+          echo "Version $PACKAGE == $VERSION already exists on PyPI. Skipping publish."
+          echo "skip_publish=true" >> $GITHUB_OUTPUT
+        else
+          echo "skip_publish=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Publish Toolkit
       id: Publish_Toolkit
+      if: steps.Check_Version.outputs.skip_publish != 'true'
       working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
       run: |
         poetry build
-        # Extract version from pyproject.toml using poetry and save it
-        VERSION=$(poetry version -s)
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
         poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
         poetry publish
 
     - name: Send status to Slack
-      if: always()
+      if: steps.Check_Version.outputs.skip_publish != 'true'
       uses: slackapi/slack-github-action@v2.0.0
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

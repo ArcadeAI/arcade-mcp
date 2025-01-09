@@ -25,7 +25,7 @@ catalog.add_module(arcade_math)
 def math_eval_suite():
     suite = EvalSuite(
         name="Math Tools Evaluation",
-        system_message="You are an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
+        system_message="You're an AI assistant with access to math tools. Use them to help the user with their math-related tasks.",
         catalog=catalog,
         rubric=rubric,
     )
