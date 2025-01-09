@@ -34,7 +34,7 @@ jobs:
         dirs=$(echo "${CHANGED_FILES}" | tr ' ' '\n' | grep "toolkits/" | cut -d'/' -f2 | sort -u)
         if [ -n "$dirs" ]; then
           echo "$dirs" | while read -r dir; do
-            echo "Processing toolkit: $dir"
+            echo "$dir"
             gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit=${dir}
           done
         else
