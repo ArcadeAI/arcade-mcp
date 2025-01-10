@@ -27,9 +27,9 @@ jobs:
           echo "Author association: ${{ github.event.pull_request.author_association }}"
           if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
             echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
-            echo "authorized=true" >> $GITHUB_OUTPUT
-          else
             echo "authorized=false" >> $GITHUB_OUTPUT
+          else
+            echo "authorized=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Get versions from current commit
