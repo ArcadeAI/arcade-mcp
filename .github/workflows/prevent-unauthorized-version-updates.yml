@@ -32,7 +32,7 @@ jobs:
 
       - name: Get versions from current commit
         id: current_versions
-        # Get all toolkits in the format of "package_name=version" for the PR's current commit
+        # Get all toolkits in the format of "package_name=version" for the PR's current commit and save to current_versions.txt
         run: |
           paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > current_versions.txt
           echo "Package versions in current commit:"
@@ -40,7 +40,7 @@ jobs:
 
       - name: Get versions from target branch
         id: target_versions
-        # Get all toolkits in the format of "package_name=version" for the target branch
+        # Get all toolkits in the format of "package_name=version" for the target branch and save to target_versions.txt
         run: |
           git fetch origin main
           git checkout origin/main
@@ -50,10 +50,10 @@ jobs:
 
       - name: Compare versions
         id: compare_versions
-        # Compare the current package versions with the target versions.
-        # Only fail if an existing toolkit version is changed. This does not account for new or removed toolkits.
+        # Iterate over each toolkit in the target branch and compare its version with the current commit
+        # Only fails if an existing toolkit version is changed. This does not include new or removed toolkits.
         run: |
-          while IFS= read -r target_line; do
+          while read -r target_line; do
             package_name=$(echo "$target_line" | cut -d'=' -f1)
             target_version=$(echo "$target_line" | cut -d'=' -f2)
             current_version=$(grep "^$package_name=" current_versions.txt | cut -d'=' -f2)
