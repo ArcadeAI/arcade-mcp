@@ -1,9 +1,10 @@
-# This workflow prevents unauthorized updates to existing toolkit versions.
+# This workflow prevents unauthorized updates to existing toolkit versions,
+# as well as unauthorized renames or removals of toolkits.
 # Toolkits are versioned via the `toolkits/*/pyproject.toml` file.
 # It ensures that only members or owners of the ArcadeAI organization
-# can modify existing toolkit versions. If a pull request is made by
-# someone outside the organization, the workflow will fail if any
-# existing toolkit version is changed.
+# can modify existing toolkit versions, rename, or remove toolkits.
+# If a pull request is made by someone outside the organization, the workflow
+# will fail if any existing toolkit version is changed, or if a toolkit is renamed or removed.
 
 name: Prevent Unauthorized Version Updates
 
@@ -56,14 +57,18 @@ jobs:
         if: steps.check_author.outputs.authorized == 'false'
         id: compare_versions
         # Iterate over each toolkit in the target branch and compare its version with the current commit
-        # Only fails if an existing toolkit version is changed. This does not include new or removed toolkits.
+        # Only fails if an existing toolkit version is changed, or if a toolkit is renamed or removed.
         run: |
           while read -r target_line; do
             package_name=$(echo "$target_line" | cut -d'=' -f1)
             target_version=$(echo "$target_line" | cut -d'=' -f2)
             current_version=$(grep "^$package_name=" current_versions.txt | cut -d'=' -f2)
             echo "Comparing $package_name: $target_version (target) vs $current_version (current)"
-            if [ -n "$current_version" ] && [ "$target_version" != "$current_version" ]; then
+            if [ -z "$current_version" ]; then
+              echo "Package $package_name has been removed or renamed."
+              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can remove or rename toolkits."
+              exit 1
+            elif [ "$target_version" != "$current_version" ]; then
               echo "Version mismatch for $package_name: $target_version (target) vs $current_version (current)"
               echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can alter an existing toolkit version."
               exit 1
