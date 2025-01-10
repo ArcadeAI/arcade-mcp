@@ -51,3 +51,4 @@ check: ## Run code quality tools.
 	@poetry run pre-commit run -a
 	@echo "🚀 Static type checking: Running mypy"
 	@poetry run mypy --config-file=pyproject.toml
+
