@@ -1,16 +1,18 @@
-# This workflow prevents unauthorized updates to toolkits from outside the ArcadeAI organization.
-# Only members or owners of the ArcadeAI organization can perform the following actions:
-# - Removing or renaming an existing toolkit
-# - Changing the version of an existing toolkit (i.e., altering the version number in the `toolkits/*/pyproject.toml` file)
+# This workflow prevents unauthorized updates to existing toolkit versions.
+# Toolkits are versioned via the `toolkits/*/pyproject.toml` file.
+# It ensures that only members or owners of the ArcadeAI organization
+# can modify existing toolkit versions. If a pull request is made by
+# someone outside the organization, the workflow will fail if any
+# existing toolkit version is changed.
 
-name: Prevent Unauthorized Toolkit Changes
+name: Prevent Unauthorized Version Updates
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  toolkits-check:
+  version-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,14 +22,14 @@ jobs:
 
       - name: Check author association
         id: check_author
-        # OWNERs and MEMBERs of the ArcadeAI organization can perform any changes to toolkits, so exit with success if this is the case
+        # OWNERs and MEMBERs of the ArcadeAI organization can alter an existing toolkit version, so exit with success if this is the case
         run: |
           echo "Author association: ${{ github.event.pull_request.author_association }}"
           if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
             echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
-            echo "authorized=false" >> $GITHUB_OUTPUT
-          else
             echo "authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "authorized=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Get versions from current commit
@@ -54,19 +56,14 @@ jobs:
         if: steps.check_author.outputs.authorized == 'false'
         id: compare_versions
         # Iterate over each toolkit in the target branch and compare its version with the current commit
-        # Fails if one of the following conditions is met:
-        # - A toolkit exists in the target branch but not in the current commit (i.e., a toolkit is removed or renamed)
-        # - A toolkit exists in both the target branch and current commit but the version is different. (i.e., a toolkit version is changed)
+        # Only fails if an existing toolkit version is changed. This does not include new or removed toolkits.
         run: |
           while read -r target_line; do
             package_name=$(echo "$target_line" | cut -d'=' -f1)
             target_version=$(echo "$target_line" | cut -d'=' -f2)
             current_version=$(grep "^$package_name=" current_versions.txt | cut -d'=' -f2)
             echo "Comparing $package_name: $target_version (target) vs $current_version (current)"
-            if [ -z "$current_version" ]; then
-              echo "ERROR: $package_name exists in target branch but not in current commit. Only OWNERS and MEMBERS of the ArcadeAI organization can remove/rename toolkits."
-              exit 1
-            elif [ "$target_version" != "$current_version" ]; then
+            if [ -n "$current_version" ] && [ "$target_version" != "$current_version" ]; then
               echo "Version mismatch for $package_name: $target_version (target) vs $current_version (current)"
               echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can alter an existing toolkit version."
               exit 1
