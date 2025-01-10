@@ -1,0 +1,15 @@
+# See https://prettier.io/docs/en/configuration
+
+# Note: This prettier config is only for the non-python files in this repo.
+# Python files are formatted with ruff and ignored in .prettierignore
+
+trailingComma = "es5"
+tabWidth = 4
+semi = false
+singleQuote = false
+
+[[overrides]]
+files = [ "*.json", "*.jsonc", "*.yml", "*.yaml" ]
+
+  [overrides.options]
+  tabWidth = 2
