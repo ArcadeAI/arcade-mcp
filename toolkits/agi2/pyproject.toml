@@ -1,19 +1,16 @@
 [tool.poetry]
-name = "arcade_code_sandbox"
-version = "0.1.8"
-description = "LLM tools for running code in a sandbox"
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+name = "arcade_agi2"
+version = "0.0.1"
+description = "adfsg"
+authors = ["adsgf <afdsgfd>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 arcade-ai = "0.1.*"
-e2b-code-interpreter = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"
 pytest-cov = "^4.0.0"
-pytest-asyncio = "^0.24.0"
-pytest-mock = "^3.11.1"
 mypy = "^1.5.1"
 pre-commit = "^3.4.0"
 tox = "^4.11.1"
@@ -24,7 +21,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
-files = ["arcade_code_sandbox/**/*.py"]
+files = ["arcade_agi2/**/*.py"]
 python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
