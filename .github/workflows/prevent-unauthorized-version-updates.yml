@@ -27,10 +27,13 @@ jobs:
           echo "Author association: ${{ github.event.pull_request.author_association }}"
           if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
             echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
+            echo "authorized=true" >> $GITHUB_OUTPUT
             exit 0
-          fi
+          else
+            echo "authorized=false" >> $GITHUB_OUTPUT
 
       - name: Get versions from current commit
+        if: steps.check_author.outputs.authorized == 'false'
         id: current_versions
         # Get all toolkits in the format of "package_name=version" for the PR's current commit and save to current_versions.txt
         run: |
@@ -39,6 +42,7 @@ jobs:
           cat current_versions.txt
 
       - name: Get versions from target branch
+        if: steps.check_author.outputs.authorized == 'false'
         id: target_versions
         # Get all toolkits in the format of "package_name=version" for the target branch and save to target_versions.txt
         run: |
@@ -49,6 +53,7 @@ jobs:
           cat target_versions.txt
 
       - name: Compare versions
+        if: steps.check_author.outputs.authorized == 'false'
         id: compare_versions
         # Iterate over each toolkit in the target branch and compare its version with the current commit
         # Only fails if an existing toolkit version is changed. This does not include new or removed toolkits.
