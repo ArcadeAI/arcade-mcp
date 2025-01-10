@@ -182,7 +182,7 @@ async def search_recent_tweets_by_keywords(
 async def lookup_tweet_by_id(
     context: ToolContext,
     tweet_id: Annotated[str, "The ID of the tweet you want to look up"],
-) -> Annotated[dict[str, Any], "Dictionary containing the tweet data"]:
+) -> Annotated[dict[str, Any], "A dictionary containing the tweet data"]:
     """Look up a tweet on X (Twitter) by tweet ID."""
 
     headers = get_headers_with_token(context)

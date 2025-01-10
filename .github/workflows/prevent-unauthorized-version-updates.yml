@@ -1,0 +1,68 @@
+# This workflow prevents unauthorized updates to existing toolkit versions.
+# Toolkits are versioned via the `toolkits/*/pyproject.toml` file.
+# It ensures that only members or owners of the ArcadeAI organization
+# can modify existing toolkit versions. If a pull request is made by
+# someone outside the organization, the workflow will fail if any
+# existing toolkit version is changed.
+
+name: Prevent Unauthorized Version Updates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check author association
+        id: check_author
+        # OWNERs and MEMBERs of the ArcadeAI organization can alter an existing toolkit version, so exit with success if this is the case
+        run: |
+          echo "Author association: ${{ github.event.pull_request.author_association }}"
+          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
+            echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
+            exit 0
+          fi
+
+      - name: Get versions from current commit
+        id: current_versions
+        # Get all toolkits in the format of "package_name=version" for the PR's current commit
+        run: |
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > current_versions.txt
+          echo "Package versions in current commit:"
+          cat current_versions.txt
+
+      - name: Get versions from target branch
+        id: target_versions
+        # Get all toolkits in the format of "package_name=version" for the target branch
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > target_versions.txt
+          echo "Package versions in target branch:"
+          cat target_versions.txt
+
+      - name: Compare versions
+        id: compare_versions
+        # Compare the current package versions with the target versions.
+        # Only fail if an existing toolkit version is changed. This does not account for new or removed toolkits.
+        run: |
+          while IFS= read -r target_line; do
+            package_name=$(echo "$target_line" | cut -d'=' -f1)
+            target_version=$(echo "$target_line" | cut -d'=' -f2)
+            current_version=$(grep "^$package_name=" current_versions.txt | cut -d'=' -f2)
+            echo "Comparing $package_name: $target_version (target) vs $current_version (current)"
+            if [ -n "$current_version" ] && [ "$target_version" != "$current_version" ]; then
+              echo "Version mismatch for $package_name: $target_version (target) vs $current_version (current)"
+              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can alter an existing toolkit version."
+              exit 1
+            else
+              echo "Versions match for $package_name: $target_version (target) vs $current_version (current)"
+            fi
+          done < target_versions.txt
