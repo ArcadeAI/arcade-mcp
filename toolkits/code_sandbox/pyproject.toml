@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "arcade_code_sandbox"
+name = "arcade_code_sandboxs"
 version = "0.1.8"
 description = "LLM tools for running code in a sandbox"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
