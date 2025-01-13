@@ -1,22 +1,38 @@
 # Arcade FastAPI Example
 
-## How to run the example
+## How to Run the Example
 
-1. `pip install poetry==1.8.4 && poetry install`
-2. `export ARCADE_API_KEY=<your-api-key>`
-3. `export ARCADE_WORKER_SECRET=<your-worker-secret>` (you can use the secret `dev` for development)
-4. `export OPENAI_API_KEY=<your-openai-api-key>` (optional, only if you want to test the chat route)
-5. `cd arcade_example_fastapi`
-6. `uvicorn main:app --host 127.0.0.1 --port 8002 --reload`
+Follow these steps to set up and run the Arcade FastAPI example:
 
-## Test the setup
-In a separate terminal, run the following command to test the setup.
+1. **Install Dependencies**
+   ```bash
+   pip install poetry==1.8.4 && poetry install
+   ```
 
-### Health check
+2. **Set Environment Variables**
+   ```bash
+   export ARCADE_API_KEY=<your-api-key>
+   export ARCADE_WORKER_SECRET=<your-worker-secret> # Use 'dev' for development
+   ```
+
+3. **Navigate to the Project Directory**
+   ```bash
+   cd arcade_example_fastapi
+   ```
+
+4. **Run the Worker**
+   ```bash
+   uvicorn main:app --host 127.0.0.1 --port 8002 --reload
+   ```
+
+## Testing the Setup
+
+### 1. Health Check
+In a separate terminal, run the following command to test the setup:
 ```bash
 curl -X GET "http://127.0.0.1:8002/worker/health"
 ```
-*Expected Output:*
+**Expected Output:**
 ```json
 {
   "status": "ok",
@@ -24,15 +40,28 @@ curl -X GET "http://127.0.0.1:8002/worker/health"
 }
 ```
 
-## Test out other routes
-### Get tool definitions
+### 2. Get Tool Definitions
+To retrieve tool definitions, use the following command:
 ```bash
 curl -X GET "http://127.0.0.1:8002/worker/tools"
 ```
 
-### Chat with tools
-```bash
-curl -X POST "http://127.0.0.1:8002/chat" \
-     -H "Content-Type: application/json" \
-     -d '{"message": "What is the square root of 16?", "user_id": "user@example.com"}'
-```
+### 3. Chat with Tools
+1. **Set OpenAI API Key**
+   ```bash
+   export OPENAI_API_KEY=<your-openai-api-key> # Only if you want to test the chat route
+   ```
+
+2. **Run the Arcade Engine**
+   In a separate terminal, execute:
+   ```bash
+   arcade-engine
+   ```
+
+3. **Send a Chat Request**
+   Use the following command to send a request to the chat route:
+   ```bash
+   curl -X POST "http://127.0.0.1:8002/chat" \
+       -H "Content-Type: application/json" \
+       -d '{"message": "What is the square root of 16?", "user_id": "user@example.com"}'
+   ```
