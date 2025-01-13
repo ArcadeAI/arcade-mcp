@@ -13,13 +13,25 @@ client = AsyncOpenAI(api_key=os.environ["ARCADE_API_KEY"], base_url="http://loca
 app = FastAPI()
 
 worker_secret = os.environ["ARCADE_WORKER_SECRET"]
-worker = FastAPIWorker(app, secret=worker_secret)
+worker = FastAPIWorker(
+    app, secret=worker_secret, disable_auth=True
+)  # disabling auth for the worker is not recommended for production
 worker.register_toolkit(Toolkit.from_module(arcade_math))
 
 
 class ChatRequest(BaseModel):
     message: str
     user_id: str | None = None
+
+
+@app.get("/worker/health")
+async def getWorkerHealth():
+    return worker.health_check()
+
+
+@app.get("/worker/tools")
+async def getWorkerTools():
+    return worker.get_catalog()
 
 
 @app.post("/chat")
