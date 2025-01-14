@@ -551,6 +551,40 @@ class EvalSuite:
         )
         self.cases.append(new_case)
 
+    def add_parameterized_case(
+        self,
+        name: str,
+        user_messages: list[str],
+        expected_tool_calls: list[ExpectedToolCall] | list[tuple[Callable, dict[str, Any]]],
+        critics: list["Critic"] | None = None,
+        system_message: str | None = None,
+        rubric: EvalRubric | None = None,
+        additional_messages: list[dict[str, str]] | None = None,
+    ) -> None:
+        """
+        Add a new evaluation case to the suite for each user message.
+
+        Args:
+            name: The name of the evaluation case.
+            user_messages: A list of user messages. Each message will be used to create a new case.
+            expected_tool_calls: A list of expected tool calls.
+            critics: A list of critics.
+            system_message: The system message to be used.
+            rubric: The evaluation rubric for this case.
+            additional_messages: Additional messages for each user message.
+        """
+        num_messages = len(user_messages)
+        for i, user_message in enumerate(user_messages):
+            self.add_case(
+                name=f"{name} (user_message {i + 1} of {num_messages})",
+                user_message=user_message,
+                expected_tool_calls=expected_tool_calls,
+                critics=critics,
+                system_message=system_message,
+                rubric=rubric,
+                additional_messages=additional_messages,
+            )
+
     async def run(self, client: AsyncOpenAI, model: str) -> dict[str, Any]:
         """
         Run the evaluation suite.
