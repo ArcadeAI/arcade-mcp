@@ -18,9 +18,13 @@ from arcade.sdk.eval import (
 )
 from arcade.sdk.eval.eval import EvalCase, EvalSuite, EvaluationResult
 
+
+@tool
+def mock_tool(param: str):
+    pass
+
+
 # Test BinaryCritic.evaluate()
-
-
 @pytest.mark.parametrize(
     "expected, actual, weight, expected_match, expected_score",
     [
@@ -475,11 +479,6 @@ def test_eval_suite_add_case():
     """
     Test that add_case correctly adds a new evaluation case to the suite.
     """
-
-    @tool
-    def mock_tool(param: str):
-        pass
-
     mock_catalog = Mock()
     mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
 
@@ -522,11 +521,6 @@ def test_eval_suite_add_parameterized_case():
     Test that add_parameterized_case correctly adds multiple evaluation cases
     based on the provided user messages.
     """
-
-    @tool
-    def mock_tool(param: str):
-        pass
-
     mock_catalog = Mock()
     mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
 
@@ -570,11 +564,6 @@ def test_eval_suite_extend_case():
     """
     Test that extend_case correctly extends the last added case with new information.
     """
-
-    @tool
-    def mock_tool(param: str):
-        pass
-
     mock_catalog = Mock()
     mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
 
@@ -618,3 +607,34 @@ def test_eval_suite_extend_case():
     assert extended_case.expected_tool_calls[1] == NamedExpectedToolCall(
         name="MockTool", args={"param": "value"}
     )
+
+
+def test_eval_suite_validate_critics_raises_value_error():
+    """
+    Test that validate_critics raises a ValueError if multiple critics are detected for the same field.
+    """
+    mock_catalog = Mock()
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    case_name = "TestCase"
+    critics = [
+        BinaryCritic(critic_field="param", weight=0.5),
+        SimilarityCritic(critic_field="param", weight=0.5),
+    ]
+    with pytest.raises(ValueError):
+        suite._validate_critics(critics, case_name)
+
+
+def test_eval_suite_validate_critics_no_error():
+    """
+    Test that validate_critics does not raise an error when critics are valid.
+    """
+    mock_catalog = Mock()
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    case_name = "TestCase"
+    critics = [
+        BinaryCritic(critic_field="param1", weight=0.5),
+    ]
+
+    suite._validate_critics(critics, case_name)

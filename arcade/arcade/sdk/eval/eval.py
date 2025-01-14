@@ -459,6 +459,8 @@ class EvalSuite:
             rubric: The evaluation rubric for this case.
             additional_messages: Optional list of additional messages for context.
         """
+        self._validate_critics(critics, name)
+
         expected_tool_calls_with_defaults = [
             self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls
         ]
@@ -473,6 +475,26 @@ class EvalSuite:
             additional_messages=additional_messages or [],
         )
         self.cases.append(case)
+
+    def _validate_critics(self, critics: list["Critic"] | None, name: str) -> None:
+        """
+        Validate the critics.
+
+        Args:
+            critics: The list of critics.
+            name: The name of the evaluation case.
+
+        Raises:
+            ValueError: If multiple critics are detected for the same field.
+        """
+        if critics is None:
+            return
+        critic_fields = [critic.critic_field for critic in critics]
+        duplicate_fields = {field for field in critic_fields if critic_fields.count(field) > 1}
+        if duplicate_fields:
+            raise ValueError(
+                f"Multiple critics detected for the field(s) '{', '.join(duplicate_fields)}' in evaluation case '{name}'. Only one critic per field is permitted."
+            )
 
     def _fill_args_with_defaults(
         self, func: Callable, provided_args: dict[str, Any]
@@ -525,6 +547,8 @@ class EvalSuite:
         """
         if not self.cases:
             raise ValueError("No cases to extend. Add a case first.")
+
+        self._validate_critics(critics, name)
 
         last_case = self.cases[-1]
 
