@@ -615,6 +615,7 @@ class EvalSuite:
                     tool_choice="auto",
                     tools=(str(name) for name in tool_names),
                     user="eval_user",
+                    seed=42,
                     stream=False,
                 )
 
