@@ -130,7 +130,6 @@ def list_conversations_metadata(
     conversation_types: Annotated[
         Optional[list[ConversationType]], "The type of conversations to list"
     ] = None,
-    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
@@ -153,7 +152,7 @@ def list_conversations_metadata(
         )  # Slack recommends max 200 results at a time
         response = slackClient.conversations_list(
             types=types,
-            exclude_archived=exclude_archived,
+            exclude_archived=True,
             limit=iteration_limit,
             next_page_token=next_page_token,
         )
@@ -179,7 +178,6 @@ def list_conversations_metadata(
 )
 def list_public_channels_metadata(
     context: ToolContext,
-    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
@@ -189,12 +187,10 @@ def list_public_channels_metadata(
     return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PUBLIC_CHANNEL],
-        exclude_archived=exclude_archived,
         limit=limit,
     )
 
 
-# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["groups:read"],
@@ -202,7 +198,6 @@ def list_public_channels_metadata(
 )
 def list_private_channels_metadata(
     context: ToolContext,
-    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
@@ -212,12 +207,10 @@ def list_private_channels_metadata(
     return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PRIVATE_CHANNEL],
-        exclude_archived=exclude_archived,
         limit=limit,
     )
 
 
-# TODO: Exclude archived by default
 @tool(
     requires_auth=Slack(
         scopes=["mpim:read"],
@@ -225,7 +218,6 @@ def list_private_channels_metadata(
 )
 def list_group_direct_message_channels_metadata(
     context: ToolContext,
-    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
@@ -235,7 +227,6 @@ def list_group_direct_message_channels_metadata(
     return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.MPIM],
-        exclude_archived=exclude_archived,
         limit=limit,
     )
 
@@ -249,7 +240,6 @@ def list_group_direct_message_channels_metadata(
 )
 def list_direct_message_channels_metadata(
     context: ToolContext,
-    exclude_archived: Annotated[Optional[bool], "Whether to exclude archived conversations"] = True,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
@@ -259,7 +249,6 @@ def list_direct_message_channels_metadata(
     return list_conversations_metadata(
         context,
         conversation_types=[ConversationType.IM],
-        exclude_archived=exclude_archived,
         limit=limit,
     )
 
