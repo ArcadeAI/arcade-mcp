@@ -25,6 +25,19 @@ check: ## Run code quality tools.
 	@echo "🚀 Static type checking: Running mypy"
 	@cd arcade && poetry run mypy $(git ls-files '*.py')
 
+
+.PHONY: check-toolkits
+check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
+	@echo "🚀 Running 'make check' in each toolkit with a Makefile"
+	@for dir in toolkits/*/ ; do \
+		if [ -f "$$dir/Makefile" ]; then \
+			echo "🛠️ Checking toolkit $$dir"; \
+			(cd "$$dir" && make check); \
+		else \
+			echo "🛠️ Skipping toolkit $$dir (no Makefile found)"; \
+		fi; \
+	done
+
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
@@ -95,8 +108,8 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo "Setting version to $(VERSION)"
 	@make set-version
 
-	@echo "🛠️ Building all projects and copying wheels to ./dist"
-	@mkdir -p dist/toolkits
+	# @echo "🛠️ Building all projects and copying wheels to ./dist"
+	@mkdir -p dist
 
 	# Build the main arcade project
 	@echo "🛠️ Building arcade project wheel..."
@@ -110,19 +123,15 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 
 	@echo "🛠️ Building all projects and copying wheels to ./dist"
 	# Build and copy wheels for each toolkit
-	@for toolkit_dir in toolkits/*; do \
-		if [ -d "$$toolkit_dir" ]; then \
-			toolkit_name=$$(basename "$$toolkit_dir"); \
-			echo "Building $$toolkit_name project..."; \
-			cd "$$toolkit_dir" && poetry version $(VERSION); \
-            awk '{gsub(/arcade-ai = "0.1.\*"/, "arcade-ai = \"$(VERSION)\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
-            poetry build; \
-			cp dist/*.whl ../../dist/toolkits; \
-            poetry version 0.1.0; \
-            awk '{gsub(/arcade-ai = "$(VERSION)"/, "arcade-ai = \"0.1.\*\"")}1' pyproject.toml > temp_file && mv temp_file pyproject.toml; \
-			cd -; \
-		fi; \
-	done
+	# @for toolkit_dir in toolkits/*; do \
+	# 	if [ -d "$$toolkit_dir" ]; then \
+	# 		toolkit_name=$$(basename "$$toolkit_dir"); \
+	# 		echo "Building $$toolkit_name project..."; \
+    #         poetry build; \
+	# 		cp dist/*.whl ../../dist/toolkits; \
+	# 		cd -; \
+	# 	fi; \
+	# done
 
 	@echo "✅ All toolkits built and wheels copied to ./dist"
 
@@ -143,5 +152,7 @@ clean-dist: ## Clean all built distributions
 help:
 	@echo "🛠️ Arcade AI Dev Commands:\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+
 
 .DEFAULT_GOAL := help

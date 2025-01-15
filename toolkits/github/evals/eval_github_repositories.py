@@ -1,3 +1,12 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    tool_eval,
+)
+
 import arcade_github
 from arcade_github.tools.models import SortDirection
 from arcade_github.tools.repositories import (
@@ -6,14 +15,6 @@ from arcade_github.tools.repositories import (
     list_org_repositories,
     list_repository_activities,
     list_review_comments_in_a_repository,
-)
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    tool_eval,
 )
 
 # Evaluation rubric
@@ -42,9 +43,9 @@ def github_repositories_eval_suite() -> EvalSuite:
         name="Count stargazers of a repository",
         user_message="How many stargazers does the ArcadeAI/test repo have?",
         expected_tool_calls=[
-            (
-                count_stargazers,
-                {
+            ExpectedToolCall(
+                func=count_stargazers,
+                args={
                     "owner": "ArcadeAI",
                     "name": "test",
                 },
@@ -61,9 +62,9 @@ def github_repositories_eval_suite() -> EvalSuite:
         name="List repositories in an organization",
         user_message="List all repos in the ArcadeAI org, sorted by creation date in descending order.",
         expected_tool_calls=[
-            (
-                list_org_repositories,
-                {
+            ExpectedToolCall(
+                func=list_org_repositories,
+                args={
                     "org": "ArcadeAI",
                     "repo_type": "all",
                     "sort": "created",
@@ -84,9 +85,9 @@ def github_repositories_eval_suite() -> EvalSuite:
         name="Get details of a repository",
         user_message="Tell me about the test repo owned by ArcadeAI.",
         expected_tool_calls=[
-            (
-                get_repository,
-                {
+            ExpectedToolCall(
+                func=get_repository,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "include_extra_data": False,
@@ -104,9 +105,9 @@ def github_repositories_eval_suite() -> EvalSuite:
         name="List activities in a repository",
         user_message="List all PR merges in the 'ArcadeAI/test' repository that were performed by TestUser in the last month",
         expected_tool_calls=[
-            (
-                list_repository_activities,
-                {
+            ExpectedToolCall(
+                func=list_repository_activities,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "direction": SortDirection.DESC,
@@ -133,9 +134,9 @@ def github_repositories_eval_suite() -> EvalSuite:
         name="List review comments in a repository",
         user_message="List all review comments in the 'ArcadeAI/test' repository, sorted by creation date in descending order.",
         expected_tool_calls=[
-            (
-                list_review_comments_in_a_repository,
-                {
+            ExpectedToolCall(
+                func=list_review_comments_in_a_repository,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "sort": "created",

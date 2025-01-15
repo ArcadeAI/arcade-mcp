@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
-from typing import Annotated
-
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 from arcade.sdk.errors import RetryableToolError
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
 from arcade_google.tools.models import EventVisibility, SendUpdatesOptions
 from arcade_google.tools.utils import parse_datetime
 
@@ -44,7 +44,15 @@ async def create_event(
 ) -> Annotated[dict, "A dictionary containing the created event details"]:
     """Create a new event/meeting/sync/meetup in the specified calendar."""
 
-    service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -54,7 +62,7 @@ async def create_event(
     start_dt = parse_datetime(start_datetime, time_zone)
     end_dt = parse_datetime(end_datetime, time_zone)
 
-    event = {
+    event: dict[str, Any] = {
         "summary": summary,
         "description": description,
         "location": location,
@@ -82,11 +90,13 @@ async def list_events(
     context: ToolContext,
     min_end_datetime: Annotated[
         str,
-        "Filter by events that end on or after this datetime in ISO 8601 format, e.g., '2024-09-15T09:00:00'.",
+        "Filter by events that end on or after this datetime in ISO 8601 format, "
+        "e.g., '2024-09-15T09:00:00'.",
     ],
     max_start_datetime: Annotated[
         str,
-        "Filter by events that start before this datetime in ISO 8601 format, e.g., '2024-09-16T17:00:00'.",
+        "Filter by events that start before this datetime in ISO 8601 format, "
+        "e.g., '2024-09-16T17:00:00'.",
     ],
     calendar_id: Annotated[str, "The ID of the calendar to list events from"] = "primary",
     max_results: Annotated[int, "The maximum number of events to return"] = 10,
@@ -98,14 +108,23 @@ async def list_events(
     max_start_datetime serves as the upper bound (exclusive) for an event's start time.
 
     For example:
-    If min_end_datetime is set to 2024-09-15T09:00:00 and max_start_datetime is set to 2024-09-16T17:00:00,
-    the function will return events that:
+    If min_end_datetime is set to 2024-09-15T09:00:00 and max_start_datetime
+    is set to 2024-09-16T17:00:00, the function will return events that:
     1. End after 09:00 on September 15, 2024 (exclusive)
     2. Start before 17:00 on September 16, 2024 (exclusive)
-    This means an event starting at 08:00 on September 15 and ending at 10:00 on September 15 would be included,
-    but an event starting at 17:00 on September 16 would not be included.
+    This means an event starting at 08:00 on September 15 and
+    ending at 10:00 on September 15 would be included, but an
+    event starting at 17:00 on September 16 would not be included.
     """
-    service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -157,7 +176,7 @@ async def list_events(
 
 @tool(
     requires_auth=Google(
-        scopes=["https://www.googleapis.com/auth/calendar"],
+        scopes=["https://www.googleapis.com/auth/calendar.events"],
     )
 )
 async def update_event(
@@ -165,7 +184,8 @@ async def update_event(
     event_id: Annotated[str, "The ID of the event to update"],
     updated_start_datetime: Annotated[
         str | None,
-        "The updated datetime that the event starts in ISO 8601 format, e.g., '2024-12-31T15:30:00'.",
+        "The updated datetime that the event starts in ISO 8601 format, "
+        "e.g., '2024-12-31T15:30:00'.",
     ] = None,
     updated_end_datetime: Annotated[
         str | None,
@@ -180,26 +200,39 @@ async def update_event(
     updated_visibility: Annotated[EventVisibility | None, "The visibility of the event"] = None,
     attendee_emails_to_add: Annotated[
         list[str] | None,
-        "The list of attendee emails to add. Must be valid email addresses e.g., username@domain.com.",
+        "The list of attendee emails to add. Must be valid email addresses "
+        "e.g., username@domain.com.",
     ] = None,
     attendee_emails_to_remove: Annotated[
         list[str] | None,
-        "The list of attendee emails to remove. Must be valid email addresses e.g., username@domain.com.",
+        "The list of attendee emails to remove. Must be valid email addresses "
+        "e.g., username@domain.com.",
     ] = None,
     send_updates: Annotated[
-        SendUpdatesOptions, "Should attendees be notified of the update? (none, all, external_only)"
+        SendUpdatesOptions,
+        "Should attendees be notified of the update? (none, all, external_only)",
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[
     str,
-    "A string containing the updated event details, including the event ID, update timestamp, and a link to view the updated event.",
+    "A string containing the updated event details, including the event ID, update timestamp, "
+    "and a link to view the updated event.",
 ]:
     """
     Update an existing event in the specified calendar with the provided details.
     Only the provided fields will be updated; others will remain unchanged.
 
-    `updated_start_datetime` and `updated_end_datetime` are independent and can be provided separately.
+    `updated_start_datetime` and `updated_end_datetime` are
+    independent and can be provided separately.
     """
-    service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     calendar = service.calendars().get(calendarId="primary").execute()
     time_zone = calendar["timeZone"]
@@ -221,16 +254,21 @@ async def update_event(
         )
         raise RetryableToolError(
             f"Event with ID {event_id} not found.",
-            additional_prompt_content=f"Here is a list of valid events. The event_id parameter must match one of these: {valid_events_with_id}",
+            additional_prompt_content=(
+                f"Here is a list of valid events. The event_id parameter must match one of these: "
+                f"{valid_events_with_id}"
+            ),
             retry_after_ms=1000,
-            developer_message=f"Event with ID {event_id} not found. Please try again with a valid event ID.",
+            developer_message=(
+                f"Event with ID {event_id} not found. Please try again with a valid event ID."
+            ),
         )
 
     update_fields = {
-        "start": {"dateTime": updated_start_datetime.isoformat(), "timeZone": time_zone}
+        "start": {"dateTime": updated_start_datetime, "timeZone": time_zone}
         if updated_start_datetime
         else None,
-        "end": {"dateTime": updated_end_datetime.isoformat(), "timeZone": time_zone}
+        "end": {"dateTime": updated_end_datetime, "timeZone": time_zone}
         if updated_end_datetime
         else None,
         "calendarId": updated_calendar_id,
@@ -272,7 +310,10 @@ async def update_event(
         )
         .execute()
     )
-    return f"Event with ID {event_id} successfully updated at {updated_event['updated']}. View updated event at {updated_event['htmlLink']}"
+    return (
+        f"Event with ID {event_id} successfully updated at {updated_event['updated']}. "
+        f"View updated event at {updated_event['htmlLink']}"
+    )
 
 
 @tool(
@@ -289,7 +330,15 @@ async def delete_event(
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
-    service = build("calendar", "v3", credentials=Credentials(context.authorization.token))
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     service.events().delete(
         calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value
@@ -303,4 +352,7 @@ async def delete_event(
     elif send_updates == SendUpdatesOptions.NONE:
         notification_message = "No notifications were sent to attendees."
 
-    return f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. {notification_message}"
+    return (
+        f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. "
+        f"{notification_message}"
+    )

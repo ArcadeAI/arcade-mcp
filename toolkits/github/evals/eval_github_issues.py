@@ -1,16 +1,17 @@
-import arcade_github
-from arcade_github.tools.issues import (
-    create_issue,
-    create_issue_comment,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     SimilarityCritic,
     tool_eval,
+)
+
+import arcade_github
+from arcade_github.tools.issues import (
+    create_issue,
+    create_issue_comment,
 )
 
 # Evaluation rubric
@@ -39,9 +40,9 @@ def github_issues_eval_suite() -> EvalSuite:
         name="Create a new issue",
         user_message="Create a new issue in the 'ArcadeAI/arcade-ai' repository with the title 'Bug: Login not working' and description 'Users are unable to log in to the application.' Assign the issue to TestUser, add it to milestone 1, and add the labels 'bug', and 'critical'.",
         expected_tool_calls=[
-            (
-                create_issue,
-                {
+            ExpectedToolCall(
+                func=create_issue,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "arcade-ai",
                     "title": "Bug: Login not working",
@@ -69,9 +70,9 @@ def github_issues_eval_suite() -> EvalSuite:
         name="Add a comment to an existing issue",
         user_message="Add a comment to issue #42 in the 'ArcadeAI/test' repository saying 'This issue is being investigated by the dev team.'",
         expected_tool_calls=[
-            (
-                create_issue_comment,
-                {
+            ExpectedToolCall(
+                func=create_issue_comment,
+                args={
                     "owner": "ArcadeAI",
                     "repo": "test",
                     "issue_number": 42,

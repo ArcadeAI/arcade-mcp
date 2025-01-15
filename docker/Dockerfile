@@ -12,6 +12,7 @@ ENV HOST=${HOST}
 ENV VERSION=${VERSION}
 ENV OTEL_ENABLE=false
 ENV ARCADE_WORK_DIR=/app
+ENV TOOLKITS="arcade-code-sandbox,arcade-github,arcade-google,arcade-linkedin,arcade-math,arcade-search,arcade-slack,arcade-spotify,arcade-web,arcade-x,arcade-zoom"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -34,19 +35,14 @@ RUN ls -lah /app/arcade/
 
 
 # Install the wheel with extras (not evals for now)
-RUN python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl
+RUN python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl fastapi
 RUN python -m pip install -r ./requirements.txt
-
-# Install toolkits from the toolkits directory
-RUN set -e; \
-    for toolkit in ./toolkits/*; do \
-    echo "Installing toolkit $toolkit"; \
-    python -m pip install $toolkit; \
-    done
 
 
 # Expose the port
 EXPOSE $PORT
 
-# Run the arcade actorup (hidden cli command)
-CMD arcade actorup --host $HOST --port $PORT $([ "$OTEL_ENABLE" = "true" ] && echo "--otel-enable")
+# Run the arcade workerup (hidden cli command)
+COPY docker/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]

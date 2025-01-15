@@ -1,14 +1,16 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    SimilarityCritic,
+    tool_eval,
+)
+
 import arcade_code_sandbox
 from arcade_code_sandbox.tools.e2b import create_static_matplotlib_chart, run_code
 from arcade_code_sandbox.tools.models import E2BSupportedLanguage
-
-from arcade.core.catalog import ToolCatalog
-from arcade.sdk.eval import (
-    EvalRubric,
-    EvalSuite,
-    tool_eval,
-)
-from arcade.sdk.eval.critic import BinaryCritic, SimilarityCritic
 
 merge_sort_code = """
 def merge_sort(arr):
@@ -84,9 +86,9 @@ def code_sandbox_eval_suite():
         name="Run code",
         user_message=f"Can you please run my merge sort algo?\n\n{merge_sort_code}",
         expected_tool_calls=[
-            (
-                run_code,
-                {
+            ExpectedToolCall(
+                func=run_code,
+                args={
                     "code": merge_sort_code,
                     "language": E2BSupportedLanguage.PYTHON,
                 },
@@ -102,9 +104,9 @@ def code_sandbox_eval_suite():
         name="Create static matplotlib chart",
         user_message=f"Run this code:\n\n{matplotlib_chart_code}",
         expected_tool_calls=[
-            (
-                create_static_matplotlib_chart,
-                {
+            ExpectedToolCall(
+                func=create_static_matplotlib_chart,
+                args={
                     "code": matplotlib_chart_code,
                 },
             )

@@ -18,22 +18,22 @@
       "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
     },
     {
-      "name": "Debug `arcade actorup --no-auth`",
+      "name": "Debug `arcade workerup --no-auth`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["actorup", "--no-auth"],
+      "args": ["workerup", "--no-auth"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Debug `arcade chat -s -h localhost`",
+      "name": "Debug `arcade chat -s -d -h localhost`",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
-      "args": ["chat", "-s", "-h", "localhost"],
+      "args": ["chat", "-d", "-h", "localhost"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

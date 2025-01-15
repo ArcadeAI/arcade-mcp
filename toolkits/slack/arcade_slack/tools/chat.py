@@ -2,12 +2,12 @@ import datetime
 import time
 from typing import Annotated, Optional
 
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+
 from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
@@ -32,7 +32,10 @@ def send_dm_to_user(
     context: ToolContext,
     user_name: Annotated[
         str,
-        "The Slack username of the person you want to message. Slack usernames are ALWAYS lowercase.",
+        (
+            "The Slack username of the person you want to message. "
+            "Slack usernames are ALWAYS lowercase."
+        ),
     ],
     message: Annotated[str, "The message you want to send"],
 ):
@@ -85,40 +88,38 @@ def send_message_to_channel(
     context: ToolContext,
     channel_name: Annotated[
         str,
-        "The Slack channel name where you want to send the message. Slack channel names are ALWAYS lowercase.",
+        "The Slack channel name where you want to send the message. "
+        "Slack channel names are ALWAYS lowercase.",
     ],
     message: Annotated[str, "The message you want to send"],
-):
+) -> Annotated[dict, "The response from the Slack API"]:
     """Send a message to a channel in Slack."""
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = WebClient(
+        token=context.authorization.token
+        if context.authorization and context.authorization.token
+        else ""
+    )
 
-    try:
-        # Step 1: Retrieve the list of channels
-        channels_response = slackClient.conversations_list()
-        channel_id = None
-        for channel in channels_response["channels"]:
-            if channel["name"].lower() == channel_name.lower():
-                channel_id = channel["id"]
-                break
+    # Step 1: Retrieve the list of channels
+    channels_response = slackClient.conversations_list()
+    channel_id = None
+    for channel in channels_response["channels"]:
+        if channel["name"].lower() == channel_name.lower():
+            channel_id = channel["id"]
+            break
 
-        if not channel_id:
-            raise RetryableToolError(
-                "Channel not found",
-                developer_message=f"Channel with name '{channel_name}' not found.",
-                additional_prompt_content=format_channels(channels_response),
-                retry_after_ms=500,  # Play nice with Slack API rate limits
-            )
-
-        # Step 2: Send the message to the channel
-        slackClient.chat_postMessage(channel=channel_id, text=message)
-
-    except SlackApiError as e:
-        error_message = e.response["error"] if "error" in e.response else str(e)
-        raise ToolExecutionError(
-            "Error sending message",
-            developer_message=f"Slack API Error: {error_message}",
+    if not channel_id:
+        raise RetryableToolError(
+            "Channel not found",
+            developer_message=f"Channel with name '{channel_name}' not found.",
+            additional_prompt_content=format_channels(channels_response),
+            retry_after_ms=500,  # Play nice with Slack API rate limits
         )
+
+    # Step 2: Send the message to the channel
+    response = slackClient.chat_postMessage(channel=channel_id, text=message)
+    response.validate()
 
 
 @tool(
@@ -135,7 +136,9 @@ def list_conversations_metadata(
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
     ] = -1,
 ) -> Annotated[dict, "The conversations metadata"]:
-    """List metadata for Slack conversations that the user is a member of given the provided filters."""
+    """
+    List metadata for Slack conversations that the user is a member of given the provided filters.
+    """
 
     if conversation_types is None:
         types = ",".join(conv_type.value for conv_type in ConversationType)
@@ -350,7 +353,8 @@ def get_members_from_conversation_id(
             break
 
     # Get the members' info
-    # TODO: This will probably hit rate limits. We should probably call list_users() and then filter the results instead.
+    # TODO: This will probably hit rate limits. We should probably call list_users() and
+    # then filter the results instead.
     members = [get_user_info_by_id(context, member_id) for member_id in member_ids]
 
     return {"members": members}
@@ -405,19 +409,31 @@ def get_conversation_history_by_id(
     conversation_id: Annotated[str, "The ID of the conversation to get history for"],
     oldest_relative: Annotated[
         Optional[str],
-        "The oldest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
+        (
+            "The oldest message to include in the results, specified as a time offset from the "
+            "current time in the format 'DD:HH:MM'"
+        ),
     ] = None,
     latest_relative: Annotated[
         Optional[str],
-        "The latest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
+        (
+            "The latest message to include in the results, specified as a time offset from the "
+            "current time in the format 'DD:HH:MM'"
+        ),
     ] = None,
     oldest_datetime: Annotated[
         Optional[str],
-        "The oldest message to include in the results, specified as a datetime object in the format 'YYYY-MM-DD HH:MM:SS'.",
+        (
+            "The oldest message to include in the results, specified as a datetime object in the "
+            "format 'YYYY-MM-DD HH:MM:SS'"
+        ),
     ] = None,
     latest_datetime: Annotated[
         Optional[str],
-        "The latest message to include in the results, specified as a datetime object in the format 'YYYY-MM-DD HH:MM:SS'.",
+        (
+            "The latest message to include in the results, specified as a datetime object in the "
+            "format 'YYYY-MM-DD HH:MM:SS'"
+        ),
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
@@ -425,7 +441,10 @@ def get_conversation_history_by_id(
     cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
 ) -> Annotated[
     dict,
-    "The conversation history and next cursor for paginating results (when there are additional messages to retrieve).",
+    (
+        "The conversation history and next cursor for paginating results (when there are "
+        "additional messages to retrieve)."
+    ),
 ]:
     """Get the history of a conversation in Slack."""
     # This is super ugly I know, I'm sorry, we are soon implementing a better solution

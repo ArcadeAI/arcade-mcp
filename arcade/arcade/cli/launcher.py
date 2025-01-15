@@ -30,25 +30,25 @@ if os.environ.get("HOMEBREW_REPOSITORY") is not None:
 
 
 def start_servers(
-    actor_host: str,
-    actor_port: int,
+    worker_host: str,
+    worker_port: int,
     engine_config: str | None,
     engine_env: str | None = None,
     debug: bool = False,
 ) -> None:
     """
-    Start the actor and engine servers.
+    Start the worker and engine servers.
 
     Args:
-        host: Host for the actor server.
-        port: Port for the actor server.
+        host: Host for the worker server.
+        port: Port for the worker server.
         engine_config: Path to the engine configuration file.
         engine_env: Path to the engine environment file.
         debug: Whether to run in debug mode.
     """
     # Validate host and port
-    actor_host = _validate_host(actor_host)
-    actor_port = _validate_port(actor_port)
+    worker_host = _validate_host(worker_host)
+    worker_port = _validate_port(worker_port)
 
     # Ensure engine_config is provided and validated
     engine_config = _get_config_file(engine_config, default_filename="engine.yaml")
@@ -56,14 +56,14 @@ def start_servers(
     # Ensure engine_env is provided or found and either way, validated
     env_file = _get_config_file(engine_env, default_filename="arcade.env", optional=True)
 
-    # Prepare command-line arguments for the actor server and engine
-    actor_cmd = _build_actor_command(actor_host, actor_port, debug)
+    # Prepare command-line arguments for the worker server and engine
+    worker_cmd = _build_worker_command(worker_host, worker_port, debug)
 
     # even if the user didn't pass an env file we may have found it in the default locations
     engine_cmd = _build_engine_command(engine_config, engine_env=env_file if env_file else None)
 
     # Start and manage the processes
-    _manage_processes(actor_cmd, actor_host, actor_port, engine_cmd, debug=debug)
+    _manage_processes(worker_cmd, worker_host, worker_port, engine_cmd, debug=debug)
 
 
 def _validate_host(host: str) -> str:
@@ -71,7 +71,7 @@ def _validate_host(host: str) -> str:
     Validates the host input.
 
     Args:
-        host: Host for the actor server.
+        host: Host for the worker server.
 
     Returns:
         The validated host as a string.
@@ -95,7 +95,7 @@ def _validate_port(port: int) -> int:
     Validates the port input.
 
     Args:
-        port: Port for the actor server.
+        port: Port for the worker server.
 
     Returns:
         The validated port as an integer.
@@ -154,29 +154,35 @@ def _get_config_file(
 
     if optional:
         console.print(
-            f"⚠️ Optional config file '{default_filename}' not found in either of the default locations: "
-            f"1) current working directory: {Path.cwd() / default_filename}, or "
-            f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
+            f"⚠️  Optional config file '{default_filename}' not found in either of the default locations: "
+            f"   1) Current working directory: {Path.cwd() / default_filename}, or "
+            f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}.",
             style="bold yellow",
         )
         return None
 
     console.print(
-        f"❌ Config file '{default_filename}' not found in any of the default locations: "
-        f"1) current working directory: {Path.cwd() / default_filename}, or "
-        f"2) user's home directory: {Path.home() / '.arcade' / default_filename}.",
+        f"❌ Error: Required config file '{default_filename}' not found in any of the default locations:\n"
+        f"   1) Current working directory: {Path.cwd() / default_filename}, or\n"
+        f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}\n",
         style="bold red",
     )
+    console.print(
+        "TIP: Please install the Arcade Engine by following the instructions at:\n"
+        "     https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
+        style="bold green",
+    )
+
     raise RuntimeError(f"Config file '{default_filename}' not found.")
 
 
-def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
+def _build_worker_command(host: str, port: int, debug: bool) -> list[str]:
     """
-    Builds the command to start the actor server.
+    Builds the command to start the worker server.
 
     Args:
-        host: Host for the actor server.
-        port: Port for the actor server.
+        host: Host for the worker server.
+        port: Port for the worker server.
         debug: Whether to run in debug mode.
 
     Returns:
@@ -192,7 +198,7 @@ def _build_actor_command(host: str, port: int, debug: bool) -> list[str]:
         sys.exit(1)
     cmd = [
         arcade_bin,
-        "actorup",
+        "workerup",
         "--host",
         host,
         "--port",
@@ -240,28 +246,28 @@ def _build_engine_command(engine_config: str | None, engine_env: str | None = No
 
 
 def _manage_processes(
-    actor_cmd: list[str],
-    actor_host: str,
-    actor_port: int,
+    worker_cmd: list[str],
+    worker_host: str,
+    worker_port: int,
     engine_cmd: list[str],
     engine_env: dict[str, str] | None = None,
     debug: bool = False,
 ) -> None:
     """
-    Manages the lifecycle of the actor and engine processes.
+    Manages the lifecycle of the worker and engine processes.
 
     Args:
-        actor_cmd: The command to start the actor server.
+        worker_cmd: The command to start the worker server.
         engine_cmd: The command to start the engine.
         engine_env: Environment variables to set for the engine.
         debug: Whether to run in debug mode.
     """
-    actor_process: subprocess.Popen | None = None
+    worker_process: subprocess.Popen | None = None
     engine_process: subprocess.Popen | None = None
 
     def terminate_processes(exit_program: bool = False) -> None:
         console.print("Terminating child processes...", style="bold yellow")
-        _terminate_process(actor_process)
+        _terminate_process(worker_process)
         _terminate_process(engine_process)
         if exit_program:
             sys.exit(0)
@@ -273,18 +279,18 @@ def _manage_processes(
 
     while retry_count <= max_retries:
         try:
-            # Start the actor server
-            console.print("Starting actor server...", style="bold green")
-            actor_process = _start_process("Actor", actor_cmd, debug=debug)
+            # Start the worker server
+            console.print("Starting worker server...", style="bold green")
+            worker_process = _start_process("Worker", worker_cmd, debug=debug)
 
-            _wait_for_healthy_actor(actor_process, actor_host, actor_port)
+            _wait_for_healthy_worker(worker_process, worker_host, worker_port)
 
             # Start the engine
             console.print("Starting engine...", style="bold green")
             engine_process = _start_process("Engine", engine_cmd, env=engine_env, debug=debug)
 
             # Monitor processes
-            _monitor_processes(actor_process, engine_process)
+            _monitor_processes(worker_process, engine_process)
 
             # If we reach here, one of the processes has exited
             retry_count += 1
@@ -339,7 +345,7 @@ def _start_process(
     else:
         _env["GIN_MODE"] = "release"
 
-    if name == "Actor":
+    if name == "Worker":
         _env["PYTHONUNBUFFERED"] = "1"
 
     try:
@@ -359,26 +365,26 @@ def _start_process(
         raise RuntimeError(f"Failed to start {name}")
 
 
-def _wait_for_healthy_actor(
-    actor_process: subprocess.Popen, actor_host: str, actor_port: int
+def _wait_for_healthy_worker(
+    worker_process: subprocess.Popen, worker_host: str, worker_port: int
 ) -> None:
-    """Wait until an HTTP request to `host:port/actor/health` returns 200"""
+    """Wait until an HTTP request to `host:port/worker/health` returns 200"""
 
-    while actor_process.poll() is None:  # Continue waiting UNLESS the actor process has exited
+    while worker_process.poll() is None:  # Continue waiting UNLESS the worker process has exited
         time.sleep(1)
         try:
-            conn = http.client.HTTPConnection(actor_host, actor_port, timeout=1)
-            conn.request("GET", "/actor/health")
+            conn = http.client.HTTPConnection(worker_host, worker_port, timeout=1)
+            conn.request("GET", "/worker/health")
             res = conn.getresponse()
             if res.status == 200:
                 break
             conn.close()
         except (socket.gaierror, http.client.HTTPException, ConnectionRefusedError, TimeoutError):
             pass  # Handle expected exceptions gracefully
-        console.print("Waiting for actor to start...", style="bold yellow")
+        console.print("Waiting for worker to start...", style="bold yellow")
 
     time.sleep(1)  # Wait just a little longer for everything to settle (discovered experimentally)
-    console.print("Actor is healthy", style="bold green")
+    console.print("Worker is healthy", style="bold green")
 
 
 def _stream_output(process: subprocess.Popen, name: str) -> None:
@@ -389,7 +395,7 @@ def _stream_output(process: subprocess.Popen, name: str) -> None:
         process: The subprocess.Popen object.
         name: Name of the process.
     """
-    stdout_style = "green" if name == "Actor" else "#87CEFA"
+    stdout_style = "green" if name == "Worker" else "#87CEFA"
 
     def stream(pipe: io.TextIOWrapper | None, style: str) -> None:
         if pipe is None:
@@ -412,23 +418,23 @@ def _stream_output(process: subprocess.Popen, name: str) -> None:
     threading.Thread(target=stream, args=(process.stderr, "red"), daemon=True).start()
 
 
-def _monitor_processes(actor_process: subprocess.Popen, engine_process: subprocess.Popen) -> None:
+def _monitor_processes(worker_process: subprocess.Popen, engine_process: subprocess.Popen) -> None:
     """
-    Monitors the actor and engine processes, restarts them if they exit.
+    Monitors the worker and engine processes, restarts them if they exit.
 
     Args:
-        actor_process: The actor subprocess.
+        worker_process: The worker subprocess.
         engine_process: The engine subprocess.
     """
 
     while True:
-        actor_status = actor_process.poll()
+        worker_status = worker_process.poll()
         engine_status = engine_process.poll()
 
-        if actor_status is not None or engine_status is not None:
-            if actor_status is not None:
+        if worker_status is not None or engine_status is not None:
+            if worker_status is not None:
                 console.print(
-                    f"Actor process exited with code {actor_status}. Restarting both processes...",
+                    f"Worker process exited with code {worker_status}. Restarting both processes...",
                     style="bold red",
                 )
             if engine_status is not None:
@@ -436,7 +442,7 @@ def _monitor_processes(actor_process: subprocess.Popen, engine_process: subproce
                     f"Engine process exited with code {engine_status}. Restarting both processes...",
                     style="bold red",
                 )
-            _terminate_process(actor_process)
+            _terminate_process(worker_process)
             _terminate_process(engine_process)
             time.sleep(1)
             break  # Exit to restart both processes

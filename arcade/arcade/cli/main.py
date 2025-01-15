@@ -12,25 +12,23 @@ from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
+from tqdm import tqdm
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST
+from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
 from arcade.cli.display import (
     display_arcade_chat_header,
     display_eval_results,
-    display_tool_details,
     display_tool_messages,
-    display_tools_table,
 )
 from arcade.cli.launcher import start_servers
+from arcade.cli.show import show_logic
 from arcade.cli.utils import (
     OrderCommands,
     compute_engine_base_url,
     compute_login_url,
-    create_cli_catalog,
     delete_deprecated_config_file,
     get_eval_files,
-    get_tools_from_engine,
     get_user_input,
     handle_chat_interaction,
     handle_tool_authorization,
@@ -177,38 +175,7 @@ def show(
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    try:
-        if local:
-            catalog = create_cli_catalog(toolkit=toolkit)
-            tools = [t.definition for t in list(catalog)]
-        else:
-            tools = get_tools_from_engine(host, port, force_tls, force_no_tls, toolkit)
-
-        if tool:
-            # Display detailed information for the specified tool
-            tool_def = next(
-                (
-                    t
-                    for t in tools
-                    if t.get_fully_qualified_name().name.lower() == tool.lower()
-                    or str(t.get_fully_qualified_name()).lower() == tool.lower()
-                ),
-                None,
-            )
-            if not tool_def:
-                console.print(f"❌ Tool '{tool}' not found.", style="bold red")
-                typer.Exit(code=1)
-            else:
-                display_tool_details(tool_def)
-        else:
-            # Display the list of tools as a table
-            display_tools_table(tools)
-
-    except Exception as e:
-        if debug:
-            raise
-        error_message = f"❌ Failed to list tools: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+    show_logic(toolkit, tool, host, local, port, force_tls, force_no_tls, debug)
 
 
 @cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
@@ -282,7 +249,9 @@ def chat(
             # Add the input to history
             readline.add_history(user_input)
 
-            if handle_user_command(user_input, history, host, port, force_tls, force_no_tls, show):
+            if handle_user_command(
+                user_input, history, host, port, force_tls, force_no_tls, show_logic
+            ):
                 continue
 
             history.append({"role": "user", "content": user_input})
@@ -342,13 +311,18 @@ def evals(
         "gpt-4o",
         "--models",
         "-m",
-        help="The models to use for evaluation (default: gpt-4o)",
+        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models.",
     ),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        LOCALHOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
+    ),
+    cloud: bool = typer.Option(
+        False,
+        "--cloud",
+        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
     ),
     port: int = typer.Option(
         None,
@@ -372,6 +346,8 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     config = validate_and_get_config()
+
+    host = DEFAULT_ENGINE_HOST if cloud else host
     base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
@@ -380,13 +356,12 @@ def evals(
     if not eval_files:
         return
 
-    if show_details:
-        console.print(
-            Text.assemble(
-                ("\nRunning evaluations against Arcade Engine at ", "bold"),
-                (base_url, "bold blue"),
-            )
+    console.print(
+        Text.assemble(
+            ("\nRunning evaluations against Arcade Engine at ", "bold"),
+            (base_url, "bold blue"),
         )
+    )
 
     # Try to hit /health endpoint on engine and warn if it is down
     with Arcade(api_key=config.api.key, base_url=base_url) as client:
@@ -427,10 +402,14 @@ def evals(
                 )
                 tasks.append(task)
 
-        # TODO add a progress bar here
+        # Track progress and results as suite functions complete
+        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
+            results = []
+            for f in asyncio.as_completed(tasks):
+                results.append(await f)
+                pbar.update(1)
+
         # TODO error handling on each eval
-        # Wait for all suite functions to complete
-        results = await asyncio.gather(*tasks)
         all_evaluations.extend(results)
         display_eval_results(all_evaluations, show_details=show_details)
 
@@ -439,9 +418,9 @@ def evals(
 
 @cli.command(help="Launch Arcade AI locally for tool dev", rich_help_panel="Launch")
 def dev(
-    host: str = typer.Option("127.0.0.1", help="Host for the actor server.", show_default=True),
+    host: str = typer.Option("127.0.0.1", help="Host for the worker server.", show_default=True),
     port: int = typer.Option(
-        8002, "-p", "--port", help="Port for the actor server.", show_default=True
+        8002, "-p", "--port", help="Port for the worker server.", show_default=True
     ),
     engine_config: str = typer.Option(
         None, "-c", "--config", help="Path to the engine configuration file."
@@ -452,7 +431,7 @@ def dev(
     debug: bool = typer.Option(False, "-d", "--debug", help="Show debug information"),
 ) -> None:
     """
-    Start both the actor and engine servers.
+    Start both the worker and engine servers.
     """
     try:
         start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
@@ -462,8 +441,8 @@ def dev(
         typer.Exit(code=1)
 
 
-@cli.command(help="Start a local Arcade Actor server", rich_help_panel="Launch", hidden=True)
-def actorup(
+@cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
+def workerup(
     host: str = typer.Option(
         "127.0.0.1",
         help="Host for the app, from settings by default.",
@@ -475,7 +454,7 @@ def actorup(
     disable_auth: bool = typer.Option(
         False,
         "--no-auth",
-        help="Disable authentication for the actor. Not recommended for production.",
+        help="Disable authentication for the worker. Not recommended for production.",
         show_default=True,
     ),
     otel_enable: bool = typer.Option(
@@ -484,18 +463,18 @@ def actorup(
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
-    Starts the actor with host, port, and reload options. Uses
-    Uvicorn as ASGI actor. Parameters allow runtime configuration.
+    Starts the worker with host, port, and reload options. Uses
+    Uvicorn as ASGI worker. Parameters allow runtime configuration.
     """
-    from arcade.cli.serve import serve_default_actor
+    from arcade.cli.serve import serve_default_worker
 
     try:
-        serve_default_actor(
+        serve_default_worker(
             host, port, disable_auth=disable_auth, enable_otel=otel_enable, debug=debug
         )
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        error_message = f"❌ Failed to start Arcade Actor: {escape(str(e))}"
+        error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)

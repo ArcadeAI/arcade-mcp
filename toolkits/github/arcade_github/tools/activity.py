@@ -1,13 +1,13 @@
 from typing import Annotated, Optional
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
+
 from arcade_github.tools.utils import get_github_json_headers, get_url, handle_github_response
 
 
-# Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#star-a-repository-for-the-authenticated-user and https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#unstar-a-repository-for-the-authenticated-user
+# Implements https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#star-a-repository-for-the-authenticated-user and https://docs.github.com/en/rest/activity/starring?apiVersion=2022-11-28#unstar-a-repository-for-the-authenticated-user  # noqa: E501
 # Example `arcade chat` usage: "star the vscode repo owned by microsoft"
 @tool(requires_auth=GitHub())
 async def set_starred(
@@ -26,7 +26,9 @@ async def set_starred(
     ```
     """
     url = get_url("user_starred", owner=owner, repo=name)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         if starred:
@@ -49,19 +51,22 @@ async def list_stargazers(
     repo: Annotated[str, "The name of the repository"],
     limit: Annotated[
         Optional[int],
-        "The maximum number of stargazers to return. If not provided, all stargazers will be returned.",
+        "The maximum number of stargazers to return. "
+        "If not provided, all stargazers will be returned.",
     ] = None,
 ) -> Annotated[dict, "A dictionary containing the stargazers for the specified repository"]:
     """List the stargazers for a GitHub repository."""
     url = get_url("repo_stargazers", owner=owner, repo=repo)
-    headers = get_github_json_headers(context.authorization.token)
-
-    per_page = min(limit, 100)
-    page = 1
-    stargazers = []
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     if limit is None:
         limit = 2**64 - 1
+
+    per_page = min(limit, 100)
+    page = 1
+    stargazers: list[dict] = []
 
     async with httpx.AsyncClient() as client:
         while len(stargazers) < limit:

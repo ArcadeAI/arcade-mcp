@@ -1,15 +1,14 @@
 import base64
 from email.message import EmailMessage
 from email.mime.text import MIMEText
-from typing import Annotated, Optional
-
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 from arcade.sdk.errors import RetryableToolError
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
 from arcade_google.tools.utils import (
     DateRange,
     build_query_string,
@@ -19,6 +18,7 @@ from arcade_google.tools.utils import (
     get_sent_email_url,
     parse_draft_email,
     parse_email,
+    process_email_messages,
     remove_none_values,
 )
 
@@ -42,7 +42,15 @@ async def send_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = EmailMessage()
     message.set_content(body)
@@ -80,7 +88,15 @@ async def send_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Send the draft email
     sent_message = service.users().drafts().send(userId="me", body={"id": email_id}).execute()
@@ -108,7 +124,15 @@ async def write_draft_email(
     Compose a new email draft using the Gmail API.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = MIMEText(body)
     message["to"] = recipient
@@ -149,7 +173,15 @@ async def update_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     message = MIMEText(body)
     message["to"] = recipient
@@ -188,7 +220,15 @@ async def delete_draft_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Delete the draft
     service.users().drafts().delete(userId="me", id=draft_email_id).execute()
@@ -209,7 +249,15 @@ async def trash_email(
     """
 
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     # Trash the email
     trashed_email = service.users().messages().trash(userId="me", id=email_id).execute()
@@ -233,7 +281,15 @@ async def list_draft_emails(
     Lists draft emails in the user's draft mailbox using the Gmail API.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     listed_drafts = service.users().drafts().list(userId="me").execute()
 
@@ -268,7 +324,7 @@ async def list_emails_by_header(
     subject: Annotated[Optional[str], "Words to find in the subject of the email"] = None,
     body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
-    limit: Annotated[Optional[int], "The maximum number of emails to return"] = 25,
+    limit: Annotated[int, "The maximum number of emails to return"] = 25,
 ) -> Annotated[
     dict, "A dictionary containing a list of email details matching the search criteria"
 ]:
@@ -279,31 +335,29 @@ async def list_emails_by_header(
     if not any([sender, recipient, subject, body]):
         raise RetryableToolError(
             message="At least one of sender, recipient, subject, or body must be provided.",
-            developer_message="At least one of sender, recipient, subject, or body must be provided.",
+            developer_message=(
+                "At least one of sender, recipient, subject, or body must be provided."
+            ),
         )
 
     query = build_query_string(sender, recipient, subject, body, date_range)
 
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
     messages = fetch_messages(service, query, limit)
 
     if not messages:
         return {"emails": []}
 
-    emails = process_messages(service, messages)
+    emails = process_email_messages(service, messages)
     return {"emails": emails}
-
-
-def process_messages(service, messages):
-    emails = []
-    for msg in messages:
-        try:
-            email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
-            email_details = parse_email(email_data)
-            emails += [email_details] if email_details else []
-        except HttpError as e:
-            print(f"Error reading email {msg['id']}: {e}")
-    return emails
 
 
 @tool(
@@ -319,7 +373,15 @@ async def list_emails(
     Read emails from a Gmail account and extract plain text content.
     """
     # Set up the Gmail API client
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     messages = service.users().messages().list(userId="me").execute().get("messages", [])
 
@@ -359,7 +421,15 @@ async def search_threads(
     date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
 ) -> Annotated[dict, "A dictionary containing a list of thread details"]:
     """Search for threads in the user's mailbox"""
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
 
     query = (
         build_query_string(sender, recipient, subject, body, date_range)
@@ -377,7 +447,7 @@ async def search_threads(
     }
     params = remove_none_values(params)
 
-    threads = []
+    threads: list[dict[str, Any]] = []
     next_page_token = None
     # Paginate through thread pages until we have the desired number of threads
     while len(threads) < max_results:
@@ -413,7 +483,10 @@ async def list_threads(
     include_spam_trash: Annotated[bool, "Whether to include spam and trash in the results"] = False,
 ) -> Annotated[dict, "A dictionary containing a list of thread details"]:
     """List threads in the user's mailbox."""
-    return await search_threads(context, page_token, max_results, include_spam_trash)
+    threads: dict[str, Any] = await search_threads(
+        context, page_token, max_results, include_spam_trash
+    )
+    return threads
 
 
 @tool(
@@ -437,8 +510,16 @@ async def get_thread(
     }
     params = remove_none_values(params)
 
-    service = build("gmail", "v1", credentials=Credentials(context.authorization.token))
+    service = build(
+        "gmail",
+        "v1",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
     thread = service.users().threads().get(**params).execute()
     thread["messages"] = [parse_email(message) for message in thread.get("messages", [])]
 
-    return thread
+    return dict(thread)

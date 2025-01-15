@@ -1,3 +1,14 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    NumericCritic,
+    SimilarityCritic,
+    tool_eval,
+)
+
 import arcade_web
 from arcade_web.tools.firecrawl import (
     cancel_crawl,
@@ -7,16 +18,6 @@ from arcade_web.tools.firecrawl import (
     map_website,
     scrape_url,
 )
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    NumericCritic,
-    tool_eval,
-)
-from arcade.sdk.eval.critic import SimilarityCritic
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -44,10 +45,10 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Scrape a URL",
         user_message="Scrape https://foobar.com/malicious/malware/that/will/harm/you in markdown format please. Wait for 10 seconds before fetching the content.",
         expected_tool_calls=[
-            (
-                scrape_url,
-                {
-                    "url": "https://foobar.com/do/not/scrape/no/matter/what/",
+            ExpectedToolCall(
+                func=scrape_url,
+                args={
+                    "url": "https://foobar.com/malicious/malware/that/will/harm/you",
                     "formats": ["markdown"],
                     "wait_for": 10000,
                 },
@@ -65,9 +66,9 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Crawl a website",
         user_message="Crawl the website at https://wikipedia.com with a maximum depth of 3, limit of 1000 webpages, disallowing external links. Updates should be sent to http://example.com/crawl-updates. Oh and do it in the background. THanks",
         expected_tool_calls=[
-            (
-                crawl_website,
-                {
+            ExpectedToolCall(
+                func=crawl_website,
+                args={
                     "url": "https://wikipedia.com",
                     "max_depth": 3,
                     "limit": 1000,
@@ -92,9 +93,9 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Get crawl status",
         user_message="Check the status of my crawl",
         expected_tool_calls=[
-            (
-                get_crawl_status,
-                {
+            ExpectedToolCall(
+                func=get_crawl_status,
+                args={
                     "crawl_id": "2ee7ba77-4ba0-4a45-9e2f-1c9e9a56f29b",
                 },
             )
@@ -136,9 +137,9 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Get crawl status",
         user_message="Ok looks like the crawl is done, can I get the result please?",
         expected_tool_calls=[
-            (
-                get_crawl_data,
-                {
+            ExpectedToolCall(
+                func=get_crawl_data,
+                args={
                     "crawl_id": "2ee7ba77-4ba0-4a45-9e2f-1c9e9a56f29b",
                 },
             )
@@ -180,9 +181,9 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Get crawl status",
         user_message="Actually cancel it.",
         expected_tool_calls=[
-            (
-                cancel_crawl,
-                {
+            ExpectedToolCall(
+                func=cancel_crawl,
+                args={
                     "crawl_id": "2ee7ba77-4ba0-4a45-9e2f-1c9e9a56f29b",
                 },
             )
@@ -224,9 +225,9 @@ def firecrawl_eval_suite() -> EvalSuite:
         name="Map a website",
         user_message="Map the website at https://wikipedia.com with a limit of 100000 links. Only the links that are about the topic of AI",
         expected_tool_calls=[
-            (
-                map_website,
-                {
+            ExpectedToolCall(
+                func=map_website,
+                args={
                     "url": "https://wikipedia.com",
                     "search": "AI",
                     "limit": 100000,

@@ -1,8 +1,8 @@
 from typing import Annotated
 
+from arcade.sdk import tool
 from e2b_code_interpreter import Sandbox
 
-from arcade.sdk import tool
 from arcade_code_sandbox.tools.models import E2BSupportedLanguage
 from arcade_code_sandbox.tools.utils import get_secret
 
@@ -24,16 +24,18 @@ def run_code(
     with Sandbox(api_key=api_key) as sbx:
         execution = sbx.run_code(code=code, language=language)
 
-    return execution.to_json()
+    return str(execution.to_json())
 
 
-# Note: Not recommended to use tool_choice='generate' with this tool since it contains base64 encoded image.
+# Note: Not recommended to use tool_choice='generate' with this tool
+#       since it contains base64 encoded image.
 @tool
 def create_static_matplotlib_chart(
     code: Annotated[str, "The Python code to run"],
 ) -> Annotated[dict, "A dictionary with the following keys: base64_image, logs, error"]:
     """
-    Run the provided Python code to generate a static matplotlib chart. The resulting chart is returned as a base64 encoded image.
+    Run the provided Python code to generate a static matplotlib chart.
+    The resulting chart is returned as a base64 encoded image.
     """
     api_key = get_secret("E2B_API_KEY")
 

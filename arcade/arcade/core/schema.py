@@ -42,7 +42,7 @@ class InputParameter(BaseModel):
     )
 
 
-class ToolInputs(BaseModel):
+class ToolInput(BaseModel):
     """The inputs that a tool accepts."""
 
     parameters: list[InputParameter]
@@ -179,7 +179,7 @@ class ToolDefinition(BaseModel):
     toolkit: ToolkitDefinition
     """The toolkit that contains the tool."""
 
-    inputs: ToolInputs
+    input: ToolInput
     """The inputs that the tool accepts."""
 
     output: ToolOutput
@@ -234,14 +234,18 @@ class ToolContext(BaseModel):
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
 
+    def get_auth_token_or_empty(self) -> str:
+        """Retrieve the authorization token, or return an empty string if not available."""
+        return self.authorization.token if self.authorization and self.authorization.token else ""
+
 
 class ToolCallRequest(BaseModel):
     """The request to call (invoke) a tool."""
 
     run_id: str | None = None
     """The globally-unique run ID provided by the Engine."""
-    invocation_id: str | None = None
-    """The globally-unique ID for this tool invocation in the run."""
+    execution_id: str | None = None
+    """The globally-unique ID for this tool execution in the run."""
     created_at: str | None = None
     """The timestamp when the tool invocation was created."""
     tool: ToolReference
@@ -307,13 +311,13 @@ class ToolCallOutput(BaseModel):
 class ToolCallResponse(BaseModel):
     """The response to a tool invocation."""
 
-    invocation_id: str
-    """The globally-unique ID for this tool invocation."""
+    execution_id: str
+    """The globally-unique ID for this tool execution."""
     finished_at: str
-    """The timestamp when the tool invocation finished."""
+    """The timestamp when the tool execution finished."""
     duration: float
-    """The duration of the tool invocation in milliseconds (ms)."""
+    """The duration of the tool execution in milliseconds (ms)."""
     success: bool
-    """Whether the tool invocation was successful."""
+    """Whether the tool execution was successful."""
     output: ToolCallOutput | None = None
     """The output of the tool invocation."""

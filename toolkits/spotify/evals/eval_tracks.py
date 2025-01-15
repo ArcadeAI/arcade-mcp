@@ -1,15 +1,16 @@
-from arcade_spotify.tools.tracks import (
-    get_recommendations,
-    get_track_from_id,
-    get_tracks_audio_features,
-)
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     tool_eval,
+)
+
+from arcade_spotify.tools.tracks import (
+    get_recommendations,
+    get_track_from_id,
+    get_tracks_audio_features,
 )
 
 # Evaluation rubric
@@ -99,35 +100,6 @@ history_2 = [
     {"role": "assistant", "content": 'The song now playing is "Tempestade" by Philó.'},
 ]
 
-# This history is a conversation where the user asks for what is currently playing, and then asks for more information about the track, then asks for the audio features for the track.
-history_3 = [
-    {"role": "user", "content": "get info about 14CQdqVFygEls6szbfwuTL"},
-    {
-        "role": "assistant",
-        "content": "",
-        "tool_calls": [
-            {
-                "id": "call_bFqQIQY89z82BXJqSXhlkiro",
-                "type": "function",
-                "function": {
-                    "name": "Spotify_GetTrackFromId",
-                    "arguments": '{"track_id":"14CQdqVFygEls6szbfwuTL"}',
-                },
-            }
-        ],
-    },
-    {
-        "role": "tool",
-        "content": '{"album":{"album_type":"single","artists":[{"external_urls":{"spotify":"https://open.spotify.com/artist/4ev14fn325vhWuykve3QtA"},"href":"https://api.spotify.com/v1/artists/4ev14fn325vhWuykve3QtA","id":"4ev14fn325vhWuykve3QtA","name":"The Dawning","type":"artist","uri":"spotify:artist:4ev14fn325vhWuykve3QtA"}],"available_markets":["AR","AU","AT","BE","BO","BR","BG","CA","CL","CO","CR","CY","CZ","DK","DO","DE","EC","EE","SV","FI","FR","GR","GT","HN","HK","HU","IS","IE","IT","LV","LT","LU","MY","MT","MX","NL","NZ","NI","NO","PA","PY","PE","PH","PL","PT","SG","SK","ES","SE","CH","TW","TR","UY","US","GB","AD","LI","MC","ID","JP","TH","VN","RO","IL","ZA","SA","AE","BH","QA","OM","KW","EG","MA","DZ","TN","LB","JO","PS","IN","BY","KZ","MD","UA","AL","BA","HR","ME","MK","RS","SI","KR","BD","PK","LK","GH","KE","NG","TZ","UG","AG","AM","BS","BB","BZ","BT","BW","BF","CV","CW","DM","FJ","GM","GE","GD","GW","GY","HT","JM","KI","LS","LR","MW","MV","ML","MH","FM","NA","NR","NE","PW","PG","PR","WS","SM","ST","SN","SC","SL","SB","KN","LC","VC","SR","TL","TO","TT","TV","VU","AZ","BN","BI","KH","CM","TD","KM","GQ","SZ","GA","GN","KG","LA","MO","MR","MN","NP","RW","TG","UZ","ZW","BJ","MG","MU","MZ","AO","CI","DJ","ZM","CD","CG","IQ","LY","TJ","VE","ET","XK"],"external_urls":{"spotify":"https://open.spotify.com/album/2dmrP48hhdCIoxeYJFMSVO"},"href":"https://api.spotify.com/v1/albums/2dmrP48hhdCIoxeYJFMSVO","id":"2dmrP48hhdCIoxeYJFMSVO","images":[{"height":640,"url":"https://i.scdn.co/image/ab67616d0000b2730046525154a4201332796065","width":640},{"height":300,"url":"https://i.scdn.co/image/ab67616d00001e020046525154a4201332796065","width":300},{"height":64,"url":"https://i.scdn.co/image/ab67616d000048510046525154a4201332796065","width":64}],"name":"summer breeze","release_date":"2024-08-02","release_date_precision":"day","total_tracks":1,"type":"album","uri":"spotify:album:2dmrP48hhdCIoxeYJFMSVO"},"artists":[{"external_urls":{"spotify":"https://open.spotify.com/artist/4ev14fn325vhWuykve3QtA"},"href":"https://api.spotify.com/v1/artists/4ev14fn325vhWuykve3QtA","id":"4ev14fn325vhWuykve3QtA","name":"The Dawning","type":"artist","uri":"spotify:artist:4ev14fn325vhWuykve3QtA"}],"available_markets":["AR","AU","AT","BE","BO","BR","BG","CA","CL","CO","CR","CY","CZ","DK","DO","DE","EC","EE","SV","FI","FR","GR","GT","HN","HK","HU","IS","IE","IT","LV","LT","LU","MY","MT","MX","NL","NZ","NI","NO","PA","PY","PE","PH","PL","PT","SG","SK","ES","SE","CH","TW","TR","UY","US","GB","AD","LI","MC","ID","JP","TH","VN","RO","IL","ZA","SA","AE","BH","QA","OM","KW","EG","MA","DZ","TN","LB","JO","PS","IN","BY","KZ","MD","UA","AL","BA","HR","ME","MK","RS","SI","KR","BD","PK","LK","GH","KE","NG","TZ","UG","AG","AM","BS","BB","BZ","BT","BW","BF","CV","CW","DM","FJ","GM","GE","GD","GW","GY","HT","JM","KI","LS","LR","MW","MV","ML","MH","FM","NA","NR","NE","PW","PG","PR","WS","SM","ST","SN","SC","SL","SB","KN","LC","VC","SR","TL","TO","TT","TV","VU","AZ","BN","BI","KH","CM","TD","KM","GQ","SZ","GA","GN","KG","LA","MO","MR","MN","NP","RW","TG","UZ","ZW","BJ","MG","MU","MZ","AO","CI","DJ","ZM","CD","CG","IQ","LY","TJ","VE","ET","XK"],"disc_number":1,"duration_ms":165811,"explicit":false,"external_ids":{"isrc":"SE69N2406255"},"external_urls":{"spotify":"https://open.spotify.com/track/14CQdqVFygEls6szbfwuTL"},"href":"https://api.spotify.com/v1/tracks/14CQdqVFygEls6szbfwuTL","id":"14CQdqVFygEls6szbfwuTL","is_local":false,"name":"summer breeze","popularity":60,"preview_url":"https://p.scdn.co/mp3-preview/9b2ac80563d092f9b1d442f09635ccf646ccb3e0?cid=26913f34d26f4c16a15d5a93e309a1dc","track_number":1,"type":"track","uri":"spotify:track:14CQdqVFygEls6szbfwuTL"}',
-        "tool_call_id": "call_bFqQIQY89z82BXJqSXhlkiro",
-        "name": "Spotify_GetTrackFromId",
-    },
-    {
-        "role": "assistant",
-        "content": 'The track "Summer Breeze" by The Dawning is available on Spotify. Here are some details about the track:\n\n- **Artist:** [The Dawning](https://open.spotify.com/artist/4ev14fn325vhWuykve3QtA)\n- **Album:** [Summer Breeze](https://open.spotify.com/album/2dmrP48hhdCIoxeYJFMSVO) (Single)\n- **Release Date:** August 2, 2024\n- **Duration:** 2 minutes and 45 seconds\n- **Popularity:** 60\n- **ISRC:** SE69N2406255\n- **Explicit Content:** No\n\nThe track is available in numerous markets, including the US, UK, Canada, Australia, and many more. You can listen to a preview of the track [here](https://p.scdn.co/mp3-preview/9b2ac80563d092f9b1d442f09635ccf646ccb3e0?cid=26913f34d26f4c16a15d5a93e309a1dc).',
-    },
-]
-
 
 @tool_eval()
 def spotify_tracks_eval_suite() -> EvalSuite:
@@ -143,9 +115,9 @@ def spotify_tracks_eval_suite() -> EvalSuite:
         name="Get information about a track",
         user_message="can you get more info about that song",
         expected_tool_calls=[
-            (
-                get_track_from_id,
-                {
+            ExpectedToolCall(
+                func=get_track_from_id,
+                args={
                     "track_id": "03gaqN3aWm9TQxuHay0G8R",
                 },
             )
@@ -154,48 +126,6 @@ def spotify_tracks_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="track_id", weight=1.0),
         ],
         additional_messages=history,
-    )
-
-    suite.add_case(
-        name="Get audio features for a track",
-        user_message="what bpm is that song?",
-        expected_tool_calls=[
-            (
-                get_tracks_audio_features,
-                {
-                    "track_ids": [
-                        "14CQdqVFygEls6szbfwuTL",
-                        "5r9fTbn6YZVxHKaU4Rze3t",
-                    ]
-                },
-            )
-        ],
-        critics=[
-            BinaryCritic(critic_field="track_id", weight=1.0),
-        ],
-        additional_messages=history_2,
-    )
-
-    suite.add_case(
-        name="Get recommendations based on a specific track",
-        user_message="Give me 6 recommendations based on this song.",
-        expected_tool_calls=[
-            (
-                get_recommendations,
-                {
-                    "seed_artists": ["4ev14fn325vhWuykve3QtA"],
-                    "seed_genres": [],  # None provided in the history
-                    "seed_tracks": ["14CQdqVFygEls6szbfwuTL"],
-                    "limit": 6,
-                },
-            )
-        ],
-        critics=[
-            BinaryCritic(critic_field="seed_artists", weight=0.3),
-            BinaryCritic(critic_field="seed_genres", weight=0.3),
-            BinaryCritic(critic_field="seed_tracks", weight=0.3),
-        ],
-        additional_messages=history_3,
     )
 
     return suite

@@ -1,0 +1,56 @@
+name: Test Toolkits
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tool_matrix: ${{ steps.dataStep.outputs.tools }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get Toolkits
+        id: dataStep
+        run: |
+          TARGETS=$(./.github/scripts/get_toolkits.sh)
+          echo "tools=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT
+
+  test-toolkits:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.setup.outputs.tool_matrix) }}
+    steps:
+    - run: echo ${{ matrix.target }}
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.8.5
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Test Toolkit
+      id: Test_Toolkit
+      working-directory: toolkits/${{ matrix.target }}
+      run: |
+        make install
+        make check
+        make test

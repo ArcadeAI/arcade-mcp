@@ -1,26 +1,26 @@
-import os
 import re
+import shutil
+from datetime import datetime
 from importlib.metadata import version as get_version
-from textwrap import dedent
+from pathlib import Path
 from typing import Optional
 
 import typer
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
 console = Console()
 
 # Retrieve the installed version of arcade-ai
 try:
-    VERSION = get_version("arcade-ai")
+    ARCADE_VERSION = get_version("arcade-ai")
 except Exception as e:
     console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
-    VERSION = "0.0.0"  # Default version if unable to fetch
+    ARCADE_VERSION = "0.0.0"  # Default version if unable to fetch
 
-DEFAULT_VERSIONS = {
-    "python": "^3.10",
-    "arcade-ai": f"~{VERSION}",  # allow patch version updates
-    "pytest": "^8.3.0",
-}
+TEMPLATE_IGNORE_PATTERN = re.compile(
+    r"(__pycache__|\.DS_Store|Thumbs\.db|\.git|\.svn|\.hg|\.vscode|\.idea|build|dist|.*\.egg-info|.*\.pyc|.*\.pyo)$"
+)
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -33,67 +33,66 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     return str(answer)
 
 
-def create_directory(path: str) -> bool:
-    """
-    Create a directory if it doesn't exist.
-    Returns True if the directory was created, False if failed to create.
-    """
+def render_template(env: Environment, template_string: str, context: dict) -> str:
+    """Render a template string with the given variables."""
+    template = env.from_string(template_string)
+    return template.render(context)
+
+
+def write_template(path: Path, content: str) -> None:
+    """Write content to a file."""
+    path.write_text(content)
+
+
+def create_package(env: Environment, template_path: Path, output_path: Path, context: dict) -> None:
+    """Recursively create a new toolkit directory structure from jinja2 templates."""
+    if TEMPLATE_IGNORE_PATTERN.match(template_path.name):
+        return
+
     try:
-        os.makedirs(path, exist_ok=False)
-    except FileExistsError:
-        console.print(f"[red]Directory '{path}' already exists.[/red]")
-        return False
+        if template_path.is_dir():
+            folder_name = render_template(env, template_path.name, context)
+            new_dir_path = output_path / folder_name
+            new_dir_path.mkdir(parents=True, exist_ok=True)
+
+            for item in template_path.iterdir():
+                create_package(env, item, new_dir_path, context)
+
+        else:
+            # Render the file name
+            file_name = render_template(env, template_path.name, context)
+            with open(template_path) as f:
+                content = f.read()
+            # Render the file content
+            content = render_template(env, content, context)
+
+            write_template(output_path / file_name, content)
     except Exception as e:
-        console.print(f"[red]Failed to create directory {path}: {e}[/red]")
-        return False
-    return True
+        console.print(f"[red]Failed to create package: {e}[/red]")
+        raise
 
 
-def create_file(path: str, content: str) -> None:
-    """
-    Create a file with the given content.
-    """
-    try:
-        with open(path, "w") as f:
-            f.write(content)
-    except Exception as e:
-        console.print(f"[red]Failed to create file {path}: {e}[/red]")
+def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
+    """Teardown logic for when creating a new toolkit fails."""
+    toolkit_path = toolkit_directory / toolkit_name
+    if toolkit_path.exists():
+        shutil.rmtree(toolkit_path)
 
 
-def create_pyproject_toml(directory: str, toolkit_name: str, author: str, description: str) -> None:
-    """
-    Create a pyproject.toml file for the new toolkit.
-    """
-
-    content = f"""
-[tool.poetry]
-name = "{toolkit_name}"
-version = "0.1.0"
-description = "{description}"
-authors = ["{author}"]
-
-[tool.poetry.dependencies]
-python = "{DEFAULT_VERSIONS["python"]}"
-arcade-ai = "{DEFAULT_VERSIONS["arcade-ai"]}"
-
-[tool.poetry.dev-dependencies]
-pytest = "{DEFAULT_VERSIONS["pytest"]}"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-"""
-    create_file(os.path.join(directory, "pyproject.toml"), content.strip())
-
-
-def create_new_toolkit(directory: str) -> None:
-    """Generate a new Toolkit package based on user input."""
+def create_new_toolkit(output_directory: str) -> None:
+    """Create a new toolkit from a template with user input."""
+    toolkit_directory = Path(output_directory)
     while True:
         name = ask_question("Name of the new toolkit?")
-        toolkit_name = name if name.startswith("arcade_") else f"arcade_{name}"
+        package_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
         # Check for illegal characters in the toolkit name
-        if re.match(r"^[\w_]+$", toolkit_name):
+        if re.match(r"^[\w_]+$", package_name):
+            toolkit_name = package_name.replace("arcade_", "", 1)
+
+            if (toolkit_directory / toolkit_name).exists():
+                console.print(f"[red]Toolkit {toolkit_name} already exists.[/red]")
+                continue
             break
         else:
             console.print(
@@ -102,147 +101,28 @@ def create_new_toolkit(directory: str) -> None:
                 "Please try again.[/red]"
             )
 
-    description = ask_question("Description of the toolkit?")
-    author_name = ask_question("Author's name?")
-    author_email = ask_question("Author's email?")
-    author = f"{author_name} <{author_email}>"
+    toolkit_description = ask_question("Description of the toolkit?")
+    toolkit_author_name = ask_question("Github owner username?")
+    toolkit_author_email = ask_question("Author's email?")
 
-    yes_options = ["yes", "y", "ye", "yea", "yeah", "true"]
-    generate_test_dir = (
-        ask_question("Generate test directory? (yes/no)", "yes").lower() in yes_options
-    )
-    generate_eval_dir = (
-        ask_question("Generate eval directory? (yes/no)", "yes").lower() in yes_options
-    )
+    context = {
+        "package_name": package_name,
+        "toolkit_name": toolkit_name,
+        "toolkit_description": toolkit_description,
+        "toolkit_author_name": toolkit_author_name,
+        "toolkit_author_email": toolkit_author_email,
+        "arcade_version": f"{ARCADE_VERSION.rsplit('.', 1)[0]}.*",
+        "creation_year": datetime.now().year,
+    }
+    template_directory = Path(__file__).parent.parent / "templates" / "{{ toolkit_name }}"
 
-    top_level_dir = os.path.join(directory, name)
-    toolkit_dir = os.path.join(directory, name, toolkit_name)
-
-    # Create the top level toolkit directory
-    if not create_directory(top_level_dir):
-        return
-
-    # Create the toolkit directory
-    create_directory(toolkit_dir)
-
-    # Create the __init__.py file in the toolkit directory
-    create_file(os.path.join(toolkit_dir, "__init__.py"), "")
-
-    # Create the tools directory
-    create_directory(os.path.join(toolkit_dir, "tools"))
-
-    # Create the __init__.py file in the tools directory
-    create_file(os.path.join(toolkit_dir, "tools", "__init__.py"), "")
-
-    # Create the hello.py file in the tools directory
-    docstring = '"""Say a greeting!"""'
-    create_file(
-        os.path.join(toolkit_dir, "tools", "hello.py"),
-        dedent(
-            f"""
-        from typing import Annotated
-        from arcade.sdk import tool
-
-        @tool
-        def hello(name: Annotated[str, "The name of the person to greet"]) -> str:
-            {docstring}
-
-            return "Hello, " + name + "!"
-        """
-        ).strip(),
+    env = Environment(
+        loader=FileSystemLoader(str(template_directory)),
+        autoescape=select_autoescape(["html", "xml"]),
     )
 
-    # Create the pyproject.toml file
-    create_pyproject_toml(top_level_dir, toolkit_name, author, description)
-
-    # If the user wants to generate a test directory
-    if generate_test_dir:
-        create_directory(os.path.join(top_level_dir, "tests"))
-
-        # Create the __init__.py file in the tests directory
-        create_file(os.path.join(top_level_dir, "tests", "__init__.py"), "")
-
-        # Create the test_hello.py file in the tests directory
-        stripped_toolkit_name = toolkit_name.replace("arcade_", "")
-        create_file(
-            os.path.join(top_level_dir, "tests", f"test_{stripped_toolkit_name}.py"),
-            dedent(
-                f"""
-            import pytest
-            from arcade.sdk.errors import ToolExecutionError
-            from {toolkit_name}.tools.hello import hello
-
-            def test_hello():
-                assert hello("developer") == "Hello, developer!"
-
-            def test_hello_raises_error():
-                with pytest.raises(ToolExecutionError):
-                    hello(1)
-            """
-            ).strip(),
-        )
-
-    # If the user wants to generate an eval directory
-    if generate_eval_dir:
-        create_directory(os.path.join(top_level_dir, "evals"))
-
-        # Create the eval_hello.py file
-        stripped_toolkit_name = toolkit_name.replace("arcade_", "")
-        create_file(
-            os.path.join(top_level_dir, "evals", "eval_hello.py"),
-            dedent(
-                f"""
-                import {toolkit_name}
-                from {toolkit_name}.tools.hello import hello
-
-                from arcade.sdk import ToolCatalog
-                from arcade.sdk.eval import (
-                    EvalRubric,
-                    EvalSuite,
-                    SimilarityCritic,
-                    tool_eval,
-                )
-
-                # Evaluation rubric
-                rubric = EvalRubric(
-                    fail_threshold=0.85,
-                    warn_threshold=0.95,
-                )
-
-
-                catalog = ToolCatalog()
-                catalog.add_module({toolkit_name})
-
-
-                @tool_eval()
-                def {stripped_toolkit_name}_eval_suite():
-                    suite = EvalSuite(
-                        name="{stripped_toolkit_name} Tools Evaluation",
-                        system_message="You are an AI assistant with access to {stripped_toolkit_name} tools. Use them to help the user with their tasks.",
-                        catalog=catalog,
-                        rubric=rubric,
-                    )
-
-                    suite.add_case(
-                        name="Saying hello",
-                        user_message="Say hello to the developer!!!!",
-                        expected_tool_calls=[
-                            (
-                                hello,
-                                {{
-                                    "name": "developer"
-                                }}
-                            )
-                        ],
-                        rubric=rubric,
-                        critics=[
-                            SimilarityCritic(critic_field="name", weight=0.5),
-                        ],
-                    )
-
-                    return suite
-                """
-            ).strip(),
-        )
-
-    console.print(f"[green]Toolkit {toolkit_name} has been created in {top_level_dir} [/green]")
+    try:
+        create_package(env, template_directory, toolkit_directory, context)
+    except Exception:
+        remove_toolkit(toolkit_directory, toolkit_name)
+        raise

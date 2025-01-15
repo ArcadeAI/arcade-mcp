@@ -1,14 +1,15 @@
-import arcade_google
-from arcade_google.tools.drive import list_documents
-from arcade_google.tools.models import Corpora, OrderBy
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
     tool_eval,
 )
+
+import arcade_google
+from arcade_google.tools.drive import list_documents
+from arcade_google.tools.models import Corpora, OrderBy
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -34,9 +35,9 @@ def drive_eval_suite() -> EvalSuite:
         name="List documents in Google Drive",
         user_message="show me the titles of my 39 most recently created documents. Show me the newest ones first and the oldest ones last.",
         expected_tool_calls=[
-            (
-                list_documents,
-                {
+            ExpectedToolCall(
+                func=list_documents,
+                args={
                     "corpora": Corpora.USER,
                     "order_by": OrderBy.CREATED_TIME_DESC,
                     "supports_all_drives": False,
@@ -56,9 +57,9 @@ def drive_eval_suite() -> EvalSuite:
         name="List documents in Google Drive based on title keywords",
         user_message="list all documents that have title that contains the word'greedy' and also the phrase 'Joe's algo'",
         expected_tool_calls=[
-            (
-                list_documents,
-                {
+            ExpectedToolCall(
+                func=list_documents,
+                args={
                     "corpora": Corpora.USER,
                     "title_keywords": ["greedy", "Joe's algo"],
                     "order_by": OrderBy.MODIFIED_TIME_DESC,
@@ -77,9 +78,9 @@ def drive_eval_suite() -> EvalSuite:
         name="List documents in shared drives",
         user_message="List the 5 documents from all drives that nobody has touched in forever, including shared ones.",
         expected_tool_calls=[
-            (
-                list_documents,
-                {
+            ExpectedToolCall(
+                func=list_documents,
+                args={
                     "corpora": Corpora.ALL_DRIVES,
                     "order_by": OrderBy.MODIFIED_TIME,
                     "supports_all_drives": True,

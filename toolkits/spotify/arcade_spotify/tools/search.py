@@ -2,6 +2,7 @@ from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
+
 from arcade_spotify.tools.models import SearchType
 from arcade_spotify.tools.utils import (
     get_url,
@@ -19,13 +20,18 @@ async def search(
     """Search Spotify catalog information
 
     Explanation of the q parameter:
-        You can narrow down your search using field filters. The available filters are album, artist, track, year, upc, tag:hipster, tag:new, isrc, and genre. Each field filter only applies to certain result types.
+        You can narrow down your search using field filters.
+        Available filters are album, artist, track, year, upc, tag:hipster, tag:new, isrc, and
+        genre. Each field filter only applies to certain result types.
 
-        The artist and year filters can be used while searching albums, artists and tracks. You can filter on a single year or a range (e.g. 1955-1960).
+        The artist and year filters can be used while searching albums, artists and tracks.
+        You can filter on a single year or a range (e.g. 1955-1960).
         The album filter can be used while searching albums and tracks.
         The genre filter can be used while searching artists and tracks.
         The isrc and track filters can be used while searching tracks.
-        The upc, tag:new and tag:hipster filters can only be used while searching albums. The tag:new filter will return albums released in the past two weeks and tag:hipster can be used to return only albums with the lowest 10% popularity.
+        The upc, tag:new and tag:hipster filters can only be used while searching albums.
+        The tag:new filter will return albums released in the past two weeks and tag:hipster
+        can be used to return only albums with the lowest 10% popularity.
 
         Example: q="remaster track:Doxy artist:Miles Davis"
     """
@@ -36,4 +42,4 @@ async def search(
         context, "GET", url, params={"q": q, "type": ",".join(types), "limit": limit}
     )
     response.raise_for_status()
-    return response.json()
+    return dict(response.json())

@@ -23,8 +23,8 @@ except ImportError:
         "Uvicorn is not installed. Please install it using `pip install arcade-ai[fastapi]`."
     )
 
-from arcade.actor.fastapi.actor import FastAPIActor
 from arcade.sdk import Toolkit
+from arcade.worker.fastapi.worker import FastAPIWorker
 
 
 class InterceptHandler(logging.Handler):
@@ -80,7 +80,7 @@ async def lifespan(app: fastapi.FastAPI):  # type: ignore[no-untyped-def]
         logger.debug("Lifespan cancelled.")
 
 
-def serve_default_actor(
+def serve_default_worker(
     host: str = "127.0.0.1",
     port: int = 8002,
     disable_auth: bool = False,
@@ -91,7 +91,7 @@ def serve_default_actor(
     **kwargs: Any,
 ) -> None:
     """
-    Get an instance of a FastAPI server with the Arcade Actor.
+    Get an instance of a FastAPI server with the Arcade Worker.
     """
     # Setup unified logging
     setup_logging(log_level=logging.DEBUG if debug else logging.INFO)
@@ -105,27 +105,27 @@ def serve_default_actor(
         num_tools = sum(len(tools) for tools in toolkit.tools.values())
         logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {num_tools} tools")
 
-    actor_secret = os.environ.get("ARCADE_ACTOR_SECRET")
-    if not disable_auth and not actor_secret:
+    worker_secret = os.environ.get("ARCADE_WORKER_SECRET")
+    if not disable_auth and not worker_secret:
         logger.warning(
-            "Warning: ARCADE_ACTOR_SECRET environment variable is not set. Using 'dev' as the actor secret.",
+            "Warning: ARCADE_WORKER_SECRET environment variable is not set. Using 'dev' as the worker secret.",
         )
-        actor_secret = actor_secret or "dev"
+        worker_secret = worker_secret or "dev"
 
     app = fastapi.FastAPI(
-        title="Arcade AI Actor",
-        description="Arcade AI default Actor implementation using FastAPI.",
+        title="Arcade AI Worker",
+        description="Arcade AI default Worker implementation using FastAPI.",
         version="0.1.0",
         lifespan=lifespan,  # Use custom lifespan to catch errors, notably KeyboardInterrupt (Ctrl+C)
     )
 
     otel_handler = OTELHandler(app, enable=enable_otel)
 
-    actor = FastAPIActor(
-        app, secret=actor_secret, disable_auth=disable_auth, otel_meter=otel_handler.get_meter()
+    worker = FastAPIWorker(
+        app, secret=worker_secret, disable_auth=disable_auth, otel_meter=otel_handler.get_meter()
     )
     for toolkit in toolkits:
-        actor.register_toolkit(toolkit)
+        worker.register_toolkit(toolkit)
 
     logger.info("Starting FastAPI server...")
 

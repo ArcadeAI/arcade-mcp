@@ -2,10 +2,10 @@ import json
 from typing import Annotated, Optional
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
 from arcade.sdk.errors import RetryableToolError
+
 from arcade_github.tools.models import (
     DiffSide,
     PRSortProperty,
@@ -24,9 +24,12 @@ from arcade_github.tools.utils import (
 
 
 # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
-# Example `arcade chat` usage: "get all open PRs that <USER> has that are in the <OWNER>/<REPO> repo"
-# TODO: Validate owner/repo combination is valid for the authenticated user. If not, return RetryableToolError with available repos.
-# TODO: list repo's branches and validate base is in the list (or default to main). If not, return RetryableToolError with available branches.
+# Example `arcade chat` usage:
+#   "get all open PRs that <USER> has that are in the <OWNER>/<REPO> repo"
+# TODO: Validate owner/repo combination is valid for the authenticated user.
+#       If not, return RetryableToolError with available repos.
+# TODO: list repo's branches and validate base is in the list (or default to main).
+#       If not, return RetryableToolError with available branches.
 @tool(requires_auth=GitHub())
 async def list_pull_requests(
     context: ToolContext,
@@ -38,18 +41,20 @@ async def list_pull_requests(
     state: Annotated[Optional[PRState], "The state of the pull requests to return."] = PRState.OPEN,
     head: Annotated[
         Optional[str],
-        "Filter pulls by head user or head organization and branch name in the format of user:ref-name or organization:ref-name.",
+        "Filter pulls by head user or head organization and branch name in the format of "
+        "user:ref-name or organization:ref-name.",
     ] = None,
     base: Annotated[Optional[str], "Filter pulls by base branch name."] = "main",
     sort: Annotated[
         Optional[PRSortProperty], "The property to sort the results by."
     ] = PRSortProperty.CREATED,
     direction: Annotated[Optional[SortDirection], "The direction of the sort."] = None,
-    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
-    page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
+    per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
+    page: Annotated[int, "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the pull requests. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[str, "JSON string containing a list of pull requests with their details"]:
     """
@@ -63,15 +68,17 @@ async def list_pull_requests(
     url = get_url("repo_pulls", owner=owner, repo=repo)
     params = {
         "base": base,
-        "state": state.value,
-        "sort": sort.value,
+        "state": state.value if state else None,
+        "sort": sort.value if sort else None,
         "per_page": min(max(1, per_page), 100),  # clamp per_page to 1-100
         "page": page,
         "head": head,
-        "direction": direction,  # Note: Github defaults to desc when sort is 'created' or not specified, otherwise defaults to asc
+        "direction": direction,  # defaults to desc when sort is 'created'/'not specified', else asc
     }
     params = remove_none_values(params)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -101,7 +108,8 @@ async def list_pull_requests(
 
 
 # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
-# Example `arcade chat` usage: "get the PR #72 in the <OWNER>/<REPO> repo. Include diff content in your response."
+# Example `arcade chat` usage:
+#   "get the PR #72 in the <OWNER>/<REPO> repo. Include diff content in your response."
 @tool(requires_auth=GitHub())
 async def get_pull_request(
     context: ToolContext,
@@ -117,11 +125,13 @@ async def get_pull_request(
     ] = False,
     include_extra_data: Annotated[
         Optional[bool],
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the pull requests. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str,
-    "JSON string containing details of the specified pull request, optionally including diff content",
+    "JSON string containing details of the specified pull request, "
+    "optionally including diff content",
 ]:
     """
     Get details of a pull request in a GitHub repository.
@@ -132,8 +142,12 @@ async def get_pull_request(
     ```
     """
     url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
-    headers = get_github_json_headers(context.authorization.token)
-    diff_headers = get_github_diff_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    diff_headers = get_github_diff_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
@@ -174,7 +188,9 @@ async def get_pull_request(
 
 
 # Implements https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request
-# Example `arcade chat` usage: "update PR #72 in the <OWNER>/<REPO> repo by changing the title to 'New Title' and setting the body to 'This PR description was added via arcade chat!'."
+# Example `arcade chat` usage:
+#   "update PR #72 in the <OWNER>/<REPO> repo by changing the title to 'New Title' and
+#   setting the body to 'This PR description was added via arcade chat!'."
 # TODO: Enable this tool to append to the PR contents instead of only replacing content.
 @tool(requires_auth=GitHub())
 async def update_pull_request(
@@ -202,7 +218,13 @@ async def update_pull_request(
 
     Example:
     ```
-    update_pull_request(owner="octocat", repo="Hello-World", pull_number=1347, title="new title", body="updated body")
+    update_pull_request(
+        owner="octocat",
+        repo="Hello-World",
+        pull_number=1347,
+        title="new title",
+        body="updated body",
+    )
     ```
     """
     url = get_url("repo_pull", owner=owner, repo=repo, pull_number=pull_number)
@@ -216,7 +238,9 @@ async def update_pull_request(
     }
     data = remove_none_values(data)
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.patch(url, headers=headers, json=data)
@@ -250,11 +274,12 @@ async def list_pull_request_commits(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     pull_number: Annotated[int, "The number that identifies the pull request."],
-    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
-    page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
+    per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
+    page: Annotated[int, "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the pull requests. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[str, "JSON string containing a list of commits for the specified pull request"]:
     """
@@ -272,7 +297,9 @@ async def list_pull_request_commits(
         "page": page,
     }
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -304,9 +331,13 @@ async def list_pull_request_commits(
 
 
 # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-reply-for-a-review-comment
-# Example `arcade chat` usage: "create a reply to the review comment 1778019974 in arcadeai/arcade-ai for the PR 72 that says 'Thanks for the suggestion.'"
-# Note: This tool requires the ID of the review comment to reply to. To obtain this ID, you should first call the `list_review_comments_on_pull_request` function.
-#       The returned JSON will contain the `id` field for each comment, which can be used as the `comment_id` parameter in this function.
+# Example `arcade chat` usage:
+#   "create a reply to the review comment 1778019974 in arcadeai/arcade-ai for
+#   the PR 72 that says 'Thanks for the suggestion.'"
+# Note: This tool requires the ID of the review comment to reply to. To obtain this ID,
+#       you should first call the `list_review_comments_on_pull_request` function.
+#       The returned JSON will contain the `id` field for each comment, which can be used as the
+#       `comment_id` parameter in this function.
 @tool(requires_auth=GitHub())
 async def create_reply_for_review_comment(
     context: ToolContext,
@@ -324,7 +355,13 @@ async def create_reply_for_review_comment(
 
     Example:
     ```
-    create_reply_for_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, comment_id=42, body="Looks good to me!")
+    create_reply_for_review_comment(
+        owner="octocat",
+        repo="Hello-World",
+        pull_number=1347,
+        comment_id=42,
+        body="Looks good to me!",
+    )
     ```
     """
     url = get_url(
@@ -335,7 +372,9 @@ async def create_reply_for_review_comment(
         comment_id=comment_id,
     )
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     data = {"body": body}
 
@@ -367,13 +406,15 @@ async def list_review_comments_on_pull_request(
     ] = SortDirection.DESC,
     since: Annotated[
         Optional[str],
-        "Only show results that were last updated after the given time. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
+        "Only show results that were last updated after the given time. "
+        "This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
     ] = None,
-    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
-    page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
+    per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
+    page: Annotated[int, "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the review comments. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str, "JSON string containing a list of review comments for the specified pull request"
@@ -397,7 +438,9 @@ async def list_review_comments_on_pull_request(
     }
     params = remove_none_values(params)
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -434,8 +477,11 @@ async def list_review_comments_on_pull_request(
 
 
 # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#create-a-review-comment-for-a-pull-request
-# Example `arcade chat` usage: "create a review comment for PR 72 in <OWNER>/<REPO> that says 'Great stuff! This looks good to merge. Add the comment to README.md file.'"
-# TODO: Verify that path parameter exists in the PR's files that have changed (Or should we allow for any file in the repo?). If not, then throw RetryableToolError with all valid file paths.
+# Example `arcade chat` usage: "create a review comment for PR 72 in <OWNER>/<REPO> that says
+#           'Great stuff! This looks good to merge. Add the comment to README.md file.'"
+# TODO: Verify that path parameter exists in the PR's files that have changed
+#       (Or should we allow for any file in the repo?).
+#       If not, then throw RetryableToolError with all valid file paths.
 @tool(requires_auth=GitHub())
 async def create_review_comment(
     context: ToolContext,
@@ -449,19 +495,24 @@ async def create_review_comment(
     path: Annotated[str, "The relative path to the file that necessitates a comment."],
     commit_id: Annotated[
         Optional[str],
-        "The SHA of the commit needing a comment. If not provided, the latest commit SHA of the PR's base branch will be used.",
+        "The SHA of the commit needing a comment. If not provided, the latest commit SHA of the "
+        "PR's base branch will be used.",
     ] = None,
     start_line: Annotated[
         Optional[int],
-        "The start line of the range of lines in the pull request diff that the comment applies to. Required unless 'subject_type' is 'file'.",
+        "The start line of the range of lines in the pull request diff that the "
+        "comment applies to. Required unless 'subject_type' is 'file'.",
     ] = None,
     end_line: Annotated[
         Optional[int],
-        "The end line of the range of lines in the pull request diff that the comment applies to. Required unless 'subject_type' is 'file'.",
+        "The end line of the range of lines in the pull request diff that the "
+        "comment applies to. Required unless 'subject_type' is 'file'.",
     ] = None,
     side: Annotated[
         Optional[DiffSide],
-        "The side of the diff that the pull request's changes appear on. Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context",
+        "The side of the diff that the pull request's changes appear on. "
+        "Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green "
+        "or unchanged lines that appear in white and are shown for context",
     ] = DiffSide.RIGHT,
     start_side: Annotated[
         Optional[str], "The starting side of the diff that the comment applies to."
@@ -472,7 +523,8 @@ async def create_review_comment(
     ] = ReviewCommentSubjectType.FILE,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the review comment. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the review comment. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[str, "JSON string containing details of the created review comment"]:
     """
@@ -484,7 +536,16 @@ async def create_review_comment(
 
     Example:
     ```
-    create_review_comment(owner="octocat", repo="Hello-World", pull_number=1347, body="Great stuff!", commit_id="6dcb09b5b57875f334f61aebed695e2e4193db5e", path="file1.txt", line=2, side="RIGHT")
+    create_review_comment(
+        owner="octocat",
+        repo="Hello-World",
+        pull_number=1347,
+        body="Great stuff!",
+        commit_id="6dcb09b5b57875f334f61aebed695e2e4193db5e",
+        path="file1.txt",
+        line=2,
+        side="RIGHT"
+    )
     ```
     """
     # If the subject_type is 'file', then the line_range parameter is ignored
@@ -492,8 +553,15 @@ async def create_review_comment(
         start_line, end_line = None, None
 
     if (start_line is None or end_line is None) and subject_type != ReviewCommentSubjectType.FILE:
+        message = (
+            "'start_line' and 'end_line' parameters are required when 'subject_type' "
+            "parameter is not 'file'. Either provide both a start_line and end_line or set "
+            "subject_type to 'file'."
+        )
         raise RetryableToolError(
-            "'start_line' and 'end_line' parameters are required when 'subject_type' parameter is not 'file'. Either provide both a start_line and end_line or set subject_type to 'file'."
+            message=message,
+            developer_message=message,
+            additional_prompt_content=message,
         )
 
     # Ensure the line range goes from lowest to highest
@@ -509,8 +577,14 @@ async def create_review_comment(
         commit_id = latest_commit.get("sha")
 
     if not commit_id:
+        message = (
+            f"Failed to get the latest commit SHA of PR {pull_number} in repo {repo} owned by "
+            "{owner}. Does the PR exist?"
+        )
         raise RetryableToolError(
-            f"Failed to get the latest commit SHA of PR {pull_number} in repo {repo} owned by {owner}. Does the PR exist?"
+            message=message,
+            developer_message=message,
+            additional_prompt_content=message,
         )
 
     url = get_url("repo_pull_comments", owner=owner, repo=repo, pull_number=pull_number)
@@ -526,7 +600,9 @@ async def create_review_comment(
         "start_side": start_side,
     }
     data = remove_none_values(data)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=data)

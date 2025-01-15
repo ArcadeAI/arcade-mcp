@@ -1,38 +1,43 @@
 from typing import Any
 
+from arcade.sdk import ToolContext
+from arcade.sdk.errors import ToolExecutionError
+
 
 def get_tweet_url(tweet_id: str) -> str:
     """Get the URL of a tweet given its ID."""
     return f"https://x.com/x/status/{tweet_id}"
 
 
-def parse_search_recent_tweets_response(response_data: Any) -> dict:
+def get_headers_with_token(context: ToolContext) -> dict[str, str]:
+    """Get the headers for a request to the X API."""
+    if context.authorization is None or context.authorization.token is None:
+        raise ToolExecutionError(
+            "Missing Token. Authorization is required to post a tweet.",
+            developer_message="Token is not set in the ToolContext.",
+        )
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    return {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+
+def parse_search_recent_tweets_response(response_data: dict[str, Any]) -> dict[str, Any]:
     """
     Parses response from the X API search recent tweets endpoint.
-    Returns a JSON string with the tweets data.
-
-    Example parsed response:
-    "tweets": [
-        {
-            "author_id": "558248927",
-            "id": "1838272933141319832",
-            "edit_history_tweet_ids": [
-                "1838272933141319832"
-            ],
-            "text": "PR pending on @LangChainAI, will be integrated there soon! https://t.co/DPWd4lccQo",
-            "tweet_url": "https://x.com/x/status/1838272933141319832",
-            "author_username": "tomas_hk",
-            "author_name": "Tomas Hernando Kofman"
-        },
-    ]
+    Returns the modified response data with added 'tweet_url', 'author_username', and 'author_name'.
     """
-
     if not sanity_check_tweets_data(response_data):
-        return {"data": []}
+        return {"data": [], "next_token": ""}
 
+    # Add 'tweet_url' to each tweet
     for tweet in response_data["data"]:
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
+    # Add 'author_username' and 'author_name' to each tweet
     for tweet_data, user_data in zip(response_data["data"], response_data["includes"]["users"]):
         tweet_data["author_username"] = user_data["username"]
         tweet_data["author_name"] = user_data["name"]
@@ -40,68 +45,116 @@ def parse_search_recent_tweets_response(response_data: Any) -> dict:
     return response_data
 
 
-def sanity_check_tweets_data(tweets_data: dict) -> bool:
+def sanity_check_tweets_data(tweets_data: dict[str, Any]) -> bool:
     """
     Sanity check the tweets data.
     Returns True if the tweets data is valid and contains tweets, False otherwise.
     """
-    if not tweets_data.get("data", []):
+    if not tweets_data.get("data"):
         return False
-    return tweets_data.get("includes", {}).get("users", [])
+    # prefer clarity over appeasing linter here
+    if not tweets_data.get("includes", {}).get("users"):  # noqa: SIM103
+        return False
+    return True
 
 
-def expand_urls_in_tweets(tweets_data: list[dict], delete_entities: bool = True) -> None:
+def expand_long_tweet(tweet_data: dict[str, Any]) -> None:
+    """Expand a long tweet.
+
+    For tweets exceeding 280 characters,
+    replace the truncated tweet text with the full tweet text.
     """
-    Expands the urls in the test of the provided tweets.
-    X shortens urls, and consequently, this can cause language models to hallucinate.
-    See more about X's link shortner at https://help.x.com/en/using-x/url-shortener
+    if tweet_data.get("note_tweet"):
+        tweet_data["text"] = tweet_data["note_tweet"]["text"]
+        del tweet_data["note_tweet"]
+
+
+def expand_urls_in_tweets(
+    tweets_data: list[dict[str, Any]], delete_entities: bool = True
+) -> list[dict[str, Any]]:
     """
+    Returns a new list of tweets with expanded URLs.
+    """
+    new_tweets = []
     for tweet_data in tweets_data:
-        if "entities" in tweet_data and "urls" in tweet_data["entities"]:
-            for url_entity in tweet_data["entities"]["urls"]:
+        new_tweet = tweet_data.copy()
+        if "entities" in new_tweet and "urls" in new_tweet["entities"]:
+            for url_entity in new_tweet["entities"]["urls"]:
                 short_url = url_entity["url"]
                 expanded_url = url_entity["expanded_url"]
-                tweet_data["text"] = tweet_data["text"].replace(short_url, expanded_url)
+                new_tweet["text"] = new_tweet["text"].replace(short_url, expanded_url)
 
         if delete_entities:
-            tweet_data.pop(
-                "entities", None
-            )  # Now that we've expanded the urls in the tweet, we no longer need the entities
+            new_tweet.pop("entities", None)
+        new_tweets.append(new_tweet)
+    return new_tweets
 
 
-def expand_urls_in_user_description(user_data: dict, delete_entities: bool = True) -> None:
+def expand_urls_in_user_description(user_data: dict, delete_entities: bool = True) -> dict:
     """
-    Expands the urls in the description of the provided user.
-    X shortens urls, and consequently, this can cause language models to hallucinate.
-    See more about X's link shortner at https://help.x.com/en/using-x/url-shortener
+    Returns a new user data dict with expanded URLs in the description.
     """
-    description_urls = user_data.get("entities", {}).get("description", {}).get("urls", [])
-    description = user_data.get("description", "")
+    new_user_data = user_data.copy()
+    description_urls = new_user_data.get("entities", {}).get("description", {}).get("urls", [])
+    description = new_user_data.get("description", "")
     for url_info in description_urls:
         t_co_link = url_info["url"]
         expanded_url = url_info["expanded_url"]
         description = description.replace(t_co_link, expanded_url)
-    user_data["description"] = description
+    new_user_data["description"] = description
 
     if delete_entities:
-        # Entities is no longer needed now that we have expanded the t.co links
-        user_data.pop("entities", None)
+        new_user_data.pop("entities", None)
+    return new_user_data
 
 
-def expand_urls_in_user_url(user_data: dict, delete_entities: bool = True) -> None:
+def expand_urls_in_user_url(user_data: dict, delete_entities: bool = True) -> dict:
     """
-    Expands the urls in the url section of the provided user.
-    X shortens urls, and consequently, this can cause language models to hallucinate.
-    See more about X's link shortner at https://help.x.com/en/using-x/url-shortener
+    Returns a new user data dict with expanded URLs in the URL field.
     """
-    url_urls = user_data.get("entities", {}).get("url", {}).get("urls", [])
-    url = user_data.get("url", "")
+    new_user_data = user_data.copy()
+    url_urls = new_user_data.get("entities", {}).get("url", {}).get("urls", [])
+    url = new_user_data.get("url", "")
     for url_info in url_urls:
         t_co_link = url_info["url"]
         expanded_url = url_info["expanded_url"]
         url = url.replace(t_co_link, expanded_url)
-    user_data["url"] = url
+    new_user_data["url"] = url
 
     if delete_entities:
-        # Entities is no longer needed now that we have expanded the t.co links
-        user_data.pop("entities", None)
+        new_user_data.pop("entities", None)
+    return new_user_data
+
+
+def remove_none_values(params: dict) -> dict:
+    """
+    Remove key/value pairs with None values from a dictionary.
+
+    Args:
+        params: The dictionary to clean
+
+    Returns:
+        A new dictionary with None values removed
+    """
+    return {k: v for k, v in params.items() if v is not None}
+
+
+def expand_attached_media(params: dict) -> dict:
+    """
+    Include attached media metadata in the request parameters.
+    """
+    params["expansions"] += ",attachments.media_keys"
+    params["tweet.fields"] += ",attachments"
+    params["media.fields"] = ",".join([
+        # media_key, url and type are returned by default, added here for clarity
+        "media_key",
+        "url",
+        "type",
+        "duration_ms",
+        "height",
+        "width",
+        "preview_image_url",
+        "alt_text",
+        "public_metrics",
+    ])
+    return params

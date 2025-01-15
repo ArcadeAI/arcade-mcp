@@ -78,7 +78,7 @@
       "required": ["name", "version"],
       "additionalProperties": false
     },
-    "inputs": {
+    "input": {
       "type": "object",
       "properties": {
         "parameters": {
@@ -181,6 +181,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["name", "fully_qualified_name", "toolkit", "inputs", "output"],
+  "required": ["name", "fully_qualified_name", "toolkit", "input", "output"],
   "additionalProperties": false
 }

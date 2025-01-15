@@ -1,13 +1,15 @@
-from arcade_spotify.tools.models import SearchType
-from arcade_spotify.tools.search import search
-
 from arcade.sdk import ToolCatalog
 from arcade.sdk.eval import (
+    BinaryCritic,
     EvalRubric,
     EvalSuite,
+    ExpectedToolCall,
+    SimilarityCritic,
     tool_eval,
 )
-from arcade.sdk.eval.critic import BinaryCritic, SimilarityCritic
+
+from arcade_spotify.tools.models import SearchType
+from arcade_spotify.tools.search import search
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -33,9 +35,9 @@ def spotify_search_eval_suite() -> EvalSuite:
         name="Search Spotify catalog",
         user_message="search for 3 songs in the the album 'American IV: The Man Comes Around' by Johnny Cash",
         expected_tool_calls=[
-            (
-                search,
-                {
+            ExpectedToolCall(
+                func=search,
+                args={
                     "q": "album:American IV: The Man Comes Around artist:Johnny Cash",
                     "types": [SearchType.TRACK],
                     "limit": 3,

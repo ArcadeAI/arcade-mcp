@@ -1,3 +1,13 @@
+from arcade.sdk import ToolCatalog
+from arcade.sdk.eval import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    SimilarityCritic,
+    tool_eval,
+)
+
 import arcade_google
 from arcade_google.tools.gmail import (
     get_thread,
@@ -6,15 +16,6 @@ from arcade_google.tools.gmail import (
     send_email,
 )
 from arcade_google.tools.utils import DateRange
-
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
-    BinaryCritic,
-    EvalRubric,
-    EvalSuite,
-    SimilarityCritic,
-    tool_eval,
-)
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -41,9 +42,9 @@ def gmail_eval_suite() -> EvalSuite:
         name="Send email to user with clear username",
         user_message="Send a email to johndoe@example.com saying 'Hello, can we meet at 3 PM?'. CC his boss janedoe@example.com",
         expected_tool_calls=[
-            (
-                send_email,
-                {
+            ExpectedToolCall(
+                func=send_email,
+                args={
                     "subject": "Meeting Request",
                     "body": "Hello, can we meet at 3 PM?",
                     "recipient": "johndoe@example.com",
@@ -65,9 +66,9 @@ def gmail_eval_suite() -> EvalSuite:
         name="Simple list threads",
         user_message="Get 42 threads like right now i even wanna see the ones in my trash",
         expected_tool_calls=[
-            (
-                list_threads,
-                {"max_results": 42, "include_spam_trash": True},
+            ExpectedToolCall(
+                func=list_threads,
+                args={"max_results": 42, "include_spam_trash": True},
             )
         ],
         critics=[
@@ -105,9 +106,9 @@ def gmail_eval_suite() -> EvalSuite:
         user_message="Get the next 5 threads",
         additional_messages=history,
         expected_tool_calls=[
-            (
-                list_threads,
-                {
+            ExpectedToolCall(
+                func=list_threads,
+                args={
                     "max_results": 5,
                     "page_token": "10321400718999360131",
                 },
@@ -123,9 +124,9 @@ def gmail_eval_suite() -> EvalSuite:
         name="Search threads",
         user_message="Search for threads from johndoe@example.com to janedoe@example.com about that talk about 'Arcade AI' from yesterday",
         expected_tool_calls=[
-            (
-                search_threads,
-                {
+            ExpectedToolCall(
+                func=search_threads,
+                args={
                     "sender": "johndoe@example.com",
                     "recipient": "janedoe@example.com",
                     "body": "Arcade AI",
@@ -145,9 +146,9 @@ def gmail_eval_suite() -> EvalSuite:
         name="Get a thread by ID",
         user_message="Get the thread r-124325435467568867667878874565464564563523424323524235242412",
         expected_tool_calls=[
-            (
-                get_thread,
-                {
+            ExpectedToolCall(
+                func=get_thread,
+                args={
                     "thread_id": "r-124325435467568867667878874565464564563523424323524235242412",
                 },
             )

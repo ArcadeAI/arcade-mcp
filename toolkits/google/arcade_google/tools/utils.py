@@ -7,7 +7,8 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource, build
+from googleapiclient.errors import HttpError
 
 from arcade_google.tools.models import Day, TimeSlot
 
@@ -32,7 +33,8 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
             dt = dt.replace(tzinfo=ZoneInfo(time_zone))
     except ValueError as e:
         raise ValueError(
-            f"Invalid datetime format: '{datetime_str}'. Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
+            f"Invalid datetime format: '{datetime_str}'. "
+            "Expected ISO 8601 format, e.g., '2024-12-31T15:30:00'."
         ) from e
     return dt
 
@@ -46,7 +48,7 @@ class DateRange(Enum):
     LAST_MONTH = "last_month"
     THIS_YEAR = "this_year"
 
-    def to_date_query(self):
+    def to_date_query(self) -> str:
         today = datetime.now()
         result = "after:"
         comparison_date = today
@@ -71,7 +73,19 @@ class DateRange(Enum):
         return result + comparison_date.strftime("%Y/%m/%d")
 
 
-def parse_email(email_data: dict[str, Any]) -> Optional[dict[str, str]]:
+def process_email_messages(service: Any, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    emails = []
+    for msg in messages:
+        try:
+            email_data = service.users().messages().get(userId="me", id=msg["id"]).execute()
+            email_details = parse_email(email_data)
+            emails += [email_details] if email_details else []
+        except HttpError as e:
+            print(f"Error reading email {msg['id']}: {e}")
+    return emails
+
+
+def parse_email(email_data: dict[str, Any]) -> dict[str, Any]:
     """
     Parse email data and extract relevant information.
 
@@ -97,10 +111,10 @@ def parse_email(email_data: dict[str, Any]) -> Optional[dict[str, str]]:
         }
     except Exception as e:
         print(f"Error parsing email {email_data.get('id', 'unknown')}: {e}")
-        return None
+        return email_data
 
 
-def parse_draft_email(draft_email_data: dict[str, Any]) -> Optional[dict[str, str]]:
+def parse_draft_email(draft_email_data: dict[str, Any]) -> dict[str, str]:
     """
     Parse draft email data and extract relevant information.
 
@@ -127,18 +141,18 @@ def parse_draft_email(draft_email_data: dict[str, Any]) -> Optional[dict[str, st
         }
     except Exception as e:
         print(f"Error parsing draft email {draft_email_data.get('id', 'unknown')}: {e}")
-        return None
+        return draft_email_data
 
 
-def get_draft_url(draft_id):
+def get_draft_url(draft_id: str) -> str:
     return f"https://mail.google.com/mail/u/0/#drafts/{draft_id}"
 
 
-def get_sent_email_url(sent_email_id):
+def get_sent_email_url(sent_email_id: str) -> str:
     return f"https://mail.google.com/mail/u/0/#sent/{sent_email_id}"
 
 
-def get_email_in_trash_url(email_id):
+def get_email_in_trash_url(email_id: str) -> str:
     return f"https://mail.google.com/mail/u/0/#trash/{email_id}"
 
 
@@ -178,9 +192,9 @@ def _clean_email_body(body: str) -> str:
         text = soup.get_text(separator=" ")
 
         # Clean up the text
-        text = _clean_text(text)
+        cleaned_text = _clean_text(text)
 
-        return text.strip()
+        return cleaned_text.strip()
     except Exception as e:
         print(f"Error cleaning email body: {e}")
         return body
@@ -226,9 +240,15 @@ def _update_datetime(day: Day | None, time: TimeSlot | None, time_zone: str) -> 
     return None
 
 
-def build_query_string(sender, recipient, subject, body, date_range):
-    """
-    Helper function to build a query string for Gmail list_emails_by_header and search_threads tools.
+def build_query_string(
+    sender: str | None,
+    recipient: str | None,
+    subject: str | None,
+    body: str | None,
+    date_range: DateRange | None,
+) -> str:
+    """Helper function to build a query string
+    for Gmail list_emails_by_header and search_threads tools.
     """
     query = []
     if sender:
@@ -244,7 +264,7 @@ def build_query_string(sender, recipient, subject, body, date_range):
     return " ".join(query)
 
 
-def fetch_messages(service, query_string, limit):
+def fetch_messages(service: Any, query_string: str, limit: int) -> list[dict[str, Any]]:
     """
     Helper function to fetch messages from Gmail API for the list_emails_by_header tool.
     """
@@ -254,7 +274,7 @@ def fetch_messages(service, query_string, limit):
         .list(userId="me", q=query_string, maxResults=limit or 100)
         .execute()
     )
-    return response.get("messages", [])
+    return response.get("messages", [])  # type: ignore[no-any-return]
 
 
 def remove_none_values(params: dict) -> dict:
@@ -267,16 +287,18 @@ def remove_none_values(params: dict) -> dict:
 
 
 # Drive utils
-def build_drive_service(token: str):
+def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
-    return build("drive", "v3", credentials=Credentials(token))
+    auth_token = auth_token or ""
+    return build("drive", "v3", credentials=Credentials(auth_token))
 
 
 # Docs utils
-def build_docs_service(token: str):
+def build_docs_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
-    return build("docs", "v1", credentials=Credentials(token))
+    auth_token = auth_token or ""
+    return build("docs", "v1", credentials=Credentials(auth_token))

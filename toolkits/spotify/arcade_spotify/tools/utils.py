@@ -1,6 +1,6 @@
 import httpx
+from arcade.sdk import ToolContext
 
-from arcade.core.schema import ToolContext
 from arcade_spotify.tools.constants import ENDPOINTS, SPOTIFY_BASE_URL
 from arcade_spotify.tools.models import PlaybackState
 
@@ -28,7 +28,10 @@ async def send_spotify_request(
     Raises:
         ToolExecutionError: If the request fails for any reason.
     """
-    headers = {"Authorization": f"Bearer {context.authorization.token}"}
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    headers = {"Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient() as client:
         response = await client.request(method, url, headers=headers, params=params, json=json_data)
@@ -36,7 +39,7 @@ async def send_spotify_request(
     return response
 
 
-def get_url(endpoint: str, **kwargs) -> str:
+def get_url(endpoint: str, **kwargs: object) -> str:
     """
     Get the full Spotify URL for a given endpoint.
 
@@ -67,7 +70,7 @@ def convert_to_playback_state(data: dict) -> PlaybackState:
     )
 
     if data.get("currently_playing_type") == "track":
-        item = data.get("item", {})
+        item = data.get("item") or {}
         album = item.get("album", {})
         playback_state.album_name = album.get("name")
         playback_state.album_id = album.get("id")
@@ -75,11 +78,11 @@ def convert_to_playback_state(data: dict) -> PlaybackState:
         playback_state.album_spotify_url = album.get("external_urls", {}).get("spotify")
         playback_state.track_name = item.get("name")
         playback_state.track_id = item.get("id")
-        playback_state.track_spotify_url = item.get("external_urls").get("spotify")
+        playback_state.track_spotify_url = item.get("external_urls", {}).get("spotify")
         playback_state.track_artists = [artist.get("name") for artist in item.get("artists", [])]
         playback_state.track_artists_ids = [artist.get("id") for artist in item.get("artists", [])]
     elif data.get("currently_playing_type") == "episode":
-        item = data.get("item", {})
+        item = data.get("item") or {}
         show = item.get("show", {})
         playback_state.show_name = show.get("name")
         playback_state.show_id = show.get("id")

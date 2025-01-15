@@ -16,6 +16,10 @@ def display_tools_table(tools: list[ToolDefinition]) -> None:
     """
     Display a table of tools with their name, description, package, and version.
     """
+    if not tools:
+        console.print("No tools found.", style="bold")
+        return
+
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("Name")
     table.add_column("Description")
@@ -45,7 +49,7 @@ def display_tool_details(tool: ToolDefinition) -> None:
     )
 
     # Inputs Panel
-    inputs = tool.inputs.parameters
+    inputs = tool.input.parameters
     if inputs:
         inputs_table = Table(show_header=True, header_style="bold green")
         inputs_table.add_column("Name", style="cyan")

@@ -2,9 +2,9 @@ import json
 from typing import Annotated, Optional
 
 import httpx
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import GitHub
+
 from arcade_github.tools.models import (
     ActivityType,
     RepoSortProperty,
@@ -21,7 +21,8 @@ from arcade_github.tools.utils import (
 )
 
 
-# Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository and returns only the stargazers_count field.
+# Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+# and returns only the stargazers_count field.
 # Example arcade chat usage: "How many stargazers does the <OWNER>/<REPO> repo have?"
 @tool(requires_auth=GitHub())
 async def count_stargazers(
@@ -36,7 +37,9 @@ async def count_stargazers(
     ```
     """
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     url = get_url("repo", owner=owner, repo=name)
     async with httpx.AsyncClient() as client:
@@ -46,11 +49,12 @@ async def count_stargazers(
 
     data = response.json()
     stargazers_count = data.get("stargazers_count", 0)
-    return stargazers_count
+    return int(stargazers_count)
 
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-organization-repositories
-# Example arcade chat usage: "List all repositories for the <ORG> organization. Sort by creation date in descending order."
+# Example arcade chat usage:
+#   "List all repositories for the <ORG> organization. Sort by creation date in descending order."
 @tool(requires_auth=GitHub())
 async def list_org_repositories(
     context: ToolContext,
@@ -60,15 +64,18 @@ async def list_org_repositories(
         RepoSortProperty, "The property to sort the results by"
     ] = RepoSortProperty.CREATED,
     sort_direction: Annotated[SortDirection, "The order to sort by"] = SortDirection.ASC,
-    per_page: Annotated[Optional[int], "The number of results per page"] = 30,
-    page: Annotated[Optional[int], "The page number of the results to fetch"] = 1,
+    per_page: Annotated[int, "The number of results per page"] = 30,
+    page: Annotated[int, "The page number of the results to fetch"] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the repositories. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     dict[str, list[dict]],
-    "A dictionary with key 'repositories' containing a list of repositories, each with details such as name, full_name, html_url, description, clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
+    "A dictionary with key 'repositories' containing a list of repositories, each with details "
+    "such as name, full_name, html_url, description, clone_url, private status, "
+    "creation/update/push timestamps, and star/watcher/fork counts",
 ]:
     """List repositories for the specified organization."""
     url = get_url("org_repos", org=org)
@@ -80,7 +87,9 @@ async def list_org_repositories(
         "page": page,
     }
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -123,11 +132,13 @@ async def get_repository(
     ],
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the repository. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     dict,
-    "A dictionary containing repository details such as name, full_name, html_url, description, clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
+    "A dictionary containing repository details such as name, full_name, html_url, description, "
+    "clone_url, private status, creation/update/push timestamps, and star/watcher/fork counts",
 ]:
     """Get a repository.
 
@@ -139,7 +150,9 @@ async def get_repository(
     ```
     """
     url = get_url("repo", owner=owner, repo=repo)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
@@ -148,7 +161,7 @@ async def get_repository(
 
     repo_data = response.json()
     if include_extra_data:
-        return json.dumps(repo_data)
+        return dict(repo_data)
 
     return {
         "name": repo_data["name"],
@@ -167,7 +180,8 @@ async def get_repository(
 
 
 # Implements https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repository-activities
-# Example arcade chat usage: "List all merges into main for the <OWNER>/<REPO> repo in the last week by <USER>"
+# Example arcade chat usage:
+#   "List all merges into main for the <OWNER>/<REPO> repo in the last week by <USER>"
 @tool(requires_auth=GitHub())
 async def list_repository_activities(
     context: ToolContext,
@@ -179,18 +193,20 @@ async def list_repository_activities(
     direction: Annotated[
         Optional[SortDirection], "The direction to sort the results by."
     ] = SortDirection.DESC,
-    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
+    per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
     before: Annotated[
         Optional[str],
-        "A cursor (unique identifier, e.g., a SHA of a commit) to search for results before this cursor.",
+        "A cursor (unique ID, e.g., a SHA of a commit) to search for results before this cursor.",
     ] = None,
     after: Annotated[
         Optional[str],
-        "A cursor (unique identifier, e.g., a SHA of a commit) to search for results after this cursor.",
+        "A cursor (unique ID, e.g., a SHA of a commit) to search for results after this cursor.",
     ] = None,
     ref: Annotated[
         Optional[str],
-        "The Git reference for the activities you want to list. The ref for a branch can be formatted either as refs/heads/BRANCH_NAME or BRANCH_NAME, where BRANCH_NAME is the name of your branch.",
+        "The Git reference for the activities you want to list. The ref for a branch can be "
+        "formatted either as refs/heads/BRANCH_NAME or BRANCH_NAME, where BRANCH_NAME is the name "
+        "of your branch.",
     ] = None,
     actor: Annotated[
         Optional[str], "The GitHub username to filter by the actor who performed the activity."
@@ -199,16 +215,19 @@ async def list_repository_activities(
     activity_type: Annotated[Optional[ActivityType], "The activity type to filter by."] = None,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the repository activities. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str,
-    "A JSON string containing a dictionary with key 'activities', which is a list of repository activities. Each activity includes id, node_id, before and after states, ref, timestamp, activity_type, and actor information",
+    "A JSON string containing a dictionary with key 'activities', which is a list of repository "
+    "activities. Each activity includes id, node_id, before and after states, ref, timestamp, "
+    "activity_type, and actor information",
 ]:
     """List repository activities.
 
-    Retrieves a detailed history of changes to a repository, such as pushes, merges, force pushes, and branch changes,
-    and associates these changes with commits and users.
+    Retrieves a detailed history of changes to a repository, such as pushes, merges,
+    force pushes, and branch changes, and associates these changes with commits and users.
 
     Example:
     ```
@@ -222,7 +241,7 @@ async def list_repository_activities(
     """
     url = get_url("repo_activity", owner=owner, repo=repo)
     params = {
-        "direction": direction.value,
+        "direction": direction.value if direction else None,
         "per_page": min(100, per_page),  # The API only allows up to 100 per page
         "before": before,
         "after": after,
@@ -233,7 +252,9 @@ async def list_repository_activities(
     }
     params = remove_none_values(params)
 
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
@@ -260,8 +281,9 @@ async def list_repository_activities(
 
 
 # Implements https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28#list-review-comments-in-a-repository
-# Example arcade chat usage: "List all review comments for the <OWNER>/<REPO> repo. Sort by update date in descending order."
-# TODO: Improve the 'since' input parameter such that language model can more easily specify a valid date/time.
+# Example arcade chat usage:
+#   "List all review comments for the <OWNER>/<REPO> repo. Sort by update date in descending order."
+# TODO: Improve the 'since' input param such that LLM can more easily specify a valid date/time.
 @tool(requires_auth=GitHub())
 async def list_review_comments_in_a_repository(
     context: ToolContext,
@@ -279,17 +301,21 @@ async def list_review_comments_in_a_repository(
     ] = SortDirection.DESC,
     since: Annotated[
         Optional[str],
-        "Only show results that were last updated after the given time. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
+        "Only show results that were last updated after the given time. "
+        "This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
     ] = None,
-    per_page: Annotated[Optional[int], "The number of results per page (max 100)."] = 30,
-    page: Annotated[Optional[int], "The page number of the results to fetch."] = 1,
+    per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
+    page: Annotated[int, "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
         bool,
-        "If true, return all the data available about the pull requests. This is a large payload and may impact performance - use with caution.",
+        "If true, return all the data available about the review comments. "
+        "This is a large payload and may impact performance - use with caution.",
     ] = False,
 ) -> Annotated[
     str,
-    "A JSON string containing a dictionary with key 'review_comments', which is a list of review comments. Each comment includes id, url, diff_hunk, path, position details, commit information, user, body, timestamps, and related URLs",
+    "A JSON string containing a dictionary with key 'review_comments', which is a list of "
+    "review comments. Each comment includes id, url, diff_hunk, path, position details, commit "
+    "information, user, body, timestamps, and related URLs",
 ]:
     """
     List review comments in a GitHub repository.
@@ -309,7 +335,9 @@ async def list_review_comments_in_a_repository(
         "since": since,
     }
     params = remove_none_values(params)
-    headers = get_github_json_headers(context.authorization.token)
+    headers = get_github_json_headers(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers, params=params)
