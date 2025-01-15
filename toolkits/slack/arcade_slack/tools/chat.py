@@ -1,3 +1,4 @@
+import datetime
 import time
 from typing import Annotated, Optional
 
@@ -394,8 +395,6 @@ def get_members_from_conversation_name(
     return get_members_from_conversation_id(context, conversation_id, limit)
 
 
-# TODO: Add pagination
-# TODO: Add support for unix timestamps
 @tool(
     requires_auth=Slack(
         scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
@@ -407,24 +406,63 @@ def get_conversation_history_by_id(
     oldest_relative: Annotated[
         Optional[str],
         "The oldest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
-    ] = "00:00:00",
+    ] = None,
     latest_relative: Annotated[
         Optional[str],
         "The latest message to include in the results, specified as a time offset from the current time in the format 'DD:HH:MM'",
-    ] = "00:00:00",
+    ] = None,
+    oldest_datetime: Annotated[
+        Optional[str],
+        "The oldest message to include in the results, specified as a datetime object in the format 'YYYY-MM-DD HH:MM:SS'.",
+    ] = None,
+    latest_datetime: Annotated[
+        Optional[str],
+        "The latest message to include in the results, specified as a datetime object in the format 'YYYY-MM-DD HH:MM:SS'.",
+    ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
     ] = 20,
-) -> Annotated[dict, "The conversation history"]:
+    cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
+) -> Annotated[
+    dict,
+    "The conversation history and next cursor for paginating results (when there are additional messages to retrieve).",
+]:
     """Get the history of a conversation in Slack."""
-    days, hours, minutes = map(int, latest_relative.split(":"))
-    latest_seconds = days * 86400 + hours * 3600 + minutes * 60
-    current_unix_timestamp = int(time.time())
-    latest_unix_timestamp = current_unix_timestamp - latest_seconds
+    # This is super ugly I know, I'm sorry, we are soon implementing a better solution
+    # for date-range filtering that will be standardized across all tools.
+    error_message = None
+    if oldest_datetime and oldest_relative:
+        error_message = "Cannot specify both 'oldest_datetime' and 'oldest_relative'."
 
-    days, hours, minutes = map(int, oldest_relative.split(":"))
-    oldest_seconds = days * 86400 + hours * 3600 + minutes * 60
-    oldest_unix_timestamp = current_unix_timestamp - oldest_seconds
+    if latest_datetime and latest_relative:
+        error_message = "Cannot specify both 'latest_datetime' and 'latest_relative'."
+
+    if error_message:
+        raise ToolExecutionError(error_message, developer_message=error_message)
+
+    current_unix_timestamp = int(time.time())
+
+    if latest_relative:
+        days, hours, minutes = map(int, latest_relative.split(":"))
+        latest_seconds = days * 86400 + hours * 3600 + minutes * 60
+        latest_unix_timestamp = current_unix_timestamp - latest_seconds
+    elif latest_datetime:
+        latest_unix_timestamp = int(
+            datetime.datetime.strptime(latest_datetime, "%Y-%m-%d %H:%M:%S").timestamp()
+        )
+    else:
+        latest_unix_timestamp = current_unix_timestamp  # This is the default on Slack API
+
+    if oldest_relative:
+        days, hours, minutes = map(int, oldest_relative.split(":"))
+        oldest_seconds = days * 86400 + hours * 3600 + minutes * 60
+        oldest_unix_timestamp = current_unix_timestamp - oldest_seconds
+    elif oldest_datetime:
+        oldest_unix_timestamp = int(
+            datetime.datetime.strptime(oldest_datetime, "%Y-%m-%d %H:%M:%S").timestamp()
+        )
+    else:
+        oldest_unix_timestamp = 0  # This is the default on Slack API
 
     slackClient = WebClient(token=context.authorization.token)
     response = slackClient.conversations_history(
@@ -433,6 +471,8 @@ def get_conversation_history_by_id(
         include_all_metadata=True,
         oldest=oldest_unix_timestamp,
         latest=latest_unix_timestamp,
+        cursor=cursor,
     )
     messages = response.get("messages", [])
-    return {"messages": messages}
+    next_cursor = response.get("response_metadata", {}).get("next_cursor")
+    return {"messages": messages, "next_cursor": next_cursor}
