@@ -1,9 +1,9 @@
 from typing import Annotated, Optional
 
-from slack_sdk import WebClient
-
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
+from slack_sdk import WebClient
+
 from arcade_slack.utils import extract_basic_user_info, is_user_a_bot, is_user_deleted
 
 
