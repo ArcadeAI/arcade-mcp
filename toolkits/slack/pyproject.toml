@@ -8,6 +8,8 @@ authors = ["Arcade AI <dev@arcade-ai.com>"]
 python = "^3.10"
 arcade-ai = "0.1.*"
 slack-sdk = "^3.31.0"
+aiohttp = ">=3.7.3,<4"
+aiodns = "^1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"
