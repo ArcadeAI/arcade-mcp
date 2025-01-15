@@ -38,22 +38,6 @@ async def test_send_dm_to_inexistent_user(mock_context, mock_slack_client):
 
 
 @pytest.mark.asyncio
-async def test_send_dm_to_user_with_slack_error(mock_context, mock_slack_client):
-    mock_slack_client.users_list.side_effect = SlackApiError(
-        message="test_slack_error",
-        response={"ok": False, "error": "test_slack_error"},
-    )
-
-    with pytest.raises(ToolExecutionError) as e:
-        await send_dm_to_user(mock_context, "testuser", "Hello!")
-        assert "test_slack_error" in str(e.value)
-
-    mock_slack_client.users_list.assert_called_once()
-    mock_slack_client.conversations_open.assert_not_called()
-    mock_slack_client.chat_postMessage.assert_not_called()
-
-
-@pytest.mark.asyncio
 async def test_send_message_to_channel(mock_context, mock_slack_client):
     mock_slack_client.conversations_list.return_value = {
         "channels": [{"name": "general", "id": "C12345"}]
@@ -67,3 +51,35 @@ async def test_send_message_to_channel(mock_context, mock_slack_client):
     mock_slack_client.chat_postMessage.assert_called_once_with(
         channel="C12345", text="Hello, channel!"
     )
+
+
+@pytest.mark.asyncio
+async def test_send_message_to_inexistent_channel(mock_context, mock_slack_client):
+    mock_slack_client.conversations_list.return_value = {"channels": []}
+
+    with pytest.raises(RetryableToolError):
+        await send_message_to_channel(mock_context, "inexistent_channel", "Hello!")
+
+    mock_slack_client.conversations_list.assert_called_once()
+    mock_slack_client.chat_postMessage.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "faulty_slack_function_name, tool_function, tool_args",
+    [
+        ("users_list", send_dm_to_user, ("testuser", "Hello!")),
+        ("conversations_list", send_message_to_channel, ("general", "Hello!")),
+    ],
+)
+async def test_tools_with_slack_error(
+    mock_context, mock_slack_client, faulty_slack_function_name, tool_function, tool_args
+):
+    getattr(mock_slack_client, faulty_slack_function_name).side_effect = SlackApiError(
+        message="test_slack_error",
+        response={"ok": False, "error": "test_slack_error"},
+    )
+
+    with pytest.raises(ToolExecutionError) as e:
+        await tool_function(mock_context, *tool_args)
+        assert "test_slack_error" in str(e.value)

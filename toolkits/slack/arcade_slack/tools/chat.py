@@ -87,39 +87,43 @@ async def send_dm_to_user(
 )
 async def send_message_to_channel(
     context: ToolContext,
-    channel_name: Annotated[
-        str,
-        "The Slack channel name where you want to send the message. "
-        "Slack channel names are ALWAYS lowercase.",
-    ],
+    channel_name: Annotated[str, "The Slack channel name where you want to send the message. "],
     message: Annotated[str, "The message you want to send"],
 ) -> Annotated[dict, "The response from the Slack API"]:
     """Send a message to a channel in Slack."""
 
-    slackClient = AsyncWebClient(
-        token=context.authorization.token
-        if context.authorization and context.authorization.token
-        else ""
-    )
-
-    # Step 1: Retrieve the list of channels
-    channels_response = await slackClient.conversations_list()
-    channel_id = None
-    for channel in channels_response["channels"]:
-        if channel["name"].lower() == channel_name.lower():
-            channel_id = channel["id"]
-            break
-
-    if not channel_id:
-        raise RetryableToolError(
-            "Channel not found",
-            developer_message=f"Channel with name '{channel_name}' not found.",
-            additional_prompt_content=format_channels(channels_response),
-            retry_after_ms=500,  # Play nice with Slack API rate limits
+    try:
+        slackClient = AsyncWebClient(
+            token=context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
         )
 
-    # Step 2: Send the message to the channel
-    return await slackClient.chat_postMessage(channel=channel_id, text=message)
+        # Step 1: Retrieve the list of channels
+        channels_response = await slackClient.conversations_list()
+        channel_id = None
+        for channel in channels_response["channels"]:
+            if channel["name"].lower() == channel_name.lower():
+                channel_id = channel["id"]
+                break
+
+        if not channel_id:
+            raise RetryableToolError(
+                "Channel not found",
+                developer_message=f"Channel with name '{channel_name}' not found.",
+                additional_prompt_content=format_channels(channels_response),
+                retry_after_ms=500,  # Play nice with Slack API rate limits
+            )
+
+        # Step 2: Send the message to the channel
+        return await slackClient.chat_postMessage(channel=channel_id, text=message)
+
+    except SlackApiError as e:
+        error_message = e.response["error"] if "error" in e.response else str(e)
+        raise ToolExecutionError(
+            "Error sending message",
+            developer_message=f"Slack API Error: {error_message}",
+        )
 
 
 @tool(
