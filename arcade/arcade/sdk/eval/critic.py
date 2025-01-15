@@ -8,12 +8,6 @@ from dateutil import parser
 
 from arcade.sdk.errors import WeightError
 
-# @dataclass
-# class CriticResult:
-#     match: bool | None = None
-#     score: float | None = None
-#     is_criticized: bool = True  # Indicates if a critic was applied
-
 
 @dataclass
 class Critic(ABC):
@@ -33,6 +27,9 @@ class Critic(ABC):
 class NoneCritic(Critic):
     """
     A critic that has no effect on the evaluation results and does not actually evaluate.
+
+    If a critic is not found for an evaluation case's field, then
+    a NoneCritic is used to indicate that the field was not criticized.
     """
 
     weight: float = 0.0
