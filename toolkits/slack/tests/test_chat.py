@@ -1,4 +1,6 @@
 import pytest
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from slack_sdk.errors import SlackApiError
 
 from arcade_slack.tools.chat import send_dm_to_user, send_message_to_channel
 
@@ -21,6 +23,34 @@ async def test_send_dm_to_user(mock_context, mock_slack_client):
     mock_slack_client.users_list.assert_called_once()
     mock_slack_client.conversations_open.assert_called_once_with(users=["U12345"])
     mock_slack_client.chat_postMessage.assert_called_once_with(channel="D12345", text="Hello!")
+
+
+@pytest.mark.asyncio
+async def test_send_dm_to_inexistent_user(mock_context, mock_slack_client):
+    mock_slack_client.users_list.return_value = {"members": [{"name": "testuser", "id": "U12345"}]}
+
+    with pytest.raises(RetryableToolError):
+        await send_dm_to_user(mock_context, "inexistent_user", "Hello!")
+
+    mock_slack_client.users_list.assert_called_once()
+    mock_slack_client.conversations_open.assert_not_called()
+    mock_slack_client.chat_postMessage.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_send_dm_to_user_with_slack_error(mock_context, mock_slack_client):
+    mock_slack_client.users_list.side_effect = SlackApiError(
+        message="test_slack_error",
+        response={"ok": False, "error": "test_slack_error"},
+    )
+
+    with pytest.raises(ToolExecutionError) as e:
+        await send_dm_to_user(mock_context, "testuser", "Hello!")
+        assert "test_slack_error" in str(e.value)
+
+    mock_slack_client.users_list.assert_called_once()
+    mock_slack_client.conversations_open.assert_not_called()
+    mock_slack_client.chat_postMessage.assert_not_called()
 
 
 @pytest.mark.asyncio
