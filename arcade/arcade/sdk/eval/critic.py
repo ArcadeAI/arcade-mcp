@@ -8,6 +8,12 @@ from dateutil import parser
 
 from arcade.sdk.errors import WeightError
 
+# @dataclass
+# class CriticResult:
+#     match: bool | None = None
+#     score: float | None = None
+#     is_criticized: bool = True  # Indicates if a critic was applied
+
 
 @dataclass
 class Critic(ABC):
@@ -21,6 +27,22 @@ class Critic(ABC):
     @abstractmethod
     def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
         pass
+
+
+@dataclass
+class NoneCritic(Critic):
+    """
+    A critic that has no effect on the evaluation results and does not actually evaluate.
+    """
+
+    weight: float = 0.0
+
+    def __post_init__(self) -> None:
+        self.weight = 0.0
+        super().__post_init__()
+
+    def evaluate(self, expected: Any, actual: Any) -> dict[str, Any]:
+        return {"match": None, "score": self.weight, "is_criticized": False}
 
 
 @dataclass
