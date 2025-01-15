@@ -1,3 +1,6 @@
+from typing import Callable, Optional
+
+from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType
 
 
@@ -44,26 +47,26 @@ def get_conversation_type(channel: dict) -> ConversationType:
     )
 
 
-def extract_basic_channel_metadata(channel: dict) -> dict:
-    conversation_type = get_conversation_type(channel)
+def extract_conversation_metadata(conversation: dict) -> dict:
+    conversation_type = get_conversation_type(conversation)
 
     metadata = {
-        "id": channel.get("id"),
-        "name": channel.get("name"),
+        "id": conversation.get("id"),
+        "name": conversation.get("name"),
         "conversation_type": conversation_type,
-        "is_private": channel.get("is_private", True),
-        "is_archived": channel.get("is_archived", False),
-        "is_member": channel.get("is_member", True),
-        "purpose": channel.get("purpose", {}).get("value", ""),
-        "num_members": channel.get("num_members", 0),
+        "is_private": conversation.get("is_private", True),
+        "is_archived": conversation.get("is_archived", False),
+        "is_member": conversation.get("is_member", True),
+        "purpose": conversation.get("purpose", {}).get("value", ""),
+        "num_members": conversation.get("num_members", 0),
     }
 
     if conversation_type == ConversationType.IM.value:
         metadata["num_members"] = 2
-        metadata["user"] = channel.get("user")
-        metadata["is_user_deleted"] = channel.get("is_user_deleted")
+        metadata["user"] = conversation.get("user")
+        metadata["is_user_deleted"] = conversation.get("is_user_deleted")
     elif conversation_type == ConversationType.MPIM.value:
-        metadata["num_members"] = len(channel.get("name", "").split("--"))
+        metadata["num_members"] = len(conversation.get("name", "").split("--"))
 
     return metadata
 
@@ -103,6 +106,36 @@ def is_user_deleted(user: dict) -> bool:
     return user.get("deleted", False)
 
 
-def filter_conversations(conversations: list[dict]) -> list[dict]:
-    """Filter out conversations that the user is not a member of."""
-    return [conversation for conversation in conversations if conversation["is_member"]]
+async def async_paginate(
+    func: Callable,
+    response_key: str,
+    limit: Optional[int] = MAX_PAGINATION_LIMIT,
+    cursor: Optional[str] = None,
+    *args,
+    **kwargs,
+) -> tuple[list, Optional[str]]:
+    """Paginate a Slack AsyncWebClient's function results.
+
+    The purpose is to abstract the pagination work and make it easier for the LLM to retrieve the
+    amount of items requested by the user, regardless of limits imposed by the Slack API. We still
+    return the next cursor, if needed to paginate further.
+
+    :param func: The Slack AsyncWebClient's function to paginate.
+    :param response_key: The name of the key in the Slack response dict that contains the results.
+    :param limit: The maximum number of items to retrieve.
+    :param cursor: The cursor to use for pagination.
+    :param kwargs: Additional keyword arguments to pass to the Slack function.
+    :return: A tuple containing the results and the next cursor, if needed to paginate further.
+    """
+    results = []
+    while len(results) < limit:
+        slack_limit = min(limit - len(results), MAX_PAGINATION_LIMIT)
+        response = await func(*args, **{**kwargs, "limit": slack_limit, "cursor": cursor})
+        try:
+            results.extend(response[response_key])
+        except KeyError:
+            raise ValueError(f"Response key {response_key} not found in Slack response")
+        kwargs["cursor"] = response.get("response_metadata", {}).get("next_cursor")
+        if not kwargs["cursor"]:
+            break
+    return results, kwargs["cursor"]
