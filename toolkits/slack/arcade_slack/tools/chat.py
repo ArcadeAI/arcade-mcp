@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import time
 from typing import Annotated, Optional
@@ -5,8 +6,8 @@ from typing import Annotated, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
-from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
@@ -28,7 +29,7 @@ from arcade_slack.utils import (
         ],
     )
 )
-def send_dm_to_user(
+async def send_dm_to_user(
     context: ToolContext,
     user_name: Annotated[
         str,
@@ -41,11 +42,11 @@ def send_dm_to_user(
 ):
     """Send a direct message to a user in Slack."""
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = AsyncWebClient(token=context.authorization.token)
 
     try:
         # Step 1: Retrieve the user's Slack ID based on their username
-        userListResponse = slackClient.users_list()
+        userListResponse = await slackClient.users_list()
         user_id = None
         for user in userListResponse["members"]:
             if user["name"].lower() == user_name.lower():
@@ -61,11 +62,11 @@ def send_dm_to_user(
             )
 
         # Step 2: Retrieve the DM channel ID with the user
-        im_response = slackClient.conversations_open(users=[user_id])
+        im_response = await slackClient.conversations_open(users=[user_id])
         dm_channel_id = im_response["channel"]["id"]
 
         # Step 3: Send the message as if it's from you (because we're using a user token)
-        slackClient.chat_postMessage(channel=dm_channel_id, text=message)
+        await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
 
     except SlackApiError as e:
         error_message = e.response["error"] if "error" in e.response else str(e)
@@ -84,7 +85,7 @@ def send_dm_to_user(
         ],
     )
 )
-def send_message_to_channel(
+async def send_message_to_channel(
     context: ToolContext,
     channel_name: Annotated[
         str,
@@ -95,14 +96,14 @@ def send_message_to_channel(
 ) -> Annotated[dict, "The response from the Slack API"]:
     """Send a message to a channel in Slack."""
 
-    slackClient = WebClient(
+    slackClient = AsyncWebClient(
         token=context.authorization.token
         if context.authorization and context.authorization.token
         else ""
     )
 
     # Step 1: Retrieve the list of channels
-    channels_response = slackClient.conversations_list()
+    channels_response = await slackClient.conversations_list()
     channel_id = None
     for channel in channels_response["channels"]:
         if channel["name"].lower() == channel_name.lower():
@@ -118,7 +119,7 @@ def send_message_to_channel(
         )
 
     # Step 2: Send the message to the channel
-    response = slackClient.chat_postMessage(channel=channel_id, text=message)
+    response = await slackClient.chat_postMessage(channel=channel_id, text=message)
     response.validate()
 
 
@@ -127,7 +128,7 @@ def send_message_to_channel(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def list_conversations_metadata(
+async def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
         Optional[list[ConversationType]], "The type of conversations to list"
@@ -148,13 +149,13 @@ def list_conversations_metadata(
     next_page_token = None
     conversations = []
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = AsyncWebClient(token=context.authorization.token)
 
     while limit == -1 or len(conversations) < limit:
         iteration_limit = (
             200 if limit == -1 else min(limit - len(conversations), 200)
         )  # Slack recommends max 200 results at a time
-        response = slackClient.conversations_list(
+        response = await slackClient.conversations_list(
             types=types,
             exclude_archived=True,
             limit=iteration_limit,
@@ -180,7 +181,7 @@ def list_conversations_metadata(
         scopes=["channels:read"],
     )
 )
-def list_public_channels_metadata(
+async def list_public_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
@@ -188,7 +189,7 @@ def list_public_channels_metadata(
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
-    return list_conversations_metadata(
+    return await list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PUBLIC_CHANNEL],
         limit=limit,
@@ -200,7 +201,7 @@ def list_public_channels_metadata(
         scopes=["groups:read"],
     )
 )
-def list_private_channels_metadata(
+async def list_private_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
@@ -208,7 +209,7 @@ def list_private_channels_metadata(
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
-    return list_conversations_metadata(
+    return await list_conversations_metadata(
         context,
         conversation_types=[ConversationType.PRIVATE_CHANNEL],
         limit=limit,
@@ -220,7 +221,7 @@ def list_private_channels_metadata(
         scopes=["mpim:read"],
     )
 )
-def list_group_direct_message_channels_metadata(
+async def list_group_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
@@ -228,7 +229,7 @@ def list_group_direct_message_channels_metadata(
 ) -> Annotated[dict, "The group direct message channels"]:
     """List metadata for group direct message channels in Slack that the user is a member of."""
 
-    return list_conversations_metadata(
+    return await list_conversations_metadata(
         context,
         conversation_types=[ConversationType.MPIM],
         limit=limit,
@@ -242,7 +243,7 @@ def list_group_direct_message_channels_metadata(
         scopes=["im:read"],
     )
 )
-def list_direct_message_channels_metadata(
+async def list_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
@@ -250,7 +251,7 @@ def list_direct_message_channels_metadata(
 ) -> Annotated[dict, "The direct message channels metadata"]:
     """List metadata for direct message channels in Slack that the user is a member of."""
 
-    return list_conversations_metadata(
+    return await list_conversations_metadata(
         context,
         conversation_types=[ConversationType.IM],
         limit=limit,
@@ -262,20 +263,22 @@ def list_direct_message_channels_metadata(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def get_conversation_metadata_by_id(
+async def get_conversation_metadata_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack."""
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = AsyncWebClient(token=context.authorization.token)
     try:
-        response = slackClient.conversations_info(channel=conversation_id, include_num_members=True)
+        response = await slackClient.conversations_info(
+            channel=conversation_id, include_num_members=True
+        )
         return extract_basic_channel_metadata(response["channel"])
 
     except SlackApiError as e:
         if e.response["error"] == "channel_not_found":
-            conversations = list_conversations_metadata(context, limit=-1)
+            conversations = await list_conversations_metadata(context, limit=-1)
             conversation_ids = ", ".join(
                 conversation["id"] for conversation in conversations["conversations"]
             )
@@ -294,12 +297,12 @@ def get_conversation_metadata_by_id(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def get_conversation_metadata_by_name(
+async def get_conversation_metadata_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack."""
-    conversations = list_conversations_metadata(context, limit=-1)
+    conversations = await list_conversations_metadata(context, limit=-1)
 
     for conversation in conversations["conversations"]:
         # Check if the conversation has a 'name' attribute and it's not None
@@ -325,7 +328,7 @@ def get_conversation_metadata_by_name(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def get_members_from_conversation_id(
+async def get_members_from_conversation_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
     limit: Annotated[
@@ -334,7 +337,7 @@ def get_members_from_conversation_id(
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get information about the members in a conversation in Slack."""
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = AsyncWebClient(token=context.authorization.token)
     member_ids = []
     next_page_token = None
 
@@ -343,7 +346,7 @@ def get_members_from_conversation_id(
         iteration_limit = (
             200 if limit == -1 else min(limit - len(member_ids), 200)
         )  # Slack recommends max 200 results at a time
-        response = slackClient.conversations_members(
+        response = await slackClient.conversations_members(
             channel=conversation_id, cursor=next_page_token, limit=iteration_limit
         )
         member_ids.extend(response["members"])
@@ -355,7 +358,9 @@ def get_members_from_conversation_id(
     # Get the members' info
     # TODO: This will probably hit rate limits. We should probably call list_users() and
     # then filter the results instead.
-    members = [get_user_info_by_id(context, member_id) for member_id in member_ids]
+    members = await asyncio.gather(*[
+        get_user_info_by_id(context, member_id) for member_id in member_ids
+    ])
 
     return {"members": members}
 
@@ -365,7 +370,7 @@ def get_members_from_conversation_id(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-def get_members_from_conversation_name(
+async def get_members_from_conversation_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get members for"],
     limit: Annotated[
@@ -374,7 +379,7 @@ def get_members_from_conversation_name(
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
 
-    conversations = list_conversations_metadata(context, limit=-1)
+    conversations = await list_conversations_metadata(context, limit=-1)
 
     conversation_id = None
     for conversation in conversations["conversations"]:
@@ -404,7 +409,7 @@ def get_members_from_conversation_name(
         scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
     )
 )
-def get_conversation_history_by_id(
+async def get_conversation_history_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get history for"],
     oldest_relative: Annotated[
@@ -483,8 +488,8 @@ def get_conversation_history_by_id(
     else:
         oldest_unix_timestamp = 0  # This is the default on Slack API
 
-    slackClient = WebClient(token=context.authorization.token)
-    response = slackClient.conversations_history(
+    slackClient = AsyncWebClient(token=context.authorization.token)
+    response = await slackClient.conversations_history(
         channel=conversation_id,
         limit=limit,
         include_all_metadata=True,

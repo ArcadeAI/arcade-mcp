@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
-from slack_sdk import WebClient
+from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.utils import extract_basic_user_info, is_user_a_bot, is_user_deleted
 
@@ -12,14 +12,14 @@ from arcade_slack.utils import extract_basic_user_info, is_user_a_bot, is_user_d
         scopes=["users:read", "users:read.email"],
     )
 )
-def get_user_info_by_id(
+async def get_user_info_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The ID of the user to get"],
 ) -> Annotated[dict, "The user's information"]:
     """Get the information of a user in Slack."""
 
-    slackClient = WebClient(token=context.authorization.token)
-    response = slackClient.users_info(user=user_id)
+    slackClient = AsyncWebClient(token=context.authorization.token)
+    response = await slackClient.users_info(user=user_id)
 
     return extract_basic_user_info(response.get("user", {}))
 
@@ -29,7 +29,7 @@ def get_user_info_by_id(
         scopes=["users:read", "users:read.email"],
     )
 )
-def list_users(
+async def list_users(
     context: ToolContext,
     exclude_bots: Annotated[Optional[bool], "Whether to exclude bots from the results"] = True,
     limit: Annotated[
@@ -38,7 +38,7 @@ def list_users(
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
 
-    slackClient = WebClient(token=context.authorization.token)
+    slackClient = AsyncWebClient(token=context.authorization.token)
     users = []
     next_page_token = None
 
@@ -46,7 +46,7 @@ def list_users(
         iteration_limit = (
             200 if limit == -1 else min(limit - len(users), 200)
         )  # Slack recommends max 200 results at a time
-        response = slackClient.users_list(cursor=next_page_token, limit=iteration_limit)
+        response = await slackClient.users_list(cursor=next_page_token, limit=iteration_limit)
         if response.get("ok"):
             for user in response.get("members", []):
                 if not is_user_deleted(user) and (not exclude_bots or not is_user_a_bot(user)):
