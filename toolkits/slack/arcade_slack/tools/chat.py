@@ -9,11 +9,12 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
-    extract_basic_channel_metadata,
-    filter_conversations,
+    async_paginate,
+    extract_conversation_metadata,
     format_channels,
     format_users,
 )
@@ -134,49 +135,50 @@ async def send_message_to_channel(
 async def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
-        Optional[list[ConversationType]], "The type of conversations to list"
+        Optional[list[ConversationType]],
+        "The type(s) of conversations to list. Defaults to all types.",
     ] = None,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = -1,
-) -> Annotated[dict, "The conversations metadata"]:
+        Optional[int], "The maximum number of conversations to list."
+    ] = MAX_PAGINATION_LIMIT,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+) -> Annotated[
+    dict,
+    (
+        "The conversations metadata list and a pagination 'next_cursor', if there are more "
+        "conversations to retrieve."
+    ),
+]:
     """
-    List metadata for Slack conversations that the user is a member of given the provided filters.
+    List metadata for Slack conversations (channels and/or direct messages) that the user
+    is a member of.
     """
+    if isinstance(conversation_types, ConversationType):
+        conversation_types = [conversation_types]
 
-    if conversation_types is None:
-        types = ",".join(conv_type.value for conv_type in ConversationType)
-    else:
-        types = ",".join(conv_type.value for conv_type in conversation_types)
-
-    next_page_token = None
-    conversations = []
+    conversation_types_filter = ",".join(
+        conv_type.value for conv_type in conversation_types or ConversationType
+    )
 
     slackClient = AsyncWebClient(token=context.authorization.token)
 
-    while limit == -1 or len(conversations) < limit:
-        iteration_limit = (
-            200 if limit == -1 else min(limit - len(conversations), 200)
-        )  # Slack recommends max 200 results at a time
-        response = await slackClient.conversations_list(
-            types=types,
-            exclude_archived=True,
-            limit=iteration_limit,
-            next_page_token=next_page_token,
-        )
+    results, next_cursor = await async_paginate(
+        slackClient.conversations_list,
+        "channels",
+        limit=limit,
+        cursor=next_cursor,
+        types=conversation_types_filter,
+        exclude_archived=True,
+    )
 
-        channels = [
-            extract_basic_channel_metadata(channel) for channel in response.get("channels", [])
-        ]
-        conversations.extend(channels)
-        next_page_token = response.get("next_page_token")
-
-        if not next_page_token:
-            break
-
-    conversations = filter_conversations(conversations)
-
-    return {"conversations": conversations}
+    return {
+        "conversations": [
+            extract_conversation_metadata(conversation)
+            for conversation in results
+            if conversation.get("is_member")
+        ],
+        "next_cursor": next_cursor,
+    }
 
 
 @tool(
@@ -277,7 +279,7 @@ async def get_conversation_metadata_by_id(
         response = await slackClient.conversations_info(
             channel=conversation_id, include_num_members=True
         )
-        return extract_basic_channel_metadata(response["channel"])
+        return extract_conversation_metadata(response["channel"])
 
     except SlackApiError as e:
         if e.response["error"] == "channel_not_found":

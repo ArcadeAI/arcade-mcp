@@ -2,13 +2,25 @@ import pytest
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 
-from arcade_slack.tools.chat import send_dm_to_user, send_message_to_channel
+from arcade_slack.constants import MAX_PAGINATION_LIMIT
+from arcade_slack.models import ConversationType
+from arcade_slack.tools.chat import (
+    list_conversations_metadata,
+    send_dm_to_user,
+    send_message_to_channel,
+)
+from arcade_slack.utils import extract_conversation_metadata
 
 
 @pytest.fixture
 def mock_slack_client(mocker):
     mock_client = mocker.patch("arcade_slack.tools.chat.AsyncWebClient", autospec=True)
     return mock_client.return_value
+
+
+@pytest.fixture
+def mock_channel_info() -> dict:
+    return {"name": "general", "id": "C12345", "is_member": True, "is_channel": True}
 
 
 @pytest.mark.asyncio
@@ -62,6 +74,92 @@ async def test_send_message_to_inexistent_channel(mock_context, mock_slack_clien
 
     mock_slack_client.conversations_list.assert_called_once()
     mock_slack_client.chat_postMessage.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_metadata_with_default_args(
+    mock_context, mock_slack_client, mock_channel_info
+):
+    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+
+    response = await list_conversations_metadata(mock_context)
+
+    assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
+    assert response["next_cursor"] is None
+
+    mock_slack_client.conversations_list.assert_called_once_with(
+        types=",".join([conv_type.value for conv_type in ConversationType]),
+        exclude_archived=True,
+        limit=MAX_PAGINATION_LIMIT,
+        cursor=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_metadata_filtering_single_conversation_type(
+    mock_context, mock_slack_client, mock_channel_info
+):
+    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+
+    response = await list_conversations_metadata(
+        mock_context, conversation_types=ConversationType.PUBLIC_CHANNEL
+    )
+
+    assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
+    assert response["next_cursor"] is None
+
+    mock_slack_client.conversations_list.assert_called_once_with(
+        types=ConversationType.PUBLIC_CHANNEL.value,
+        exclude_archived=True,
+        limit=MAX_PAGINATION_LIMIT,
+        cursor=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_metadata_filtering_multiple_conversation_types(
+    mock_context, mock_slack_client, mock_channel_info
+):
+    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+
+    response = await list_conversations_metadata(
+        mock_context,
+        conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+    )
+
+    assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
+    assert response["next_cursor"] is None
+
+    mock_slack_client.conversations_list.assert_called_once_with(
+        types=f"{ConversationType.PUBLIC_CHANNEL.value},{ConversationType.PRIVATE_CHANNEL.value}",
+        exclude_archived=True,
+        limit=MAX_PAGINATION_LIMIT,
+        cursor=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_metadata_with_custom_pagination_args(
+    mock_context, mock_slack_client, mock_channel_info
+):
+    mock_slack_client.conversations_list.return_value = {
+        "channels": [mock_channel_info] * 3,
+        "response_metadata": {"next_cursor": "456"},
+    }
+
+    response = await list_conversations_metadata(mock_context, limit=3, next_cursor="123")
+
+    assert response["conversations"] == [
+        extract_conversation_metadata(mock_channel_info) for _ in range(3)
+    ]
+    assert response["next_cursor"] == "456"
+
+    mock_slack_client.conversations_list.assert_called_once_with(
+        types=",".join([conv_type.value for conv_type in ConversationType]),
+        exclude_archived=True,
+        limit=3,
+        cursor="123",
+    )
 
 
 @pytest.mark.asyncio
