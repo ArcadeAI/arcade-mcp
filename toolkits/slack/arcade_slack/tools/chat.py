@@ -41,7 +41,7 @@ async def send_dm_to_user(
         ),
     ],
     message: Annotated[str, "The message you want to send"],
-):
+) -> Annotated[dict, "The response from the Slack API"]:
     """Send a direct message to a user in Slack."""
 
     slackClient = AsyncWebClient(token=context.authorization.token)
