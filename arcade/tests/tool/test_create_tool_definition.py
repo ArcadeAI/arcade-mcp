@@ -49,9 +49,8 @@ def func_with_name_and_description():
 @tool(
     desc="A function that requires authentication",
     requires_auth=OAuth2(
-        provider_id="example",
-        scopes=["scope1", "scope2"],
         id="my_example_provider123",
+        scopes=["scope1", "scope2"],
     ),
 )
 def func_with_auth_requirement():
@@ -269,7 +268,6 @@ def func_with_complex_return() -> dict[str, str]:
             {
                 "requirements": ToolRequirements(
                     authorization=ToolAuthRequirement(
-                        provider_id="example",
                         provider_type="oauth2",
                         id="my_example_provider123",
                         oauth2=OAuth2Requirement(

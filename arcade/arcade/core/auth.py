@@ -13,7 +13,7 @@ class ToolAuthorization(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    provider_id: str
+    provider_id: Optional[str] = None
     """The provider ID configured in Arcade."""
 
     provider_type: AuthProviderType
@@ -22,14 +22,15 @@ class ToolAuthorization(BaseModel):
     id: Optional[str] = None
     """Optional unique identifier to distinguish between multiple providers with the same provider_id."""
 
+    scopes: Optional[list[str]] = None
+    """The scope(s) needed for the authorized action."""
+
 
 class OAuth2(ToolAuthorization):
     """Marks a tool as requiring OAuth 2.0 authorization."""
 
-    provider_type: AuthProviderType = AuthProviderType.oauth2
-
-    scopes: Optional[list[str]] = None
-    """The scope(s) needed for the authorized action."""
+    def __init__(self, *, id: str, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes, provider_type=AuthProviderType.oauth2)
 
 
 class Atlassian(OAuth2):

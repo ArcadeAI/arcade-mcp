@@ -176,7 +176,7 @@
                   "additionalProperties": false
                 }
               },
-              "required": ["provider_id", "provider_type"],
+              "required": ["provider_type"],
               "additionalProperties": false
             }
           ]
