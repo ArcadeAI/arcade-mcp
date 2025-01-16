@@ -124,7 +124,8 @@ async def async_paginate(
     :param response_key: The name of the key in the Slack response dict that contains the results.
     :param limit: The maximum number of items to retrieve.
     :param cursor: The cursor to use for pagination.
-    :param kwargs: Additional keyword arguments to pass to the Slack function.
+    :param args: positional arguments to pass to the Slack function.
+    :param kwargs: keyword arguments to pass to the Slack function.
     :return: A tuple containing the results and the next cursor, if needed to paginate further.
     """
     results = []
@@ -135,7 +136,7 @@ async def async_paginate(
             results.extend(response[response_key])
         except KeyError:
             raise ValueError(f"Response key {response_key} not found in Slack response")
-        kwargs["cursor"] = response.get("response_metadata", {}).get("next_cursor")
-        if not kwargs["cursor"]:
+        cursor = response.get("response_metadata", {}).get("next_cursor")
+        if not cursor:
             break
-    return results, kwargs["cursor"]
+    return results, cursor
