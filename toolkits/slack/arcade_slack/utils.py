@@ -1,5 +1,7 @@
 from typing import Callable, Optional
 
+from slack_sdk.errors import SlackApiError
+
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType
 
@@ -119,24 +121,23 @@ async def async_paginate(
     The purpose is to abstract the pagination work and make it easier for the LLM to retrieve the
     amount of items requested by the user, regardless of limits imposed by the Slack API. We still
     return the next cursor, if needed to paginate further.
-
-    :param func: The Slack AsyncWebClient's function to paginate.
-    :param response_key: The name of the key in the Slack response dict that contains the results.
-    :param limit: The maximum number of items to retrieve.
-    :param cursor: The cursor to use for pagination.
-    :param args: positional arguments to pass to the Slack function.
-    :param kwargs: keyword arguments to pass to the Slack function.
-    :return: A tuple containing the results and the next cursor, if needed to paginate further.
     """
     results = []
     while len(results) < limit:
         slack_limit = min(limit - len(results), MAX_PAGINATION_LIMIT)
         response = await func(*args, **{**kwargs, "limit": slack_limit, "cursor": cursor})
+
+        if not response.get("ok"):
+            raise SlackApiError(response.get("error", "Unknown error"), response)
+
         try:
             results.extend(response[response_key])
         except KeyError:
             raise ValueError(f"Response key {response_key} not found in Slack response")
+
         cursor = response.get("response_metadata", {}).get("next_cursor")
+
         if not cursor:
             break
+
     return results, cursor
