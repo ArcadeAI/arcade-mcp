@@ -110,9 +110,9 @@ def is_user_deleted(user: dict) -> bool:
 
 async def async_paginate(
     func: Callable,
-    response_key: str,
+    response_key: Optional[str] = None,
     limit: Optional[int] = MAX_PAGINATION_LIMIT,
-    cursor: Optional[str] = None,
+    next_cursor: Optional[str] = None,
     *args,
     **kwargs,
 ) -> tuple[list, Optional[str]]:
@@ -125,19 +125,19 @@ async def async_paginate(
     results = []
     while len(results) < limit:
         slack_limit = min(limit - len(results), MAX_PAGINATION_LIMIT)
-        response = await func(*args, **{**kwargs, "limit": slack_limit, "cursor": cursor})
+        response = await func(*args, **{**kwargs, "limit": slack_limit, "cursor": next_cursor})
 
         if not response.get("ok"):
             raise SlackApiError(response.get("error", "Unknown error"), response)
 
         try:
-            results.extend(response[response_key])
+            results.extend(response if not response_key else response[response_key])
         except KeyError:
             raise ValueError(f"Response key {response_key} not found in Slack response")
 
-        cursor = response.get("response_metadata", {}).get("next_cursor")
+        next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-        if not cursor:
+        if not next_cursor:
             break
 
-    return results, cursor
+    return results, next_cursor

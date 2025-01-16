@@ -166,7 +166,7 @@ async def list_conversations_metadata(
         slackClient.conversations_list,
         "channels",
         limit=limit,
-        cursor=next_cursor,
+        next_cursor=next_cursor,
         types=conversation_types_filter,
         exclude_archived=True,
     )

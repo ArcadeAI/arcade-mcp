@@ -25,8 +25,14 @@ def mock_channel_info() -> dict:
 
 @pytest.mark.asyncio
 async def test_send_dm_to_user(mock_context, mock_slack_client):
-    mock_slack_client.users_list.return_value = {"members": [{"name": "testuser", "id": "U12345"}]}
-    mock_slack_client.conversations_open.return_value = {"channel": {"id": "D12345"}}
+    mock_slack_client.users_list.return_value = {
+        "ok": True,
+        "members": [{"name": "testuser", "id": "U12345"}],
+    }
+    mock_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": {"id": "D12345"},
+    }
     mock_slack_client.chat_postMessage.return_value = {"ok": True}
 
     response = await send_dm_to_user(mock_context, "testuser", "Hello!")
@@ -39,7 +45,10 @@ async def test_send_dm_to_user(mock_context, mock_slack_client):
 
 @pytest.mark.asyncio
 async def test_send_dm_to_inexistent_user(mock_context, mock_slack_client):
-    mock_slack_client.users_list.return_value = {"members": [{"name": "testuser", "id": "U12345"}]}
+    mock_slack_client.users_list.return_value = {
+        "ok": True,
+        "members": [{"name": "testuser", "id": "U12345"}],
+    }
 
     with pytest.raises(RetryableToolError):
         await send_dm_to_user(mock_context, "inexistent_user", "Hello!")
@@ -52,7 +61,8 @@ async def test_send_dm_to_inexistent_user(mock_context, mock_slack_client):
 @pytest.mark.asyncio
 async def test_send_message_to_channel(mock_context, mock_slack_client):
     mock_slack_client.conversations_list.return_value = {
-        "channels": [{"name": "general", "id": "C12345"}]
+        "ok": True,
+        "channels": [{"name": "general", "id": "C12345"}],
     }
     mock_slack_client.chat_postMessage.return_value = {"ok": True}
 
@@ -67,7 +77,10 @@ async def test_send_message_to_channel(mock_context, mock_slack_client):
 
 @pytest.mark.asyncio
 async def test_send_message_to_inexistent_channel(mock_context, mock_slack_client):
-    mock_slack_client.conversations_list.return_value = {"channels": []}
+    mock_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [],
+    }
 
     with pytest.raises(RetryableToolError):
         await send_message_to_channel(mock_context, "inexistent_channel", "Hello!")
@@ -80,7 +93,10 @@ async def test_send_message_to_inexistent_channel(mock_context, mock_slack_clien
 async def test_list_conversations_metadata_with_default_args(
     mock_context, mock_slack_client, mock_channel_info
 ):
-    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+    mock_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [mock_channel_info],
+    }
 
     response = await list_conversations_metadata(mock_context)
 
@@ -99,7 +115,10 @@ async def test_list_conversations_metadata_with_default_args(
 async def test_list_conversations_metadata_filtering_single_conversation_type(
     mock_context, mock_slack_client, mock_channel_info
 ):
-    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+    mock_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [mock_channel_info],
+    }
 
     response = await list_conversations_metadata(
         mock_context, conversation_types=ConversationType.PUBLIC_CHANNEL
@@ -120,7 +139,10 @@ async def test_list_conversations_metadata_filtering_single_conversation_type(
 async def test_list_conversations_metadata_filtering_multiple_conversation_types(
     mock_context, mock_slack_client, mock_channel_info
 ):
-    mock_slack_client.conversations_list.return_value = {"channels": [mock_channel_info]}
+    mock_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [mock_channel_info],
+    }
 
     response = await list_conversations_metadata(
         mock_context,
@@ -143,6 +165,7 @@ async def test_list_conversations_metadata_with_custom_pagination_args(
     mock_context, mock_slack_client, mock_channel_info
 ):
     mock_slack_client.conversations_list.return_value = {
+        "ok": True,
         "channels": [mock_channel_info] * 3,
         "response_metadata": {"next_cursor": "456"},
     }
