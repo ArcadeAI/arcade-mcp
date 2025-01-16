@@ -198,7 +198,7 @@ async def list_public_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationType.PUBLIC_CHANNEL],
+        conversation_types=[ConversationTypeUserFriendly.PUBLIC_CHANNEL],
         limit=limit,
     )
 
@@ -218,7 +218,7 @@ async def list_private_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationType.PRIVATE_CHANNEL],
+        conversation_types=[ConversationTypeUserFriendly.PRIVATE_CHANNEL],
         limit=limit,
     )
 
@@ -238,7 +238,7 @@ async def list_group_direct_message_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationType.MPIM],
+        conversation_types=[ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE],
         limit=limit,
     )
 
@@ -254,13 +254,13 @@ async def list_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = -1,
+    ] = None,
 ) -> Annotated[dict, "The direct message channels metadata"]:
     """List metadata for direct message channels in Slack that the user is a member of."""
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationType.IM],
+        conversation_types=[ConversationTypeUserFriendly.DIRECT_MESSAGE],
         limit=limit,
     )
 

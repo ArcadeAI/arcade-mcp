@@ -3,9 +3,13 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType
+from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
 from arcade_slack.tools.chat import (
     list_conversations_metadata,
+    list_direct_message_channels_metadata,
+    list_group_direct_message_channels_metadata,
+    list_private_channels_metadata,
+    list_public_channels_metadata,
     send_dm_to_user,
     send_message_to_channel,
 )
@@ -16,6 +20,11 @@ from arcade_slack.utils import extract_conversation_metadata
 def mock_slack_client(mocker):
     mock_client = mocker.patch("arcade_slack.tools.chat.AsyncWebClient", autospec=True)
     return mock_client.return_value
+
+
+@pytest.fixture
+def mock_list_conversations_metadata(mocker):
+    return mocker.patch("arcade_slack.tools.chat.list_conversations_metadata", autospec=True)
 
 
 @pytest.fixture
@@ -204,3 +213,31 @@ async def test_tools_with_slack_error(
     with pytest.raises(ToolExecutionError) as e:
         await tool_function(mock_context, *tool_args)
         assert "test_slack_error" in str(e.value)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "tool_function, conversation_type",
+    [
+        (list_public_channels_metadata, ConversationTypeUserFriendly.PUBLIC_CHANNEL),
+        (list_private_channels_metadata, ConversationTypeUserFriendly.PRIVATE_CHANNEL),
+        (
+            list_group_direct_message_channels_metadata,
+            ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE,
+        ),
+        (list_direct_message_channels_metadata, ConversationTypeUserFriendly.DIRECT_MESSAGE),
+    ],
+)
+async def test_list_channels_metadata(
+    mock_context,
+    mock_list_conversations_metadata,
+    tool_function,
+    conversation_type,
+):
+    response = await tool_function(mock_context, limit=3)
+
+    mock_list_conversations_metadata.assert_called_once_with(
+        mock_context, conversation_types=[conversation_type], limit=3
+    )
+
+    assert response == mock_list_conversations_metadata.return_value
