@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 import pytest
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
@@ -5,6 +7,8 @@ from slack_sdk.errors import SlackApiError
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
 from arcade_slack.tools.chat import (
+    get_conversation_metadata_by_id,
+    get_conversation_metadata_by_name,
     list_conversations_metadata,
     list_direct_message_channels_metadata,
     list_group_direct_message_channels_metadata,
@@ -241,3 +245,113 @@ async def test_list_channels_metadata(
     )
 
     assert response == mock_list_conversations_metadata.return_value
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_metadata_by_id(mock_context, mock_slack_client, mock_channel_info):
+    mock_slack_client.conversations_info.return_value = {
+        "ok": True,
+        "channel": mock_channel_info,
+    }
+
+    response = await get_conversation_metadata_by_id(mock_context, "C12345")
+
+    assert response == extract_conversation_metadata(mock_channel_info)
+    mock_slack_client.conversations_info.assert_called_once_with(
+        channel="C12345",
+        include_locale=True,
+        include_num_members=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_metadata_by_id_slack_api_error(
+    mock_context, mock_slack_client, mock_channel_info
+):
+    mock_slack_client.conversations_info.return_value = {
+        "ok": False,
+        "error": "channel_not_found",
+    }
+
+    with pytest.raises(RetryableToolError):
+        await get_conversation_metadata_by_id(mock_context, "C12345")
+
+    mock_slack_client.conversations_info.assert_called_once_with(
+        channel="C12345",
+        include_locale=True,
+        include_num_members=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_metadata_by_name(
+    mock_context, mock_list_conversations_metadata, mock_channel_info
+):
+    sample_conversation = extract_conversation_metadata(mock_channel_info)
+    mock_list_conversations_metadata.return_value = {
+        "conversations": [sample_conversation],
+        "next_cursor": None,
+    }
+
+    response = await get_conversation_metadata_by_name(mock_context, sample_conversation["name"])
+
+    assert response == sample_conversation
+    mock_list_conversations_metadata.assert_called_once_with(mock_context, next_cursor=None)
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_metadata_by_name_triggering_pagination(
+    mock_context, mock_list_conversations_metadata, mock_channel_info
+):
+    target_conversation = extract_conversation_metadata(mock_channel_info)
+    another_conversation = extract_conversation_metadata(mock_channel_info)
+    another_conversation["name"] = "another_conversation"
+
+    mock_list_conversations_metadata.side_effect = [
+        {
+            "conversations": [another_conversation],
+            "next_cursor": "123",
+        },
+        {
+            "conversations": [target_conversation],
+            "next_cursor": None,
+        },
+    ]
+
+    response = await get_conversation_metadata_by_name(mock_context, target_conversation["name"])
+
+    assert response == target_conversation
+    assert mock_list_conversations_metadata.call_count == 2
+    mock_list_conversations_metadata.assert_has_calls([
+        call(mock_context, next_cursor=None),
+        call(mock_context, next_cursor="123"),
+    ])
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_metadata_by_name_not_found(
+    mock_context, mock_list_conversations_metadata, mock_channel_info
+):
+    first_conversation = extract_conversation_metadata(mock_channel_info)
+    second_conversation = extract_conversation_metadata(mock_channel_info)
+    second_conversation["name"] = "second_conversation"
+
+    mock_list_conversations_metadata.side_effect = [
+        {
+            "conversations": [second_conversation],
+            "next_cursor": "123",
+        },
+        {
+            "conversations": [first_conversation],
+            "next_cursor": None,
+        },
+    ]
+
+    with pytest.raises(RetryableToolError):
+        await get_conversation_metadata_by_name(mock_context, "inexistent_conversation")
+
+    assert mock_list_conversations_metadata.call_count == 2
+    mock_list_conversations_metadata.assert_has_calls([
+        call(mock_context, next_cursor=None),
+        call(mock_context, next_cursor="123"),
+    ])

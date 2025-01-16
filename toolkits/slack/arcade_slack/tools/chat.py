@@ -18,6 +18,7 @@ from arcade_slack.utils import (
     extract_conversation_metadata,
     format_channels,
     format_users,
+    handle_response_error,
 )
 
 
@@ -191,8 +192,8 @@ async def list_conversations_metadata(
 async def list_public_channels_metadata(
     context: ToolContext,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = -1,
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
@@ -211,8 +212,8 @@ async def list_public_channels_metadata(
 async def list_private_channels_metadata(
     context: ToolContext,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = -1,
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
@@ -231,8 +232,8 @@ async def list_private_channels_metadata(
 async def list_group_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = -1,
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
 ) -> Annotated[dict, "The group direct message channels"]:
     """List metadata for group direct message channels in Slack that the user is a member of."""
 
@@ -253,8 +254,8 @@ async def list_group_direct_message_channels_metadata(
 async def list_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
-        Optional[int], "The maximum number of channels to list. Defaults to -1 (no limit)."
-    ] = None,
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
 ) -> Annotated[dict, "The direct message channels metadata"]:
     """List metadata for direct message channels in Slack that the user is a member of."""
 
@@ -275,28 +276,32 @@ async def get_conversation_metadata_by_id(
     conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack."""
-
     slackClient = AsyncWebClient(token=context.authorization.token)
+
     try:
         response = await slackClient.conversations_info(
-            channel=conversation_id, include_num_members=True
+            channel=conversation_id,
+            include_locale=True,
+            include_num_members=True,
         )
+        handle_response_error(response)
+
         return extract_conversation_metadata(response["channel"])
 
     except SlackApiError as e:
         if e.response["error"] == "channel_not_found":
             conversations = await list_conversations_metadata(context, limit=-1)
-            conversation_ids = ", ".join(
-                conversation["id"] for conversation in conversations["conversations"]
+            available_conversations = ", ".join(
+                f"{conversation['id']} ({conversation['name']})"
+                for conversation in conversations["conversations"]
             )
 
             raise RetryableToolError(
                 "Conversation not found",
                 developer_message=f"Conversation with ID '{conversation_id}' not found.",
-                additional_prompt_content=f"Available conversation IDs: {conversation_ids}",
+                additional_prompt_content=f"Available conversations: {available_conversations}",
                 retry_after_ms=500,
             )
-        raise
 
 
 @tool(
@@ -309,18 +314,20 @@ async def get_conversation_metadata_by_name(
     conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack."""
-    conversations = await list_conversations_metadata(context, limit=-1)
+    next_cursor = None
+    conversation_names = []
 
-    for conversation in conversations["conversations"]:
-        # Check if the conversation has a 'name' attribute and it's not None
-        if conversation.get("name") and conversation["name"].lower() == conversation_name.lower():
-            return conversation
+    while True:
+        response = await list_conversations_metadata(context, next_cursor=next_cursor)
+        next_cursor = response["next_cursor"]
 
-    conversation_names = ", ".join(
-        conversation["name"]
-        for conversation in conversations["conversations"]
-        if conversation.get("name")
-    )
+        for conversation in response["conversations"]:
+            if conversation["name"].lower() == conversation_name.lower():
+                return conversation
+            conversation_names.append(conversation["name"])
+
+        if not next_cursor:
+            break
 
     raise RetryableToolError(
         "Conversation not found",
