@@ -3,7 +3,7 @@ from typing import Callable, Optional
 from slack_sdk.errors import SlackApiError
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType
+from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
 
 
 def format_users(userListResponse: dict) -> str:
@@ -47,6 +47,18 @@ def get_conversation_type(channel: dict) -> ConversationType:
         if channel.get("is_mpim")
         else None
     )
+
+
+def convert_user_friendly_conversation_type(
+    conversation_type: ConversationTypeUserFriendly,
+) -> ConversationType:
+    mapping = {
+        ConversationTypeUserFriendly.PUBLIC_CHANNEL: ConversationType.PUBLIC_CHANNEL,
+        ConversationTypeUserFriendly.PRIVATE_CHANNEL: ConversationType.PRIVATE_CHANNEL,
+        ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE: ConversationType.MPIM,
+        ConversationTypeUserFriendly.DIRECT_MESSAGE: ConversationType.IM,
+    }
+    return mapping[conversation_type]
 
 
 def extract_conversation_metadata(conversation: dict) -> dict:

@@ -10,10 +10,11 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType
+from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
+    convert_user_friendly_conversation_type,
     extract_conversation_metadata,
     format_channels,
     format_users,
@@ -135,7 +136,7 @@ async def send_message_to_channel(
 async def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
-        Optional[list[ConversationType]],
+        Optional[list[ConversationTypeUserFriendly]],
         "The type(s) of conversations to list. Defaults to all types.",
     ] = None,
     limit: Annotated[
@@ -157,7 +158,8 @@ async def list_conversations_metadata(
         conversation_types = [conversation_types]
 
     conversation_types_filter = ",".join(
-        conv_type.value for conv_type in conversation_types or ConversationType
+        convert_user_friendly_conversation_type(conv_type).value
+        for conv_type in conversation_types or ConversationTypeUserFriendly
     )
 
     slackClient = AsyncWebClient(token=context.authorization.token)
