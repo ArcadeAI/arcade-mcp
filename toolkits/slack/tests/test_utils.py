@@ -53,32 +53,38 @@ async def test_async_paginate_large_limit():
     mock_slack_client = AsyncMock()
     mock_slack_client.conversations_list.side_effect = [
         {
-            "channels": [{"id": "channel1"}],
+            "channels": [{"id": "channel1"}, {"id": "channel2"}],
             "response_metadata": {"next_cursor": "cursor1"},
         },
         {
-            "channels": [{"id": "channel2"}],
+            "channels": [{"id": "channel3"}, {"id": "channel4"}],
             "response_metadata": {"next_cursor": "cursor2"},
         },
         {
-            "channels": [{"id": "channel3"}],
+            "channels": [{"id": "channel5"}],
             "response_metadata": {"next_cursor": "cursor3"},
         },
     ]
 
-    with patch("arcade_slack.utils.MAX_PAGINATION_LIMIT", 1):
+    with patch("arcade_slack.utils.MAX_PAGINATION_LIMIT", 2):
         results, next_cursor = await async_paginate(
             func=mock_slack_client.conversations_list,
             response_key="channels",
-            limit=3,
+            limit=5,
             hello="world",
         )
 
-    assert results == [{"id": "channel1"}, {"id": "channel2"}, {"id": "channel3"}]
+    assert results == [
+        {"id": "channel1"},
+        {"id": "channel2"},
+        {"id": "channel3"},
+        {"id": "channel4"},
+        {"id": "channel5"},
+    ]
     assert next_cursor == "cursor3"
     assert mock_slack_client.conversations_list.call_count == 3
     mock_slack_client.conversations_list.assert_has_calls([
-        call(hello="world", limit=1, cursor=None),
-        call(hello="world", limit=1, cursor="cursor1"),
+        call(hello="world", limit=2, cursor=None),
+        call(hello="world", limit=2, cursor="cursor1"),
         call(hello="world", limit=1, cursor="cursor2"),
     ])
