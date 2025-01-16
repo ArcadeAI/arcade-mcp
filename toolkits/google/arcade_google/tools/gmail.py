@@ -497,16 +497,12 @@ async def list_threads(
 async def get_thread(
     context: ToolContext,
     thread_id: Annotated[str, "The ID of the thread to retrieve"],
-    metadata_headers: Annotated[
-        Optional[list[str]], "When given and format is METADATA, only include headers specified."
-    ] = None,
 ) -> Annotated[dict, "A dictionary containing the thread details"]:
     """Get the specified thread by ID."""
     params = {
         "userId": "me",
         "id": thread_id,
         "format": "full",
-        "metadataHeaders": metadata_headers,
     }
     params = remove_none_values(params)
 
