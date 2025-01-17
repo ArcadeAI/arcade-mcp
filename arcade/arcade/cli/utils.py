@@ -670,7 +670,7 @@ def parse_user_command(user_input: str) -> ChatCommand | None:
 
 
 def version_callback(value: bool) -> None:
-    """Callback for the --version CLI command.
+    """Callback implementation for the `arcade --version`.
     Prints the version of Arcade and exit.
     """
     if value:
