@@ -69,7 +69,7 @@ async def send_dm_to_user(
         dm_channel_id = im_response["channel"]["id"]
 
         # Step 3: Send the message as if it's from you (because we're using a user token)
-        return await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
+        response = await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
 
     except SlackApiError as e:
         error_message = e.response["error"] if "error" in e.response else str(e)
@@ -77,6 +77,8 @@ async def send_dm_to_user(
             "Error sending message",
             developer_message=f"Slack API Error: {error_message}",
         )
+    else:
+        return {"response": response.data}
 
 
 @tool(
@@ -119,7 +121,7 @@ async def send_message_to_channel(
             )
 
         # Step 2: Send the message to the channel
-        return await slackClient.chat_postMessage(channel=channel_id, text=message)
+        response = await slackClient.chat_postMessage(channel=channel_id, text=message)
 
     except SlackApiError as e:
         error_message = e.response["error"] if "error" in e.response else str(e)
@@ -127,6 +129,8 @@ async def send_message_to_channel(
             "Error sending message",
             developer_message=f"Slack API Error: {error_message}",
         )
+    else:
+        return {"response": response.data}
 
 
 @tool(

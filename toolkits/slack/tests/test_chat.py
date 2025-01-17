@@ -1,8 +1,9 @@
-from unittest.mock import call, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
@@ -42,11 +43,13 @@ async def test_send_dm_to_user(mock_context, mock_slack_client):
         "ok": True,
         "channel": {"id": "D12345"},
     }
-    mock_slack_client.chat_postMessage.return_value = {"ok": True}
+    mock_slack_response = Mock(spec=AsyncSlackResponse)
+    mock_slack_response.data = {"ok": True}
+    mock_slack_client.chat_postMessage.return_value = mock_slack_response
 
     response = await send_dm_to_user(mock_context, "testuser", "Hello!")
 
-    assert response["ok"] is True
+    assert response["response"]["ok"] is True
     mock_slack_client.users_list.assert_called_once()
     mock_slack_client.conversations_open.assert_called_once_with(users=["U12345"])
     mock_slack_client.chat_postMessage.assert_called_once_with(channel="D12345", text="Hello!")
@@ -71,13 +74,15 @@ async def test_send_dm_to_inexistent_user(mock_context, mock_slack_client):
 async def test_send_message_to_channel(mock_context, mock_slack_client):
     mock_slack_client.conversations_list.return_value = {
         "ok": True,
-        "channels": [{"name": "general", "id": "C12345"}],
+        "channels": [{"id": "C12345", "name": "general"}],
     }
-    mock_slack_client.chat_postMessage.return_value = {"ok": True}
+    mock_slack_response = Mock(spec=AsyncSlackResponse)
+    mock_slack_response.data = {"ok": True}
+    mock_slack_client.chat_postMessage.return_value = mock_slack_response
 
     response = await send_message_to_channel(mock_context, "general", "Hello, channel!")
 
-    assert response["ok"] is True
+    assert response["response"]["ok"] is True
     mock_slack_client.conversations_list.assert_called_once()
     mock_slack_client.chat_postMessage.assert_called_once_with(
         channel="C12345", text="Hello, channel!"

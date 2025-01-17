@@ -147,7 +147,7 @@ async def async_paginate(
         handle_response_error(response)
 
         try:
-            results.extend(response if not response_key else response[response_key])
+            results.extend(dict(response.data) if not response_key else response[response_key])
         except KeyError:
             raise ValueError(f"Response key {response_key} not found in Slack response")
 
