@@ -667,3 +667,13 @@ def parse_user_command(user_input: str) -> ChatCommand | None:
         return ChatCommand(user_input)
     except ValueError:
         return None
+
+
+def version_callback(value: bool) -> None:
+    """Callback for the --version CLI command.
+    Prints the version of Arcade and exit.
+    """
+    if value:
+        version = importlib.import_module("arcade").__version__
+        console.print(f"[bold]Arcade[/bold] (version {version})")
+        exit()
