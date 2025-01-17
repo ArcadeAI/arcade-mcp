@@ -87,7 +87,7 @@ class ToolAuthRequirement(BaseModel):
     # or
     #    client.auth.authorize(provider=AuthProvider.google, id="my_google_provider123", scopes=["profile", "email"])
     #
-    # The Arcade SDK translates these into the appropriate provider id (Google) and type (OAuth2).
+    # The Arcade SDK translates these into the appropriate provider ID (Google) and type (OAuth2).
     # The only time the developer will set these is if they are using a custom auth provider.
     provider_id: Optional[str] = None
     """The provider ID."""
