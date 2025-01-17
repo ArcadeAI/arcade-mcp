@@ -15,6 +15,7 @@ from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
     convert_conversation_type_to_slack_name,
+    enrich_message_metadata,
     extract_conversation_metadata,
     format_channels,
     format_users,
@@ -181,7 +182,7 @@ async def list_conversations_metadata(
         "conversations": [
             extract_conversation_metadata(conversation)
             for conversation in results
-            if conversation.get("is_member")
+            if conversation.get("is_im") or conversation.get("is_member")
         ],
         "next_cursor": next_cursor,
     }
@@ -473,7 +474,7 @@ async def get_conversation_history_by_id(
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = 20,
+    ] = MAX_PAGINATION_LIMIT,
     cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
 ) -> Annotated[
     dict,
@@ -528,6 +529,7 @@ async def get_conversation_history_by_id(
         latest=latest_unix_timestamp,
         cursor=cursor,
     )
-    messages = response.get("messages", [])
+    messages = [enrich_message_metadata(message) for message in response.get("messages", [])]
     next_cursor = response.get("response_metadata", {}).get("next_cursor")
+
     return {"messages": messages, "next_cursor": next_cursor}

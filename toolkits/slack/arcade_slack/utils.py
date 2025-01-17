@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Callable, Optional
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
@@ -148,3 +149,25 @@ async def async_paginate(
             break
 
     return results, next_cursor
+
+
+def enrich_message_metadata(message: dict) -> dict:
+    """Enrich message metadata."""
+    message = enrich_message_datetime(message)
+    return message
+
+
+def enrich_message_datetime(message: dict) -> dict:
+    """Enrich message metadata with formatted datetime.
+
+    It helps LLMs when they need to display the date/time in human-readable format. Slack
+    will only return a unix-formatted timestamp (it's not actually unix ts, but the unix ts
+    in the user's timezone - I know, odd, but it is what it is).
+    """
+    ts = message.get("ts")
+    if ts:
+        unix_timestamp = float(ts)
+        message["datetime_timestamp"] = datetime.fromtimestamp(unix_timestamp).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+    return message
