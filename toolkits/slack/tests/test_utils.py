@@ -27,10 +27,10 @@ async def test_async_paginate():
 @pytest.mark.asyncio
 async def test_async_paginate_with_response_error():
     mock_slack_client = AsyncMock()
-    mock_slack_client.conversations_list.return_value = {
-        "ok": False,
-        "error": "slack_error",
-    }
+    mock_slack_client.conversations_list.side_effect = SlackApiError(
+        message="slack_error",
+        response={"ok": False, "error": "slack_error"},
+    )
 
     with pytest.raises(SlackApiError) as e:
         await async_paginate(
@@ -121,10 +121,7 @@ async def test_async_paginate_large_limit_with_response_error():
             "channels": [{"id": "channel1"}, {"id": "channel2"}],
             "response_metadata": {"next_cursor": "cursor1"},
         },
-        {
-            "ok": False,
-            "error": "slack_error",
-        },
+        SlackApiError(message="slack_error", response={"ok": False, "error": "slack_error"}),
         {
             "ok": True,
             "channels": [{"id": "channel5"}],

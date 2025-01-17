@@ -269,10 +269,10 @@ async def test_get_conversation_metadata_by_id(mock_context, mock_slack_client, 
 async def test_get_conversation_metadata_by_id_slack_api_error(
     mock_context, mock_slack_client, mock_channel_info
 ):
-    mock_slack_client.conversations_info.return_value = {
-        "ok": False,
-        "error": "channel_not_found",
-    }
+    mock_slack_client.conversations_info.side_effect = SlackApiError(
+        message="channel_not_found",
+        response={"ok": False, "error": "channel_not_found"},
+    )
 
     with pytest.raises(RetryableToolError):
         await get_conversation_metadata_by_id(mock_context, "C12345")

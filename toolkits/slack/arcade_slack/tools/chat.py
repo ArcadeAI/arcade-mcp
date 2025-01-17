@@ -18,7 +18,6 @@ from arcade_slack.utils import (
     extract_conversation_metadata,
     format_channels,
     format_users,
-    handle_response_error,
 )
 
 
@@ -288,7 +287,6 @@ async def get_conversation_metadata_by_id(
             include_locale=True,
             include_num_members=True,
         )
-        handle_response_error(response)
 
         return extract_conversation_metadata(response["channel"])
 
