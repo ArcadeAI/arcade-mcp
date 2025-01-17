@@ -488,5 +488,5 @@ def version(
         is_eager=True,
         help="Print version and exit.",
     ),
-):
+) -> None:
     pass
