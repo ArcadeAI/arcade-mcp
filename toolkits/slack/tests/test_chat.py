@@ -6,7 +6,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
+from arcade_slack.models import ConversationType, ConversationTypeSlackName
 from arcade_slack.tools.chat import (
     get_conversation_metadata_by_id,
     get_conversation_metadata_by_name,
@@ -118,7 +118,7 @@ async def test_list_conversations_metadata_with_default_args(
     assert response["next_cursor"] is None
 
     mock_slack_client.conversations_list.assert_called_once_with(
-        types=",".join([conv_type.value for conv_type in ConversationType]),
+        types=",".join([conv_type.value for conv_type in ConversationTypeSlackName]),
         exclude_archived=True,
         limit=MAX_PAGINATION_LIMIT,
         cursor=None,
@@ -135,14 +135,14 @@ async def test_list_conversations_metadata_filtering_single_conversation_type(
     }
 
     response = await list_conversations_metadata(
-        mock_context, conversation_types=ConversationTypeUserFriendly.PUBLIC_CHANNEL
+        mock_context, conversation_types=ConversationType.PUBLIC_CHANNEL
     )
 
     assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
     assert response["next_cursor"] is None
 
     mock_slack_client.conversations_list.assert_called_once_with(
-        types=ConversationType.PUBLIC_CHANNEL.value,
+        types=ConversationTypeSlackName.PUBLIC_CHANNEL.value,
         exclude_archived=True,
         limit=MAX_PAGINATION_LIMIT,
         cursor=None,
@@ -160,14 +160,17 @@ async def test_list_conversations_metadata_filtering_multiple_conversation_types
 
     response = await list_conversations_metadata(
         mock_context,
-        conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+        conversation_types=[
+            ConversationTypeSlackName.PUBLIC_CHANNEL,
+            ConversationTypeSlackName.PRIVATE_CHANNEL,
+        ],
     )
 
     assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
     assert response["next_cursor"] is None
 
     mock_slack_client.conversations_list.assert_called_once_with(
-        types=f"{ConversationType.PUBLIC_CHANNEL.value},{ConversationType.PRIVATE_CHANNEL.value}",
+        types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
         exclude_archived=True,
         limit=MAX_PAGINATION_LIMIT,
         cursor=None,
@@ -192,7 +195,7 @@ async def test_list_conversations_metadata_with_custom_pagination_args(
     assert response["next_cursor"] == "456"
 
     mock_slack_client.conversations_list.assert_called_once_with(
-        types=",".join([conv_type.value for conv_type in ConversationType]),
+        types=",".join([conv_type.value for conv_type in ConversationTypeSlackName]),
         exclude_archived=True,
         limit=3,
         cursor="123",
@@ -224,13 +227,13 @@ async def test_tools_with_slack_error(
 @pytest.mark.parametrize(
     "tool_function, conversation_type",
     [
-        (list_public_channels_metadata, ConversationTypeUserFriendly.PUBLIC_CHANNEL),
-        (list_private_channels_metadata, ConversationTypeUserFriendly.PRIVATE_CHANNEL),
+        (list_public_channels_metadata, ConversationType.PUBLIC_CHANNEL),
+        (list_private_channels_metadata, ConversationType.PRIVATE_CHANNEL),
         (
             list_group_direct_message_channels_metadata,
-            ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE,
+            ConversationType.MULTI_PERSON_DIRECT_MESSAGE,
         ),
-        (list_direct_message_channels_metadata, ConversationTypeUserFriendly.DIRECT_MESSAGE),
+        (list_direct_message_channels_metadata, ConversationType.DIRECT_MESSAGE),
     ],
 )
 async def test_list_channels_metadata(

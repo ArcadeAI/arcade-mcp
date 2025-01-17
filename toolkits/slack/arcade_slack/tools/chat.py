@@ -10,11 +10,11 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationTypeUserFriendly
+from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
-    convert_user_friendly_conversation_type,
+    convert_conversation_type_to_slack_name,
     extract_conversation_metadata,
     format_channels,
     format_users,
@@ -140,7 +140,7 @@ async def send_message_to_channel(
 async def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
-        Optional[list[ConversationTypeUserFriendly]],
+        Optional[list[ConversationType]],
         "The type(s) of conversations to list. Defaults to all types.",
     ] = None,
     limit: Annotated[
@@ -158,12 +158,12 @@ async def list_conversations_metadata(
     List metadata for Slack conversations (channels and/or direct messages) that the user
     is a member of.
     """
-    if isinstance(conversation_types, ConversationTypeUserFriendly):
+    if isinstance(conversation_types, ConversationType):
         conversation_types = [conversation_types]
 
     conversation_types_filter = ",".join(
-        convert_user_friendly_conversation_type(conv_type).value
-        for conv_type in conversation_types or ConversationTypeUserFriendly
+        convert_conversation_type_to_slack_name(conv_type).value
+        for conv_type in conversation_types or ConversationType
     )
 
     slackClient = AsyncWebClient(token=context.authorization.token)
@@ -202,7 +202,7 @@ async def list_public_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationTypeUserFriendly.PUBLIC_CHANNEL],
+        conversation_types=[ConversationType.PUBLIC_CHANNEL],
         limit=limit,
     )
 
@@ -222,7 +222,7 @@ async def list_private_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationTypeUserFriendly.PRIVATE_CHANNEL],
+        conversation_types=[ConversationType.PRIVATE_CHANNEL],
         limit=limit,
     )
 
@@ -242,7 +242,7 @@ async def list_group_direct_message_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE],
+        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
         limit=limit,
     )
 
@@ -264,7 +264,7 @@ async def list_direct_message_channels_metadata(
 
     return await list_conversations_metadata(
         context,
-        conversation_types=[ConversationTypeUserFriendly.DIRECT_MESSAGE],
+        conversation_types=[ConversationType.DIRECT_MESSAGE],
         limit=limit,
     )
 

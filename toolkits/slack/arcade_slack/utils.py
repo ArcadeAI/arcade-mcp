@@ -1,7 +1,7 @@
 from typing import Callable, Optional
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
+from arcade_slack.models import ConversationType, ConversationTypeSlackName
 
 
 def format_users(userListResponse: dict) -> str:
@@ -30,31 +30,31 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-def get_conversation_type(channel: dict) -> ConversationType:
+def get_conversation_type(channel: dict) -> ConversationTypeSlackName:
     """
     Get the type of conversation from a Slack channel's metadata.
     """
     return (
-        ConversationType.PUBLIC_CHANNEL.value
+        ConversationTypeSlackName.PUBLIC_CHANNEL.value
         if channel.get("is_channel")
-        else ConversationType.PRIVATE_CHANNEL.value
+        else ConversationTypeSlackName.PRIVATE_CHANNEL.value
         if channel.get("is_group")
-        else ConversationType.IM.value
+        else ConversationTypeSlackName.IM.value
         if channel.get("is_im")
-        else ConversationType.MPIM.value
+        else ConversationTypeSlackName.MPIM.value
         if channel.get("is_mpim")
         else None
     )
 
 
-def convert_user_friendly_conversation_type(
-    conversation_type: ConversationTypeUserFriendly,
-) -> ConversationType:
+def convert_conversation_type_to_slack_name(
+    conversation_type: ConversationType,
+) -> ConversationTypeSlackName:
     mapping = {
-        ConversationTypeUserFriendly.PUBLIC_CHANNEL: ConversationType.PUBLIC_CHANNEL,
-        ConversationTypeUserFriendly.PRIVATE_CHANNEL: ConversationType.PRIVATE_CHANNEL,
-        ConversationTypeUserFriendly.MULTI_PERSON_DIRECT_MESSAGE: ConversationType.MPIM,
-        ConversationTypeUserFriendly.DIRECT_MESSAGE: ConversationType.IM,
+        ConversationType.PUBLIC_CHANNEL: ConversationTypeSlackName.PUBLIC_CHANNEL,
+        ConversationType.PRIVATE_CHANNEL: ConversationTypeSlackName.PRIVATE_CHANNEL,
+        ConversationType.MULTI_PERSON_DIRECT_MESSAGE: ConversationTypeSlackName.MPIM,
+        ConversationType.DIRECT_MESSAGE: ConversationTypeSlackName.IM,
     }
     return mapping[conversation_type]
 
@@ -73,11 +73,11 @@ def extract_conversation_metadata(conversation: dict) -> dict:
         "num_members": conversation.get("num_members", 0),
     }
 
-    if conversation_type == ConversationType.IM.value:
+    if conversation_type == ConversationTypeSlackName.IM.value:
         metadata["num_members"] = 2
         metadata["user"] = conversation.get("user")
         metadata["is_user_deleted"] = conversation.get("is_user_deleted")
-    elif conversation_type == ConversationType.MPIM.value:
+    elif conversation_type == ConversationTypeSlackName.MPIM.value:
         metadata["num_members"] = len(conversation.get("name", "").split("--"))
 
     return metadata
