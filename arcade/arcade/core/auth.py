@@ -20,7 +20,7 @@ class ToolAuthorization(BaseModel):
     """The type of the authorization provider."""
 
     id: Optional[str] = None
-    """Optional unique identifier to distinguish between multiple providers with the same provider_id."""
+    """A provider's unique identifier, allowing the tool to specify a specific authorization provider. Recommended for private tools only."""
 
     scopes: Optional[list[str]] = None
     """The scope(s) needed for the authorized action."""
