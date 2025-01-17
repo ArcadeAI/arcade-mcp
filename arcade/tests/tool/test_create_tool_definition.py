@@ -81,7 +81,6 @@ def func_with_github_auth_requirement():
 @tool(
     desc="A function that requires Slack user authorization",
     requires_auth=Slack(
-        id="my_slack_provider123",
         scopes=["chat:write", "channels:history"],
     ),
 )
@@ -92,7 +91,6 @@ def func_with_slack_user_auth_requirement():
 @tool(
     desc="A function that requires X (Twitter) authorization",
     requires_auth=X(
-        id="my_x_provider123",
         scopes=["tweet.write"],
     ),
 )
@@ -316,7 +314,6 @@ def func_with_complex_return() -> dict[str, str]:
                     authorization=ToolAuthRequirement(
                         provider_id="slack",
                         provider_type="oauth2",
-                        id="my_slack_provider123",
                         oauth2=OAuth2Requirement(
                             scopes=["chat:write", "channels:history"],
                         ),
@@ -324,6 +321,20 @@ def func_with_complex_return() -> dict[str, str]:
                 )
             },
             id="func_with_slack_user_auth_requirement",
+        ),
+        pytest.param(
+            func_with_x_requirement,
+            {
+                "requirements": ToolRequirements(
+                    authorization=ToolAuthRequirement(
+                        provider_id="x",
+                        provider_type="oauth2",
+                        oauth2=OAuth2Requirement(
+                            scopes=["tweet.write"],
+                        ),
+                    )
+                )
+            },
         ),
         # Tests on input params
         pytest.param(

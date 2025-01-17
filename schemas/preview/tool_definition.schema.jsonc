@@ -153,15 +153,15 @@
               "properties": {
                 "provider_id": {
                   "type": "string",
-                  "description": "The provider ID."
+                  "description": "The provider ID configured in Arcade that acts as an alias to well-known configuration."
                 },
                 "provider_type": {
                   "type": "string",
-                  "description": "The provider type."
+                  "description": "The type of the authorization provider."
                 },
                 "id": {
                   "type": "string",
-                  "description": "Optional unique identifier to distinguish between multiple providers with the same provider_id."
+                  "description": "A provider's unique identifier, allowing the tool to specify a specific authorization provider. Recommended for private tools only."
                 },
                 "oauth2": {
                   "type": "object",

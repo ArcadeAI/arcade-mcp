@@ -29,7 +29,7 @@ class ToolAuthorization(BaseModel):
 class OAuth2(ToolAuthorization):
     """Marks a tool as requiring OAuth 2.0 authorization."""
 
-    def __init__(self, *, id: str, scopes: Optional[list[str]] = None):  # noqa: A002
+    def __init__(self, *, id: str | None, scopes: Optional[list[str]] = None):  # noqa: A002
         super().__init__(id=id, scopes=scopes, provider_type=AuthProviderType.oauth2)
 
 
@@ -38,11 +38,17 @@ class Atlassian(OAuth2):
 
     provider_id: str = "atlassian"
 
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
 
 class Discord(OAuth2):
     """Marks a tool as requiring Discord authorization."""
 
     provider_id: str = "discord"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
 
 
 class Dropbox(OAuth2):
@@ -50,11 +56,17 @@ class Dropbox(OAuth2):
 
     provider_id: str = "dropbox"
 
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
 
 class Google(OAuth2):
     """Marks a tool as requiring Google authorization."""
 
     provider_id: str = "google"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
 
 
 class Slack(OAuth2):
@@ -62,11 +74,17 @@ class Slack(OAuth2):
 
     provider_id: str = "slack"
 
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
 
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
     provider_id: str = "github"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
 
 
 class X(OAuth2):
@@ -74,11 +92,17 @@ class X(OAuth2):
 
     provider_id: str = "x"
 
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
 
 class LinkedIn(OAuth2):
     """Marks a tool as requiring LinkedIn authorization."""
 
     provider_id: str = "linkedin"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
 
 
 class Spotify(OAuth2):
@@ -86,8 +110,14 @@ class Spotify(OAuth2):
 
     provider_id: str = "spotify"
 
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
 
 class Zoom(OAuth2):
     """Marks a tool as requiring Zoom authorization."""
 
     provider_id: str = "zoom"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
