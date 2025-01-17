@@ -27,7 +27,6 @@ from arcade.cli.utils import (
     OrderCommands,
     compute_engine_base_url,
     compute_login_url,
-    delete_deprecated_config_file,
     get_eval_files,
     get_user_input,
     handle_chat_interaction,
@@ -104,8 +103,6 @@ def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    delete_deprecated_config_file()
-
     # If ~/.arcade/credentials.yaml exists, delete it
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
     if os.path.exists(config_file_path):
