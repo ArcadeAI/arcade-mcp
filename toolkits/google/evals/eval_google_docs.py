@@ -138,7 +138,6 @@ def docs_eval_suite() -> EvalSuite:
         critics=[
             BinaryCritic(critic_field="document_id", weight=0.3),
             SimilarityCritic(critic_field="text_content", weight=0.3),
-            BinaryCritic(critic_field="document_id", weight=0.3),
         ],
         additional_messages=additional_messages,
     )

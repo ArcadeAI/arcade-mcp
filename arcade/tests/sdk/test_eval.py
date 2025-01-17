@@ -247,50 +247,6 @@ def test_eval_suite_add_case():
     )
 
 
-# Test EvalSuite.add_parameterized_case()
-def test_eval_suite_add_parameterized_case():
-    """
-    Test that add_parameterized_case correctly adds multiple evaluation cases
-    based on the provided user messages.
-    """
-    mock_catalog = Mock()
-    mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
-
-    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
-
-    user_messages = [
-        "This is the first user message",
-        "This is the second user message",
-        "This is the third user message",
-        "This is the fourth user message",
-        "This is the fifth user message",
-        "This is the sixth user message",
-    ]
-
-    expected_tool_calls = [
-        ExpectedToolCall(
-            func=mock_tool,
-            args={"param1": "value"},
-        ),
-    ]
-
-    suite.add_parameterized_case(
-        name="TestCase",
-        user_messages=user_messages,
-        expected_tool_calls=expected_tool_calls,
-    )
-
-    assert len(suite.cases) == len(user_messages)
-    for i, case in enumerate(suite.cases):
-        assert case.name == f"TestCase (user_message {i + 1} of {len(user_messages)})"
-        assert case.user_message == user_messages[i]
-        assert case.system_message == "System message"
-        assert len(case.expected_tool_calls) == 1
-        assert case.expected_tool_calls[0] == NamedExpectedToolCall(
-            name="MockTool", args={"param1": "value"}
-        )
-
-
 # Test EvalSuite.extend_case()
 def test_eval_suite_extend_case():
     """
