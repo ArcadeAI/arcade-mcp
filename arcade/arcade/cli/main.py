@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import os
 import threading
 import uuid
@@ -475,3 +476,24 @@ def workerup(
         error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
+
+
+def version_callback(value: bool) -> None:
+    if value:
+        version = importlib.import_module("arcade").__version__
+        console.print(f"[bold]Arcade[/bold] (version {version})")
+        exit()
+
+
+@cli.callback(help="Show the current version of Arcade CLI", rich_help_panel="User")
+def version(
+    _: bool = typer.Option(
+        None,
+        "-v",
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Print version and exit.",
+    ),
+):
+    pass
