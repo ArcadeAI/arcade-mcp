@@ -135,7 +135,7 @@ async def test_list_conversations_metadata_filtering_single_conversation_type(
     }
 
     response = await list_conversations_metadata(
-        mock_context, conversation_types=ConversationType.PUBLIC_CHANNEL
+        mock_context, conversation_types=ConversationTypeUserFriendly.PUBLIC_CHANNEL
     )
 
     assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]

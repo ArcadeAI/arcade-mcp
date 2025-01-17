@@ -10,7 +10,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
-from arcade_slack.models import ConversationType, ConversationTypeUserFriendly
+from arcade_slack.models import ConversationTypeUserFriendly
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
@@ -158,7 +158,7 @@ async def list_conversations_metadata(
     List metadata for Slack conversations (channels and/or direct messages) that the user
     is a member of.
     """
-    if isinstance(conversation_types, ConversationType):
+    if isinstance(conversation_types, ConversationTypeUserFriendly):
         conversation_types = [conversation_types]
 
     conversation_types_filter = ",".join(
