@@ -478,7 +478,7 @@ def workerup(
         typer.Exit(code=1)
 
 
-@cli.callback(help="Show the current version of Arcade", rich_help_panel="User")
+@cli.callback()
 def version(
     _: bool = typer.Option(
         None,
