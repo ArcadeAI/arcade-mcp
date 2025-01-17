@@ -342,32 +342,39 @@ async def get_conversation_metadata_by_name(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def get_members_from_conversation_id(
+async def get_members_from_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
     limit: Annotated[
-        Optional[int], "The maximum number of members to return. Defaults to -1 (no limit)"
-    ] = -1,
+        Optional[int], "The maximum number of members to return."
+    ] = MAX_PAGINATION_LIMIT,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
-    """Get information about the members in a conversation in Slack."""
-
+    """Get the members of a conversation in Slack by the conversation's ID."""
     slackClient = AsyncWebClient(token=context.authorization.token)
-    member_ids = []
-    next_page_token = None
 
-    # Get the member ids
-    while limit == -1 or len(member_ids) < limit:
-        iteration_limit = (
-            200 if limit == -1 else min(limit - len(member_ids), 200)
-        )  # Slack recommends max 200 results at a time
-        response = await slackClient.conversations_members(
-            channel=conversation_id, cursor=next_page_token, limit=iteration_limit
+    try:
+        member_ids, next_cursor = await async_paginate(
+            slackClient.conversations_members,
+            "members",
+            limit=limit,
+            next_cursor=next_cursor,
+            channel=conversation_id,
         )
-        member_ids.extend(response["members"])
-        next_page_token = response.get("response_metadata", {}).get("next_cursor")
+    except SlackApiError as e:
+        if e.response["error"] == "channel_not_found":
+            conversations = await list_conversations_metadata(context)
+            available_conversations = ", ".join(
+                f"{conversation['id']} ({conversation['name']})"
+                for conversation in conversations["conversations"]
+            )
 
-        if not next_page_token:
-            break
+            raise RetryableToolError(
+                "Conversation not found",
+                developer_message=f"Conversation with ID '{conversation_id}' not found.",
+                additional_prompt_content=f"Available conversations: {available_conversations}",
+                retry_after_ms=500,
+            )
 
     # Get the members' info
     # TODO: This will probably hit rate limits. We should probably call list_users() and
@@ -376,7 +383,7 @@ async def get_members_from_conversation_id(
         get_user_info_by_id(context, member_id) for member_id in member_ids
     ])
 
-    return {"members": members}
+    return {"members": members, "next_cursor": next_cursor}
 
 
 @tool(
@@ -384,29 +391,33 @@ async def get_members_from_conversation_id(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def get_members_from_conversation_name(
+async def get_members_from_conversation_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get members for"],
     limit: Annotated[
-        Optional[int], "The maximum number of members to return. Defaults to -1 (no limit)"
-    ] = -1,
+        Optional[int], "The maximum number of members to return."
+    ] = MAX_PAGINATION_LIMIT,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
+    conversation_names = []
+    conversation_next_cursor = None
 
-    conversations = await list_conversations_metadata(context, limit=-1)
+    while True:
+        response = await list_conversations_metadata(context, next_cursor=conversation_next_cursor)
 
-    conversation_id = None
-    for conversation in conversations["conversations"]:
-        if conversation.get("name") and conversation["name"].lower() == conversation_name.lower():
-            conversation_id = conversation["id"]
+        conversation_next_cursor = response["next_cursor"]
+
+        for conversation in response["conversations"]:
+            conversation_names.append(conversation["name"])
+            if conversation["name"].lower() == conversation_name.lower():
+                conversation_id = conversation["id"]
+                break
+
+        if not conversation_next_cursor:
             break
 
     if not conversation_id:
-        conversation_names = ", ".join(
-            conversation["name"]
-            for conversation in conversations["conversations"]
-            if conversation.get("name")
-        )
         raise RetryableToolError(
             "Conversation not found",
             developer_message=f"Conversation with name '{conversation_name}' not found.",
@@ -414,8 +425,12 @@ async def get_members_from_conversation_name(
             retry_after_ms=500,
         )
 
-    # Use the existing function to get members by conversation ID
-    return get_members_from_conversation_id(context, conversation_id, limit)
+    return await get_members_from_conversation_by_id(
+        context=context,
+        conversation_id=conversation_id,
+        limit=limit,
+        next_cursor=next_cursor,
+    )
 
 
 @tool(
