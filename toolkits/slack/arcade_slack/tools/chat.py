@@ -483,7 +483,18 @@ async def get_conversation_history_by_id(
         "additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack."""
+    """Get the history of a conversation in Slack.
+
+    NOTE ABOUT TIMEZONES:
+
+    Slack already adjusts the timestamps to the user's timezone, so we don't need to do that here.
+    When we query for the range '2025-01-16 00:00:00' - '2025-01-16 23:59:59', for example,
+    Slack will return messages received/sent by the user within this time range from the perspective
+    of the user's timezone.
+
+    The timestamp returned by Slack on each message dictionary is also the timestamp in the user's
+    timezone, not the Unix timestamp.
+    """
     # This is super ugly I know, I'm sorry, we are soon implementing a better solution
     # for date-range filtering that will be standardized across all tools.
     error_message = None
@@ -521,14 +532,18 @@ async def get_conversation_history_by_id(
         oldest_unix_timestamp = 0  # This is the default on Slack API
 
     slackClient = AsyncWebClient(token=context.authorization.token)
-    response = await slackClient.conversations_history(
-        channel=conversation_id,
+
+    response, next_cursor = await async_paginate(
+        slackClient.conversations_history,
+        "messages",
         limit=limit,
-        include_all_metadata=True,
+        next_cursor=cursor,
+        channel=conversation_id,
         oldest=oldest_unix_timestamp,
         latest=latest_unix_timestamp,
-        cursor=cursor,
+        include_all_metadata=True,
     )
+
     messages = [enrich_message_metadata(message) for message in response.get("messages", [])]
     next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
