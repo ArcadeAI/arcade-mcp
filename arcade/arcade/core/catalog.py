@@ -298,6 +298,7 @@ class ToolCatalog(BaseModel):
             new_auth_requirement = ToolAuthRequirement(
                 provider_id=auth_requirement.provider_id,
                 provider_type=auth_requirement.provider_type,
+                id=auth_requirement.id,
             )
             if isinstance(auth_requirement, OAuth2):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
