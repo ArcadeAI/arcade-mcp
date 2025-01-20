@@ -1,6 +1,5 @@
 import asyncio
-import datetime
-import time
+from datetime import datetime, timezone
 from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
@@ -15,6 +14,8 @@ from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
     convert_conversation_type_to_slack_name,
+    convert_datetime_to_unix_timestamp,
+    convert_relative_datetime_to_unix_timestamp,
     enrich_message_metadata,
     extract_conversation_metadata,
     format_channels,
@@ -436,6 +437,9 @@ async def get_members_from_conversation_by_name(
     )
 
 
+# TODO: make the function accept a current unix timestamp argument to allow testing without
+# mocking. Have to wait until arcade.core.annotations.Inferrable is implemented, so that we
+# can avoid exposing this arg to the LLM.
 @tool(
     requires_auth=Slack(
         scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
@@ -483,20 +487,7 @@ async def get_conversation_history_by_id(
         "additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack.
-
-    NOTE ABOUT TIMEZONES:
-
-    Slack already adjusts the timestamps to the user's timezone, so we don't need to do that here.
-    When we query for the range '2025-01-16 00:00:00' - '2025-01-16 23:59:59', for example,
-    Slack will return messages received/sent by the user within this time range from the perspective
-    of the user's timezone.
-
-    The timestamp returned by Slack on each message dictionary is also the timestamp in the user's
-    timezone, not the Unix timestamp.
-    """
-    # This is super ugly I know, I'm sorry, we are soon implementing a better solution
-    # for date-range filtering that will be standardized across all tools.
+    """Get the history of a conversation in Slack."""
     error_message = None
     if oldest_datetime and oldest_relative:
         error_message = "Cannot specify both 'oldest_datetime' and 'oldest_relative'."
@@ -507,31 +498,33 @@ async def get_conversation_history_by_id(
     if error_message:
         raise ToolExecutionError(error_message, developer_message=error_message)
 
-    current_unix_timestamp = int(time.time())
+    current_unix_timestamp = int(datetime.now(timezone.utc).timestamp())
 
     if latest_relative:
-        days, hours, minutes = map(int, latest_relative.split(":"))
-        latest_seconds = days * 86400 + hours * 3600 + minutes * 60
-        latest_unix_timestamp = current_unix_timestamp - latest_seconds
-    elif latest_datetime:
-        latest_unix_timestamp = int(
-            datetime.datetime.strptime(latest_datetime, "%Y-%m-%d %H:%M:%S").timestamp()
+        latest_timestamp = convert_relative_datetime_to_unix_timestamp(
+            latest_relative, current_unix_timestamp
         )
+    elif latest_datetime:
+        latest_timestamp = convert_datetime_to_unix_timestamp(latest_datetime)
     else:
-        latest_unix_timestamp = current_unix_timestamp  # This is the default on Slack API
+        latest_timestamp = None
 
     if oldest_relative:
-        days, hours, minutes = map(int, oldest_relative.split(":"))
-        oldest_seconds = days * 86400 + hours * 3600 + minutes * 60
-        oldest_unix_timestamp = current_unix_timestamp - oldest_seconds
-    elif oldest_datetime:
-        oldest_unix_timestamp = int(
-            datetime.datetime.strptime(oldest_datetime, "%Y-%m-%d %H:%M:%S").timestamp()
+        oldest_timestamp = convert_relative_datetime_to_unix_timestamp(
+            oldest_relative, current_unix_timestamp
         )
+    elif oldest_datetime:
+        oldest_timestamp = convert_datetime_to_unix_timestamp(oldest_datetime)
     else:
-        oldest_unix_timestamp = 0  # This is the default on Slack API
+        oldest_timestamp = None
 
     slackClient = AsyncWebClient(token=context.authorization.token)
+
+    datetime_args = {}
+    if oldest_timestamp:
+        datetime_args["oldest"] = oldest_timestamp
+    if latest_timestamp:
+        datetime_args["latest"] = latest_timestamp
 
     response, next_cursor = await async_paginate(
         slackClient.conversations_history,
@@ -539,12 +532,77 @@ async def get_conversation_history_by_id(
         limit=limit,
         next_cursor=cursor,
         channel=conversation_id,
-        oldest=oldest_unix_timestamp,
-        latest=latest_unix_timestamp,
         include_all_metadata=True,
+        inclusive=True,  # Include messages at the start and end of the time range
+        **datetime_args,
     )
 
-    messages = [enrich_message_metadata(message) for message in response.get("messages", [])]
-    next_cursor = response.get("response_metadata", {}).get("next_cursor")
+    messages = [enrich_message_metadata(message) for message in response]
 
     return {"messages": messages, "next_cursor": next_cursor}
+
+
+# TODO: make the function accept a current unix timestamp argument to allow testing without
+# mocking. Have to wait until arcade.core.annotations.Inferrable is implemented, so that we
+# can avoid exposing this arg to the LLM.
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
+    )
+)
+async def get_conversation_history_by_name(
+    context: ToolContext,
+    conversation_name: Annotated[str, "The name of the conversation to get history for"],
+    oldest_relative: Annotated[
+        Optional[str],
+        (
+            "The oldest message to include in the results, specified as a time offset from the "
+            "current time in the format 'DD:HH:MM'"
+        ),
+    ] = None,
+    latest_relative: Annotated[
+        Optional[str],
+        (
+            "The latest message to include in the results, specified as a time offset from the "
+            "current time in the format 'DD:HH:MM'"
+        ),
+    ] = None,
+    oldest_datetime: Annotated[
+        Optional[str],
+        (
+            "The oldest message to include in the results, specified as a datetime object in the "
+            "format 'YYYY-MM-DD HH:MM:SS'"
+        ),
+    ] = None,
+    latest_datetime: Annotated[
+        Optional[str],
+        (
+            "The latest message to include in the results, specified as a datetime object in the "
+            "format 'YYYY-MM-DD HH:MM:SS'"
+        ),
+    ] = None,
+    limit: Annotated[
+        Optional[int], "The maximum number of messages to return. Defaults to 20."
+    ] = MAX_PAGINATION_LIMIT,
+    cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
+) -> Annotated[
+    dict,
+    (
+        "The conversation history and next cursor for paginating results (when there are "
+        "additional messages to retrieve)."
+    ),
+]:
+    """Get the history of a conversation in Slack."""
+    conversation_metadata = await get_conversation_metadata_by_name(
+        context=context, conversation_name=conversation_name
+    )
+    return await get_conversation_history_by_id(
+        context=context,
+        conversation_id=conversation_metadata["id"],
+        oldest_relative=oldest_relative,
+        latest_relative=latest_relative,
+        oldest_datetime=oldest_datetime,
+        latest_datetime=latest_datetime,
+        limit=limit,
+        cursor=cursor,
+    )

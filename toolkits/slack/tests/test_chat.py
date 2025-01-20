@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import Mock, call, patch
 
 import pytest
@@ -8,6 +9,8 @@ from slack_sdk.web.async_slack_response import AsyncSlackResponse
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
 from arcade_slack.tools.chat import (
+    get_conversation_history_by_id,
+    get_conversation_history_by_name,
     get_conversation_metadata_by_id,
     get_conversation_metadata_by_name,
     get_members_from_conversation_by_id,
@@ -505,4 +508,161 @@ async def test_get_members_from_conversation_by_name_triggering_pagination(
         conversation_id="C12345",
         limit=2,
         next_cursor=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_history_by_id(mock_context, mock_slack_client):
+    mock_slack_client.conversations_history.return_value = {
+        "ok": True,
+        "messages": [{"text": "Hello, world!"}],
+    }
+
+    response = await get_conversation_history_by_id(mock_context, "C12345", limit=1)
+
+    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    mock_slack_client.conversations_history.assert_called_once_with(
+        channel="C12345",
+        include_all_metadata=True,
+        inclusive=True,
+        limit=1,
+        cursor=None,
+    )
+
+
+# TODO: pass a current unix timestamp to the tool, instead of mocking the datetime
+# conversion. Have to wait until arcade.core.annotations.Inferrable is implemented.
+@pytest.mark.asyncio
+@patch("arcade_slack.tools.chat.convert_relative_datetime_to_unix_timestamp")
+@patch("arcade_slack.tools.chat.datetime")
+async def test_get_conversation_history_by_id_with_relative_datetime_args(
+    mock_datetime, mock_convert_relative_datetime_to_unix_timestamp, mock_context, mock_slack_client
+):
+    mock_slack_client.conversations_history.return_value = {
+        "ok": True,
+        "messages": [{"text": "Hello, world!"}],
+    }
+
+    expected_oldest_timestamp = 1716489600
+    expected_latest_timestamp = 1716403200
+
+    # Ideally we'd pass the current unix timestamp to the function, instead of mocking, but
+    # currently there's no way to have a tool argument that is not exposed to the LLM. We
+    # should have that soon, though.
+    mock_datetime.now.return_value = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+    expected_current_unix_timestamp = int(mock_datetime.now.return_value.timestamp())
+    mock_convert_relative_datetime_to_unix_timestamp.side_effect = [
+        expected_latest_timestamp,
+        expected_oldest_timestamp,
+    ]
+
+    response = await get_conversation_history_by_id(
+        mock_context, "C12345", oldest_relative="02:00:00", latest_relative="01:00:00", limit=1
+    )
+
+    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    mock_convert_relative_datetime_to_unix_timestamp.assert_has_calls([
+        call("01:00:00", expected_current_unix_timestamp),
+        call("02:00:00", expected_current_unix_timestamp),
+    ])
+    mock_slack_client.conversations_history.assert_called_once_with(
+        channel="C12345",
+        include_all_metadata=True,
+        inclusive=True,
+        limit=1,
+        cursor=None,
+        oldest=expected_oldest_timestamp,
+        latest=expected_latest_timestamp,
+    )
+
+
+# TODO: pass a current unix timestamp to the tool, instead of mocking the datetime
+# conversion. Have to wait until arcade.core.annotations.Inferrable is implemented.
+@pytest.mark.asyncio
+@patch("arcade_slack.tools.chat.convert_datetime_to_unix_timestamp")
+async def test_get_conversation_history_by_id_with_absolute_datetime_args(
+    mock_convert_datetime_to_unix_timestamp, mock_context, mock_slack_client
+):
+    mock_slack_client.conversations_history.return_value = {
+        "ok": True,
+        "messages": [{"text": "Hello, world!"}],
+    }
+
+    expected_latest_timestamp = 1716403200
+    expected_oldest_timestamp = 1716489600
+
+    # Ideally we'd pass the current unix timestamp to the function, instead of mocking, but
+    # currently there's no way to have a tool argument that is not exposed to the LLM. We
+    # should have that soon, though.
+    mock_convert_datetime_to_unix_timestamp.side_effect = [
+        expected_latest_timestamp,
+        expected_oldest_timestamp,
+    ]
+
+    response = await get_conversation_history_by_id(
+        mock_context,
+        "C12345",
+        oldest_datetime="2025-01-01 00:00:00",
+        latest_datetime="2025-01-02 00:00:00",
+        limit=1,
+    )
+
+    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    mock_convert_datetime_to_unix_timestamp.assert_has_calls([
+        call("2025-01-02 00:00:00"),
+        call("2025-01-01 00:00:00"),
+    ])
+    mock_slack_client.conversations_history.assert_called_once_with(
+        channel="C12345",
+        include_all_metadata=True,
+        inclusive=True,
+        limit=1,
+        cursor=None,
+        oldest=expected_oldest_timestamp,
+        latest=expected_latest_timestamp,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_history_by_id_with_messed_oldest_args(
+    mock_context, mock_slack_client
+):
+    with pytest.raises(ToolExecutionError):
+        await get_conversation_history_by_id(
+            mock_context,
+            "C12345",
+            oldest_datetime="2025-01-01 00:00:00",
+            oldest_relative="01:00:00",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_history_by_id_with_messed_latest_args(
+    mock_context, mock_slack_client
+):
+    with pytest.raises(ToolExecutionError):
+        await get_conversation_history_by_id(
+            mock_context,
+            "C12345",
+            latest_datetime="2025-01-01 00:00:00",
+            latest_relative="01:00:00",
+        )
+
+
+@pytest.mark.asyncio
+async def test_get_conversation_history_by_name(mock_context, mock_slack_client):
+    mock_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [{"id": "C12345", "name": "general", "is_member": True}],
+    }
+    mock_slack_client.conversations_history.return_value = {
+        "ok": True,
+        "messages": [{"text": "Hello, world!"}],
+    }
+
+    response = await get_conversation_history_by_name(mock_context, "general", limit=1)
+
+    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    mock_slack_client.conversations_history.assert_called_once_with(
+        channel="C12345", include_all_metadata=True, inclusive=True, limit=1, cursor=None
     )

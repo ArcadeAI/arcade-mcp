@@ -1,5 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Optional
+
+from arcade.sdk.errors import RetryableToolError
 
 from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
@@ -166,8 +168,34 @@ def enrich_message_datetime(message: dict) -> dict:
     """
     ts = message.get("ts")
     if ts:
-        unix_timestamp = float(ts)
-        message["datetime_timestamp"] = datetime.fromtimestamp(unix_timestamp).strftime(
+        message["datetime_timestamp"] = datetime.fromtimestamp(float(ts)).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
     return message
+
+
+def convert_datetime_to_unix_timestamp(datetime_str: str) -> int:
+    """Convert a datetime string to a unix timestamp."""
+    try:
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+        return int(dt.timestamp())
+    except ValueError:
+        raise RetryableToolError(
+            "Invalid datetime format",
+            developer_message=f"The datetime '{datetime_str}' is invalid. "
+            "Please provide a datetime string in the format 'YYYY-MM-DD HH:MM:SS'.",
+            retry_after_ms=500,
+        )
+
+
+def convert_relative_datetime_to_unix_timestamp(
+    relative_datetime: str,
+    current_unix_timestamp: Optional[int] = None,
+) -> int:
+    """Convert a relative datetime string in the format 'DD:HH:MM' to unix timestamp."""
+    if not current_unix_timestamp:
+        current_unix_timestamp = int(datetime.now(timezone.utc).timestamp())
+
+    days, hours, minutes = map(int, relative_datetime.split(":"))
+    seconds = days * 86400 + hours * 3600 + minutes * 60
+    return int(current_unix_timestamp - seconds)
