@@ -161,7 +161,12 @@ class SlackMessage(TypedDict, total=True):
 
 
 class Message(SlackMessage, total=False):
-    """Type definition for the message dictionary."""
+    """Type definition for the message dictionary.
+
+    Having a human-readable datetime string is useful for LLMs when they need to display the
+    date/time for the user. If not, they'll try to convert the unix timestamp to a human-readable
+    date/time,which they don't usually do accurately.
+    """
 
     datetime_timestamp: str  # Human-readable datetime string (e.g. "2025-01-22 12:00:00")
 

@@ -574,7 +574,7 @@ async def get_conversation_metadata_by_id(
         return extract_conversation_metadata(response["channel"])
 
     except SlackApiError as e:
-        if e.response["error"] == "channel_not_found":
+        if e.response.get("error") == "channel_not_found":
             conversations = await list_conversations_metadata(context, limit=-1)
             available_conversations = ", ".join(
                 f"{conversation['id']} ({conversation['name']})"
