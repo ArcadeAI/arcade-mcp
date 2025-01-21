@@ -150,8 +150,8 @@ def test_load_disabled_tools(monkeypatch):
         + "sample_toolkit6.sample_tool_8"  # invalid
     )
     expected_disabled_tools = {
-        "SampleToolkitOne.SampleToolOne",
-        "SampleToolkitTwo.SampleToolThree",
+        "sampletoolkitone.sampletoolone",
+        "sampletoolkittwo.sampletoolthree",
     }
 
     monkeypatch.setenv("ARCADE_DISABLED_TOOLS", disabled_tools)
