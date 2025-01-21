@@ -116,11 +116,11 @@ class ToolCatalog(BaseModel):
 
     _disabled_tools: set[str] = set()
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
         self._load_disabled_tools()
 
-    def _load_disabled_tools(self):
+    def _load_disabled_tools(self) -> None:
         """Load disabled tools from the environment variable.
 
         The ARCADE_DISABLED_TOOLS environment variable should contain a
