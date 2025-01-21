@@ -116,7 +116,7 @@ class ToolCatalog(BaseModel):
 
     _disabled_tools: set[str] = set()
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data) -> None:  # type: ignore[no-untyped-def]
         super().__init__(**data)
         self._load_disabled_tools()
 
