@@ -280,7 +280,10 @@ async def get_conversation_metadata_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
-    """Get the metadata of a conversation in Slack."""
+    """Get the metadata of a conversation in Slack.
+
+    Metadata does not include members, users, or people on the conversation / channel.
+    """
     slackClient = AsyncWebClient(token=context.authorization.token)
 
     try:
@@ -317,7 +320,10 @@ async def get_conversation_metadata_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
-    """Get the metadata of a conversation in Slack."""
+    """Get the metadata of a conversation in Slack.
+
+    Metadata does not include members, users, or people on the conversation / channel.
+    """
     next_cursor = None
     conversation_names = []
 
