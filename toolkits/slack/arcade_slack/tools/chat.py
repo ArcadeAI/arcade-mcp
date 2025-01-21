@@ -276,82 +276,6 @@ async def list_direct_message_channels_metadata(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def get_conversation_metadata_by_id(
-    context: ToolContext,
-    conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
-) -> Annotated[dict, "The conversation metadata"]:
-    """Get the metadata of a conversation in Slack.
-
-    Metadata does not include members, users, or people on the conversation / channel.
-    """
-    slackClient = AsyncWebClient(token=context.authorization.token)
-
-    try:
-        response = await slackClient.conversations_info(
-            channel=conversation_id,
-            include_locale=True,
-            include_num_members=True,
-        )
-
-        return extract_conversation_metadata(response["channel"])
-
-    except SlackApiError as e:
-        if e.response["error"] == "channel_not_found":
-            conversations = await list_conversations_metadata(context, limit=-1)
-            available_conversations = ", ".join(
-                f"{conversation['id']} ({conversation['name']})"
-                for conversation in conversations["conversations"]
-            )
-
-            raise RetryableToolError(
-                "Conversation not found",
-                developer_message=f"Conversation with ID '{conversation_id}' not found.",
-                additional_prompt_content=f"Available conversations: {available_conversations}",
-                retry_after_ms=500,
-            )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
-    )
-)
-async def get_conversation_metadata_by_name(
-    context: ToolContext,
-    conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
-) -> Annotated[dict, "The conversation metadata"]:
-    """Get the metadata of a conversation in Slack.
-
-    Metadata does not include members, users, or people on the conversation / channel.
-    """
-    next_cursor = None
-    conversation_names = []
-
-    while True:
-        response = await list_conversations_metadata(context, next_cursor=next_cursor)
-        next_cursor = response["next_cursor"]
-
-        for conversation in response["conversations"]:
-            if conversation["name"].lower() == conversation_name.lower():
-                return conversation
-            conversation_names.append(conversation["name"])
-
-        if not next_cursor:
-            break
-
-    raise RetryableToolError(
-        "Conversation not found",
-        developer_message=f"Conversation with name '{conversation_name}' not found.",
-        additional_prompt_content=f"Available conversation names: {conversation_names}",
-        retry_after_ms=500,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
-    )
-)
 async def get_members_from_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
@@ -489,8 +413,8 @@ async def get_conversation_history_by_id(
 ) -> Annotated[
     dict,
     (
-        "The conversation history and next cursor for paginating results (when there are "
-        "additional messages to retrieve)."
+        "The conversation history / messages and next cursor for paginating results (when "
+        "there are additional messages to retrieve)."
     ),
 ]:
     """Get the history of a conversation in Slack."""
@@ -594,8 +518,8 @@ async def get_conversation_history_by_name(
 ) -> Annotated[
     dict,
     (
-        "The conversation history and next cursor for paginating results (when there are "
-        "additional messages to retrieve)."
+        "The conversation history / messages and next cursor for paginating results (when "
+        "there are additional messages to retrieve)."
     ),
 ]:
     """Get the history of a conversation in Slack."""
@@ -611,4 +535,88 @@ async def get_conversation_history_by_name(
         latest_datetime=latest_datetime,
         limit=limit,
         cursor=cursor,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+async def get_conversation_metadata_by_id(
+    context: ToolContext,
+    conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
+) -> Annotated[
+    dict,
+    (
+        "The conversation metadata. Metadata does not include: "
+        "- members, users, or people on the conversation / channel; "
+        "- history / messages of the conversation / channel."
+    ),
+]:
+    """Get the metadata of a conversation in Slack."""
+    slackClient = AsyncWebClient(token=context.authorization.token)
+
+    try:
+        response = await slackClient.conversations_info(
+            channel=conversation_id,
+            include_locale=True,
+            include_num_members=True,
+        )
+
+        return extract_conversation_metadata(response["channel"])
+
+    except SlackApiError as e:
+        if e.response["error"] == "channel_not_found":
+            conversations = await list_conversations_metadata(context, limit=-1)
+            available_conversations = ", ".join(
+                f"{conversation['id']} ({conversation['name']})"
+                for conversation in conversations["conversations"]
+            )
+
+            raise RetryableToolError(
+                "Conversation not found",
+                developer_message=f"Conversation with ID '{conversation_id}' not found.",
+                additional_prompt_content=f"Available conversations: {available_conversations}",
+                retry_after_ms=500,
+            )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+async def get_conversation_metadata_by_name(
+    context: ToolContext,
+    conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
+) -> Annotated[
+    dict,
+    (
+        "The conversation metadata. Metadata does not include: "
+        "- members, users, or people on the conversation / channel; "
+        "- history / messages of the conversation / channel."
+    ),
+]:
+    """Get the metadata of a conversation in Slack."""
+    next_cursor = None
+    conversation_names = []
+
+    while True:
+        response = await list_conversations_metadata(context, next_cursor=next_cursor)
+        next_cursor = response["next_cursor"]
+
+        for conversation in response["conversations"]:
+            if conversation["name"].lower() == conversation_name.lower():
+                return conversation
+            conversation_names.append(conversation["name"])
+
+        if not next_cursor:
+            break
+
+    raise RetryableToolError(
+        "Conversation not found",
+        developer_message=f"Conversation with name '{conversation_name}' not found.",
+        additional_prompt_content=f"Available conversation names: {conversation_names}",
+        retry_after_ms=500,
     )
