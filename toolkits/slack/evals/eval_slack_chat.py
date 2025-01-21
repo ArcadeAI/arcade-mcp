@@ -26,7 +26,7 @@ catalog.add_module(arcade_slack)
 
 
 @tool_eval()
-def slack_eval_suite() -> EvalSuite:
+def send_message_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Slack messaging tools."""
     suite = EvalSuite(
         name="Slack Messaging Tools Evaluation",
