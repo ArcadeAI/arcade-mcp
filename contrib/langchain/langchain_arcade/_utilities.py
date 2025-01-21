@@ -1,7 +1,7 @@
 from typing import Any, Callable
 
 from arcadepy import NOT_GIVEN, Arcade
-from arcadepy.types.shared import ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field, create_model
@@ -50,7 +50,7 @@ def tool_definition_to_pydantic_model(tool_def: ToolDefinition) -> type[BaseMode
     """
     try:
         fields: dict[str, Any] = {}
-        for param in tool_def.inputs.parameters or []:
+        for param in tool_def.input.parameters or []:
             param_type = get_python_type(param.value_schema.val_type)
             if param_type == list and param.value_schema.inner_val_type:  # noqa: E721
                 inner_type: type[Any] = get_python_type(param.value_schema.inner_val_type)
@@ -116,10 +116,7 @@ def create_tool_function(
             # Authorize the user for the tool
             auth_response = client.tools.authorize(tool_name=tool_name, user_id=user_id)
             if auth_response.status != "completed":
-                auth_message = (
-                    "Please use the following link to authorize: "
-                    f"{auth_response.authorization_url}"
-                )
+                auth_message = f"Please use the following link to authorize: {auth_response.url}"
                 if langgraph:
                     raise NodeInterrupt(auth_message)
                 return {"error": auth_message}
@@ -127,7 +124,7 @@ def create_tool_function(
         # Execute the tool with provided inputs
         execute_response = client.tools.execute(
             tool_name=tool_name,
-            inputs=kwargs,
+            input=kwargs,
             user_id=user_id if user_id is not None else NOT_GIVEN,
         )
 
