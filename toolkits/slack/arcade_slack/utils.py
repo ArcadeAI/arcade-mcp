@@ -61,7 +61,7 @@ def get_conversation_type(channel: dict) -> ConversationTypeSlackName:
         channel: The Slack channel's metadata dictionary.
 
     Returns:
-        The type of conversation.
+        The type of conversation string in Slack naming standard.
     """
     mapping = {
         ConversationTypeSlackName.PUBLIC_CHANNEL.value: channel.get("is_channel"),
