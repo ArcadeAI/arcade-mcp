@@ -1,5 +1,7 @@
 import asyncio
 import inspect
+import os
+import re
 import typing
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -112,6 +114,34 @@ class ToolCatalog(BaseModel):
 
     _tools: dict[FullyQualifiedName, MaterializedTool] = {}
 
+    _disabled_tools: set[str] = set()
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._load_disabled_tools()
+
+    def _load_disabled_tools(self):
+        """Load disabled tools from the environment variable.
+
+        The ARCADE_DISABLED_TOOLS environment variable should contain a
+        comma-separated list of tools that are to be excluded from the
+        catalog.
+
+        The expected format for each disabled tool is:
+        - [CamelCaseToolkitName][TOOL_NAME_SEPARATOR][CamelCaseToolName]
+        """
+        disabled_tools = os.getenv("ARCADE_DISABLED_TOOLS", "").strip().split(",")
+        if not disabled_tools:
+            return
+
+        pattern = re.compile(rf"^[a-zA-Z]+{re.escape(TOOL_NAME_SEPARATOR)}[a-zA-Z]+$")
+
+        for tool in disabled_tools:
+            if not pattern.match(tool):
+                continue
+
+            self._disabled_tools.add(tool.lower())
+
     def add_tool(
         self,
         tool_func: Callable,
@@ -145,6 +175,9 @@ class ToolCatalog(BaseModel):
 
         if fully_qualified_name in self._tools:
             raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
+
+        if str(fully_qualified_name).lower() in self._disabled_tools:
+            return
 
         self._tools[fully_qualified_name] = MaterializedTool(
             definition=definition,
