@@ -12,13 +12,14 @@ from arcade_slack.constants import MAX_PAGINATION_LIMIT
 from arcade_slack.models import ConversationType
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
+    SlackPaginationNextCursor,
     async_paginate,
     convert_conversation_type_to_slack_name,
     convert_datetime_to_unix_timestamp,
     convert_relative_datetime_to_unix_timestamp,
     enrich_message_datetime,
     extract_conversation_metadata,
-    format_channels,
+    format_conversations_as_csv,
     format_users,
 )
 
@@ -50,9 +51,9 @@ async def send_dm_to_user(
 
     try:
         # Step 1: Retrieve the user's Slack ID based on their username
-        userListResponse = await slackClient.users_list()
+        user_list_response = await slackClient.users_list()
         user_id = None
-        for user in userListResponse["members"]:
+        for user in user_list_response["members"]:
             if user["name"].lower() == user_name.lower():
                 user_id = user["id"]
                 break
@@ -61,7 +62,7 @@ async def send_dm_to_user(
             raise RetryableToolError(
                 "User not found",
                 developer_message=f"User with username '{user_name}' not found.",
-                additional_prompt_content=format_users(userListResponse),
+                additional_prompt_content=format_users(user_list_response),
                 retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
@@ -117,7 +118,7 @@ async def send_message_to_channel(
             raise RetryableToolError(
                 "Channel not found",
                 developer_message=f"Channel with name '{channel_name}' not found.",
-                additional_prompt_content=format_channels(channels_response),
+                additional_prompt_content=format_conversations_as_csv(channels_response),
                 retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
@@ -148,7 +149,9 @@ async def list_conversations_metadata(
     limit: Annotated[
         Optional[int], "The maximum number of conversations to list."
     ] = MAX_PAGINATION_LIMIT,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    next_cursor: Annotated[
+        Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
+    ] = None,
 ) -> Annotated[
     dict,
     (
@@ -282,7 +285,9 @@ async def get_members_from_conversation_by_id(
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
     ] = MAX_PAGINATION_LIMIT,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    next_cursor: Annotated[
+        Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
+    ] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID."""
     slackClient = AsyncWebClient(token=context.authorization.token)
@@ -331,7 +336,9 @@ async def get_members_from_conversation_by_name(
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
     ] = MAX_PAGINATION_LIMIT,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    next_cursor: Annotated[
+        Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
+    ] = None,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
     conversation_names = []

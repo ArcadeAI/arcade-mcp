@@ -653,7 +653,14 @@ async def test_get_conversation_history_by_id_with_messed_latest_args(
 async def test_get_conversation_history_by_name(mock_context, mock_slack_client):
     mock_slack_client.conversations_list.return_value = {
         "ok": True,
-        "channels": [{"id": "C12345", "name": "general", "is_member": True}],
+        "channels": [
+            {
+                "id": "C12345",
+                "name": "general",
+                "is_member": True,
+                "is_channel": True,
+            }
+        ],
     }
     mock_slack_client.conversations_history.return_value = {
         "ok": True,
