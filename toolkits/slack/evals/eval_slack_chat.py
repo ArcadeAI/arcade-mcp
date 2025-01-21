@@ -296,7 +296,7 @@ def send_message_eval_suite() -> EvalSuite:
     # Multiple recipients in DM request
     suite.add_case(
         name="Multiple recipients in DM request",
-        user_message="Send DMs to Alice and Bob about pushing the meeting tomorrow. I have to much work to do.",
+        user_message="Send DMs to the users 'alice' and 'bob' about pushing the meeting tomorrow. I have to much work to do.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=send_dm_to_user,
