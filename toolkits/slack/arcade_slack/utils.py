@@ -63,17 +63,19 @@ def get_conversation_type(channel: dict) -> ConversationTypeSlackName:
     Returns:
         The type of conversation.
     """
-    return (
-        ConversationTypeSlackName.PUBLIC_CHANNEL.value
-        if channel.get("is_channel")
-        else ConversationTypeSlackName.PRIVATE_CHANNEL.value
-        if channel.get("is_group")
-        else ConversationTypeSlackName.IM.value
-        if channel.get("is_im")
-        else ConversationTypeSlackName.MPIM.value
-        if channel.get("is_mpim")
-        else None
-    )
+    mapping = {
+        ConversationTypeSlackName.PUBLIC_CHANNEL.value: channel.get("is_channel"),
+        ConversationTypeSlackName.PRIVATE_CHANNEL.value: channel.get("is_group"),
+        ConversationTypeSlackName.IM.value: channel.get("is_im"),
+        ConversationTypeSlackName.MPIM.value: channel.get("is_mpim"),
+    }
+    try:
+        return mapping[channel.get("is_channel")]
+    except KeyError:
+        raise ValueError(
+            f"Invalid conversation type: '{channel.get('is_channel')}' "
+            f"in channel {channel.get('name')}"
+        )
 
 
 def convert_conversation_type_to_slack_name(
