@@ -133,8 +133,8 @@ def send_message_eval_suite() -> EvalSuite:
             )
         ],
         critics=[
-            BinaryCritic(critic_field="user_name", weight=0.5),
-            SimilarityCritic(critic_field="message", weight=0.5),
+            BinaryCritic(critic_field="user_name", weight=0.75),
+            SimilarityCritic(critic_field="message", weight=0.25, similarity_threshold=0.6),
         ],
         additional_messages=[
             {"role": "user", "content": "Message Jane.Doe asking to reschedule our meeting"},
