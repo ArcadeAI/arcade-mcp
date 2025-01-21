@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import logging
 import os
 import re
 import typing
@@ -50,6 +51,8 @@ from arcade.core.utils import (
     is_union,
     snake_to_pascal_case,
 )
+
+logger = logging.getLogger(__name__)
 
 InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
@@ -177,6 +180,7 @@ class ToolCatalog(BaseModel):
             raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
 
         if str(fully_qualified_name).lower() in self._disabled_tools:
+            logger.info(f"Tool '{fully_qualified_name!s}' is disabled and will not be cataloged.")
             return
 
         self._tools[fully_qualified_name] = MaterializedTool(
@@ -303,6 +307,12 @@ class ToolCatalog(BaseModel):
                 return tool
 
         raise ValueError(f"Tool {name} not found.")
+
+    def get_tool_count(self) -> int:
+        """
+        Get the number of tools in the catalog.
+        """
+        return len(self._tools)
 
     @staticmethod
     def create_tool_definition(
