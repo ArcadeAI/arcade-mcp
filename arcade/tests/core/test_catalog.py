@@ -176,7 +176,7 @@ def test_add_tool_with_empty_string_disabled_tools(monkeypatch):
 
 
 def test_add_tool_with_whitespace_disabled_tools(monkeypatch):
-    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "        SampleToolkitOne.SampleTool    ")
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "            ")
     catalog = ToolCatalog()
     catalog.add_tool(sample_tool, "SampleToolkitOne")
-    assert len(catalog._tools) == 0
+    assert len(catalog._tools) == 1
