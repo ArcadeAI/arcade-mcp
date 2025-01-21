@@ -8,6 +8,14 @@ from arcade_slack.models import ConversationType, ConversationTypeSlackName
 
 
 def format_users(userListResponse: dict) -> str:
+    """Format a list of Slack users into a CSV string.
+
+    Args:
+        userListResponse: The response from the Slack API's users_list method.
+
+    Returns:
+        A CSV string with the users' names and real names.
+    """
     csv_string = "All active Slack users:\n\nname,real_name\n"
     for user in userListResponse["members"]:
         if not user.get("deleted", False):
@@ -18,6 +26,14 @@ def format_users(userListResponse: dict) -> str:
 
 
 def format_channels(channels_response: dict) -> str:
+    """Format a list of Slack channels into a CSV string.
+
+    Args:
+        channels_response: The response from the Slack API's conversations_list method.
+
+    Returns:
+        A CSV string with the channels' names.
+    """
     csv_string = "All active Slack channels:\n\nname\n"
     for channel in channels_response["channels"]:
         if not channel.get("is_archived", False):
@@ -27,15 +43,25 @@ def format_channels(channels_response: dict) -> str:
 
 
 def remove_none_values(params: dict) -> dict:
-    """
-    Remove key/value pairs from a dictionary where the value is None.
+    """Remove key/value pairs from a dictionary where the value is None.
+
+    Args:
+        params: The dictionary to remove None values from.
+
+    Returns:
+        A dictionary with None values removed.
     """
     return {k: v for k, v in params.items() if v is not None}
 
 
 def get_conversation_type(channel: dict) -> ConversationTypeSlackName:
-    """
-    Get the type of conversation from a Slack channel's metadata.
+    """Get the type of conversation from a Slack channel's metadata.
+
+    Args:
+        channel: The Slack channel's metadata dictionary.
+
+    Returns:
+        The type of conversation.
     """
     return (
         ConversationTypeSlackName.PUBLIC_CHANNEL.value
@@ -53,6 +79,14 @@ def get_conversation_type(channel: dict) -> ConversationTypeSlackName:
 def convert_conversation_type_to_slack_name(
     conversation_type: ConversationType,
 ) -> ConversationTypeSlackName:
+    """Convert a conversation type to another using Slack naming standard.
+
+    Args:
+        conversation_type: The conversation type enum value.
+
+    Returns:
+        The corresponding conversation type enum value using Slack naming standard.
+    """
     mapping = {
         ConversationType.PUBLIC_CHANNEL: ConversationTypeSlackName.PUBLIC_CHANNEL,
         ConversationType.PRIVATE_CHANNEL: ConversationTypeSlackName.PRIVATE_CHANNEL,
@@ -63,6 +97,14 @@ def convert_conversation_type_to_slack_name(
 
 
 def extract_conversation_metadata(conversation: dict) -> dict:
+    """Extract conversation metadata from a Slack conversation object.
+
+    Args:
+        conversation: The Slack conversation dictionary.
+
+    Returns:
+        A dictionary with the conversation metadata.
+    """
     conversation_type = get_conversation_type(conversation)
 
     metadata = {
@@ -87,7 +129,13 @@ def extract_conversation_metadata(conversation: dict) -> dict:
 
 
 def extract_basic_user_info(user_info: dict) -> dict:
-    """Extract a user's basic info from a Slack user object.
+    """Extract a user's basic info from a Slack user dictionary.
+
+    Args:
+        user_info: The Slack user dictionary.
+
+    Returns:
+        A dictionary with the user's basic info.
 
     See https://api.slack.com/types/user for the structure of the user object.
     """
@@ -103,7 +151,13 @@ def extract_basic_user_info(user_info: dict) -> dict:
 
 
 def is_user_a_bot(user: dict) -> bool:
-    """Check if a Slack user object represents a bot.
+    """Check if a Slack user represents a bot.
+
+    Args:
+        user: The Slack user dictionary.
+
+    Returns:
+        True if the user is a bot, False otherwise.
 
     Bots are users with the "is_bot" flag set to true.
     USLACKBOT is the user object for the Slack bot itself and is a special case.
@@ -114,7 +168,13 @@ def is_user_a_bot(user: dict) -> bool:
 
 
 def is_user_deleted(user: dict) -> bool:
-    """Check if a Slack user object represents a deleted user.
+    """Check if a Slack user represents a deleted user.
+
+    Args:
+        user: The Slack user dictionary.
+
+    Returns:
+        True if the user is deleted, False otherwise.
 
     See https://api.slack.com/types/user for the structure of the user object.
     """
@@ -129,11 +189,23 @@ async def async_paginate(
     *args,
     **kwargs,
 ) -> tuple[list, Optional[str]]:
-    """Paginate a Slack AsyncWebClient's function results.
+    """Paginate a Slack AsyncWebClient's method results.
 
     The purpose is to abstract the pagination work and make it easier for the LLM to retrieve the
     amount of items requested by the user, regardless of limits imposed by the Slack API. We still
     return the next cursor, if needed to paginate further.
+
+    Args:
+        func: The Slack AsyncWebClient's method to paginate.
+        response_key: The key in the response dictionary to extract the items from (optional). If
+            not provided, the entire response dictionary is used.
+        limit: The maximum number of items to retrieve (defaults to Slack's suggested limit).
+        next_cursor: The cursor to use for pagination (optional).
+        *args: Positional arguments to pass to the Slack method.
+        **kwargs: Keyword arguments to pass to the Slack method.
+
+    Returns:
+        A tuple containing the list of items and the next cursor, if needed to paginate further.
     """
     results = []
     while len(results) < limit:
@@ -153,18 +225,18 @@ async def async_paginate(
     return results, next_cursor
 
 
-def enrich_message_metadata(message: dict) -> dict:
-    """Enrich message metadata."""
-    message = enrich_message_datetime(message)
-    return message
-
-
 def enrich_message_datetime(message: dict) -> dict:
     """Enrich message metadata with formatted datetime.
 
     It helps LLMs when they need to display the date/time in human-readable format. Slack
-    will only return a unix-formatted timestamp (it's not actually unix ts, but the unix ts
-    in the user's timezone - I know, odd, but it is what it is).
+    will only return a unix-formatted timestamp (it's not actually unix timestamp (UTC), but
+    the unix timestamp in the user's timezone - I know, odd, but it is what it is).
+
+    Args:
+        message: The Slack message dictionary.
+
+    Returns:
+        The enriched message dictionary.
     """
     ts = message.get("ts")
     if ts:
@@ -175,7 +247,14 @@ def enrich_message_datetime(message: dict) -> dict:
 
 
 def convert_datetime_to_unix_timestamp(datetime_str: str) -> int:
-    """Convert a datetime string to a unix timestamp."""
+    """Convert a datetime string to a unix timestamp.
+
+    Args:
+        datetime_str: The datetime string ('YYYY-MM-DD HH:MM:SS') to convert to a unix timestamp.
+
+    Returns:
+        The unix timestamp integer.
+    """
     try:
         dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
         return int(dt.timestamp())
@@ -192,7 +271,16 @@ def convert_relative_datetime_to_unix_timestamp(
     relative_datetime: str,
     current_unix_timestamp: Optional[int] = None,
 ) -> int:
-    """Convert a relative datetime string in the format 'DD:HH:MM' to unix timestamp."""
+    """Convert a relative datetime string in the format 'DD:HH:MM' to unix timestamp.
+
+    Args:
+        relative_datetime: The relative datetime string ('DD:HH:MM') to convert to a unix timestamp.
+        current_unix_timestamp: The current unix timestamp (optional). If not provided, the
+            current unix timestamp from datetime.now is used.
+
+    Returns:
+        The unix timestamp integer.
+    """
     if not current_unix_timestamp:
         current_unix_timestamp = int(datetime.now(timezone.utc).timestamp())
 

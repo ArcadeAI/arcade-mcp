@@ -16,7 +16,7 @@ from arcade_slack.utils import (
     convert_conversation_type_to_slack_name,
     convert_datetime_to_unix_timestamp,
     convert_relative_datetime_to_unix_timestamp,
-    enrich_message_metadata,
+    enrich_message_datetime,
     extract_conversation_metadata,
     format_channels,
     format_users,
@@ -467,7 +467,7 @@ async def get_conversation_history_by_id(
         **datetime_args,
     )
 
-    messages = [enrich_message_metadata(message) for message in response]
+    messages = [enrich_message_datetime(message) for message in response]
 
     return {"messages": messages, "next_cursor": next_cursor}
 
