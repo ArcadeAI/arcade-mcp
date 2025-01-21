@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 import typer
 from arcadepy import Arcade
-from arcadepy.types import AuthorizationResponse
+from arcadepy.types import AuthAuthorizationResponse
 from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
@@ -27,7 +27,6 @@ from arcade.cli.utils import (
     OrderCommands,
     compute_engine_base_url,
     compute_login_url,
-    delete_deprecated_config_file,
     get_eval_files,
     get_user_input,
     handle_chat_interaction,
@@ -37,6 +36,7 @@ from arcade.cli.utils import (
     load_eval_suites,
     log_engine_health,
     validate_and_get_config,
+    version_callback,
 )
 
 cli = typer.Typer(
@@ -104,8 +104,6 @@ def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    delete_deprecated_config_file()
-
     # If ~/.arcade/credentials.yaml exists, delete it
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
     if os.path.exists(config_file_path):
@@ -271,7 +269,7 @@ def chat(
                 if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
-                        AuthorizationResponse.model_validate(tool_authorization),
+                        AuthAuthorizationResponse.model_validate(tool_authorization),
                         history,
                         openai_client,
                         model,
@@ -478,3 +476,17 @@ def workerup(
         error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
+
+
+@cli.callback()
+def version(
+    _: bool = typer.Option(
+        None,
+        "-v",
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Print version and exit.",
+    ),
+) -> None:
+    pass

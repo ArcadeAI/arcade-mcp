@@ -42,3 +42,4 @@ select = [
 [format]
 preview = true
 skip-magic-trailing-comma = false
+

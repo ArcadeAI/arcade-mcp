@@ -28,16 +28,26 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app/arcade
 
 # Copy the parent directory contents into the container
-COPY ../dist /app/arcade/
+COPY ./dist ./arcade /app/arcade/
 
 # List files for debugging purposes
-RUN ls -lah /app/arcade/
+RUN ls -la /app/arcade/
 
-
-# Install the wheel with extras (not evals for now)
-RUN python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl fastapi
-RUN python -m pip install -r ./requirements.txt
-
+# Conditional installation based on version
+RUN if [ ! "$(echo ${VERSION} | grep -E '\.dev0$')" ]; then \
+    echo "Installing wheel file" && \
+    python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl fastapi && \
+    python -m pip install -r ./requirements.txt; \
+    else \
+    echo "Installing from source" && \
+    cd /app/arcade && \
+    pip install poetry && \
+    poetry lock && \
+    poetry version 0.1.0 && \
+    pip install fastapi && \
+    pip install -r requirements.txt && \
+    pip install .; \
+    fi
 
 # Expose the port
 EXPOSE $PORT

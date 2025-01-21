@@ -1,14 +1,14 @@
 """
 Example script demonstrating how to call multiple tools (sequentially) using an LLM with authentication.
 
-For this example, we are using the prebuilt Spotify toolkit to start playing similar songs to the currently playing song.
+For this example, we are using the prebuilt Spotify toolkit to search for a song, start playing it, and
+get info about the currently playing song.
 
 Steps:
-1. Get the currently playing song
-2. Get audio features for the currently playing song
-3. Get song recommendations that are similar to the currently playing song
-4. Start playing the recommended songs
-5. Inform the user which recommended song is now playing
+1. Search for the song
+2. Start playing the song
+3. Get info about the currently playing song
+4. Inform the user which song is now playing
 """
 
 import os
@@ -31,28 +31,19 @@ def call_tool(client: OpenAI, user_id: str, tool: str, message: dict, history: l
     return response
 
 
-def call_tools_with_llm(client: OpenAI, user_id: str, user_country_code: str) -> list[dict]:
-    """Use an LLM to execute the sequence of tools to get recommendations and start playback."""
+def call_tools_with_llm(
+    client: OpenAI, user_id: str, song_name: str, artist_name: str
+) -> list[dict]:
+    """Use an LLM to execute the sequence of tools to search for a song and start playback."""
     tools = [
-        "Spotify.GetCurrentlyPlaying",
-        "Spotify.GetTracksAudioFeatures",
-        "Spotify.GetRecommendations",
+        "Spotify.Search",
         "Spotify.StartTracksPlaybackById",
         "Spotify.GetCurrentlyPlaying",
     ]
 
     messages = [
-        {"role": "user", "content": "Get the currently playing song."},
-        {"role": "user", "content": "Retrieve its audio features."},
-        {
-            "role": "user",
-            "content": "Get song recommendations similar to it. "
-            "Do not include the currently playing song in the recommendations "
-            "or any remixed versions of the song. "
-            "Also only include tracks that are available in the user's country. "
-            f"The current user resides in {user_country_code}.",
-        },
-        {"role": "user", "content": "Start playing the recommended songs. Just one tool call."},
+        {"role": "user", "content": f"Search for '{song_name}' by {artist_name}' on Spotify."},
+        {"role": "user", "content": "Start playing the song. Just one tool call."},
         {"role": "user", "content": "Get the currently playing song."},
     ]
 
@@ -82,10 +73,8 @@ if __name__ == "__main__":
     )
 
     user_id = "you@example.com"
-    user_country_code = "US"
+    song_name = input("Enter the song name: ")
+    artist_name = input("Enter the artist name: ")
 
-    while True:
-        history = call_tools_with_llm(openai_client, user_id, user_country_code)
-
-        print("\nPress Enter to get more recommendations...")
-        input()
+    history = call_tools_with_llm(openai_client, user_id, song_name, artist_name)
+    print("\n\n", history)

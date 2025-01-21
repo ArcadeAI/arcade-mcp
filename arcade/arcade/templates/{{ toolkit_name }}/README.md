@@ -71,3 +71,4 @@
    ```bash
    arcade evals --host localhost --details
    ```
+

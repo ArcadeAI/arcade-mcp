@@ -12,3 +12,4 @@ max_line_length = 100 # This is also set in .ruff.toml for ruff
 [*.{json,jsonc,yml,yaml}]
 indent_style = space
 indent_size = 2 # This is also set in .prettierrc.toml
+
