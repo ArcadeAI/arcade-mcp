@@ -567,7 +567,7 @@ def get_conversations_members_eval_suite() -> EvalSuite:
 def get_conversation_history_eval_suite() -> EvalSuite:
     """Create an evaluation suite for tools getting conversations history."""
     suite = EvalSuite(
-        name="Slack Tools Evaluation",
+        name="Slack Chat Tools Evaluation",
         system_message="You are an AI assistant that can interact with Slack to send messages and get information from conversations, users, etc.",
         catalog=catalog,
         rubric=rubric,
