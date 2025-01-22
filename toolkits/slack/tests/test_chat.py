@@ -37,6 +37,12 @@ def mock_channel_info() -> dict:
     return {"name": "general", "id": "C12345", "is_member": True, "is_channel": True}
 
 
+@pytest.fixture
+def mock_slack_client(mocker):
+    mock_client = mocker.patch("arcade_slack.tools.chat.AsyncWebClient", autospec=True)
+    return mock_client.return_value
+
+
 @pytest.mark.asyncio
 async def test_send_dm_to_user(mock_context, mock_slack_client):
     mock_slack_client.users_list.return_value = {
