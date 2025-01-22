@@ -13,7 +13,6 @@ from arcade_slack.models import ConversationType
 from arcade_slack.tools.exceptions import ItemNotFoundError
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
-    SlackPaginationNextCursor,
     async_paginate,
     convert_conversation_type_to_slack_name,
     convert_datetime_to_unix_timestamp,
@@ -147,9 +146,7 @@ async def get_members_from_conversation_by_id(
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
     ] = MAX_PAGINATION_SIZE_LIMIT,
-    next_cursor: Annotated[
-        Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
-    ] = None,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID."""
     slackClient = AsyncWebClient(token=context.authorization.token)
@@ -198,9 +195,7 @@ async def get_members_from_conversation_by_name(
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
     ] = MAX_PAGINATION_SIZE_LIMIT,
-    next_cursor: Annotated[
-        Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
-    ] = None,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
     conversation_metadata = await get_conversation_metadata_by_name(
@@ -432,7 +427,7 @@ async def get_conversation_metadata_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
     next_cursor: Annotated[
-        Optional[SlackPaginationNextCursor],
+        Optional[str],
         "The cursor to use for pagination, if continuing from a previous search.",
     ] = None,
 ) -> Annotated[dict, "The conversation metadata"]:
@@ -454,11 +449,17 @@ async def get_conversation_metadata_by_name(
                 if not next_cursor:
                     should_continue = False
 
-    raise ItemNotFoundError(
-        "Conversation not found",
-        developer_message=f"Conversation with name '{conversation_name}' not found.",
-        additional_prompt_content=f"Available conversation names: {conversation_names}",
-    )
+        raise ItemNotFoundError()
+
+    try:
+        return await find_conversation(conversation_name, conversation_names, next_cursor)
+    except (asyncio.TimeoutError, ItemNotFoundError) as e:
+        raise RetryableToolError(
+            "Conversation not found",
+            developer_message=f"Conversation with name '{conversation_name}' not found.",
+            additional_prompt_content=f"Available conversation names: {conversation_names}",
+            retry_after_ms=500,
+        ) from e
 
 
 @tool(
