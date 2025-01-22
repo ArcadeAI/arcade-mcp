@@ -63,7 +63,7 @@ def test_create_tool_function_success(
 def test_create_tool_function_unauthorized(
     mock_wait_for_completion, mock_authorize, mock_requires_auth, manager
 ):
-    """Test that the tool function returns a ToolExecutionError when unauthorized."""
+    """Test that the tool function returns a ValueError when authorization fails."""
     mock_requires_auth.return_value = True
     mock_authorize.return_value = MagicMock(
         authorization_id="auth_id", url="http://auth.url", status="pending"
@@ -82,7 +82,7 @@ def test_create_tool_function_unauthorized(
 def test_create_tool_function_execution_failure(
     mock_wait_for_completion, mock_authorize, mock_requires_auth, manager
 ):
-    """Test that the tool function returns a ToolExecutionError on execution failure."""
+    """Test that the tool function returns a ValueError on execution failure."""
     mock_requires_auth.return_value = True
     mock_authorize.return_value = MagicMock(
         authorization_id="auth_id", url="http://auth.url", status="completed"

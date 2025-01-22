@@ -6,6 +6,7 @@ The example authenticates into the user's Gmail account, retrieves their 5 most 
 The example assumes the following:
 1. You have an Arcade API key and have set the ARCADE_API_KEY environment variable.
 2. You have an OpenAI API key and have set the OPENAI_API_KEY environment variable.
+3. You have installed the necessary dependencies in the requirements.txt file: `pip install -r requirements.txt`
 
 """
 
