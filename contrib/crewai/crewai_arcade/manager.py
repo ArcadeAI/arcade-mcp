@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from arcadepy import Arcade
 from arcadepy.types import ToolGetResponse as ToolDefinition
@@ -17,8 +17,8 @@ class CrewAIToolManager(BaseArcadeManager):
 
     def __init__(
         self,
-        client: Arcade,
         user_id: str,
+        client: Optional[Arcade] = None,
         **kwargs: Any,
     ) -> None:
         """Initialize the CrewAIToolManager.
@@ -33,6 +33,7 @@ class CrewAIToolManager(BaseArcadeManager):
         """
         if not user_id:
             raise ValueError("user_id is required for CrewAIToolManager")
+
         super().__init__(client=client, user_id=user_id, **kwargs)
 
     def create_tool_function(self, tool_name: str, **kwargs: Any) -> Callable[..., Any]:
@@ -51,19 +52,18 @@ class CrewAIToolManager(BaseArcadeManager):
             if self.requires_auth(tool_name):
                 # Get authorization status
                 auth_response = self.authorize(tool_name, self.user_id)  # type: ignore[arg-type]
-                if not auth_response.authorization_id:
-                    return ToolExecutionError(
-                        f"Authorization failed for {tool_name}: No authorization ID received"
-                    )
-                # Wait for authorization completion with timeout
-                auth_response = self.wait_for_completion(
-                    auth_response,
-                )
 
-                if auth_response.status != "completed":
-                    return ToolExecutionError(
-                        f"Authorization failed for {tool_name}. URL: {auth_response.url}"
+                if not self.is_authorized(auth_response.id):
+                    print(
+                        f"Authorization required for {tool_name}. Authorization URL: {auth_response.url}"
                     )
+
+                    auth_response = self.wait_for_completion(auth_response)
+
+                    if not self.is_authorized(auth_response.id):
+                        return ValueError(
+                            f"Authorization failed for {tool_name}. URL: {auth_response.url}"
+                        )
 
             # Tool execution
             response = self.client.tools.execute(
@@ -72,8 +72,6 @@ class CrewAIToolManager(BaseArcadeManager):
                 user_id=self.user_id,  # type: ignore[arg-type]
             )
             if response.success:
-                if response.output is None:
-                    return ToolExecutionError(f"No output received from {tool_name}")
                 return response.output.value
 
             error_msg = (

@@ -1,4 +1,3 @@
-import os
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from typing import Any, Optional
@@ -41,8 +40,10 @@ class BaseArcadeManager(ABC, ArcadeAuthMixin):
             client: Optional Arcade client instance.
         """
         if not client:
-            api_key = kwargs.get("api_key", os.getenv("ARCADE_API_KEY", None))
-            client = Arcade(api_key=api_key)  # type: ignore[arg-type]
+            api_key = kwargs.get("api_key")
+            base_url = kwargs.get("base_url")
+            client = Arcade(api_key=api_key, base_url=base_url)  # type: ignore[arg-type]
+
         self.client = client
         self.user_id = user_id
         self._tools: dict[str, ToolDefinition] = {}
@@ -99,7 +100,7 @@ class BaseArcadeManager(ABC, ArcadeAuthMixin):
         all_tools: list[ToolDefinition] = []
         if tools is not None or toolkits is not None:
             if tools:
-                single_tools = [self.client.tools.get(tool_id=tool_id) for tool_id in tools]
+                single_tools = [self.client.tools.get(name=tool_id) for tool_id in tools]
                 all_tools.extend(single_tools)
             if toolkits:
                 for tk in toolkits:
@@ -159,8 +160,7 @@ class BaseArcadeManager(ABC, ArcadeAuthMixin):
         """
         if not self._tools:
             self.init_tools(tools=tools, toolkits=toolkits)
-
-        if tools or toolkits:
+        elif tools or toolkits:
             new_tools = self._retrieve_tool_definitions(tools, toolkits)
             self._tools.update(new_tools)
 

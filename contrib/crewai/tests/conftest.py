@@ -81,8 +81,8 @@ def mock_arcade() -> Mock:
 
     # Setup mock responses
     tools_mock.list.return_value = tools
-    tools_mock.get.side_effect = lambda tool_id: next(
-        (t for t in tools if t.fully_qualified_name == tool_id), None
+    tools_mock.get.side_effect = lambda name: next(
+        (t for t in tools if t.fully_qualified_name == name), None
     )
 
     mock.tools = tools_mock

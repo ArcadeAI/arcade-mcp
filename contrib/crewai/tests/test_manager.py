@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from arcadepy.types import ToolGetResponse as ToolDefinition
-from common_arcade.exceptions import ToolExecutionError
 from crewai_arcade.manager import CrewAIToolManager
 
 
@@ -73,7 +72,7 @@ def test_create_tool_function_unauthorized(
 
     tool_function = manager.create_tool_function("test_tool")
     result = tool_function()
-    assert isinstance(result, ToolExecutionError)
+    assert isinstance(result, ValueError)
     assert "Authorization failed for test_tool" in str(result)
 
 
@@ -93,7 +92,7 @@ def test_create_tool_function_execution_failure(
 
     tool_function = manager.create_tool_function("test_tool")
     result = tool_function()
-    assert isinstance(result, ToolExecutionError)
+    assert isinstance(result, ValueError)
 
 
 @patch("crewai_arcade.manager.StructuredTool.from_function")

@@ -93,7 +93,7 @@ def test_init_tools(manager: MockManager, mock_arcade: Mock) -> None:
     """Test tool initialization with specific tool IDs."""
     tools = ["Google.CreateEvent@0.1.2"]
     manager.init_tools(tools=tools)
-    mock_arcade.tools.get.assert_called_once_with(tool_id=tools[0])
+    mock_arcade.tools.get.assert_called_once_with(name=tools[0])
     assert len(manager.tools) == 1
 
 
