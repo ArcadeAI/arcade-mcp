@@ -152,6 +152,19 @@ class ArcadeToolManager:
         """
         return self.client.auth.status(id=authorization_id).status == "completed"
 
+    def wait_for_auth(self, authorization_id: str) -> AuthorizationResponse:
+        """Wait for a tool authorization to complete.
+
+        Example:
+            >>> manager = ArcadeToolManager(api_key="...")
+            >>> manager.init_tools(toolkits=["Google.ListEmails"])
+            >>> response = manager.authorize("Google.ListEmails", "user_123")
+            >>> manager.wait_for_auth(response)
+            >>> # or
+            >>> manager.wait_for_auth(response.id)
+        """
+        return self.client.auth.wait_for_completion(authorization_id)
+
     def requires_auth(self, tool_name: str) -> bool:
         """Check if a tool requires authorization."""
 
