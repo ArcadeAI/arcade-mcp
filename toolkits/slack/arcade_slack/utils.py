@@ -449,13 +449,9 @@ def enrich_message_datetime(message: SlackMessage) -> Message:
         try:
             ts = float(ts)
         except ValueError:
-            raise RetryableToolError(
-                "Invalid datetime format",
-                developer_message=f"The datetime '{ts}' is invalid. "
-                "Please provide a datetime string in the format 'YYYY-MM-DD HH:MM:SS'.",
-                retry_after_ms=500,
-            )
-        message["datetime_timestamp"] = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+            pass
+        else:
+            message["datetime_timestamp"] = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
     return message
 
 
