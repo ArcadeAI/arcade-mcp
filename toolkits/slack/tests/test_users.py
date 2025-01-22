@@ -4,7 +4,7 @@ import pytest
 from arcade.sdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 
-from arcade_slack.tools.users import get_user_info_by_id
+from arcade_slack.tools.users import get_user_info_by_id, list_users
 from arcade_slack.utils import extract_basic_user_info
 
 
@@ -56,3 +56,37 @@ async def test_get_user_info_by_id_user_not_found(mock_list_users, mock_context,
 
     mock_slack_client.users_info.assert_called_once_with(user="U99999")
     mock_list_users.assert_called_once_with(mock_context)
+
+
+@pytest.mark.asyncio
+async def test_list_users_success(mock_context, mock_slack_client):
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [{"id": "U12345"}]}
+    response = await list_users(mock_context)
+    assert response == {
+        "users": [extract_basic_user_info({"id": "U12345"})],
+        "next_cursor": None,
+    }
+
+
+@pytest.mark.asyncio
+async def test_list_users_with_pagination_success(mock_context, mock_slack_client):
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [{"id": "U12345"}],
+            "response_metadata": {"next_cursor": "cursor_xyz"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "U123456"}],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+    response = await list_users(mock_context, limit=3)
+    assert response == {
+        "users": [
+            extract_basic_user_info({"id": "U12345"}),
+            extract_basic_user_info({"id": "U123456"}),
+        ],
+        "next_cursor": None,
+    }
