@@ -136,3 +136,47 @@ def test_get_tool_by_name_with_invalid_version():
 
     with pytest.raises(ValueError):
         catalog.get_tool_by_name("SampleToolkit.SampleTool", version="2.0.0")
+
+
+def test_load_disabled_tools(monkeypatch):
+    disabled_tools = (
+        "SampleToolkitOne.SampleToolOne,"  # valid
+        + "SampleToolkitOne_SampleToolTwo,"  # invalid
+        + "SampleToolkitTwo.SampleToolThree,"  # valid
+        + "SampleToolkitTwo.SampleToolFour@0.0.1,"  # invalid
+        + "SampleToolkitThree_SampleToolFive@0.0.1,"  # invalid
+        + "SampleToolkitFour.sample_tool_six,"  # invalid
+        + "sample_toolkit5.SampleTool7,"  # invalid
+        + "sample_toolkit6.sample_tool_8"  # invalid
+    )
+    expected_disabled_tools = {
+        "sampletoolkitone.sampletoolone",
+        "sampletoolkittwo.sampletoolthree",
+    }
+
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", disabled_tools)
+    catalog = ToolCatalog()
+
+    assert catalog._disabled_tools == expected_disabled_tools
+
+
+def test_add_tool_with_disabled_tool(monkeypatch):
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "SampleToolkitOne.SampleTool")
+    catalog = ToolCatalog()
+
+    catalog.add_tool(sample_tool, "SampleToolkitOne")
+    assert len(catalog._tools) == 0
+
+
+def test_add_tool_with_empty_string_disabled_tools(monkeypatch):
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "")
+    catalog = ToolCatalog()
+    catalog.add_tool(sample_tool, "SampleToolkitOne")
+    assert len(catalog._tools) == 1
+
+
+def test_add_tool_with_whitespace_disabled_tools(monkeypatch):
+    monkeypatch.setenv("ARCADE_DISABLED_TOOLS", "            ")
+    catalog = ToolCatalog()
+    catalog.add_tool(sample_tool, "SampleToolkitOne")
+    assert len(catalog._tools) == 1

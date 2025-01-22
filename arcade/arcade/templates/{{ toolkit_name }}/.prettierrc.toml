@@ -13,3 +13,4 @@ files = [ "*.json", "*.jsonc", "*.yml", "*.yaml" ]
 
   [overrides.options]
   tabWidth = 2
+

@@ -8,7 +8,7 @@ import yaml
 from rich.console import Console
 
 from arcade.cli.constants import LOGIN_FAILED_HTML, LOGIN_SUCCESS_HTML
-from arcade.cli.utils import create_new_env_file, is_config_file_deprecated
+from arcade.cli.utils import create_new_env_file
 
 console = Console()
 
@@ -116,11 +116,8 @@ def check_existing_login() -> bool:
     Check if the user is already logged in by verifying the config file.
 
     Returns:
-        bool: True if the user is already logged in or is using the deprecated config file, False otherwise.
+        bool: True if the user is already logged in, False otherwise.
     """
-    if is_config_file_deprecated():
-        return True
-
     # Create a new env file if one doesn't already exist
     create_new_env_file()
 

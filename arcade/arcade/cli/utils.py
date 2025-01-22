@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urlparse
 import idna
 import typer
 from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
-from arcadepy.types import AuthorizationResponse
+from arcadepy.types import AuthAuthorizationResponse
 from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
@@ -404,7 +404,7 @@ def handle_chat_interaction(
 
 def handle_tool_authorization(
     arcade_client: Arcade,
-    tool_authorization: AuthorizationResponse,
+    tool_authorization: AuthAuthorizationResponse,
     history: list[dict[str, Any]],
     openai_client: OpenAI,
     model: str,
@@ -412,8 +412,8 @@ def handle_tool_authorization(
     stream: bool,
 ) -> ChatInteractionResult:
     with Live(console=console, refresh_per_second=4) as live:
-        if tool_authorization.url:  # type: ignore[attr-defined]
-            authorization_url = str(tool_authorization.url)  # type: ignore[attr-defined]
+        if tool_authorization.url:
+            authorization_url = str(tool_authorization.url)
             webbrowser.open(authorization_url)
             message = (
                 "You'll need to authorize this action in your browser.\n\n"
@@ -432,7 +432,7 @@ def handle_tool_authorization(
 
 
 def wait_for_authorization_completion(
-    client: Arcade, tool_authorization: AuthorizationResponse | None
+    client: Arcade, tool_authorization: AuthAuthorizationResponse | None
 ) -> None:
     """
     Wait for the authorization for a tool call to complete i.e., wait for the user to click on
@@ -441,13 +441,12 @@ def wait_for_authorization_completion(
     if tool_authorization is None:
         return
 
-    auth_response = AuthorizationResponse.model_validate(tool_authorization)
+    auth_response = AuthAuthorizationResponse.model_validate(tool_authorization)
 
     while auth_response.status != "completed":
         try:
             auth_response = client.auth.status(
-                authorization_id=cast(str, auth_response.id),  # type: ignore[attr-defined]
-                scopes=" ".join(auth_response.scopes) if auth_response.scopes else NOT_GIVEN,
+                id=cast(str, auth_response.id),
                 wait=59,
             )
         except APITimeoutError:
@@ -579,33 +578,6 @@ def create_new_env_file() -> None:
         console.print(f"Created new environment file at {env_file}", style="bold green")
 
 
-def is_config_file_deprecated() -> bool:
-    """
-    Check if the user is using the deprecated config file.
-
-    Returns:
-        bool: True if the user is using the deprecated config file, False otherwise.
-    """
-    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
-    if os.path.exists(deprecated_config_file_path):
-        console.print(
-            f"Deprecation Notice: You are using a deprecated config file at {deprecated_config_file_path}. Please migrate to the new format by running,\n\n\t$ arcade logout && arcade login\n",
-            style="bold yellow",
-        )
-        return True
-    return False
-
-
-def delete_deprecated_config_file() -> None:
-    """
-    Delete the deprecated config file if it exists.
-    """
-    deprecated_config_file_path = os.path.expanduser("~/.arcade/arcade.toml")
-
-    if os.path.exists(deprecated_config_file_path):
-        os.remove(deprecated_config_file_path)
-
-
 def get_user_input() -> str:
     """
     Get input from the user, handling multi-line input.
@@ -695,3 +667,13 @@ def parse_user_command(user_input: str) -> ChatCommand | None:
         return ChatCommand(user_input)
     except ValueError:
         return None
+
+
+def version_callback(value: bool) -> None:
+    """Callback implementation for the `arcade --version`.
+    Prints the version of Arcade and exit.
+    """
+    if value:
+        version = importlib.import_module("arcade").__version__
+        console.print(f"[bold]Arcade[/bold] (version {version})")
+        exit()

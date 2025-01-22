@@ -50,6 +50,7 @@ jobs:
         make test
 
     - name: Publish Toolkit
+      # Publish the toolkit to PyPI if the version is not already published
       id: Publish_Toolkit
       working-directory: toolkits/${{ steps.set-toolkit.outputs.toolkit }}
       run: |
@@ -58,10 +59,16 @@ jobs:
         VERSION=$(poetry version -s)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-        poetry publish
+        # Attempt to publish the toolkit to PyPI. Skip if the version already exists
+        if poetry publish --skip-existing 2>&1 | grep -q "File exists. Skipping"; then
+          echo "Version already exists on PyPI. Skipping publish."
+          echo "skip_publish=true" >> $GITHUB_OUTPUT
+        else
+          echo "skip_publish=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Send status to Slack
-      if: always()
+      if: steps.Publish_Toolkit.outputs.skip_publish != 'true'
       uses: slackapi/slack-github-action@v2.0.0
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

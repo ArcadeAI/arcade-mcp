@@ -100,11 +100,6 @@ def serve_default_worker(
     if not toolkits:
         raise RuntimeError("No toolkits found in Python environment.")
 
-    logger.info("Serving the following toolkits:")
-    for toolkit in toolkits:
-        num_tools = sum(len(tools) for tools in toolkit.tools.values())
-        logger.info(f"  - {toolkit.name} ({toolkit.package_name}): {num_tools} tools")
-
     worker_secret = os.environ.get("ARCADE_WORKER_SECRET")
     if not disable_auth and not worker_secret:
         logger.warning(
@@ -124,8 +119,19 @@ def serve_default_worker(
     worker = FastAPIWorker(
         app, secret=worker_secret, disable_auth=disable_auth, otel_meter=otel_handler.get_meter()
     )
+
+    toolkit_tool_counts = {}
     for toolkit in toolkits:
+        prev_tool_count = worker.catalog.get_tool_count()
         worker.register_toolkit(toolkit)
+        new_tool_count = worker.catalog.get_tool_count()
+        toolkit_tool_counts[f"{toolkit.name} ({toolkit.package_name})"] = (
+            new_tool_count - prev_tool_count
+        )
+
+    logger.info("Serving the following toolkits:")
+    for name, tool_count in toolkit_tool_counts.items():
+        logger.info(f"  - {name}: {tool_count} tools")
 
     logger.info("Starting FastAPI server...")
 

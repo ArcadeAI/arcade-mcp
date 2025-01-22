@@ -1,9 +1,11 @@
 from typing import Annotated, Optional
 
+import httpx
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Spotify
-from arcade.sdk.errors import RetryableToolError
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
+from arcade_spotify.tools.constants import RESPONSE_MSGS
 from arcade_spotify.tools.models import Device, SearchType
 from arcade_spotify.tools.search import search
 from arcade_spotify.tools.utils import (
@@ -50,7 +52,7 @@ async def adjust_playback_position(
     if relative_position_ms is not None:
         playback_state = await get_playback_state(context)
         if playback_state.get("device_id") is None:
-            return "No track to adjust position"
+            return RESPONSE_MSGS["no_track_to_adjust_position"]
 
         absolute_position_ms = playback_state["progress_ms"] + relative_position_ms
 
@@ -59,14 +61,17 @@ async def adjust_playback_position(
     url = get_url("player_seek_to_position")
     params = {"position_ms": absolute_position_ms}
 
-    response = await send_spotify_request(context, "PUT", url, params=params)
+    try:
+        response = await send_spotify_request(context, "PUT", url, params=params)
+    except httpx.HTTPStatusError as e:
+        raise ToolExecutionError(f"Failed to adjust playback position: {e}") from e
 
     if response.status_code == 404:
-        return "No track to adjust position"
+        return RESPONSE_MSGS["no_track_to_adjust_position"]
 
     response.raise_for_status()
 
-    return "Playback position adjusted"
+    return RESPONSE_MSGS["playback_position_adjusted"]
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -80,11 +85,11 @@ async def skip_to_previous_track(
     response = await send_spotify_request(context, "POST", url)
 
     if response.status_code == 404:
-        return "No track to go back to"
+        return RESPONSE_MSGS["no_track_to_go_back_to"]
 
     response.raise_for_status()
 
-    return "Playback skipped to previous track"
+    return RESPONSE_MSGS["playback_skipped_to_previous_track"]
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -98,11 +103,11 @@ async def skip_to_next_track(
     response = await send_spotify_request(context, "POST", url)
 
     if response.status_code == 404:
-        return "No track to skip"
+        return RESPONSE_MSGS["no_track_to_skip"]
 
     response.raise_for_status()
 
-    return "Playback skipped to next track"
+    return RESPONSE_MSGS["playback_skipped_to_next_track"]
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -115,17 +120,17 @@ async def pause_playback(
 
     # There is no current state, therefore nothing to pause
     if playback_state.get("device_id") is None:
-        return "No track to pause"
+        return RESPONSE_MSGS["no_track_to_pause"]
     # Track is already paused
     if playback_state.get("is_playing") is False:
-        return "Track is already paused"
+        return RESPONSE_MSGS["track_is_already_paused"]
 
     url = get_url("player_pause_playback")
 
     response = await send_spotify_request(context, "PUT", url)
     response.raise_for_status()
 
-    return "Playback paused"
+    return RESPONSE_MSGS["playback_paused"]
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -142,17 +147,17 @@ async def resume_playback(
 
     # There is no current state, therefore nothing to resume
     if playback_state.get("device_id") is None:
-        return "No track to resume"
+        return RESPONSE_MSGS["no_track_to_resume"]
     # Track is already playing
     if playback_state.get("is_playing") is True:
-        return "Track is already playing"
+        return RESPONSE_MSGS["track_is_already_playing"]
 
     url = get_url("player_modify_playback")
 
     response = await send_spotify_request(context, "PUT", url)
     response.raise_for_status()
 
-    return "Playback resumed"
+    return RESPONSE_MSGS["playback_resumed"]
 
 
 # NOTE: This tool only works for Spotify Premium users
@@ -195,11 +200,11 @@ async def start_tracks_playback_by_id(
     response = await send_spotify_request(context, "PUT", url, params=params, json_data=body)
 
     if response.status_code == 404:
-        return "Cannot start playback because no active device is available"
+        return RESPONSE_MSGS["no_active_device"]
 
     response.raise_for_status()
 
-    return "Playback started"
+    return RESPONSE_MSGS["playback_started"]
 
 
 @tool(requires_auth=Spotify(scopes=["user-read-playback-state"]))
@@ -244,7 +249,7 @@ async def play_artist_by_name(
     q = f"artist:{name}"
     search_results = await search(context, q, [SearchType.TRACK], 5)
     if not search_results["tracks"]["items"]:
-        message = f"Artist '{name}' not found."
+        message = RESPONSE_MSGS["artist_not_found"].format(artist_name=name)
         raise RetryableToolError(
             message,
             additional_prompt_content=f"{message} Try a different artist name.",
@@ -274,7 +279,7 @@ async def play_track_by_name(
     search_results = await search(context, q, [SearchType.TRACK], 1)
 
     if not search_results["tracks"]["items"]:
-        message = f"No track exists with name '{track_name}'"
+        message = RESPONSE_MSGS["track_not_found"].format(track_name=track_name)
         if artist_name:
             message += f" by '{artist_name}'"
         raise RetryableToolError(

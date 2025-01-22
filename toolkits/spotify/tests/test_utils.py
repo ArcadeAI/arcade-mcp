@@ -1,5 +1,32 @@
+from unittest.mock import MagicMock
+
+import pytest
+
 from arcade_spotify.tools.models import PlaybackState
-from arcade_spotify.tools.utils import convert_to_playback_state
+from arcade_spotify.tools.utils import convert_to_playback_state, send_spotify_request
+
+
+@pytest.mark.asyncio
+async def test_send_spotify_request(tool_context, mock_httpx_client):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_httpx_client.request.return_value = mock_response
+
+    response = await send_spotify_request(
+        tool_context,
+        "GET",
+        "https://api.spotify.com/v1/me/player",
+        params={"param": "value"},
+        json_data={"data": "value"},
+    )
+    assert response == mock_response
+    mock_httpx_client.request.assert_called_once_with(
+        "GET",
+        "https://api.spotify.com/v1/me/player",
+        headers={"Authorization": "Bearer test_token"},
+        params={"param": "value"},
+        json={"data": "value"},
+    )
 
 
 def test_convert_to_playback_state():

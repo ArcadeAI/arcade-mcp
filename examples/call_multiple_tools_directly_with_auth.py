@@ -3,15 +3,15 @@
 For this example, we are using the prebuilt Spotify toolkit to start playing similar songs to the currently playing song.
 
 Steps:
-1. Get the currently playing song
-2. Get audio features for the currently playing song
-3. Get song recommendations that are similar to the currently playing song
-4. Start playing the recommended songs
-5. Inform the user which recommended song is now playing
+1. Search for the song
+2. Start playing the song
+3. Get info about the currently playing song
+4. Inform the user which song is now playing
 """
 
 from typing import Any, Optional
 
+from arcade_spotify.tools.models import SearchType
 from arcadepy import Arcade  # pip install arcade-py
 
 
@@ -40,110 +40,55 @@ def call_tool(client: Arcade, tool_name: str, user_id: str, inputs: Optional[dic
         inputs=inputs,
         user_id=user_id,
     )
+
+    if response.output.error:
+        print(response.output.error)
+
     return response.output.value
 
 
-def recommend_similar_songs(
-    client: Arcade, provider_to_scopes: dict, tools: list[str], user_id: str, user_country_code: str
+def search_and_play_song(
+    client: Arcade,
+    provider_to_scopes: dict,
+    tools: list[str],
+    user_id: str,
+    song_name: str,
+    artist_name: str,
 ) -> None:
     """Execute the sequence of tools to get recommendations and start playback."""
     get_permissions(client, provider_to_scopes, user_id)
 
-    recommendation_params = {"seed_genres": []}
-
     (
+        search_tool,
+        start_playback_tool,
         get_currently_playing_tool,
-        get_tracks_audio_features_tool,
-        get_recommendations_tool,
-        start_tracks_playback_tool,
     ) = tools
 
-    # Step 1: Get the currently playing song
-    while True:
-        response = call_tool(client, get_currently_playing_tool, user_id)
-
-        if response["is_playing"]:
-            break
-
-        print("Nothing is playing right now. Press Enter once you start playing a song...")
-        input()
-
-    # Step 1.5: Use the previous tool output to construct the inputs for the following tool calls
-    current_track_name = response["track_name"]
-    current_track_artists = response["track_artists"]
-    current_track_id = response["track_id"]
-    current_track_spotify_url = response["track_spotify_url"]
-    current_track_artists_ids = response["track_artists_ids"]
-    print(
-        f"\nYou are currently listening to '{current_track_name}' by {', '.join(current_track_artists)}"
-    )
-    recommendation_params.update({
-        "seed_tracks": [current_track_id],
-        "seed_artists": current_track_artists_ids,
-    })
-
-    # Step 2:Get audio features for the currently playing song
+    # Step 1: search for the song
     response = call_tool(
-        client,
-        get_tracks_audio_features_tool,
-        user_id,
-        inputs={"track_ids": [current_track_id]},
+        client=client,
+        tool_name=search_tool,
+        user_id=user_id,
+        inputs={
+            "q": f"{song_name} {artist_name}",
+            "types": [SearchType.TRACK],
+        },
     )
 
-    # Step 2.5: Use the previous tool output to construct the inputs for the following tool calls
-    audio_features = response["audio_features"][0]
-    recommendation_params.update({
-        "target_acousticness": float(audio_features["acousticness"]),
-        "target_danceability": float(audio_features["danceability"]),
-        "target_energy": float(audio_features["energy"]),
-        "target_instrumentalness": float(audio_features["instrumentalness"]),
-        "target_key": int(audio_features["key"]),
-        "target_liveness": float(audio_features["liveness"]),
-        "target_loudness": float(audio_features["loudness"]),
-        "target_mode": int(audio_features["mode"]),
-        "target_speechiness": float(audio_features["speechiness"]),
-        "target_tempo": float(audio_features["tempo"]),
-        "target_time_signature": int(audio_features["time_signature"]),
-        "target_valence": float(audio_features["valence"]),
-    })
-
-    # Step 3: Get song recommendations that are similar to the currently playingsong
-    print(
-        f"Getting recommendations similar to '{current_track_name}' by {', '.join(current_track_artists)} - {current_track_spotify_url}"
-    )
-    response = call_tool(client, get_recommendations_tool, user_id, inputs=recommendation_params)
-
-    # Step 3.5: Use the previous tool output to construct the inputs for the following tool calls
-    # Filter out remixes and the same song from the recommendations
-    tracks = [
-        track for track in response["tracks"] if not track["name"].startswith(current_track_name)
-    ]
-    track_ids = [
-        track["id"] for track in tracks if (user_country_code in track["available_markets"])
-    ]
-    track_names = [track["name"] for track in tracks]
-    tracks_artists = [[artist["name"] for artist in track["artists"]] for track in tracks]
-    track_spotify_urls = [track["external_urls"]["spotify"] for track in tracks]
-
-    if not track_ids:
-        print("I couldn't find any similar songs that are available in your country.")
+    if not response["tracks"]["items"]:
+        print("Sorry, I couldn't find that song on Spotify.")
         return
 
-    print("\nHere are some recommendations:")
-    for track_name, track_artists, track_spotify_url in zip(
-        track_names, tracks_artists, track_spotify_urls
-    ):
-        print(f"\t{track_name} by {', '.join(track_artists)} - {track_spotify_url}")
-
-    # Step 4: Start playing the recommended songs
+    # Step 2: Start playing the song
+    track_id = response["tracks"]["items"][0]["id"]
     response = call_tool(
         client,
-        start_tracks_playback_tool,
+        start_playback_tool,
         user_id,
-        inputs={"track_ids": track_ids},
+        inputs={"track_ids": [track_id]},
     )
 
-    # Step 5: Inform the user which recommended song is now playing
+    # Step 3: get currently playing song
     response = call_tool(client, get_currently_playing_tool, user_id)
     print(
         f"\nNow playing: {response['track_name']} by {', '.join(response['track_artists'])} - {response['track_spotify_url']}"
@@ -158,21 +103,17 @@ if __name__ == "__main__":
         "spotify": [
             "user-read-currently-playing",
             "user-read-playback-state",
-            "user-modify-playback-state",
         ],
     }
 
     tools = [
+        "Spotify.Search",  # Search for a song
+        "Spotify.StartTracksPlaybackById",  # Start playing the song
         "Spotify.GetCurrentlyPlaying",  # Get info about the current song
-        "Spotify.GetTracksAudioFeatures",  # Get audio features for the current song
-        "Spotify.GetRecommendations",  # Get recommendations similar to the current song
-        "Spotify.StartTracksPlaybackById",  # Start playing the recommended songs
     ]
 
     user_id = "you@example.com"
-    user_country_code = "US"
+    song_name = input("Enter the song name: ")
+    artist_name = input("Enter the artist name: ")
 
-    while True:
-        recommend_similar_songs(client, provider_to_scopes, tools, user_id, user_country_code)
-        print("\nPress Enter to get more recommendations...")
-        input()
+    search_and_play_song(client, provider_to_scopes, tools, user_id, song_name, artist_name)

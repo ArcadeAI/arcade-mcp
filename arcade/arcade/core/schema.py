@@ -74,26 +74,29 @@ class OAuth2Requirement(BaseModel):
     """Indicates that the tool requires OAuth 2.0 authorization."""
 
     scopes: Optional[list[str]] = None
-    """The scope(s) needed for authorization, if any."""
+    """The scope(s) needed for the authorized action."""
 
 
 class ToolAuthRequirement(BaseModel):
     """A requirement for authorization to use a tool."""
 
-    # Provider ID and Type needed for the Arcade Engine to look up the auth provider.
+    # Provider ID, Type, and ID needed for the Arcade Engine to look up the auth provider.
     # However, the developer generally does not need to set these directly.
     # Instead, they will use:
     #    @tool(requires_auth=Google(scopes=["profile", "email"]))
     # or
     #    client.auth.authorize(provider=AuthProvider.google, scopes=["profile", "email"])
     #
-    # The Arcade SDK translates these into the appropriate provider ID and type.
+    # The Arcade SDK translates these into the appropriate provider ID (Google) and type (OAuth2).
     # The only time the developer will set these is if they are using a custom auth provider.
     provider_id: Optional[str] = None
-    """A unique provider ID."""
+    """The provider ID configured in Arcade that acts as an alias to well-known configuration."""
 
     provider_type: str
-    """The provider type."""
+    """The type of the authorization provider."""
+
+    id: Optional[str] = None
+    """A provider's unique identifier, allowing the tool to specify a specific authorization provider. Recommended for private tools only."""
 
     oauth2: Optional[OAuth2Requirement] = None
     """The OAuth 2.0 requirement, if any."""

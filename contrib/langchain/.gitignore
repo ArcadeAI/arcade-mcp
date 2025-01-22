@@ -1,6 +1,6 @@
 .DS_Store
-arcade.toml
-docker/arcade.toml
+credentials.yaml
+docker/credentials.yaml
 
 *.lock
 

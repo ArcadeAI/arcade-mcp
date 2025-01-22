@@ -17,22 +17,51 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  release-and-publish:
+  set-version:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    steps:
+      - name: Wait for tests to succeed
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: 'Main'
+          repo-token: ${{ secrets.PAT }}
+          wait-interval: 10
+          ignore-checks: "set-version"
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        id: set_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(date +'%Y.%-m.%-d').dev0" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-push:
+    needs: set-version
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            os: ubuntu-latest
+          - arch: arm64
+            os: linux-arm64
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
       packages: write
 
     steps:
-    - name: Wait for tests to succeed
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        running-workflow-name: 'Main'
-        repo-token: ${{ secrets.PAT }}
-        wait-interval: 10
-        ignore-checks: "release-and-publish"
-
     - name: Checkout code
       uses: actions/checkout@v3
       with:
@@ -60,113 +89,182 @@ jobs:
         username: ${{ secrets.AWS_ACCESS_KEY_ID }}
         password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: Set version
-      id: set_version
-      run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-        elif [[ $GITHUB_REF == refs/tags/* ]]; then
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-        else
-          echo "VERSION=$(date +'%Y.%-m.%-d').dev0" >> $GITHUB_ENV
-        fi
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Actor image
+    - name: Build and push Worker image
       id: build
       run: |
-        make docker VERSION=${{ env.VERSION }}
-        make publish-ecr VERSION=${{ env.VERSION }}
-        echo "image=471112909428.dkr.ecr.us-east-1.amazonaws.com/arcadeai/arcade-ai:${{ env.VERSION }}" >> $GITHUB_OUTPUT
+        make docker VERSION=${{ needs.set-version.outputs.version  }} ARCH=${{ matrix.arch }}
+        make publish-ecr VERSION=${{ needs.set-version.outputs.version  }} ARCH=${{ matrix.arch }}
 
-    - name: Deploy to Amazon ECS
-      if: github.event_name == 'push'
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
-      run: gh workflow -R ArcadeAI/Team run Deploy -f actor-version=${{ env.VERSION }}
-
-    - name: Set TAR and WHL names
+    - name: Push GHCR
+      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
+      working-directory: ./docker
       run: |
-        export PKG=$(ls arcade/dist/ | grep tar)
-        set -- $PKG
-        echo "TAR_NAME=$1" >> $GITHUB_ENV
-        export PKG=$(ls arcade/dist/ | grep whl)
-        set -- $PKG
-        echo "WHL_NAME=$1" >> $GITHUB_ENV
+        make publish-ghcr VERSION=${{ needs.set-version.outputs.version }} ARCH=${{ matrix.arch }}
 
 
-    - name: Generate release notes
-      id: generate_release_notes
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      run: |
-        echo "Release notes for version ${{ env.VERSION }}" > release_notes.md
-        echo "" >> release_notes.md
-        echo "Changes in this release:" >> release_notes.md
-        git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s" >> release_notes.md
+  push-manifest:
+    runs-on: ubuntu-latest
+    needs: [set-version, build-and-push]
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Create Release
-      id: create_release
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VERSION }}
-        release_name: Release ${{ env.VERSION }}
-        body_path: release_notes.md
-        draft: false
-        prerelease: false
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release_notes.md
-        asset_name: release_notes.md
-        asset_content_type: text/markdown
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Upload Python Tar Asset
-      uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./arcade/dist/${{ env.TAR_NAME }}
-        asset_name: ${{ env.TAR_NAME }}
-        asset_content_type: application/zip
+      - name: Login to ECR
+        uses: docker/login-action@v3
+        with:
+          registry: 471112909428.dkr.ecr.us-east-1.amazonaws.com
+          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: Upload Python Whl Asset
-      uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./arcade/dist/${{ env.WHL_NAME }}
-        asset_name: ${{ env.WHL_NAME }}
-        asset_content_type: application/zip
+      - name: Push manifest to ECR
+        working-directory: ./docker
+        run: make ecr-manifest VERSION=${{ needs.set-version.outputs.version }}
 
-    - name: Zip Full Dist
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      run: tar -cvf python-package-distributions.tar.gz ./dist
+      - name: Push manifest to GHCR
+        if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
+        working-directory: ./docker
+        run: make ghcr-manifest VERSION=${{ needs.set-version.outputs.version }}
+
+  # Currently broken: workflow deploy requires all versions
+  # deploy:
+  #   if: github.event_name == 'push'
+  #   runs-on: ubuntu-latest
+  #   needs: [set-version, push-manifest]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Set image
+  #       run: |
+  #         echo "image=471112909428.dkr.ecr.us-east-1.amazonaws.com/arcadeai/arcade-ai:${{ needs.set-version.outputs.version }}" >> $GITHUB_OUTPUT
+
+  #     - name: Deploy to Amazon ECS
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.PAT }}
+  #       run: gh workflow -R ArcadeAI/Team run Deploy -f actor-version=${{ needs.set-version.outputs.version }}
 
 
-    - name: Upload Full Dist
-      uses: actions/upload-release-asset@v1
-      if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: python-package-distributions.tar.gz
-        asset_name: python-package-distributions.tar.gz
-        asset_content_type: application/zip
+  release:
+    needs: [set-version, build-and-push]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Upload the distribution packages
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
+
+      - name: Make dist
+        run: make full-dist VERSION=${{ needs.set-version.outputs.version }}
+
+      - name: Set TAR and WHL names
+        run: |
+          export PKG=$(ls arcade/dist/ | grep tar)
+          set -- $PKG
+          echo "TAR_NAME=$1" >> $GITHUB_ENV
+          export PKG=$(ls arcade/dist/ | grep whl)
+          set -- $PKG
+          echo "WHL_NAME=$1" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        id: generate_release_notes
+        run: |
+          echo "Release notes for version ${{ needs.set-version.outputs.version  }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "Changes in this release:" >> release_notes.md
+          git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s" >> release_notes.md
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.set-version.outputs.version  }}
+          release_name: Release ${{ needs.set-version.outputs.version  }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release_notes.md
+          asset_name: release_notes.md
+          asset_content_type: text/markdown
+
+      - name: Upload Python Tar Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./arcade/dist/${{ env.TAR_NAME }}
+          asset_name: ${{ env.TAR_NAME }}
+          asset_content_type: application/zip
+
+      - name: Upload Python Whl Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./arcade/dist/${{ env.WHL_NAME }}
+          asset_name: ${{ env.WHL_NAME }}
+          asset_content_type: application/zip
+
+      - name: Zip Full Dist
+        run: tar -cvf python-package-distributions.tar.gz ./dist
+
+
+      - name: Upload Full Dist
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: python-package-distributions.tar.gz
+          asset_name: python-package-distributions.tar.gz
+          asset_content_type: application/zip
+
+      - name: Upload the distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/

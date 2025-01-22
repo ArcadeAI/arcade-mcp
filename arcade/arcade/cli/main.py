@@ -7,11 +7,12 @@ from typing import Any, Optional
 
 import typer
 from arcadepy import Arcade
-from arcadepy.types import AuthorizationResponse
+from arcadepy.types import AuthAuthorizationResponse
 from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
+from tqdm import tqdm
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
@@ -26,7 +27,6 @@ from arcade.cli.utils import (
     OrderCommands,
     compute_engine_base_url,
     compute_login_url,
-    delete_deprecated_config_file,
     get_eval_files,
     get_user_input,
     handle_chat_interaction,
@@ -36,6 +36,7 @@ from arcade.cli.utils import (
     load_eval_suites,
     log_engine_health,
     validate_and_get_config,
+    version_callback,
 )
 
 cli = typer.Typer(
@@ -103,8 +104,6 @@ def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    delete_deprecated_config_file()
-
     # If ~/.arcade/credentials.yaml exists, delete it
     config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
     if os.path.exists(config_file_path):
@@ -270,7 +269,7 @@ def chat(
                 if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
-                        AuthorizationResponse.model_validate(tool_authorization),
+                        AuthAuthorizationResponse.model_validate(tool_authorization),
                         history,
                         openai_client,
                         model,
@@ -310,7 +309,7 @@ def evals(
         "gpt-4o",
         "--models",
         "-m",
-        help="The models to use for evaluation (default: gpt-4o)",
+        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models.",
     ),
     host: str = typer.Option(
         LOCALHOST,
@@ -401,10 +400,14 @@ def evals(
                 )
                 tasks.append(task)
 
-        # TODO add a progress bar here
+        # Track progress and results as suite functions complete
+        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
+            results = []
+            for f in asyncio.as_completed(tasks):
+                results.append(await f)
+                pbar.update(1)
+
         # TODO error handling on each eval
-        # Wait for all suite functions to complete
-        results = await asyncio.gather(*tasks)
         all_evaluations.extend(results)
         display_eval_results(all_evaluations, show_details=show_details)
 
@@ -473,3 +476,17 @@ def workerup(
         error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
+
+
+@cli.callback()
+def version(
+    _: bool = typer.Option(
+        None,
+        "-v",
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Print version and exit.",
+    ),
+) -> None:
+    pass

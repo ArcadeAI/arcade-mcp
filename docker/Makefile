@@ -3,8 +3,9 @@ PROJECT ?= ArcadeAI
 SOURCE ?= https://github.com/ArcadeAI/arcade-ai
 LICENSE ?= MIT
 DESCRIPTION ?= "Arcade AI for LLM Tool Serving"
-REPOSITORY ?= arcadeai/arcade-ai
+REPOSITORY ?= arcadeai/worker
 ECR_ENDPOINT ?= 471112909428.dkr.ecr.us-east-1.amazonaws.com
+ARCH ?= arm64
 
 VERSION ?= 0.1.0.dev0
 COMMIT ?= $(shell git describe --dirty --always --abbrev=15)
@@ -32,6 +33,50 @@ docker-build: ## Build the Docker container
 	--label=org.opencontainers.image.licenses="$(LICENSE)" \
 	--label=org.opencontainers.image.description=$(DESCRIPTION)
 
+ecr-manifest: ## Make a manifest file for the image
+	@echo "🛠️ Build manifest file ($(VERSION)).."
+	@echo "- Commit: $(COMMIT)"
+	@echo "- Build Date: $(BUILD_DATE)"
+	@export DOCKER_CLI_EXPERIMENTAL=enabled
+	@echo "- Creating manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
+	@docker manifest create $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION) \
+    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-arm64 \
+    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-amd64
+	@echo "- Creating manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
+	@docker manifest create $(ECR_ENDPOINT)/$(REPOSITORY):latest \
+    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-arm64 \
+    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-amd64
+	@echo "- Inspecting manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
+	@docker manifest inspect $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
+	@echo "- Inspecting manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
+	@docker manifest inspect $(ECR_ENDPOINT)/$(REPOSITORY):latest
+	@echo "- Pushing manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
+	@docker manifest push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
+	@echo "- Pushing manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
+	@docker manifest push $(ECR_ENDPOINT)/$(REPOSITORY):latest
+
+ghcr-manifest: ## Make a manifest file for the image
+	@echo "🛠️ Build manifest file ($(VERSION)).."
+	@echo "- Commit: $(COMMIT)"
+	@echo "- Build Date: $(BUILD_DATE)"
+	@export DOCKER_CLI_EXPERIMENTAL=enabled
+	@echo "- Creating manifest ghcr.io/$(REPOSITORY):$(VERSION)"
+	@docker manifest create ghcr.io/$(REPOSITORY):$(VERSION) \
+    --amend ghcr.io/$(REPOSITORY):$(VERSION)-arm64 \
+    --amend ghcr.io/$(REPOSITORY):$(VERSION)-amd64
+	@echo "- Creating manifest ghcr.io/$(REPOSITORY):latest"
+	@docker manifest create ghcr.io/$(REPOSITORY):latest \
+    --amend ghcr.io/$(REPOSITORY):$(VERSION)-arm64 \
+    --amend ghcr.io/$(REPOSITORY):$(VERSION)-amd64
+	@echo "- Inspecting manifest ghcr.io/$(REPOSITORY):$(VERSION)"
+	@docker manifest inspect ghcr.io/$(REPOSITORY):$(VERSION)
+	@echo "- Inspecting manifest ghcr.io/$(REPOSITORY):latest"
+	@docker manifest inspect ghcr.io/$(REPOSITORY):latest
+	@echo "- Pushing manifest ghcr.io/$(REPOSITORY):$(VERSION)"
+	@docker manifest push ghcr.io/$(REPOSITORY):$(VERSION)
+	@echo "- Pushing manifest ghcr.io/$(REPOSITORY):latest"
+	@docker manifest push ghcr.io/$(REPOSITORY):latest
+
 .PHONY: docker-run
 docker-run: ## Run the Docker container
 	@echo "\n🚀 Run the container with the following ..."
@@ -41,13 +86,25 @@ docker-run: ## Run the Docker container
 .PHONY: publish-ecr
 publish-ecr:
 	@echo "🚚 Pushing the Agent image to ECR.."
-	@docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
-	@echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
-	@docker push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
+	@docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)
+	@echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)"
+	@docker push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)
 	@echo $(VERSION) | grep -q $(RC_PART) || { \
-		docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):latest; \
-		echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):latest"; \
-		docker push $(ECR_ENDPOINT)/$(REPOSITORY):latest; \
+		docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
+		echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH)"; \
+		docker push $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
+	}
+
+.PHONY: publish-ghcr
+publish-ghcr:
+	@echo "🚚 Pushing the Agent image to GHCR.."
+	@docker tag $(REPOSITORY):$(VERSION) ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)
+	@echo "- pushing ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)"
+	@docker push ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)
+	@echo $(VERSION) | grep -q $(RC_PART) || { \
+		docker tag $(REPOSITORY):$(VERSION) ghcr.io/$(REPOSITORY):latest-$(ARCH); \
+		echo "- pushing ghcr.io/$(REPOSITORY):latest-$(ARCH)"; \
+		docker push ghcr.io/$(REPOSITORY):latest-$(ARCH); \
 	}
 
 

@@ -1,0 +1,78 @@
+# This workflow prevents unauthorized updates to existing toolkit versions,
+# as well as unauthorized renames or removals of toolkits.
+# Toolkits are versioned via the `toolkits/*/pyproject.toml` file.
+# It ensures that only members or owners of the ArcadeAI organization
+# can modify existing toolkit versions, rename, or remove toolkits.
+# If a pull request is made by someone outside the organization, the workflow
+# will fail if any existing toolkit version is changed, or if a toolkit is renamed or removed.
+
+name: Prevent Unauthorized Version Updates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check author association
+        id: check_author
+        # OWNERs and MEMBERs of the ArcadeAI organization can alter an existing toolkit version, so exit with success if this is the case
+        run: |
+          echo "Author association: ${{ github.event.pull_request.author_association }}"
+          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
+            echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
+            echo "authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "authorized=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get versions from current commit
+        if: steps.check_author.outputs.authorized == 'false'
+        id: current_versions
+        # Get all toolkits in the format of "package_name=version" for the PR's current commit and save to current_versions.txt
+        run: |
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > current_versions.txt
+          echo "Package versions in current commit:"
+          cat current_versions.txt
+
+      - name: Get versions from target branch
+        if: steps.check_author.outputs.authorized == 'false'
+        id: target_versions
+        # Get all toolkits in the format of "package_name=version" for the target branch and save to target_versions.txt
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > target_versions.txt
+          echo "Package versions in target branch:"
+          cat target_versions.txt
+
+      - name: Compare versions
+        if: steps.check_author.outputs.authorized == 'false'
+        id: compare_versions
+        # Iterate over each toolkit in the target branch and compare its version with the current commit
+        # Only fails if an existing toolkit version is changed, or if a toolkit is renamed or removed.
+        run: |
+          while read -r target_line; do
+            package_name=$(echo "$target_line" | cut -d'=' -f1)
+            target_version=$(echo "$target_line" | cut -d'=' -f2)
+            current_version=$(grep "^$package_name=" current_versions.txt | cut -d'=' -f2)
+            echo "Comparing $package_name: $target_version (target) vs $current_version (current)"
+            if [ -z "$current_version" ]; then
+              echo "Package $package_name has been removed or renamed."
+              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can remove or rename toolkits."
+              exit 1
+            elif [ "$target_version" != "$current_version" ]; then
+              echo "Version mismatch for $package_name: $target_version (target) vs $current_version (current)"
+              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can alter an existing toolkit version."
+              exit 1
+            else
+              echo "Versions match for $package_name: $target_version (target) vs $current_version (current)"
+            fi
+          done < target_versions.txt

@@ -32,7 +32,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.PAT }}
       run: |
         dirs=$(echo "${CHANGED_FILES}" | tr ' ' '\n' | grep "toolkits/" | cut -d'/' -f2 | sort -u)
-        echo "$dirs" | while read -r dir; do
-          echo "$dir"
-          gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit=${dir}
-        done
+        if [ -n "$dirs" ]; then
+          echo "$dirs" | while read -r dir; do
+            echo "$dir"
+            gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit=${dir}
+          done
+        else
+          echo "No toolkit directories were changed"
+        fi
