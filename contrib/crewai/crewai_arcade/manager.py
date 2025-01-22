@@ -1,7 +1,7 @@
 from typing import Any, Callable
 
 from arcadepy import Arcade
-from arcadepy.types.shared import ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
 from common_arcade.exceptions import ToolExecutionError
 from common_arcade.manager import BaseArcadeManager
 from common_arcade.utils import tool_definition_to_pydantic_model
@@ -62,14 +62,13 @@ class CrewAIToolManager(BaseArcadeManager):
 
                 if auth_response.status != "completed":
                     return ToolExecutionError(
-                        f"Authorization failed for {tool_name}. "
-                        f"URL: {auth_response.authorization_url}"
+                        f"Authorization failed for {tool_name}. URL: {auth_response.url}"
                     )
 
             # Tool execution
             response = self.client.tools.execute(
                 tool_name=tool_name,
-                inputs=kwargs,
+                input=kwargs,
                 user_id=self.user_id,  # type: ignore[arg-type]
             )
             if response.success:

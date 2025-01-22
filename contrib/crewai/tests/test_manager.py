@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from arcadepy.types.shared import ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
 from common_arcade.exceptions import ToolExecutionError
 from crewai_arcade.manager import CrewAIToolManager
 
@@ -41,7 +41,7 @@ def test_create_tool_function_success(
     """Test that the tool function executes successfully when authorized."""
     mock_requires_auth.return_value = True
     mock_authorize.return_value = MagicMock(
-        authorization_id="auth_id", authorization_url="http://auth.url", status="completed"
+        authorization_id="auth_id", url="http://auth.url", status="completed"
     )
     mock_is_authorized.return_value = True
     mock_wait_for_completion.return_value = mock_authorize
@@ -54,7 +54,7 @@ def test_create_tool_function_success(
 
     assert result == "result"
     manager.client.tools.execute.assert_called_once_with(
-        tool_name="test_tool", inputs={}, user_id="test_user"
+        tool_name="test_tool", input={}, user_id="test_user"
     )
 
 
@@ -67,7 +67,7 @@ def test_create_tool_function_unauthorized(
     """Test that the tool function returns a ToolExecutionError when unauthorized."""
     mock_requires_auth.return_value = True
     mock_authorize.return_value = MagicMock(
-        authorization_id="auth_id", authorization_url="http://auth.url", status="pending"
+        authorization_id="auth_id", url="http://auth.url", status="pending"
     )
     mock_wait_for_completion.return_value = mock_authorize
 
@@ -86,7 +86,7 @@ def test_create_tool_function_execution_failure(
     """Test that the tool function returns a ToolExecutionError on execution failure."""
     mock_requires_auth.return_value = True
     mock_authorize.return_value = MagicMock(
-        authorization_id="auth_id", authorization_url="http://auth.url", status="completed"
+        authorization_id="auth_id", url="http://auth.url", status="completed"
     )
     mock_wait_for_completion.return_value = mock_authorize
     manager.client.tools.execute.return_value = MagicMock(success=False, error="error")

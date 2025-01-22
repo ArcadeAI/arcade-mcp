@@ -1,6 +1,6 @@
 from typing import Any
 
-from arcadepy.types.shared import ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
 from pydantic import BaseModel, Field, create_model
 
 # Mapping of Arcade value types to Python types
@@ -40,7 +40,7 @@ def tool_definition_to_pydantic_model(tool_def: ToolDefinition) -> type[BaseMode
     """
     try:
         fields: dict[str, Any] = {}
-        for param in tool_def.inputs.parameters or []:
+        for param in tool_def.input.parameters or []:
             param_type = get_python_type(param.value_schema.val_type)
             if param_type == list and param.value_schema.inner_val_type:  # noqa: E721
                 inner_type: type[Any] = get_python_type(param.value_schema.inner_val_type)

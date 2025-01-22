@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from arcadepy import Arcade
-from arcadepy.types.shared import ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
 from common_arcade.manager import BaseArcadeManager
 
 
@@ -22,9 +22,9 @@ def create_mock_tool(name: str = "TestTool", toolkit_name: str = "TestKit") -> M
     parameter.inferrable = True
     parameter.required = True
 
-    # Create inputs mock
-    inputs = Mock()
-    inputs.parameters = [parameter]
+    # Create input mock
+    mock_input = Mock()
+    mock_input.parameters = [parameter]
 
     # Create toolkit mock
     toolkit = Mock()
@@ -59,7 +59,7 @@ def create_mock_tool(name: str = "TestTool", toolkit_name: str = "TestKit") -> M
 
     # Create the main tool definition mock
     tool_definition = Mock(spec=ToolDefinition)
-    tool_definition.inputs = inputs
+    tool_definition.input = mock_input
     tool_definition.name = name
     tool_definition.toolkit = toolkit
     tool_definition.description = "Test tool description"
