@@ -139,143 +139,6 @@ async def send_message_to_channel(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def list_conversations_metadata(
-    context: ToolContext,
-    conversation_types: Annotated[
-        Optional[list[ConversationType]],
-        "The type(s) of conversations to list. Defaults to all types.",
-    ] = None,
-    limit: Annotated[
-        Optional[int], "The maximum number of conversations to list."
-    ] = MAX_PAGINATION_LIMIT,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
-) -> Annotated[
-    dict,
-    (
-        "The conversations metadata list and a pagination 'next_cursor', if there are more "
-        "conversations to retrieve."
-    ),
-]:
-    """
-    List metadata for Slack conversations (channels and/or direct messages) that the user
-    is a member of.
-    """
-    if isinstance(conversation_types, ConversationType):
-        conversation_types = [conversation_types]
-
-    conversation_types_filter = ",".join(
-        convert_conversation_type_to_slack_name(conv_type).value
-        for conv_type in conversation_types or ConversationType
-    )
-
-    slackClient = AsyncWebClient(token=context.authorization.token)
-
-    results, next_cursor = await async_paginate(
-        slackClient.conversations_list,
-        "channels",
-        limit=limit,
-        next_cursor=next_cursor,
-        types=conversation_types_filter,
-        exclude_archived=True,
-    )
-
-    return {
-        "conversations": [
-            extract_conversation_metadata(conversation)
-            for conversation in results
-            if conversation.get("is_im") or conversation.get("is_member")
-        ],
-        "next_cursor": next_cursor,
-    }
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["channels:read"],
-    )
-)
-async def list_public_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
-) -> Annotated[dict, "The public channels"]:
-    """List metadata for public channels in Slack that the user is a member of."""
-
-    return await list_conversations_metadata(
-        context,
-        conversation_types=[ConversationType.PUBLIC_CHANNEL],
-        limit=limit,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["groups:read"],
-    )
-)
-async def list_private_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
-) -> Annotated[dict, "The private channels"]:
-    """List metadata for private channels in Slack that the user is a member of."""
-
-    return await list_conversations_metadata(
-        context,
-        conversation_types=[ConversationType.PRIVATE_CHANNEL],
-        limit=limit,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["mpim:read"],
-    )
-)
-async def list_group_direct_message_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
-) -> Annotated[dict, "The group direct message channels"]:
-    """List metadata for group direct message channels in Slack that the user is a member of."""
-
-    return await list_conversations_metadata(
-        context,
-        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-        limit=limit,
-    )
-
-
-# Note: Bots are included in the results.
-# Note: Direct messages with no conversation history are included in the results.
-@tool(
-    requires_auth=Slack(
-        scopes=["im:read"],
-    )
-)
-async def list_direct_message_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
-) -> Annotated[dict, "The direct message channels metadata"]:
-    """List metadata for direct message channels in Slack that the user is a member of."""
-
-    return await list_conversations_metadata(
-        context,
-        conversation_types=[ConversationType.DIRECT_MESSAGE],
-        limit=limit,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
-    )
-)
 async def get_members_from_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
@@ -619,4 +482,141 @@ async def get_conversation_metadata_by_name(
         developer_message=f"Conversation with name '{conversation_name}' not found.",
         additional_prompt_content=f"Available conversation names: {conversation_names}",
         retry_after_ms=500,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+async def list_conversations_metadata(
+    context: ToolContext,
+    conversation_types: Annotated[
+        Optional[list[ConversationType]],
+        "The type(s) of conversations to list. Defaults to all types.",
+    ] = None,
+    limit: Annotated[
+        Optional[int], "The maximum number of conversations to list."
+    ] = MAX_PAGINATION_LIMIT,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+) -> Annotated[
+    dict,
+    (
+        "The conversations metadata list and a pagination 'next_cursor', if there are more "
+        "conversations to retrieve."
+    ),
+]:
+    """
+    List metadata for Slack conversations (channels and/or direct messages) that the user
+    is a member of.
+    """
+    if isinstance(conversation_types, ConversationType):
+        conversation_types = [conversation_types]
+
+    conversation_types_filter = ",".join(
+        convert_conversation_type_to_slack_name(conv_type).value
+        for conv_type in conversation_types or ConversationType
+    )
+
+    slackClient = AsyncWebClient(token=context.authorization.token)
+
+    results, next_cursor = await async_paginate(
+        slackClient.conversations_list,
+        "channels",
+        limit=limit,
+        next_cursor=next_cursor,
+        types=conversation_types_filter,
+        exclude_archived=True,
+    )
+
+    return {
+        "conversations": [
+            extract_conversation_metadata(conversation)
+            for conversation in results
+            if conversation.get("is_im") or conversation.get("is_member")
+        ],
+        "next_cursor": next_cursor,
+    }
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read"],
+    )
+)
+async def list_public_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
+) -> Annotated[dict, "The public channels"]:
+    """List metadata for public channels in Slack that the user is a member of."""
+
+    return await list_conversations_metadata(
+        context,
+        conversation_types=[ConversationType.PUBLIC_CHANNEL],
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["groups:read"],
+    )
+)
+async def list_private_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
+) -> Annotated[dict, "The private channels"]:
+    """List metadata for private channels in Slack that the user is a member of."""
+
+    return await list_conversations_metadata(
+        context,
+        conversation_types=[ConversationType.PRIVATE_CHANNEL],
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["mpim:read"],
+    )
+)
+async def list_group_direct_message_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
+) -> Annotated[dict, "The group direct message channels"]:
+    """List metadata for group direct message channels in Slack that the user is a member of."""
+
+    return await list_conversations_metadata(
+        context,
+        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
+        limit=limit,
+    )
+
+
+# Note: Bots are included in the results.
+# Note: Direct messages with no conversation history are included in the results.
+@tool(
+    requires_auth=Slack(
+        scopes=["im:read"],
+    )
+)
+async def list_direct_message_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[
+        Optional[int], "The maximum number of channels to list."
+    ] = MAX_PAGINATION_LIMIT,
+) -> Annotated[dict, "The direct message channels metadata"]:
+    """List metadata for direct message channels in Slack that the user is a member of."""
+
+    return await list_conversations_metadata(
+        context,
+        conversation_types=[ConversationType.DIRECT_MESSAGE],
+        limit=limit,
     )
