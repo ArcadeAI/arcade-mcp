@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime, timezone
 from unittest.mock import Mock, call, patch
 
@@ -6,7 +7,7 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
-from arcade_slack.constants import MAX_PAGINATION_LIMIT
+from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
 from arcade_slack.tools.chat import (
     get_conversation_history_by_id,
@@ -123,7 +124,7 @@ async def test_list_conversations_metadata_with_default_args(
     mock_slack_client.conversations_list.assert_called_once_with(
         types=",".join([conv_type.value for conv_type in ConversationTypeSlackName]),
         exclude_archived=True,
-        limit=MAX_PAGINATION_LIMIT,
+        limit=MAX_PAGINATION_SIZE_LIMIT,
         cursor=None,
     )
 
@@ -147,7 +148,7 @@ async def test_list_conversations_metadata_filtering_single_conversation_type(
     mock_slack_client.conversations_list.assert_called_once_with(
         types=ConversationTypeSlackName.PUBLIC_CHANNEL.value,
         exclude_archived=True,
-        limit=MAX_PAGINATION_LIMIT,
+        limit=MAX_PAGINATION_SIZE_LIMIT,
         cursor=None,
     )
 
@@ -175,7 +176,7 @@ async def test_list_conversations_metadata_filtering_multiple_conversation_types
     mock_slack_client.conversations_list.assert_called_once_with(
         types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
         exclude_archived=True,
-        limit=MAX_PAGINATION_LIMIT,
+        limit=MAX_PAGINATION_SIZE_LIMIT,
         cursor=None,
     )
 
@@ -272,22 +273,34 @@ async def test_get_conversation_metadata_by_id(mock_context, mock_slack_client, 
 
 
 @pytest.mark.asyncio
+@patch("arcade_slack.tools.chat.list_conversations_metadata")
 async def test_get_conversation_metadata_by_id_slack_api_error(
-    mock_context, mock_slack_client, mock_channel_info
+    mock_list_conversations_metadata, mock_context, mock_slack_client, mock_channel_info
 ):
+    mock_channel_info["name"] = "whatever_conversation_should_be_present_in_additional_prompt"
+    mock_list_conversations_metadata.return_value = {
+        "conversations": [extract_conversation_metadata(mock_channel_info)],
+        "response_metadata": {"next_cursor": None},
+    }
     mock_slack_client.conversations_info.side_effect = SlackApiError(
         message="channel_not_found",
         response={"ok": False, "error": "channel_not_found"},
     )
 
-    with pytest.raises(RetryableToolError):
+    with pytest.raises(RetryableToolError) as e:
         await get_conversation_metadata_by_id(mock_context, "C12345")
+
+        assert (
+            "whatever_conversation_should_be_present_in_additional_prompt"
+            in e.additional_prompt_content
+        )
 
     mock_slack_client.conversations_info.assert_called_once_with(
         channel="C12345",
         include_locale=True,
         include_num_members=True,
     )
+    mock_list_conversations_metadata.assert_called_once_with(mock_context)
 
 
 @pytest.mark.asyncio
@@ -297,7 +310,7 @@ async def test_get_conversation_metadata_by_name(
     sample_conversation = extract_conversation_metadata(mock_channel_info)
     mock_list_conversations_metadata.return_value = {
         "conversations": [sample_conversation],
-        "next_cursor": None,
+        "response_metadata": {"next_cursor": None},
     }
 
     response = await get_conversation_metadata_by_name(mock_context, sample_conversation["name"])
@@ -317,11 +330,11 @@ async def test_get_conversation_metadata_by_name_triggering_pagination(
     mock_list_conversations_metadata.side_effect = [
         {
             "conversations": [another_conversation],
-            "next_cursor": "123",
+            "response_metadata": {"next_cursor": "123"},
         },
         {
             "conversations": [target_conversation],
-            "next_cursor": None,
+            "response_metadata": {"next_cursor": None},
         },
     ]
 
@@ -346,11 +359,11 @@ async def test_get_conversation_metadata_by_name_not_found(
     mock_list_conversations_metadata.side_effect = [
         {
             "conversations": [second_conversation],
-            "next_cursor": "123",
+            "response_metadata": {"next_cursor": "123"},
         },
         {
             "conversations": [first_conversation],
-            "next_cursor": None,
+            "response_metadata": {"next_cursor": None},
         },
     ]
 
@@ -478,19 +491,19 @@ async def test_get_members_from_conversation_by_name_triggering_pagination(
     mock_context,
     mock_channel_info,
 ):
-    conversation1 = mock_channel_info
+    conversation1 = copy.deepcopy(mock_channel_info)
     conversation1["name"] = "conversation1"
-    conversation2 = mock_channel_info
+    conversation2 = copy.deepcopy(mock_channel_info)
     conversation2["name"] = "conversation2"
 
     mock_list_conversations_metadata.side_effect = [
         {
             "conversations": [extract_conversation_metadata(conversation1)],
-            "next_cursor": "123",
+            "response_metadata": {"next_cursor": "123"},
         },
         {
             "conversations": [extract_conversation_metadata(conversation2)],
-            "next_cursor": None,
+            "response_metadata": {"next_cursor": None},
         },
     ]
 

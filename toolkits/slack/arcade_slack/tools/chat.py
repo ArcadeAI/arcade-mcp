@@ -8,8 +8,9 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
-from arcade_slack.constants import MAX_PAGINATION_LIMIT
+from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.models import ConversationType
+from arcade_slack.tools.exceptions import ItemNotFoundError
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     SlackPaginationNextCursor,
@@ -148,7 +149,7 @@ async def list_conversations_metadata(
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of conversations to list."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     next_cursor: Annotated[
         Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
     ] = None,
@@ -201,7 +202,7 @@ async def list_public_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
@@ -221,7 +222,7 @@ async def list_private_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
@@ -241,7 +242,7 @@ async def list_group_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
 ) -> Annotated[dict, "The group direct message channels"]:
     """List metadata for group direct message channels in Slack that the user is a member of."""
 
@@ -263,7 +264,7 @@ async def list_direct_message_channels_metadata(
     context: ToolContext,
     limit: Annotated[
         Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
 ) -> Annotated[dict, "The direct message channels metadata"]:
     """List metadata for direct message channels in Slack that the user is a member of."""
 
@@ -284,7 +285,7 @@ async def get_members_from_conversation_by_id(
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     next_cursor: Annotated[
         Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
     ] = None,
@@ -335,40 +336,19 @@ async def get_members_from_conversation_by_name(
     conversation_name: Annotated[str, "The name of the conversation to get members for"],
     limit: Annotated[
         Optional[int], "The maximum number of members to return."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     next_cursor: Annotated[
         Optional[SlackPaginationNextCursor], "The cursor to use for pagination."
     ] = None,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
-    conversation_names = []
-    conversation_next_cursor = None
-
-    while True:
-        response = await list_conversations_metadata(context, next_cursor=conversation_next_cursor)
-
-        conversation_next_cursor = response["next_cursor"]
-
-        for conversation in response["conversations"]:
-            conversation_names.append(conversation["name"])
-            if conversation["name"].lower() == conversation_name.lower():
-                conversation_id = conversation["id"]
-                break
-
-        if not conversation_next_cursor:
-            break
-
-    if not conversation_id:
-        raise RetryableToolError(
-            "Conversation not found",
-            developer_message=f"Conversation with name '{conversation_name}' not found.",
-            additional_prompt_content=f"Available conversation names: {conversation_names}",
-            retry_after_ms=500,
-        )
+    conversation_metadata = await get_conversation_metadata_by_name(
+        context=context, conversation_name=conversation_name, next_cursor=next_cursor
+    )
 
     return await get_members_from_conversation_by_id(
         context=context,
-        conversation_id=conversation_id,
+        conversation_id=conversation_metadata["id"],
         limit=limit,
         next_cursor=next_cursor,
     )
@@ -415,7 +395,7 @@ async def get_conversation_history_by_id(
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
 ) -> Annotated[
     dict,
@@ -520,7 +500,7 @@ async def get_conversation_history_by_name(
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = MAX_PAGINATION_LIMIT,
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
 ) -> Annotated[
     dict,
@@ -553,15 +533,8 @@ async def get_conversation_history_by_name(
 async def get_conversation_metadata_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
-) -> Annotated[
-    dict,
-    (
-        "The conversation metadata. Metadata does not include: "
-        "- members, users, or people on the conversation / channel; "
-        "- history / messages of the conversation / channel."
-    ),
-]:
-    """Get the metadata of a conversation in Slack."""
+) -> Annotated[dict, "The conversation metadata"]:
+    """Get the metadata of a conversation in Slack searching by its ID."""
     slackClient = AsyncWebClient(token=context.authorization.token)
 
     try:
@@ -575,7 +548,7 @@ async def get_conversation_metadata_by_id(
 
     except SlackApiError as e:
         if e.response.get("error") == "channel_not_found":
-            conversations = await list_conversations_metadata(context, limit=-1)
+            conversations = await list_conversations_metadata(context)
             available_conversations = ", ".join(
                 f"{conversation['id']} ({conversation['name']})"
                 for conversation in conversations["conversations"]
@@ -597,33 +570,38 @@ async def get_conversation_metadata_by_id(
 async def get_conversation_metadata_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get metadata for"],
-) -> Annotated[
-    dict,
-    (
-        "The conversation metadata. Metadata does not include: "
-        "- members, users, or people on the conversation / channel; "
-        "- history / messages of the conversation / channel."
-    ),
-]:
-    """Get the metadata of a conversation in Slack."""
-    next_cursor = None
+    next_cursor: Annotated[
+        Optional[SlackPaginationNextCursor],
+        "The cursor to use for pagination, if continuing from a previous search.",
+    ] = None,
+) -> Annotated[dict, "The conversation metadata"]:
+    """Get the metadata of a conversation in Slack searching by its name."""
     conversation_names = []
 
-    while True:
-        response = await list_conversations_metadata(context, next_cursor=next_cursor)
-        next_cursor = response["next_cursor"]
+    async def find_conversation(conversation_name, conversation_names, next_cursor):
+        should_continue = True
+        async with asyncio.timeout(MAX_PAGINATION_TIMEOUT_SECONDS):
+            while should_continue:
+                response = await list_conversations_metadata(context, next_cursor=next_cursor)
+                next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-        for conversation in response["conversations"]:
-            if conversation["name"].lower() == conversation_name.lower():
-                return conversation
-            conversation_names.append(conversation["name"])
+                for conversation in response["conversations"]:
+                    if conversation["name"].lower() == conversation_name.lower():
+                        return conversation
+                    conversation_names.append(conversation["name"])
 
-        if not next_cursor:
-            break
+                if not next_cursor:
+                    should_continue = False
 
-    raise RetryableToolError(
-        "Conversation not found",
-        developer_message=f"Conversation with name '{conversation_name}' not found.",
-        additional_prompt_content=f"Available conversation names: {conversation_names}",
-        retry_after_ms=500,
-    )
+        raise ItemNotFoundError()
+
+    try:
+        return await find_conversation(conversation_name, conversation_names, next_cursor)
+
+    except (asyncio.TimeoutError, ItemNotFoundError):
+        raise RetryableToolError(
+            "Conversation not found",
+            developer_message=f"Conversation with name '{conversation_name}' not found.",
+            additional_prompt_content=f"Available conversation names: {conversation_names}",
+            retry_after_ms=500,
+        )

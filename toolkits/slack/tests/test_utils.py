@@ -1,8 +1,10 @@
+import asyncio
 from unittest.mock import AsyncMock, call, patch
 
 import pytest
 from slack_sdk.errors import SlackApiError
 
+from arcade_slack.tools.exceptions import PaginationTimeoutError
 from arcade_slack.utils import async_paginate
 
 
@@ -88,7 +90,7 @@ async def test_async_paginate_large_limit():
         },
     ]
 
-    with patch("arcade_slack.utils.MAX_PAGINATION_LIMIT", 2):
+    with patch("arcade_slack.utils.MAX_PAGINATION_SIZE_LIMIT", 2):
         results, next_cursor = await async_paginate(
             func=mock_slack_client.conversations_list,
             response_key="channels",
@@ -129,7 +131,10 @@ async def test_async_paginate_large_limit_with_response_error():
         },
     ]
 
-    with patch("arcade_slack.utils.MAX_PAGINATION_LIMIT", 2), pytest.raises(SlackApiError) as e:
+    with (
+        patch("arcade_slack.utils.MAX_PAGINATION_SIZE_LIMIT", 2),
+        pytest.raises(SlackApiError) as e,
+    ):
         await async_paginate(
             func=mock_slack_client.conversations_list,
             response_key="channels",
@@ -143,3 +148,35 @@ async def test_async_paginate_large_limit_with_response_error():
         call(hello="world", limit=2, cursor=None),
         call(hello="world", limit=2, cursor="cursor1"),
     ])
+
+
+@pytest.mark.asyncio
+async def test_async_paginate_with_timeout():
+    # Mock Slack client
+    mock_slack_client = AsyncMock()
+
+    # Simulate a network delay by making the mock function sleep
+    async def mock_conversations_list(*args, **kwargs):
+        await asyncio.sleep(1)  # Sleep for 1 second to simulate delay
+        return {
+            "ok": True,
+            "channels": [{"id": "123"}],
+            "response_metadata": {"next_cursor": None},
+        }
+
+    mock_slack_client.conversations_list.side_effect = mock_conversations_list
+
+    # Set a low timeout to trigger the timeout error quickly during the test
+    max_pagination_timeout_seconds = 0.1  # 100 milliseconds
+
+    with pytest.raises(PaginationTimeoutError) as exc_info:
+        await async_paginate(
+            func=mock_slack_client.conversations_list,
+            response_key="channels",
+            max_pagination_timeout_seconds=max_pagination_timeout_seconds,
+        )
+
+    assert (
+        str(exc_info.value)
+        == f"The pagination process timed out after {max_pagination_timeout_seconds} seconds."
+    )
