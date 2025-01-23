@@ -1,204 +1,24 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Any, Callable, NewType, Optional
+from typing import Any, Callable, Optional
 
 from arcade.sdk.errors import RetryableToolError
-from typing_extensions import Literal, NotRequired, TypedDict
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.models import ConversationType, ConversationTypeSlackName
+from arcade_slack.custom_types import SlackPaginationNextCursor
+from arcade_slack.models import (
+    BasicUserInfo,
+    ConversationMetadata,
+    ConversationType,
+    ConversationTypeSlackName,
+    Message,
+    SlackConversation,
+    SlackConversationPurpose,
+    SlackMessage,
+    SlackUser,
+    SlackUserList,
+)
 from arcade_slack.tools.exceptions import PaginationTimeoutError
-
-SlackOffsetSecondsFromUTC = NewType("SlackOffsetSecondsFromUTC", int)  # observe it can be negative
-SlackPaginationNextCursor = NewType("SlackPaginationNextCursor", str)
-SlackUserFieldId = NewType("SlackUserFieldId", str)
-SlackUserId = NewType("SlackUserId", str)
-SlackTeamId = NewType("SlackTeamId", str)
-SlackTimestampStr = NewType("SlackTimestampStr", str)
-
-"""
-About Slack types in general: Slack does not guarantee the presence of all fields for a given
-object. It will vary from endpoint to endpoint and even if the field is present, they say it may
-contain a None value or an empty string instead of the actual expected value.
-
-Because of that, our TypedDicts ended up having to be mostly total=False and most of the fields'
-type hints are Optional. Use Slack dictionary fields with caution. It's advisable to validate the
-value before using it, so that we can raise errors that are clear to understand.
-
-See, for example, the 'Common Fields' section of the user type definition at:
-https://api.slack.com/types/user#fields (https://archive.is/RUZdL)
-"""
-
-
-class SlackUserFieldData(TypedDict, total=False):
-    """Type definition for Slack user field data dictionary.
-
-    Slack type definition: https://api.slack.com/methods/users.profile.set#custom-profile
-    """
-
-    value: Optional[str]
-    alt: Optional[bool]
-
-
-class SlackUserField(TypedDict, total=False):
-    """Type definition for Slack user field dictionary.
-
-    Slack type definition: https://api.slack.com/methods/users.profile.set#custom-profile
-
-    The field IDs are dynamic alphanumeric strings.
-    """
-
-    __annotations__ = {SlackUserFieldId: SlackUserFieldData}
-
-
-class SlackStatusEmojiDisplayInfo(TypedDict, total=False):
-    """Type definition for Slack status emoji display info dictionary."""
-
-    emoji_name: Optional[str]
-    display_url: Optional[str]
-
-
-class SlackUserProfile(TypedDict, total=False):
-    """Type definition for Slack user profile dictionary.
-
-    Slack type definition: https://api.slack.com/types/user#profile (https://archive.is/RUZdL)
-    """
-
-    title: Optional[str]
-    phone: Optional[str]
-    skype: Optional[str]
-    email: Optional[str]
-    real_name: Optional[str]
-    real_name_normalized: Optional[str]
-    display_name: Optional[str]
-    display_name_normalized: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
-    fields: Optional[list[SlackUserField]]
-    image_original: Optional[str]
-    is_custom_image: Optional[bool]
-    image_24: Optional[str]
-    image_32: Optional[str]
-    image_48: Optional[str]
-    image_72: Optional[str]
-    image_192: Optional[str]
-    image_512: Optional[str]
-    image_1024: Optional[str]
-    status_emoji: Optional[str]
-    status_emoji_display_info: Optional[list[SlackStatusEmojiDisplayInfo]]
-    status_text: Optional[str]
-    status_text_canonical: Optional[str]
-    status_expiration: Optional[int]
-    avatar_hash: Optional[str]
-    start_date: Optional[str]
-    pronouns: Optional[str]
-    huddle_state: Optional[str]
-    huddle_state_expiration: Optional[int]
-    team: Optional[SlackTeamId]
-
-
-class SlackUser(TypedDict, total=False):
-    """Type definition for Slack user dictionary.
-
-    Slack type definition: https://api.slack.com/types/user (https://archive.is/RUZdL)
-    """
-
-    id: SlackUserId
-    team_id: SlackTeamId
-    name: Optional[str]
-    deleted: Optional[bool]
-    color: Optional[str]
-    real_name: Optional[str]
-    tz: Optional[str]
-    tz_label: Optional[str]
-    tz_offset: Optional[SlackOffsetSecondsFromUTC]
-    profile: Optional[SlackUserProfile]
-    is_admin: Optional[bool]
-    is_owner: Optional[bool]
-    is_primary_owner: Optional[bool]
-    is_restricted: Optional[bool]
-    is_ultra_restricted: Optional[bool]
-    is_bot: Optional[bool]
-    is_app_user: Optional[bool]
-    is_email_confirmed: Optional[bool]
-    who_can_share_contact_card: Optional[str]
-
-
-class SlackUserList(TypedDict, total=False):
-    """Type definition for the returned user list dictionary."""
-
-    members: list[SlackUser]
-
-
-class SlackConversationPurpose(TypedDict, total=False):
-    """Type definition for the Slack conversation purpose dictionary."""
-
-    value: Optional[str]
-
-
-class SlackConversation(TypedDict, total=False):
-    """Type definition for the Slack conversation dictionary."""
-
-    id: Optional[str]
-    name: Optional[str]
-    is_private: Optional[bool]
-    is_archived: Optional[bool]
-    is_member: Optional[bool]
-    is_channel: Optional[bool]
-    is_group: Optional[bool]
-    is_im: Optional[bool]
-    is_mpim: Optional[bool]
-    purpose: Optional[SlackConversationPurpose]
-    num_members: Optional[int]
-    user: Optional[SlackUser]
-    is_user_deleted: Optional[bool]
-
-
-class SlackMessage(TypedDict, total=True):
-    """Type definition for the Slack message dictionary."""
-
-    type: Literal["message"] = "message"
-    user: SlackUser
-    text: str
-    ts: SlackTimestampStr  # Slack timestamp as a string (e.g. "1234567890.123456")
-
-
-class Message(SlackMessage, total=False):
-    """Type definition for the message dictionary.
-
-    Having a human-readable datetime string is useful for LLMs when they need to display the
-    date/time for the user. If not, they'll try to convert the unix timestamp to a human-readable
-    date/time,which they don't usually do accurately.
-    """
-
-    datetime_timestamp: str  # Human-readable datetime string (e.g. "2025-01-22 12:00:00")
-
-
-class ConversationMetadata(TypedDict, total=True):
-    """Type definition for the conversation metadata dictionary."""
-
-    id: Optional[str]
-    name: Optional[str]
-    conversation_type: Optional[ConversationTypeSlackName]
-    is_private: Optional[bool]
-    is_archived: Optional[bool]
-    is_member: Optional[bool]
-    purpose: Optional[str]
-    num_members: NotRequired[int]
-    user: NotRequired[SlackUser]
-    is_user_deleted: NotRequired[bool]
-
-
-class BasicUserInfo(TypedDict, total=False):
-    """Type definition for the returned basic user info dictionary."""
-
-    id: Optional[str]
-    name: Optional[str]
-    is_bot: Optional[bool]
-    email: Optional[str]
-    display_name: Optional[str]
-    real_name: Optional[str]
-    timezone: Optional[str]
 
 
 def format_users(user_list_response: SlackUserList) -> str:
@@ -209,12 +29,14 @@ def format_users(user_list_response: SlackUserList) -> str:
 
     Returns:
         A CSV string with two columns: the users' name and real name, each user in a new line.
+        The first line is the header with column names 'name' and 'real_name'.
     """
-    csv_string = "All active Slack users:\n\nname,real_name\n"
+    csv_string = "name,real_name\n"
     for user in user_list_response["members"]:
         if not user.get("deleted", False):
             name = user.get("name", "")
-            real_name = user.get("profile", {}).get("real_name", "")
+            profile = user.get("profile", {})
+            real_name = "" if not profile else profile.get("real_name", "")
             csv_string += f"{name},{real_name}\n"
     return csv_string.strip()
 
@@ -248,7 +70,7 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-def get_conversation_type(channel: SlackConversation) -> ConversationTypeSlackName:
+def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
     """Get the type of conversation from a Slack channel's dictionary.
 
     Args:
@@ -297,7 +119,10 @@ def extract_conversation_metadata(conversation: SlackConversation) -> Conversati
     Returns:
         A dictionary with the conversation metadata.
     """
-    conversation_type = get_conversation_type(conversation)
+    conversation_type = get_slack_conversation_type_as_str(conversation)
+
+    purpose: Optional[SlackConversationPurpose] = conversation.get("purpose")
+    purpose_value = "" if not purpose else purpose.get("value", "")
 
     metadata = ConversationMetadata(
         id=conversation.get("id"),
@@ -306,7 +131,7 @@ def extract_conversation_metadata(conversation: SlackConversation) -> Conversati
         is_private=conversation.get("is_private", True),
         is_archived=conversation.get("is_archived", False),
         is_member=conversation.get("is_member", True),
-        purpose=conversation.get("purpose", {}).get("value", ""),
+        purpose=purpose_value,
         num_members=conversation.get("num_members", 0),
     )
 
@@ -315,7 +140,11 @@ def extract_conversation_metadata(conversation: SlackConversation) -> Conversati
         metadata["user"] = conversation.get("user")
         metadata["is_user_deleted"] = conversation.get("is_user_deleted")
     elif conversation_type == ConversationTypeSlackName.MPIM.value:
-        metadata["num_members"] = len(conversation.get("name", "").split("--"))
+        conversation_name = conversation.get("name", "")
+        if conversation_name:
+            metadata["num_members"] = len(conversation_name.split("--"))
+        else:
+            metadata["num_members"] = None
 
     return metadata
 
@@ -331,12 +160,15 @@ def extract_basic_user_info(user_info: SlackUser) -> BasicUserInfo:
 
     See https://api.slack.com/types/user for the structure of the user object.
     """
+    profile = user_info.get("profile", {})
+    display_name = None if not profile else profile.get("display_name")
+    email = None if not profile else profile.get("email")
     return BasicUserInfo(
         id=user_info.get("id"),
         name=user_info.get("name"),
         is_bot=user_info.get("is_bot"),
-        email=user_info.get("profile", {}).get("email"),
-        display_name=user_info.get("profile", {}).get("display_name"),
+        email=email,
+        display_name=display_name,
         real_name=user_info.get("real_name"),
         timezone=user_info.get("tz"),
     )
@@ -370,17 +202,19 @@ def is_user_deleted(user: SlackUser) -> bool:
 
     See https://api.slack.com/types/user for the structure of the user object.
     """
-    return user.get("deleted", False)
+    is_deleted = user.get("deleted")
+
+    return is_deleted if isinstance(is_deleted, bool) else False
 
 
 async def async_paginate(
     func: Callable,
     response_key: Optional[str] = None,
-    limit: Optional[int] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Optional[int] = None,
     next_cursor: Optional[SlackPaginationNextCursor] = None,
-    max_pagination_timeout_seconds: Optional[int] = MAX_PAGINATION_TIMEOUT_SECONDS,
-    *args,
-    **kwargs,
+    max_pagination_timeout_seconds: int = MAX_PAGINATION_TIMEOUT_SECONDS,
+    *args: tuple[Any, ...],
+    **kwargs: dict[str, Any],
 ) -> tuple[list, Optional[SlackPaginationNextCursor]]:
     """Paginate a Slack AsyncWebClient's method results.
 
@@ -402,7 +236,7 @@ async def async_paginate(
     """
     results: list[Any] = []
 
-    async def paginate_loop():
+    async def paginate_loop() -> list[Any]:
         nonlocal results, next_cursor
         should_continue = True
 
@@ -414,7 +248,8 @@ async def async_paginate(
         """
 
         while should_continue:
-            slack_limit = min(limit - len(results), MAX_PAGINATION_SIZE_LIMIT)
+            iteration_limit = limit - len(results) if limit else MAX_PAGINATION_SIZE_LIMIT
+            slack_limit = min(iteration_limit, MAX_PAGINATION_SIZE_LIMIT)
             iteration_kwargs = {**kwargs, "limit": slack_limit, "cursor": next_cursor}
             response = await func(*args, **iteration_kwargs)
 
@@ -425,11 +260,13 @@ async def async_paginate(
 
             next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-            if len(results) >= limit or not next_cursor:
+            if (limit and len(results) >= limit) or not next_cursor:
                 should_continue = False
 
+        return results
+
     try:
-        await asyncio.wait_for(paginate_loop(), timeout=max_pagination_timeout_seconds)
+        results = await asyncio.wait_for(paginate_loop(), timeout=max_pagination_timeout_seconds)
     except TimeoutError:
         raise PaginationTimeoutError(max_pagination_timeout_seconds)
     else:
@@ -449,14 +286,16 @@ def enrich_message_datetime(message: SlackMessage) -> Message:
     Returns:
         The enriched message dictionary.
     """
+    message = Message(**message)
     ts = message.get("ts")
-    if ts:
+    if isinstance(ts, str):
         try:
-            ts = float(ts)
+            timestamp = float(ts)
+            message["datetime_timestamp"] = datetime.fromtimestamp(timestamp).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
         except ValueError:
             pass
-        else:
-            message["datetime_timestamp"] = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
     return message
 
 

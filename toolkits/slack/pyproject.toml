@@ -10,6 +10,7 @@ aiodns = "^1.0"  # required by slack - not picked by poetry due to slack require
 aiohttp = ">=3.7.3,<4"  # same as aiodns, above comment
 arcade-ai = "0.1.*"
 slack-sdk = "^3.31.0"
+typing-extensions = "^4.0.0"  # some typing annotations aren't available in older versions of python
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"

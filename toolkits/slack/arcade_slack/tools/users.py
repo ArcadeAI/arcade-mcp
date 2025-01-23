@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
@@ -7,6 +7,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
+from arcade_slack.models import BasicUserInfo, SlackPaginationNextCursor, SlackUser
 from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
@@ -23,10 +24,13 @@ from arcade_slack.utils import (
 async def get_user_info_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The ID of the user to get"],
-) -> Annotated[dict, "The user's information"]:
+) -> Annotated[BasicUserInfo, "The user's information"]:
     """Get the information of a user in Slack."""
 
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     try:
         response = await slackClient.users_info(user=user_id)
@@ -42,7 +46,10 @@ async def get_user_info_by_id(
                 retry_after_ms=500,
             )
 
-    return extract_basic_user_info(response.get("user", {}))
+    user_dict_raw: dict[str, Any] = response.get("user", {}) or {}
+    user_dict = cast(SlackUser, user_dict_raw)
+    user = SlackUser(**user_dict)
+    return extract_basic_user_info(user)
 
 
 @tool(
@@ -60,13 +67,16 @@ async def list_users(
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
 
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     users, next_cursor = await async_paginate(
         func=slackClient.users_list,
         response_key="members",
         limit=limit,
-        next_cursor=next_cursor,
+        next_cursor=cast(SlackPaginationNextCursor, next_cursor),
         max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
     )
 

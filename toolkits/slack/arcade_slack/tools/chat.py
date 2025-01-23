@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Annotated, Optional
+from typing import Annotated, Optional, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
@@ -9,7 +9,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.models import ConversationType
+from arcade_slack.models import ConversationType, SlackUserList
 from arcade_slack.tools.exceptions import ItemNotFoundError
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
@@ -47,7 +47,10 @@ async def send_dm_to_user(
 ) -> Annotated[dict, "The response from the Slack API"]:
     """Send a direct message to a user in Slack."""
 
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     try:
         # Step 1: Retrieve the user's Slack ID based on their username
@@ -62,7 +65,7 @@ async def send_dm_to_user(
             raise RetryableToolError(
                 "User not found",
                 developer_message=f"User with username '{user_name}' not found.",
-                additional_prompt_content=format_users(user_list_response),
+                additional_prompt_content=format_users(cast(SlackUserList, user_list_response)),
                 retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
@@ -434,7 +437,9 @@ async def get_conversation_metadata_by_name(
     """Get the metadata of a conversation in Slack searching by its name."""
     conversation_names = []
 
-    async def find_conversation(conversation_name, conversation_names, next_cursor):
+    async def find_conversation(
+        conversation_name: str, conversation_names: list[str], next_cursor: Optional[str] = None
+    ) -> dict:
         should_continue = True
         async with asyncio.timeout(MAX_PAGINATION_TIMEOUT_SECONDS):
             while should_continue:
@@ -473,9 +478,7 @@ async def list_conversations_metadata(
         Optional[list[ConversationType]],
         "The type(s) of conversations to list. Defaults to all types.",
     ] = None,
-    limit: Annotated[
-        Optional[int], "The maximum number of conversations to list."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
     next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
@@ -509,7 +512,7 @@ async def list_conversations_metadata(
 
     return {
         "conversations": [
-            extract_conversation_metadata(conversation)
+            dict(**extract_conversation_metadata(conversation))
             for conversation in results
             if conversation.get("is_im") or conversation.get("is_member")
         ],
@@ -586,14 +589,14 @@ async def list_group_direct_message_channels_metadata(
 )
 async def list_direct_message_channels_metadata(
     context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The direct message channels metadata"]:
     """List metadata for direct message channels in Slack that the user is a member of."""
 
-    return await list_conversations_metadata(
+    response = await list_conversations_metadata(
         context,
         conversation_types=[ConversationType.DIRECT_MESSAGE],
         limit=limit,
     )
+
+    return response

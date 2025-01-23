@@ -1,22 +1,6 @@
 import os
 
-
-class PositiveInt(int):
-    def __new__(cls, value, name="value"):
-        def validate(val):
-            if val <= 0:
-                raise ValueError(f"{name} must be positive, got {val}")
-            return val
-
-        try:
-            instance = super().__new__(cls, value)
-        except ValueError as e:
-            if str(e).startswith(name):
-                raise
-            raise ValueError(f"{name} must be a valid integer, got {value!r}")
-
-        return validate(instance)
-
+from arcade_slack.custom_types import PositiveInt
 
 MAX_PAGINATION_SIZE_LIMIT = 200
 
