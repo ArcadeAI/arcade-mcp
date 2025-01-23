@@ -188,7 +188,10 @@ async def get_members_in_conversation_by_id(
         get_user_info_by_id(context, member_id) for member_id in member_ids
     ])
 
-    return {"members": members, "next_cursor": next_cursor}
+    return {
+        "members": [member for member in members if not member.get("is_bot")],
+        "next_cursor": next_cursor,
+    }
 
 
 @tool(
@@ -223,7 +226,7 @@ async def get_members_in_conversation_by_name(
         scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
     )
 )
-async def get_conversation_history_by_id(
+async def get_messages_in_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get history for"],
     oldest_relative: Annotated[
@@ -263,11 +266,14 @@ async def get_conversation_history_by_id(
 ) -> Annotated[
     dict,
     (
-        "The conversation history / messages and next cursor for paginating results (when "
+        "The messages in a conversation and next cursor for paginating results (when "
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack.
+    """Get the messages in a conversation in Slack by the conversation's ID.
+
+    A conversation can be a public channel, a private channel, a direct message, or a group direct
+    message.
 
     To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
     only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
@@ -347,9 +353,9 @@ async def get_conversation_history_by_id(
         scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
     )
 )
-async def get_conversation_history_by_name(
+async def get_messages_in_channel_by_name(
     context: ToolContext,
-    conversation_name: Annotated[str, "The name of the conversation to get history for"],
+    channel_name: Annotated[str, "The name of the channel"],
     oldest_relative: Annotated[
         Optional[str],
         (
@@ -385,16 +391,18 @@ async def get_conversation_history_by_name(
 ) -> Annotated[
     dict,
     (
-        "The conversation history / messages and next cursor for paginating results (when "
+        "The messages in a channel and next cursor for paginating results (when "
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack.
+    """Get the messages in a channel in Slack by the channel's name.
+
+    A channel can be public or private
 
     To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
     only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
     current time. If only 'latest_datetime' is provided, it will return messages since the
-    beginning of the conversation to the latest_datetime.
+    beginning of the channel to the latest_datetime.
 
     To filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
     'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it will
@@ -405,12 +413,12 @@ async def get_conversation_history_by_name(
     'latest_relative'.
 
     Setting all of 'oldest_datetime', 'oldest_relative', 'latest_datetime', and 'latest_relative'
-    to None will return all messages in the conversation, without date/time filtering
+    to None will return all messages in the channel, without date/time filtering
     """
     conversation_metadata = await get_conversation_metadata_by_name(
-        context=context, conversation_name=conversation_name
+        context=context, conversation_name=channel_name
     )
-    return await get_conversation_history_by_id(
+    return await get_messages_in_conversation_by_id(
         context=context,
         conversation_id=conversation_metadata["id"],
         oldest_relative=oldest_relative,

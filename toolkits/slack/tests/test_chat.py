@@ -10,12 +10,12 @@ from slack_sdk.web.async_slack_response import AsyncSlackResponse
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
 from arcade_slack.tools.chat import (
-    get_conversation_history_by_id,
-    get_conversation_history_by_name,
     get_conversation_metadata_by_id,
     get_conversation_metadata_by_name,
     get_members_in_conversation_by_id,
     get_members_in_conversation_by_name,
+    get_messages_in_channel_by_name,
+    get_messages_in_conversation_by_id,
     list_conversations_metadata,
     list_direct_message_channels_metadata,
     list_group_direct_message_channels_metadata,
@@ -537,7 +537,7 @@ async def test_get_conversation_history_by_id(mock_context, mock_slack_client):
         "messages": [{"text": "Hello, world!"}],
     }
 
-    response = await get_conversation_history_by_id(mock_context, "C12345", limit=1)
+    response = await get_messages_in_conversation_by_id(mock_context, "C12345", limit=1)
 
     assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
     mock_slack_client.conversations_history.assert_called_once_with(
@@ -575,7 +575,7 @@ async def test_get_conversation_history_by_id_with_relative_datetime_args(
         expected_oldest_timestamp,
     ]
 
-    response = await get_conversation_history_by_id(
+    response = await get_messages_in_conversation_by_id(
         mock_context, "C12345", oldest_relative="02:00:00", latest_relative="01:00:00", limit=1
     )
 
@@ -618,7 +618,7 @@ async def test_get_conversation_history_by_id_with_absolute_datetime_args(
         expected_oldest_timestamp,
     ]
 
-    response = await get_conversation_history_by_id(
+    response = await get_messages_in_conversation_by_id(
         mock_context,
         "C12345",
         oldest_datetime="2025-01-01 00:00:00",
@@ -647,7 +647,7 @@ async def test_get_conversation_history_by_id_with_messed_oldest_args(
     mock_context, mock_slack_client
 ):
     with pytest.raises(ToolExecutionError):
-        await get_conversation_history_by_id(
+        await get_messages_in_conversation_by_id(
             mock_context,
             "C12345",
             oldest_datetime="2025-01-01 00:00:00",
@@ -660,7 +660,7 @@ async def test_get_conversation_history_by_id_with_messed_latest_args(
     mock_context, mock_slack_client
 ):
     with pytest.raises(ToolExecutionError):
-        await get_conversation_history_by_id(
+        await get_messages_in_conversation_by_id(
             mock_context,
             "C12345",
             latest_datetime="2025-01-01 00:00:00",
@@ -686,7 +686,7 @@ async def test_get_conversation_history_by_name(mock_context, mock_slack_client)
         "messages": [{"text": "Hello, world!"}],
     }
 
-    response = await get_conversation_history_by_name(mock_context, "general", limit=1)
+    response = await get_messages_in_channel_by_name(mock_context, "general", limit=1)
 
     assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
     mock_slack_client.conversations_history.assert_called_once_with(

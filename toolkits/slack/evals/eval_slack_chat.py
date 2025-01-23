@@ -15,12 +15,12 @@ from arcade.sdk.eval import (
 
 import arcade_slack
 from arcade_slack.tools.chat import (
-    get_conversation_history_by_id,
-    get_conversation_history_by_name,
     get_conversation_metadata_by_id,
     get_conversation_metadata_by_name,
     get_members_in_conversation_by_id,
     get_members_in_conversation_by_name,
+    get_messages_in_channel_by_name,
+    get_messages_in_conversation_by_id,
     list_conversations_metadata,
     list_direct_message_channels_metadata,
     list_group_direct_message_channels_metadata,
@@ -586,7 +586,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
             user_message=user_message,
             expected_tool_calls=[
                 ExpectedToolCall(
-                    func=get_conversation_history_by_name,
+                    func=get_messages_in_channel_by_name,
                     args={
                         "conversation_name": "general",
                     },
@@ -610,7 +610,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
             user_message=user_message,
             expected_tool_calls=[
                 ExpectedToolCall(
-                    func=get_conversation_history_by_id,
+                    func=get_messages_in_conversation_by_id,
                     args={
                         "conversation_id": "1234567890",
                     },
@@ -626,7 +626,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the last 10 messages in the #general channel",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "limit": 10,
@@ -643,7 +643,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the last 25 messages in the conversation with id '1234567890'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "limit": 25,
@@ -662,7 +662,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' starting 2 days ago",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_relative": "02:00:00",
@@ -680,7 +680,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' from 2 days ago to 3 hours ago",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_relative": "02:00:00",
@@ -700,7 +700,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' starting 1 week ago",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_relative": "07:00:00",
@@ -718,7 +718,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' from yesterday",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_relative": "01:00:00",
@@ -738,7 +738,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel starting 2 days ago",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_relative": "02:00:00",
@@ -756,7 +756,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel from 2 days ago to 3 hours ago",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_relative": "02:00:00",
@@ -776,7 +776,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel from yesterday",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_relative": "01:00:00",
@@ -794,7 +794,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel from last week",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_relative": "07:00:00",
@@ -814,7 +814,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' from 2025-01-20",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_datetime": "2025-01-20 00:00:00",
@@ -838,7 +838,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the conversation with id '1234567890' from 2025-01-20 to 2025-01-25",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_id,
+                func=get_messages_in_conversation_by_id,
                 args={
                     "conversation_id": "1234567890",
                     "oldest_datetime": "2025-01-20 00:00:00",
@@ -862,7 +862,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel from 2025-01-20",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_datetime": "2025-01-20 00:00:00",
@@ -888,7 +888,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="Get the messages in the #general channel from 2025-01-20 to 2025-01-25",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "oldest_datetime": "2025-01-20 00:00:00",
@@ -916,7 +916,7 @@ def get_conversation_history_eval_suite() -> EvalSuite:
         user_message="get the next 5 messages",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_conversation_history_by_name,
+                func=get_messages_in_channel_by_name,
                 args={
                     "conversation_name": "general",
                     "limit": 5,

@@ -87,6 +87,9 @@ def list_users_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(func=list_users, args={"exclude_bots": True}),
         ],
+        critics=[
+            BinaryCritic(critic_field="exclude_bots", weight=1.0),
+        ],
     )
 
     suite.add_case(
@@ -94,6 +97,10 @@ def list_users_eval_suite() -> EvalSuite:
         user_message="get a list of 10 users on my slack workspace, except bots",
         expected_tool_calls=[
             ExpectedToolCall(func=list_users, args={"exclude_bots": True, "limit": 10}),
+        ],
+        critics=[
+            BinaryCritic(critic_field="exclude_bots", weight=0.5),
+            BinaryCritic(critic_field="limit", weight=0.5),
         ],
     )
 
@@ -103,7 +110,7 @@ def list_users_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_users,
-                args={"limit": 5, "next_cursor": "cursor_xyz"},
+                args={"limit": 5, "next_cursor": "dXNlcjpVsDjzOTZGVDlQRA=="},
             ),
         ],
         critics=[
@@ -126,7 +133,7 @@ def list_users_eval_suite() -> EvalSuite:
             {
                 "role": "tool",
                 "content": json.dumps({
-                    "next_cursor": "cursor_xyz",
+                    "next_cursor": "dXNlcjpVsDjzOTZGVDlQRA==",
                     "users": [
                         {
                             "display_name": "John Doe",
