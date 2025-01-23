@@ -1,8 +1,9 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Callable, Literal, NewType, NotRequired, Optional, TypedDict
+from typing import Any, Callable, NewType, Optional
 
 from arcade.sdk.errors import RetryableToolError
+from typing_extensions import Literal, NotRequired, TypedDict
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
@@ -399,36 +400,40 @@ async def async_paginate(
     Returns:
         A tuple containing the list of items and the next cursor, if needed to paginate further.
     """
-    results = []
-    should_continue = True
+    results: list[Any] = []
+
+    async def paginate_loop():
+        nonlocal results, next_cursor
+        should_continue = True
+
+        """
+        The slack_limit variable makes the Slack API return no more than the appropriate
+        amount of items. The loop extends results with the items returned and continues
+        iterating if it hasn't reached the limit, and Slack indicates there're more
+        items to retrieve.
+        """
+
+        while should_continue:
+            slack_limit = min(limit - len(results), MAX_PAGINATION_SIZE_LIMIT)
+            iteration_kwargs = {**kwargs, "limit": slack_limit, "cursor": next_cursor}
+            response = await func(*args, **iteration_kwargs)
+
+            try:
+                results.extend(dict(response.data) if not response_key else response[response_key])
+            except KeyError:
+                raise ValueError(f"Response key {response_key} not found in Slack response")
+
+            next_cursor = response.get("response_metadata", {}).get("next_cursor")
+
+            if len(results) >= limit or not next_cursor:
+                should_continue = False
 
     try:
-        async with asyncio.timeout(max_pagination_timeout_seconds):
-            while should_continue:
-                # The slack_limit variable makes the Slack API return no more than the appropriate
-                # amount of items. The loop extends results with the items returned and continues
-                # iterating if it hasn't reached the limit, and Slack indicates there're more
-                # items to retrieve.
-                slack_limit = min(limit - len(results), MAX_PAGINATION_SIZE_LIMIT)
-                response = await func(
-                    *args, **{**kwargs, "limit": slack_limit, "cursor": next_cursor}
-                )
-
-                try:
-                    results.extend(
-                        dict(response.data) if not response_key else response[response_key]
-                    )
-                except KeyError:
-                    raise ValueError(f"Response key {response_key} not found in Slack response")
-
-                next_cursor = response.get("response_metadata", {}).get("next_cursor")
-
-                if len(results) >= limit or not next_cursor:
-                    should_continue = False
-    except asyncio.TimeoutError:
+        await asyncio.wait_for(paginate_loop(), timeout=max_pagination_timeout_seconds)
+    except TimeoutError:
         raise PaginationTimeoutError(max_pagination_timeout_seconds)
-
-    return results, next_cursor
+    else:
+        return results, next_cursor
 
 
 def enrich_message_datetime(message: SlackMessage) -> Message:
