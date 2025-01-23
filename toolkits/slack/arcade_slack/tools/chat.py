@@ -357,9 +357,7 @@ async def get_conversation_history_by_name(
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[
-        Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
     cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
 ) -> Annotated[
     dict,
