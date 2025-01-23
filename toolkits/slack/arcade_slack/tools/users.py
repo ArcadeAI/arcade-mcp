@@ -7,7 +7,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.models import BasicUserInfo, SlackPaginationNextCursor, SlackUser
+from arcade_slack.models import SlackPaginationNextCursor, SlackUser
 from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
@@ -24,7 +24,7 @@ from arcade_slack.utils import (
 async def get_user_info_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The ID of the user to get"],
-) -> Annotated[BasicUserInfo, "The user's information"]:
+) -> Annotated[dict[str, Any], "The user's information"]:
     """Get the information of a user in Slack."""
 
     token = (

@@ -57,7 +57,10 @@ async def send_dm_to_user(
         user_list_response = await slackClient.users_list()
         user_id = None
         for user in user_list_response["members"]:
-            if user["name"].lower() == user_name.lower():
+            response_user_name = (
+                "" if not isinstance(user.get("name"), str) else user["name"].lower()
+            )
+            if response_user_name == user_name.lower():
                 user_id = user["id"]
                 break
 
@@ -113,7 +116,10 @@ async def send_message_to_channel(
         channels_response = await slackClient.conversations_list()
         channel_id = None
         for channel in channels_response["channels"]:
-            if channel["name"].lower() == channel_name.lower():
+            response_channel_name = (
+                "" if not isinstance(channel.get("name"), str) else channel["name"].lower()
+            )
+            if response_channel_name == channel_name.lower():
                 channel_id = channel["id"]
                 break
 
@@ -479,7 +485,12 @@ async def get_conversation_metadata_by_name(
                 next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
                 for conversation in response["conversations"]:
-                    if conversation["name"].lower() == conversation_name.lower():
+                    response_conversation_name = (
+                        ""
+                        if not isinstance(conversation.get("name"), str)
+                        else conversation["name"].lower()
+                    )
+                    if response_conversation_name == conversation_name.lower():
                         return conversation
                     conversation_names.append(conversation["name"])
 
