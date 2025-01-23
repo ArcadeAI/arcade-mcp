@@ -14,8 +14,8 @@ from arcade_slack.tools.chat import (
     get_conversation_history_by_name,
     get_conversation_metadata_by_id,
     get_conversation_metadata_by_name,
-    get_members_from_conversation_by_id,
-    get_members_from_conversation_by_name,
+    get_members_in_conversation_by_id,
+    get_members_in_conversation_by_name,
     list_conversations_metadata,
     list_direct_message_channels_metadata,
     list_group_direct_message_channels_metadata,
@@ -397,7 +397,7 @@ async def test_get_members_from_conversation_id(
     mock_async_paginate.return_value = [member1["id"], member2["id"]], "token123"
     mock_get_user_info_by_id.side_effect = [member1_info, member2_info]
 
-    response = await get_members_from_conversation_by_id(
+    response = await get_members_in_conversation_by_id(
         mock_context, conversation_id="C12345", limit=2
     )
 
@@ -448,7 +448,7 @@ async def test_get_members_from_conversation_id_channel_not_found(
     mock_get_user_info_by_id.side_effect = [member1_info, member2_info]
 
     with pytest.raises(RetryableToolError):
-        await get_members_from_conversation_by_id(mock_context, conversation_id="C12345", limit=2)
+        await get_members_in_conversation_by_id(mock_context, conversation_id="C12345", limit=2)
 
     mock_async_paginate.assert_called_once_with(
         mock_slack_client.conversations_members,
@@ -474,7 +474,7 @@ async def test_get_members_from_conversation_by_name(
         "next_cursor": None,
     }
 
-    response = await get_members_from_conversation_by_name(
+    response = await get_members_in_conversation_by_name(
         mock_context, mock_channel_info["name"], limit=2
     )
 
@@ -513,7 +513,7 @@ async def test_get_members_from_conversation_by_name_triggering_pagination(
         },
     ]
 
-    response = await get_members_from_conversation_by_name(
+    response = await get_members_in_conversation_by_name(
         mock_context, conversation2["name"], limit=2
     )
 

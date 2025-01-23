@@ -143,7 +143,7 @@ async def send_message_to_channel(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def get_members_from_conversation_by_id(
+async def get_members_in_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
     limit: Annotated[
@@ -192,7 +192,7 @@ async def get_members_from_conversation_by_id(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def get_members_from_conversation_by_name(
+async def get_members_in_conversation_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get members for"],
     limit: Annotated[
@@ -205,7 +205,7 @@ async def get_members_from_conversation_by_name(
         context=context, conversation_name=conversation_name, next_cursor=next_cursor
     )
 
-    return await get_members_from_conversation_by_id(
+    return await get_members_in_conversation_by_id(
         context=context,
         conversation_id=conversation_metadata["id"],
         limit=limit,
