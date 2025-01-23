@@ -2,7 +2,6 @@ from typing import Any, Callable, Optional
 
 from arcadepy import Arcade
 from arcadepy.types import ToolGetResponse as ToolDefinition
-from common_arcade.exceptions import ToolExecutionError
 from common_arcade.manager import BaseArcadeManager
 from common_arcade.utils import tool_definition_to_pydantic_model
 
@@ -71,15 +70,14 @@ class CrewAIToolManager(BaseArcadeManager):
                 input=kwargs,
                 user_id=self.user_id,  # type: ignore[arg-type]
             )
+
+            tool_error = response.output.error if response.output else None
+            if tool_error:
+                return str(tool_error)
             if response.success:
                 return response.output.value
 
-            error_msg = (
-                response.output.error.message
-                if response.output and response.output.error
-                else f"Execution failed for {tool_name}"
-            )
-            return ToolExecutionError(error_msg)
+            return "Failed to call " + tool_name
 
         return tool_function
 

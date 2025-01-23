@@ -45,7 +45,7 @@ def test_create_tool_function_success(
     mock_is_authorized.return_value = True
     mock_wait_for_completion.return_value = mock_authorize
     manager.client.tools.execute.return_value = MagicMock(
-        success=True, output=MagicMock(value="result")
+        success=True, output=MagicMock(value="result", error=None)
     )
 
     tool_function = manager.create_tool_function("test_tool")
