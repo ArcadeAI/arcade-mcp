@@ -16,10 +16,8 @@ class RelativeTimeBinaryCritic(BinaryCritic):
         Returns:
             dict: A dictionary containing the match status and score.
         """
-        # Cast actual to the type of expected
         try:
             actual_casted = self.cast_actual(expected, actual)
-        # TODO log or something better here
         except TypeError:
             actual_casted = actual
 

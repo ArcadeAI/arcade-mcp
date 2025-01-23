@@ -270,27 +270,24 @@ async def get_messages_in_conversation_by_id(
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the messages in a conversation in Slack by the conversation's ID.
+    """Get the messages in a conversation by the conversation's ID.
 
-    A conversation can be a public channel, a private channel, a direct message, or a group direct
-    message.
+    A conversation can be a channel, a DM, or a group DM.
 
-    To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
-    only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
-    current time. If only 'latest_datetime' is provided, it will return messages since the
+    To filter by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
+    only 'oldest_datetime' is provided, it returns messages from the oldest_datetime to the
+    current time. If only 'latest_datetime' is provided, it returns messages since the
     beginning of the conversation to the latest_datetime.
 
-    To filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
-    'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it will
-    return messages from the oldest_relative to the current time. If only 'latest_relative' is
-    provided, it will return messages from the current time to the latest_relative.
+    To filter by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
+    'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it returns
+    messages from the oldest_relative to the current time. If only 'latest_relative' is provided,
+    it returns messages from the current time to the latest_relative.
 
     Do not provide both 'oldest_datetime' and 'oldest_relative' or both 'latest_datetime' and
     'latest_relative'.
 
-    Setting all of 'oldest_datetime', 'oldest_relative', 'latest_datetime', and 'latest_relative'
-    to None will return all messages in the conversation, without date/time filtering.
-    """
+    Leave all arguments with the default None to get messages without date/time filtering"""
     error_message = None
     if oldest_datetime and oldest_relative:
         error_message = "Cannot specify both 'oldest_datetime' and 'oldest_relative'."
@@ -395,9 +392,7 @@ async def get_messages_in_channel_by_name(
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the messages in a channel in Slack by the channel's name.
-
-    A channel can be public or private
+    """Get the messages in a channel by the channel's name.
 
     To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
     only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
@@ -412,9 +407,7 @@ async def get_messages_in_channel_by_name(
     Do not provide both 'oldest_datetime' and 'oldest_relative' or both 'latest_datetime' and
     'latest_relative'.
 
-    Setting all of 'oldest_datetime', 'oldest_relative', 'latest_datetime', and 'latest_relative'
-    to None will return all messages in the channel, without date/time filtering
-    """
+    Leave all arguments with the default None to get messages without date/time filtering"""
     conversation_metadata = await get_conversation_metadata_by_name(
         context=context, conversation_name=channel_name
     )
