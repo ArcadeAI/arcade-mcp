@@ -462,9 +462,9 @@ async def test_get_members_from_conversation_id_channel_not_found(
 
 @pytest.mark.asyncio
 @patch("arcade_slack.tools.chat.list_conversations_metadata")
-@patch("arcade_slack.tools.chat.get_members_from_conversation_by_id")
-async def test_get_members_from_conversation_by_name(
-    mock_get_members_from_conversation_by_id,
+@patch("arcade_slack.tools.chat.get_members_in_conversation_by_id")
+async def test_get_members_in_conversation_by_name(
+    mock_get_members_in_conversation_by_id,
     mock_list_conversations_metadata,
     mock_context,
     mock_channel_info,
@@ -478,9 +478,9 @@ async def test_get_members_from_conversation_by_name(
         mock_context, mock_channel_info["name"], limit=2
     )
 
-    assert response == mock_get_members_from_conversation_by_id.return_value
+    assert response == mock_get_members_in_conversation_by_id.return_value
     mock_list_conversations_metadata.assert_called_once_with(mock_context, next_cursor=None)
-    mock_get_members_from_conversation_by_id.assert_called_once_with(
+    mock_get_members_in_conversation_by_id.assert_called_once_with(
         context=mock_context,
         conversation_id="C12345",
         limit=2,
@@ -490,9 +490,9 @@ async def test_get_members_from_conversation_by_name(
 
 @pytest.mark.asyncio
 @patch("arcade_slack.tools.chat.list_conversations_metadata")
-@patch("arcade_slack.tools.chat.get_members_from_conversation_by_id")
-async def test_get_members_from_conversation_by_name_triggering_pagination(
-    mock_get_members_from_conversation_by_id,
+@patch("arcade_slack.tools.chat.get_members_in_conversation_by_id")
+async def test_get_members_in_conversation_by_name_triggering_pagination(
+    mock_get_members_in_conversation_by_id,
     mock_list_conversations_metadata,
     mock_context,
     mock_channel_info,
@@ -517,12 +517,12 @@ async def test_get_members_from_conversation_by_name_triggering_pagination(
         mock_context, conversation2["name"], limit=2
     )
 
-    assert response == mock_get_members_from_conversation_by_id.return_value
+    assert response == mock_get_members_in_conversation_by_id.return_value
     mock_list_conversations_metadata.assert_has_calls([
         call(mock_context, next_cursor=None),
         call(mock_context, next_cursor="123"),
     ])
-    mock_get_members_from_conversation_by_id.assert_called_once_with(
+    mock_get_members_in_conversation_by_id.assert_called_once_with(
         context=mock_context,
         conversation_id="C12345",
         limit=2,

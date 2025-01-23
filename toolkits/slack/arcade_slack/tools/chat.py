@@ -8,7 +8,7 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
-from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
+from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.models import ConversationType, SlackUserList
 from arcade_slack.tools.exceptions import ItemNotFoundError
 from arcade_slack.tools.users import get_user_info_by_id
@@ -146,9 +146,7 @@ async def send_message_to_channel(
 async def get_members_in_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
-    limit: Annotated[
-        Optional[int], "The maximum number of members to return."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of members to return."] = None,
     next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID."""
@@ -195,9 +193,7 @@ async def get_members_in_conversation_by_id(
 async def get_members_in_conversation_by_name(
     context: ToolContext,
     conversation_name: Annotated[str, "The name of the conversation to get members for"],
-    limit: Annotated[
-        Optional[int], "The maximum number of members to return."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of members to return."] = None,
     next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The conversation members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
@@ -254,8 +250,10 @@ async def get_conversation_history_by_id(
     ] = None,
     limit: Annotated[
         Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
-    cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
+    ] = None,
+    next_cursor: Annotated[
+        Optional[str], "The cursor to use for pagination. Defaults to None."
+    ] = None,
 ) -> Annotated[
     dict,
     (
@@ -263,7 +261,24 @@ async def get_conversation_history_by_id(
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack."""
+    """Get the history of a conversation in Slack.
+
+    To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
+    only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
+    current time. If only 'latest_datetime' is provided, it will return messages since the
+    beginning of the conversation to the latest_datetime.
+
+    To filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
+    'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it will
+    return messages from the oldest_relative to the current time. If only 'latest_relative' is
+    provided, it will return messages from the current time to the latest_relative.
+
+    Do not provide both 'oldest_datetime' and 'oldest_relative' or both 'latest_datetime' and
+    'latest_relative'.
+
+    Setting all of 'oldest_datetime', 'oldest_relative', 'latest_datetime', and 'latest_relative'
+    to None will return all messages in the conversation, without date/time filtering.
+    """
     error_message = None
     if oldest_datetime and oldest_relative:
         error_message = "Cannot specify both 'oldest_datetime' and 'oldest_relative'."
@@ -306,7 +321,7 @@ async def get_conversation_history_by_id(
         slackClient.conversations_history,
         "messages",
         limit=limit,
-        next_cursor=cursor,
+        next_cursor=next_cursor,
         channel=conversation_id,
         include_all_metadata=True,
         inclusive=True,  # Include messages at the start and end of the time range
@@ -358,7 +373,9 @@ async def get_conversation_history_by_name(
         ),
     ] = None,
     limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    cursor: Annotated[Optional[str], "The cursor to use for pagination. Defaults to None."] = None,
+    next_cursor: Annotated[
+        Optional[str], "The cursor to use for pagination. Defaults to None."
+    ] = None,
 ) -> Annotated[
     dict,
     (
@@ -366,7 +383,24 @@ async def get_conversation_history_by_name(
         "there are additional messages to retrieve)."
     ),
 ]:
-    """Get the history of a conversation in Slack."""
+    """Get the history of a conversation in Slack.
+
+    To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
+    only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
+    current time. If only 'latest_datetime' is provided, it will return messages since the
+    beginning of the conversation to the latest_datetime.
+
+    To filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
+    'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it will
+    return messages from the oldest_relative to the current time. If only 'latest_relative' is
+    provided, it will return messages from the current time to the latest_relative.
+
+    Do not provide both 'oldest_datetime' and 'oldest_relative' or both 'latest_datetime' and
+    'latest_relative'.
+
+    Setting all of 'oldest_datetime', 'oldest_relative', 'latest_datetime', and 'latest_relative'
+    to None will return all messages in the conversation, without date/time filtering
+    """
     conversation_metadata = await get_conversation_metadata_by_name(
         context=context, conversation_name=conversation_name
     )
@@ -378,7 +412,7 @@ async def get_conversation_history_by_name(
         oldest_datetime=oldest_datetime,
         latest_datetime=latest_datetime,
         limit=limit,
-        cursor=cursor,
+        next_cursor=next_cursor,
     )
 
 
@@ -525,9 +559,7 @@ async def list_conversations_metadata(
 )
 async def list_public_channels_metadata(
     context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
@@ -545,9 +577,7 @@ async def list_public_channels_metadata(
 )
 async def list_private_channels_metadata(
     context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
@@ -565,9 +595,7 @@ async def list_private_channels_metadata(
 )
 async def list_group_direct_message_channels_metadata(
     context: ToolContext,
-    limit: Annotated[
-        Optional[int], "The maximum number of channels to list."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The group direct message channels"]:
     """List metadata for group direct message channels in Slack that the user is a member of."""
 

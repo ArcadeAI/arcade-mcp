@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, call, patch
 
 import pytest
 from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.tools.exceptions import PaginationTimeoutError
 from arcade_slack.utils import async_paginate
@@ -70,8 +71,12 @@ async def test_async_paginate_with_custom_pagination_args():
 
 
 @pytest.mark.asyncio
-async def test_async_paginate_large_limit():
-    mock_slack_client = AsyncMock()
+@pytest.mark.parametrize(
+    "test_limit, last_next_cursor, last_expected_limit",
+    [(5, "cursor3", 1), (None, None, 2)],
+)
+async def test_async_paginate_large_limit(test_limit, last_next_cursor, last_expected_limit):
+    mock_slack_client = AsyncMock(spec=AsyncWebClient)
     mock_slack_client.conversations_list.side_effect = [
         {
             "ok": True,
@@ -86,7 +91,7 @@ async def test_async_paginate_large_limit():
         {
             "ok": True,
             "channels": [{"id": "channel5"}],
-            "response_metadata": {"next_cursor": "cursor3"},
+            "response_metadata": {"next_cursor": last_next_cursor},
         },
     ]
 
@@ -94,7 +99,7 @@ async def test_async_paginate_large_limit():
         results, next_cursor = await async_paginate(
             func=mock_slack_client.conversations_list,
             response_key="channels",
-            limit=5,
+            limit=test_limit,
             hello="world",
         )
 
@@ -105,12 +110,12 @@ async def test_async_paginate_large_limit():
         {"id": "channel4"},
         {"id": "channel5"},
     ]
-    assert next_cursor == "cursor3"
+    assert next_cursor == last_next_cursor
     assert mock_slack_client.conversations_list.call_count == 3
     mock_slack_client.conversations_list.assert_has_calls([
         call(hello="world", limit=2, cursor=None),
         call(hello="world", limit=2, cursor="cursor1"),
-        call(hello="world", limit=1, cursor="cursor2"),
+        call(hello="world", limit=last_expected_limit, cursor="cursor2"),
     ])
 
 

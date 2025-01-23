@@ -6,7 +6,7 @@ from arcade.sdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
-from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
+from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.models import BasicUserInfo, SlackPaginationNextCursor, SlackUser
 from arcade_slack.utils import (
     async_paginate,
@@ -60,9 +60,7 @@ async def get_user_info_by_id(
 async def list_users(
     context: ToolContext,
     exclude_bots: Annotated[Optional[bool], "Whether to exclude bots from the results"] = True,
-    limit: Annotated[
-        Optional[int], "The maximum number of users to return."
-    ] = MAX_PAGINATION_SIZE_LIMIT,
+    limit: Annotated[Optional[int], "The maximum number of users to return."] = None,
     next_cursor: Annotated[Optional[str], "The next cursor token to use for pagination."] = None,
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
