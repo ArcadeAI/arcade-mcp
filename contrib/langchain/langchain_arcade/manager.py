@@ -3,7 +3,8 @@ from collections.abc import Iterator
 from typing import Any, Optional
 
 from arcadepy import Arcade
-from arcadepy.types.shared import AuthorizationResponse, ToolDefinition
+from arcadepy.types import ToolGetResponse as ToolDefinition
+from arcadepy.types.shared import AuthAuthorizationResponse as AuthorizationResponse
 from langchain_core.tools import StructuredTool
 
 from langchain_arcade._utilities import (
@@ -40,10 +41,16 @@ class ArcadeToolManager:
 
         Args:
             client: Optional Arcade client instance.
+            **kwargs: Additional keyword arguments to pass to the Arcade client.
         """
         if not client:
-            api_key = kwargs.get("api_key", os.getenv("ARCADE_API_KEY", None))
-            client = Arcade(api_key=api_key)  # type: ignore[arg-type]
+            api_key = kwargs.get("api_key", os.getenv("ARCADE_API_KEY"))
+            base_url = kwargs.get("base_url", os.getenv("ARCADE_BASE_URL"))
+            arcade_kwargs = {"api_key": api_key, **kwargs}
+            if base_url:
+                arcade_kwargs["base_url"] = base_url
+
+            client = Arcade(**arcade_kwargs)  # type: ignore[arg-type]
         self.client = client
         self._tools: dict[str, ToolDefinition] = {}
 
@@ -143,7 +150,20 @@ class ArcadeToolManager:
             >>> manager.init_tools(toolkits=["Search"])
             >>> manager.is_authorized("auth_123")
         """
-        return self.client.auth.status(authorization_id=authorization_id).status == "completed"
+        return self.client.auth.status(id=authorization_id).status == "completed"
+
+    def wait_for_auth(self, authorization_id: str) -> AuthorizationResponse:
+        """Wait for a tool authorization to complete.
+
+        Example:
+            >>> manager = ArcadeToolManager(api_key="...")
+            >>> manager.init_tools(toolkits=["Google.ListEmails"])
+            >>> response = manager.authorize("Google.ListEmails", "user_123")
+            >>> manager.wait_for_auth(response)
+            >>> # or
+            >>> manager.wait_for_auth(response.id)
+        """
+        return self.client.auth.wait_for_completion(authorization_id)
 
     def requires_auth(self, tool_name: str) -> bool:
         """Check if a tool requires authorization."""
@@ -162,22 +182,33 @@ class ArcadeToolManager:
     def _retrieve_tool_definitions(
         self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
     ) -> dict[str, ToolDefinition]:
+        """Retrieve tool definitions from the Arcade client, accounting for pagination."""
         all_tools: list[ToolDefinition] = []
-        if tools is not None or toolkits is not None:
-            if tools:
-                single_tools = [self.client.tools.get(tool_id=tool_id) for tool_id in tools]
-                all_tools.extend(single_tools)
-            if toolkits:
-                for tk in toolkits:
-                    all_tools.extend(self.client.tools.list(toolkit=tk))
-        else:
-            # retrieve all tools
-            page_iterator = self.client.tools.list()
-            all_tools.extend(page_iterator)
 
+        # First, gather single tools if the user specifically requested them.
+        if tools:
+            for tool_id in tools:
+                # ToolsResource.get(...) returns a single ToolGetResponse.
+                single_tool = self.client.tools.get(name=tool_id)
+                all_tools.append(single_tool)
+
+        # Next, gather tool definitions from any requested toolkits.
+        if toolkits:
+            for tk in toolkits:
+                # tools.list(...) returns a paginated response (SyncOffsetPage),
+                # so we iterate over its items to accumulate tool definitions.
+                paginated_tools = self.client.tools.list(toolkit=tk)
+                all_tools.extend(paginated_tools.items)  # type: ignore[arg-type]
+
+        # If no specific tools or toolkits were requested, retrieve *all* tools.
+        if not tools and not toolkits:
+            paginated_all_tools = self.client.tools.list()
+            all_tools.extend(paginated_all_tools.items)  # type: ignore[arg-type]
+        # Build a dictionary that maps the "full_tool_name" to the tool definition.
         tool_definitions: dict[str, ToolDefinition] = {}
-
         for tool in all_tools:
+            # For items returned by .list(), the 'toolkit' and 'name' attributes
+            # should be present as plain fields on the object. (No need to do toolkit.name)
             full_tool_name = f"{tool.toolkit.name}_{tool.name}"
             tool_definitions[full_tool_name] = tool
 

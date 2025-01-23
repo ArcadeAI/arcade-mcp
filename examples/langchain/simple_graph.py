@@ -39,4 +39,5 @@ for chunk in graph.stream(inputs, stream_mode="values", config=config):
     # Access the latest message from the conversation
     last_message = chunk["messages"][-1]
     # Print the assistant's message content
-    print(last_message.content)
+    if last_message.content:
+        print(last_message.content)
