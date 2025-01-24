@@ -21,7 +21,7 @@ rich = "^13.7.1"
 Jinja2 = ">=3.1.5,<4.0.0"
 pyyaml = "^6.0"
 openai = "^1.36.0" # TODO: relax to an earlier version that still has what we need
-arcadepy = "1.0.0rc1"
+arcadepy = "^1.0.0"
 pyjwt = "^2.8.0"
 loguru = "^0.7.0"
 tqdm = "^4.1.0"
