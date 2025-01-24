@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
-from arcadepy.types.shared import AuthorizationResponse as AuthorizationResponse
+from arcadepy.types.shared import AuthorizationResponse
 from langchain_core.tools import StructuredTool
 
 from langchain_arcade._utilities import (

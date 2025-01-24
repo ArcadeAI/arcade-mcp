@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from arcadepy.pagination import SyncOffsetPage
 from arcadepy.types import ToolDefinition
-from arcadepy.types.shared import AuthorizationResponse as AuthorizationResponse
+from arcadepy.types.shared import AuthorizationResponse
 from langchain_arcade.manager import ArcadeToolManager
 
 
