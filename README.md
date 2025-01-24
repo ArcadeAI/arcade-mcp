@@ -39,9 +39,9 @@
     <a href="https://docs.arcade.dev/auth-providers" target="_blank">Auth Providers</a> •
     <a href="https://github.com/ArcadeAI/arcade-ai/tree/main/examples" target="_blank">Examples</a>
 
-## What is Arcade AI?
+## What is Arcade?
 
-[Arcade AI](https://arcade.dev?ref=github) provides developer-focused tooling and APIs designed to improve the capabilities of LLM applications and agents.
+[Arcade](https://arcade.dev?ref=github) provides developer-focused tooling and APIs designed to improve the capabilities of LLM applications and agents.
 
 By removing the complexity of connecting agentic applications with your users' data and services, Arcade AI enables developers to focus on building their agentic applications.
 
