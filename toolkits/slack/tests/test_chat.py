@@ -17,8 +17,8 @@ from arcade_slack.tools.chat import (
     get_messages_in_channel_by_name,
     get_messages_in_conversation_by_id,
     list_conversations_metadata,
-    list_direct_message_channels_metadata,
-    list_group_direct_message_channels_metadata,
+    list_direct_message_conversations_metadata,
+    list_group_direct_message_conversations_metadata,
     list_private_channels_metadata,
     list_public_channels_metadata,
     send_dm_to_user,
@@ -240,10 +240,10 @@ async def test_tools_with_slack_error(
         (list_public_channels_metadata, ConversationType.PUBLIC_CHANNEL),
         (list_private_channels_metadata, ConversationType.PRIVATE_CHANNEL),
         (
-            list_group_direct_message_channels_metadata,
+            list_group_direct_message_conversations_metadata,
             ConversationType.MULTI_PERSON_DIRECT_MESSAGE,
         ),
-        (list_direct_message_channels_metadata, ConversationType.DIRECT_MESSAGE),
+        (list_direct_message_conversations_metadata, ConversationType.DIRECT_MESSAGE),
     ],
 )
 async def test_list_channels_metadata(

@@ -22,8 +22,8 @@ from arcade_slack.tools.chat import (
     get_messages_in_channel_by_name,
     get_messages_in_conversation_by_id,
     list_conversations_metadata,
-    list_direct_message_channels_metadata,
-    list_group_direct_message_channels_metadata,
+    list_direct_message_conversations_metadata,
+    list_group_direct_message_conversations_metadata,
     list_private_channels_metadata,
     list_public_channels_metadata,
     send_dm_to_user,
@@ -386,17 +386,17 @@ def list_conversations_eval_suite() -> EvalSuite:
         (
             "List group direct message channels",
             "List all group direct message channels",
-            list_group_direct_message_channels_metadata,
+            list_group_direct_message_conversations_metadata,
         ),
         (
             "List individual direct message channels",
             "List all individual direct message channels",
-            list_direct_message_channels_metadata,
+            list_direct_message_conversations_metadata,
         ),
         (
             "List direct message channels",
             "List all direct message channels",
-            list_direct_message_channels_metadata,
+            list_direct_message_conversations_metadata,
         ),
         (
             "List public and private channels",
@@ -408,7 +408,7 @@ def list_conversations_eval_suite() -> EvalSuite:
             "List public channels and direct message conversations",
             "List public channels and direct message conversations I am a member of",
             list_public_channels_metadata,
-            list_direct_message_channels_metadata,
+            list_direct_message_conversations_metadata,
         ),
     ]
 

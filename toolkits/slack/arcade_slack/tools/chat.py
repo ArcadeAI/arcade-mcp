@@ -629,11 +629,11 @@ async def list_private_channels_metadata(
         scopes=["mpim:read"],
     )
 )
-async def list_group_direct_message_channels_metadata(
+async def list_group_direct_message_conversations_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
-) -> Annotated[dict, "The group direct message channels"]:
-    """List metadata for group direct message channels in Slack that the user is a member of."""
+    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
+) -> Annotated[dict, "The group direct message conversations metadata"]:
+    """List metadata for group direct message conversations that the user is a member of."""
 
     return await list_conversations_metadata(  # type: ignore[no-any-return]
         context,
@@ -649,11 +649,11 @@ async def list_group_direct_message_channels_metadata(
         scopes=["im:read"],
     )
 )
-async def list_direct_message_channels_metadata(
+async def list_direct_message_conversations_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
-) -> Annotated[dict, "The direct message channels metadata"]:
-    """List metadata for direct message channels in Slack that the user is a member of."""
+    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
+) -> Annotated[dict, "The direct message conversations metadata"]:
+    """List metadata for direct message conversations in Slack that the user is a member of."""
 
     response = await list_conversations_metadata(
         context,
