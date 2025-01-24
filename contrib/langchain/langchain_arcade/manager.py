@@ -3,8 +3,8 @@ from collections.abc import Iterator
 from typing import Any, Optional
 
 from arcadepy import Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
-from arcadepy.types.shared import AuthAuthorizationResponse as AuthorizationResponse
+from arcadepy.types import ToolDefinition
+from arcadepy.types.shared import AuthorizationResponse as AuthorizationResponse
 from langchain_core.tools import StructuredTool
 
 from langchain_arcade._utilities import (
@@ -188,7 +188,7 @@ class ArcadeToolManager:
         # First, gather single tools if the user specifically requested them.
         if tools:
             for tool_id in tools:
-                # ToolsResource.get(...) returns a single ToolGetResponse.
+                # ToolsResource.get(...) returns a single ToolDefinition.
                 single_tool = self.client.tools.get(name=tool_id)
                 all_tools.append(single_tool)
 

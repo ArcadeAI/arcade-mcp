@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 import typer
 from arcadepy import Arcade
-from arcadepy.types import AuthAuthorizationResponse
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
@@ -269,7 +269,7 @@ def chat(
                 if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
-                        AuthAuthorizationResponse.model_validate(tool_authorization),
+                        AuthorizationResponse.model_validate(tool_authorization),
                         history,
                         openai_client,
                         model,

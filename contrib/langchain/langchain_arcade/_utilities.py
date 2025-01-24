@@ -1,7 +1,7 @@
 from typing import Any, Callable
 
 from arcadepy import NOT_GIVEN, Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
+from arcadepy.types import ToolDefinition
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field, create_model

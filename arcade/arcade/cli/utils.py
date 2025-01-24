@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urlparse
 import idna
 import typer
 from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
-from arcadepy.types import AuthAuthorizationResponse
+from arcadepy.types import AuthorizationResponse
 from openai import OpenAI
 from openai.resources.chat.completions import ChatCompletionChunk, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
@@ -404,7 +404,7 @@ def handle_chat_interaction(
 
 def handle_tool_authorization(
     arcade_client: Arcade,
-    tool_authorization: AuthAuthorizationResponse,
+    tool_authorization: AuthorizationResponse,
     history: list[dict[str, Any]],
     openai_client: OpenAI,
     model: str,
@@ -432,7 +432,7 @@ def handle_tool_authorization(
 
 
 def wait_for_authorization_completion(
-    client: Arcade, tool_authorization: AuthAuthorizationResponse | None
+    client: Arcade, tool_authorization: AuthorizationResponse | None
 ) -> None:
     """
     Wait for the authorization for a tool call to complete i.e., wait for the user to click on
@@ -441,7 +441,7 @@ def wait_for_authorization_completion(
     if tool_authorization is None:
         return
 
-    auth_response = AuthAuthorizationResponse.model_validate(tool_authorization)
+    auth_response = AuthorizationResponse.model_validate(tool_authorization)
 
     while auth_response.status != "completed":
         try:
