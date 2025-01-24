@@ -1,5 +1,5 @@
-DEFAULT_CLOUD_HOST = "cloud.arcade-ai.com"
-DEFAULT_ENGINE_HOST = "api.arcade-ai.com"
+DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
+DEFAULT_ENGINE_HOST = "api.arcade.dev"
 LOCALHOST = "localhost"
 
 _style_block = b"""
