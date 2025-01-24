@@ -262,12 +262,8 @@ async def get_messages_in_conversation_by_id(
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[
-        Optional[int], "The maximum number of messages to return. Defaults to 20."
-    ] = None,
-    next_cursor: Annotated[
-        Optional[str], "The cursor to use for pagination. Defaults to None."
-    ] = None,
+    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -390,9 +386,7 @@ async def get_messages_in_channel_by_name(
         ),
     ] = None,
     limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    next_cursor: Annotated[
-        Optional[str], "The cursor to use for pagination. Defaults to None."
-    ] = None,
+    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
