@@ -9,8 +9,8 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
+from arcade_slack.exceptions import ItemNotFoundError
 from arcade_slack.models import ConversationType, SlackUserList
-from arcade_slack.tools.exceptions import ItemNotFoundError
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
@@ -127,7 +127,9 @@ async def send_message_to_channel(
             raise RetryableToolError(
                 "Channel not found",
                 developer_message=f"Channel with name '{channel_name}' not found.",
-                additional_prompt_content=format_conversations_as_csv(channels_response),
+                additional_prompt_content=format_conversations_as_csv({
+                    "channels": channels_response["channels"],
+                }),
                 retry_after_ms=500,  # Play nice with Slack API rate limits
             )
 
@@ -156,7 +158,10 @@ async def get_members_in_conversation_by_id(
     next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID."""
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     try:
         member_ids, next_cursor = await async_paginate(
@@ -210,7 +215,7 @@ async def get_members_in_conversation_by_name(
         context=context, conversation_name=conversation_name, next_cursor=next_cursor
     )
 
-    return await get_members_in_conversation_by_id(
+    return await get_members_in_conversation_by_id(  # type: ignore[no-any-return]
         context=context,
         conversation_id=conversation_metadata["id"],
         limit=limit,
@@ -318,7 +323,10 @@ async def get_messages_in_conversation_by_id(
     else:
         oldest_timestamp = None
 
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     datetime_args = {}
     if oldest_timestamp:
@@ -411,7 +419,7 @@ async def get_messages_in_channel_by_name(
     conversation_metadata = await get_conversation_metadata_by_name(
         context=context, conversation_name=channel_name
     )
-    return await get_messages_in_conversation_by_id(
+    return await get_messages_in_conversation_by_id(  # type: ignore[no-any-return]
         context=context,
         conversation_id=conversation_metadata["id"],
         oldest_relative=oldest_relative,
@@ -433,7 +441,10 @@ async def get_conversation_metadata_by_id(
     conversation_id: Annotated[str, "The ID of the conversation to get metadata for"],
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack searching by its ID."""
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     try:
         response = await slackClient.conversations_info(
@@ -441,8 +452,6 @@ async def get_conversation_metadata_by_id(
             include_locale=True,
             include_num_members=True,
         )
-
-        return extract_conversation_metadata(response["channel"])
 
     except SlackApiError as e:
         if e.response.get("error") == "channel_not_found":
@@ -459,6 +468,10 @@ async def get_conversation_metadata_by_id(
                 retry_after_ms=500,
             )
 
+        raise
+
+    return dict(**extract_conversation_metadata(response["channel"]))
+
 
 @tool(
     requires_auth=Slack(
@@ -474,41 +487,55 @@ async def get_conversation_metadata_by_name(
     ] = None,
 ) -> Annotated[dict, "The conversation metadata"]:
     """Get the metadata of a conversation in Slack searching by its name."""
-    conversation_names = []
+    conversation_names: list[str] = []
 
-    async def find_conversation(
-        conversation_name: str, conversation_names: list[str], next_cursor: Optional[str] = None
-    ) -> dict:
+    async def find_conversation() -> dict:
+        nonlocal conversation_names, conversation_name, next_cursor
         should_continue = True
-        async with asyncio.timeout(MAX_PAGINATION_TIMEOUT_SECONDS):
-            while should_continue:
-                response = await list_conversations_metadata(context, next_cursor=next_cursor)
-                next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-                for conversation in response["conversations"]:
-                    response_conversation_name = (
-                        ""
-                        if not isinstance(conversation.get("name"), str)
-                        else conversation["name"].lower()
-                    )
-                    if response_conversation_name == conversation_name.lower():
-                        return conversation
-                    conversation_names.append(conversation["name"])
+        while should_continue:
+            response = await list_conversations_metadata(context, next_cursor=next_cursor)
+            next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-                if not next_cursor:
-                    should_continue = False
+            for conversation in response["conversations"]:
+                response_conversation_name = (
+                    ""
+                    if not isinstance(conversation.get("name"), str)
+                    else conversation["name"].lower()
+                )
+                if response_conversation_name == conversation_name.lower():
+                    return conversation  # type: ignore[no-any-return]
+                conversation_names.append(conversation["name"])
+
+            if not next_cursor:
+                should_continue = False
 
         raise ItemNotFoundError()
 
     try:
-        return await find_conversation(conversation_name, conversation_names, next_cursor)
-    except (asyncio.TimeoutError, ItemNotFoundError) as e:
+        return await asyncio.wait_for(find_conversation(), timeout=MAX_PAGINATION_TIMEOUT_SECONDS)
+    except ItemNotFoundError:
         raise RetryableToolError(
             "Conversation not found",
             developer_message=f"Conversation with name '{conversation_name}' not found.",
             additional_prompt_content=f"Available conversation names: {conversation_names}",
             retry_after_ms=500,
-        ) from e
+        )
+    except TimeoutError:
+        raise RetryableToolError(
+            "Conversation not found, search timed out.",
+            developer_message=(
+                f"Conversation with name '{conversation_name}' not found. "
+                f"Search timed out after {MAX_PAGINATION_TIMEOUT_SECONDS} seconds."
+            ),
+            additional_prompt_content=(
+                f"Other conversation names found are: {conversation_names}. "
+                "The list is potentially non-exhaustive, since the search process timed out. "
+                f"Use the '{list_conversations_metadata.__name__}' tool to get a comprehensive "
+                "list of conversations."
+            ),
+            retry_after_ms=500,
+        )
 
 
 @tool(
@@ -543,7 +570,10 @@ async def list_conversations_metadata(
         for conv_type in conversation_types or ConversationType
     )
 
-    slackClient = AsyncWebClient(token=context.authorization.token)
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
 
     results, next_cursor = await async_paginate(
         slackClient.conversations_list,
@@ -575,7 +605,7 @@ async def list_public_channels_metadata(
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
-    return await list_conversations_metadata(
+    return await list_conversations_metadata(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.PUBLIC_CHANNEL],
         limit=limit,
@@ -593,7 +623,7 @@ async def list_private_channels_metadata(
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
-    return await list_conversations_metadata(
+    return await list_conversations_metadata(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.PRIVATE_CHANNEL],
         limit=limit,
@@ -611,7 +641,7 @@ async def list_group_direct_message_channels_metadata(
 ) -> Annotated[dict, "The group direct message channels"]:
     """List metadata for group direct message channels in Slack that the user is a member of."""
 
-    return await list_conversations_metadata(
+    return await list_conversations_metadata(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
         limit=limit,
@@ -637,4 +667,4 @@ async def list_direct_message_channels_metadata(
         limit=limit,
     )
 
-    return response
+    return response  # type: ignore[no-any-return]

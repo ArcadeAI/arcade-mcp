@@ -6,6 +6,7 @@ from arcade.sdk.errors import RetryableToolError
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.custom_types import SlackPaginationNextCursor
+from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
     BasicUserInfo,
     ConversationMetadata,
@@ -18,7 +19,6 @@ from arcade_slack.models import (
     SlackUser,
     SlackUserList,
 )
-from arcade_slack.tools.exceptions import PaginationTimeoutError
 
 
 def format_users(user_list_response: SlackUserList) -> str:
@@ -213,8 +213,8 @@ async def async_paginate(
     limit: Optional[int] = None,
     next_cursor: Optional[SlackPaginationNextCursor] = None,
     max_pagination_timeout_seconds: int = MAX_PAGINATION_TIMEOUT_SECONDS,
-    *args: tuple[Any, ...],
-    **kwargs: dict[str, Any],
+    *args: Any,
+    **kwargs: Any,
 ) -> tuple[list, Optional[SlackPaginationNextCursor]]:
     """Paginate a Slack AsyncWebClient's method results.
 

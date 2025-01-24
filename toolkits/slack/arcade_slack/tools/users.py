@@ -49,7 +49,7 @@ async def get_user_info_by_id(
     user_dict_raw: dict[str, Any] = response.get("user", {}) or {}
     user_dict = cast(SlackUser, user_dict_raw)
     user = SlackUser(**user_dict)
-    return extract_basic_user_info(user)
+    return dict(**extract_basic_user_info(user))
 
 
 @tool(

@@ -1,4 +1,4 @@
-from typing import NewType, Union
+from typing import NewType, Optional, Union
 
 
 class PositiveInt(int):
@@ -19,7 +19,7 @@ class PositiveInt(int):
 
 
 SlackOffsetSecondsFromUTC = NewType("SlackOffsetSecondsFromUTC", int)  # observe it can be negative
-SlackPaginationNextCursor = NewType("SlackPaginationNextCursor", str)
+SlackPaginationNextCursor = Optional[str]
 SlackUserFieldId = NewType("SlackUserFieldId", str)
 SlackUserId = NewType("SlackUserId", str)
 SlackTeamId = NewType("SlackTeamId", str)

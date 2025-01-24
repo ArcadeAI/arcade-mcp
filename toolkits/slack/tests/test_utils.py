@@ -5,7 +5,7 @@ import pytest
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
-from arcade_slack.tools.exceptions import PaginationTimeoutError
+from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.utils import async_paginate
 
 
