@@ -6,7 +6,7 @@ authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "0.1.*"
+arcade-ai = ">=0.1,<2.0"
 google-api-core = "2.19.1"
 google-api-python-client = "2.137.0"
 google-auth = "2.32.0"

@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade_web"
-version = "0.1.8"
+version = "0.1.9"
 description = "LLM tools for web-related tasks"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "0.1.*"
+arcade-ai = ">=0.1,<2.0"
 firecrawl-py = "^1.3.1"
 
 [tool.poetry.dev-dependencies]

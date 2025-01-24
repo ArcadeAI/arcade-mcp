@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade_github"
-version = "0.1.8"
+version = "0.1.9"
 description = "LLM tools for interacting with Github"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "0.1.*"
+arcade-ai = ">=0.1,<2.0"
 httpx = "^0.27.2"
 
 [tool.poetry.dev-dependencies]

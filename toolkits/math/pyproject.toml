@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade_math"
-version = "0.1.8"
+version = "0.1.9"
 description = "Math toolkit for Arcade"
 authors = ["Arcade AI <dev@arcade-ai.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "0.1.*"
+arcade-ai = ">=0.1,<2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"
