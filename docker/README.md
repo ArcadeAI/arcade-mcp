@@ -69,7 +69,7 @@ You should receive a response indicating that the engine is healthy:
 { "status": "healthy" }
 ```
 
-You can also view the swagger docs at `http://localhost:9099/swagger/index.html`
+Open a browser and navigate to http://localhost:9099/dashboard to view the Arcade dashboard.
 
 ## Adding Authentication Providers
 
