@@ -25,7 +25,7 @@ if __name__ == "__main__":
     arcade_api_key = os.environ.get(
         "ARCADE_API_KEY"
     )  # If you forget your Arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
-    cloud_host = "https://api.arcade-ai.com" + "/v1"
+    cloud_host = "https://api.arcade.dev" + "/v1"
 
     openai_client = OpenAI(
         api_key=arcade_api_key,

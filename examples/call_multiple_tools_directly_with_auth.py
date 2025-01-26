@@ -9,9 +9,10 @@ Steps:
 4. Inform the user which song is now playing
 """
 
+import sys
 from typing import Any, Optional
 
-from arcade_spotify.tools.models import SearchType
+from arcade_spotify.tools.models import SearchType  # pip install arcade-spotify
 from arcadepy import Arcade  # pip install arcade-py
 
 
@@ -26,18 +27,20 @@ def get_permissions(client: Arcade, provider_to_scopes: dict, user_id: str) -> N
         )
 
         if auth_response.status != "completed":
-            print(f"Click this link to authorize: {auth_response.authorization_url}")
+            print(f"Click this link to authorize: {auth_response.url}")
             input("After you have authorized, press Enter to continue...")
 
 
-def call_tool(client: Arcade, tool_name: str, user_id: str, inputs: Optional[dict] = None) -> Any:
+def call_tool(
+    client: Arcade, tool_name: str, user_id: str, tool_input: Optional[dict] = None
+) -> Any:
     """Call a single tool."""
-    if inputs is None:
-        inputs = {}
+    if tool_input is None:
+        tool_input = {}
 
     response = client.tools.execute(
         tool_name=tool_name,
-        inputs=inputs,
+        input=tool_input,
         user_id=user_id,
     )
 
@@ -69,7 +72,7 @@ def search_and_play_song(
         client=client,
         tool_name=search_tool,
         user_id=user_id,
-        inputs={
+        tool_input={
             "q": f"{song_name} {artist_name}",
             "types": [SearchType.TRACK],
         },
@@ -85,7 +88,7 @@ def search_and_play_song(
         client,
         start_playback_tool,
         user_id,
-        inputs={"track_ids": [track_id]},
+        tool_input={"track_ids": [track_id]},
     )
 
     # Step 3: get currently playing song
@@ -95,8 +98,24 @@ def search_and_play_song(
     )
 
 
+def check_client_health(client: Arcade, engine_url: str) -> None:
+    """Check the health of the Arcade client."""
+    try:
+        client.health.check()
+    except Exception:
+        print(
+            "Error: This example requires a self-hosted Arcade Engine running at "
+            f"'{engine_url}'. Please ensure it is up and running. For more information "
+            "on how to self-host the Arcade Engine, visit the docs: "
+            "https://docs.arcade.dev/home/install/overview"
+        )
+        sys.exit(1)
+
+
 if __name__ == "__main__":
-    client = Arcade(base_url="https://api.arcade-ai.com")
+    engine_url = "http://localhost:9099"
+    client = Arcade(base_url=engine_url)
+    check_client_health(client, engine_url)
 
     # Necessary scopes for the tools we are calling:
     provider_to_scopes = {
