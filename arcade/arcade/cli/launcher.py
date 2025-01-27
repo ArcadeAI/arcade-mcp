@@ -169,7 +169,7 @@ def _get_config_file(
     )
     console.print(
         "TIP: Please install the Arcade Engine by following the instructions at:\n"
-        "     https://docs.arcade-ai.com/home/install/local#install-the-engine\n",
+        "     https://docs.arcade.dev/home/install/local#install-the-engine\n",
         style="bold green",
     )
 
@@ -229,7 +229,7 @@ def _build_engine_command(engine_config: str | None, engine_env: str | None = No
     if not engine_bin:
         console.print(
             "❌ Engine binary not found, refer to the installation guide at "
-            "https://docs.arcade-ai.com/guides/installation for how to install the engine",
+            "https://docs.arcade.dev/guides/installation for how to install the engine",
             style="bold red",
         )
         sys.exit(1)

@@ -1,5 +1,5 @@
 """
-Example script demonstrating how to build a simple chatbot with Arcade AI.
+Example script demonstrating how to build a simple chatbot with Arcade.
 
 For this example, we are using the prebuilt Google Docs toolkit to create and edit documents.
 

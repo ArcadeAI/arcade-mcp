@@ -2,7 +2,7 @@
 name = "arcade_search"
 version = "0.1.10"
 description = "Tools for searching the web"
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

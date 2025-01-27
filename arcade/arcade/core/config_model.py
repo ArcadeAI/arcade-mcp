@@ -85,7 +85,7 @@ class Config(BaseConfig):
         If no configuration file exists, this method will create a new one with default values.
         The default configuration includes:
         - An empty API configuration
-        - A default Engine configuration (host: "api.arcade-ai.com", port: None, tls: True)
+        - A default Engine configuration (host: "api.arcade.dev", port: None, tls: True)
         - No user configuration
 
         Returns:

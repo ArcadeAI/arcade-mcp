@@ -2,7 +2,7 @@
 name = "arcade_zoom"
 version = "0.1.10"
 description = "Arcade tools for Zoom"
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

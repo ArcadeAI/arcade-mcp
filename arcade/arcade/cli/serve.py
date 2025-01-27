@@ -108,8 +108,8 @@ def serve_default_worker(
         worker_secret = worker_secret or "dev"
 
     app = fastapi.FastAPI(
-        title="Arcade AI Worker",
-        description="Arcade AI default Worker implementation using FastAPI.",
+        title="Arcade Worker",
+        description="Arcade default Worker implementation using FastAPI.",
         version="0.1.0",
         lifespan=lifespan,  # Use custom lifespan to catch errors, notably KeyboardInterrupt (Ctrl+C)
     )

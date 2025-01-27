@@ -43,7 +43,7 @@
 
 [Arcade](https://arcade.dev?ref=github) provides developer-focused tooling and APIs designed to improve the capabilities of LLM applications and agents.
 
-By removing the complexity of connecting agentic applications with your users' data and services, Arcade AI enables developers to focus on building their agentic applications.
+By removing the complexity of connecting agentic applications with your users' data and services, Arcade enables developers to focus on building their agentic applications.
 
 To learn more, check out our [documentation](https://docs.arcade.dev/home).
 
@@ -57,7 +57,7 @@ _Pst. hey, you, give us a star if you like it!_
 
 ### Requirements
 
-1. An **[Arcade AI account](https://arcade-ai.typeform.com/early-access)** (currently a waitlist)
+1. An **[Arcade account](https://arcade-ai.typeform.com/early-access)** (currently a waitlist)
 2. **Python 3.10+** and **pip**
 
 ### Installation
@@ -93,7 +93,7 @@ User (dev@arcade.dev):
 > star the ArcadeAI/arcade-ai repo on Github
 ```
 
-Arcade AI will prompt you to authorize with GitHub and will star the [ArcadeAI/arcade-ai](https://github.com/ArcadeAI/arcade-ai) repo on your behalf.
+Arcade will prompt you to authorize with GitHub and will star the [ArcadeAI/arcade-ai](https://github.com/ArcadeAI/arcade-ai) repo on your behalf.
 
 You'll see:
 
@@ -106,11 +106,11 @@ Press `Ctrl-C` to exit the chat.
 
 ## Arcade Cloud
 
-Arcade Cloud is a hosted version of the Arcade AI engine that hosts a number of prebuilt toolkits for interacting with a variety of services.
+Arcade Cloud is a hosted version of the Arcade engine that hosts a number of prebuilt toolkits for interacting with a variety of services.
 
 ### Prebuilt Toolkits
 
-Arcade AI offers a number of prebuilt toolkits that can be used by agents to interact with a variety of services.
+Arcade offers a number of prebuilt toolkits that can be used by agents to interact with a variety of services.
 
 <table>
   <thead>
@@ -306,7 +306,7 @@ Learn how to build your own tools by following our [creating a custom toolkit gu
 
 ### Evaluating Tools
 
-Arcade AI enables you to evaluate your custom tools to ensure they function correctly with the AI assistant, including defining evaluation cases and using different critics.
+Arcade enables you to evaluate your custom tools to ensure they function correctly with the AI assistant, including defining evaluation cases and using different critics.
 
 Learn how to evaluate your tools by following our [evaluating tools guide](https://docs.arcade.dev/home/evaluate-tools/create-an-evaluation-suite).
 

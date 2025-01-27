@@ -227,7 +227,7 @@ def display_arcade_chat_header(base_url: str, stream: bool) -> None:
     chat_header = Text.assemble(
         "\n",
         (
-            "=== Arcade AI Chat ===",
+            "=== Arcade Chat ===",
             "bold magenta underline",
         ),
         "\n",

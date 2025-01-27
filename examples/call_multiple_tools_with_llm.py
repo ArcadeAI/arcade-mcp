@@ -65,7 +65,7 @@ def call_tools_with_llm(
 
 if __name__ == "__main__":
     arcade_api_key = os.environ.get("ARCADE_API_KEY")
-    cloud_host = "https://api.arcade-ai.com/v1"
+    cloud_host = "https://api.arcade.dev/v1"
 
     openai_client = OpenAI(
         api_key=arcade_api_key,

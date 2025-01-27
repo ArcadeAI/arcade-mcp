@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade-ai"
 version = "1.0.1"
-description = "Arcade AI Python SDK and CLI"
+description = "Arcade Python SDK and CLI"
 readme = "README.md"
 packages = [
     {include="arcade", from="."}
 ]
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+authors = ["Arcade <dev@arcade.dev>"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

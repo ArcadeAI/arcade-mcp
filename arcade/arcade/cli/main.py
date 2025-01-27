@@ -414,7 +414,7 @@ def evals(
     asyncio.run(run_evaluations())
 
 
-@cli.command(help="Launch Arcade AI locally for tool dev", rich_help_panel="Launch")
+@cli.command(help="Launch Arcade locally for tool dev", rich_help_panel="Launch")
 def dev(
     host: str = typer.Option("127.0.0.1", help="Host for the worker server.", show_default=True),
     port: int = typer.Option(

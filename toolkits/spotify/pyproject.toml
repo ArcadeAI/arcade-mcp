@@ -2,7 +2,7 @@
 name = "arcade_spotify"
 version = "0.2.1"
 description = "Arcade tools for Spotify"
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -2,7 +2,7 @@
 name = "arcade_code_sandbox"
 version = "0.1.9"
 description = "LLM tools for running code in a sandbox"
-authors = ["Arcade AI <dev@arcade-ai.com>"]
+authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -1,6 +1,6 @@
 ## Setup
 
-Follow [these instructions](https://arcade-ai.com/home/quickstart) to Install Arcade AI and create an API key.
+Follow [these instructions](https://arcade.dev/home/quickstart) to Install Arcade and create an API key.
 
 This example is using OpenAI, as the LLM provider. Ensure you have an [OpenAI API key](https://platform.openai.com/docs/quickstart).
 
