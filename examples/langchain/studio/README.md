@@ -1,8 +1,12 @@
 ## Setup
 
-Follow [these instructions](https://arcade-ai.com/home/quickstart) to Install Arcade AI and create an API key.
+### API keys
+
+Follow [these instructions](https://docs.arcade.dev/home/custom-tools/) to Install Arcade AI and create an API key.
 
 This example is using OpenAI, as the LLM provider. Ensure you have an [OpenAI API key](https://platform.openai.com/docs/quickstart).
+
+### Environment variables
 
 Copy the `env.example` file to `.env` and supply your API keys for **at least** `OPENAI_API_KEY` and `ARCADE_API_KEY`.
 
