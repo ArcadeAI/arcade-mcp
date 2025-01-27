@@ -1,3 +1,3 @@
 langchain-google-community[gmail]>=0.1.1
 langchain-openai>=0.1.1
-langchain-arcade[langgraph]>=0.2.0
+langchain-arcade>=1.0.0
