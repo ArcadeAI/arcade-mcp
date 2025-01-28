@@ -300,6 +300,10 @@ The LLM API supports a variety of language models. Currently, the ones supported
 
 For more information, refer to the [supported models documentation](https://docs.arcade.dev/home/supported-models).
 
+### Get Started with Arcade
+
+To get started with Arcade, check out our [quickstart guide](https://docs.arcade.dev/home/quickstart).
+
 ### Building Your Own Tools
 
 Learn how to build your own tools by following our [creating a custom toolkit guide](https://docs.arcade.dev/home/build-tools/create-a-toolkit).
