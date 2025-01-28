@@ -57,7 +57,7 @@ _Pst. hey, you, give us a star if you like it!_
 
 ### Requirements
 
-1. An **[Arcade account](https://arcade-ai.typeform.com/early-access)** (currently a waitlist)
+1. An **[Arcade account]([https://arcade-ai.typeform.com/early-access](https://account.arcade.dev/registerOrRedirect?return_to=https%3A%2F%2Fapi.arcade.dev%2Fdashboard&new_user_return_to=https%3A%2F%2Fapi.arcade.dev%2Fdashboard%2Fwelcome))**
 2. **Python 3.10+** and **pip**
 
 ### Installation
@@ -68,7 +68,7 @@ Install the package:
 pip install 'arcade-ai[fastapi]'
 ```
 
-Log in to your account:
+Log in to your account via the CLI:
 
 ```bash
 arcade login
