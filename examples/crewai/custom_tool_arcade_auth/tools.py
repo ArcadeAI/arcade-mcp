@@ -128,13 +128,8 @@ class ListEmailsTool(BaseTool):
         Returns:
             str: Cleaned text.
         """
-        # Replace multiple newlines with a single newline
         text = re.sub(r"\n+", "\n", text)
-
-        # Replace multiple spaces with a single space
         text = re.sub(r"\s+", " ", text)
-
-        # Remove leading/trailing whitespace from each line
         text = "\n".join(line.strip() for line in text.split("\n"))
 
         return text
