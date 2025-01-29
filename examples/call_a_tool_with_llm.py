@@ -12,7 +12,7 @@ def call_tool_with_openai(client: OpenAI) -> dict:
         messages=[
             {"role": "user", "content": "Star the ArcadeAI/arcade-ai repository."},
         ],
-        model="gpt-4o-mini",  # TODO: Try "claude-3-5-sonnet-20240620" or other models from our supported model providers. Checkout out our docs for a full list: https://docs.arcade-ai.com/integrations
+        model="gpt-4o-mini",  # TODO: Try "claude-3-5-sonnet-20240620" or other models from our supported model providers. Checkout out our docs for a full list https://docs.arcade.dev
         user="you@example.com",
         tools=["Github.SetStarred"],
         tool_choice="generate",  # TODO: Try "execute" and note any differences
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     arcade_api_key = os.environ.get(
         "ARCADE_API_KEY"
     )  # If you forget your Arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
-    cloud_host = "https://api.arcade-ai.com" + "/v1"
+    cloud_host = "https://api.arcade.dev" + "/v1"
 
     openai_client = OpenAI(
         api_key=arcade_api_key,

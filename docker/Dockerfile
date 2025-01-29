@@ -1,25 +1,20 @@
-# Use a lightweight Python image
 FROM python:3.10-slim
 
 # Define build arguments with default values
 ARG PORT=8001
 ARG HOST=0.0.0.0
-ARG VERSION=0.1.0
+ARG VERSION=${VERSION:-1.0.1}
+ARG INSTALL_TOOLKITS=true
 
 # Set environment variables using the build arguments
 ENV PORT=${PORT}
 ENV HOST=${HOST}
-ENV VERSION=${VERSION}
 ENV OTEL_ENABLE=false
 ENV ARCADE_WORK_DIR=/app
-ENV TOOLKITS="arcade-code-sandbox,arcade-github,arcade-google,arcade-linkedin,arcade-math,arcade-search,arcade-slack,arcade-spotify,arcade-web,arcade-x,arcade-zoom"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    apt-utils \
-    build-essential \
     libssl-dev \
-    libffi-dev \
     python3-dev \
     curl \
     && apt-get clean \
@@ -29,6 +24,12 @@ WORKDIR /app/arcade
 
 # Copy the parent directory contents into the container
 COPY ./dist ./arcade /app/arcade/
+
+# Copy the toolkits.txt file into the container
+COPY ./docker/toolkits.txt /app/arcade/
+
+# Expose the port
+EXPOSE $PORT
 
 # List files for debugging purposes
 RUN ls -la /app/arcade/
@@ -49,8 +50,10 @@ RUN if [ ! "$(echo ${VERSION} | grep -E '\.dev0$')" ]; then \
     pip install .; \
     fi
 
-# Expose the port
-EXPOSE $PORT
+# Conditionally install toolkits.txt dependencies
+RUN if [ "$INSTALL_TOOLKITS" = "true" ] ; then \
+    python -m pip install -r ./toolkits.txt ; \
+    fi
 
 # Run the arcade workerup (hidden cli command)
 COPY docker/start.sh /app/start.sh

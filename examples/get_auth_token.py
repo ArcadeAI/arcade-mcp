@@ -22,7 +22,7 @@ def get_auth_token(client: Arcade, user_id: str) -> str:
     )
 
     if auth_response.status != "completed":
-        print(f"Click this link to authorize: {auth_response.authorization_url}")
+        print(f"Click this link to authorize: {auth_response.url}")
         auth_response = client.auth.wait_for_completion(auth_response)
 
     return auth_response.context.token
@@ -46,7 +46,7 @@ def use_auth_token(token: str) -> None:
 
 
 if __name__ == "__main__":
-    cloud_host = "https://api.arcade-ai.com"
+    cloud_host = "https://api.arcade.dev"
 
     client = Arcade(
         base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade locally, or any base_url if you're hosting elsewhere

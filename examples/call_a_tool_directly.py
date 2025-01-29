@@ -16,12 +16,12 @@ def call_non_auth_tool(client: Arcade, user_id: str) -> None:
     This is a simple example of calling a non-auth tool. Next, try writing your own non-auth tool for your own use case.
     """
     # Prepare the inputs to the tool as a dictionary where keys are the names of the parameters expected by the tool and the values are the actual values to pass to the tool
-    inputs = {"a": 9001, "b": 42}
+    tool_input = {"a": 9001, "b": 42}
 
     # Execute the tool
     response = client.tools.execute(
         tool_name="Math.Add",
-        inputs=inputs,
+        input=tool_input,
         user_id=user_id,
     )
 
@@ -30,7 +30,7 @@ def call_non_auth_tool(client: Arcade, user_id: str) -> None:
 
 
 if __name__ == "__main__":
-    cloud_host = "https://api.arcade-ai.com"
+    cloud_host = "https://api.arcade.dev"
 
     client = Arcade(
         base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere

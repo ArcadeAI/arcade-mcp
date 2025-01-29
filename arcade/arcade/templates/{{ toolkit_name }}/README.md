@@ -50,12 +50,12 @@
 1. Run `make test` from the root of the repository
 
 ## How to run evals:
-1. [Install the Arcade Engine Locally](https://docs.arcade-ai.com/home/install/local)
+1. [Install the Arcade Engine Locally](https://docs.arcade.dev/home/install/local)
 2. Install extra dependencies needed for evals:
    ```bash
    pip install 'arcade-ai[fastapi,evals]'
    ```
-3. Log into Arcade AI:
+3. Log into Arcade:
    ```bash
    arcade login
    ```

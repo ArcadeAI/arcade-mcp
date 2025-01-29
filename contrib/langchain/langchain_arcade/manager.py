@@ -3,8 +3,8 @@ from collections.abc import Iterator
 from typing import Any, Optional
 
 from arcadepy import Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
-from arcadepy.types.shared import AuthAuthorizationResponse as AuthorizationResponse
+from arcadepy.types import ToolDefinition
+from arcadepy.types.shared import AuthorizationResponse
 from langchain_core.tools import StructuredTool
 
 from langchain_arcade._utilities import (
@@ -91,12 +91,16 @@ class ArcadeToolManager:
         self,
         tools: Optional[list[str]] = None,
         toolkits: Optional[list[str]] = None,
-        langgraph: bool = False,
+        langgraph: bool = True,
     ) -> list[StructuredTool]:
         """Return the tools in the manager as LangChain StructuredTool objects.
 
         Note: if tools/toolkits are provided, the manager will update it's
         internal tools using a dictionary update by tool name.
+
+        If langgraph is True, the tools will be wrapped with LangGraph-specific
+        behavior such as NodeInterrupts for auth.
+        Note: Changed in 1.0.0 to default to True.
 
         Example:
             >>> manager = ArcadeToolManager(api_key="...")
@@ -188,7 +192,7 @@ class ArcadeToolManager:
         # First, gather single tools if the user specifically requested them.
         if tools:
             for tool_id in tools:
-                # ToolsResource.get(...) returns a single ToolGetResponse.
+                # ToolsResource.get(...) returns a single ToolDefinition.
                 single_tool = self.client.tools.get(name=tool_id)
                 all_tools.append(single_tool)
 
@@ -198,12 +202,12 @@ class ArcadeToolManager:
                 # tools.list(...) returns a paginated response (SyncOffsetPage),
                 # so we iterate over its items to accumulate tool definitions.
                 paginated_tools = self.client.tools.list(toolkit=tk)
-                all_tools.extend(paginated_tools.items)  # type: ignore[arg-type]
+                all_tools.extend(paginated_tools.items)
 
         # If no specific tools or toolkits were requested, retrieve *all* tools.
         if not tools and not toolkits:
             paginated_all_tools = self.client.tools.list()
-            all_tools.extend(paginated_all_tools.items)  # type: ignore[arg-type]
+            all_tools.extend(paginated_all_tools.items)
         # Build a dictionary that maps the "full_tool_name" to the tool definition.
         tool_definitions: dict[str, ToolDefinition] = {}
         for tool in all_tools:

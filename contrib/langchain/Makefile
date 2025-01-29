@@ -56,7 +56,7 @@ build-and-publish: build publish ## Build and publish.
 
 .PHONY: help
 help:
-	@echo "🛠️ Arcade AI Dev Commands:\n"
+	@echo "🛠️ Arcade Dev Commands:\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help

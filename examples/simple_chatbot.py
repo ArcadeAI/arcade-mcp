@@ -1,5 +1,5 @@
 """
-Example script demonstrating how to build a simple chatbot with Arcade AI.
+Example script demonstrating how to build a simple chatbot with Arcade.
 
 For this example, we are using the prebuilt Google Docs toolkit to create and edit documents.
 
@@ -55,20 +55,22 @@ if __name__ == "__main__":
     arcade_api_key = os.environ.get(
         "ARCADE_API_KEY"
     )  # If you forget your Arcade API key, it is stored at ~/.arcade/credentials.yaml on `arcade login`
-    local_host = "http://localhost:9099/v1"
+    cloud_host = "https://api.arcade.dev/v1"
     user_id = "user@example.com"
 
     openai_client = OpenAI(
         api_key=arcade_api_key,
-        base_url=local_host,
+        base_url=cloud_host,
     )
 
     tool_names = [
-        "Google.GetDocumentById",
-        "Google.InsertTextAtEndOfDocument",
-        "Google.CreateBlankDocument",
-        "Google.CreateDocumentFromText",
-        "Google.ListDocuments",
+        "Google.SendEmail",
+        "Google.SendDraftEmail",
+        "Google.WriteDraftEmail",
+        "Google.UpdateDraftEmail",
+        "Google.ListDraftEmails",
+        "Google.ListEmailsByHeader",
+        "Google.ListEmails",
     ]
 
     chat(openai_client, tool_names, user_id)

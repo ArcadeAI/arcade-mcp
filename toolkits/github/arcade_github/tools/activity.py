@@ -14,7 +14,7 @@ async def set_starred(
     context: ToolContext,
     owner: Annotated[str, "The owner of the repository"],
     name: Annotated[str, "The name of the repository"],
-    starred: Annotated[bool, "Whether to star the repository or not"],
+    starred: Annotated[bool, "Whether to star the repository or not"] = True,
 ) -> Annotated[
     str, "A message indicating whether the repository was successfully starred or unstarred"
 ]:

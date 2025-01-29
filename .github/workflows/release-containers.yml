@@ -29,7 +29,7 @@ jobs:
           running-workflow-name: 'Main'
           repo-token: ${{ secrets.PAT }}
           wait-interval: 10
-          ignore-checks: "set-version"
+          ignore-checks: "set-version,release-and-publish"
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -100,11 +100,11 @@ jobs:
       id: build
       run: |
         make docker VERSION=${{ needs.set-version.outputs.version  }} ARCH=${{ matrix.arch }}
+        make docker-base VERSION=${{ needs.set-version.outputs.version  }} ARCH=${{ matrix.arch }}
         make publish-ecr VERSION=${{ needs.set-version.outputs.version  }} ARCH=${{ matrix.arch }}
 
     - name: Push GHCR
       if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
-      working-directory: ./docker
       run: |
         make publish-ghcr VERSION=${{ needs.set-version.outputs.version }} ARCH=${{ matrix.arch }}
 
@@ -144,12 +144,16 @@ jobs:
 
       - name: Push manifest to ECR
         working-directory: ./docker
-        run: make ecr-manifest VERSION=${{ needs.set-version.outputs.version }}
+        run: |
+          make ecr-manifest  VERSION=${{ needs.set-version.outputs.version }}
+          make ecr-manifest INSTALL_TOOLKITS=false VERSION=${{ needs.set-version.outputs.version }}
 
       - name: Push manifest to GHCR
         if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/')
         working-directory: ./docker
-        run: make ghcr-manifest VERSION=${{ needs.set-version.outputs.version }}
+        run: |
+          make ghcr-manifest VERSION=${{ needs.set-version.outputs.version }}
+          make ghcr-manifest INSTALL_TOOLKITS=false VERSION=${{ needs.set-version.outputs.version }}
 
   # Currently broken: workflow deploy requires all versions
   # deploy:

@@ -2,24 +2,35 @@ VENDOR ?= ArcadeAI
 PROJECT ?= ArcadeAI
 SOURCE ?= https://github.com/ArcadeAI/arcade-ai
 LICENSE ?= MIT
-DESCRIPTION ?= "Arcade AI for LLM Tool Serving"
+DESCRIPTION ?= "Arcade Worker for LLM Tool Serving"
 REPOSITORY ?= arcadeai/worker
 ECR_ENDPOINT ?= 471112909428.dkr.ecr.us-east-1.amazonaws.com
-ARCH ?= arm64
+ARCH ?= $(shell uname -m)
 
 VERSION ?= 0.1.0.dev0
 COMMIT ?= $(shell git describe --dirty --always --abbrev=15)
 BUILD_DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 IMAGE_NAME ?= worker
 PORT ?= 8002
+INSTALL_TOOLKITS ?= true
 
+# If INSTALL_TOOLKITS is true, we are building the worker image with all toolkits
+# Otherwise, we are building the worker image with no toolkits
+ifeq ($(INSTALL_TOOLKITS), true)
+    REPOSITORY := $(REPOSITORY)
+else
+    REPOSITORY := $(REPOSITORY)-base
+endif
+
+VERSION_TAG := $(VERSION)-$(ARCH)
 
 .PHONY: docker-build
 docker-build: ## Build the Docker container
-	@echo "🛠️ Building Docker image ($(VERSION)).."
+	@echo "🛠️ Building Docker image ($(VERSION_TAG)).."
 	@echo "- Commit: $(COMMIT)"
 	@echo "- Build Date: $(BUILD_DATE)"
-	@docker build --build-arg PORT=$(PORT) -f Dockerfile -t $(REPOSITORY):$(VERSION) .. \
+	@docker build --build-arg PORT=$(PORT) -f Dockerfile -t $(REPOSITORY):$(VERSION_TAG) \
+    --build-arg INSTALL_TOOLKITS=$(INSTALL_TOOLKITS) \
 	--build-arg PORT=$(PORT) \
 	--build-arg VERSION="$(VERSION)" \
 	--build-arg COMMIT="$(COMMIT)" \
@@ -27,14 +38,16 @@ docker-build: ## Build the Docker container
 	--label=org.opencontainers.image.vendor="$(VENDOR)" \
 	--label=org.opencontainers.image.title="$(PROJECT)" \
 	--label=org.opencontainers.image.revision="$(COMMIT)" \
-	--label=org.opencontainers.image.version="$(VERSION)" \
+	--label=org.opencontainers.image.version="$(VERSION_TAG)" \
 	--label=org.opencontainers.image.created="$(BUILD_DATE)" \
 	--label=org.opencontainers.image.source="$(SOURCE)" \
 	--label=org.opencontainers.image.licenses="$(LICENSE)" \
-	--label=org.opencontainers.image.description=$(DESCRIPTION)
+	--label=org.opencontainers.image.description=$(DESCRIPTION) \
+     ..
+
 
 ecr-manifest: ## Make a manifest file for the image
-	@echo "🛠️ Build manifest file ($(VERSION)).."
+	@echo "🛠️ Build manifest file for $(REPOSITORY):$(VERSION).."
 	@echo "- Commit: $(COMMIT)"
 	@echo "- Build Date: $(BUILD_DATE)"
 	@export DOCKER_CLI_EXPERIMENTAL=enabled
@@ -56,7 +69,7 @@ ecr-manifest: ## Make a manifest file for the image
 	@docker manifest push $(ECR_ENDPOINT)/$(REPOSITORY):latest
 
 ghcr-manifest: ## Make a manifest file for the image
-	@echo "🛠️ Build manifest file ($(VERSION)).."
+	@echo "🛠️ Build manifest file for $(REPOSITORY):$(VERSION).."
 	@echo "- Commit: $(COMMIT)"
 	@echo "- Build Date: $(BUILD_DATE)"
 	@export DOCKER_CLI_EXPERIMENTAL=enabled
@@ -80,17 +93,16 @@ ghcr-manifest: ## Make a manifest file for the image
 .PHONY: docker-run
 docker-run: ## Run the Docker container
 	@echo "\n🚀 Run the container with the following ..."
-	@echo ">>> docker run -d -p $(PORT):$(PORT) $(REPOSITORY):$(VERSION)"
-
+	@echo ">>> docker run -d -p $(PORT):$(PORT) $(REPOSITORY):$(VERSION_TAG)"
 
 .PHONY: publish-ecr
 publish-ecr:
 	@echo "🚚 Pushing the Agent image to ECR.."
-	@docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)
-	@echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)"
-	@docker push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-$(ARCH)
-	@echo $(VERSION) | grep -q $(RC_PART) || { \
-		docker tag $(REPOSITORY):$(VERSION) $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
+	@docker tag $(REPOSITORY):$(VERSION_TAG) $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)
+	@echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)"
+	@docker push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)
+	@echo $(VERSION_TAG) | grep -q $(RC_PART) || { \
+		docker tag $(REPOSITORY):$(VERSION_TAG) $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
 		echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH)"; \
 		docker push $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
 	}
@@ -98,19 +110,29 @@ publish-ecr:
 .PHONY: publish-ghcr
 publish-ghcr:
 	@echo "🚚 Pushing the Agent image to GHCR.."
-	@docker tag $(REPOSITORY):$(VERSION) ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)
-	@echo "- pushing ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)"
-	@docker push ghcr.io/$(REPOSITORY):$(VERSION)-$(ARCH)
+	@docker tag $(REPOSITORY):$(VERSION_TAG) ghcr.io/$(REPOSITORY):$(VERSION_TAG)
+	@echo "- pushing ghcr.io/$(REPOSITORY):$(VERSION_TAG)"
+	@docker push ghcr.io/$(REPOSITORY):$(VERSION_TAG)
 	@echo $(VERSION) | grep -q $(RC_PART) || { \
-		docker tag $(REPOSITORY):$(VERSION) ghcr.io/$(REPOSITORY):latest-$(ARCH); \
+		docker tag $(REPOSITORY):$(VERSION_TAG) ghcr.io/$(REPOSITORY):latest-$(ARCH); \
 		echo "- pushing ghcr.io/$(REPOSITORY):latest-$(ARCH)"; \
 		docker push ghcr.io/$(REPOSITORY):latest-$(ARCH); \
 	}
 
 
 .PHONY: ecr-login
-ecr-login: # Login to ECR
+ecr-login: ## Login to ECR
 	@aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(ECR_ENDPOINT)
+
+
+.PHONY: gh-login
+gh-login: ## Login to GHCR
+	@echo "🚚 Logging in to GHCR..."
+	@if [ -z "$(GHCR_PAT)" ]; then \
+		echo "Error: GHCR_PAT environment variable is not set"; \
+		exit 1; \
+	fi
+	@echo $(GHCR_PAT) | docker login ghcr.io -u arcadeai --password-stdin
 
 .PHONY: help
 help:

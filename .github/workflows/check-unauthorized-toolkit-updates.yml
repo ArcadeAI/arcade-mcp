@@ -1,9 +1,8 @@
 # This workflow prevents unauthorized updates to existing toolkit versions,
 # as well as unauthorized renames or removals of toolkits.
 # Toolkits are versioned via the `toolkits/*/pyproject.toml` file.
-# It ensures that only members or owners of the ArcadeAI organization
-# can modify existing toolkit versions, rename, or remove toolkits.
-# If a pull request is made by someone outside the organization, the workflow
+# It ensures that only toolkit release managers can modify existing toolkit versions, rename, or remove toolkits.
+# If a pull request is made by someone not in the toolkit release managers list, then the workflow
 # will fail if any existing toolkit version is changed, or if a toolkit is renamed or removed.
 
 name: Prevent Unauthorized Version Updates
@@ -21,15 +20,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check author association
-        id: check_author
-        # OWNERs and MEMBERs of the ArcadeAI organization can alter an existing toolkit version, so exit with success if this is the case
+      - name: Load toolkit release managers
+        id: load_trm
         run: |
-          echo "Author association: ${{ github.event.pull_request.author_association }}"
-          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" || "${{ github.event.pull_request.author_association }}" == "MEMBER" ]]; then
-            echo "Author is an OWNER or MEMBER of the Arcade AI organization. Exiting workflow successfully."
+          echo "Loading authorized toolkit release managers from toolkits/TOOLKIT_RELEASE_MANAGERS.txt"
+          if [[ -f toolkits/TOOLKIT_RELEASE_MANAGERS.txt ]]; then
+            TOOLKIT_RELEASE_MANAGERS=$(cat toolkits/TOOLKIT_RELEASE_MANAGERS.txt | tr '\n' ' ')
+            echo "toolkit_release_managers=${TOOLKIT_RELEASE_MANAGERS}" >> $GITHUB_OUTPUT
+          else
+            echo "ERROR: TOOLKIT_RELEASE_MANAGERS.txt not found."
+            exit 1
+          fi
+
+      - name: Check if PR author is a toolkit release manager
+        id: check_author
+        run: |
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          echo "PR Author: $PR_AUTHOR"
+          if echo "${{ steps.load_trm.outputs.toolkit_release_managers }}" | grep -wq "$PR_AUTHOR"; then
+            echo "Author is a toolkit release manager. Exiting workflow successfully."
             echo "authorized=true" >> $GITHUB_OUTPUT
           else
+            echo "Author is not authorized to perform toolkit release. Need to perform toolkit version checks."
             echo "authorized=false" >> $GITHUB_OUTPUT
           fi
 
@@ -66,11 +78,11 @@ jobs:
             echo "Comparing $package_name: $target_version (target) vs $current_version (current)"
             if [ -z "$current_version" ]; then
               echo "Package $package_name has been removed or renamed."
-              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can remove or rename toolkits."
+              echo "ERROR: Only toolkit release managers can remove or rename toolkits."
               exit 1
             elif [ "$target_version" != "$current_version" ]; then
               echo "Version mismatch for $package_name: $target_version (target) vs $current_version (current)"
-              echo "ERROR: Only OWNERS and MEMBERS of the ArcadeAI organization can alter an existing toolkit version."
+              echo "ERROR: Only toolkit release managers can alter an existing toolkit version."
               exit 1
             else
               echo "Versions match for $package_name: $target_version (target) vs $current_version (current)"

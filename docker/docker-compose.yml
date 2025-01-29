@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  engine:
+    image: ghcr.io/arcadeai/engine:latest
+    container_name: arcade-engine
+    volumes:
+      - ./docker.engine.yaml:/bin/engine.yaml
+      - ./.env:/bin/.env
+      - ./db/:/app/
+    ports:
+      - "9099:9099"
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+    networks:
+      arcade-network:
+    command: /bin/arcade-engine --config /bin/engine.yaml --env /bin/.env --migrate
+
+  worker:
+    image: ghcr.io/arcadeai/worker:latest
+    container_name: arcade-worker
+    ports:
+      - "8002:8002"
+    networks:
+      arcade-network:
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: arcade-redis
+    ports:
+      - "6379:6379"
+      - "8004:8002"
+    depends_on:
+      worker:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      arcade-network:
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: arcade-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - engine
+    networks:
+      - arcade-network
+
+networks:
+  arcade-network:
+    driver: bridge

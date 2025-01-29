@@ -15,7 +15,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 toolkit = ArcadeToolManager(api_key=arcade_api_key)
 # Retrieve tools compatible with LangGraph
-tools = toolkit.get_tools(langgraph=True)
+tools = toolkit.get_tools()
 tool_node = ToolNode(tools)
 
 PROMPT_TEMPLATE = f"""
@@ -60,7 +60,7 @@ def check_auth(state: AgentState, config: dict):
     tool_name = state["messages"][-1].tool_calls[0]["name"]
     auth_response = toolkit.authorize(tool_name, user_id)
     if auth_response.status != "completed":
-        return {"auth_url": auth_response.authorization_url}
+        return {"auth_url": auth_response.url}
     else:
         return {"auth_url": None}
 

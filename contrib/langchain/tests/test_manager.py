@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from arcadepy.pagination import SyncOffsetPage
-from arcadepy.types import ToolGetResponse as ToolDefinition
-from arcadepy.types.shared import AuthAuthorizationResponse as AuthorizationResponse
+from arcadepy.types import ToolDefinition
+from arcadepy.types.shared import AuthorizationResponse
 from langchain_arcade.manager import ArcadeToolManager
 
 
@@ -63,7 +63,7 @@ def make_tool():
         toolkit = kwargs.pop("toolkit", {"name": raw_toolkit})
 
         # Provide a default input
-        # arcadepy.types.ToolGetResponse expects "input" to be a valid structure (dict).
+        # arcadepy.types.ToolDefinition expects "input" to be a valid structure (dict).
         tool_input = kwargs.pop("input", {"parameters": []})
 
         # Convert MagicMock-based requirements (with authorization) to an appropriate dict,

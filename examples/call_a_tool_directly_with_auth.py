@@ -29,12 +29,12 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
     client.auth.wait_for_completion(auth_response)
 
     # Prepare the inputs to the tool as a dictionary where keys are the names of the parameters expected by the tool and the values are the actual values to pass to the tool
-    inputs = {"n_emails": 5}
+    tool_input = {"n_emails": 5}
 
     # Execute the tool
     response = client.tools.execute(
         tool_name="Google.ListEmails",
-        inputs=inputs,
+        input=tool_input,
         user_id=user_id,
     )
 
@@ -44,7 +44,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 
 if __name__ == "__main__":
     client = Arcade(
-        base_url="https://api.arcade-ai.com",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
+        base_url="https://api.arcade.dev",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
     )
 
     user_id = "you@example.com"
