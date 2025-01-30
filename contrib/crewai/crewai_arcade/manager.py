@@ -52,14 +52,14 @@ class CrewAIToolManager(BaseArcadeManager):
                 # Get authorization status
                 auth_response = self.authorize(tool_name, self.user_id)  # type: ignore[arg-type]
 
-                if not self.is_authorized(auth_response.id):
+                if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                     print(
                         f"Authorization required for {tool_name}. Authorization URL: {auth_response.url}"
                     )
 
                     auth_response = self.wait_for_completion(auth_response)
 
-                    if not self.is_authorized(auth_response.id):
+                    if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                         return ValueError(
                             f"Authorization failed for {tool_name}. URL: {auth_response.url}"
                         )

@@ -1,10 +1,6 @@
-import logging
-
 from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
 from arcadepy.types.shared import AuthorizationResponse
-
-logger = logging.getLogger(__name__)
 
 
 class ArcadeAuthMixin:

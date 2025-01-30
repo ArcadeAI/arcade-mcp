@@ -1,6 +1,6 @@
 from typing import Any
 
-from arcadepy.types import ToolGetResponse as ToolDefinition
+from arcadepy.types import ToolDefinition
 from pydantic import BaseModel, Field, create_model
 
 # Mapping of Arcade value types to Python types
