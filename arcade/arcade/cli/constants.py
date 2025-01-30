@@ -3,11 +3,11 @@ DEFAULT_ENGINE_HOST = "api.arcade.dev"
 LOCALHOST = "localhost"
 
 _style_block = b"""
-<link rel="icon" href="https://cdn.arcade-ai.com/favicons/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="https://cdn.arcade-ai.com/favicons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://cdn.arcade-ai.com/favicons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://cdn.arcade-ai.com/favicons/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="https://cdn.arcade-ai.com/favicons/apple-touch-icon.png">
+<link rel="icon" href="https://cdn.arcade.dev/favicons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="https://cdn.arcade.dev/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://cdn.arcade.dev/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://cdn.arcade.dev/favicons/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://cdn.arcade.dev/favicons/apple-touch-icon.png">
 
 <style>
     body {
@@ -114,7 +114,7 @@ LOGIN_SUCCESS_HTML = (
 </head>
 <body>
     <div class="container">
-        <img src="https://cdn.arcade-ai.com/logos/a-icon.png" alt="Arcade logo" class="logo">
+        <img src="https://cdn.arcade.dev/logos/a-icon.png" alt="Arcade logo" class="logo">
         <h2>Log in to Arcade CLI</h2>
         <p class="message info">Success! You can close this window.</p>
     </div>
@@ -137,7 +137,7 @@ LOGIN_FAILED_HTML = (
 </head>
 <body>
     <div class="container">
-        <img src="https://cdn.arcade-ai.com/logos/a-icon.png" alt="Arcade logo" class="logo">
+        <img src="https://cdn.arcade.dev/logos/a-icon.png" alt="Arcade logo" class="logo">
         <h2>Log in to Arcade CLI</h2>
         <p class="message error">Something went wrong. Please close this window and try again.</p>
     </div>
