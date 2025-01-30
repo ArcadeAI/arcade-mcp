@@ -58,11 +58,12 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
 
         # ensure the ~/.arcade directory exists
         # TODO: this should use WORK_DIR from env if set
-        if not os.path.exists(os.path.expanduser("~/.arcade")):
-            os.makedirs(os.path.expanduser("~/.arcade"), exist_ok=True)
+        arcade_dir = os.path.join(os.path.expanduser("~"), ".arcade")
+        if not os.path.exists(arcade_dir):
+            os.makedirs(arcade_dir, exist_ok=True)
 
         # TODO don't overwrite existing config
-        config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
+        config_file_path = os.path.join(arcade_dir, "credentials.yaml")
         new_config = {"cloud": {"api": {"key": api_key}, "user": {"email": email}}}
         with open(config_file_path, "w") as f:
             yaml.dump(new_config, f)
