@@ -1,8 +1,8 @@
 import logging
 
 from arcadepy import Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
-from arcadepy.types.shared import AuthAuthorizationResponse
+from arcadepy.types import ToolDefinition
+from arcadepy.types.shared import AuthorizationResponse
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class ArcadeAuthMixin:
     client: Arcade
     _tools: dict[str, ToolDefinition]
 
-    def authorize(self, tool_name: str, user_id: str) -> AuthAuthorizationResponse:
+    def authorize(self, tool_name: str, user_id: str) -> AuthorizationResponse:
         """Authorize a user for a tool.
 
         Args:
@@ -21,20 +21,18 @@ class ArcadeAuthMixin:
             user_id: The user ID to authorize.
 
         Returns:
-            AuthAuthorizationResponse
+            AuthorizationResponse
         """
         return self.client.tools.authorize(tool_name=tool_name, user_id=user_id)
 
-    def wait_for_completion(
-        self, auth_response: AuthAuthorizationResponse
-    ) -> AuthAuthorizationResponse:
+    def wait_for_completion(self, auth_response: AuthorizationResponse) -> AuthorizationResponse:
         """Wait for an authorization process to complete.
 
         Args:
             auth_response: The authorization response from the initial authorize call.
 
         Returns:
-            AuthAuthorizationResponse with completed status
+            AuthorizationResponse with completed status
         """
         return self.client.auth.wait_for_completion(auth_response)
 

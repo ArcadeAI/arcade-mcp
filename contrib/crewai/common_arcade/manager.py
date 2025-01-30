@@ -3,7 +3,7 @@ from collections.abc import Iterator
 from typing import Any, Optional
 
 from arcadepy import Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
+from arcadepy.types import ToolDefinition
 
 from .auth import ArcadeAuthMixin
 

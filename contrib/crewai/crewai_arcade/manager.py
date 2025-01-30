@@ -1,7 +1,7 @@
 from typing import Any, Callable, Optional
 
 from arcadepy import Arcade
-from arcadepy.types import ToolGetResponse as ToolDefinition
+from arcadepy.types import ToolDefinition
 from common_arcade.manager import BaseArcadeManager
 from common_arcade.utils import tool_definition_to_pydantic_model
 
