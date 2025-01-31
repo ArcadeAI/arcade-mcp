@@ -10,21 +10,18 @@ from crewai_arcade.utils import tool_definition_to_pydantic_model
 
 
 class ArcadeToolManager:
-    """CrewAI-specific implementation of the BaseArcadeManager.
+    """Arcade tool manager for CrewAI
 
-    This manager requires a user_id during initialization as it's needed for tool authorization.
+    This manager wraps Arcade tools as CrewAI StructuredTools.
     """
-
-    client: Arcade
-    _tools: dict[str, ToolDefinition]
 
     def __init__(
         self,
         user_id: str,
         client: Optional[Arcade] = None,
-        **kwargs: Any,
+        **kwargs: dict[str, Any],
     ) -> None:
-        """Initialize the CrewAIToolManager.
+        """Initialize the ArcadeToolManager.
 
         Args:
             client: Arcade client instance.
@@ -34,19 +31,17 @@ class ArcadeToolManager:
         Raises:
             ValueError: If user_id is empty or None.
         """
-        if not user_id:
-            raise ValueError("user_id is required for CrewAIToolManager")
 
         if not client:
             api_key = kwargs.get("api_key")
             base_url = kwargs.get("base_url")
-            client = Arcade(api_key=api_key, base_url=base_url)  # type: ignore[arg-type]
+            client = Arcade(api_key=api_key, base_url=base_url, **kwargs)
 
-        self.client = client
         self.user_id = user_id
+        self._client = client
         self._tools: dict[str, ToolDefinition] = {}
 
-    def create_tool_function(self, tool_name: str, **kwargs: Any) -> Callable[..., Any]:
+    def create_tool_function(self, tool_name: str) -> Callable[..., Any]:
         """Creates a function wrapper for an Arcade tool.
 
         Args:
@@ -61,7 +56,7 @@ class ArcadeToolManager:
             # Handle authorization if required
             if self.requires_auth(tool_name):
                 # Get authorization status
-                auth_response = self.authorize(tool_name, self.user_id)  # type: ignore[arg-type]
+                auth_response = self.authorize(tool_name, self.user_id)
 
                 if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                     print(
@@ -76,16 +71,16 @@ class ArcadeToolManager:
                         )
 
             # Tool execution
-            response = self.client.tools.execute(
+            response = self._client.tools.execute(
                 tool_name=tool_name,
                 input=kwargs,
-                user_id=self.user_id,  # type: ignore[arg-type]
+                user_id=self.user_id,
             )
 
             tool_error = response.output.error if response.output else None
             if tool_error:
                 return str(tool_error)
-            if response.success:
+            if response.success and response.output:
                 return response.output.value
 
             return "Failed to call " + tool_name
@@ -112,20 +107,19 @@ class ArcadeToolManager:
         """
         self._tools = self._retrieve_tool_definitions(tools, toolkits)
 
-    def wrap_tool(self, name: str, tool_def: ToolDefinition, **kwargs: Any) -> Any:
-        """Wrap a tool as a CrewAI StructuredTool.
+    def wrap_tool(self, name: str, tool_def: ToolDefinition) -> StructuredTool:
+        """Wrap an Arcade tool as a CrewAI StructuredTool.
 
         Args:
             name: The name of the tool to wrap.
             tool_def: The definition of the tool to wrap.
-            **kwargs: Additional keyword arguments for tool configuration.
 
         Returns:
             A StructuredTool instance.
         """
         description = tool_def.description or "No description provided."
         args_schema = tool_definition_to_pydantic_model(tool_def)
-        tool_function = self.create_tool_function(name, **kwargs)
+        tool_function = self.create_tool_function(name)
 
         return StructuredTool.from_function(
             func=tool_function,
@@ -135,8 +129,8 @@ class ArcadeToolManager:
         )
 
     def get_tools(
-        self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None, **kwargs: Any
-    ) -> list[Any]:
+        self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
+    ) -> list[StructuredTool]:
         """
         Retrieve and return tools in a customized format.
 
@@ -163,7 +157,7 @@ class ArcadeToolManager:
             new_tools = self._retrieve_tool_definitions(tools, toolkits)
             self._tools.update(new_tools)
 
-        return [self.wrap_tool(name, tool_def, **kwargs) for name, tool_def in self._tools.items()]
+        return [self.wrap_tool(name, tool_def) for name, tool_def in self._tools.items()]
 
     def _retrieve_tool_definitions(
         self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
@@ -184,14 +178,14 @@ class ArcadeToolManager:
         all_tools: list[ToolDefinition] = []
         if tools is not None or toolkits is not None:
             if tools:
-                single_tools = [self.client.tools.get(name=tool_id) for tool_id in tools]
+                single_tools = [self._client.tools.get(name=tool_id) for tool_id in tools]
                 all_tools.extend(single_tools)
             if toolkits:
                 for tk in toolkits:
-                    all_tools.extend(self.client.tools.list(toolkit=tk))
+                    all_tools.extend(self._client.tools.list(toolkit=tk))
         else:
             # retrieve all tools
-            page_iterator = self.client.tools.list()
+            page_iterator = self._client.tools.list()
             all_tools.extend(page_iterator)
 
         tool_definitions: dict[str, ToolDefinition] = {}
@@ -225,7 +219,7 @@ class ArcadeToolManager:
         Returns:
             AuthorizationResponse
         """
-        return self.client.tools.authorize(tool_name=tool_name, user_id=user_id)
+        return self._client.tools.authorize(tool_name=tool_name, user_id=user_id)
 
     def wait_for_completion(self, auth_response: AuthorizationResponse) -> AuthorizationResponse:
         """Wait for an authorization process to complete.
@@ -236,11 +230,11 @@ class ArcadeToolManager:
         Returns:
             AuthorizationResponse with completed status
         """
-        return self.client.auth.wait_for_completion(auth_response)
+        return self._client.auth.wait_for_completion(auth_response)
 
     def is_authorized(self, authorization_id: str) -> bool:
         """Check if a tool authorization is complete."""
-        return self.client.auth.status(id=authorization_id).status == "completed"
+        return self._client.auth.status(id=authorization_id).status == "completed"
 
     def requires_auth(self, tool_name: str) -> bool:
         """Check if a tool requires authorization."""

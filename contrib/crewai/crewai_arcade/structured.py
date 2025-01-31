@@ -27,7 +27,7 @@ class StructuredTool(BaseTool):  # type: ignore[no-any-unimported]
         """Create a new StructuredTool instance from a function.
 
         Args:
-            func: Function to wrap as a tool
+            func: Function to wrap as a CrewAI tool
             name: Custom name for the tool
             description: Custom description of the tool's functionality
             args_schema: Pydantic model defining the expected argument structure
