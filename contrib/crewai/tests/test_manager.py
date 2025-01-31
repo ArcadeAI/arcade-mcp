@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from arcadepy.types import ToolGetResponse as ToolDefinition
-from crewai_arcade.manager import CrewAIToolManager
+from crewai_arcade.manager import ArcadeToolManager
 
 
 @pytest.fixture
@@ -14,20 +14,20 @@ def mock_client():
 def test_init_requires_user_id(mock_client):
     """Test that CrewAIToolManager requires user_id during initialization."""
     with pytest.raises(ValueError, match="user_id is required for CrewAIToolManager"):
-        CrewAIToolManager(client=mock_client, user_id="")
+        ArcadeToolManager(client=mock_client, user_id="")
 
     with pytest.raises(ValueError, match="user_id is required for CrewAIToolManager"):
-        CrewAIToolManager(client=mock_client, user_id=None)
+        ArcadeToolManager(client=mock_client, user_id=None)
 
     # Should work with valid user_id
-    manager = CrewAIToolManager(client=mock_client, user_id="test_user")
+    manager = ArcadeToolManager(client=mock_client, user_id="test_user")
     assert manager.user_id == "test_user"
 
 
 @pytest.fixture
 def manager(mock_client):
     """Fixture to create a CrewAIToolManager instance with mocked client and user_id."""
-    return CrewAIToolManager(client=mock_client, user_id="test_user")
+    return ArcadeToolManager(client=mock_client, user_id="test_user")
 
 
 @patch("crewai_arcade.manager.CrewAIToolManager.requires_auth")
