@@ -1,122 +1,250 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-from arcadepy.types import ToolGetResponse as ToolDefinition
-from crewai_arcade.manager import ArcadeToolManager
+from arcadepy.pagination import SyncOffsetPage
+from arcadepy.types import ToolDefinition
+from crewai_arcade.manager import TOOL_NAME_SEPARATOR, ArcadeToolManager
+
+# --- Fixtures ---
 
 
 @pytest.fixture
 def mock_client():
-    """Fixture to create a mock Arcade client."""
+    """Create a fake Arcade client fixture."""
     return MagicMock()
-
-
-def test_init_requires_user_id(mock_client):
-    """Test that CrewAIToolManager requires user_id during initialization."""
-    with pytest.raises(ValueError, match="user_id is required for CrewAIToolManager"):
-        ArcadeToolManager(client=mock_client, user_id="")
-
-    with pytest.raises(ValueError, match="user_id is required for CrewAIToolManager"):
-        ArcadeToolManager(client=mock_client, user_id=None)
-
-    # Should work with valid user_id
-    manager = ArcadeToolManager(client=mock_client, user_id="test_user")
-    assert manager.user_id == "test_user"
 
 
 @pytest.fixture
 def manager(mock_client):
-    """Fixture to create a CrewAIToolManager instance with mocked client and user_id."""
-    return ArcadeToolManager(client=mock_client, user_id="test_user")
+    """Return an ArcadeToolManager with a test user and fake client."""
+    return ArcadeToolManager(user_id="test_user", client=mock_client)
 
 
-@patch("crewai_arcade.manager.CrewAIToolManager.requires_auth")
-@patch("crewai_arcade.manager.CrewAIToolManager.authorize")
-@patch("crewai_arcade.manager.CrewAIToolManager.wait_for_completion")
-@patch("crewai_arcade.manager.CrewAIToolManager.is_authorized")
-def test_create_tool_function_success(
-    mock_is_authorized, mock_authorize, mock_wait_for_completion, mock_requires_auth, manager
-):
-    """Test that the tool function executes successfully when authorized."""
-    mock_requires_auth.return_value = True
-    mock_authorize.return_value = MagicMock(
+@pytest.fixture
+def fake_tool_definition():
+    """Return a fake tool definition for testing purposes."""
+    fake_tool = MagicMock(spec=ToolDefinition)
+    fake_tool.name = "SearchGoogle"
+    fake_tool.description = "Test tool description"
+    fake_tool.toolkit = MagicMock()
+    fake_tool.toolkit.name = "Search"
+    fake_tool.requirements = None
+    return fake_tool
+
+
+# --- Tests for create_tool_function ---
+
+
+def test_create_tool_function_success(manager):
+    """
+    Test that the tool function executes successfully when authorization passes.
+    """
+    # Override authorization-related methods to simulate a completed auth
+    manager.requires_auth = lambda tool: True
+    fake_auth_response = MagicMock(
         authorization_id="auth_id", url="http://auth.url", status="completed"
     )
-    mock_is_authorized.return_value = True
-    mock_wait_for_completion.return_value = mock_authorize
-    manager.client.tools.execute.return_value = MagicMock(
-        success=True, output=MagicMock(value="result", error=None)
-    )
+    manager.authorize = lambda tool, user_id: fake_auth_response
+    manager.wait_for_completion = lambda auth: fake_auth_response
+    manager.is_authorized = lambda auth_id: True
 
-    tool_function = manager.create_tool_function("test_tool")
-    result = tool_function()
+    # Setup execute to return a successful response
+    fake_output = MagicMock(value="result", error=None)
+    fake_response = MagicMock(success=True, output=fake_output)
+    manager._client.tools.execute.return_value = fake_response
+
+    tool_function = manager._create_tool_function("test_tool")
+    result = tool_function()  # Call without args
 
     assert result == "result"
-    manager.client.tools.execute.assert_called_once_with(
+    manager._client.tools.execute.assert_called_once_with(
         tool_name="test_tool", input={}, user_id="test_user"
     )
 
 
-@patch("crewai_arcade.manager.CrewAIToolManager.requires_auth")
-@patch("crewai_arcade.manager.CrewAIToolManager.authorize")
-@patch("crewai_arcade.manager.CrewAIToolManager.wait_for_completion")
-def test_create_tool_function_unauthorized(
-    mock_wait_for_completion, mock_authorize, mock_requires_auth, manager
-):
-    """Test that the tool function returns a ValueError when authorization fails."""
-    mock_requires_auth.return_value = True
-    mock_authorize.return_value = MagicMock(
+def test_create_tool_function_unauthorized(manager):
+    """
+    Test that a tool function returns a ValueError when authorization fails.
+    """
+    manager.requires_auth = lambda tool: True
+    fake_auth_response = MagicMock(
         authorization_id="auth_id", url="http://auth.url", status="pending"
     )
-    mock_wait_for_completion.return_value = mock_authorize
+    manager.authorize = lambda tool, user_id: fake_auth_response
+    manager.wait_for_completion = lambda auth: fake_auth_response
+    manager.is_authorized = lambda auth_id: False  # Simulate failing auth
 
-    tool_function = manager.create_tool_function("test_tool")
+    tool_function = manager._create_tool_function("test_tool")
     result = tool_function()
+
     assert isinstance(result, ValueError)
     assert "Authorization failed for test_tool" in str(result)
 
 
-@patch("crewai_arcade.manager.CrewAIToolManager.requires_auth")
-@patch("crewai_arcade.manager.CrewAIToolManager.authorize")
-@patch("crewai_arcade.manager.CrewAIToolManager.wait_for_completion")
-def test_create_tool_function_execution_failure(
-    mock_wait_for_completion, mock_authorize, mock_requires_auth, manager
-):
-    """Test that the tool function returns a ValueError on execution failure."""
-    mock_requires_auth.return_value = True
-    mock_authorize.return_value = MagicMock(
+def test_create_tool_function_execution_failure(manager):
+    """
+    Test that a tool function returns an error string when tool execution fails.
+    """
+    manager.requires_auth = lambda tool: True
+    fake_auth_response = MagicMock(
         authorization_id="auth_id", url="http://auth.url", status="completed"
     )
-    mock_wait_for_completion.return_value = mock_authorize
-    manager.client.tools.execute.return_value = MagicMock(success=False, error="error")
+    manager.authorize = lambda tool, user_id: fake_auth_response
+    manager.wait_for_completion = lambda auth: fake_auth_response
+    manager.is_authorized = lambda auth_id: True
 
-    tool_function = manager.create_tool_function("test_tool")
+    # Simulate unsuccessful execution with a provided error message.
+    fake_response = MagicMock(success=False, output=MagicMock(error="error"))
+    manager._client.tools.execute.return_value = fake_response
+
+    tool_function = manager._create_tool_function("test_tool")
     result = tool_function()
-    assert isinstance(result, ValueError)
+
+    # In our wrapped function, when an error is reported we simply return the error string.
+    assert result == "error"
 
 
-@patch("crewai_arcade.manager.StructuredTool.from_function")
-@patch("crewai_arcade.manager.tool_definition_to_pydantic_model")
-def test_wrap_tool(mock_tool_definition_to_pydantic_model, mock_from_function, manager):
-    """Test the wrap_tool method to ensure it correctly wraps a tool function."""
-    mock_tool_definition_to_pydantic_model.return_value = "args_schema"
-    mock_from_function.return_value = "structured_tool"
+# --- Test for wrap_tool ---
 
-    tool_definition = Mock(spec=ToolDefinition)
-    tool_definition.description = "Test tool"
+
+def test_wrap_tool(manager, fake_tool_definition):
+    """
+    Test that wrap_tool correctly creates a StructuredTool.
+    """
+    fake_tool_definition.description = "Test tool"
     tool_name = "test_tool"
 
-    tool_function = manager.create_tool_function(tool_name)
+    # Patch the conversion utilities. Also, override _create_tool_function to return a dummy function.
+    with (
+        patch(
+            "crewai_arcade.manager.tool_definition_to_pydantic_model", return_value="args_schema"
+        ) as mock_to_model,
+        patch(
+            "crewai_arcade.structured.StructuredTool.from_function", return_value="structured_tool"
+        ) as mock_from_function,
+        patch.object(
+            manager, "_create_tool_function", return_value=lambda *a, **kw: None
+        ) as mock_create_tool,
+    ):
+        result = manager.wrap_tool(tool_name, fake_tool_definition)
 
-    # Ensure wrap_tool uses the pre-created tool_function
-    with patch.object(manager, "create_tool_function", return_value=tool_function):
-        result = manager.wrap_tool(tool_name, tool_definition)
     assert result == "structured_tool"
-
-    mock_tool_definition_to_pydantic_model.assert_called_once_with(tool_definition)
+    mock_to_model.assert_called_once_with(fake_tool_definition)
     mock_from_function.assert_called_once_with(
-        func=tool_function,
+        func=mock_create_tool.return_value,
         name=tool_name,
-        description=tool_definition.description,
+        description="Test tool",
         args_schema="args_schema",
     )
+
+
+# --- Tests for tool registration (init_tools, add_tools, get_tools) ---
+
+
+def test_init_tools_with_tool(manager, fake_tool_definition):
+    """
+    Test that init_tools clears and initializes the manager's tool dictionary.
+    """
+    manager._client.tools.get.return_value = fake_tool_definition
+
+    manager.init_tools(tools=["Search.SearchGoogle"])
+
+    expected_key = (
+        f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    )
+    assert expected_key in manager.tools
+    assert len(manager.tools) == 1
+
+
+def test_init_tools_with_toolkit(manager, fake_tool_definition):
+    """
+    Test that init_tools clears and initializes the manager's tool dictionary.
+    """
+    manager._client.tools.list.return_value = SyncOffsetPage(items=[fake_tool_definition])
+
+    manager.init_tools(toolkits=["Search"])
+
+    expected_key = (
+        f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    )
+    assert expected_key in manager.tools
+    assert len(manager.tools) == 1
+
+
+def test_init_tools_with_none(manager, fake_tool_definition):
+    """
+    Test that init_tools clears and initializes the manager's tool dictionary.
+    """
+    manager._client.tools.list.return_value = SyncOffsetPage(items=[fake_tool_definition])
+
+    manager.init_tools()
+
+    expected_key = (
+        f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    )
+    assert expected_key in manager.tools
+    assert len(manager.tools) == 1
+
+
+def test_add_tools(manager, fake_tool_definition):
+    """
+    Test that add_tools supplements the existing tool list.
+    """
+    # Setup an already added tool
+    fake_initial_tool = MagicMock()
+    fake_initial_tool.name = "InitialTool"
+    fake_initial_tool.toolkit = MagicMock()
+    fake_initial_tool.toolkit.name = "InitialToolkit"
+    initial_key = f"{fake_initial_tool.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_initial_tool.name}"
+    manager._tools[initial_key] = fake_initial_tool
+
+    # Simulate new tool retrieval.
+    manager._client.tools.get.return_value = fake_tool_definition
+    manager.add_tools(tools=["Search.SearchGoogle"])
+
+    new_key = f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    assert initial_key in manager._tools
+    assert new_key in manager._tools
+
+
+def test_get_tools_with_existing_tools(manager, fake_tool_definition):
+    """
+    Test that get_tools wraps existing tools if present in the manager.
+    """
+    manager._client.tools.get.return_value = fake_tool_definition
+    manager.init_tools(tools=["Search.SearchGoogle"])
+
+    with patch.object(manager, "wrap_tool", side_effect=lambda name, td: (name, td)) as mock_wrap:
+        result = manager.get_tools()
+
+    key_expected = (
+        f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    )
+
+    assert len(result) == 1
+    assert result[0][0] == key_expected
+    assert result[0][1] == fake_tool_definition
+    assert mock_wrap.call_count == 1
+
+
+def test_get_tools_with_missing_tool_and_toolkit(manager, fake_tool_definition):
+    """
+    Test that get_tools adds missing tools and toolkits if they are not already registered.
+    """
+    manager._tools = {}
+
+    manager._client.tools.get.return_value = fake_tool_definition
+    manager._client.tools.list.return_value = [fake_tool_definition]
+
+    with patch.object(manager, "wrap_tool", side_effect=lambda name, td: (name, td)) as mock_wrap:
+        result = manager.get_tools(tools=["Search.SearchGoogle"], toolkits=["Search"])
+
+    key_expected = (
+        f"{fake_tool_definition.toolkit.name}{TOOL_NAME_SEPARATOR}{fake_tool_definition.name}"
+    )
+
+    assert len(result) == 1
+    assert result[0][0] == key_expected
+    assert result[0][1] == fake_tool_definition
+    assert key_expected in manager._tools
+    assert mock_wrap.call_count == 1

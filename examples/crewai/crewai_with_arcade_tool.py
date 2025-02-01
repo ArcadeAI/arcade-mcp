@@ -10,20 +10,17 @@ The example assumes the following:
 
 """
 
-from arcadepy import Arcade
 from crewai import Agent, Crew, Task
 from crewai.llm import LLM
 from crewai_arcade.manager import ArcadeToolManager
 
-manager = ArcadeToolManager(
-    user_id="user@example.com", client=Arcade(base_url="http://localhost:9099")
-)
+manager = ArcadeToolManager(user_id="user@example.com")
 tools = manager.get_tools(tools=["Google.ListEmails"])
 
 crew_agent = Agent(
     role="Main Agent",
     backstory="You are a helpful assistant",
-    goal="You are a helpful assistant",
+    goal="Help the user with their requests",
     tools=tools,
     allow_delegation=False,
     verbose=True,
@@ -41,6 +38,7 @@ crew = Crew(
     agents=[crew_agent],
     tasks=[task],
     verbose=True,
+    memory=True,
 )
 
 crew.kickoff()
