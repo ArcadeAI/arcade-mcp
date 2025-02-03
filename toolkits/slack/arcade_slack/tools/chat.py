@@ -148,7 +148,14 @@ async def send_message_to_channel(
 
 @tool(
     requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "im:read",
+            "mpim:read",
+            "users:read",
+            "users:read.email",
+        ],
     )
 )
 async def get_members_in_conversation_by_id(
@@ -201,7 +208,14 @@ async def get_members_in_conversation_by_id(
 
 @tool(
     requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "im:read",
+            "mpim:read",
+            "users:read",
+            "users:read.email",
+        ],
     )
 )
 async def get_members_in_conversation_by_name(
@@ -351,7 +365,16 @@ async def get_messages_in_conversation_by_id(
 # can avoid exposing this arg to the LLM.
 @tool(
     requires_auth=Slack(
-        scopes=["channels:history", "groups:history", "im:history", "mpim:history"],
+        scopes=[
+            "channels:history",
+            "channels:read",
+            "groups:history",
+            "groups:read",
+            "im:history",
+            "im:read",
+            "mpim:history",
+            "mpim:read",
+        ],
     )
 )
 async def get_messages_in_channel_by_name(
