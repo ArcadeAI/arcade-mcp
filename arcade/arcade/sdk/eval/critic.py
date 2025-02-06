@@ -214,7 +214,7 @@ class SimilarityCritic(Critic):
                 from sklearn.metrics.pairwise import cosine_similarity
             except ImportError:
                 raise ImportError(
-                    "Use `pip install arcade[evals]` to install the required dependencies for similarity metrics."
+                    "Use `pip install 'arcade-ai[evals]'` to install the required dependencies for similarity metrics."
                 )
             vectorizer = TfidfVectorizer()
             tfidf_matrix = vectorizer.fit_transform([expected, actual])

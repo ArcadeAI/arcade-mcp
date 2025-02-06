@@ -13,7 +13,7 @@ try:
     from scipy.optimize import linear_sum_assignment
 except ImportError:
     raise ImportError(
-        "Use `pip install arcade-ai[evals]` to install the required dependencies for evaluation."
+        "Use `pip install 'arcade-ai[evals]'` to install the required dependencies for evaluation."
     )
 
 from openai import AsyncOpenAI

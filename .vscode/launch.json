@@ -2,24 +2,8 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug examples/fastapi",
-      "type": "python",
-      "request": "launch",
-      "module": "uvicorn",
-      "args": [
-        "main:app",
-        "--app-dir",
-        "${workspaceFolder}/examples/fastapi/arcade_example_fastapi",
-        "--port",
-        "8002"
-      ],
-      "jinja": true,
-      "justMyCode": true,
-      "cwd": "${workspaceFolder}/examples/fastapi/arcade_example_fastapi"
-    },
-    {
       "name": "Debug `arcade workerup --no-auth`",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
       "args": ["workerup", "--no-auth"],
@@ -29,8 +13,8 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Debug `arcade chat -s -d -h localhost`",
-      "type": "python",
+      "name": "Debug `arcade chat -d -h localhost`",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
       "args": ["chat", "-d", "-h", "localhost"],
@@ -41,7 +25,7 @@
     },
     {
       "name": "Debug `arcade dev`",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
       "args": ["dev"],
@@ -52,7 +36,7 @@
     },
     {
       "name": "Debug `arcade evals -d` on current file",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/arcade/run_cli.py",
       "args": ["evals", "-d", "${fileDirname}", "-h", "localhost"],

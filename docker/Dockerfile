@@ -37,7 +37,7 @@ RUN ls -la /app/arcade/
 # Conditional installation based on version
 RUN if [ ! "$(echo ${VERSION} | grep -E '\.dev0$')" ]; then \
     echo "Installing wheel file" && \
-    python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl fastapi && \
+    python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl && \
     python -m pip install -r ./requirements.txt; \
     else \
     echo "Installing from source" && \
@@ -45,7 +45,6 @@ RUN if [ ! "$(echo ${VERSION} | grep -E '\.dev0$')" ]; then \
     pip install poetry && \
     poetry lock && \
     poetry version 0.1.0 && \
-    pip install fastapi && \
     pip install -r requirements.txt && \
     pip install .; \
     fi

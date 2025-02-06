@@ -65,7 +65,7 @@ _Pst. hey, you, give us a star if you like it!_
 Install the package:
 
 ```bash
-pip install 'arcade-ai[fastapi]'
+pip install arcade-ai
 ```
 
 Log in to your account via the CLI:
