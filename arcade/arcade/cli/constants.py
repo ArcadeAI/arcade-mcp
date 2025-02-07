@@ -1,6 +1,14 @@
-DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
-DEFAULT_ENGINE_HOST = "api.arcade.dev"
+import os
+
+PROD_CLOUD_HOST = "cloud.arcade.dev"
+PROD_ENGINE_HOST = "api.arcade.dev"
 LOCALHOST = "localhost"
+
+# The path to the directory containing the Arcade configuration files. Typically ~/.arcade
+ARCADE_CONFIG_PATH = os.path.join(os.path.expanduser(os.getenv("ARCADE_WORK_DIR", "~")), ".arcade")
+
+# The path to the file containing the user's Arcade-related credentials (e.g., ARCADE_API_KEY).
+CREDENTIALS_FILE_PATH = os.path.join(ARCADE_CONFIG_PATH, "credentials.yaml")
 
 _style_block = b"""
 <link rel="icon" href="https://cdn.arcade.dev/favicons/favicon.ico" sizes="any">

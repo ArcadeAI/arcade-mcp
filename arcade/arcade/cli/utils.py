@@ -1,6 +1,5 @@
 import importlib.util
 import ipaddress
-import os
 import webbrowser
 from dataclasses import dataclass
 from enum import Enum
@@ -558,24 +557,6 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
         eval_suites.extend(eval_suite_funcs)
 
     return eval_suites
-
-
-def create_new_env_file() -> None:
-    """
-    Create a new env file if one doesn't already exist.
-    """
-    env_file = os.path.expanduser("~/.arcade/arcade.env")
-    if not os.path.exists(env_file):
-        template_path = os.path.join(
-            os.path.dirname(__file__), "..", "templates", "arcade.template.env"
-        )
-        os.makedirs(os.path.dirname(env_file), exist_ok=True)
-
-        with open(template_path) as template_file, open(env_file, "w") as new_env_file:
-            template_contents = template_file.read()
-            new_env_file.write(template_contents)
-
-        console.print(f"Created new environment file at {env_file}", style="bold green")
 
 
 def get_user_input() -> str:
