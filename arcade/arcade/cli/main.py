@@ -484,21 +484,7 @@ def workerup(
         typer.Exit(code=1)
 
 
-# @cli.callback()
-# def version(
-#     _: bool = typer.Option(
-#         None,
-#         "-v",
-#         "--version",
-#         callback=version_callback,
-#         is_eager=True,
-#         help="Print version and exit.",
-#     ),
-# ) -> None:
-#     pass
-
-
-@cli.callback(invoke_without_command=True)
+@cli.callback()
 def main_callback(
     ctx: typer.Context,
     _: Optional[bool] = typer.Option(
@@ -510,7 +496,7 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
-    excluded_commands = {None, login.__name__, logout.__name__}
+    excluded_commands = {login.__name__, logout.__name__}
     if ctx.invoked_subcommand in excluded_commands:
         return
 
