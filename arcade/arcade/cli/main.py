@@ -75,7 +75,7 @@ def login(
     """
 
     if check_existing_login():
-        console.print("\nTo log out as the current user, use ", end="")
+        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
         return
