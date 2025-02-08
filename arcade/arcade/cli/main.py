@@ -75,7 +75,9 @@ def login(
     """
 
     if check_existing_login():
-        console.print(f"Delete {CREDENTIALS_FILE_PATH} to log in as a different user.\n")
+        console.print("\nTo log out as the current user, use ", end="")
+        console.print("arcade logout", style="bold green", end="")
+        console.print(".\n")
         return
 
     # Start the HTTP server in a new thread
@@ -482,9 +484,24 @@ def workerup(
         typer.Exit(code=1)
 
 
-@cli.callback()
-def version(
-    _: bool = typer.Option(
+# @cli.callback()
+# def version(
+#     _: bool = typer.Option(
+#         None,
+#         "-v",
+#         "--version",
+#         callback=version_callback,
+#         is_eager=True,
+#         help="Print version and exit.",
+#     ),
+# ) -> None:
+#     pass
+
+
+@cli.callback(invoke_without_command=True)
+def main_callback(
+    ctx: typer.Context,
+    _: Optional[bool] = typer.Option(
         None,
         "-v",
         "--version",
@@ -493,4 +510,11 @@ def version(
         help="Print version and exit.",
     ),
 ) -> None:
-    pass
+    excluded_commands = {None, login.__name__, logout.__name__}
+    if ctx.invoked_subcommand in excluded_commands:
+        return
+
+    if not check_existing_login(suppress_message=True):
+        console.print("Not logged in to Arcade CLI. Use ", style="bold red", end="")
+        console.print("arcade login", style="bold green")
+        raise typer.Exit()

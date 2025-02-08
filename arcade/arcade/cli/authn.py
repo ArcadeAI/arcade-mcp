@@ -113,9 +113,12 @@ class LocalAuthCallbackServer:
             self.httpd.shutdown()
 
 
-def check_existing_login() -> bool:
+def check_existing_login(suppress_message: bool = False) -> bool:
     """
     Check if the user is already logged in by verifying the config file.
+
+    Args:
+        suppress_message (bool): If True, suppress the logged in message.
 
     Returns:
         bool: True if the user is already logged in, False otherwise.
@@ -132,7 +135,8 @@ def check_existing_login() -> bool:
             email = cloud_config.get("user", {}).get("email")
 
             if api_key and email:
-                console.print(f"You're already logged in as {email}. ", style="bold green")
+                if not suppress_message:
+                    console.print(f"You're already logged in as {email}. ", style="bold green")
                 return True
         except yaml.YAMLError:
             console.print(
