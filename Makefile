@@ -91,8 +91,8 @@ build-and-publish: build publish ## Build and publish.
 docker: ## Build and run the Docker container
 	@echo "🚀 Building arcade and toolkit wheels..."
 	@make full-dist
-	@echo "Writing extras requirements.txt"
-	@cd arcade && poetry export --extras "fastapi" --output ../dist/requirements.txt
+	@echo "Writing requirements.txt"
+	@cd arcade && poetry export --output ../dist/requirements.txt
 	@echo "🚀 Building Docker image"
 	@cd docker && make docker-build
 	@cd docker && make docker-run
@@ -101,8 +101,8 @@ docker: ## Build and run the Docker container
 docker-base: ## Build and run the Docker container
 	@echo "🚀 Building arcade and toolkit wheels..."
 	@make full-dist
-	@echo "Writing extras requirements.txt"
-	@cd arcade && poetry export --extras "fastapi" --output ../dist/requirements.txt
+	@echo "Writing requirements.txt"
+	@cd arcade && poetry export --output ../dist/requirements.txt
 	@echo "🚀 Building Docker image"
 	@cd docker && INSTALL_TOOLKITS=false make docker-build
 	@cd docker && INSTALL_TOOLKITS=false make docker-run

@@ -7,8 +7,12 @@ from urllib.parse import parse_qs
 import yaml
 from rich.console import Console
 
-from arcade.cli.constants import LOGIN_FAILED_HTML, LOGIN_SUCCESS_HTML
-from arcade.cli.utils import create_new_env_file
+from arcade.cli.constants import (
+    ARCADE_CONFIG_PATH,
+    CREDENTIALS_FILE_PATH,
+    LOGIN_FAILED_HTML,
+    LOGIN_SUCCESS_HTML,
+)
 
 console = Console()
 
@@ -56,15 +60,13 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
             )
             return False
 
-        # ensure the ~/.arcade directory exists
-        # TODO: this should use WORK_DIR from env if set
-        if not os.path.exists(os.path.expanduser("~/.arcade")):
-            os.makedirs(os.path.expanduser("~/.arcade"), exist_ok=True)
+        # ensure the ARCADE_CONFIG_PATH directory exists
+        if not os.path.exists(ARCADE_CONFIG_PATH):
+            os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
 
         # TODO don't overwrite existing config
-        config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
         new_config = {"cloud": {"api": {"key": api_key}, "user": {"email": email}}}
-        with open(config_file_path, "w") as f:
+        with open(CREDENTIALS_FILE_PATH, "w") as f:
             yaml.dump(new_config, f)
 
         # Send a success response to the browser
@@ -72,7 +74,7 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
             f"""✅ Hi there, {email}!
 
 Your Arcade API key is: {api_key}
-Stored in: {config_file_path}""",
+Stored in: {CREDENTIALS_FILE_PATH}""",
             style="bold green",
         )
         return True
@@ -111,35 +113,34 @@ class LocalAuthCallbackServer:
             self.httpd.shutdown()
 
 
-def check_existing_login() -> bool:
+def check_existing_login(suppress_message: bool = False) -> bool:
     """
     Check if the user is already logged in by verifying the config file.
+
+    Args:
+        suppress_message (bool): If True, suppress the logged in message.
 
     Returns:
         bool: True if the user is already logged in, False otherwise.
     """
-    # Create a new env file if one doesn't already exist
-    create_new_env_file()
-
-    config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
-
-    if not os.path.exists(config_file_path):
+    if not os.path.exists(CREDENTIALS_FILE_PATH):
         return False
 
-    if os.path.exists(config_file_path):
+    if os.path.exists(CREDENTIALS_FILE_PATH):
         try:
-            with open(config_file_path) as f:
+            with open(CREDENTIALS_FILE_PATH) as f:
                 config: dict[str, Any] = yaml.safe_load(f)
             cloud_config = config.get("cloud", {})
             api_key = cloud_config.get("api", {}).get("key")
             email = cloud_config.get("user", {}).get("email")
 
             if api_key and email:
-                console.print(f"You're already logged in as {email}. ", style="bold green")
+                if not suppress_message:
+                    console.print(f"You're already logged in as {email}. ", style="bold green")
                 return True
         except yaml.YAMLError:
             console.print(
-                f"Error: Invalid configuration file at {config_file_path}", style="bold red"
+                f"Error: Invalid configuration file at {CREDENTIALS_FILE_PATH}", style="bold red"
             )
         except Exception as e:
             console.print(f"Error: Unable to read configuration file: {e!s}", style="bold red")

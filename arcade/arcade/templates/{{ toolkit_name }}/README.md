@@ -53,7 +53,7 @@
 1. [Install the Arcade Engine Locally](https://docs.arcade.dev/home/install/local)
 2. Install extra dependencies needed for evals:
    ```bash
-   pip install 'arcade-ai[fastapi,evals]'
+   pip install 'arcade-ai[evals]'
    ```
 3. Log into Arcade:
    ```bash

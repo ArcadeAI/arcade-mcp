@@ -41,7 +41,7 @@ def render_template(env: Environment, template_string: str, context: dict) -> st
 
 def write_template(path: Path, content: str) -> None:
     """Write content to a file."""
-    path.write_text(content)
+    path.write_text(content, encoding="utf-8")
 
 
 def create_package(env: Environment, template_path: Path, output_path: Path, context: dict) -> None:
@@ -61,7 +61,7 @@ def create_package(env: Environment, template_path: Path, output_path: Path, con
         else:
             # Render the file name
             file_name = render_template(env, template_path.name, context)
-            with open(template_path) as f:
+            with open(template_path, encoding="utf-8") as f:
                 content = f.read()
             # Render the file content
             content = render_template(env, content, context)

@@ -13,12 +13,13 @@ try:
     from scipy.optimize import linear_sum_assignment
 except ImportError:
     raise ImportError(
-        "Use `pip install arcade-ai[evals]` to install the required dependencies for evaluation."
+        "Use `pip install 'arcade-ai[evals]'` to install the required dependencies for evaluation."
     )
 
 from openai import AsyncOpenAI
 
 from arcade.sdk.errors import WeightError
+from arcade.sdk.eval.critic import NoneCritic
 
 if TYPE_CHECKING:
     from arcade.sdk import ToolCatalog
@@ -201,7 +202,7 @@ class EvalCase:
             raise WeightError(f"Sum of critic weights must not exceed 1.0, got {total_weight}")
 
         for critic in self.critics:
-            if critic.weight < 0.1:
+            if critic.weight < 0.1 and not isinstance(critic, NoneCritic):
                 raise WeightError(f"Critic weights should be at least 0.1, got {critic.weight}")
 
     def check_tool_selection_failure(self, actual_tools: list[str]) -> bool:
@@ -463,6 +464,11 @@ class EvalSuite:
             self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls
         ]
 
+        # Add NoneCritics for any expected tool call fields not in the critics list
+        critics = self._add_none_critics(expected_tool_calls_with_defaults, critics)
+
+        self._validate_critics(critics, name)
+
         case = EvalCase(
             name=name,
             system_message=system_message or self.system_message,
@@ -473,6 +479,54 @@ class EvalSuite:
             additional_messages=additional_messages or [],
         )
         self.cases.append(case)
+
+    def _add_none_critics(
+        self,
+        expected_tool_calls_with_defaults: list[NamedExpectedToolCall],
+        critics: list["Critic"] | None,
+    ) -> list["Critic"]:
+        """
+        Add NoneCritics for any fields in the expected tool calls that are not already in the critics list.
+
+        Args:
+            expected_tool_calls_with_defaults: The list of expected tool calls with defaults.
+            critics: The list of critics.
+
+        Returns:
+            The updated list of critics.
+        """
+        if not critics:
+            critics = []
+            critic_field_names = set()
+        else:
+            critic_field_names = {critic.critic_field for critic in critics}
+
+        for tc in expected_tool_calls_with_defaults:
+            for field_name in tc.args:
+                if field_name not in critic_field_names:
+                    critics.append(NoneCritic(critic_field=field_name))
+                    critic_field_names.add(field_name)
+        return critics
+
+    def _validate_critics(self, critics: list["Critic"] | None, name: str) -> None:
+        """
+        Validate the critics.
+
+        Args:
+            critics: The list of critics.
+            name: The name of the evaluation case.
+
+        Raises:
+            ValueError: If multiple critics are detected for the same field.
+        """
+        if critics is None:
+            return
+        critic_fields = [critic.critic_field for critic in critics]
+        duplicate_fields = {field for field in critic_fields if critic_fields.count(field) > 1}
+        if duplicate_fields:
+            raise ValueError(
+                f"Multiple critics detected for the field(s) '{', '.join(duplicate_fields)}' in evaluation case '{name}'. Only one critic per field is permitted."
+            )
 
     def _fill_args_with_defaults(
         self, func: Callable, provided_args: dict[str, Any]
@@ -539,6 +593,13 @@ class EvalSuite:
         if expected_tool_calls:
             expected = [self._convert_to_named_expected_tool_call(tc) for tc in expected_tool_calls]
 
+        # Add NoneCritics for any expected tool call fields not in the critics list
+        critics = self._add_none_critics(
+            expected, critics or (last_case.critics.copy() if last_case.critics else None)
+        )
+
+        self._validate_critics(critics, name)
+
         # Create a new case, copying from the last one and updating fields
         new_case = EvalCase(
             name=name,
@@ -546,7 +607,7 @@ class EvalSuite:
             user_message=user_message,
             expected_tool_calls=expected,
             rubric=rubric or self.rubric,
-            critics=critics or (last_case.critics.copy() if last_case.critics else None),
+            critics=critics,
             additional_messages=new_additional_messages,
         )
         self.cases.append(new_case)
@@ -581,6 +642,7 @@ class EvalSuite:
                     tool_choice="auto",
                     tools=(str(name) for name in tool_names),
                     user="eval_user",
+                    seed=42,
                     stream=False,
                 )
 

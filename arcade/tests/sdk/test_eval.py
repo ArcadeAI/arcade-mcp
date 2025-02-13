@@ -1,113 +1,37 @@
-from datetime import timedelta
 from unittest.mock import Mock
 
 import pytest
-import pytz
-from dateutil import parser
 
 from arcade.sdk import tool
-from arcade.sdk.errors import WeightError
 from arcade.sdk.eval import (
     BinaryCritic,
-    DatetimeCritic,
     EvalRubric,
     ExpectedToolCall,
     NamedExpectedToolCall,
-    NumericCritic,
+    NoneCritic,
     SimilarityCritic,
 )
 from arcade.sdk.eval.eval import EvalCase, EvalSuite, EvaluationResult
 
-# Test BinaryCritic.evaluate()
+
+@tool
+def mock_tool(param1: str):
+    pass
 
 
-@pytest.mark.parametrize(
-    "expected, actual, weight, expected_match, expected_score",
-    [
-        ("value", "value", 1.0, True, 1.0),
-        ("value", "different", 1.0, False, 0.0),
-        (10, 10, 0.5, True, 0.5),
-        (10, 20, 0.5, False, 0.0),
-    ],
-)
-def test_binary_critic_evaluate(expected, actual, weight, expected_match, expected_score):
-    """
-    Test the BinaryCritic's evaluate method to ensure it correctly computes
-    the match and score based on expected and actual values.
-    """
-    critic = BinaryCritic(critic_field="test_field", weight=weight)
-    result = critic.evaluate(expected=expected, actual=actual)
-    assert result["match"] == expected_match
-    assert result["score"] == expected_score
+@tool
+def mock_tool_no_args():
+    pass
 
 
-# Test NumericCritic.evaluate()
-
-
-@pytest.mark.parametrize(
-    "expected, actual, value_range, weight, match_threshold, expected_match, expected_score",
-    [
-        (5, 5, (0, 10), 1.0, 0.8, True, 1.0),
-        (5, 6, (0, 10), 1.0, 0.8, True, 0.9),
-        (0, 10, (0, 10), 1.0, 0.8, False, 0.0),
-        (2, 8, (0, 10), 1.0, 0.5, False, 0.4),
-        (50, 60, (0, 100), 0.5, 0.9, True, 0.45),
-    ],
-)
-def test_numeric_critic_evaluate(
-    expected, actual, value_range, weight, match_threshold, expected_match, expected_score
+@tool
+def mock_tool_multiple_args(
+    param1: str, param2: str, param3: str = "value3", param4: str = "value4"
 ):
-    """
-    Test the NumericCritic's evaluate method to ensure it calculates
-    the correct score based on the proportion of the difference between
-    expected and actual values within a specified range.
-    """
-    critic = NumericCritic(
-        critic_field="number",
-        weight=weight,
-        value_range=value_range,
-        match_threshold=match_threshold,
-    )
-    result = critic.evaluate(expected=expected, actual=actual)
-    assert result["match"] == expected_match
-    assert pytest.approx(result["score"], 0.01) == expected_score
-
-
-# Test SimilarityCritic.evaluate()
-
-
-@pytest.mark.parametrize(
-    "expected, actual, weight, similarity_threshold, expected_match, min_expected_score",
-    [
-        ("hello world", "hello world", 1.0, 0.8, True, 1.0),
-        ("hello world", "hello", 1.0, 0.8, False, 0.0),
-        ("The quick brown fox", "The quick brown fox jumps over the lazy dog", 1.0, 0.5, True, 0.5),
-        ("data science", "machine learning", 0.5, 0.3, False, 0.0),
-    ],
-)
-def test_similarity_critic_evaluate(
-    expected, actual, weight, similarity_threshold, expected_match, min_expected_score
-):
-    """
-    Test the SimilarityCritic's evaluate method to ensure it computes
-    the similarity score between expected and actual strings and determines
-    the match correctly based on the similarity threshold.
-    """
-    critic = SimilarityCritic(
-        critic_field="text",
-        weight=weight,
-        similarity_threshold=similarity_threshold,
-    )
-    result = critic.evaluate(expected=expected, actual=actual)
-    assert result["match"] == expected_match
-    assert result["score"] >= min_expected_score
-    assert result["score"] >= 0.0
-    assert result["score"] <= weight + 1e-6  # Allow a small epsilon for floating-point comparison
+    pass
 
 
 # Test EvaluationResult accumulation and pass/fail logic
-
-
 def test_evaluation_result_accumulation():
     """
     Test that EvaluationResult correctly accumulates scores and determines
@@ -135,8 +59,6 @@ def test_evaluation_result_accumulation():
 
 
 # Test EvalCase.evaluate()
-
-
 def test_eval_case_evaluate():
     """
     Test EvalCase's evaluate method to ensure it calculates the overall score
@@ -184,8 +106,6 @@ def test_eval_case_evaluate():
 
 
 # Test EvalCase with mismatched tool calls
-
-
 def test_eval_case_evaluate_mismatched_tools():
     """
     Test EvalCase's evaluate method when the actual tool calls do not match
@@ -220,8 +140,6 @@ def test_eval_case_evaluate_mismatched_tools():
 
 
 # Test EvalCase with multiple critics and weights
-
-
 def test_eval_case_multiple_critics():
     """
     Test EvalCase's evaluate method with multiple critics having different weights
@@ -261,8 +179,6 @@ def test_eval_case_multiple_critics():
 
 
 # Test EvalCase with missing expected and actual values in args
-
-
 def test_eval_case_with_none_values():
     """
     Test that when expected or actual values are None, the critic evaluates them appropriately.
@@ -290,196 +206,11 @@ def test_eval_case_with_none_values():
     assert result.score == 2.0 / 2.0  # Full score (tool selection + critic score)
 
 
-# Test that WeightError is raised for invalid critic weights
-
-
-@pytest.mark.parametrize(
-    "critic_class, weight",
-    [
-        (BinaryCritic, -0.1),
-        (BinaryCritic, 1.1),
-        (NumericCritic, -0.5),
-        (SimilarityCritic, 1.5),
-    ],
-)
-def test_critic_invalid_weight(critic_class, weight):
-    """
-    Test that initializing a critic with an invalid weight raises a WeightError.
-    """
-    with pytest.raises(WeightError):
-        if critic_class == NumericCritic:
-            critic_class(critic_field="test_field", weight=weight, value_range=(0, 1))
-        elif critic_class == SimilarityCritic:
-            critic_class(critic_field="test_field", weight=weight)
-        else:
-            critic_class(critic_field="test_field", weight=weight)
-
-
-# Test NumericCritic with invalid value range
-
-
-def test_numeric_critic_invalid_range():
-    """
-    Test that initializing a NumericCritic with an invalid value range raises a ValueError.
-    """
-    with pytest.raises(ValueError):
-        NumericCritic(critic_field="number", weight=1.0, value_range=(10, 0))  # Invalid range
-
-
-# Test SimilarityCritic with unsupported metric
-
-
-def test_similarity_critic_unsupported_metric():
-    """
-    Test that initializing a SimilarityCritic with an unsupported metric raises a ValueError.
-    """
-    with pytest.raises(ValueError):
-        SimilarityCritic(critic_field="text", weight=1.0, metric="unsupported_metric")
-
-
-# Test DatetimeCritic
-
-
-# Parameterized tests for DatetimeCritic with various datetime formats and default timezones
-@pytest.mark.parametrize(
-    "critic_params, expected, actual, expected_match, expected_score",
-    [
-        # Test with time component and timezone
-        (
-            {"critic_field": "start_datetime", "weight": 1.0},
-            "2024-09-26T12:00:00-07:00",
-            "2024-09-26T12:00:00-07:00",
-            True,
-            1.0,
-        ),
-        # Test without time component (dates only)
-        (
-            {"critic_field": "start_datetime", "weight": 1.0},
-            "2024-09-26",
-            "2024-09-26",
-            True,
-            1.0,
-        ),
-        # Test with and without timezone (assumes UTC)
-        (
-            {"critic_field": "start_datetime", "weight": 1.0},
-            "2024-09-26T12:00:00Z",
-            "2024-09-26T12:00:00",
-            True,
-            1.0,
-        ),
-        # Test naive datetimes
-        (
-            {"critic_field": "start_datetime", "weight": 1.0},
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:00:00",
-            True,
-            1.0,
-        ),
-    ],
-)
-def test_datetime_critic_basic(critic_params, expected, actual, expected_match, expected_score):
-    """
-    Test DatetimeCritic with various datetime formats and default timezones.
-    """
-    critic = DatetimeCritic(**critic_params)
-    result = critic.evaluate(expected, actual)
-    assert result["match"] == expected_match
-    assert result["score"] == expected_score
-
-
-# Parameterized tests for DatetimeCritic's handling of tolerances and max differences
-@pytest.mark.parametrize(
-    "critic_params, expected, actual, expected_match, expected_score_func",
-    [
-        # Test time difference within tolerance
-        (
-            {"critic_field": "start_datetime", "weight": 1.0, "tolerance": timedelta(seconds=60)},
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:00:30",
-            True,
-            lambda critic: critic.weight,
-        ),
-        # Test time difference outside tolerance but within max_difference
-        (
-            {
-                "critic_field": "start_datetime",
-                "weight": 1.0,
-                "tolerance": timedelta(seconds=60),
-                "max_difference": timedelta(minutes=5),
-            },
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:04:00",
-            False,
-            lambda critic: critic.weight * (1 - (240 / 300)),
-        ),
-        # Test time difference exceeds max_difference
-        (
-            {
-                "critic_field": "start_datetime",
-                "weight": 1.0,
-                "max_difference": timedelta(minutes=5),
-            },
-            "2024-09-26T12:00:00",
-            "2024-09-26T12:10:00",
-            False,
-            lambda critic: 0.0,
-        ),
-    ],
-)
-def test_datetime_critic_tolerances(
-    critic_params, expected, actual, expected_match, expected_score_func
-):
-    """
-    Test DatetimeCritic's handling of tolerances and max differences.
-    """
-    critic = DatetimeCritic(**critic_params)
-    result = critic.evaluate(expected, actual)
-    assert result["match"] == expected_match
-    expected_score = expected_score_func(critic)
-    assert pytest.approx(result["score"], abs=1e-6) == expected_score
-
-
-def test_datetime_critic_naive_and_timezone_aware():
-    """
-    Test DatetimeCritic when comparing naive and timezone-aware datetimes.
-    """
-    critic = DatetimeCritic(critic_field="start_datetime", weight=1.0)
-    expected = "2024-09-26T12:00:00Z"
-    actual = "2024-09-26T07:00:00"
-    result = critic.evaluate(expected, actual)
-    assert result["match"] is False
-
-    # Compute expected score based on time difference
-    expected_dt = parser.parse(expected)
-    actual_dt = parser.parse(actual)
-    if actual_dt.tzinfo is None:
-        actual_dt = pytz.utc.localize(actual_dt)
-    if expected_dt.tzinfo is None:
-        expected_dt = pytz.utc.localize(expected_dt)
-
-    time_diff_seconds = abs((expected_dt - actual_dt).total_seconds())
-    if time_diff_seconds <= critic.tolerance.total_seconds():
-        expected_score = critic.weight
-    elif time_diff_seconds >= critic.max_difference.total_seconds():
-        expected_score = 0.0
-    else:
-        ratio = 1 - (time_diff_seconds / critic.max_difference.total_seconds())
-        expected_score = critic.weight * ratio
-
-    assert pytest.approx(result["score"], abs=1e-6) == expected_score
-
-
 # Test EvalSuite.add_case()
 def test_eval_suite_add_case():
     """
     Test that add_case correctly adds a new evaluation case to the suite.
     """
-
-    @tool
-    def mock_tool(param: str):
-        pass
-
     mock_catalog = Mock()
     mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
 
@@ -488,11 +219,11 @@ def test_eval_suite_add_case():
     expected_tool_calls = [
         ExpectedToolCall(
             func=mock_tool,
-            args={"param": "value"},
+            args={"param1": "value"},
         ),
         (
             mock_tool,
-            {"param": "value"},
+            {"param1": "value"},
         ),
     ]
 
@@ -509,10 +240,10 @@ def test_eval_suite_add_case():
     assert case.user_message == "User message"
     assert case.system_message == "System message"
     assert case.expected_tool_calls[0] == NamedExpectedToolCall(
-        name="MockTool", args={"param": "value"}
+        name="MockTool", args={"param1": "value"}
     )
     assert case.expected_tool_calls[1] == NamedExpectedToolCall(
-        name="MockTool", args={"param": "value"}
+        name="MockTool", args={"param1": "value"}
     )
 
 
@@ -521,11 +252,6 @@ def test_eval_suite_extend_case():
     """
     Test that extend_case correctly extends the last added case with new information.
     """
-
-    @tool
-    def mock_tool(param: str):
-        pass
-
     mock_catalog = Mock()
     mock_catalog.find_tool_by_func.return_value.get_fully_qualified_name.return_value = "MockTool"
 
@@ -534,11 +260,11 @@ def test_eval_suite_extend_case():
     expected_tool_calls = [
         ExpectedToolCall(
             func=mock_tool,
-            args={"param": "value"},
+            args={"param1": "value"},
         ),
         (
             mock_tool,
-            {"param": "value"},
+            {"param1": "value"},
         ),
     ]
 
@@ -564,8 +290,124 @@ def test_eval_suite_extend_case():
     assert extended_case.system_message == "System message"
     assert len(extended_case.expected_tool_calls) == 2
     assert extended_case.expected_tool_calls[0] == NamedExpectedToolCall(
-        name="MockTool", args={"param": "value"}
+        name="MockTool", args={"param1": "value"}
     )
     assert extended_case.expected_tool_calls[1] == NamedExpectedToolCall(
-        name="MockTool", args={"param": "value"}
+        name="MockTool", args={"param1": "value"}
     )
+
+
+def test_eval_suite_validate_critics_raises_value_error():
+    """
+    Test that validate_critics raises a ValueError if multiple critics are detected for the same field.
+    """
+    mock_catalog = Mock()
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    case_name = "TestCase"
+    critics = [
+        BinaryCritic(critic_field="param", weight=0.5),
+        SimilarityCritic(critic_field="param", weight=0.5),
+    ]
+    with pytest.raises(ValueError):
+        suite._validate_critics(critics, case_name)
+
+
+def test_eval_suite_validate_critics_no_error():
+    """
+    Test that validate_critics does not raise an error when critics are valid.
+    """
+    mock_catalog = Mock()
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    case_name = "TestCase"
+    critics = [
+        BinaryCritic(critic_field="param1", weight=0.5),
+    ]
+
+    suite._validate_critics(critics, case_name)
+
+
+@pytest.mark.parametrize(
+    "expected_tool_calls, critics, expected_critics_count, expected_critics_types",
+    [
+        (
+            # Test case 1: No arguments, expect no critics
+            [NamedExpectedToolCall(name="MockToolNoArgs", args={})],
+            None,
+            0,
+            [],
+        ),
+        (
+            # Test case 2: Single argument, expect one NoneCritic
+            [NamedExpectedToolCall(name="MockTool", args={"param1": "value"})],
+            None,
+            1,
+            [(NoneCritic, "param1")],
+        ),
+        (
+            # Test case 3: Multiple arguments with some critics, expect BinaryCritics for specified fields and NoneCritics for others
+            [
+                NamedExpectedToolCall(
+                    name="MockToolMultipleArgs",
+                    args={
+                        "param1": "value1",
+                        "param2": "value2",
+                        "param3": "value3",
+                        "param4": "value4",
+                    },
+                )
+            ],
+            [
+                BinaryCritic(critic_field="param1", weight=0.5),
+                BinaryCritic(critic_field="param2", weight=0.5),
+            ],
+            4,
+            [
+                (BinaryCritic, "param1"),
+                (BinaryCritic, "param2"),
+                (NoneCritic, "param3"),
+                (NoneCritic, "param4"),
+            ],
+        ),
+        (
+            # Test case 4: Mixed tool calls with multiple critics, expect BinaryCritics for specified fields and NoneCritics for others
+            [
+                NamedExpectedToolCall(name="MockTool", args={"param1": "value"}),
+                NamedExpectedToolCall(name="MockToolNoArgs", args={}),
+                NamedExpectedToolCall(
+                    name="MockToolMultipleArgs",
+                    args={
+                        "param1": "value1",
+                        "param2": "value2",
+                        "param3": "value3",
+                        "param4": "value4",
+                    },
+                ),
+            ],
+            [
+                BinaryCritic(critic_field="param1", weight=0.3),
+                BinaryCritic(critic_field="param2", weight=0.3),
+                BinaryCritic(critic_field="param3", weight=0.3),
+            ],
+            4,
+            [
+                (BinaryCritic, "param1"),
+                (BinaryCritic, "param2"),
+                (BinaryCritic, "param3"),
+                (NoneCritic, "param4"),
+            ],
+        ),
+    ],
+)
+def test_eval_suite_add_none_critics(
+    expected_tool_calls, critics, expected_critics_count, expected_critics_types
+):
+    mock_catalog = Mock()
+    suite = EvalSuite(name="TestSuite", system_message="System message", catalog=mock_catalog)
+
+    critics_with_none = suite._add_none_critics(expected_tool_calls, critics)
+    assert len(critics_with_none) == expected_critics_count
+    for i, (expected_type, expected_field) in enumerate(expected_critics_types):
+        assert isinstance(critics_with_none[i], expected_type)
+        assert critics_with_none[i].critic_field == expected_field

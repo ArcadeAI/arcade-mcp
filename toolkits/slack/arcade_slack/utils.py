@@ -2,11 +2,15 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
+from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.custom_types import SlackPaginationNextCursor
-from arcade_slack.exceptions import PaginationTimeoutError
+from arcade_slack.exceptions import (
+    PaginationTimeoutError,
+    UsernameNotFoundError,
+)
 from arcade_slack.models import (
     BasicUserInfo,
     ConversationMetadata,
@@ -88,6 +92,18 @@ def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
     if channel.get("is_mpim"):
         return ConversationTypeSlackName.MPIM.value
     raise ValueError(f"Invalid conversation type in channel {channel.get('name')}")
+
+
+def get_user_by_username(username: str, users_list: list[dict]) -> SlackUser:
+    usernames_found = []
+    for user in users_list:
+        if isinstance(user.get("name"), str):
+            usernames_found.append(user["name"])
+        username_found = user.get("name") or ""
+        if username.lower() == username_found.lower():
+            return SlackUser(**user)
+
+    raise UsernameNotFoundError(usernames_found)
 
 
 def convert_conversation_type_to_slack_name(
@@ -172,6 +188,93 @@ def extract_basic_user_info(user_info: SlackUser) -> BasicUserInfo:
         real_name=user_info.get("real_name"),
         timezone=user_info.get("tz"),
     )
+
+
+async def associate_members_of_multiple_conversations(
+    get_members_in_conversation_func: Callable,
+    conversations: list[dict],
+    context: ToolContext,
+) -> list[dict]:
+    """Associate members to each conversation, returning the updated list."""
+    return await asyncio.gather(*[
+        associate_members_of_conversation(get_members_in_conversation_func, context, conv)
+        for conv in conversations
+    ])
+
+
+async def associate_members_of_conversation(
+    get_members_in_conversation_func: Callable,
+    context: ToolContext,
+    conversation: dict,
+) -> dict:
+    response = await get_members_in_conversation_func(context, conversation["id"])
+    conversation["members"] = response["members"]
+    return conversation
+
+
+async def retrieve_conversations_by_user_ids(
+    list_conversations_func: Callable,
+    get_members_in_conversation_func: Callable,
+    context: ToolContext,
+    conversation_types: list[ConversationType],
+    user_ids: list[str],
+    exact_match: bool = False,
+    limit: Optional[int] = None,
+    next_cursor: Optional[str] = None,
+) -> list[dict]:
+    """
+    Retrieve conversations filtered by the given user IDs. Includes pagination support
+    and optionally limits the number of returned conversations.
+    """
+    conversations_found: list[dict] = []
+
+    response = await list_conversations_func(
+        context=context,
+        conversation_types=conversation_types,
+        next_cursor=next_cursor,
+    )
+
+    # Associate members to each conversation
+    conversations_with_members = await associate_members_of_multiple_conversations(
+        get_members_in_conversation_func, response["conversations"], context
+    )
+
+    conversations_found.extend(
+        filter_conversations_by_user_ids(conversations_with_members, user_ids, exact_match)
+    )
+
+    return conversations_found[:limit]
+
+
+def filter_conversations_by_user_ids(
+    conversations: list[dict],
+    user_ids: list[str],
+    exact_match: bool = False,
+) -> list[dict]:
+    """
+    Filter conversations by the members' user IDs.
+
+    Args:
+        conversations: The list of conversations to filter.
+        user_ids: The user IDs to filter conversations for.
+        exact_match: Whether to match the exact number of members in the conversations.
+
+    Returns:
+        The list of conversations found.
+    """
+    matches = []
+    for conversation in conversations:
+        member_ids = [member["id"] for member in conversation["members"]]
+        if exact_match:
+            same_length = len(user_ids) == len(member_ids)
+            has_all_members = all(user_id in member_ids for user_id in user_ids)
+            if same_length and has_all_members:
+                matches.append(conversation)
+        else:
+            if all(user_id in member_ids for user_id in user_ids):
+                matches.append(conversation)
+
+    return matches
 
 
 def is_user_a_bot(user: SlackUser) -> bool:

@@ -12,3 +12,18 @@ class PaginationTimeoutError(SlackToolkitError):
 
 class ItemNotFoundError(SlackToolkitError):
     """Raised when an item is not found."""
+
+
+class UsernameNotFoundError(SlackToolkitError):
+    """Raised when a user is not found by the username searched"""
+
+    def __init__(self, usernames_found: list[str]) -> None:
+        self.usernames_found = usernames_found
+
+
+class ConversationNotFoundError(SlackToolkitError):
+    """Raised when a conversation is not found"""
+
+
+class DirectMessageConversationNotFoundError(ConversationNotFoundError):
+    """Raised when a direct message conversation searched is not found"""

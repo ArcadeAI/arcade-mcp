@@ -5,24 +5,11 @@ import sys
 from contextlib import asynccontextmanager
 from typing import Any
 
+import fastapi
+import uvicorn
 from loguru import logger
 
 from arcade.core.telemetry import OTELHandler
-
-try:
-    import fastapi
-except ImportError:
-    raise ImportError(
-        "FastAPI is not installed. Please install it using `pip install arcade-ai[fastapi]`."
-    )
-
-try:
-    import uvicorn
-except ImportError:
-    raise ImportError(
-        "Uvicorn is not installed. Please install it using `pip install arcade-ai[fastapi]`."
-    )
-
 from arcade.sdk import Toolkit
 from arcade.worker.fastapi.worker import FastAPIWorker
 

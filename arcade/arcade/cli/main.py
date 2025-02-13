@@ -15,7 +15,12 @@ from rich.text import Text
 from tqdm import tqdm
 
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade.cli.constants import DEFAULT_CLOUD_HOST, DEFAULT_ENGINE_HOST, LOCALHOST
+from arcade.cli.constants import (
+    CREDENTIALS_FILE_PATH,
+    LOCALHOST,
+    PROD_CLOUD_HOST,
+    PROD_ENGINE_HOST,
+)
 from arcade.cli.display import (
     display_arcade_chat_header,
     display_eval_results,
@@ -53,7 +58,7 @@ console = Console()
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
 def login(
     host: str = typer.Option(
-        DEFAULT_CLOUD_HOST,
+        PROD_CLOUD_HOST,
         "-h",
         "--host",
         help="The Arcade Cloud host to log in to.",
@@ -70,7 +75,9 @@ def login(
     """
 
     if check_existing_login():
-        console.print("Delete ~/.arcade/credentials.yaml to log in as a different user.\n")
+        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
+        console.print("arcade logout", style="bold green", end="")
+        console.print(".\n")
         return
 
     # Start the HTTP server in a new thread
@@ -104,10 +111,9 @@ def logout() -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    # If ~/.arcade/credentials.yaml exists, delete it
-    config_file_path = os.path.expanduser("~/.arcade/credentials.yaml")
-    if os.path.exists(config_file_path):
-        os.remove(config_file_path)
+    # If the credentials file exists, delete it
+    if os.path.exists(CREDENTIALS_FILE_PATH):
+        os.remove(CREDENTIALS_FILE_PATH)
         console.print("You're now logged out.", style="bold")
     else:
         console.print("You're not logged in.", style="bold red")
@@ -141,7 +147,7 @@ def show(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        PROD_ENGINE_HOST,
         "-h",
         "--host",
         help="The Arcade Engine address to show the tools/toolkits of.",
@@ -185,7 +191,7 @@ def chat(
     prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
-        DEFAULT_ENGINE_HOST,
+        PROD_ENGINE_HOST,
         "-h",
         "--host",
         help="The Arcade Engine address to send chat requests to.",
@@ -345,7 +351,7 @@ def evals(
     """
     config = validate_and_get_config()
 
-    host = DEFAULT_ENGINE_HOST if cloud else host
+    host = PROD_ENGINE_HOST if cloud else host
     base_url = compute_engine_base_url(force_tls, force_no_tls, host, port)
 
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
@@ -479,8 +485,9 @@ def workerup(
 
 
 @cli.callback()
-def version(
-    _: bool = typer.Option(
+def main_callback(
+    ctx: typer.Context,
+    _: Optional[bool] = typer.Option(
         None,
         "-v",
         "--version",
@@ -489,4 +496,11 @@ def version(
         help="Print version and exit.",
     ),
 ) -> None:
-    pass
+    excluded_commands = {login.__name__, logout.__name__}
+    if ctx.invoked_subcommand in excluded_commands:
+        return
+
+    if not check_existing_login(suppress_message=True):
+        console.print("Not logged in to Arcade CLI. Use ", style="bold red", end="")
+        console.print("arcade login", style="bold green")
+        raise typer.Exit()

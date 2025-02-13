@@ -26,7 +26,8 @@ known_engine_config_locations = [
 
 if os.environ.get("HOMEBREW_REPOSITORY") is not None:
     homebrew_home = os.path.join(os.environ["HOMEBREW_REPOSITORY"], "etc", "arcade-engine")
-    known_engine_config_locations.append(homebrew_home)
+    if homebrew_home not in known_engine_config_locations:
+        known_engine_config_locations.append(homebrew_home)
 
 
 def start_servers(
@@ -54,7 +55,7 @@ def start_servers(
     engine_config = _get_config_file(engine_config, default_filename="engine.yaml")
 
     # Ensure engine_env is provided or found and either way, validated
-    env_file = _get_config_file(engine_env, default_filename="arcade.env", optional=True)
+    env_file = _get_config_file(engine_env, default_filename="engine.env", optional=True)
 
     # Prepare command-line arguments for the worker server and engine
     worker_cmd = _build_worker_command(worker_host, worker_port, debug)
@@ -113,7 +114,13 @@ def _get_config_file(
     file_path: str | None, default_filename: str = "engine.yaml", optional: bool = False
 ) -> str | None:
     """
-    Determines and validates the config file path.
+    Resolves and validates the config file path from a set of candidate locations.
+
+    If a file_path is provided, it is checked directly.
+    Otherwise, the following candidate locations are checked in order:
+      1. Current working directory.
+      2. User's home directory under .arcade.
+      3. Known engine config locations.
 
     Args:
         file_path: Optional path provided by the user.
@@ -127,52 +134,47 @@ def _get_config_file(
         RuntimeError: If the config file is not found and is not optional.
     """
     if file_path:
-        config_path = Path(os.path.expanduser(file_path)).resolve()
-        if not config_path.is_file():
-            console.print(f"❌ Config file not found at {config_path}", style="bold red")
-            raise RuntimeError(f"Config file not found at {config_path}")
-        return str(config_path)
+        candidate = Path(os.path.expanduser(file_path)).resolve()
+        if not candidate.is_file():
+            console.print(f"❌ Config file not found at {candidate}", style="bold red")
+            raise RuntimeError(f"Config file not found at {candidate}")
+        return str(candidate)
 
-    # Look for the file in the current working directory
-    config_path = Path(os.getcwd()) / default_filename
-    if config_path.is_file():
-        console.print(f"Using config file at {config_path}", style="bold green")
-        return str(config_path)
+    # List of all config file path locations to check.
+    candidates = [
+        Path(os.getcwd()) / default_filename,
+        Path.home() / ".arcade" / default_filename,
+    ]
+    candidates.extend(Path(path) / default_filename for path in known_engine_config_locations)
 
-    # Look for the file in the user's home directory under .arcade/
-    home_config_path = Path.home() / ".arcade" / default_filename
-    if home_config_path.is_file():
-        console.print(f"Using config file at {home_config_path}", style="bold green")
-        return str(home_config_path)
+    # Find the first candidate that exists.
+    for candidate in candidates:
+        if candidate.is_file():
+            console.print(f"Using config file at {candidate}", style="bold green")
+            return str(candidate)
 
-    # Look for known installation directories
-    for path in known_engine_config_locations:
-        etc_path = Path(path) / default_filename
-        if etc_path.is_file():
-            console.print(f"Using config file at {etc_path}", style="bold green")
-            return str(etc_path)
-
+    # No config file was found. Handle according to the optional flag.
     if optional:
         console.print(
-            f"⚠️  Optional config file '{default_filename}' not found in either of the default locations: "
-            f"   1) Current working directory: {Path.cwd() / default_filename}, or "
-            f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}.",
+            f"⚠️  Optional config file '{default_filename}' not found in any of the following locations:",
             style="bold yellow",
         )
+        for i, candidate in enumerate(candidates, start=1):
+            console.print(f"   {i}) {candidate}", style="bold yellow")
         return None
 
     console.print(
-        f"❌ Error: Required config file '{default_filename}' not found in any of the default locations:\n"
-        f"   1) Current working directory: {Path.cwd() / default_filename}, or\n"
-        f"   2) User's home directory: {Path.home() / '.arcade' / default_filename}\n",
+        f"❌ Error: Required config file '{default_filename}' not found in any of the following locations:",
         style="bold red",
     )
+    for i, candidate in enumerate(candidates, start=1):
+        console.print(f"   {i}) {candidate}", style="bold red")
+
     console.print(
-        "TIP: Please install the Arcade Engine by following the instructions at:\n"
+        "\nTIP: Please install the Arcade Engine by following the instructions at:\n"
         "     https://docs.arcade.dev/home/install/local#install-the-engine\n",
         style="bold green",
     )
-
     raise RuntimeError(f"Config file '{default_filename}' not found.")
 
 
