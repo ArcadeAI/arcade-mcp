@@ -115,3 +115,77 @@ def test_tool_decorator_with_auth_failure(auth_class, auth_kwargs):
         )
         def test_tool(x, y):
             return x + y
+
+
+def test_tool_deprecated_ordering_no_auth():
+    """
+    Checks the behavior of @tool.deprecated when used before and after the @tool decorator.
+    The order of the decorators should not matter.
+    """
+    message = "Deprecated: please use new_tool instead."
+
+    @tool.deprecated(message)
+    @tool
+    def func_deprecated_after(x):
+        """Test description for func_deprecated_after"""
+        return x
+
+    assert hasattr(func_deprecated_after, "__tool_deprecation_message__")
+    assert func_deprecated_after.__tool_deprecation_message__ == message
+    assert func_deprecated_after.__tool_name__ == "FuncDeprecatedAfter"
+    assert (
+        func_deprecated_after.__tool_description__ == "Test description for func_deprecated_after"
+    )
+    assert func_deprecated_after.__tool_requires_auth__ is None
+
+    @tool
+    @tool.deprecated(message)
+    def func_deprecated_before(x):
+        """Test description for func_deprecated_before"""
+        return x
+
+    assert hasattr(func_deprecated_before, "__tool_deprecation_message__")
+    assert func_deprecated_before.__tool_deprecation_message__ == message
+    assert func_deprecated_before.__tool_name__ == "FuncDeprecatedBefore"
+    assert (
+        func_deprecated_before.__tool_description__ == "Test description for func_deprecated_before"
+    )
+    assert func_deprecated_before.__tool_requires_auth__ is None
+
+
+def test_tool_deprecated_ordering_with_auth():
+    """
+    Checks the behavior of @tool.deprecated when used with authentication.
+    The order of the decorators should not matter.
+    """
+    message = "Deprecated: please use new_tool instead."
+
+    @tool.deprecated(message)
+    @tool(requires_auth=OAuth2(id="my_auth_id", scopes=["test_scope"]))
+    def func_deprecated_after_auth(x):
+        """Test description for func_deprecated_after_auth"""
+        return x
+
+    assert hasattr(func_deprecated_after_auth, "__tool_deprecation_message__")
+    assert func_deprecated_after_auth.__tool_deprecation_message__ == message
+    assert func_deprecated_after_auth.__tool_name__ == "FuncDeprecatedAfterAuth"
+    assert (
+        func_deprecated_after_auth.__tool_description__
+        == "Test description for func_deprecated_after_auth"
+    )
+    assert func_deprecated_after_auth.__tool_requires_auth__ is not None
+
+    @tool(requires_auth=OAuth2(id="my_auth_id", scopes=["test_scope"]))
+    @tool.deprecated(message)
+    def func_deprecated_before_auth(x):
+        """Test description for func_deprecated_before_auth"""
+        return x
+
+    assert hasattr(func_deprecated_before_auth, "__tool_deprecation_message__")
+    assert func_deprecated_before_auth.__tool_deprecation_message__ == message
+    assert func_deprecated_before_auth.__tool_name__ == "FuncDeprecatedBeforeAuth"
+    assert (
+        func_deprecated_before_auth.__tool_description__
+        == "Test description for func_deprecated_before_auth"
+    )
+    assert func_deprecated_before_auth.__tool_requires_auth__ is not None
