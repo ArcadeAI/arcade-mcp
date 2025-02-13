@@ -12,9 +12,9 @@ import idna
 import typer
 from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
 from arcadepy.types import AuthorizationResponse
-from openai import OpenAI
-from openai.resources.chat.completions import ChatCompletionChunk, Stream
+from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from rich.console import Console
 from rich.live import Live
