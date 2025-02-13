@@ -59,3 +59,14 @@ def tool(
     if func:
         return decorator(func)
     return decorator
+
+
+def _tool_deprecated(message: str) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        func.__tool_deprecation_message__ = message  # type: ignore[attr-defined]
+        return func
+
+    return decorator
+
+
+tool.deprecated = _tool_deprecated  # type: ignore[attr-defined]

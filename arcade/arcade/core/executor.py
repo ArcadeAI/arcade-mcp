@@ -12,7 +12,7 @@ from arcade.core.errors import (
     ToolSerializationError,
 )
 from arcade.core.output import output_factory
-from arcade.core.schema import ToolCallOutput, ToolContext, ToolDefinition
+from arcade.core.schema import ToolCallOutput, ToolCallWarning, ToolContext, ToolDefinition
 
 
 class ToolExecutor:
@@ -49,8 +49,17 @@ class ToolExecutor:
             # serialize the output model
             output = await ToolExecutor._serialize_output(output_model, results)
 
+            # gather any warnings
+            warnings = []
+            if definition.deprecation_message:
+                warnings.append(
+                    ToolCallWarning(
+                        message=definition.deprecation_message, warning_type="deprecation"
+                    )
+                )
+
             # return the output
-            return output_factory.success(data=output)
+            return output_factory.success(data=output, warnings=warnings)
 
         except RetryableToolError as e:
             return output_factory.fail_retry(

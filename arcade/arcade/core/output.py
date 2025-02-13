@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from arcade.core.schema import ToolCallError, ToolCallOutput
+from arcade.core.schema import ToolCallError, ToolCallOutput, ToolCallWarning
 
 T = TypeVar("T")
 
@@ -14,9 +14,10 @@ class ToolOutputFactory:
         self,
         *,
         data: T | None = None,
+        warnings: list[ToolCallWarning] | None = None,
     ) -> ToolCallOutput:
         value = getattr(data, "result", "") if data else ""
-        return ToolCallOutput(value=value)
+        return ToolCallOutput(value=value, warnings=warnings)
 
     def fail(
         self,

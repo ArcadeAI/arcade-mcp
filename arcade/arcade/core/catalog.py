@@ -382,6 +382,7 @@ class ToolCatalog(BaseModel):
 
         tool_name = snake_to_pascal_case(raw_tool_name)
         fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
+        deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
 
         return ToolDefinition(
             name=tool_name,
@@ -393,6 +394,7 @@ class ToolCatalog(BaseModel):
             requirements=ToolRequirements(
                 authorization=auth_requirement,
             ),
+            deprecation_message=deprecation_message,
         )
 
 
