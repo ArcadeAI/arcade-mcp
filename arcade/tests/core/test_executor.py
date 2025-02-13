@@ -4,7 +4,7 @@ import pytest
 
 from arcade.core.catalog import ToolCatalog
 from arcade.core.executor import ToolExecutor
-from arcade.core.schema import ToolCallError, ToolCallOutput, ToolCallWarning, ToolContext
+from arcade.core.schema import ToolCallError, ToolCallLog, ToolCallOutput, ToolContext
 from arcade.sdk import tool
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
@@ -67,10 +67,10 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             {"inp": "test"},
             ToolCallOutput(
                 value="test",
-                warnings=[
-                    ToolCallWarning(
+                logs=[
+                    ToolCallLog(
                         message="Use simple_tool instead",
-                        warning_type="deprecation",
+                        level="deprecation",
                     )
                 ],
             ),
@@ -175,10 +175,10 @@ def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
     else:
         assert output.value == expected_output.value
 
-        # check warnings
-        output_warnings = output.warnings or []
-        expected_warnings = expected_output.warnings or []
-        assert len(output_warnings) == len(expected_warnings)
-        for output_warning, expected_warning in zip(output_warnings, expected_warnings):
-            assert output_warning.message == expected_warning.message
-            assert output_warning.warning_type == expected_warning.warning_type
+        # check logs
+        output_logs = output.logs or []
+        expected_logs = expected_output.logs or []
+        assert len(output_logs) == len(expected_logs)
+        for output_log, expected_log in zip(output_logs, expected_logs):
+            assert output_log.message == expected_log.message
+            assert output_log.level == expected_log.level

@@ -262,14 +262,20 @@ class ToolCallRequest(BaseModel):
     """The context for the tool invocation."""
 
 
-class ToolCallWarning(BaseModel):
-    """A warning that occurred during the tool invocation."""
+class ToolCallLog(BaseModel):
+    """A log that occurred during the tool invocation."""
 
     message: str
     """The user-facing warning message."""
 
-    warning_type: Literal["deprecation"]
-    """The type of warning that occurred."""
+    level: Literal[
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "deprecation",
+    ]
+    """The level of the log."""
 
 
 class ToolCallError(BaseModel):
@@ -307,8 +313,8 @@ class ToolCallOutput(BaseModel):
 
     value: Union[str, int, float, bool, dict, list[str]] | None = None
     """The value returned by the tool."""
-    warnings: list[ToolCallWarning] | None = None
-    """The warnings that occurred during the tool invocation."""
+    logs: list[ToolCallLog] | None = None
+    """The logs that occurred during the tool invocation."""
     error: ToolCallError | None = None
     """The error that occurred during the tool invocation."""
     requires_authorization: ToolCallRequiresAuthorization | None = None

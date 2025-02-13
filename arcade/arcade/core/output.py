@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from arcade.core.schema import ToolCallError, ToolCallOutput, ToolCallWarning
+from arcade.core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 
 T = TypeVar("T")
 
@@ -14,10 +14,10 @@ class ToolOutputFactory:
         self,
         *,
         data: T | None = None,
-        warnings: list[ToolCallWarning] | None = None,
+        logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         value = getattr(data, "result", "") if data else ""
-        return ToolCallOutput(value=value, warnings=warnings)
+        return ToolCallOutput(value=value, logs=logs)
 
     def fail(
         self,
@@ -25,6 +25,7 @@ class ToolOutputFactory:
         message: str,
         developer_message: str | None = None,
         traceback_info: str | None = None,
+        logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -32,7 +33,8 @@ class ToolOutputFactory:
                 developer_message=developer_message,
                 can_retry=False,
                 traceback_info=traceback_info,
-            )
+            ),
+            logs=logs,
         )
 
     def fail_retry(
@@ -43,6 +45,7 @@ class ToolOutputFactory:
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
         traceback_info: str | None = None,
+        logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -51,7 +54,8 @@ class ToolOutputFactory:
                 can_retry=True,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
-            )
+            ),
+            logs=logs,
         )
 
 
