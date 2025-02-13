@@ -273,9 +273,11 @@ class ToolCallLog(BaseModel):
         "info",
         "warning",
         "error",
-        "deprecation",
     ]
-    """The level of the log."""
+    """The level of severity for the log."""
+
+    subtype: Optional[Literal["deprecation"]] = None
+    """Optional field for further categorization of the log."""
 
 
 class ToolCallError(BaseModel):

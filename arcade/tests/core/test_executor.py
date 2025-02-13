@@ -70,7 +70,8 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
                 logs=[
                     ToolCallLog(
                         message="Use simple_tool instead",
-                        level="deprecation",
+                        level="warning",
+                        subtype="deprecation",
                     )
                 ],
             ),
@@ -182,3 +183,4 @@ def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
         for output_log, expected_log in zip(output_logs, expected_logs):
             assert output_log.message == expected_log.message
             assert output_log.level == expected_log.level
+            assert output_log.subtype == expected_log.subtype

@@ -31,9 +31,11 @@ class ToolExecutor:
         """
         # only gathering deprecation log for now
         tool_call_logs = []
-        if definition.deprecation_message:
+        if definition.deprecation_message is not None:
             tool_call_logs.append(
-                ToolCallLog(message=definition.deprecation_message, level="deprecation")
+                ToolCallLog(
+                    message=definition.deprecation_message, level="warning", subtype="deprecation"
+                )
             )
 
         try:
