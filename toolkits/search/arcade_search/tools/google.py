@@ -14,8 +14,6 @@ async def search_google(
     """Search Google using SerpAPI and return organic search results."""
 
     api_key = context.get_secret("SERP_API_KEY")
-    if not api_key:
-        raise ValueError("SERP_API_KEY is not set")
 
     client = serpapi.Client(api_key=api_key)
     params = {"engine": "google", "q": query}
