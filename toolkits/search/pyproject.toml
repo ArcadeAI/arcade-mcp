@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_search"
-version = "0.1.10"
+version = "1.0.0"
 description = "Tools for searching the web"
 authors = ["Arcade <dev@arcade.dev>"]
 
