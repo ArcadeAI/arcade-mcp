@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
@@ -9,6 +9,29 @@ from crewai_arcade.structured import StructuredTool
 from crewai_arcade.utils import tool_definition_to_pydantic_model
 
 TOOL_NAME_SEPARATOR = "_"
+
+
+@runtime_checkable
+class AuthCallbackProtocol(Protocol):
+    """Protocol for the auth callback function
+
+    The auth callback function can be optionally provided to the ArcadeToolManager.
+    If provided, the function will be called when a tool requires authorization.
+
+    Example:
+        >>> def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse:
+        >>>     tool_name = kwargs["tool_name"]
+        >>>     tool_input = kwargs["input"]
+        >>>     auth_response = kwargs["auth_response"]
+        >>>     # handle the authorization...
+        >>>     print(f"\nTo authorize, visit: {auth_response.url}")
+        >>>     completed_auth_response = manager.wait_for_auth(auth_response)
+        >>>     return completed_auth_response
+        >>>
+        >>> manager = ArcadeToolManager(auth_callback=my_custom_auth_handler)
+    """
+
+    def __call__(self, **kwargs: dict[str, Any]) -> AuthorizationResponse: ...
 
 
 class ArcadeToolManager:
@@ -21,6 +44,7 @@ class ArcadeToolManager:
         self,
         user_id: str,
         client: Optional[Arcade] = None,
+        auth_callback: Optional[AuthCallbackProtocol] = None,
         **kwargs: dict[str, Any],
     ) -> None:
         """Initialize the ArcadeToolManager.
@@ -43,6 +67,7 @@ class ArcadeToolManager:
         Args:
             user_id: User ID required for tool authorization.
             client: Arcade client instance.
+            auth_callback: Optional callback function for handling authorization events in a custom way.
             **kwargs: Additional keyword arguments for the Arcade client if the client is not provided.
         """
         if not client:
@@ -54,6 +79,13 @@ class ArcadeToolManager:
         self.user_id = user_id
         self._client = client
         self._tools: dict[str, ToolDefinition] = {}
+        self.auth_callback = auth_callback if auth_callback else self._default_auth_callback
+
+        if not isinstance(self.auth_callback, AuthCallbackProtocol):
+            raise TypeError(
+                "auth_callback must adhere to the AuthCallbackProtocol signature: "
+                "def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse"
+            )
 
     @property
     def tools(self) -> list[str]:
@@ -158,6 +190,27 @@ class ArcadeToolManager:
 
         return crewai_tools
 
+    def wrap_tool(self, name: str, tool_def: ToolDefinition) -> StructuredTool:
+        """Wrap an Arcade tool as a CrewAI StructuredTool.
+
+        Args:
+            name: The name of the tool to wrap.
+            tool_def: The definition of the tool to wrap.
+
+        Returns:
+            A StructuredTool instance.
+        """
+        description = tool_def.description or "No description provided."
+        args_schema = tool_definition_to_pydantic_model(tool_def)
+        tool_function = self._create_tool_function(name)
+
+        return StructuredTool.from_function(
+            func=tool_function,
+            name=name,
+            description=description,
+            args_schema=args_schema,
+        )
+
     def _retrieve_tool_definitions(
         self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
     ) -> dict[str, ToolDefinition]:
@@ -196,27 +249,6 @@ class ArcadeToolManager:
 
         return tool_definitions
 
-    def wrap_tool(self, name: str, tool_def: ToolDefinition) -> StructuredTool:
-        """Wrap an Arcade tool as a CrewAI StructuredTool.
-
-        Args:
-            name: The name of the tool to wrap.
-            tool_def: The definition of the tool to wrap.
-
-        Returns:
-            A StructuredTool instance.
-        """
-        description = tool_def.description or "No description provided."
-        args_schema = tool_definition_to_pydantic_model(tool_def)
-        tool_function = self._create_tool_function(name)
-
-        return StructuredTool.from_function(
-            func=tool_function,
-            name=name,
-            description=description,
-            args_schema=args_schema,
-        )
-
     def _create_tool_function(self, tool_name: str) -> Callable[..., Any]:
         """Creates a function wrapper for an Arcade tool.
 
@@ -227,19 +259,15 @@ class ArcadeToolManager:
             A callable function that executes the tool.
         """
 
-        def tool_function(*args: Any, **kwargs: Any) -> Any:
+        def tool_function(**kwargs: Any) -> Any:
             # Handle authorization if required
             if self.requires_auth(tool_name):
                 # Get authorization status
                 auth_response = self.authorize(tool_name, self.user_id)
 
                 if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
-                    print(
-                        f"Authorization required for {tool_name}. Authorization URL: {auth_response.url}"
-                    )
-
-                    auth_response = self.wait_for_auth(auth_response)
-
+                    # Handle authorization
+                    auth_response = self._call_auth_callback(auth_response, tool_name, **kwargs)
                     if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                         return ValueError(
                             f"Authorization failed for {tool_name}. URL: {auth_response.url}"
@@ -261,6 +289,19 @@ class ArcadeToolManager:
             return "Failed to call " + tool_name
 
         return tool_function
+
+    def requires_auth(self, tool_name: str) -> bool:
+        """Check if a tool requires authorization."""
+        cleaned_tool_name = tool_name.replace(".", TOOL_NAME_SEPARATOR)
+        tool_def = self._tools.get(cleaned_tool_name)
+
+        if tool_def is None:
+            raise ValueError(f"Tool '{tool_name}' not found in this ArcadeToolManager instance")
+
+        if tool_def.requirements is None:
+            return False
+
+        return tool_def.requirements.authorization is not None
 
     def authorize(self, tool_name: str, user_id: str) -> AuthorizationResponse:
         """Authorize a user for a tool.
@@ -289,15 +330,27 @@ class ArcadeToolManager:
         """
         return self._client.auth.wait_for_completion(auth_response)
 
-    def requires_auth(self, tool_name: str) -> bool:
-        """Check if a tool requires authorization."""
-        cleaned_tool_name = tool_name.replace(".", TOOL_NAME_SEPARATOR)
-        tool_def = self._tools.get(cleaned_tool_name)
+    def _call_auth_callback(
+        self,
+        auth_response: AuthorizationResponse,
+        tool_name: str,
+        **kwargs: dict[str, Any],
+    ) -> AuthorizationResponse:
+        """Helper method to call the auth_callback."""
+        callback_kwargs = {
+            "tool_name": tool_name,
+            "input": kwargs,
+            "auth_response": auth_response,
+        }
+        try:
+            return self.auth_callback(**callback_kwargs)
+        except KeyError:
+            raise TypeError(
+                "The ArcadeToolManager's auth_callback must adhere to the AuthCallbackProtocol signature: "
+                "def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse"
+            )
 
-        if tool_def is None:
-            raise ValueError(f"Tool '{tool_name}' not found in this ArcadeToolManager instance")
-
-        if tool_def.requirements is None:
-            return False
-
-        return tool_def.requirements.authorization is not None
+    def _default_auth_callback(self, **kwargs: dict[str, Any]) -> AuthorizationResponse:
+        print(f"Please use the following link to authorize: {kwargs['auth_response'].url}")
+        completed_auth_response = self.wait_for_auth(kwargs["auth_response"])
+        return completed_auth_response

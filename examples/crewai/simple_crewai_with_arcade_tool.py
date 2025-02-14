@@ -1,8 +1,7 @@
 """
 
-This is an example of how to use Arcade with CrewAI.
-The example authenticates into the user's Gmail account using a custom auth handler,
-retrieves their 5 most recent emails, and summarizes them.
+This is a simple example of how to use Arcade with CrewAI.
+The example authenticates into the user's Gmail account, retrieves their 5 most recent emails, and summarizes them.
 
 The example assumes the following:
 1. You have an Arcade API key and have set the ARCADE_API_KEY environment variable.
@@ -11,36 +10,11 @@ The example assumes the following:
 
 """
 
-from typing import Any
-
-from arcadepy.types.shared import AuthorizationResponse
 from crewai import Agent, Crew, Task
 from crewai.llm import LLM
 from crewai_arcade import ArcadeToolManager
 
-
-def custom_auth_handler(tool_name: str, **kwargs: dict[str, Any]) -> AuthorizationResponse:
-    """Custom auth handler for the ArcadeToolManager"""
-    tool_name = kwargs["tool_name"]
-    tool_input = kwargs["input"]
-    auth_response = kwargs["auth_response"]
-
-    print(f"Authorization required for tool: {tool_name}")
-    if "input" in kwargs:
-        print(f"Requested inputs for tool '{tool_name}':")
-        for input_name, input_value in tool_input.items():
-            print(f"  {input_name}: {input_value}")
-    print(f"\nTo authorize, visit: {auth_response.url}")
-
-    completed_auth_response = manager.wait_for_auth(auth_response)
-
-    return completed_auth_response
-
-
-manager = ArcadeToolManager(
-    user_id="user@example.com",
-    auth_callback=custom_auth_handler,
-)
+manager = ArcadeToolManager(user_id="user@example.com")
 tools = manager.get_tools(tools=["Google.ListEmails"])
 
 crew_agent = Agent(
