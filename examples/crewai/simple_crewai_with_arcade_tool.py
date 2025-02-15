@@ -14,7 +14,7 @@ from crewai import Agent, Crew, Task
 from crewai.llm import LLM
 from crewai_arcade import ArcadeToolManager
 
-manager = ArcadeToolManager(user_id="user@example.com")
+manager = ArcadeToolManager(user_id="user@example.com", base_url="http://localhost:9099")
 tools = manager.get_tools(tools=["Google.ListEmails"])
 
 crew_agent = Agent(

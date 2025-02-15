@@ -13,25 +13,84 @@ TOOL_NAME_SEPARATOR = "_"
 
 @runtime_checkable
 class AuthCallbackProtocol(Protocol):
-    """Protocol for the auth callback function
+    """Protocol for auth callback functions
 
-    The auth callback function can be optionally provided to the ArcadeToolManager.
+    A custom auth callback function can be optionally provided to the ArcadeToolManager.
     If provided, the function will be called when a tool requires authorization.
 
     Example:
-        >>> def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse:
+        >>> def custom_auth_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> None:
+        >>>     user_id = "user@example.com"
         >>>     tool_name = kwargs["tool_name"]
         >>>     tool_input = kwargs["input"]
-        >>>     auth_response = kwargs["auth_response"]
-        >>>     # handle the authorization...
-        >>>     print(f"\nTo authorize, visit: {auth_response.url}")
-        >>>     completed_auth_response = manager.wait_for_auth(auth_response)
-        >>>     return completed_auth_response
+        >>>
+        >>>     # Get authorization status
+        >>>     auth_response = manager.authorize(tool_name, user_id)
+        >>>
+        >>>     # If the user is not authorized for the tool, then we need to handle the authorization before executing the tool
+        >>>     if not manager.is_authorized(auth_response.id):
+        >>>         print(f"Authorization required for tool: {tool_name}")
+        >>>         print(f"Requested inputs for tool '{tool_name}':")
+        >>>         for input_name, input_value in tool_input.items():
+        >>>             print(f"  {input_name}: {input_value}")
+        >>>
+        >>>         # Handle authorization
+        >>>         print(f"\nTo authorize, visit: {auth_response.url}")
+        >>>         # Block until the user has completed the authorization
+        >>>         auth_response = manager.wait_for_auth(auth_response)
+        >>>
+        >>>         # Ensure authorization completed successfully
+        >>>         if not manager.is_authorized(auth_response.id):
+        >>>             raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
         >>>
         >>> manager = ArcadeToolManager(auth_callback=my_custom_auth_handler)
     """
 
-    def __call__(self, **kwargs: dict[str, Any]) -> AuthorizationResponse: ...
+    def __call__(self, manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> None: ...
+
+
+@runtime_checkable
+class ExecuteCallbackProtocol(Protocol):
+    """Protocol for execution callback functions.
+
+    An execution callback allows custom handling of tool execution. This is useful
+    if you want to, for example, supply a user_id or other required context
+    at execution time.
+
+    Example:
+        >>> def custom_tool_execute_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> Any:
+        >>>     user_id = "user@example.com"
+        >>>     tool_name = kwargs["tool_name"]
+        >>>     tool_input = kwargs["input"]
+        >>>
+        >>>     # Print the tool name and inputs
+        >>>     print(f"Executing tool: {tool_name} with inputs:")
+        >>>     for input_name, input_value in tool_input.items():
+        >>>         print(f"  {input_name}: {input_value}")
+        >>>
+        >>>     # Execute the tool
+        >>>     response = manager._client.tools.execute(
+        >>>         tool_name=tool_name,
+        >>>         input=tool_input,
+        >>>         user_id=user_id,
+        >>>     )
+        >>>
+        >>>     # Handle the tool error if it exists
+        >>>     tool_error = response.output.error if response.output else None
+        >>>     if tool_error:
+        >>>         return str(tool_error)
+        >>>
+        >>>     # Return the tool output if the tool was executed successfully
+        >>>     if response.success:
+        >>>         return response.output.value
+        >>>
+        >>>     # Return a failure message if the tool was not executed successfully
+        >>>     return "Failed to call " + tool_name
+        >>>
+        >>> manager = ArcadeToolManager(tool_execute_callback=my_custom_tool_execute_handler)
+    """
+
+    def __call__(self, manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> Any: ...
 
 
 class ArcadeToolManager:
@@ -42,15 +101,16 @@ class ArcadeToolManager:
 
     def __init__(
         self,
-        user_id: str,
         client: Optional[Arcade] = None,
+        user_id: Optional[str] = None,
         auth_callback: Optional[AuthCallbackProtocol] = None,
+        tool_execute_callback: Optional[ExecuteCallbackProtocol] = None,
         **kwargs: dict[str, Any],
     ) -> None:
         """Initialize the ArcadeToolManager.
 
         Example:
-            >>> manager = ArcadeToolManager(api_key="...")
+            >>> manager = ArcadeToolManager(user_id="me@example.com", api_key="...")
             >>>
             >>> # retrieve a specific Arcade tool as a CrewAI tool and add it to the manager
             >>> manager.get_tools(tools=["Search.SearchGoogle"])
@@ -65,9 +125,10 @@ class ArcadeToolManager:
             >>> manager.init_tools(tools=["Search.SearchGoogle"], toolkits=["Search"])
 
         Args:
-            user_id: User ID required for tool authorization.
             client: Arcade client instance.
+            user_id: User ID for tool authorization/execution.
             auth_callback: Optional callback function for handling authorization events in a custom way.
+            tool_execute_callback: Optional callback function for handling tool execution in a custom way.
             **kwargs: Additional keyword arguments for the Arcade client if the client is not provided.
         """
         if not client:
@@ -79,12 +140,23 @@ class ArcadeToolManager:
         self.user_id = user_id
         self._client = client
         self._tools: dict[str, ToolDefinition] = {}
-        self.auth_callback = auth_callback if auth_callback else self._default_auth_callback
+        self.auth_callback = (
+            auth_callback if auth_callback is not None else ArcadeToolManager._default_auth_callback
+        )
+        self.tool_execute_callback = (
+            tool_execute_callback
+            if tool_execute_callback is not None
+            else ArcadeToolManager._default_tool_execute_callback
+        )
 
-        if not isinstance(self.auth_callback, AuthCallbackProtocol):
+        if not callable(self.auth_callback):
             raise TypeError(
-                "auth_callback must adhere to the AuthCallbackProtocol signature: "
-                "def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse"
+                "auth_callback must be callable and adhere to the AuthCallbackProtocol signature"
+            )
+
+        if not callable(self.tool_execute_callback):
+            raise TypeError(
+                "tool_execute_callback must be callable and adhere to the ExecuteCallbackProtocol signature"
             )
 
     @property
@@ -262,31 +334,9 @@ class ArcadeToolManager:
         def tool_function(**kwargs: Any) -> Any:
             # Handle authorization if required
             if self.requires_auth(tool_name):
-                # Get authorization status
-                auth_response = self.authorize(tool_name, self.user_id)
-
-                if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
-                    # Handle authorization
-                    auth_response = self._call_auth_callback(auth_response, tool_name, **kwargs)
-                    if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
-                        return ValueError(
-                            f"Authorization failed for {tool_name}. URL: {auth_response.url}"
-                        )
-
+                self._call_auth_callback(tool_name, **kwargs)
             # Execute the tool
-            response = self._client.tools.execute(
-                tool_name=tool_name,
-                input=kwargs,
-                user_id=self.user_id,
-            )
-
-            tool_error = response.output.error if response.output else None
-            if tool_error:
-                return str(tool_error)
-            if response.success:
-                return response.output.value  # type: ignore[union-attr]
-
-            return "Failed to call " + tool_name
+            return self._call_tool_execute_callback(tool_name, **kwargs)
 
         return tool_function
 
@@ -332,25 +382,77 @@ class ArcadeToolManager:
 
     def _call_auth_callback(
         self,
-        auth_response: AuthorizationResponse,
         tool_name: str,
         **kwargs: dict[str, Any],
-    ) -> AuthorizationResponse:
-        """Helper method to call the auth_callback."""
+    ) -> None:
+        """Helper method to call the ArcadeToolManager's auth_callback."""
         callback_kwargs = {
             "tool_name": tool_name,
             "input": kwargs,
-            "auth_response": auth_response,
         }
-        try:
-            return self.auth_callback(**callback_kwargs)
-        except KeyError:
-            raise TypeError(
-                "The ArcadeToolManager's auth_callback must adhere to the AuthCallbackProtocol signature: "
-                "def my_custom_auth_handler(**kwargs: dict[str, Any]) -> AuthorizationResponse"
+        self.auth_callback(self, **callback_kwargs)
+
+    def _call_tool_execute_callback(
+        self,
+        tool_name: str,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        """Helper method to call the ArcadeToolManager's tool_execute_callback."""
+        callback_kwargs = {
+            "tool_name": tool_name,
+            "input": kwargs,
+        }
+        return self.tool_execute_callback(self, **callback_kwargs)
+
+    @staticmethod
+    def _default_auth_callback(manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> None:
+        """Default authorization callback if no custom callback is provided."""
+        if manager.user_id is None:
+            raise ValueError(
+                "Failed to authorize tool: Tool authorization requires a 'user_id'."
+                "Ensure 'user_id' is preconfigured in the ArcadeToolManager instance "
+                "before tool authorization, or implement a custom auth_callback "
+                "to manage user identification."
             )
 
-    def _default_auth_callback(self, **kwargs: dict[str, Any]) -> AuthorizationResponse:
-        print(f"Please use the following link to authorize: {kwargs['auth_response'].url}")
-        completed_auth_response = self.wait_for_auth(kwargs["auth_response"])
-        return completed_auth_response
+        tool_name = kwargs["tool_name"]
+
+        # Get authorization status
+        auth_response = manager.authorize(tool_name, manager.user_id)
+
+        if not manager.is_authorized(auth_response.id):
+            # Handle authorization
+            print(f"Please use the following link to authorize: {auth_response.url}")
+            auth_response = manager.wait_for_auth(auth_response)
+
+            # Ensure authorization completed successfully
+            if not manager.is_authorized(auth_response.id):
+                raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
+
+    @staticmethod
+    def _default_tool_execute_callback(manager: "ArcadeToolManager", **kwargs: Any) -> Any:
+        """Default tool execution callback if no custom callback is provided."""
+        if manager.user_id is None:
+            raise ValueError(
+                "Failed to execute tool: Tool execution requires a 'user_id'."
+                "Ensure 'user_id' is preconfigured in the ArcadeToolManager instance "
+                "before tool execution, or implement a custom tool_execute_callback "
+                "to manage user identification."
+            )
+
+        tool_name = kwargs["tool_name"]
+        tool_input = kwargs["input"]
+
+        response = manager._client.tools.execute(
+            tool_name=tool_name,
+            input=tool_input,
+            user_id=manager.user_id,
+        )
+
+        tool_error = response.output.error if response.output else None
+        if tool_error:
+            return str(tool_error)
+        if response.success:
+            return response.output.value  # type: ignore[union-attr]
+
+        return "Failed to call " + tool_name
