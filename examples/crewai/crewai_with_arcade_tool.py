@@ -21,15 +21,18 @@ from crewai_arcade import ArcadeToolManager
 USER_ID = "user@example.com"
 
 
-def custom_auth_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> None:
-    """Custom auth handler for the ArcadeToolManager
+def custom_auth_flow(
+    manager: ArcadeToolManager, tool_name: str, **tool_input: dict[str, Any]
+) -> Any:
+    """Custom auth flow for the ArcadeToolManager
 
     This function is called when CrewAI needs to call a tool that requires authorization.
     Authorization is handled before executing the tool.
-    This function overrides the ArcadeToolManager's default auth handler
+    This function overrides the ArcadeToolManager's default auth flow performed by ArcadeToolManager.authorize_tool
     """
-    tool_name = kwargs["tool_name"]
-    tool_input = kwargs["input"]
+    print(f"Authorization required for tool: '{tool_name}' with inputs:")
+    for input_name, input_value in tool_input.items():
+        print(f"  {input_name}: {input_value}")
 
     # Get authorization status
     auth_response = manager.authorize(tool_name, USER_ID)
@@ -37,12 +40,6 @@ def custom_auth_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) ->
     # If the user is not authorized for the tool,
     # then we need to handle the authorization before executing the tool
     if not manager.is_authorized(auth_response.id):
-        # Print the tool name and inputs
-        print(f"Authorization required for tool: {tool_name}")
-        print(f"Requested inputs for tool '{tool_name}':")
-        for input_name, input_value in tool_input.items():
-            print(f"  {input_name}: {input_value}")
-
         # Handle authorization
         print(f"\nTo authorize, visit: {auth_response.url}")
         # Block until the user has completed the authorization
@@ -53,17 +50,15 @@ def custom_auth_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) ->
             raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
 
 
-def custom_tool_execute_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> Any:
-    """Custom tool execute handler for the ArcadeToolManager
+def custom_execute_flow(
+    manager: ArcadeToolManager, tool_name: str, **tool_input: dict[str, Any]
+) -> Any:
+    """Custom tool execution flow for the ArcadeToolManager
 
     This function is called when CrewAI needs to execute a tool after any authorization has been handled.
-    This function overrides the ArcadeToolManager's default tool execute handler
+    This function overrides the ArcadeToolManager's default tool execution flow performed by ArcadeToolManager.execute_tool
     """
-    tool_name = kwargs["tool_name"]
-    tool_input = kwargs["input"]
-
-    # Print the tool name and inputs
-    print(f"Executing tool: {tool_name} with inputs:")
+    print(f"Executing tool: '{tool_name}' with inputs:")
     for input_name, input_value in tool_input.items():
         print(f"  {input_name}: {input_value}")
 
@@ -87,11 +82,22 @@ def custom_tool_execute_handler(manager: ArcadeToolManager, **kwargs: dict[str, 
     return "Failed to call " + tool_name
 
 
+def custom_tool_executor(
+    manager: ArcadeToolManager, tool_name: str, **tool_input: dict[str, Any]
+) -> Any:
+    """Custom tool executor for the ArcadeToolManager
+
+    ArcadeToolManager's default executor handles authorization and tool execution.
+    This function overrides the default executor to handle authorization and tool execution in a custom way.
+    """
+    custom_auth_flow(manager, tool_name, **tool_input)
+    return custom_execute_flow(manager, tool_name, **tool_input)
+
+
 def main() -> CrewOutput:
     manager = ArcadeToolManager(
         base_url="http://localhost:9099",
-        auth_callback=custom_auth_handler,
-        tool_execute_callback=custom_tool_execute_handler,
+        executor=custom_tool_executor,
     )
     tools = manager.get_tools(tools=["Google.ListEmails"])
 
@@ -106,8 +112,8 @@ def main() -> CrewOutput:
     )
 
     task = Task(
-        description="Get the 5 most recent emails from the user's inbox and summarize them.",
-        expected_output="A bulleted list with a one sentence summary of each email.",
+        description="Get the 5 most recent emails from the user's inbox and summarize them and recommend a response for each.",
+        expected_output="A bulleted list with a one sentence summary of each email and a recommended response to the email.",
         agent=crew_agent,
         tools=crew_agent.tools,
     )

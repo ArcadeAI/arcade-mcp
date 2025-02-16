@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import Any, Callable, Optional, Protocol, runtime_checkable
+from typing import Any, Callable, Optional, Protocol
 
 from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
@@ -11,106 +11,35 @@ from crewai_arcade.utils import tool_definition_to_pydantic_model
 TOOL_NAME_SEPARATOR = "_"
 
 
-@runtime_checkable
-class AuthCallbackProtocol(Protocol):
-    """Protocol for auth callback functions
+class ArcadeToolExecutorProtocol(Protocol):
+    """Protocol for Arcade tool executor callback."""
 
-    A custom auth callback function can be optionally provided to the ArcadeToolManager.
-    If provided, the function will be called when a tool requires authorization.
-
-    Example:
-        >>> def custom_auth_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> None:
-        >>>     user_id = "user@example.com"
-        >>>     tool_name = kwargs["tool_name"]
-        >>>     tool_input = kwargs["input"]
-        >>>
-        >>>     # Get authorization status
-        >>>     auth_response = manager.authorize(tool_name, user_id)
-        >>>
-        >>>     # If the user is not authorized for the tool, then we need to handle the authorization before executing the tool
-        >>>     if not manager.is_authorized(auth_response.id):
-        >>>         print(f"Authorization required for tool: {tool_name}")
-        >>>         print(f"Requested inputs for tool '{tool_name}':")
-        >>>         for input_name, input_value in tool_input.items():
-        >>>             print(f"  {input_name}: {input_value}")
-        >>>
-        >>>         # Handle authorization
-        >>>         print(f"\nTo authorize, visit: {auth_response.url}")
-        >>>         # Block until the user has completed the authorization
-        >>>         auth_response = manager.wait_for_auth(auth_response)
-        >>>
-        >>>         # Ensure authorization completed successfully
-        >>>         if not manager.is_authorized(auth_response.id):
-        >>>             raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
-        >>>
-        >>> manager = ArcadeToolManager(auth_callback=my_custom_auth_handler)
-    """
-
-    def __call__(self, manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> None: ...
-
-
-@runtime_checkable
-class ExecuteCallbackProtocol(Protocol):
-    """Protocol for execution callback functions.
-
-    An execution callback allows custom handling of tool execution. This is useful
-    if you want to, for example, supply a user_id or other required context
-    at execution time.
-
-    Example:
-        >>> def custom_tool_execute_handler(manager: ArcadeToolManager, **kwargs: dict[str, Any]) -> Any:
-        >>>     user_id = "user@example.com"
-        >>>     tool_name = kwargs["tool_name"]
-        >>>     tool_input = kwargs["input"]
-        >>>
-        >>>     # Print the tool name and inputs
-        >>>     print(f"Executing tool: {tool_name} with inputs:")
-        >>>     for input_name, input_value in tool_input.items():
-        >>>         print(f"  {input_name}: {input_value}")
-        >>>
-        >>>     # Execute the tool
-        >>>     response = manager._client.tools.execute(
-        >>>         tool_name=tool_name,
-        >>>         input=tool_input,
-        >>>         user_id=user_id,
-        >>>     )
-        >>>
-        >>>     # Handle the tool error if it exists
-        >>>     tool_error = response.output.error if response.output else None
-        >>>     if tool_error:
-        >>>         return str(tool_error)
-        >>>
-        >>>     # Return the tool output if the tool was executed successfully
-        >>>     if response.success:
-        >>>         return response.output.value
-        >>>
-        >>>     # Return a failure message if the tool was not executed successfully
-        >>>     return "Failed to call " + tool_name
-        >>>
-        >>> manager = ArcadeToolManager(tool_execute_callback=my_custom_tool_execute_handler)
-    """
-
-    def __call__(self, manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> Any: ...
+    def __call__(
+        self,
+        manager: "ArcadeToolManager",
+        name: str,
+        **input: dict[str, Any],  # noqa: A002
+    ) -> Any: ...
 
 
 class ArcadeToolManager:
     """Arcade tool manager for CrewAI
 
-    This manager wraps Arcade tools as CrewAI StructuredTools.
+    Wraps Arcade tools as CrewAI StructuredTools
     """
 
     def __init__(
         self,
         client: Optional[Arcade] = None,
-        user_id: Optional[str] = None,
-        auth_callback: Optional[AuthCallbackProtocol] = None,
-        tool_execute_callback: Optional[ExecuteCallbackProtocol] = None,
+        executor: Optional[ArcadeToolExecutorProtocol] = None,
+        *,
+        default_user_id: Optional[str] = None,
         **kwargs: dict[str, Any],
     ) -> None:
         """Initialize the ArcadeToolManager.
 
         Example:
-            >>> manager = ArcadeToolManager(user_id="me@example.com", api_key="...")
+            >>> manager = ArcadeToolManager(default_user_id="me@example.com", api_key="...")
             >>>
             >>> # retrieve a specific Arcade tool as a CrewAI tool and add it to the manager
             >>> manager.get_tools(tools=["Search.SearchGoogle"])
@@ -126,10 +55,14 @@ class ArcadeToolManager:
 
         Args:
             client: Arcade client instance.
-            user_id: User ID for tool authorization/execution.
-            auth_callback: Optional callback function for handling authorization events in a custom way.
-            tool_execute_callback: Optional callback function for handling tool execution in a custom way.
+            executor: Optional custom executor callback. Useful for customizing the authorization and execution flow.
+            default_user_id: The default user id used for tool authorization and execution
+                             when no custom executor is provided.
             **kwargs: Additional keyword arguments for the Arcade client if the client is not provided.
+
+        Note:
+            If no executor is provided, `default_user_id` must be specified so that the default
+            executor can call authorize and execute with that id.
         """
         if not client:
             api_key = kwargs.get("api_key")
@@ -137,26 +70,19 @@ class ArcadeToolManager:
             arcade_kwargs = {"api_key": api_key, "base_url": base_url, **kwargs}
             client = Arcade(**arcade_kwargs)  # type: ignore[arg-type]
 
-        self.user_id = user_id
         self._client = client
         self._tools: dict[str, ToolDefinition] = {}
-        self.auth_callback = (
-            auth_callback if auth_callback is not None else ArcadeToolManager._default_auth_callback
-        )
-        self.tool_execute_callback = (
-            tool_execute_callback
-            if tool_execute_callback is not None
-            else ArcadeToolManager._default_tool_execute_callback
-        )
+        self.default_user_id = default_user_id
 
-        if not callable(self.auth_callback):
-            raise TypeError(
-                "auth_callback must be callable and adhere to the AuthCallbackProtocol signature"
-            )
+        # Use the default executor if none is provided.
+        if executor is None and default_user_id is None:
+            raise ValueError("A default_user_id must be provided if no executor is specified.")
 
-        if not callable(self.tool_execute_callback):
+        self.executor = executor or self._default_executor  # type: ignore[assignment]
+
+        if not callable(self.executor):
             raise TypeError(
-                "tool_execute_callback must be callable and adhere to the ExecuteCallbackProtocol signature"
+                "executor must be callable and adhere to the ArcadeToolExecutorProtocol signature"
             )
 
     @property
@@ -184,7 +110,7 @@ class ArcadeToolManager:
         provided, then all tools in the Arcade client will be added.
 
         Example:
-            >>> manager = ArcadeToolManager(user_id="...", api_key="...")
+            >>> manager = ArcadeToolManager(default_user_id="me@example.com", api_key="...")
             >>> manager.init_tools(tools=["Search.SearchGoogle"])
             >>> manager.get_tools()
 
@@ -203,7 +129,7 @@ class ArcadeToolManager:
         toolkits are provided, all tools in the Arcade client will be added.
 
         Example:
-            >>> manager = ArcadeToolManager(user_id="...", api_key="...")
+            >>> manager = ArcadeToolManager(default_user_id="me@example.com", api_key="...")
             >>> manager.init_tools(tools=["Search.SearchGoogle"])
             >>> manager.add_tools(tools=["Google.ListEmails"], toolkits=["Slack"])
             >>> manager.get_tools()
@@ -228,7 +154,7 @@ class ArcadeToolManager:
         internal tool list are returned as CrewAI StructuredTools.
 
         Example:
-            >>> manager = ArcadeToolManager(user_id="...", api_key="...")
+            >>> manager = ArcadeToolManager(default_user_id="me@example.com", api_key="...")
             >>>
             >>> # Retrieve a specific tool as a CrewAI tool
             >>> manager.get_tools(tools=["Search.SearchGoogle"])
@@ -258,11 +184,97 @@ class ArcadeToolManager:
         # Wrap the requested tools as CrewAI StructuredTools
         crewai_tools: list[StructuredTool] = []
         for tool_name, tool_def in self:
-            crewai_tools.append(self.wrap_tool(tool_name, tool_def))
+            crewai_tools.append(self._wrap_arcade_tool(tool_name, tool_def))
 
         return crewai_tools
 
-    def wrap_tool(self, name: str, tool_def: ToolDefinition) -> StructuredTool:
+    def authorize_tool(self, user_id: str, name: str) -> None:
+        """Handle the authorization flow.
+
+        Args:
+            user_id: The user ID to authorize the tool for.
+            name: The name of the tool to authorize.
+        """
+
+        if self.requires_auth(name):
+            # Get authorization status
+            auth_response = self.authorize(name, user_id)
+
+            if not self.is_authorized(auth_response.id):
+                # Handle authorization
+                print(f"Please use the following link to authorize: {auth_response.url}")
+                auth_response = self.wait_for_auth(auth_response)
+
+                # Ensure authorization completed successfully
+                if not self.is_authorized(auth_response.id):
+                    raise ValueError(f"Authorization failed for {name}. URL: {auth_response.url}")
+
+    def execute_tool(self, user_id: str, name: str, **input: Any) -> Any:  # noqa: A002
+        """Handle the tool execution flow.
+
+        Args:
+            user_id: The user ID to execute the tool for.
+            name: The name of the tool to execute.
+            **input: Dictionary of input arguments for the tool.
+
+        Returns:
+            The output of the tool.
+        """
+        response = self._client.tools.execute(
+            tool_name=name,
+            input=input,
+            user_id=user_id,
+        )
+
+        tool_error = response.output.error if response.output else None
+        if tool_error:
+            return str(tool_error)
+        if response.success:
+            return response.output.value  # type: ignore[union-attr]
+
+        return "Failed to call " + name
+
+    def requires_auth(self, tool_name: str) -> bool:
+        """Check if a tool requires authorization."""
+        cleaned_tool_name = tool_name.replace(".", TOOL_NAME_SEPARATOR)
+        tool_def = self._tools.get(cleaned_tool_name)
+
+        if tool_def is None:
+            raise ValueError(f"Tool '{tool_name}' not found in this ArcadeToolManager instance")
+
+        if tool_def.requirements is None:
+            return False
+
+        return tool_def.requirements.authorization is not None
+
+    def authorize(self, tool_name: str, user_id: str) -> AuthorizationResponse:
+        """Authorize a user for a tool.
+
+        Args:
+            tool_name: The name of the tool to authorize.
+            user_id: The user ID to authorize.
+
+        Returns:
+            AuthorizationResponse
+        """
+        return self._client.tools.authorize(tool_name=tool_name, user_id=user_id)
+
+    def is_authorized(self, authorization_id: str) -> bool:
+        """Check if a tool authorization is complete."""
+        return self._client.auth.status(id=authorization_id).status == "completed"
+
+    def wait_for_auth(self, auth_response: AuthorizationResponse) -> AuthorizationResponse:
+        """Wait for an authorization process to complete.
+
+        Args:
+            auth_response: The authorization response from the initial authorize call.
+
+        Returns:
+            AuthorizationResponse with completed status
+        """
+        return self._client.auth.wait_for_completion(auth_response)
+
+    def _wrap_arcade_tool(self, name: str, tool_def: ToolDefinition) -> StructuredTool:
         """Wrap an Arcade tool as a CrewAI StructuredTool.
 
         Args:
@@ -332,127 +344,20 @@ class ArcadeToolManager:
         """
 
         def tool_function(**kwargs: Any) -> Any:
-            # Handle authorization if required
-            if self.requires_auth(tool_name):
-                self._call_auth_callback(tool_name, **kwargs)
-            # Execute the tool
-            return self._call_tool_execute_callback(tool_name, **kwargs)
+            return self.executor(self, tool_name, **kwargs)
 
         return tool_function
 
-    def requires_auth(self, tool_name: str) -> bool:
-        """Check if a tool requires authorization."""
-        cleaned_tool_name = tool_name.replace(".", TOOL_NAME_SEPARATOR)
-        tool_def = self._tools.get(cleaned_tool_name)
-
-        if tool_def is None:
-            raise ValueError(f"Tool '{tool_name}' not found in this ArcadeToolManager instance")
-
-        if tool_def.requirements is None:
-            return False
-
-        return tool_def.requirements.authorization is not None
-
-    def authorize(self, tool_name: str, user_id: str) -> AuthorizationResponse:
-        """Authorize a user for a tool.
-
-        Args:
-            tool_name: The name of the tool to authorize.
-            user_id: The user ID to authorize.
-
-        Returns:
-            AuthorizationResponse
-        """
-        return self._client.tools.authorize(tool_name=tool_name, user_id=user_id)
-
-    def is_authorized(self, authorization_id: str) -> bool:
-        """Check if a tool authorization is complete."""
-        return self._client.auth.status(id=authorization_id).status == "completed"
-
-    def wait_for_auth(self, auth_response: AuthorizationResponse) -> AuthorizationResponse:
-        """Wait for an authorization process to complete.
-
-        Args:
-            auth_response: The authorization response from the initial authorize call.
-
-        Returns:
-            AuthorizationResponse with completed status
-        """
-        return self._client.auth.wait_for_completion(auth_response)
-
-    def _call_auth_callback(
-        self,
-        tool_name: str,
-        **kwargs: dict[str, Any],
-    ) -> None:
-        """Helper method to call the ArcadeToolManager's auth_callback."""
-        callback_kwargs = {
-            "tool_name": tool_name,
-            "input": kwargs,
-        }
-        self.auth_callback(self, **callback_kwargs)
-
-    def _call_tool_execute_callback(
-        self,
-        tool_name: str,
-        **kwargs: dict[str, Any],
+    @staticmethod
+    def _default_executor(
+        manager: "ArcadeToolManager", name: str, **tool_input: dict[str, Any]
     ) -> Any:
-        """Helper method to call the ArcadeToolManager's tool_execute_callback."""
-        callback_kwargs = {
-            "tool_name": tool_name,
-            "input": kwargs,
-        }
-        return self.tool_execute_callback(self, **callback_kwargs)
-
-    @staticmethod
-    def _default_auth_callback(manager: "ArcadeToolManager", **kwargs: dict[str, Any]) -> None:
-        """Default authorization callback if no custom callback is provided."""
-        if manager.user_id is None:
-            raise ValueError(
-                "Failed to authorize tool: Tool authorization requires a 'user_id'."
-                "Ensure 'user_id' is preconfigured in the ArcadeToolManager instance "
-                "before tool authorization, or implement a custom auth_callback "
-                "to manage user identification."
-            )
-
-        tool_name = kwargs["tool_name"]
-
-        # Get authorization status
-        auth_response = manager.authorize(tool_name, manager.user_id)
-
-        if not manager.is_authorized(auth_response.id):
-            # Handle authorization
-            print(f"Please use the following link to authorize: {auth_response.url}")
-            auth_response = manager.wait_for_auth(auth_response)
-
-            # Ensure authorization completed successfully
-            if not manager.is_authorized(auth_response.id):
-                raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
-
-    @staticmethod
-    def _default_tool_execute_callback(manager: "ArcadeToolManager", **kwargs: Any) -> Any:
-        """Default tool execution callback if no custom callback is provided."""
-        if manager.user_id is None:
-            raise ValueError(
-                "Failed to execute tool: Tool execution requires a 'user_id'."
-                "Ensure 'user_id' is preconfigured in the ArcadeToolManager instance "
-                "before tool execution, or implement a custom tool_execute_callback "
-                "to manage user identification."
-            )
-
-        tool_name = kwargs["tool_name"]
-        tool_input = kwargs["input"]
-
-        response = manager._client.tools.execute(
-            tool_name=tool_name,
-            input=tool_input,
-            user_id=manager.user_id,
-        )
-
-        tool_error = response.output.error if response.output else None
-        if tool_error:
-            return str(tool_error)
-        if response.success:
-            return response.output.value  # type: ignore[union-attr]
-
-        return "Failed to call " + tool_name
+        """
+        Default executor that performs authorization followed
+        by tool execution using the manager's default_user_id.
+        """
+        if manager.default_user_id is None:
+            raise ValueError("default_user_id is not set in ArcadeToolManager.")
+        user_id = manager.default_user_id
+        manager.authorize_tool(user_id, name)
+        return manager.execute_tool(user_id, name, **tool_input)
