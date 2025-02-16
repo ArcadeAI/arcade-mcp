@@ -5,8 +5,8 @@ from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
 from arcadepy.types.shared import AuthorizationResponse
 
+from crewai_arcade._utilities import tool_definition_to_pydantic_model
 from crewai_arcade.structured import StructuredTool
-from crewai_arcade.utils import tool_definition_to_pydantic_model
 
 TOOL_NAME_SEPARATOR = "_"
 
@@ -78,7 +78,7 @@ class ArcadeToolManager:
         if executor is None and default_user_id is None:
             raise ValueError("A default_user_id must be provided if no executor is specified.")
 
-        self.executor = executor or self._default_executor  # type: ignore[assignment]
+        self.executor = executor or self._default_executor
 
         if not callable(self.executor):
             raise TypeError(
@@ -200,13 +200,13 @@ class ArcadeToolManager:
             # Get authorization status
             auth_response = self.authorize(name, user_id)
 
-            if not self.is_authorized(auth_response.id):
+            if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                 # Handle authorization
                 print(f"Please use the following link to authorize: {auth_response.url}")
                 auth_response = self.wait_for_auth(auth_response)
 
                 # Ensure authorization completed successfully
-                if not self.is_authorized(auth_response.id):
+                if not self.is_authorized(auth_response.id):  # type: ignore[arg-type]
                     raise ValueError(f"Authorization failed for {name}. URL: {auth_response.url}")
 
     def execute_tool(self, user_id: str, name: str, **input: Any) -> Any:  # noqa: A002

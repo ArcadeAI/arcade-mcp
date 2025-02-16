@@ -1,7 +1,7 @@
 <h3 align="center">
   <a name="readme-top"></a>
   <img
-    src="https://docs.arcade-ai.com/images/logo/arcade-ai-logo.png"
+    src="https://docs.arcade.dev/images/logo/arcade-logo.png"
   >
 </h3>
 <div align="center">
@@ -25,7 +25,7 @@
 
 ## Overview
 
-`crewai-arcade` allows you to use Arcade AI tools in your CrewAI applications.
+`crewai-arcade` allows you to use Arcade tools in your CrewAI applications.
 
 ## Installation
 

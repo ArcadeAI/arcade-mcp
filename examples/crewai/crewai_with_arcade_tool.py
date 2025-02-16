@@ -96,7 +96,6 @@ def custom_tool_executor(
 
 def main() -> CrewOutput:
     manager = ArcadeToolManager(
-        base_url="http://localhost:9099",
         executor=custom_tool_executor,
     )
     tools = manager.get_tools(tools=["Google.ListEmails"])
