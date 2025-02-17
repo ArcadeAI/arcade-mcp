@@ -1,5 +1,5 @@
 import asyncio
-from typing import Annotated
+from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
@@ -14,7 +14,10 @@ async def search_contacts(
         str,
         "The search query for filtering contacts.",
     ],
-    page_size: Annotated[int, "The maximum number of contacts to return"] = 10,
+    limit: Annotated[
+        Optional[int],
+        "The maximum number of contacts to return (default 10, max 30)",
+    ] = 10,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
     """
     Search the user's contacts using the People API.
@@ -35,12 +38,12 @@ async def search_contacts(
 
     # Warm-up the cache before performing search.
     # TODO: Ideally we should warmup only if this user (or google domain?) hasn't warmed up recently
-    _warmup_cache(service)
+    await _warmup_cache(service)
 
     # Search primary contacts using searchContacts
     primary_response = (
         service.people()
-        .searchContacts(query=query, pageSize=page_size, readMask="names,emailAddresses")
+        .searchContacts(query=query, pageSize=limit, readMask="names,emailAddresses")
         .execute()
     )
     primary_results = primary_response.get("results", [])
@@ -62,7 +65,8 @@ async def _warmup_cache(service):
 async def create_contact(
     context: ToolContext,
     given_name: Annotated[str, "The given name of the contact"],
-    family_name: Annotated[str, "The family name of the contact"],
+    family_name: Annotated[Optional[str], "The family name of the contact"],
+    email: Annotated[Optional[str], "The email address of the contact"],
 ) -> Annotated[dict, "A dictionary containing the details of the created contact"]:
     """
     Create a new contact in the user's Google Contacts using the People API.
@@ -73,11 +77,16 @@ async def create_contact(
     service = build(
         "people",
         "v1",
-        credentials=Credentials(context.authorization.token),
+        credentials=Credentials(context.get_auth_token_or_empty()),
     )
 
     # Construct the person payload with the specified names
-    contact_body = {"names": [{"givenName": given_name, "familyName": family_name}]}
+    name_body = {"givenName": given_name}
+    if family_name:
+        name_body["familyName"] = family_name
+    contact_body = {"names": [name_body]}
+    if email:
+        contact_body["emailAddresses"] = [{"value": email, "type": "work"}]
 
     # Create the contact. The personFields parameter specifies what information
     # should be returned. Here, we return names and emailAddresses.
