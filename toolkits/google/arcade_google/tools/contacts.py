@@ -51,7 +51,7 @@ async def search_contacts(
     return {"contacts": primary_results}
 
 
-async def _warmup_cache(service):
+async def _warmup_cache(service) -> None:
     """
     Warm-up the search cache for contacts by sending a request with an empty query.
     This ensures that the lazy cache is updated for both primary contacts and other contacts.
