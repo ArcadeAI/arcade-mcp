@@ -94,7 +94,7 @@ async def search_recent_tweets_by_username(
 
     response_data: dict[str, Any] = response.json()
 
-    for tweet in response_data["data"]:
+    for tweet in response_data.get("data", []):
         expand_long_tweet(tweet)
 
     # Expand the URLs that are in the tweets
@@ -164,7 +164,7 @@ async def search_recent_tweets_by_keywords(
 
     response_data: dict[str, Any] = response.json()
 
-    for tweet in response_data["data"]:
+    for tweet in response_data.get("data", []):
         expand_long_tweet(tweet)
 
     # Expand the URLs that are in the tweets
