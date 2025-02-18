@@ -1,6 +1,7 @@
 from typing import TypeVar
 
 from arcade.core.schema import ToolCallError, ToolCallLog, ToolCallOutput
+from arcade.core.utils import coerce_empty_list_to_none
 
 T = TypeVar("T")
 
@@ -17,6 +18,7 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         value = getattr(data, "result", "") if data else ""
+        logs = coerce_empty_list_to_none(logs)
         return ToolCallOutput(value=value, logs=logs)
 
     def fail(
@@ -34,7 +36,7 @@ class ToolOutputFactory:
                 can_retry=False,
                 traceback_info=traceback_info,
             ),
-            logs=logs,
+            logs=coerce_empty_list_to_none(logs),
         )
 
     def fail_retry(
@@ -55,7 +57,7 @@ class ToolOutputFactory:
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
             ),
-            logs=logs,
+            logs=coerce_empty_list_to_none(logs),
         )
 
 

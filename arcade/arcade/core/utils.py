@@ -78,3 +78,12 @@ def does_function_return_value(func: Callable) -> bool:
     visitor = ReturnVisitor()
     visitor.visit(tree)
     return visitor.returns_value
+
+
+def coerce_empty_list_to_none(lst: list[Any] | None) -> list[Any] | None:
+    """
+    Coerces empty lists to None, otherwise returns the list unchanged.
+    """
+    if isinstance(lst, list) and len(lst) == 0:
+        return None
+    return lst
