@@ -1,7 +1,7 @@
 <h3 align="center">
   <a name="readme-top"></a>
   <img
-    src="https://docs.arcade.dev/images/logo/arcade-ai-logo.png"
+    src="https://docs.arcade.dev/images/logo/arcade-logo.png"
     style="width: 400px;"
   >
 </h3>
@@ -35,8 +35,8 @@
 <p align="center" style="display: flex; justify-content: center; gap: 5px; font-size: 15px;">
     <a href="https://docs.arcade.dev/home" target="_blank">Docs</a> •
     <a href="https://docs.arcade.dev/toolkits" target="_blank">Toolkits</a> •
-    <a href="https://docs.arcade.dev/supported-models" target="_blank">Model Providers</a> •
-    <a href="https://docs.arcade.dev/auth-providers" target="_blank">Auth Providers</a> •
+    <a href="https://docs.arcade.dev/home/supported-models" target="_blank">Model Providers</a> •
+    <a href="https://docs.arcade.dev/home/auth-providers" target="_blank">Auth Providers</a> •
     <a href="https://github.com/ArcadeAI/arcade-ai/tree/main/examples" target="_blank">Examples</a>
 
 ## What is Arcade?
@@ -50,14 +50,14 @@ To learn more, check out our [documentation](https://docs.arcade.dev/home).
 _Pst. hey, you, give us a star if you like it!_
 
 <a href="https://github.com/ArcadeAI/arcade-ai">
-  <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-ai.svg?style=social&label=Star&maxAge=2592000" alt="GitHub stars">
+  <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-ai.svg" alt="GitHub stars">
 </a>
 
 ## Quickstart
 
 ### Requirements
 
-1. An **[Arcade account]([https://arcade-ai.typeform.com/early-access](https://account.arcade.dev/registerOrRedirect?return_to=https%3A%2F%2Fapi.arcade.dev%2Fdashboard&new_user_return_to=https%3A%2F%2Fapi.arcade.dev%2Fdashboard%2Fwelcome))**
+1. An **[Arcade account](https://account.arcade.dev/register?return_to=https%3A%2F%2Fapi.arcade.dev%2Fdashboard%2Fwelcome)**
 2. **Python 3.10+** and **pip**
 
 ### Installation
