@@ -16,11 +16,6 @@ def mock_context():
 
 @pytest.mark.asyncio
 async def test_search_contacts_success(mock_context):
-    # Prepare mocks for the two calls to searchContacts:
-    # 1) The warm-up call and 2) The actual search call.
-    warmup_call = MagicMock()
-    warmup_call.execute.return_value = {}  # warm-up call returns nothing significant
-
     search_response_data = {
         "results": [
             {
@@ -39,19 +34,23 @@ async def test_search_contacts_success(mock_context):
     search_call.execute.return_value = search_response_data
 
     people_mock = MagicMock()
-    # The first call is for warm-up (empty query) and the second for the actual search.
-    people_mock.searchContacts.side_effect = [warmup_call, search_call]
+    people_mock.searchContacts.return_value = search_call
 
     service_mock = MagicMock()
     service_mock.people.return_value = people_mock
 
-    with patch("arcade_google.tools.contacts.build", return_value=service_mock) as mock_build:
+    with (
+        patch("arcade_google.tools.contacts.build", return_value=service_mock) as mock_build,
+        patch(
+            "arcade_google.tools.contacts._warmup_cache", new=AsyncMock(return_value=None)
+        ) as mock_warmup,
+    ):
         result = await search_contacts(mock_context, query="Doe", limit=2)
         assert "contacts" in result
         assert result["contacts"] == search_response_data["results"]
 
-        # Verify that searchContacts was called twice (once for warm-up and once for actual search)
-        assert people_mock.searchContacts.call_count == 2
+        assert mock_warmup.call_count == 1
+        assert people_mock.searchContacts.call_count == 1
 
         # Check that the People API service was built with the expected parameters.
         mock_build.assert_called_once()
@@ -59,21 +58,18 @@ async def test_search_contacts_success(mock_context):
 
 @pytest.mark.asyncio
 async def test_search_contacts_error(mock_context):
-    # Simulate an error during the actual search call
-    warmup_call = MagicMock()
-    warmup_call.execute.return_value = {}  # Warm-up succeeds
-
     error_call = MagicMock()
     error_call.execute.side_effect = Exception("Search error")
 
     people_mock = MagicMock()
-    people_mock.searchContacts.side_effect = [warmup_call, error_call]
+    people_mock.searchContacts.return_value = error_call
 
     service_mock = MagicMock()
     service_mock.people.return_value = people_mock
 
     with (
         patch("arcade_google.tools.contacts.build", return_value=service_mock),
+        patch("arcade_google.tools.contacts._warmup_cache", new=AsyncMock(return_value=None)),
         pytest.raises(Exception, match="Error in execution of SearchContacts"),
     ):
         await search_contacts(mock_context, query="Doe")
