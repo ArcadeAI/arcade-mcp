@@ -1,4 +1,4 @@
-VERSION ?= "0.1.0"
+VERSION ?= "0.1.1"
 
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
