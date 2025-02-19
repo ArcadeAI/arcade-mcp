@@ -8,14 +8,9 @@ from arcade_google.tools.contacts import create_contact, search_contacts
 
 @pytest.fixture
 def mock_context():
-    # Create a mock ToolContext with both .authorization.token (for search_contacts)
-    # and .get_auth_token_or_empty() (for create_contact)
     context = AsyncMock(spec=ToolContext)
-    # For search_contacts
     context.authorization = MagicMock()
     context.authorization.token = "mock_token"  # noqa: S105
-    # For create_contact
-    context.get_auth_token_or_empty.return_value = "mock_token"
     return context
 
 
