@@ -23,6 +23,9 @@ async def list_documents(
     name_keywords: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document name"
     ] = None,
+    content_keywords: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document content"
+    ] = None,
     order_by: Annotated[
         list[OrderBy],
         "Sort order. Defaults to listing the most recently modified documents first",
@@ -53,16 +56,22 @@ async def list_documents(
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
 
-    query = "mimeType = 'application/vnd.google-apps.document' and trashed = false"
+    query = ["mimeType = 'application/vnd.google-apps.document' and trashed = false"]
     if name_keywords:
         keyword_queries = [
             f"name contains '{keyword.replace("'", "\\'")}'" for keyword in name_keywords
         ]
-        query += " and " + " and ".join(keyword_queries)
+        query.extend(keyword_queries)
+
+    if content_keywords:
+        keyword_queries = [
+            f"fullText contains '{keyword.replace("'", "\\'")}'" for keyword in content_keywords
+        ]
+        query.extend(keyword_queries)
 
     # Prepare the request parameters
     params = {
-        "q": query,
+        "q": " and ".join(query),
         "pageSize": page_size,
         "orderBy": ",".join([item.value for item in order_by]),
         "corpora": corpora.value,
