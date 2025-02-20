@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "langchain-arcade"
-version = "1.0.0"
+version = "1.0.1"
 description = "An integration package connecting Arcade and LangChain/LangGraph"
 authors = ["Arcade <dev@arcade.dev>"]
 readme = "README.md"

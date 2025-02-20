@@ -200,14 +200,14 @@ class ArcadeToolManager:
         if toolkits:
             for tk in toolkits:
                 # tools.list(...) returns a paginated response (SyncOffsetPage),
-                # so we iterate over its items to accumulate tool definitions.
+                # which has an __iter__ method that automatically iterates over all pages.
                 paginated_tools = self.client.tools.list(toolkit=tk)
-                all_tools.extend(paginated_tools.items)
+                all_tools.extend(paginated_tools)
 
         # If no specific tools or toolkits were requested, retrieve *all* tools.
         if not tools and not toolkits:
             paginated_all_tools = self.client.tools.list()
-            all_tools.extend(paginated_all_tools.items)
+            all_tools.extend(paginated_all_tools)
         # Build a dictionary that maps the "full_tool_name" to the tool definition.
         tool_definitions: dict[str, ToolDefinition] = {}
         for tool in all_tools:
