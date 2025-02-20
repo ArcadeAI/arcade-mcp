@@ -295,6 +295,54 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
     return build("drive", "v3", credentials=Credentials(auth_token))
 
 
+def build_file_query(
+    name_contains: Optional[list[str]] = None,
+    name_not_contains: Optional[list[str]] = None,
+    content_contains: Optional[list[str]] = None,
+    content_not_contains: Optional[list[str]] = None,
+) -> str:
+    query = ["mimeType = 'application/vnd.google-apps.document' and trashed = false"]
+
+    if isinstance(name_contains, str):
+        name_contains = [name_contains]
+
+    if isinstance(name_not_contains, str):
+        name_not_contains = [name_not_contains]
+
+    if isinstance(content_contains, str):
+        content_contains = [content_contains]
+
+    if isinstance(content_not_contains, str):
+        content_not_contains = [content_not_contains]
+
+    if name_contains:
+        keyword_queries = [
+            f"name contains '{keyword.replace("'", "\\'")}'" for keyword in name_contains
+        ]
+        query.extend(keyword_queries)
+
+    if name_not_contains:
+        keyword_queries = [
+            f"name not contains '{keyword.replace("'", "\\'")}'" for keyword in name_not_contains
+        ]
+        query.extend(keyword_queries)
+
+    if content_contains:
+        keyword_queries = [
+            f"fullText contains '{keyword.replace("'", "\\'")}'" for keyword in content_contains
+        ]
+        query.extend(keyword_queries)
+
+    if content_not_contains:
+        keyword_queries = [
+            f"fullText not contains '{keyword.replace("'", "\\'")}'"
+            for keyword in content_not_contains
+        ]
+        query.extend(keyword_queries)
+
+    return " and ".join(query)
+
+
 # Docs utils
 def build_docs_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
     """

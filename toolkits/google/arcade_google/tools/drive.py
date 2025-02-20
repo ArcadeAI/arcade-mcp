@@ -3,7 +3,7 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
-from arcade_google.utils import build_drive_service, remove_none_values
+from arcade_google.utils import build_drive_service, build_file_query, remove_none_values
 
 from ..models import Corpora, OrderBy
 
@@ -20,16 +20,22 @@ from ..models import Corpora, OrderBy
 async def list_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    name_keywords: Annotated[
+    name_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document name"
     ] = None,
-    content_keywords: Annotated[
+    name_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must not be in the document name"
+    ] = None,
+    content_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document content"
     ] = None,
+    content_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must not be in the document content"
+    ] = None,
     order_by: Annotated[
-        list[OrderBy],
+        Optional[list[OrderBy]],
         "Sort order. Defaults to listing the most recently modified documents first",
-    ] = OrderBy.MODIFIED_TIME_DESC,
+    ] = None,
     supports_all_drives: Annotated[
         bool,
         "Whether the requesting application supports both My Drives and shared drives",
@@ -46,7 +52,9 @@ async def list_documents(
     """
     List documents in the user's Google Drive. Excludes documents that are in the trash.
     """
-    if isinstance(order_by, OrderBy):
+    if order_by is None:
+        order_by = [OrderBy.MODIFIED_TIME_DESC]
+    elif isinstance(order_by, OrderBy):
         order_by = [order_by]
 
     page_size = min(10, limit)
@@ -56,22 +64,16 @@ async def list_documents(
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
 
-    query = ["mimeType = 'application/vnd.google-apps.document' and trashed = false"]
-    if name_keywords:
-        keyword_queries = [
-            f"name contains '{keyword.replace("'", "\\'")}'" for keyword in name_keywords
-        ]
-        query.extend(keyword_queries)
-
-    if content_keywords:
-        keyword_queries = [
-            f"fullText contains '{keyword.replace("'", "\\'")}'" for keyword in content_keywords
-        ]
-        query.extend(keyword_queries)
+    query = build_file_query(
+        name_contains=name_contains,
+        name_not_contains=name_not_contains,
+        content_contains=content_contains,
+        content_not_contains=content_not_contains,
+    )
 
     # Prepare the request parameters
     params = {
-        "q": " and ".join(query),
+        "q": query,
         "pageSize": page_size,
         "orderBy": ",".join([item.value for item in order_by]),
         "corpora": corpora.value,
