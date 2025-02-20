@@ -20,8 +20,8 @@ from ..models import Corpora, OrderBy
 async def list_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    title_keywords: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document title"
+    name_keywords: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document name"
     ] = None,
     order_by: Annotated[
         list[OrderBy],
@@ -55,11 +55,10 @@ async def list_documents(
     )
 
     query = "mimeType = 'application/vnd.google-apps.document' and trashed = false"
-    if title_keywords:
-        # Escape single quotes in title_keywords
-        title_keywords = [keyword.replace("'", "\\'") for keyword in title_keywords]
-        # Only support logically ANDed keywords in query for now
-        keyword_queries = [f"name contains '{keyword}'" for keyword in title_keywords]
+    if name_keywords:
+        keyword_queries = [
+            f"name contains '{keyword.replace("'", "\\'")}'" for keyword in name_keywords
+        ]
         query += " and " + " and ".join(keyword_queries)
 
     # Prepare the request parameters
