@@ -32,6 +32,9 @@ async def list_documents(
         "Whether the requesting application supports both My Drives and shared drives",
     ] = False,
     limit: Annotated[int, "The number of documents to list"] = 50,
+    pagination_token: Annotated[
+        Optional[str], "The pagination token to continue a previous request"
+    ] = None,
 ) -> Annotated[
     dict,
     "A dictionary containing 'documents_count' (number of documents returned) and 'documents' "
@@ -66,6 +69,7 @@ async def list_documents(
         "orderBy": ",".join([item.value for item in order_by]),
         "corpora": corpora.value,
         "supportsAllDrives": supports_all_drives,
+        "pageToken": pagination_token,
     }
     params = remove_none_values(params)
 
@@ -85,3 +89,11 @@ async def list_documents(
             break
 
     return {"documents_count": len(files), "documents": files}
+
+
+# @tool(
+#     requires_auth=Google(
+#         scopes=["https://www.googleapis.com/auth/drive.file"],
+#     )
+# )
+# async def search_and_retrieve_documents():
