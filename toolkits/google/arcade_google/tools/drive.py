@@ -47,7 +47,6 @@ async def list_documents(
         order_by = [order_by]
 
     page_size = min(10, limit)
-    page_token = None  # The page token is used for continuing a previous request on the next page
     files: list[dict[str, Any]] = []
 
     service = build_drive_service(
@@ -74,8 +73,8 @@ async def list_documents(
 
     # Paginate through the results until the limit is reached
     while len(files) < limit:
-        if page_token:
-            params["pageToken"] = page_token
+        if pagination_token:
+            params["pageToken"] = pagination_token
         else:
             params.pop("pageToken", None)
 
@@ -83,8 +82,8 @@ async def list_documents(
         batch = results.get("files", [])
         files.extend(batch[: limit - len(files)])
 
-        page_token = results.get("nextPageToken")
-        if not page_token or len(batch) < page_size:
+        pagination_token = results.get("nextPageToken")
+        if not pagination_token or len(batch) < page_size:
             break
 
     return {"documents_count": len(files), "documents": files}
