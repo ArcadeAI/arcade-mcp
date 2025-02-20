@@ -32,7 +32,8 @@ async def search_contacts(
     """
     Search the user's contacts in Google Contacts.
 
-    All contacts with a name or email address containing the query will be returned.
+    Up to 30 contacts with a name or email address containing the query will be returned.
+    If the query matches more than 30 contacts, only the first 30 will be returned.
     """
     # Build the People API service
     service = build(
