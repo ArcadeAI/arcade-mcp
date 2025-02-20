@@ -10,7 +10,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
 from googleapiclient.errors import HttpError
 
-from arcade_google.tools.models import Day, TimeSlot
+from arcade_google.models import Day, TimeSlot
 
 
 def parse_datetime(datetime_str: str, time_zone: str) -> datetime:

@@ -10,7 +10,7 @@ from arcade_google.tools.docs import (
     get_document_by_id,
     insert_text_at_end_of_document,
 )
-from arcade_google.tools.utils import build_docs_service
+from arcade_google.utils import build_docs_service
 
 
 @pytest.fixture

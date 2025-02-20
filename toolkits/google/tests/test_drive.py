@@ -4,9 +4,9 @@ import pytest
 from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
+from arcade_google.models import Corpora, OrderBy
 from arcade_google.tools.drive import list_documents
-from arcade_google.tools.models import Corpora, OrderBy
-from arcade_google.tools.utils import build_drive_service
+from arcade_google.utils import build_drive_service
 
 
 @pytest.fixture

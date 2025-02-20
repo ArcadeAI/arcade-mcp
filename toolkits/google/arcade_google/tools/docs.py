@@ -3,7 +3,7 @@ from typing import Annotated
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
-from arcade_google.tools.utils import build_docs_service
+from arcade_google.utils import build_docs_service
 
 
 # Uses https://developers.google.com/docs/api/reference/rest/v1/documents/get

@@ -19,7 +19,7 @@ from arcade_google.tools.gmail import (
     update_draft_email,
     write_draft_email,
 )
-from arcade_google.tools.utils import parse_draft_email, parse_email
+from arcade_google.utils import parse_draft_email, parse_email
 
 
 @pytest.fixture

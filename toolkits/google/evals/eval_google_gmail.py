@@ -15,7 +15,7 @@ from arcade_google.tools.gmail import (
     search_threads,
     send_email,
 )
-from arcade_google.tools.utils import DateRange
+from arcade_google.utils import DateRange
 
 # Evaluation rubric
 rubric = EvalRubric(

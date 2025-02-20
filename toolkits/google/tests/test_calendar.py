@@ -5,8 +5,8 @@ from arcade.sdk import ToolAuthorizationContext, ToolContext
 from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
+from arcade_google.models import EventVisibility, SendUpdatesOptions
 from arcade_google.tools.calendar import create_event, delete_event, list_events, update_event
-from arcade_google.tools.models import EventVisibility, SendUpdatesOptions
 
 
 @pytest.fixture

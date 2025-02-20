@@ -9,7 +9,7 @@ from arcade.sdk.errors import RetryableToolError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from arcade_google.tools.utils import (
+from arcade_google.utils import (
     DateRange,
     build_query_string,
     fetch_messages,

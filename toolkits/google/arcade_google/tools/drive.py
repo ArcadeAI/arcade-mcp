@@ -3,9 +3,9 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
-from arcade_google.tools.utils import build_drive_service, remove_none_values
+from arcade_google.utils import build_drive_service, remove_none_values
 
-from .models import Corpora, OrderBy
+from ..models import Corpora, OrderBy
 
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list

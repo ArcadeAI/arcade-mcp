@@ -8,8 +8,8 @@ from arcade.sdk.eval import (
 )
 
 import arcade_google
+from arcade_google.models import Corpora, OrderBy
 from arcade_google.tools.drive import list_documents
-from arcade_google.tools.models import Corpora, OrderBy
 
 # Evaluation rubric
 rubric = EvalRubric(
