@@ -77,7 +77,11 @@ async def create_contact(
     service = build(
         "people",
         "v1",
-        credentials=Credentials(context.get_auth_token_or_empty()),
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
     )
 
     # Construct the person payload with the specified names
