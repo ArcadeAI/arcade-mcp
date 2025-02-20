@@ -24,7 +24,7 @@ async def list_documents(
         Optional[list[str]], "Keywords or phrases that must be in the document title"
     ] = None,
     order_by: Annotated[
-        OrderBy,
+        list[OrderBy],
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = OrderBy.MODIFIED_TIME_DESC,
     supports_all_drives: Annotated[
@@ -40,6 +40,9 @@ async def list_documents(
     """
     List documents in the user's Google Drive. Excludes documents that are in the trash.
     """
+    if isinstance(order_by, OrderBy):
+        order_by = [order_by]
+
     page_size = min(10, limit)
     page_token = None  # The page token is used for continuing a previous request on the next page
     files: list[dict[str, Any]] = []
@@ -60,7 +63,7 @@ async def list_documents(
     params = {
         "q": query,
         "pageSize": page_size,
-        "orderBy": order_by.value,
+        "orderBy": ",".join([item.value for item in order_by]),
         "corpora": corpora.value,
         "supportsAllDrives": supports_all_drives,
     }
