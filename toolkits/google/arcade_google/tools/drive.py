@@ -24,13 +24,13 @@ async def list_documents(
         Optional[list[str]], "Keywords or phrases that must be in the document name"
     ] = None,
     name_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must not be in the document name"
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document name"
     ] = None,
     content_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document content"
     ] = None,
     content_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must not be in the document content"
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document content"
     ] = None,
     order_by: Annotated[
         Optional[list[OrderBy]],
@@ -71,7 +71,6 @@ async def list_documents(
         content_not_contains=content_not_contains,
     )
 
-    # Prepare the request parameters
     params = {
         "q": query,
         "pageSize": page_size,
@@ -82,7 +81,6 @@ async def list_documents(
     }
     params = remove_none_values(params)
 
-    # Paginate through the results until the limit is reached
     while len(files) < limit:
         if pagination_token:
             params["pageToken"] = pagination_token
