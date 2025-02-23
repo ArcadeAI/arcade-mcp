@@ -3,7 +3,8 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
-from arcade_google.utils import build_drive_service, build_file_query, remove_none_values
+from arcade_google.tools.docs import get_document_by_id
+from arcade_google.utils import build_drive_service, build_files_list_query, remove_none_values
 
 from ..models import Corpora, OrderBy
 
@@ -64,7 +65,7 @@ async def list_documents(
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
 
-    query = build_file_query(
+    query = build_files_list_query(
         name_contains=name_contains,
         name_not_contains=name_not_contains,
         content_contains=content_contains,
@@ -98,9 +99,62 @@ async def list_documents(
     return {"documents_count": len(files), "documents": files}
 
 
-# @tool(
-#     requires_auth=Google(
-#         scopes=["https://www.googleapis.com/auth/drive.file"],
-#     )
-# )
-# async def search_and_retrieve_documents():
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/drive.readonly"],
+    )
+)
+async def search_and_retrieve_documents(
+    context: ToolContext,
+    corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
+    name_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document name"
+    ] = None,
+    name_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document name"
+    ] = None,
+    content_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document content"
+    ] = None,
+    content_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document content"
+    ] = None,
+    order_by: Annotated[
+        Optional[list[OrderBy]],
+        "Sort order. Defaults to listing the most recently modified documents first",
+    ] = None,
+    supports_all_drives: Annotated[
+        bool,
+        "Whether the requesting application supports both My Drives and shared drives",
+    ] = False,
+    limit: Annotated[int, "The number of documents to list"] = 50,
+    pagination_token: Annotated[
+        Optional[str], "The pagination token to continue a previous request"
+    ] = None,
+) -> Annotated[
+    dict,
+    "A dictionary containing 'documents_count' (number of documents returned) and 'documents' "
+    "(a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
+]:
+    """
+    Provides a list of documents (with content) matching the search criteria.
+    """
+    response = await list_documents(
+        context=context,
+        corpora=corpora,
+        name_contains=name_contains,
+        name_not_contains=name_not_contains,
+        content_contains=content_contains,
+        content_not_contains=content_not_contains,
+        order_by=order_by,
+        supports_all_drives=supports_all_drives,
+        limit=limit,
+        pagination_token=pagination_token,
+    )
+
+    documents = []
+
+    for item in response["documents"]:
+        documents.append(await get_document_by_id(context, document_id=item["id"]))
+
+    return {"documents_count": len(documents), "documents": documents}

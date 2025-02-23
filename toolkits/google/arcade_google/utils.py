@@ -295,7 +295,7 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
     return build("drive", "v3", credentials=Credentials(auth_token))
 
 
-def build_file_query(
+def build_files_list_query(
     name_contains: Optional[list[str]] = None,
     name_not_contains: Optional[list[str]] = None,
     content_contains: Optional[list[str]] = None,
