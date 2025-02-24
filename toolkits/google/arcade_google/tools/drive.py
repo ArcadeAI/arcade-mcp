@@ -3,6 +3,7 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
+from arcade_google.doc_to_markdown import convert_document_to_markdown
 from arcade_google.tools.docs import get_document_by_id
 from arcade_google.utils import build_drive_service, build_files_list_query, remove_none_values
 
@@ -21,11 +22,11 @@ from ..models import Corpora, OrderBy
 async def list_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    name_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document name"
+    title_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document title"
     ] = None,
-    name_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document name"
+    title_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document title"
     ] = None,
     content_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document content"
@@ -66,8 +67,8 @@ async def list_documents(
     )
 
     query = build_files_list_query(
-        name_contains=name_contains,
-        name_not_contains=name_not_contains,
+        name_contains=title_contains,
+        name_not_contains=title_not_contains,
         content_contains=content_contains,
         content_not_contains=content_not_contains,
     )
@@ -104,14 +105,14 @@ async def list_documents(
         scopes=["https://www.googleapis.com/auth/drive.readonly"],
     )
 )
-async def search_and_retrieve_documents(
+async def search_and_retrieve_documents_in_markdown(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    name_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document name"
+    title_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document title"
     ] = None,
-    name_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document name"
+    title_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document title"
     ] = None,
     content_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document content"
@@ -142,8 +143,8 @@ async def search_and_retrieve_documents(
     response = await list_documents(
         context=context,
         corpora=corpora,
-        name_contains=name_contains,
-        name_not_contains=name_not_contains,
+        title_contains=title_contains,
+        title_not_contains=title_not_contains,
         content_contains=content_contains,
         content_not_contains=content_not_contains,
         order_by=order_by,
@@ -157,4 +158,7 @@ async def search_and_retrieve_documents(
     for item in response["documents"]:
         documents.append(await get_document_by_id(context, document_id=item["id"]))
 
-    return {"documents_count": len(documents), "documents": documents}
+    return {
+        "documents_count": len(documents),
+        "documents": [convert_document_to_markdown(doc) for doc in documents],
+    }

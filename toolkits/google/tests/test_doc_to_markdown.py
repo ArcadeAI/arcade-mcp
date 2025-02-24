@@ -6,6 +6,8 @@ from arcade_google.doc_to_markdown import convert_document_to_markdown
 @pytest.fixture
 def sample_document():
     return {
+        "title": "The Birth of Machine Experience Engineering",
+        "documentId": "1234567890",
         "body": {
             "content": [
                 {
@@ -889,7 +891,7 @@ def sample_document():
                     },
                 },
             ]
-        }
+        },
     }
 
 
@@ -898,6 +900,7 @@ async def test_convert_document_to_markdown(sample_document):
     markdown = convert_document_to_markdown(sample_document)
     print("\n\n", markdown, "\n\n")
     expected = (
+        "---\ntitle: The Birth of Machine Experience Engineering\ndocumentId: 1234567890\n---\n"
         "# **The Birth of Machine Experience Engineering**\n"
         "\n"
         "LLMs acting on behalf of humans and interacting with real-world systems isn't theoretical anymore - "

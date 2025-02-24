@@ -2,7 +2,7 @@ import arcade_google.doc_to_html as doc_to_html
 
 
 def convert_document_to_markdown(document: dict) -> str:
-    md = ""
+    md = f"---\ntitle: {document['title']}\ndocumentId: {document['documentId']}\n---\n"
     for element in document["body"]["content"]:
         md += convert_structural_element(element)
     return md
