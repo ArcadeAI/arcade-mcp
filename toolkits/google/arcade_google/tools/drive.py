@@ -23,10 +23,14 @@ async def list_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
     document_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document"
+        Optional[list[str]],
+        "Keywords or phrases that must be in the document title or body. Provide a list of "
+        "phrases if needed",
     ] = None,
     document_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document"
+        Optional[list[str]],
+        "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
+        "phrases if needed",
     ] = None,
     order_by: Annotated[
         Optional[list[OrderBy]],
@@ -101,10 +105,14 @@ async def search_and_retrieve_documents_in_markdown(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
     document_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document title"
+        Optional[list[str]],
+        "Keywords or phrases that must be in the document title or body. Provide a list of "
+        "phrases if needed",
     ] = None,
     document_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document title"
+        Optional[list[str]],
+        "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
+        "phrases if needed",
     ] = None,
     order_by: Annotated[
         Optional[list[OrderBy]],
@@ -125,6 +133,9 @@ async def search_and_retrieve_documents_in_markdown(
 ]:
     """
     Provides a list of documents (with content) matching the search criteria.
+
+    Note: use this tool only when the user prompt requires the documents' content. If the user only
+    needs a list of documents, use the `list_documents` tool instead.
     """
     response = await list_documents(
         context=context,

@@ -50,18 +50,18 @@ def list_documents_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="List documents in Google Drive based on title keywords",
-        user_message="list all documents that have title that contains the word'greedy' and also the phrase 'Joe's algo'",
+        name="List documents in Google Drive based on document keywords",
+        user_message="list the documents that contain the word 'greedy' and the phrase 'hello, world'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_documents,
                 args={
-                    "title_keywords": ["greedy", "Joe's algo"],
+                    "document_contains": ["greedy", "hello, world"],
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="title_keywords", weight=1.0),
+            BinaryCritic(critic_field="document_contains", weight=1.0),
         ],
     )
 
@@ -123,7 +123,7 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Search and retrieve (project proposal)",
-        user_message="Show me all documents in my Google Drive that contain the phrase 'project proposal'.",
+        user_message="Display the document contents in my Google Drive that contain the phrase 'project proposal'.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
@@ -139,7 +139,7 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Search and retrieve (meeting notes)",
-        user_message="Retrieve documents with 'meeting notes' in the title and 'budget' in the content.",
+        user_message="Retrieve documents that contain both 'meeting notes' and 'budget'.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
