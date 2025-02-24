@@ -4,7 +4,7 @@ def convert_structural_element(element: dict) -> str:
 
     elif "paragraph" in element:
         md = ""
-        prepend, append = get_paragraph_style_str(element["paragraph"]["paragraphStyle"])
+        prepend, append = get_paragraph_style_tags(element["paragraph"]["paragraphStyle"])
         for item in element["paragraph"]["elements"]:
             content = extract_paragraph_content(item["textRun"])
             md += f"{prepend}{content}{append}"
@@ -44,7 +44,7 @@ def apply_text_style(content: str, style: dict) -> str:
     return f"{content}{append}"
 
 
-def get_paragraph_style_str(style: dict) -> str:
+def get_paragraph_style_tags(style: dict) -> tuple[str, str]:
     named_style = style["namedStyleType"]
     if named_style == "NORMAL_TEXT":
         return "", ""
