@@ -5,7 +5,7 @@ from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import Corpora, OrderBy
-from arcade_google.tools.drive import list_documents
+from arcade_google.tools.drive import list_documents, search_and_retrieve_documents_in_markdown
 from arcade_google.utils import build_drive_service
 
 
@@ -115,3 +115,22 @@ async def test_list_documents_with_parameters(mock_context, mock_service):
         corpora=Corpora.USER.value,
         supportsAllDrives=False,
     )
+
+
+@pytest.mark.asyncio
+@patch("arcade_google.tools.drive.list_documents")
+@patch("arcade_google.tools.drive.get_document_by_id")
+async def test_search_and_retrieve_documents_in_markdown(
+    mock_get_document_by_id, mock_list_documents, mock_context, sample_document_and_expected_formats
+):
+    sample_document, expected_markdown = sample_document_and_expected_formats
+    mock_list_documents.return_value = {
+        "documents_count": 1,
+        "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
+    }
+    mock_get_document_by_id.return_value = sample_document
+    result = await search_and_retrieve_documents_in_markdown(
+        mock_context, title_contains=[sample_document["title"]]
+    )
+    assert result["documents_count"] == 1
+    assert result["documents"][0] == expected_markdown
