@@ -9,7 +9,7 @@ from arcade.sdk.eval import (
 
 import arcade_google
 from arcade_google.models import Corpora, OrderBy
-from arcade_google.tools.drive import list_documents
+from arcade_google.tools.drive import list_documents, search_and_retrieve_documents_in_markdown
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -95,30 +95,82 @@ def list_documents_eval_suite() -> EvalSuite:
     return suite
 
 
-# @tool_eval()
-# def search_and_retrieve_documents_eval_suite() -> EvalSuite:
-#     """Create an evaluation suite for Google Drive search and retrieve tools."""
-#     suite = EvalSuite(
-#         name="Google Drive Tools Evaluation",
-#         system_message="You are an AI assistant that can manage Google Drive documents using the provided tools.",
-#         catalog=catalog,
-#         rubric=rubric,
-#     )
+@tool_eval()
+def search_and_retrieve_documents_eval_suite() -> EvalSuite:
+    """Create an evaluation suite for Google Drive search and retrieve tools."""
+    suite = EvalSuite(
+        name="Google Drive Tools Evaluation",
+        system_message="You are an AI assistant that can manage Google Drive documents using the provided tools.",
+        catalog=catalog,
+        rubric=rubric,
+    )
 
-#     suite.add_case(
-#         name="Search and retrieve documents in Google Drive",
-#         user_message="write a summary of the documents in my Google Drive about 'MX Engineering'",
-#         expected_tool_calls=[
-#             ExpectedToolCall(
-#                 func=search_and_retrieve_documents_in_markdown,
-#                 args={
-#                     "content_contains": ["The Birth of Machine Experience Engineering"],
-#                 },
-#             )
-#         ],
-#         critics=[
-#             BinaryCritic(critic_field="content_contains", weight=1.0),
-#         ],
-#     )
+    suite.add_case(
+        name="Search and retrieve (write summary)",
+        user_message="write a summary of the documents in my Google Drive about 'MX Engineering'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents_in_markdown,
+                args={
+                    "content_contains": ["MX Engineering"],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="content_contains", weight=1.0),
+        ],
+    )
 
-#     return suite
+    suite.add_case(
+        name="Search and retrieve (project proposal)",
+        user_message="Find all documents in my Google Drive that contain the phrase 'project proposal' in their content.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents_in_markdown,
+                args={
+                    "content_contains": ["project proposal"],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="content_contains", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="Search and retrieve (meeting notes)",
+        user_message="Retrieve documents with 'meeting notes' in the title and 'budget' in the content.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents_in_markdown,
+                args={
+                    "title_contains": ["meeting notes"],
+                    "content_contains": ["budget"],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="title_contains", weight=0.5),
+            BinaryCritic(critic_field="content_contains", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search and retrieve (Q1 report)",
+        user_message="Get documents that mention 'Q1 report' but do not include the expression 'Project XYZ'.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents_in_markdown,
+                args={
+                    "content_contains": ["Q1 report"],
+                    "content_not_contains": ["Project XYZ"],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="title_contains", weight=0.5),
+            BinaryCritic(critic_field="content_not_contains", weight=0.5),
+        ],
+    )
+
+    return suite
