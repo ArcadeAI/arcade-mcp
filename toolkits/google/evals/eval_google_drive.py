@@ -112,28 +112,28 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
                 args={
-                    "content_contains": ["MX Engineering"],
+                    "document_contains": ["MX Engineering"],
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="content_contains", weight=1.0),
+            BinaryCritic(critic_field="document_contains", weight=1.0),
         ],
     )
 
     suite.add_case(
         name="Search and retrieve (project proposal)",
-        user_message="Find all documents in my Google Drive that contain the phrase 'project proposal' in their content.",
+        user_message="Show me all documents in my Google Drive that contain the phrase 'project proposal'.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
                 args={
-                    "content_contains": ["project proposal"],
+                    "document_contains": ["project proposal"],
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="content_contains", weight=1.0),
+            BinaryCritic(critic_field="document_contains", weight=1.0),
         ],
     )
 
@@ -144,14 +144,12 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
                 args={
-                    "title_contains": ["meeting notes"],
-                    "content_contains": ["budget"],
+                    "document_contains": ["meeting notes", "budget"],
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="title_contains", weight=0.5),
-            BinaryCritic(critic_field="content_contains", weight=0.5),
+            BinaryCritic(critic_field="document_contains", weight=0.5),
         ],
     )
 
@@ -162,14 +160,14 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=search_and_retrieve_documents_in_markdown,
                 args={
-                    "content_contains": ["Q1 report"],
-                    "content_not_contains": ["Project XYZ"],
+                    "document_contains": ["Q1 report"],
+                    "document_not_contains": ["Project XYZ"],
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="title_contains", weight=0.5),
-            BinaryCritic(critic_field="content_not_contains", weight=0.5),
+            BinaryCritic(critic_field="document_contains", weight=0.5),
+            BinaryCritic(critic_field="document_not_contains", weight=0.5),
         ],
     )
 

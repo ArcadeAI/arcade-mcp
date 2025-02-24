@@ -22,17 +22,11 @@ from ..models import Corpora, OrderBy
 async def list_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    title_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document title"
+    document_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must be in the document"
     ] = None,
-    title_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document title"
-    ] = None,
-    content_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document content"
-    ] = None,
-    content_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document content"
+    document_not_contains: Annotated[
+        Optional[list[str]], "Keywords or phrases that must NOT be in the document"
     ] = None,
     order_by: Annotated[
         Optional[list[OrderBy]],
@@ -67,10 +61,8 @@ async def list_documents(
     )
 
     query = build_files_list_query(
-        name_contains=title_contains,
-        name_not_contains=title_not_contains,
-        content_contains=content_contains,
-        content_not_contains=content_not_contains,
+        document_contains=document_contains,
+        document_not_contains=document_not_contains,
     )
 
     params = {
@@ -108,17 +100,11 @@ async def list_documents(
 async def search_and_retrieve_documents_in_markdown(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
-    title_contains: Annotated[
+    document_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must be in the document title"
     ] = None,
-    title_not_contains: Annotated[
+    document_not_contains: Annotated[
         Optional[list[str]], "Keywords or phrases that must NOT be in the document title"
-    ] = None,
-    content_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must be in the document content"
-    ] = None,
-    content_not_contains: Annotated[
-        Optional[list[str]], "Keywords or phrases that must NOT be in the document content"
     ] = None,
     order_by: Annotated[
         Optional[list[OrderBy]],
@@ -143,10 +129,8 @@ async def search_and_retrieve_documents_in_markdown(
     response = await list_documents(
         context=context,
         corpora=corpora,
-        title_contains=title_contains,
-        title_not_contains=title_not_contains,
-        content_contains=content_contains,
-        content_not_contains=content_not_contains,
+        document_contains=document_contains,
+        document_not_contains=document_not_contains,
         order_by=order_by,
         supports_all_drives=supports_all_drives,
         limit=limit,

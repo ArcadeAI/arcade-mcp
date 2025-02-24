@@ -296,47 +296,34 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
 
 
 def build_files_list_query(
-    name_contains: Optional[list[str]] = None,
-    name_not_contains: Optional[list[str]] = None,
-    content_contains: Optional[list[str]] = None,
-    content_not_contains: Optional[list[str]] = None,
+    document_contains: Optional[list[str]] = None,
+    document_not_contains: Optional[list[str]] = None,
 ) -> str:
     query = ["mimeType = 'application/vnd.google-apps.document' and trashed = false"]
 
-    if isinstance(name_contains, str):
-        name_contains = [name_contains]
+    if isinstance(document_contains, str):
+        document_contains = [document_contains]
 
-    if isinstance(name_not_contains, str):
-        name_not_contains = [name_not_contains]
+    if isinstance(document_not_contains, str):
+        document_not_contains = [document_not_contains]
 
-    if isinstance(content_contains, str):
-        content_contains = [content_contains]
-
-    if isinstance(content_not_contains, str):
-        content_not_contains = [content_not_contains]
-
-    if name_contains:
+    if document_contains:
         keyword_queries = [
-            f"name contains '{keyword.replace("'", "\\'")}'" for keyword in name_contains
+            (
+                f"name contains '{keyword.replace("'", "\\'")}' or "
+                f"fullText contains '{keyword.replace("'", "\\'")}'"
+            )
+            for keyword in document_contains
         ]
         query.extend(keyword_queries)
 
-    if name_not_contains:
+    if document_not_contains:
         keyword_queries = [
-            f"name not contains '{keyword.replace("'", "\\'")}'" for keyword in name_not_contains
-        ]
-        query.extend(keyword_queries)
-
-    if content_contains:
-        keyword_queries = [
-            f"fullText contains '{keyword.replace("'", "\\'")}'" for keyword in content_contains
-        ]
-        query.extend(keyword_queries)
-
-    if content_not_contains:
-        keyword_queries = [
-            f"fullText not contains '{keyword.replace("'", "\\'")}'"
-            for keyword in content_not_contains
+            (
+                f"name not contains '{keyword.replace("'", "\\'")}' and "
+                f"fullText not contains '{keyword.replace("'", "\\'")}'"
+            )
+            for keyword in document_not_contains
         ]
         query.extend(keyword_queries)
 

@@ -130,7 +130,7 @@ async def test_search_and_retrieve_documents_in_markdown(
     }
     mock_get_document_by_id.return_value = sample_document
     result = await search_and_retrieve_documents_in_markdown(
-        mock_context, title_contains=[sample_document["title"]]
+        mock_context, document_contains=[sample_document["title"]]
     )
     assert result["documents_count"] == 1
     assert result["documents"][0] == expected_markdown
