@@ -111,7 +111,7 @@ async def test_list_documents_with_parameters(mock_context, mock_service):
     mock_service.files.return_value.list.assert_called_with(
         q="mimeType = 'application/vnd.google-apps.document' and trashed = false",
         pageSize=1,
-        orderBy="modifiedTime desc",
-        corpora="user",
+        orderBy=OrderBy.MODIFIED_TIME_DESC.value,
+        corpora=Corpora.USER.value,
         supportsAllDrives=False,
     )
