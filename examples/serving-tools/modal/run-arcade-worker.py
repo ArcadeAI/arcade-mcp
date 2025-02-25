@@ -27,7 +27,6 @@ def fastapi_app():
     # Register toolkits we've installed
     installed_toolkits = Toolkit.find_all_arcade_toolkits()
     for toolkit in installed_toolkits:
-        print(toolkit.package_name)
         if toolkit.package_name in toolkits:
             worker.register_toolkit(toolkit)
 
