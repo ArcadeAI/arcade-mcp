@@ -173,7 +173,7 @@ jobs:
   #     - name: Deploy to Amazon ECS
   #       env:
   #         GITHUB_TOKEN: ${{ secrets.PAT }}
-  #       run: gh workflow -R ArcadeAI/Team run Deploy -f actor-version=${{ needs.set-version.outputs.version }}
+  #       run: gh workflow -R ArcadeAI/Team run Deploy -f worker-version=${{ needs.set-version.outputs.version }}
 
 
   release:

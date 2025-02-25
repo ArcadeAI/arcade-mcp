@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_x"
-version = "0.1.11"
+version = "0.1.12"
 description = "LLM tools for interacting with X (Twitter)"
 authors = ["Arcade <dev@arcade.dev>"]
 
