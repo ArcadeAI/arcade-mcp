@@ -16,6 +16,8 @@ def convert_structural_element(element: dict) -> str:
         md = ""
         prepend = get_paragraph_style_prepend_str(element["paragraph"]["paragraphStyle"])
         for item in element["paragraph"]["elements"]:
+            if "textRun" not in item:
+                continue
             content = extract_paragraph_content(item["textRun"])
             md += f"{prepend}{content}"
         return md

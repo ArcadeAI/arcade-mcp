@@ -51,10 +51,18 @@ def sample_document_and_expected_formats():
                     "paragraph": {
                         "elements": [
                             {
+                                "startIndex": 304,
+                                "endIndex": 305,
+                                "inlineObjectElement": {
+                                    "inlineObjectId": "kix.2s5wy5oiaf79",
+                                    "textStyle": {},
+                                },
+                            },
+                            {
                                 "endIndex": 46,
                                 "startIndex": 45,
                                 "textRun": {"content": "\n", "textStyle": {}},
-                            }
+                            },
                         ],
                         "paragraphStyle": {
                             "direction": "LEFT_TO_RIGHT",

@@ -6,6 +6,8 @@ def convert_structural_element(element: dict) -> str:
         md = ""
         prepend, append = get_paragraph_style_tags(element["paragraph"]["paragraphStyle"])
         for item in element["paragraph"]["elements"]:
+            if "textRun" not in item:
+                continue
             content = extract_paragraph_content(item["textRun"])
             md += f"{prepend}{content}{append}"
         return md.replace("\n", "<br>")
