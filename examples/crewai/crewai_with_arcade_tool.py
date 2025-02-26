@@ -30,16 +30,15 @@ def custom_auth_flow(
     Authorization is handled before executing the tool.
     This function overrides the ArcadeToolManager's default auth flow performed by ArcadeToolManager.authorize_tool
     """
-    print(f"Authorization required for tool: '{tool_name}' with inputs:")
-    for input_name, input_value in tool_input.items():
-        print(f"  {input_name}: {input_value}")
-
     # Get authorization status
     auth_response = manager.authorize(tool_name, USER_ID)
 
     # If the user is not authorized for the tool,
     # then we need to handle the authorization before executing the tool
     if not manager.is_authorized(auth_response.id):
+        print(f"Authorization required for tool: '{tool_name}' with inputs:")
+        for input_name, input_value in tool_input.items():
+            print(f"  {input_name}: {input_value}")
         # Handle authorization
         print(f"\nTo authorize, visit: {auth_response.url}")
         # Block until the user has completed the authorization
@@ -48,6 +47,10 @@ def custom_auth_flow(
         # Ensure authorization completed successfully
         if not manager.is_authorized(auth_response.id):
             raise ValueError(f"Authorization failed for {tool_name}. URL: {auth_response.url}")
+    else:
+        print(f"Authorization already granted for tool: '{tool_name}' with inputs:")
+        for input_name, input_value in tool_input.items():
+            print(f"  {input_name}: {input_value}")
 
 
 def custom_execute_flow(

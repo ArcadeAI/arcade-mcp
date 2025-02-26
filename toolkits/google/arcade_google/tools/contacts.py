@@ -7,6 +7,16 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 
+async def _warmup_cache(service) -> None:  # type: ignore[no-untyped-def]
+    """
+    Warm-up the search cache for contacts by sending a request with an empty query.
+    This ensures that the lazy cache is updated for both primary contacts and other contacts.
+    This is unfortunately a real thing: https://developers.google.com/people/v1/contacts#search_the_users_contacts
+    """
+    service.people().searchContacts(query="", pageSize=1, readMask="names,emailAddresses").execute()
+    await asyncio.sleep(3)  # TODO experiment with this value
+
+
 @tool(requires_auth=Google(scopes=["https://www.googleapis.com/auth/contacts.readonly"]))
 async def search_contacts(
     context: ToolContext,
@@ -20,10 +30,10 @@ async def search_contacts(
     ] = 10,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
     """
-    Search the user's contacts using the People API.
+    Search the user's contacts in Google Contacts.
 
-    This tool queries the contacts with the provided query string.
-    The API returns contacts that match based on names, email addresses, and more.
+    Up to 30 contacts with a name or email address containing the query will be returned.
+    If the query matches more than 30 contacts, only the first 30 will be returned.
     """
     # Build the People API service
     service = build(
@@ -51,33 +61,32 @@ async def search_contacts(
     return {"contacts": primary_results}
 
 
-async def _warmup_cache(service) -> None:  # type: ignore[no-untyped-def]
-    """
-    Warm-up the search cache for contacts by sending a request with an empty query.
-    This ensures that the lazy cache is updated for both primary contacts and other contacts.
-    This is a real thing: https://developers.google.com/people/v1/contacts#search_the_users_contacts
-    """
-    service.people().searchContacts(query="", pageSize=1, readMask="names,emailAddresses").execute()
-    await asyncio.sleep(3)  # TODO experiment with this value
-
-
 @tool(requires_auth=Google(scopes=["https://www.googleapis.com/auth/contacts"]))
 async def create_contact(
     context: ToolContext,
     given_name: Annotated[str, "The given name of the contact"],
-    family_name: Annotated[Optional[str], "The family name of the contact"],
-    email: Annotated[Optional[str], "The email address of the contact"],
+    family_name: Annotated[Optional[str], "The optional family name of the contact"],
+    email: Annotated[Optional[str], "The optional email address of the contact"],
 ) -> Annotated[dict, "A dictionary containing the details of the created contact"]:
     """
-    Create a new contact in the user's Google Contacts using the People API.
+    Create a new contact record in Google Contacts.
 
-    This tool creates a contact with the basic name fields.
+    Examples:
+    ```
+    create_contact(given_name="Alice")
+    create_contact(given_name="Alice", family_name="Smith")
+    create_contact(given_name="Alice", email="alice@example.com")
+    ```
     """
     # Build the People API service
     service = build(
         "people",
         "v1",
-        credentials=Credentials(context.get_auth_token_or_empty()),
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
     )
 
     # Construct the person payload with the specified names

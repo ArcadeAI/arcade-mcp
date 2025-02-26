@@ -14,7 +14,7 @@ from .models import Corpora, OrderBy
 #       string as input with the syntax defined here: https://developers.google.com/drive/api/guides/search-files
 @tool(
     requires_auth=Google(
-        scopes=["https://www.googleapis.com/auth/drive.readonly"],
+        scopes=["https://www.googleapis.com/auth/drive.file"],
     )
 )
 async def list_documents(
