@@ -342,3 +342,9 @@ class OrderBy(str, Enum):
         # The last time the file was viewed by the user (descending)
         "viewedByMeTime desc"
     )
+
+
+class DocumentFormat(str, Enum):
+    MARKDOWN = "markdown"
+    HTML = "html"
+    GOOGLE_API_JSON = "google_api_json"

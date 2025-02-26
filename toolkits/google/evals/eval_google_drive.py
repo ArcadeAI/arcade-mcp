@@ -8,8 +8,8 @@ from arcade.sdk.eval import (
 )
 
 import arcade_google
-from arcade_google.models import Corpora, OrderBy
-from arcade_google.tools.drive import list_documents, search_and_retrieve_documents_in_markdown
+from arcade_google.models import Corpora, DocumentFormat, OrderBy
+from arcade_google.tools.drive import list_documents, search_and_retrieve_documents
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -110,46 +110,52 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
         user_message="write a summary of the documents in my Google Drive about 'MX Engineering'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_and_retrieve_documents_in_markdown,
+                func=search_and_retrieve_documents,
                 args={
                     "document_contains": ["MX Engineering"],
-                },
-            )
-        ],
-        critics=[
-            BinaryCritic(critic_field="document_contains", weight=1.0),
-        ],
-    )
-
-    suite.add_case(
-        name="Search and retrieve (project proposal)",
-        user_message="Display the document contents in my Google Drive that contain the phrase 'project proposal'.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_and_retrieve_documents_in_markdown,
-                args={
-                    "document_contains": ["project proposal"],
-                },
-            )
-        ],
-        critics=[
-            BinaryCritic(critic_field="document_contains", weight=1.0),
-        ],
-    )
-
-    suite.add_case(
-        name="Search and retrieve (meeting notes)",
-        user_message="Retrieve documents that contain both 'meeting notes' and 'budget'.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_and_retrieve_documents_in_markdown,
-                args={
-                    "document_contains": ["meeting notes", "budget"],
+                    "return_format": DocumentFormat.MARKDOWN,
                 },
             )
         ],
         critics=[
             BinaryCritic(critic_field="document_contains", weight=0.5),
+            BinaryCritic(critic_field="return_format", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search and retrieve (project proposal)",
+        user_message="Display the document contents in HTML format from my Google Drive that contain the phrase 'project proposal'.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents,
+                args={
+                    "document_contains": ["project proposal"],
+                    "return_format": DocumentFormat.HTML,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="document_contains", weight=0.5),
+            BinaryCritic(critic_field="return_format", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search and retrieve (meeting notes)",
+        user_message="Retrieve documents that contain both 'meeting notes' and 'budget' in JSON format.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_and_retrieve_documents,
+                args={
+                    "document_contains": ["meeting notes", "budget"],
+                    "return_format": DocumentFormat.GOOGLE_API_JSON,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="document_contains", weight=0.5),
+            BinaryCritic(critic_field="return_format", weight=0.5),
         ],
     )
 
@@ -158,16 +164,18 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
         user_message="Get documents that mention 'Q1 report' but do not include the expression 'Project XYZ'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_and_retrieve_documents_in_markdown,
+                func=search_and_retrieve_documents,
                 args={
                     "document_contains": ["Q1 report"],
                     "document_not_contains": ["Project XYZ"],
+                    "return_format": DocumentFormat.MARKDOWN,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="document_contains", weight=0.5),
-            BinaryCritic(critic_field="document_not_contains", weight=0.5),
+            BinaryCritic(critic_field="document_contains", weight=1 / 3),
+            BinaryCritic(critic_field="document_not_contains", weight=1 / 3),
+            BinaryCritic(critic_field="return_format", weight=1 / 3),
         ],
     )
 

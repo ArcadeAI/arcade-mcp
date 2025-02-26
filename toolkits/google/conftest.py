@@ -934,4 +934,34 @@ def sample_document_and_expected_formats():
         "</table>"
     )
 
-    return document, expected_markdown
+    expected_html = (
+        "<html><head>"
+        "<title>The Birth of Machine Experience Engineering</title>"
+        '<meta name="documentId" content="1234567890">'
+        "</head><body>"
+        "<h1><b>The Birth of Machine Experience Engineering</b></h1>"
+        "<p>LLMs acting on behalf of humans and interacting with real-world systems isn't "
+        "theoretical anymore - "
+        "<b><i>Arcade has made it a reality.</i></b> With this shift, we're seeing the emergence "
+        "of a new software practice: <i>Machine Experience Engineering (MX Engineering)</i>.</p>"
+        "<table>"
+        "<tr>"
+        "<td><b>Column 1</b></td>"
+        "<td><i>Another</i> column</td>"
+        "<td>Third column</td>"
+        "</tr>"
+        "<tr>"
+        "<td>Hello</td>"
+        "<td>world!</td>"
+        "<td></td>"
+        "</tr>"
+        "<tr>"
+        "<td>The quick brown fox</td>"
+        "<td><i>jumped</i> over</td>"
+        "<td>the lazy dog</td>"
+        "</tr>"
+        "</table>"
+        "</body></html>"
+    )
+
+    return document, expected_markdown, expected_html

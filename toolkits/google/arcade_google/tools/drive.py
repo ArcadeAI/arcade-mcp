@@ -3,11 +3,11 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 
+from arcade_google.doc_to_html import convert_document_to_html
 from arcade_google.doc_to_markdown import convert_document_to_markdown
+from arcade_google.models import Corpora, DocumentFormat, OrderBy
 from arcade_google.tools.docs import get_document_by_id
 from arcade_google.utils import build_drive_service, build_files_list_query, remove_none_values
-
-from ..models import Corpora, OrderBy
 
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
@@ -101,7 +101,7 @@ async def list_documents(
         scopes=["https://www.googleapis.com/auth/drive.readonly"],
     )
 )
-async def search_and_retrieve_documents_in_markdown(
+async def search_and_retrieve_documents(
     context: ToolContext,
     corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
     document_contains: Annotated[
@@ -122,6 +122,10 @@ async def search_and_retrieve_documents_in_markdown(
         bool,
         "Whether the requesting application supports both My Drives and shared drives",
     ] = False,
+    return_format: Annotated[
+        DocumentFormat,
+        "The format of the document to return. Defaults to markdown",
+    ] = DocumentFormat.MARKDOWN,
     limit: Annotated[int, "The number of documents to list"] = 50,
     pagination_token: Annotated[
         Optional[str], "The pagination token to continue a previous request"
@@ -153,7 +157,20 @@ async def search_and_retrieve_documents_in_markdown(
     for item in response["documents"]:
         documents.append(await get_document_by_id(context, document_id=item["id"]))
 
-    return {
-        "documents_count": len(documents),
-        "documents": [convert_document_to_markdown(doc) for doc in documents],
-    }
+    if return_format == DocumentFormat.MARKDOWN:
+        return {
+            "documents_count": len(documents),
+            "documents": [convert_document_to_markdown(doc) for doc in documents],
+        }
+    elif return_format == DocumentFormat.HTML:
+        return {
+            "documents_count": len(documents),
+            "documents": [convert_document_to_html(doc) for doc in documents],
+        }
+    elif return_format == DocumentFormat.GOOGLE_API_JSON:
+        return {
+            "documents_count": len(documents),
+            "documents": documents,
+        }
+    else:
+        raise ValueError(f"Unknown document format: {return_format}")

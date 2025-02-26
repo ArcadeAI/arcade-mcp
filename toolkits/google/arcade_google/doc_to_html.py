@@ -1,22 +1,44 @@
-def convert_structural_element(element: dict) -> str:
+def convert_document_to_html(document: dict) -> str:
+    html = (
+        "<html><head>"
+        f"<title>{document['title']}</title>"
+        f'<meta name="documentId" content="{document["documentId"]}">'
+        "</head><body>"
+    )
+    for element in document["body"]["content"]:
+        html += convert_structural_element(element)
+    html += "</body></html>"
+    return html
+
+
+def convert_structural_element(element: dict, wrap_paragraphs: bool = True) -> str:
     if "sectionBreak" in element or "tableOfContents" in element:
         return ""
 
     elif "paragraph" in element:
-        md = ""
-        prepend, append = get_paragraph_style_tags(element["paragraph"]["paragraphStyle"])
+        paragraph_content = ""
+
+        prepend, append = get_paragraph_style_tags(
+            style=element["paragraph"]["paragraphStyle"],
+            wrap_paragraphs=wrap_paragraphs,
+        )
+
         for item in element["paragraph"]["elements"]:
             if "textRun" not in item:
                 continue
-            content = extract_paragraph_content(item["textRun"])
-            md += f"{prepend}{content}{append}"
-        return md.replace("\n", "<br>")
+            paragraph_content += extract_paragraph_content(item["textRun"])
+
+        if not paragraph_content:
+            return ""
+
+        return f"{prepend}{paragraph_content.strip()}{append}"
 
     elif "table" in element:
         table = [
             [
                 "".join([
-                    convert_structural_element(cell_element) for cell_element in cell["content"]
+                    convert_structural_element(element=cell_element, wrap_paragraphs=False)
+                    for cell_element in cell["content"]
                 ])
                 for cell in row["tableCells"]
             ]
@@ -35,21 +57,21 @@ def extract_paragraph_content(text_run: dict) -> str:
 
 
 def apply_text_style(content: str, style: dict) -> str:
-    append = "\n" if content.endswith("\n") else ""
     content = content.rstrip("\n")
+    content = content.replace("\n", "<br>")
     italic = style.get("italic", False)
     bold = style.get("bold", False)
     if italic:
         content = f"<i>{content}</i>"
     if bold:
         content = f"<b>{content}</b>"
-    return f"{content}{append}"
+    return content
 
 
-def get_paragraph_style_tags(style: dict) -> tuple[str, str]:
+def get_paragraph_style_tags(style: dict, wrap_paragraphs: bool = True) -> tuple[str, str]:
     named_style = style["namedStyleType"]
     if named_style == "NORMAL_TEXT":
-        return "", ""
+        return ("<p>", "</p>") if wrap_paragraphs else ("", "")
     elif named_style == "TITLE":
         return "<h1>", "</h1>"
     elif named_style == "SUBTITLE":
@@ -58,10 +80,10 @@ def get_paragraph_style_tags(style: dict) -> tuple[str, str]:
         try:
             heading_level = int(named_style.split("_")[1])
         except ValueError:
-            return "", ""
+            return ("<p>", "</p>") if wrap_paragraphs else ("", "")
         else:
             return f"<h{heading_level}>", f"</h{heading_level}>"
-    return "", ""
+    return ("<p>", "</p>") if wrap_paragraphs else ("", "")
 
 
 def table_list_to_html(table: list[list[str]]) -> str:
