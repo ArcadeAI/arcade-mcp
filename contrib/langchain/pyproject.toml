@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "langchain-arcade"
-version = "1.0.1"
-description = "An integration package connecting Arcade and LangChain/LangGraph"
+version = "1.1.0"
+description = "An integration package connecting Arcade and Langchain/LangGraph"
 authors = ["Arcade <dev@arcade.dev>"]
 readme = "README.md"
 repository = "https://github.com/arcadeai/arcade-ai/tree/main/contrib/langchain"
@@ -9,7 +9,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-arcadepy = "^1.0.0"
+arcadepy = "1.1.*"
 langgraph = ">=0.2.67,<0.3.0"
 
 

@@ -2,13 +2,17 @@ VERSION ?= "0.1.0"
 
 .PHONY: install
 install: ## Install the poetry environment and install the pre-commit hooks
-	@if ! command -v poetry >/dev/null 2>&1; then \
-		echo "🚫 Poetry is not installed. Please install poetry before proceeding."; \
-		exit 1; \
+	@echo "📦 Checking if Poetry is installed"
+	@if ! command -v poetry &> /dev/null; then \
+		echo "📦 Installing Poetry with pip"; \
+		pip install poetry==1.8.5; \
+	else \
+		echo "📦 Poetry is already installed"; \
 	fi
-	@echo "🚀 Creating virtual environment using pyenv and poetry"
-	@poetry install --all-extras
-	@poetry run pre-commit install
+	@echo "🚀 Installing package in development mode with all extras"
+	poetry install --all-extras
+	@echo "🚀 Installing pre-commit hooks"
+	poetry run pre-commit install
 
 .PHONY: check
 check: ## Run code quality tools.
