@@ -243,6 +243,9 @@ class ToolAuthorizationContext(BaseModel):
 class ToolSecretItem(BaseModel):
     """The context for a tool secret."""
 
+    key: str
+    """The key of the secret."""
+
     value: str
     """The value of the secret."""
 
@@ -253,7 +256,7 @@ class ToolContext(BaseModel):
     authorization: ToolAuthorizationContext | None = None
     """The authorization context for the tool invocation that requires authorization."""
 
-    secrets: dict[str, ToolSecretItem] | None = None
+    secrets: list[ToolSecretItem] | None = None
     """The secrets for the tool invocation."""
 
     user_id: str | None = None
@@ -274,10 +277,14 @@ class ToolContext(BaseModel):
         if not key or not key.strip():
             raise ValueError("Secret key ID passed to get_secret cannot be empty.")
 
+        if not self.secrets:
+            raise ValueError("Secrets not found in context.")
+
         normalized_key = key.lower()
-        if not self.secrets or normalized_key not in self.secrets:
-            raise ValueError(f"Secret {key} not found in context.")
-        return self.secrets[normalized_key].value
+        for secret in self.secrets:
+            if secret.key == normalized_key:
+                return secret.value
+        raise ValueError(f"Secret {key} not found in context.")
 
 
 class ToolCallRequest(BaseModel):
