@@ -1,3 +1,5 @@
+from base64 import urlsafe_b64encode
+from email.message import EmailMessage
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,6 +14,7 @@ from arcade_google.tools.gmail import (
     list_emails,
     list_emails_by_header,
     list_threads,
+    reply_to_email,
     search_threads,
     send_draft_email,
     send_email,
@@ -19,7 +22,13 @@ from arcade_google.tools.gmail import (
     update_draft_email,
     write_draft_email,
 )
-from arcade_google.tools.utils import parse_draft_email, parse_email
+from arcade_google.tools.models import GmailReplyToWhom
+from arcade_google.tools.utils import (
+    build_reply_body,
+    parse_draft_email,
+    parse_multipart_email,
+    parse_plain_text_email,
+)
 
 
 @pytest.fixture
@@ -29,7 +38,7 @@ def mock_context():
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_send_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -64,7 +73,7 @@ async def test_send_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_write_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -99,7 +108,7 @@ async def test_write_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_update_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -136,7 +145,7 @@ async def test_update_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_send_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -161,7 +170,7 @@ async def test_send_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_delete_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -183,7 +192,7 @@ async def test_delete_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 @patch("arcade_google.tools.gmail.parse_draft_email")
 async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context):
     # Setup test data
@@ -234,7 +243,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
     # Mock the response from the Gmail get drafts API
     mock_service.users().drafts().get().execute.return_value = mock_drafts_get_response
 
-    # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
+    # Mock the parse_draft_email function since parse_draft_email doesn't accept object of type MagicMock
     mock_parse_draft_email.return_value = parse_draft_email(mock_drafts_get_response)
 
     # Test happy path
@@ -256,9 +265,9 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
-@patch("arcade_google.tools.gmail.parse_email")
-async def test_search_emails_by_header(mock_parse_email, mock_build, mock_context):
+@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail.parse_plain_text_email")
+async def test_search_emails_by_header(mock_parse_plain_text_email, mock_build, mock_context):
     # Setup test data
     mock_messages_list_response = {
         "messages": [
@@ -307,11 +316,13 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     # Mock the response from the Gmail get messages API
     mock_service.users().messages().get().execute.return_value = mock_messages_get_response
 
-    # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
-    mock_parse_email.return_value = parse_email(mock_messages_get_response)
+    # Mock the parse_plain_text_email function since parse_plain_text_email doesn't accept object of type MagicMock
+    mock_parse_plain_text_email.return_value = parse_plain_text_email(mock_messages_get_response)
 
     # Test happy path
-    result = await list_emails_by_header(context=mock_context, sender="noreply@github.com", limit=2)
+    result = await list_emails_by_header(
+        context=mock_context, sender="noreply@github.com", max_results=2
+    )
 
     assert isinstance(result, dict)
     assert "emails" in result
@@ -325,13 +336,15 @@ async def test_search_emails_by_header(mock_parse_email, mock_build, mock_contex
     )
 
     with pytest.raises(ToolExecutionError):
-        await list_emails_by_header(context=mock_context, sender="noreply@github.com", limit=2)
+        await list_emails_by_header(
+            context=mock_context, sender="noreply@github.com", max_results=2
+        )
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
-@patch("arcade_google.tools.gmail.parse_email")
-async def test_get_emails(mock_parse_email, mock_build, mock_context):
+@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail.parse_plain_text_email")
+async def test_get_emails(mock_parse_plain_text_email, mock_build, mock_context):
     # Setup test data
     mock_messages_list_response = {
         "messages": [
@@ -379,8 +392,8 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
     # Mock the Gmail get messages API
     mock_service.users().messages().get().execute.return_value = mock_messages_get_response
 
-    # Mock the parse_email function since parse_email doesn't accept object of type MagicMock
-    mock_parse_email.return_value = parse_email(mock_messages_get_response)
+    # Mock the parse_plain_text_email function since parse_plain_text_email doesn't accept object of type MagicMock
+    mock_parse_plain_text_email.return_value = parse_plain_text_email(mock_messages_get_response)
 
     # Test happy path
     result = await list_emails(context=mock_context, n_emails=1)
@@ -404,7 +417,7 @@ async def test_get_emails(mock_parse_email, mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_trash_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -430,7 +443,7 @@ async def test_trash_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_search_threads(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -482,7 +495,7 @@ async def test_search_threads(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_list_threads(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -532,7 +545,7 @@ async def test_list_threads(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.gmail.build")
+@patch("arcade_google.tools.utils.build")
 async def test_get_thread(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -579,3 +592,360 @@ async def test_get_thread(mock_build, mock_context):
             context=mock_context,
             thread_id="invalid_thread",
         )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "reply_to_whom, expected_to, expected_cc",
+    [
+        (
+            GmailReplyToWhom.EVERY_RECIPIENT,
+            "sender@example.com, to1@example.com, to2@example.com",
+            "cc1@example.com, cc2@example.com",
+        ),
+        (
+            GmailReplyToWhom.ONLY_THE_SENDER,
+            "sender@example.com",
+            "",
+        ),
+    ],
+)
+@patch("arcade_google.tools.utils.build")
+async def test_reply_to_email(mock_build, reply_to_whom, expected_to, expected_cc, mock_context):
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+
+    original_message = {
+        "id": "id123456",
+        "threadId": "thread123456",
+        "payload": {
+            "headers": [
+                {"name": "Message-ID", "value": "id123456"},
+                {"name": "Subject", "value": "test"},
+                {"name": "From", "value": "sender@example.com"},
+                {"name": "To", "value": "to1@example.com, to2@example.com, test@example.com"},
+                {"name": "Cc", "value": "cc1@example.com, cc2@example.com"},
+                {"name": "References", "value": "thread123456"},
+            ],
+        },
+    }
+
+    mock_service.users().getProfile().execute.return_value = {"emailAddress": "test@example.com"}
+    mock_service.users().messages().get().execute.return_value = original_message
+
+    result = await reply_to_email(
+        context=mock_context,
+        body="test",
+        reply_to_message_id="id123456",
+        reply_to_whom=reply_to_whom,
+    )
+
+    assert isinstance(result, dict)
+    assert "url" in result
+
+    replying_to = parse_multipart_email(original_message)
+    expected_body = build_reply_body("test", replying_to)
+
+    expected_message = EmailMessage()
+    expected_message.set_content(expected_body)
+    expected_message["To"] = expected_to
+    expected_message["Subject"] = "Re: test"
+    if expected_cc:
+        expected_message["Cc"] = expected_cc
+    expected_message["In-Reply-To"] = "id123456"
+    expected_message["References"] = "id123456, thread123456"
+
+    mock_service.users().messages().send.assert_called_once_with(
+        userId="me",
+        body={
+            "raw": urlsafe_b64encode(expected_message.as_bytes()).decode(),
+            "threadId": "thread123456",
+        },
+    )
+
+
+def test_parse_multipart_email_full():
+    """
+    Test parsing a multipart email with both plain text and HTML bodies.
+    """
+    email_data = {
+        "id": "email123",
+        "threadId": "thread123",
+        "labelIds": ["INBOX", "UNREAD"],
+        "historyId": "history123",
+        "snippet": "This is a test email.",
+        "payload": {
+            "headers": [
+                {"name": "To", "value": "recipient@example.com"},
+                {"name": "From", "value": "sender@example.com"},
+                {"name": "Subject", "value": "Test Email"},
+                {"name": "Date", "value": "Mon, 1 Jan 2024 10:00:00 -0000"},
+            ],
+            "body": {"size": 100, "data": "VGhpcyBpcyBhIHRlc3QgZW1haWwu"},
+        },
+    }
+
+    with (
+        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+    ):
+        # Mock the helper functions
+        mock_plain.return_value = "This is a test email."
+        mock_html.return_value = "<p>This is a test email.</p>"
+        mock_clean.return_value = "This is a test email."
+
+        result = parse_multipart_email(email_data)
+
+        assert result["id"] == "email123"
+        assert result["thread_id"] == "thread123"
+        assert result["label_ids"] == ["INBOX", "UNREAD"]
+        assert result["snippet"] == "This is a test email."
+        assert result["to"] == "recipient@example.com"
+        assert result["from"] == "sender@example.com"
+        assert result["subject"] == "Test Email"
+        assert result["date"] == "Mon, 1 Jan 2024 10:00:00 -0000"
+        assert result["plain_text_body"] == "This is a test email."
+        assert result["html_body"] == "<p>This is a test email.</p>"
+
+
+def test_parse_multipart_email_plain_only():
+    """
+    Test parsing an email with only a plain text body.
+    """
+    email_data = {
+        "id": "email456",
+        "threadId": "thread456",
+        "labelIds": ["INBOX"],
+        "historyId": "history456",
+        "snippet": "Plain text only email.",
+        "payload": {
+            "headers": [
+                {"name": "To", "value": "recipient2@example.com"},
+                {"name": "From", "value": "sender2@example.com"},
+                {"name": "Subject", "value": "Plain Text Email"},
+                {"name": "Date", "value": "Tue, 2 Feb 2024 11:00:00 -0000"},
+            ],
+            "body": {"size": 150, "data": "UGxhaW4gdGV4dCBvbmx5IGVtYWlsLg=="},
+        },
+    }
+
+    with (
+        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+    ):
+        # Mock the helper functions
+        mock_plain.return_value = "Plain text only email."
+        mock_html.return_value = None
+        mock_clean.return_value = "Plain text only email."
+
+        result = parse_multipart_email(email_data)
+
+        assert result["id"] == "email456"
+        assert result["thread_id"] == "thread456"
+        assert result["label_ids"] == ["INBOX"]
+        assert result["snippet"] == "Plain text only email."
+        assert result["to"] == "recipient2@example.com"
+        assert result["from"] == "sender2@example.com"
+        assert result["subject"] == "Plain Text Email"
+        assert result["date"] == "Tue, 2 Feb 2024 11:00:00 -0000"
+        assert result["plain_text_body"] == "Plain text only email."
+        assert result["html_body"] == ""
+
+
+def test_parse_multipart_email_html_only():
+    """
+    Test parsing an email with only an HTML body.
+    """
+    email_data = {
+        "id": "email789",
+        "threadId": "thread789",
+        "labelIds": ["SENT"],
+        "historyId": "history789",
+        "snippet": "HTML only email.",
+        "payload": {
+            "headers": [
+                {"name": "To", "value": "recipient3@example.com"},
+                {"name": "From", "value": "sender3@example.com"},
+                {"name": "Subject", "value": "HTML Email"},
+                {"name": "Date", "value": "Wed, 3 Mar 2024 12:00:00 -0000"},
+            ],
+            "body": {"size": 200, "data": "PGh0bWw+VGhpcyBpcyBIVE1MIGVtYWlsLjwvaHRtbD4="},
+        },
+    }
+
+    with (
+        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+    ):
+        # Mock the helper functions
+        mock_plain.return_value = None
+        mock_html.return_value = "<html>This is HTML email.</html>"
+        mock_clean.return_value = "This is HTML email."
+
+        result = parse_multipart_email(email_data)
+
+        assert result["id"] == "email789"
+        assert result["thread_id"] == "thread789"
+        assert result["label_ids"] == ["SENT"]
+        assert result["snippet"] == "HTML only email."
+        assert result["to"] == "recipient3@example.com"
+        assert result["from"] == "sender3@example.com"
+        assert result["subject"] == "HTML Email"
+        assert result["date"] == "Wed, 3 Mar 2024 12:00:00 -0000"
+        assert result["plain_text_body"] == "This is HTML email."
+        assert result["html_body"] == "<html>This is HTML email.</html>"
+
+
+def test_parse_multipart_email_missing_payload():
+    """
+    Test parsing an email with missing payload.
+    """
+    email_data = {
+        "id": "email000",
+        "threadId": "thread000",
+        "labelIds": ["INBOX"],
+        "historyId": "history000",
+        "snippet": "Missing payload email.",
+        # 'payload' key is missing
+    }
+
+    result = parse_multipart_email(email_data)
+
+    # Since payload is missing, headers and bodies should be default or empty
+    assert result["id"] == "email000"
+    assert result["thread_id"] == "thread000"
+    assert result["label_ids"] == ["INBOX"]
+    assert result["snippet"] == "Missing payload email."
+    assert result["to"] == ""
+    assert result["from"] == ""
+    assert result["subject"] == ""
+    assert result["date"] == ""
+    assert result["plain_text_body"] == ""
+    assert result["html_body"] == ""
+
+
+def test_parse_multipart_email_missing_headers():
+    """
+    Test parsing an email with missing headers in the payload.
+    """
+    email_data = {
+        "id": "email111",
+        "threadId": "thread111",
+        "labelIds": ["INBOX"],
+        "historyId": "history111",
+        "snippet": "Missing headers email.",
+        "payload": {
+            # 'headers' key is missing
+            "body": {"size": 100, "data": "VGltZWw="}
+        },
+    }
+
+    with (
+        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+    ):
+        # Mock the helper functions
+        mock_plain.return_value = "Timeel"
+        mock_html.return_value = "<p>Timeel</p>"
+        mock_clean.return_value = "Timeel"
+
+        result = parse_multipart_email(email_data)
+
+    assert result["id"] == "email111"
+    assert result["thread_id"] == "thread111"
+    assert result["label_ids"] == ["INBOX"]
+    assert result["snippet"] == "Missing headers email."
+    assert result["to"] == ""
+    assert result["from"] == ""
+    assert result["subject"] == ""
+    assert result["date"] == ""
+    assert result["plain_text_body"] == "Timeel"
+    assert result["html_body"] == "<p>Timeel</p>"
+
+
+def test_parse_multipart_email_missing_fields():
+    """
+    Test parsing an email with some missing fields in headers.
+    """
+    email_data = {
+        "id": "email222",
+        "threadId": "thread222",
+        "labelIds": ["INBOX"],
+        "historyId": "history222",
+        "snippet": "Missing some headers.",
+        "payload": {
+            "headers": [
+                {"name": "From", "value": "sender4@example.com"},
+                {"name": "Subject", "value": "Partial Headers"},
+                # 'To' and 'Date' headers are missing
+            ],
+            "body": {"size": 100, "data": "TWlzc2luZyBzb21lIGhlYWRlcnMu"},
+        },
+    }
+
+    with (
+        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+    ):
+        # Mock the helper functions
+        mock_plain.return_value = "Missing some headers."
+        mock_html.return_value = None
+        mock_clean.return_value = "Missing some headers."
+
+        result = parse_multipart_email(email_data)
+
+    assert result["id"] == "email222"
+    assert result["thread_id"] == "thread222"
+    assert result["label_ids"] == ["INBOX"]
+    assert result["snippet"] == "Missing some headers."
+    assert result["to"] == ""
+    assert result["from"] == "sender4@example.com"
+    assert result["subject"] == "Partial Headers"
+    assert result["date"] == ""
+    assert result["plain_text_body"] == "Missing some headers."
+    assert result["html_body"] == ""
+
+
+def test_parse_multipart_email_empty():
+    """
+    Test parsing an empty email data.
+    """
+    email_data = {}
+
+    result = parse_multipart_email(email_data)
+
+    assert result["id"] == ""
+    assert result["thread_id"] == ""
+    assert result["label_ids"] == []
+    assert result["snippet"] == ""
+    assert result["to"] == ""
+    assert result["from"] == ""
+    assert result["subject"] == ""
+    assert result["date"] == ""
+    assert result["plain_text_body"] == ""
+    assert result["html_body"] == ""
+
+
+def test_parse_multipart_email_invalid_payload_structure():
+    """
+    Test parsing an email with an invalid payload structure.
+    """
+    email_data = {
+        "id": "email333",
+        "threadId": "thread333",
+        "labelIds": ["INBOX"],
+        "historyId": "history333",
+        "snippet": "Invalid payload structure.",
+        "payload": {
+            "headers": "This should be a list, not a string",
+            "body": {"size": 100, "data": "SW52YWxpZCBwYXlsb2Fk"},
+        },
+    }
+
+    with pytest.raises(TypeError):
+        parse_multipart_email(email_data)

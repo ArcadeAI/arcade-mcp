@@ -342,3 +342,16 @@ class OrderBy(str, Enum):
         # The last time the file was viewed by the user (descending)
         "viewedByMeTime desc"
     )
+
+
+# ---------------------------------------------------------------------------- #
+# Google Gmail Models and Enums
+# ---------------------------------------------------------------------------- #
+class GmailReplyToWhom(str, Enum):
+    EVERY_RECIPIENT = "every_recipient"
+    ONLY_THE_SENDER = "only_the_sender"
+
+
+class GmailAction(str, Enum):
+    SEND = "send"
+    DRAFT = "draft"
