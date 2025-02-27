@@ -308,24 +308,23 @@ def build_files_list_query(
         document_not_contains = [document_not_contains]
 
     if document_contains:
-        keyword_queries = [
-            (
-                f"name contains '{keyword.replace("'", "\\'")}' or "
-                f"fullText contains '{keyword.replace("'", "\\'")}'"
+        for keyword in document_contains:
+            name_contains = keyword.replace("'", "\\'")
+            full_text_contains = keyword.replace("'", "\\'")
+            keyword_query = (
+                f"name contains '{name_contains}' or fullText contains '{full_text_contains}'"
             )
-            for keyword in document_contains
-        ]
-        query.extend(keyword_queries)
+            query.append(keyword_query)
 
     if document_not_contains:
-        keyword_queries = [
-            (
-                f"name not contains '{keyword.replace("'", "\\'")}' and "
-                f"fullText not contains '{keyword.replace("'", "\\'")}'"
+        for keyword in document_not_contains:
+            name_not_contains = keyword.replace("'", "\\'")
+            full_text_not_contains = keyword.replace("'", "\\'")
+            keyword_query = (
+                f"name not contains '{name_not_contains}' and "
+                f"fullText not contains '{full_text_not_contains}'"
             )
-            for keyword in document_not_contains
-        ]
-        query.extend(keyword_queries)
+            query.append(keyword_query)
 
     return " and ".join(query)
 
