@@ -5,7 +5,7 @@ from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import Corpora, DocumentFormat, OrderBy
-from arcade_google.tools.drive import list_documents, search_and_retrieve_documents
+from arcade_google.tools.drive import search_and_retrieve_documents, search_documents
 from arcade_google.utils import build_drive_service
 
 
@@ -23,7 +23,7 @@ def mock_service():
 
 
 @pytest.mark.asyncio
-async def test_list_documents_success(mock_context, mock_service):
+async def test_search_documents_success(mock_context, mock_service):
     # Mock the service.files().list().execute() method
     mock_service.files.return_value.list.return_value.execute.side_effect = [
         {
@@ -35,7 +35,7 @@ async def test_list_documents_success(mock_context, mock_service):
         }
     ]
 
-    result = await list_documents(mock_context, limit=2)
+    result = await search_documents(mock_context, limit=2)
 
     assert result["documents_count"] == 2
     assert len(result["documents"]) == 2
@@ -44,7 +44,7 @@ async def test_list_documents_success(mock_context, mock_service):
 
 
 @pytest.mark.asyncio
-async def test_list_documents_pagination(mock_context, mock_service):
+async def test_search_documents_pagination(mock_context, mock_service):
     # Simulate multiple pages
     mock_service.files.return_value.list.return_value.execute.side_effect = [
         {
@@ -57,7 +57,7 @@ async def test_list_documents_pagination(mock_context, mock_service):
         },
     ]
 
-    result = await list_documents(mock_context, limit=15)
+    result = await search_documents(mock_context, limit=15)
 
     assert result["documents_count"] == 15
     assert len(result["documents"]) == 15
@@ -66,29 +66,33 @@ async def test_list_documents_pagination(mock_context, mock_service):
 
 
 @pytest.mark.asyncio
-async def test_list_documents_http_error(mock_context, mock_service):
+async def test_search_documents_http_error(mock_context, mock_service):
     # Simulate HttpError
     mock_service.files.return_value.list.return_value.execute.side_effect = HttpError(
         resp=AsyncMock(status=403), content=b'{"error": {"message": "Forbidden"}}'
     )
 
-    with pytest.raises(ToolExecutionError, match="Error in execution of ListDocuments"):
-        await list_documents(mock_context)
+    with pytest.raises(
+        ToolExecutionError, match=f"Error in execution of {search_documents.__tool_name__}"
+    ):
+        await search_documents(mock_context)
 
 
 @pytest.mark.asyncio
-async def test_list_documents_unexpected_error(mock_context, mock_service):
+async def test_search_documents_unexpected_error(mock_context, mock_service):
     # Simulate unexpected exception
     mock_service.files.return_value.list.return_value.execute.side_effect = Exception(
         "Unexpected error"
     )
 
-    with pytest.raises(ToolExecutionError, match="Error in execution of ListDocuments"):
-        await list_documents(mock_context)
+    with pytest.raises(
+        ToolExecutionError, match=f"Error in execution of {search_documents.__tool_name__}"
+    ):
+        await search_documents(mock_context)
 
 
 @pytest.mark.asyncio
-async def test_list_documents_with_parameters(mock_context, mock_service):
+async def test_search_documents_in_organization_domains(mock_context, mock_service):
     # Mock the service.files().list().execute() method
     mock_service.files.return_value.list.return_value.execute.side_effect = [
         {
@@ -99,32 +103,36 @@ async def test_list_documents_with_parameters(mock_context, mock_service):
         }
     ]
 
-    result = await list_documents(
+    result = await search_documents(
         mock_context,
-        corpora=Corpora.USER,
         order_by=OrderBy.MODIFIED_TIME_DESC,
-        supports_all_drives=False,
+        include_shared_drives=False,
+        include_organization_domain_documents=True,
         limit=1,
     )
 
     assert result["documents_count"] == 1
     mock_service.files.return_value.list.assert_called_with(
         q="mimeType = 'application/vnd.google-apps.document' and trashed = false",
+        corpora=Corpora.DOMAIN.value,
         pageSize=1,
         orderBy=OrderBy.MODIFIED_TIME_DESC.value,
-        corpora=Corpora.USER.value,
-        supportsAllDrives=False,
+        includeItemsFromAllDrives="true",
+        supportsAllDrives="true",
     )
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.drive.list_documents")
+@patch("arcade_google.tools.drive.search_documents")
 @patch("arcade_google.tools.drive.get_document_by_id")
 async def test_search_and_retrieve_documents_in_markdown_format(
-    mock_get_document_by_id, mock_list_documents, mock_context, sample_document_and_expected_formats
+    mock_get_document_by_id,
+    mock_search_documents,
+    mock_context,
+    sample_document_and_expected_formats,
 ):
     (sample_document, expected_markdown, _) = sample_document_and_expected_formats
-    mock_list_documents.return_value = {
+    mock_search_documents.return_value = {
         "documents_count": 1,
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }
@@ -139,13 +147,16 @@ async def test_search_and_retrieve_documents_in_markdown_format(
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.drive.list_documents")
+@patch("arcade_google.tools.drive.search_documents")
 @patch("arcade_google.tools.drive.get_document_by_id")
 async def test_search_and_retrieve_documents_in_html_format(
-    mock_get_document_by_id, mock_list_documents, mock_context, sample_document_and_expected_formats
+    mock_get_document_by_id,
+    mock_search_documents,
+    mock_context,
+    sample_document_and_expected_formats,
 ):
     (sample_document, _, expected_html) = sample_document_and_expected_formats
-    mock_list_documents.return_value = {
+    mock_search_documents.return_value = {
         "documents_count": 1,
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }
@@ -160,13 +171,16 @@ async def test_search_and_retrieve_documents_in_html_format(
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.drive.list_documents")
+@patch("arcade_google.tools.drive.search_documents")
 @patch("arcade_google.tools.drive.get_document_by_id")
 async def test_search_and_retrieve_documents_in_google_json_format(
-    mock_get_document_by_id, mock_list_documents, mock_context, sample_document_and_expected_formats
+    mock_get_document_by_id,
+    mock_search_documents,
+    mock_context,
+    sample_document_and_expected_formats,
 ):
     (sample_document, _, _) = sample_document_and_expected_formats
-    mock_list_documents.return_value = {
+    mock_search_documents.return_value = {
         "documents_count": 1,
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }

@@ -19,9 +19,8 @@ from arcade_google.utils import build_drive_service, build_files_list_query, rem
         scopes=["https://www.googleapis.com/auth/drive.file"],
     )
 )
-async def list_documents(
+async def search_documents(
     context: ToolContext,
-    corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
     document_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must be in the document title or body. Provide a list of "
@@ -32,14 +31,25 @@ async def list_documents(
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
         "phrases if needed",
     ] = None,
+    search_only_in_shared_drive_id: Annotated[
+        Optional[str],
+        "The ID of the shared drive to restrict the search to. If provided, the search will only "
+        "return documents from this drive. Defaults to None, which searches across all drives.",
+    ] = None,
+    include_shared_drives: Annotated[
+        bool,
+        "Whether to include documents from shared drives. Defaults to True.",
+    ] = True,
+    include_organization_domain_documents: Annotated[
+        bool,
+        "Whether to include documents from the organization's domain. This is applicable to admin "
+        "users who have permissions to view organization-wide documents in a Google Workspace "
+        "account. Defaults to False.",
+    ] = False,
     order_by: Annotated[
         Optional[list[OrderBy]],
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = None,
-    supports_all_drives: Annotated[
-        bool,
-        "Whether the requesting application supports both My Drives and shared drives",
-    ] = False,
     limit: Annotated[int, "The number of documents to list"] = 50,
     pagination_token: Annotated[
         Optional[str], "The pagination token to continue a previous request"
@@ -73,10 +83,24 @@ async def list_documents(
         "q": query,
         "pageSize": page_size,
         "orderBy": ",".join([item.value for item in order_by]),
-        "corpora": corpora.value,
-        "supportsAllDrives": supports_all_drives,
         "pageToken": pagination_token,
     }
+
+    if (
+        include_shared_drives
+        or search_only_in_shared_drive_id
+        or include_organization_domain_documents
+    ):
+        params["includeItemsFromAllDrives"] = "true"
+        params["supportsAllDrives"] = "true"
+
+    if search_only_in_shared_drive_id:
+        params["driveId"] = search_only_in_shared_drive_id
+        params["corpora"] = Corpora.DRIVE.value
+
+    if include_organization_domain_documents:
+        params["corpora"] = Corpora.DOMAIN.value
+
     params = remove_none_values(params)
 
     while len(files) < limit:
@@ -103,7 +127,10 @@ async def list_documents(
 )
 async def search_and_retrieve_documents(
     context: ToolContext,
-    corpora: Annotated[Corpora, "The source of files to list"] = Corpora.USER,
+    return_format: Annotated[
+        DocumentFormat,
+        "The format of the document to return. Defaults to markdown",
+    ] = DocumentFormat.MARKDOWN,
     document_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must be in the document title or body. Provide a list of "
@@ -114,18 +141,25 @@ async def search_and_retrieve_documents(
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
         "phrases if needed",
     ] = None,
+    search_only_in_shared_drive_id: Annotated[
+        Optional[str],
+        "The ID of the shared drive to restrict the search to. If provided, the search will only "
+        "return documents from this drive. Defaults to None, which searches across all drives.",
+    ] = None,
+    include_shared_drives: Annotated[
+        bool,
+        "Whether to include documents from shared drives. Defaults to True.",
+    ] = True,
+    include_organization_domain_documents: Annotated[
+        bool,
+        "Whether to include documents from the organization's domain. This is applicable to admin "
+        "users who have permissions to view organization-wide documents in a Google Workspace "
+        "account. Defaults to False.",
+    ] = False,
     order_by: Annotated[
         Optional[list[OrderBy]],
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = None,
-    supports_all_drives: Annotated[
-        bool,
-        "Whether the requesting application supports both My Drives and shared drives",
-    ] = False,
-    return_format: Annotated[
-        DocumentFormat,
-        "The format of the document to return. Defaults to markdown",
-    ] = DocumentFormat.MARKDOWN,
     limit: Annotated[int, "The number of documents to list"] = 50,
     pagination_token: Annotated[
         Optional[str], "The pagination token to continue a previous request"
@@ -139,15 +173,16 @@ async def search_and_retrieve_documents(
     Provides a list of documents (with content) matching the search criteria.
 
     Note: use this tool only when the user prompt requires the documents' content. If the user only
-    needs a list of documents, use the `list_documents` tool instead.
+    needs a list of documents, use the `search_documents` tool instead.
     """
-    response = await list_documents(
+    response = await search_documents(
         context=context,
-        corpora=corpora,
         document_contains=document_contains,
         document_not_contains=document_not_contains,
+        search_only_in_shared_drive_id=search_only_in_shared_drive_id,
+        include_shared_drives=include_shared_drives,
+        include_organization_domain_documents=include_organization_domain_documents,
         order_by=order_by,
-        supports_all_drives=supports_all_drives,
         limit=limit,
         pagination_token=pagination_token,
     )

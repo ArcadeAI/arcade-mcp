@@ -8,8 +8,8 @@ from arcade.sdk.eval import (
 )
 
 import arcade_google
-from arcade_google.models import Corpora, DocumentFormat, OrderBy
-from arcade_google.tools.drive import list_documents, search_and_retrieve_documents
+from arcade_google.models import DocumentFormat, OrderBy
+from arcade_google.tools.drive import search_and_retrieve_documents, search_documents
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -22,7 +22,7 @@ catalog.add_module(arcade_google)
 
 
 @tool_eval()
-def list_documents_eval_suite() -> EvalSuite:
+def search_documents_eval_suite() -> EvalSuite:
     """Create an evaluation suite for Google Drive tools."""
     suite = EvalSuite(
         name="Google Drive Tools Evaluation",
@@ -32,14 +32,14 @@ def list_documents_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="List documents in Google Drive",
-        user_message="show me the titles of my 39 most recently created documents. Show me the ones created most recently first.",
+        name="Search documents in Google Drive",
+        user_message="get my 49 most recently created documents, list the ones created most recently first.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_documents,
+                func=search_documents,
                 args={
                     "order_by": [OrderBy.CREATED_TIME_DESC.value],
-                    "limit": 39,
+                    "limit": 49,
                 },
             )
         ],
@@ -50,11 +50,11 @@ def list_documents_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="List documents in Google Drive based on document keywords",
-        user_message="list the documents that contain the word 'greedy' and the phrase 'hello, world'",
+        name="Search documents in Google Drive based on document keywords",
+        user_message="Search the documents that contain the word 'greedy' and the phrase 'hello, world'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_documents,
+                func=search_documents,
                 args={
                     "document_contains": ["greedy", "hello, world"],
                 },
@@ -66,22 +66,56 @@ def list_documents_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="List documents in shared drives",
-        user_message="List the 5 documents from all drives corpora that nobody has touched in forever, including shared ones.",
+        name="Search documents in a specific Google Drive based on document keywords",
+        user_message="Search the documents that contain the word 'greedy' and the phrase 'hello, world' in the drive with id 'abc123'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_documents,
+                func=search_documents,
                 args={
-                    "corpora": Corpora.ALL_DRIVES.value,
-                    "supports_all_drives": True,
-                    "limit": 5,
+                    "document_contains": ["greedy", "hello, world"],
+                    "search_only_in_shared_drive_id": "abc123",
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="corpora", weight=1 / 3),
-            BinaryCritic(critic_field="supports_all_drives", weight=1 / 3),
-            BinaryCritic(critic_field="limit", weight=1 / 3),
+            BinaryCritic(critic_field="search_only_in_shared_drive_id", weight=0.5),
+            BinaryCritic(critic_field="document_contains", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search documents in a Google Drive Workspace organization domain based on document keywords",
+        user_message="Search the documents that contain the phrase 'hello, world' in the organization domain",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_documents,
+                args={
+                    "document_contains": ["hello, world"],
+                    "include_organization_domain_documents": True,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="include_organization_domain_documents", weight=0.5),
+            BinaryCritic(critic_field="document_contains", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Search documents in shared drives",
+        user_message="Search the 5 documents from all drives corpora that nobody has touched in forever, excluding shared drives.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_documents,
+                args={
+                    "limit": 5,
+                    "include_shared_drives": False,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="include_shared_drives", weight=0.5),
+            BinaryCritic(critic_field="limit", weight=0.5),
         ],
     )
 
@@ -107,7 +141,7 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Search and retrieve (write summary)",
-        user_message="write a summary of the documents in my Google Drive about 'MX Engineering'",
+        user_message="Write a summary of the documents in my Google Drive about 'MX Engineering'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_and_retrieve_documents,
@@ -161,7 +195,7 @@ def search_and_retrieve_documents_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Search and retrieve (Q1 report)",
-        user_message="Get documents that mention 'Q1 report' but do not include the expression 'Project XYZ'.",
+        user_message="Show me the content of the documents that mention 'Q1 report' but do not include the expression 'Project XYZ'.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_and_retrieve_documents,
