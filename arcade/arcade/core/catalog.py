@@ -377,6 +377,9 @@ class ToolCatalog(BaseModel):
 
         secrets_requirement = getattr(tool, "__tool_requires_secrets__", None)
         if isinstance(secrets_requirement, list):
+            if any(not isinstance(secret, str) for secret in secrets_requirement):
+                raise ToolDefinitionError("Secrets keys must be strings.")
+
             secrets_requirement = to_tool_secret_requirements(secrets_requirement)
             if any(
                 secret.key is None or secret.key.strip() == "" for secret in secrets_requirement
