@@ -38,9 +38,9 @@ async def search_documents(
     ] = None,
     include_shared_drives: Annotated[
         bool,
-        "Whether to include documents from shared drives. If set to False, the search will only "
-        "return documents from the user's 'My Drive'. Defaults to True.",
-    ] = True,
+        "Whether to include documents from shared drives. Defaults to False (searches only in "
+        "the user's 'My Drive').",
+    ] = False,
     include_organization_domain_documents: Annotated[
         bool,
         "Whether to include documents from the organization's domain. This is applicable to admin "
@@ -61,7 +61,7 @@ async def search_documents(
     "(a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
 ]:
     """
-    List documents in the user's Google Drive. Excludes documents that are in the trash.
+    Searches for documents in the user's Google Drive. Excludes documents that are in the trash.
     """
     if order_by is None:
         order_by = [OrderBy.MODIFIED_TIME_DESC]
@@ -131,9 +131,9 @@ async def search_and_retrieve_documents(
     ] = None,
     include_shared_drives: Annotated[
         bool,
-        "Whether to include documents from shared drives. If set to False, the search will only "
-        "return documents from the user's 'My Drive'. Defaults to True.",
-    ] = True,
+        "Whether to include documents from shared drives. Defaults to False (searches only in "
+        "the user's 'My Drive').",
+    ] = False,
     include_organization_domain_documents: Annotated[
         bool,
         "Whether to include documents from the organization's domain. This is applicable to admin "
@@ -154,8 +154,8 @@ async def search_and_retrieve_documents(
     "(a list of documents with their content).",
 ]:
     """
-    Provides a list of documents (with text content) matching the search criteria. Excludes
-    documents that are in the trash.
+    Searches for documents in the user's Google Drive and returns a list of documents (with text
+    content) matching the search criteria. Excludes documents that are in the trash.
 
     Note: use this tool only when the user prompt requires the documents' content. If the user only
     needs a list of documents, use the `search_documents` tool instead.
