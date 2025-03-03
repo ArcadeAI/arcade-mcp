@@ -1,6 +1,6 @@
 import os
 
-from arcade_google.tools.models import GmailReplyToWhom
+from arcade_google.models import GmailReplyToWhom
 
 # The default reply in Gmail is to only the sender. Since Gmail also offers the possibility of
 # changing the default to 'reply to all', we support both options through an env variable.

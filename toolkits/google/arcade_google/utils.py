@@ -13,9 +13,9 @@ from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
 
+from arcade_google.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
+from arcade_google.exceptions import GmailToolError, GoogleServiceError
 from arcade_google.models import Corpora, Day, GmailAction, GmailReplyToWhom, OrderBy, TimeSlot
-from arcade_google.tools.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
-from arcade_google.tools.exceptions import GmailToolError, GoogleServiceError
 
 ## Set up basic configuration for logging to the console with DEBUG level and a specific format.
 logging.basicConfig(
