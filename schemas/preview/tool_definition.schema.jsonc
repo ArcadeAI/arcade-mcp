@@ -14,8 +14,8 @@
           "oneOf": [{ "$ref": "#/$defs/primitives" }, { "type": "string", "enum": ["array"] }]
         },
         "inner_val_type": {
-          "$ref": "#/$defs/primitives",
-          "description": "If the value type is a list, the type of the list values."
+          "description": "If the value type is a list, the type of the list values.",
+          "oneOf": [{ "$ref": "#/$defs/primitives" }, { "type": "null" }]
         },
         "enum": {
           "oneOf": [
@@ -141,6 +141,24 @@
     "requirements": {
       "type": "object",
       "properties": {
+        "secrets": {
+          "oneOf": [
+            { "type": "null" }, // Can be unset,
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                },
+                "required": ["key"],
+                "additionalProperties": false
+              }
+            }
+          ]
+        },
         "authorization": {
           "oneOf": [
             { "type": "null" }, // Can be unset

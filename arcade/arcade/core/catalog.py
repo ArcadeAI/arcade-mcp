@@ -41,6 +41,7 @@ from arcade.core.schema import (
     ToolkitDefinition,
     ToolOutput,
     ToolRequirements,
+    ToolSecretRequirement,
     ValueSchema,
 )
 from arcade.core.toolkit import Toolkit
@@ -374,6 +375,21 @@ class ToolCatalog(BaseModel):
                 new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
             auth_requirement = new_auth_requirement
 
+        secrets_requirement = getattr(tool, "__tool_requires_secrets__", None)
+        if isinstance(secrets_requirement, list):
+            if any(not isinstance(secret, str) for secret in secrets_requirement):
+                raise ToolDefinitionError(
+                    f"Secret keys must be strings (error in tool {raw_tool_name})."
+                )
+
+            secrets_requirement = to_tool_secret_requirements(secrets_requirement)
+            if any(
+                secret.key is None or secret.key.strip() == "" for secret in secrets_requirement
+            ):
+                raise ToolDefinitionError(
+                    f"Secrets must have a non-empty key (error in tool {raw_tool_name})."
+                )
+
         toolkit_definition = ToolkitDefinition(
             name=snake_to_pascal_case(toolkit_name),
             description=toolkit_desc,
@@ -393,6 +409,7 @@ class ToolCatalog(BaseModel):
             output=create_output_definition(tool),
             requirements=ToolRequirements(
                 authorization=auth_requirement,
+                secrets=secrets_requirement,
             ),
             deprecation_message=deprecation_message,
         )
@@ -798,3 +815,11 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
             output_model_name,
             result=(return_annotation, Field(description="No description provided.")),
         )
+
+
+def to_tool_secret_requirements(
+    secrets_requirement: list[str],
+) -> list[ToolSecretRequirement]:
+    # Iterate through the list, de-dupe case-insensitively, and convert each string to a ToolSecretRequirement
+    unique_secrets = {name.lower(): name.lower() for name in secrets_requirement}.values()
+    return [ToolSecretRequirement(key=name) for name in unique_secrets]

@@ -14,6 +14,7 @@ def tool(
     desc: str | None = None,
     name: str | None = None,
     requires_auth: Union[ToolAuthorization, None] = None,
+    requires_secrets: Union[list[str], None] = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))
@@ -22,6 +23,7 @@ def tool(
         func.__tool_name__ = tool_name  # type: ignore[attr-defined]
         func.__tool_description__ = desc or inspect.cleandoc(func.__doc__ or "")  # type: ignore[attr-defined]
         func.__tool_requires_auth__ = requires_auth  # type: ignore[attr-defined]
+        func.__tool_requires_secrets__ = requires_secrets  # type: ignore[attr-defined]
 
         if inspect.iscoroutinefunction(func):
 

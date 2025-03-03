@@ -8,7 +8,11 @@ from arcade.sdk.eval import (
 from arcade.sdk.eval.critic import BinaryCritic
 
 import arcade_google
-from arcade_google.tools.contacts import create_contact, search_contacts
+from arcade_google.tools.contacts import (
+    create_contact,
+    search_contacts_by_email,
+    search_contacts_by_name,
+)
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -31,12 +35,27 @@ def contacts_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="Find a contact by name",
+        name="Search contacts by name",
         user_message="Find my contact Bob",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_contacts,
-                args={"query": "Bob"},
+                func=search_contacts_by_name,
+                args={
+                    "name": "Bob",
+                },
+            )
+        ],
+    )
+
+    suite.add_case(
+        name="Search contacts by email",
+        user_message="Find my contact alice@example.com",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_contacts_by_email,
+                args={
+                    "email": "alice@example.com",
+                },
             )
         ],
     )
@@ -46,9 +65,9 @@ def contacts_eval_suite() -> EvalSuite:
         user_message="Find 5 contacts whose names include 'Alice'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_contacts,
+                func=search_contacts_by_name,
                 args={
-                    "query": "Alice",
+                    "name": "Alice",
                     "limit": 5,
                 },
             )

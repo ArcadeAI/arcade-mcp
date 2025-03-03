@@ -184,7 +184,7 @@ def show(
 
 @cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
 def chat(
-    model: str = typer.Option("gpt-4o", "-m", help="The model to use for prediction."),
+    model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),

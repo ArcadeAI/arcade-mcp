@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade-ai"
-version = "1.1.0"
+version = "1.2.0"
 description = "Arcade Python SDK and CLI"
 readme = "README.md"
 packages = [
