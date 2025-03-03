@@ -5,9 +5,9 @@ from arcade.sdk.auth import Google
 
 from arcade_google.doc_to_html import convert_document_to_html
 from arcade_google.doc_to_markdown import convert_document_to_markdown
-from arcade_google.models import Corpora, DocumentFormat, OrderBy
+from arcade_google.models import DocumentFormat, OrderBy
 from arcade_google.tools.docs import get_document_by_id
-from arcade_google.utils import build_drive_service, build_files_list_query, remove_none_values
+from arcade_google.utils import build_drive_service, build_files_list_params
 
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list
@@ -74,34 +74,16 @@ async def search_documents(
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
 
-    query = build_files_list_query(
+    params = build_files_list_params(
         document_contains=document_contains,
         document_not_contains=document_not_contains,
+        page_size=page_size,
+        order_by=order_by,
+        pagination_token=pagination_token,
+        include_shared_drives=include_shared_drives,
+        search_only_in_shared_drive_id=search_only_in_shared_drive_id,
+        include_organization_domain_documents=include_organization_domain_documents,
     )
-
-    params = {
-        "q": query,
-        "pageSize": page_size,
-        "orderBy": ",".join([item.value for item in order_by]),
-        "pageToken": pagination_token,
-    }
-
-    if (
-        include_shared_drives
-        or search_only_in_shared_drive_id
-        or include_organization_domain_documents
-    ):
-        params["includeItemsFromAllDrives"] = "true"
-        params["supportsAllDrives"] = "true"
-
-    if search_only_in_shared_drive_id:
-        params["driveId"] = search_only_in_shared_drive_id
-        params["corpora"] = Corpora.DRIVE.value
-
-    if include_organization_domain_documents:
-        params["corpora"] = Corpora.DOMAIN.value
-
-    params = remove_none_values(params)
 
     while len(files) < limit:
         if pagination_token:

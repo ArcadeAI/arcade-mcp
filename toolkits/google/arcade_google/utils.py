@@ -10,7 +10,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
 from googleapiclient.errors import HttpError
 
-from arcade_google.models import Day, TimeSlot
+from arcade_google.models import Corpora, Day, OrderBy, TimeSlot
 
 
 def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
@@ -327,6 +327,48 @@ def build_files_list_query(
             query.append(keyword_query)
 
     return " and ".join(query)
+
+
+def build_files_list_params(
+    page_size: int,
+    order_by: list[OrderBy],
+    pagination_token: Optional[str],
+    include_shared_drives: bool,
+    search_only_in_shared_drive_id: Optional[str],
+    include_organization_domain_documents: bool,
+    document_contains: Optional[list[str]] = None,
+    document_not_contains: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    query = build_files_list_query(
+        document_contains=document_contains,
+        document_not_contains=document_not_contains,
+    )
+
+    params = {
+        "q": query,
+        "pageSize": page_size,
+        "orderBy": ",".join([item.value for item in order_by]),
+        "pageToken": pagination_token,
+    }
+
+    if (
+        include_shared_drives
+        or search_only_in_shared_drive_id
+        or include_organization_domain_documents
+    ):
+        params["includeItemsFromAllDrives"] = "true"
+        params["supportsAllDrives"] = "true"
+
+    if search_only_in_shared_drive_id:
+        params["driveId"] = search_only_in_shared_drive_id
+        params["corpora"] = Corpora.DRIVE.value
+
+    if include_organization_domain_documents:
+        params["corpora"] = Corpora.DOMAIN.value
+
+    params = remove_none_values(params)
+
+    return params
 
 
 # Docs utils
