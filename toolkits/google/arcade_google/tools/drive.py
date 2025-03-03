@@ -24,12 +24,12 @@ async def search_documents(
     document_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must be in the document title or body. Provide a list of "
-        "phrases if needed",
+        "keywords or phrases if needed.",
     ] = None,
     document_not_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
-        "phrases if needed",
+        "keywords or phrases if needed.",
     ] = None,
     search_only_in_shared_drive_id: Annotated[
         Optional[str],
@@ -38,7 +38,8 @@ async def search_documents(
     ] = None,
     include_shared_drives: Annotated[
         bool,
-        "Whether to include documents from shared drives. Defaults to True.",
+        "Whether to include documents from shared drives. If set to False, the search will only "
+        "return documents from the user's 'My Drive'. Defaults to True.",
     ] = True,
     include_organization_domain_documents: Annotated[
         bool,
@@ -111,17 +112,17 @@ async def search_and_retrieve_documents(
     context: ToolContext,
     return_format: Annotated[
         DocumentFormat,
-        "The format of the document to return. Defaults to markdown",
+        "The format of the document to return. Defaults to Markdown.",
     ] = DocumentFormat.MARKDOWN,
     document_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must be in the document title or body. Provide a list of "
-        "phrases if needed",
+        "keywords or phrases if needed.",
     ] = None,
     document_not_contains: Annotated[
         Optional[list[str]],
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
-        "phrases if needed",
+        "keywords or phrases if needed.",
     ] = None,
     search_only_in_shared_drive_id: Annotated[
         Optional[str],
@@ -130,7 +131,8 @@ async def search_and_retrieve_documents(
     ] = None,
     include_shared_drives: Annotated[
         bool,
-        "Whether to include documents from shared drives. Defaults to True.",
+        "Whether to include documents from shared drives. If set to False, the search will only "
+        "return documents from the user's 'My Drive'. Defaults to True.",
     ] = True,
     include_organization_domain_documents: Annotated[
         bool,
@@ -149,10 +151,11 @@ async def search_and_retrieve_documents(
 ) -> Annotated[
     dict,
     "A dictionary containing 'documents_count' (number of documents returned) and 'documents' "
-    "(a list of document details including 'kind', 'mimeType', 'id', and 'name' for each document)",
+    "(a list of documents with their content).",
 ]:
     """
-    Provides a list of documents (with content) matching the search criteria.
+    Provides a list of documents (with text content) matching the search criteria. Excludes
+    documents that are in the trash.
 
     Note: use this tool only when the user prompt requires the documents' content. If the user only
     needs a list of documents, use the `search_documents` tool instead.
@@ -172,22 +175,13 @@ async def search_and_retrieve_documents(
     documents = []
 
     for item in response["documents"]:
-        documents.append(await get_document_by_id(context, document_id=item["id"]))
+        document = await get_document_by_id(context, document_id=item["id"])
 
-    if return_format == DocumentFormat.MARKDOWN:
-        return {
-            "documents_count": len(documents),
-            "documents": [convert_document_to_markdown(doc) for doc in documents],
-        }
-    elif return_format == DocumentFormat.HTML:
-        return {
-            "documents_count": len(documents),
-            "documents": [convert_document_to_html(doc) for doc in documents],
-        }
-    elif return_format == DocumentFormat.GOOGLE_API_JSON:
-        return {
-            "documents_count": len(documents),
-            "documents": documents,
-        }
-    else:
-        raise ValueError(f"Unknown document format: {return_format}")
+        if return_format == DocumentFormat.MARKDOWN:
+            document = convert_document_to_markdown(document)
+        elif return_format == DocumentFormat.HTML:
+            document = convert_document_to_html(document)
+
+        documents.append(document)
+
+    return {"documents_count": len(documents), "documents": documents}
