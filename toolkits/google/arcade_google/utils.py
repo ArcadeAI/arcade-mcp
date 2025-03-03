@@ -593,10 +593,11 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
 
 
 def build_files_list_query(
+    mime_type: str,
     document_contains: Optional[list[str]] = None,
     document_not_contains: Optional[list[str]] = None,
 ) -> str:
-    query = ["mimeType = 'application/vnd.google-apps.document' and trashed = false"]
+    query = [f"mimeType = '{mime_type}' and trashed = false"]
 
     if isinstance(document_contains, str):
         document_contains = [document_contains]
@@ -627,6 +628,7 @@ def build_files_list_query(
 
 
 def build_files_list_params(
+    mime_type: str,
     page_size: int,
     order_by: list[OrderBy],
     pagination_token: Optional[str],
@@ -637,6 +639,7 @@ def build_files_list_params(
     document_not_contains: Optional[list[str]] = None,
 ) -> dict[str, Any]:
     query = build_files_list_query(
+        mime_type=mime_type,
         document_contains=document_contains,
         document_not_contains=document_not_contains,
     )

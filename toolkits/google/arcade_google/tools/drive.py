@@ -76,6 +76,7 @@ async def search_documents(
     )
 
     params = build_files_list_params(
+        mime_type="application/vnd.google-apps.document",
         document_contains=document_contains,
         document_not_contains=document_not_contains,
         page_size=page_size,
