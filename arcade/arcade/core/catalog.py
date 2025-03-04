@@ -747,7 +747,7 @@ def get_wire_type(
     if isinstance(_type, type) and issubclass(_type, BaseModel):
         return "json"
 
-    raise ToolDefinitionError(f"Unsupported parameter type: {_type}")
+    raise ToolDefinitionError(f"Unsupported type: {_type}")
 
 
 def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]]:
