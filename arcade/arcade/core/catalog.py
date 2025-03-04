@@ -241,6 +241,8 @@ class ToolCatalog(BaseModel):
                 try:
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
+                    if tool_name == "get_website_map":
+                        print("hello")
                     self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError:
@@ -252,6 +254,10 @@ class ToolCatalog(BaseModel):
                 except TypeError as e:
                     raise ToolDefinitionError(
                         f"Type error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
+                    )
+                except Exception as e:
+                    raise ToolDefinitionError(
+                        f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
                     )
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
@@ -735,10 +741,10 @@ def get_wire_type(
         if wire_type:
             return wire_type
 
-    if issubclass(_type, Enum):
+    if isinstance(_type, type) and issubclass(_type, Enum):
         return "string"
 
-    if issubclass(_type, BaseModel):
+    if isinstance(_type, type) and issubclass(_type, BaseModel):
         return "json"
 
     raise ToolDefinitionError(f"Unsupported parameter type: {_type}")
