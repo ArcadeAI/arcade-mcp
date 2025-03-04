@@ -1,6 +1,8 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
+from arcade.core.schema import ToolSecretItem
+from arcade.sdk import ToolContext
 from arcade.sdk.errors import ToolExecutionError
 
 from arcade_web.tools.firecrawl import (
@@ -15,9 +17,7 @@ from arcade_web.tools.firecrawl import (
 
 @pytest.fixture
 def mock_context():
-    context = AsyncMock()
-    context.authorization.token = "mock_token"  # noqa: S105
-    return context
+    return ToolContext(secrets=[ToolSecretItem(key="firecrawl_api_key", value="fake_api_key")])
 
 
 @pytest.fixture
@@ -27,50 +27,50 @@ def mock_firecrawl_app():
 
 
 @pytest.mark.asyncio
-async def test_scrape_url_success(mock_firecrawl_app):
+async def test_scrape_url_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.scrape_url.return_value = {"data": "scraped content"}
 
-    result = await scrape_url("http://example.com")
+    result = await scrape_url(mock_context, "http://example.com")
     assert result == {"data": "scraped content"}
 
 
 @pytest.mark.asyncio
-async def test_crawl_website_success(mock_firecrawl_app):
+async def test_crawl_website_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.async_crawl_url.return_value = {"crawl_id": "12345"}
 
-    result = await crawl_website("http://example.com")
+    result = await crawl_website(mock_context, "http://example.com")
     assert result == {"crawl_id": "12345"}
 
 
 @pytest.mark.asyncio
-async def test_get_crawl_status_success(mock_firecrawl_app):
+async def test_get_crawl_status_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.check_crawl_status.return_value = {"status": "completed"}
 
-    result = await get_crawl_status("12345")
+    result = await get_crawl_status(mock_context, "12345")
     assert result == {"status": "completed"}
 
 
 @pytest.mark.asyncio
-async def test_get_crawl_data_success(mock_firecrawl_app):
+async def test_get_crawl_data_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.check_crawl_status.return_value = {"data": "crawl data"}
 
-    result = await get_crawl_data("12345")
+    result = await get_crawl_data(mock_context, "12345")
     assert result == {"data": "crawl data"}
 
 
 @pytest.mark.asyncio
-async def test_cancel_crawl_success(mock_firecrawl_app):
+async def test_cancel_crawl_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.cancel_crawl.return_value = {"status": "cancelled"}
 
-    result = await cancel_crawl("12345")
+    result = await cancel_crawl(mock_context, "12345")
     assert result == {"status": "cancelled"}
 
 
 @pytest.mark.asyncio
-async def test_map_website_success(mock_firecrawl_app):
+async def test_map_website_success(mock_firecrawl_app, mock_context):
     mock_firecrawl_app.map_url.return_value = {"map": "website map"}
 
-    result = await map_website("http://example.com")
+    result = await map_website(mock_context, "http://example.com")
     assert result == {"map": "website map"}
 
 
@@ -86,7 +86,7 @@ async def test_map_website_success(mock_firecrawl_app):
         (map_website, ("http://example.com",), "Error mapping website"),
     ],
 )
-async def test_firecrawl_error(mock_firecrawl_app, method, params, error_message):
+async def test_firecrawl_error(mock_firecrawl_app, mock_context, method, params, error_message):
     mock_firecrawl_app.scrape_url.side_effect = Exception(error_message)
     mock_firecrawl_app.async_crawl_url.side_effect = Exception(error_message)
     mock_firecrawl_app.check_crawl_status.side_effect = Exception(error_message)
@@ -94,4 +94,4 @@ async def test_firecrawl_error(mock_firecrawl_app, method, params, error_message
     mock_firecrawl_app.map_url.side_effect = Exception(error_message)
 
     with pytest.raises(ToolExecutionError):
-        await method(*params)
+        await method(mock_context, *params)

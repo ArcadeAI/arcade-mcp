@@ -2,16 +2,20 @@ import json
 from unittest.mock import patch
 
 import pytest
+from arcade.core.schema import ToolSecretItem
+from arcade.sdk import ToolContext
 
 from arcade_search.tools.google import search_google
 
-GET_SECRET_PATCH_TARGET = "arcade_search.tools.google.get_secret"  # noqa: S105
+
+@pytest.fixture
+def mock_context():
+    return ToolContext(secrets=[ToolSecretItem(key="serp_api_key", value="fake_api_key")])
 
 
 @pytest.mark.asyncio
-async def test_search_google_success():
+async def test_search_google_success(mock_context):
     with (
-        patch(GET_SECRET_PATCH_TARGET, return_value="fake_api_key"),
         patch("serpapi.Client") as MockClient,
     ):
         mock_client_instance = MockClient.return_value
@@ -23,7 +27,7 @@ async def test_search_google_success():
             ]
         }
 
-        result = await search_google("test query", 2)
+        result = await search_google(mock_context, "test query", 2)
 
         expected_result = json.dumps([
             {"title": "Result 1", "link": "http://example.com/1"},
@@ -33,15 +37,14 @@ async def test_search_google_success():
 
 
 @pytest.mark.asyncio
-async def test_search_google_no_results():
+async def test_search_google_no_results(mock_context):
     with (
-        patch(GET_SECRET_PATCH_TARGET, return_value="fake_api_key"),
         patch("serpapi.Client") as MockClient,
     ):
         mock_client_instance = MockClient.return_value
         mock_client_instance.search.return_value.as_dict.return_value = {"organic_results": []}
 
-        result = await search_google("test query", 2)
+        result = await search_google(mock_context, "test query", 2)
 
         expected_result = json.dumps([])
         assert result == expected_result
