@@ -38,7 +38,7 @@ def test_get_secret_valid():
 
 
 def test_get_secret_with_case_insensitive_key():
-    key = "my_key"
+    key = "My_key"
     val = "secret_value"
     secrets = [ToolSecretItem(key=key, value=val)]
     tool_context = ToolContext(secrets=secrets)

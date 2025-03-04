@@ -282,7 +282,7 @@ class ToolContext(BaseModel):
 
         normalized_key = key.lower()
         for secret in self.secrets:
-            if secret.key == normalized_key:
+            if secret.key.lower() == normalized_key:
                 return secret.value
         raise ValueError(f"Secret {key} not found in context.")
 
