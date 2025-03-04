@@ -241,8 +241,6 @@ class ToolCatalog(BaseModel):
                 try:
                     module = import_module(module_name)
                     tool_func = getattr(module, tool_name)
-                    if tool_name == "get_website_map":
-                        print("hello")
                     self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError:
