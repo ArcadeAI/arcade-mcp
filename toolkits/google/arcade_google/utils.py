@@ -597,7 +597,7 @@ def build_files_list_query(
     document_contains: Optional[list[str]] = None,
     document_not_contains: Optional[list[str]] = None,
 ) -> str:
-    query = [f"mimeType = '{mime_type}' and trashed = false"]
+    query = [f"(mimeType = '{mime_type}' and trashed = false)"]
 
     if isinstance(document_contains, str):
         document_contains = [document_contains]
@@ -610,7 +610,7 @@ def build_files_list_query(
             name_contains = keyword.replace("'", "\\'")
             full_text_contains = keyword.replace("'", "\\'")
             keyword_query = (
-                f"name contains '{name_contains}' or fullText contains '{full_text_contains}'"
+                f"(name contains '{name_contains}' or fullText contains '{full_text_contains}')"
             )
             query.append(keyword_query)
 
@@ -619,8 +619,8 @@ def build_files_list_query(
             name_not_contains = keyword.replace("'", "\\'")
             full_text_not_contains = keyword.replace("'", "\\'")
             keyword_query = (
-                f"name not contains '{name_not_contains}' and "
-                f"fullText not contains '{full_text_not_contains}'"
+                f"(name not contains '{name_not_contains}' and "
+                f"fullText not contains '{full_text_not_contains}')"
             )
             query.append(keyword_query)
 
