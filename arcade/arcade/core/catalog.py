@@ -623,15 +623,18 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
 
     type_to_check = inner_type if is_list else _type
 
+    # Strip generic parameters if type_to_check is a parameterized generic
+    actual_type = get_origin(type_to_check) or type_to_check
+
     # Special case: Literal["string1", "string2"] can be enumerated on the wire
     if is_string_literal(type_to_check):
         is_enum = True
         enum_values = [str(e) for e in get_args(type_to_check)]
 
     # Special case: Enum can be enumerated on the wire
-    elif issubclass(type_to_check, Enum):
+    elif issubclass(actual_type, Enum):
         is_enum = True
-        enum_values = [e.value for e in type_to_check]  # type: ignore[union-attr]
+        enum_values = [e.value for e in actual_type]  # type: ignore[union-attr]
 
     return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None)
 
