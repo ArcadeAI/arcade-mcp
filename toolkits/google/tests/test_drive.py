@@ -113,7 +113,7 @@ async def test_search_documents_in_organization_domains(mock_context, mock_servi
 
     assert result["documents_count"] == 1
     mock_service.files.return_value.list.assert_called_with(
-        q="mimeType = 'application/vnd.google-apps.document' and trashed = false",
+        q="(mimeType = 'application/vnd.google-apps.document' and trashed = false)",
         corpora=Corpora.DOMAIN.value,
         pageSize=1,
         orderBy=OrderBy.MODIFIED_TIME_DESC.value,
