@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade_search"
-version = "0.1.10"
+version = "1.0.0"
 description = "Tools for searching the web"
 authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = ">=0.1,<2.0"
+arcade-ai = ">=1.0.5,<2.0"
 serpapi = "^0.1.5"
 
 [tool.poetry.dev-dependencies]

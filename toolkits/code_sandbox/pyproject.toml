@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "arcade_code_sandbox"
-version = "0.1.9"
+version = "1.0.0"
 description = "LLM tools for running code in a sandbox"
 authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = ">=0.1,<2.0"
+arcade-ai = ">=1.0.5,<2.0"
 e2b-code-interpreter = "^1.0.1"
 
 [tool.poetry.dev-dependencies]

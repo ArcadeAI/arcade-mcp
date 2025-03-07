@@ -2,12 +2,111 @@ from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
+from googleapiclient.errors import HttpError
 
 from arcade_google.doc_to_html import convert_document_to_html
 from arcade_google.doc_to_markdown import convert_document_to_markdown
 from arcade_google.models import DocumentFormat, OrderBy
 from arcade_google.tools.docs import get_document_by_id
-from arcade_google.utils import build_drive_service, build_files_list_params
+from arcade_google.utils import (
+    build_drive_service,
+    build_file_tree,
+    build_file_tree_request_params,
+    build_files_list_params,
+)
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/drive.file"],
+    )
+)
+async def get_file_tree_structure(
+    context: ToolContext,
+    include_shared_drives: Annotated[
+        bool, "Whether to include shared drives in the file tree structure. Defaults to False."
+    ] = False,
+    restrict_to_shared_drive_id: Annotated[
+        Optional[str],
+        "If provided, only include files from this shared drive in the file tree structure. "
+        "Defaults to None, which will include files and folders from all drives.",
+    ] = None,
+    include_organization_domain_documents: Annotated[
+        bool,
+        "Whether to include documents from the organization's domain. This is applicable to admin "
+        "users who have permissions to view organization-wide documents in a Google Workspace "
+        "account. Defaults to False.",
+    ] = False,
+    order_by: Annotated[
+        Optional[list[OrderBy]],
+        "Sort order. Defaults to listing the most recently modified documents first",
+    ] = None,
+    limit: Annotated[
+        Optional[int],
+        "The number of files and folders to list. Defaults to None, "
+        "which will list all files and folders.",
+    ] = None,
+) -> Annotated[
+    dict,
+    "A dictionary containing the file/folder tree structure in the user's Google Drive",
+]:
+    """
+    Get the file/folder tree structure of the user's Google Drive.
+    """
+    service = build_drive_service(
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+
+    keep_paginating = True
+    page_token = None
+    files = {}
+    file_tree: dict[str, list[dict]] = {"My Drive": []}
+
+    params = build_file_tree_request_params(
+        order_by,
+        page_token,
+        limit,
+        include_shared_drives,
+        restrict_to_shared_drive_id,
+        include_organization_domain_documents,
+    )
+
+    while keep_paginating:
+        # Get a list of files
+        results = service.files().list(**params).execute()
+
+        # Update page token
+        page_token = results.get("nextPageToken")
+        params["pageToken"] = page_token
+        keep_paginating = page_token is not None
+
+        for file in results.get("files", []):
+            files[file["id"]] = file
+
+    if not files:
+        return {"drives": []}
+
+    file_tree = build_file_tree(files)
+
+    drives = []
+
+    for drive_id, files in file_tree.items():  # type: ignore[assignment]
+        if drive_id == "My Drive":
+            drive = {"name": "My Drive", "children": files}
+        else:
+            try:
+                drive_details = service.drives().get(driveId=drive_id).execute()
+                drive_name = drive_details.get("name", "Shared Drive (name unavailable)")
+            except HttpError as e:
+                drive_name = (
+                    f"Shared Drive (name unavailable: 'HttpError {e.status_code}: {e.reason}')"
+                )
+
+            drive = {"name": drive_name, "id": drive_id, "children": files}
+
+        drives.append(drive)
+
+    return {"drives": drives}
 
 
 # Implements: https://googleapis.github.io/google-api-python-client/docs/dyn/drive_v3.files.html#list

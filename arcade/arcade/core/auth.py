@@ -60,24 +60,6 @@ class Dropbox(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
-class Google(OAuth2):
-    """Marks a tool as requiring Google authorization."""
-
-    provider_id: str = "google"
-
-    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
-        super().__init__(id=id, scopes=scopes)
-
-
-class Slack(OAuth2):
-    """Marks a tool as requiring Slack (user token) authorization."""
-
-    provider_id: str = "slack"
-
-    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
-        super().__init__(id=id, scopes=scopes)
-
-
 class GitHub(OAuth2):
     """Marks a tool as requiring GitHub App authorization."""
 
@@ -87,10 +69,10 @@ class GitHub(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
-class X(OAuth2):
-    """Marks a tool as requiring X (Twitter) authorization."""
+class Google(OAuth2):
+    """Marks a tool as requiring Google authorization."""
 
-    provider_id: str = "x"
+    provider_id: str = "google"
 
     def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
         super().__init__(id=id, scopes=scopes)
@@ -105,10 +87,37 @@ class LinkedIn(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Notion(OAuth2):
+    """Marks a tool as requiring Notion authorization."""
+
+    provider_id: str = "notion"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
+class Slack(OAuth2):
+    """Marks a tool as requiring Slack (user token) authorization."""
+
+    provider_id: str = "slack"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Spotify(OAuth2):
     """Marks a tool as requiring Spotify authorization."""
 
     provider_id: str = "spotify"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
+class X(OAuth2):
+    """Marks a tool as requiring X (Twitter) authorization."""
+
+    provider_id: str = "x"
 
     def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
         super().__init__(id=id, scopes=scopes)
