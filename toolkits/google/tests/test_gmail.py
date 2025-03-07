@@ -7,6 +7,7 @@ from arcade.sdk import ToolAuthorizationContext, ToolContext
 from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
+from arcade_google.models import GmailReplyToWhom
 from arcade_google.tools.gmail import (
     delete_draft_email,
     get_thread,
@@ -22,8 +23,7 @@ from arcade_google.tools.gmail import (
     update_draft_email,
     write_draft_email,
 )
-from arcade_google.tools.models import GmailReplyToWhom
-from arcade_google.tools.utils import (
+from arcade_google.utils import (
     build_reply_body,
     parse_draft_email,
     parse_multipart_email,
@@ -38,7 +38,7 @@ def mock_context():
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_send_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -73,7 +73,7 @@ async def test_send_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_write_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -108,7 +108,7 @@ async def test_write_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_update_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -145,7 +145,7 @@ async def test_update_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_send_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -170,7 +170,7 @@ async def test_send_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_delete_draft_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -192,7 +192,7 @@ async def test_delete_draft_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 @patch("arcade_google.tools.gmail.parse_draft_email")
 async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context):
     # Setup test data
@@ -265,7 +265,7 @@ async def test_get_draft_emails(mock_parse_draft_email, mock_build, mock_context
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 @patch("arcade_google.tools.gmail.parse_plain_text_email")
 async def test_search_emails_by_header(mock_parse_plain_text_email, mock_build, mock_context):
     # Setup test data
@@ -342,7 +342,7 @@ async def test_search_emails_by_header(mock_parse_plain_text_email, mock_build, 
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 @patch("arcade_google.tools.gmail.parse_plain_text_email")
 async def test_get_emails(mock_parse_plain_text_email, mock_build, mock_context):
     # Setup test data
@@ -417,7 +417,7 @@ async def test_get_emails(mock_parse_plain_text_email, mock_build, mock_context)
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_trash_email(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -443,7 +443,7 @@ async def test_trash_email(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_search_threads(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -495,7 +495,7 @@ async def test_search_threads(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_list_threads(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -545,7 +545,7 @@ async def test_list_threads(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_get_thread(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -610,7 +610,7 @@ async def test_get_thread(mock_build, mock_context):
         ),
     ],
 )
-@patch("arcade_google.tools.utils.build")
+@patch("arcade_google.tools.gmail._build_gmail_service")
 async def test_reply_to_email(mock_build, reply_to_whom, expected_to, expected_cc, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -686,9 +686,9 @@ def test_parse_multipart_email_full():
     }
 
     with (
-        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
-        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
-        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+        patch("arcade_google.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.utils._clean_email_body") as mock_clean,
     ):
         # Mock the helper functions
         mock_plain.return_value = "This is a test email."
@@ -731,9 +731,9 @@ def test_parse_multipart_email_plain_only():
     }
 
     with (
-        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
-        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
-        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+        patch("arcade_google.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.utils._clean_email_body") as mock_clean,
     ):
         # Mock the helper functions
         mock_plain.return_value = "Plain text only email."
@@ -776,9 +776,9 @@ def test_parse_multipart_email_html_only():
     }
 
     with (
-        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
-        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
-        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+        patch("arcade_google.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.utils._clean_email_body") as mock_clean,
     ):
         # Mock the helper functions
         mock_plain.return_value = None
@@ -844,9 +844,9 @@ def test_parse_multipart_email_missing_headers():
     }
 
     with (
-        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
-        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
-        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+        patch("arcade_google.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.utils._clean_email_body") as mock_clean,
     ):
         # Mock the helper functions
         mock_plain.return_value = "Timeel"
@@ -888,9 +888,9 @@ def test_parse_multipart_email_missing_fields():
     }
 
     with (
-        patch("arcade_google.tools.utils._get_email_plain_text_body") as mock_plain,
-        patch("arcade_google.tools.utils._get_email_html_body") as mock_html,
-        patch("arcade_google.tools.utils._clean_email_body") as mock_clean,
+        patch("arcade_google.utils._get_email_plain_text_body") as mock_plain,
+        patch("arcade_google.utils._get_email_html_body") as mock_html,
+        patch("arcade_google.utils._clean_email_body") as mock_clean,
     ):
         # Mock the helper functions
         mock_plain.return_value = "Missing some headers."

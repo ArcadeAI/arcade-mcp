@@ -13,9 +13,9 @@ from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
 
-from arcade_google.tools.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
-from arcade_google.tools.exceptions import GmailToolError, GoogleServiceError
-from arcade_google.tools.models import Day, GmailAction, GmailReplyToWhom, TimeSlot
+from arcade_google.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
+from arcade_google.exceptions import GmailToolError, GoogleServiceError
+from arcade_google.models import Corpora, Day, GmailAction, GmailReplyToWhom, OrderBy, TimeSlot
 
 ## Set up basic configuration for logging to the console with DEBUG level and a specific format.
 logging.basicConfig(
@@ -590,6 +590,176 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
     """
     auth_token = auth_token or ""
     return build("drive", "v3", credentials=Credentials(auth_token))
+
+
+def build_files_list_query(
+    mime_type: str,
+    document_contains: Optional[list[str]] = None,
+    document_not_contains: Optional[list[str]] = None,
+) -> str:
+    query = [f"(mimeType = '{mime_type}' and trashed = false)"]
+
+    if isinstance(document_contains, str):
+        document_contains = [document_contains]
+
+    if isinstance(document_not_contains, str):
+        document_not_contains = [document_not_contains]
+
+    if document_contains:
+        for keyword in document_contains:
+            name_contains = keyword.replace("'", "\\'")
+            full_text_contains = keyword.replace("'", "\\'")
+            keyword_query = (
+                f"(name contains '{name_contains}' or fullText contains '{full_text_contains}')"
+            )
+            query.append(keyword_query)
+
+    if document_not_contains:
+        for keyword in document_not_contains:
+            name_not_contains = keyword.replace("'", "\\'")
+            full_text_not_contains = keyword.replace("'", "\\'")
+            keyword_query = (
+                f"(name not contains '{name_not_contains}' and "
+                f"fullText not contains '{full_text_not_contains}')"
+            )
+            query.append(keyword_query)
+
+    return " and ".join(query)
+
+
+def build_files_list_params(
+    mime_type: str,
+    page_size: int,
+    order_by: list[OrderBy],
+    pagination_token: Optional[str],
+    include_shared_drives: bool,
+    search_only_in_shared_drive_id: Optional[str],
+    include_organization_domain_documents: bool,
+    document_contains: Optional[list[str]] = None,
+    document_not_contains: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    query = build_files_list_query(
+        mime_type=mime_type,
+        document_contains=document_contains,
+        document_not_contains=document_not_contains,
+    )
+
+    params = {
+        "q": query,
+        "pageSize": page_size,
+        "orderBy": ",".join([item.value for item in order_by]),
+        "pageToken": pagination_token,
+    }
+
+    if (
+        include_shared_drives
+        or search_only_in_shared_drive_id
+        or include_organization_domain_documents
+    ):
+        params["includeItemsFromAllDrives"] = "true"
+        params["supportsAllDrives"] = "true"
+
+    if search_only_in_shared_drive_id:
+        params["driveId"] = search_only_in_shared_drive_id
+        params["corpora"] = Corpora.DRIVE.value
+
+    if include_organization_domain_documents:
+        params["corpora"] = Corpora.DOMAIN.value
+
+    params = remove_none_values(params)
+
+    return params
+
+
+def build_file_tree_request_params(
+    order_by: Optional[list[OrderBy]],
+    page_token: Optional[str],
+    limit: Optional[int],
+    include_shared_drives: bool,
+    restrict_to_shared_drive_id: Optional[str],
+    include_organization_domain_documents: bool,
+) -> dict[str, Any]:
+    if order_by is None:
+        order_by = [OrderBy.MODIFIED_TIME_DESC]
+    elif isinstance(order_by, OrderBy):
+        order_by = [order_by]
+
+    params = {
+        "q": "trashed = false",
+        "corpora": Corpora.USER.value,
+        "pageToken": page_token,
+        "fields": (
+            "files(id, name, parents, mimeType, driveId, size, createdTime, modifiedTime, owners)"
+        ),
+        "orderBy": ",".join([item.value for item in order_by]),
+    }
+
+    if limit:
+        params["pageSize"] = str(limit)
+
+    if (
+        include_shared_drives
+        or restrict_to_shared_drive_id
+        or include_organization_domain_documents
+    ):
+        params["includeItemsFromAllDrives"] = "true"
+        params["supportsAllDrives"] = "true"
+
+    if restrict_to_shared_drive_id:
+        params["driveId"] = restrict_to_shared_drive_id
+        params["corpora"] = Corpora.DRIVE.value
+
+    if include_organization_domain_documents:
+        params["corpora"] = Corpora.DOMAIN.value
+
+    return params
+
+
+def build_file_tree(files: dict[str, Any]) -> dict[str, Any]:
+    file_tree: dict[str, Any] = {}
+
+    for file in files.values():
+        owners = file.get("owners", [])
+        if owners:
+            owners = [
+                {"name": owner.get("displayName", ""), "email": owner.get("emailAddress", "")}
+                for owner in owners
+            ]
+            file["owners"] = owners
+
+        if "size" in file:
+            file["size"] = {"value": int(file["size"]), "unit": "bytes"}
+
+        # Although "parents" is a list, a file can only have one parent
+        try:
+            parent_id = file["parents"][0]
+            del file["parents"]
+        except (KeyError, IndexError):
+            parent_id = None
+
+        # Determine the file's Drive ID
+        if "driveId" in file:
+            drive_id = file["driveId"]
+            del file["driveId"]
+        # If a shared drive id is not present, the file is in "My Drive"
+        else:
+            drive_id = "My Drive"
+
+        if drive_id not in file_tree:
+            file_tree[drive_id] = []
+
+        # Root files will have the Drive's id as the parent. If the parent id is not in the files
+        # list, the file must be at drive's root
+        if parent_id not in files:
+            file_tree[drive_id].append(file)
+
+        # Associate the file with its parent
+        else:
+            if "children" not in files[parent_id]:
+                files[parent_id]["children"] = []
+            files[parent_id]["children"].append(file)
+
+    return file_tree
 
 
 # Docs utils

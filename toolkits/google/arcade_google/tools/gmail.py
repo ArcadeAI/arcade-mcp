@@ -7,10 +7,10 @@ from arcade.sdk.auth import Google
 from arcade.sdk.errors import RetryableToolError
 from googleapiclient.errors import HttpError
 
-from arcade_google.tools.constants import GMAIL_DEFAULT_REPLY_TO
-from arcade_google.tools.exceptions import GmailToolError
-from arcade_google.tools.models import GmailAction, GmailReplyToWhom
-from arcade_google.tools.utils import (
+from arcade_google.constants import GMAIL_DEFAULT_REPLY_TO
+from arcade_google.exceptions import GmailToolError
+from arcade_google.models import GmailAction, GmailReplyToWhom
+from arcade_google.utils import (
     DateRange,
     _build_gmail_service,
     build_email_message,

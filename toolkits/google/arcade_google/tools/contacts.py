@@ -6,8 +6,8 @@ from arcade.sdk.auth import Google
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from arcade_google.tools.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
-from arcade_google.tools.utils import build_people_service, search_contacts
+from arcade_google.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
+from arcade_google.utils import build_people_service, search_contacts
 
 
 async def _warmup_cache(service) -> None:  # type: ignore[no-untyped-def]

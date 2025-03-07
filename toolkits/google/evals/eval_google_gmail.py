@@ -11,6 +11,7 @@ from arcade.sdk.eval import (
 )
 
 import arcade_google
+from arcade_google.models import GmailReplyToWhom
 from arcade_google.tools.gmail import (
     get_thread,
     list_emails_by_header,
@@ -20,8 +21,7 @@ from arcade_google.tools.gmail import (
     send_email,
     write_draft_reply_email,
 )
-from arcade_google.tools.models import GmailReplyToWhom
-from arcade_google.tools.utils import DateRange
+from arcade_google.utils import DateRange
 
 # Evaluation rubric
 rubric = EvalRubric(

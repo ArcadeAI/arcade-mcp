@@ -344,6 +344,12 @@ class OrderBy(str, Enum):
     )
 
 
+class DocumentFormat(str, Enum):
+    MARKDOWN = "markdown"
+    HTML = "html"
+    GOOGLE_API_JSON = "google_api_json"
+
+
 # ---------------------------------------------------------------------------- #
 # Google Gmail Models and Enums
 # ---------------------------------------------------------------------------- #

@@ -8,8 +8,8 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from arcade_google.tools.models import EventVisibility, SendUpdatesOptions
-from arcade_google.tools.utils import parse_datetime
+from arcade_google.models import EventVisibility, SendUpdatesOptions
+from arcade_google.utils import parse_datetime
 
 
 @tool(
