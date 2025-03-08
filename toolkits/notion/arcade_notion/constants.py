@@ -10,4 +10,5 @@ ENDPOINTS = {
     "append_block_children": "/blocks/{block_id}/children",
     "retrieve_a_database": "/databases/{database_id}",
     "create_comment": "/comments",
+    "retrieve_a_page": "/pages/{page_id}",
 }

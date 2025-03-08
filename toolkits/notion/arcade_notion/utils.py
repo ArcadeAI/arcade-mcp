@@ -47,3 +47,57 @@ def remove_none_values(payload: dict[str, Any]) -> dict[str, Any]:
         dict[str, Any]: A dictionary with all None values removed.
     """
     return {k: v for k, v in payload.items() if v is not None}
+
+
+def extract_title(item):
+    """
+    Extracts a human-readable title from a page, database, or a block if possible.
+    """
+    properties = item.get("properties", {})
+    if item["object"] == "database" and "title" in item:
+        return "".join([t["plain_text"] for t in item.get("title", [])])
+
+    if item["object"] == "page" and "title" in properties:
+        return "".join([t["plain_text"] for t in properties["title"].get("title", [])])
+
+    # For blocks (like child_page blocks).
+    if item.get("object") == "block":
+        block_type = item.get("type")
+        if block_type == "child_page":
+            return item.get("child_page", {}).get("title", "Untitled Child Page")
+        # For text-based blocks, try extracting rich_text.
+        if block_type in ["paragraph", "heading_1", "heading_2", "heading_3"]:
+            rich_text = item.get(block_type, {}).get("rich_text", [])
+            return "".join([t.get("plain_text", "") for t in rich_text]) or block_type
+
+    return ""
+
+
+def _simplify_search_result(item: dict) -> dict:
+    """
+    Simplifies a search result from the Notion API.
+
+    Args:
+        item (dict): The search result to simplify.
+
+    Returns:
+        dict: A simplified search result.
+    """
+    title = extract_title(item)
+    # properties = item.get("properties", {})
+    # title = ""
+    # if item["object"] == "database" and "title" in item:
+    #     title = "".join([t["plain_text"] for t in item.get("title", [])])
+    # elif item["object"] == "page" and "title" in properties:
+    #     title = "".join([t["plain_text"] for t in properties["title"].get("title", [])])
+
+    return {
+        "id": item.get("id"),
+        "object": item.get("object"),
+        "parent": item.get("parent"),
+        "created_time": item.get("created_time"),
+        "last_edited_time": item.get("last_edited_time"),
+        "title": title,
+        "url": item.get("url"),
+        "public_url": item.get("public_url"),
+    }
