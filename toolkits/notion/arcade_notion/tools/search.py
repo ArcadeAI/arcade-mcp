@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -79,6 +79,51 @@ async def search_by_title(
             current_cursor = data.get("next_cursor")
 
     return {"results": results}
+
+
+@tool(requires_auth=Notion())
+async def get_id_from_title(
+    context: ToolContext,
+    title: Annotated[str, "Title of the page or database to find"],
+    object_type: Annotated[
+        Optional[ObjectType],
+        "The type of object to search for. Defaults to both",
+    ] = None,
+) -> Annotated[
+    dict[str, Any],
+    "A dictionary containing the success status, a message, and also ID if successful",
+]:
+    """Get the ID of a Notion object (page or database) from its title."""
+    candidates = await search_by_title(
+        context,
+        title,
+        select=object_type,
+        order_by=SortDirection.DESCENDING,
+        limit=3,
+    )
+    candidates = [
+        {"id": page["id"], "title": page["title"]}
+        for page in candidates["results"]
+        if page["object"] == object_type.value
+    ]
+    if not candidates:
+        return {"success": False, "message": "The page you are looking for does not exist."}
+
+    for page in candidates:
+        if page["title"].lower() == title.lower():
+            return {
+                "success": True,
+                "id": page["id"],
+                "message": f"The ID for '{title}' is {page['id']}",
+            }
+
+    return {
+        "success": False,
+        "message": (
+            f"There is no {object_type.value} with the title '{title}'. "
+            f"The closest matches are: {candidates}"
+        ),
+    }
 
 
 @tool(requires_auth=Notion())
