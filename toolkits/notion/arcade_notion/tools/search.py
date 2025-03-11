@@ -36,11 +36,11 @@ async def search_by_title(
     ] = 100,
 ) -> Annotated[
     dict,
-    "A dictionary containing the pages and/or databases that have "
-    "titles that are the best match for the query.",
+    "A dictionary containing minimal information about the pages and/or databases that have "
+    "titles that are the best match for the query. Does not include content or location.",
 ]:
-    """Search all pages, databases, or both within the user's workspace by title.
-    Searches pages and/or databases that have titles similar to the query.
+    """Search for similar titles of pages, databases, or both within the user's workspace.
+    Does not include content.
     """
     results = []
     current_cursor = None
@@ -85,8 +85,10 @@ async def search_by_title(
 @tool(requires_auth=Notion())
 async def get_object_metadata(
     context: ToolContext,
-    object_title: Annotated[Optional[str], "Title of the page or database whose metadata to get"],
-    object_id: Annotated[Optional[str], "ID of the page or database whose metadata to get"],
+    object_title: Annotated[
+        Optional[str], "Title of the page or database whose metadata to get"
+    ] = None,
+    object_id: Annotated[Optional[str], "ID of the page or database whose metadata to get"] = None,
     object_type: Annotated[
         Optional[ObjectType],
         "The type of object to match title to. Only used if `object_title` is provided. "
@@ -97,6 +99,8 @@ async def get_object_metadata(
 
     One of `object_title` or `object_id` MUST be provided, but both cannot be provided.
     The title is case-insensitive and outer whitespace is ignored.
+
+    An object's metadata includes it's id, various timestamps, properties, url, and more.
     """
 
     async def get_metadata_by_title(object_title: str) -> dict[str, Any]:
@@ -151,9 +155,9 @@ async def get_object_metadata(
 
             return dict(response.json())
 
-    if object_id:
+    if object_id is not None and object_id != "":
         return await get_metadata_by_id(object_id)
-    elif object_title:
+    elif object_title is not None and object_title != "":
         return await get_metadata_by_title(object_title)
     else:
         raise ToolExecutionError(
@@ -166,9 +170,11 @@ async def get_workspace_structure(
     context: ToolContext,
 ) -> Annotated[
     dict,
-    "A dictionary containing the workspace structure.",
+    "A dictionary containing the complete workspace structure for all pages and databases. ",
 ]:
-    """Get the Notion workspace file structure."""
+    """Retrieve the complete Notion workspace structure.
+    Ideal for finding where an object is located in the workspace.
+    """
     results = []
     current_cursor = None
 
