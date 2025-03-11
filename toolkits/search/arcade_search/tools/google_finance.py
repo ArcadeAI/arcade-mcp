@@ -39,7 +39,7 @@ async def get_stock_summary(
     search = client.search(params)
     results = search.as_dict()
 
-    summary = results.get("summary", {})
+    summary: dict = results.get("summary", {})
     return summary
 
 
