@@ -54,7 +54,7 @@ def extract_title(item: dict) -> str:
     """
     Extracts a human-readable title from a page, database, or a block if possible.
     """
-    properties = item.get("properties", {})
+    properties: dict = item.get("properties", {})
     if item["object"] == "database" and "title" in item:
         return "".join([t["plain_text"] for t in item.get("title", [])])
 
@@ -65,7 +65,8 @@ def extract_title(item: dict) -> str:
     if item.get("object") == "block":
         block_type = item.get("type")
         if block_type == "child_page":
-            return item.get("child_page", {}).get("title", "Untitled Child Page")
+            title: str = item.get("child_page", {}).get("title", "New Page")
+            return title
         # For text-based blocks, try extracting rich_text.
         if block_type in ["paragraph", "heading_1", "heading_2", "heading_3"]:
             rich_text = item.get(block_type, {}).get("rich_text", [])
@@ -125,6 +126,7 @@ async def get_next_page(
         tuple[dict, bool, str]: A tuple containing the results, a boolean indicating if there is a
         next page, and the next cursor.
     """
+    params = params or {}
     if cursor:
         params["start_cursor"] = cursor
     elif "start_cursor" in params:
@@ -154,4 +156,4 @@ async def get_page_url(context: ToolContext, page_id: str) -> str:
         if response.status_code != 200:
             return ""
         data = response.json()
-        return data.get("url")
+        return data.get("url", "")  # type: ignore[no-any-return]

@@ -81,7 +81,8 @@ async def get_page_content_by_title(
     """Get the content of a Notion page as markdown with the page's title"""
     page_metadata = await get_object_metadata(context, title, object_type=ObjectType.PAGE)
 
-    return await get_page_content_by_id(context, page_metadata["id"])
+    page_content: str = await get_page_content_by_id(context, page_metadata["id"])
+    return page_content
 
 
 @tool(requires_auth=Notion())

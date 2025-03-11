@@ -11,11 +11,11 @@ from typing import Any
 
 def convert_markdown_to_blocks(content: str) -> list[dict[str, Any]]:  # noqa: C901
     """Convert markdown content to Notion blocks."""
-    blocks = []
-    code_block = []
-    in_code = False
-    language = "plain text"
-    numbered_list_index = 0
+    blocks: list[dict[str, Any]] = []
+    code_block: list[str] = []
+    in_code: bool = False
+    language: str = "plain text"
+    numbered_list_index: int = 0
 
     for line in content.splitlines():
         line = line.strip()

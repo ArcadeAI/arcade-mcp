@@ -98,12 +98,8 @@ async def get_object_metadata(
     One of `object_title` or `object_id` MUST be provided, but both cannot be provided.
     The title is case-insensitive and outer whitespace is ignored.
     """
-    if not (bool(object_title) ^ bool(object_id)):
-        raise ToolExecutionError(
-            message="Either object_title or object_id must be provided, but not both.",
-        )
 
-    async def get_metadata_by_title():
+    async def get_metadata_by_title(object_title: str) -> dict[str, Any]:
         candidates_response = await search_by_title(
             context,
             object_title,
@@ -113,7 +109,7 @@ async def get_object_metadata(
         )
 
         if object_type:
-            candidates = [
+            candidates: list[dict[str, Any]] = [
                 page
                 for page in candidates_response["results"]
                 if page["object"] == object_type.value
@@ -142,7 +138,7 @@ async def get_object_metadata(
             developer_message=f"The closest matches are: {candidates}",
         )
 
-    async def get_metadata_by_id():
+    async def get_metadata_by_id(object_id: str) -> dict[str, Any]:
         url = get_url("retrieve_a_page", page_id=object_id)
         headers = get_headers(context)
         async with httpx.AsyncClient() as client:
@@ -155,7 +151,14 @@ async def get_object_metadata(
 
             return dict(response.json())
 
-    return await get_metadata_by_title() if object_title else await get_metadata_by_id()
+    if object_id:
+        return await get_metadata_by_id(object_id)
+    elif object_title:
+        return await get_metadata_by_title(object_title)
+    else:
+        raise ToolExecutionError(
+            message="Either object_title or object_id must be provided.",
+        )
 
 
 @tool(requires_auth=Notion())

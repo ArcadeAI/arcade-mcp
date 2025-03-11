@@ -44,7 +44,8 @@ class BlockToMarkdownConverter:
         if block_type in self.handlers:
             converter = self.handlers[block_type]
             if asyncio.iscoroutinefunction(converter):
-                return await converter(block)
+                md: str = await converter(block)
+                return md
             else:
                 return converter(block)
         elif block_type == BlockType.CHILD_PAGE.value:
@@ -144,7 +145,7 @@ class BlockToMarkdownConverter:
         Extract and return the plain text from a Notion block.
         This acts as a fallback for unsupported block types.
         """
-        block_type = block.get("type")
+        block_type: str = block.get("type", "")
         content = block.get(block_type, {})
         if isinstance(content, dict):
             rich_text_items = content.get("rich_text", [])
@@ -165,7 +166,7 @@ class BlockToMarkdownConverter:
         """
         Asynchronously convert a child page block. This requires fetching the page's URL.
         """
-        page_url = await get_page_url(self.context, block.get("id"))
+        page_url = await get_page_url(self.context, block.get("id", ""))
         child_page = block.get("child_page", {})
         rich_text_items = child_page.get("rich_text", [])
         if rich_text_items:

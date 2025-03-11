@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field
 class Parent:
     type: str
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return asdict(self)
 
 
@@ -41,13 +41,13 @@ class BlockParent(Parent):
 def create_parent(parent_data: dict) -> Parent:
     parent_type = parent_data.get("type")
     if parent_type == "database_id":
-        return DatabaseParent(database_id=parent_data.get("database_id"))
+        return DatabaseParent(database_id=parent_data.get("database_id", ""))
     elif parent_type == "page_id":
-        return PageParent(page_id=parent_data.get("page_id"))
+        return PageParent(page_id=parent_data.get("page_id", ""))
     elif parent_type == "workspace":
         return WorkspaceParent()
     elif parent_type == "block_id":
-        return BlockParent(block_id=parent_data.get("block_id"))
+        return BlockParent(block_id=parent_data.get("block_id", ""))
     else:
         raise ValueError(f"Unknown parent type: {parent_type}")  # noqa: TRY003
 
