@@ -3,6 +3,7 @@ from typing import Annotated, Any, Optional
 import httpx
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Notion
+from arcade.sdk.errors import ToolExecutionError
 
 from arcade_notion.enums import ObjectType, SortDirection
 from arcade_notion.utils import (
@@ -38,7 +39,7 @@ async def search_by_title(
     "A dictionary containing the pages and/or databases that have "
     "titles that are the best match for the query.",
 ]:
-    """Search all pages, databases, or both by title.
+    """Search all pages, databases, or both within the user's workspace by title.
     Searches pages and/or databases that have titles similar to the query.
     """
     results = []
@@ -82,48 +83,79 @@ async def search_by_title(
 
 
 @tool(requires_auth=Notion())
-async def get_id_from_title(
+async def get_object_metadata(
     context: ToolContext,
-    title: Annotated[str, "Title of the page or database to find"],
+    object_title: Annotated[Optional[str], "Title of the page or database whose metadata to get"],
+    object_id: Annotated[Optional[str], "ID of the page or database whose metadata to get"],
     object_type: Annotated[
         Optional[ObjectType],
-        "The type of object to search for. Defaults to both",
+        "The type of object to match title to. Only used if `object_title` is provided. "
+        "Defaults to both",
     ] = None,
-) -> Annotated[
-    dict[str, Any],
-    "A dictionary containing the success status, a message, and also ID if successful",
-]:
-    """Get the ID of a Notion object (page or database) from its title."""
-    candidates = await search_by_title(
-        context,
-        title,
-        select=object_type,
-        order_by=SortDirection.DESCENDING,
-        limit=3,
-    )
-    candidates = [
-        {"id": page["id"], "title": page["title"]}
-        for page in candidates["results"]
-        if page["object"] == object_type.value
-    ]
-    if not candidates:
-        return {"success": False, "message": "The page you are looking for does not exist."}
+) -> Annotated[dict[str, Any], "The metadata of the object"]:
+    """Get the metadata of a Notion object (page or database) from its title or ID.
 
-    for page in candidates:
-        if page["title"].lower() == title.lower():
-            return {
-                "success": True,
-                "id": page["id"],
-                "message": f"The ID for '{title}' is {page['id']}",
-            }
+    One of `object_title` or `object_id` MUST be provided, but both cannot be provided.
+    The title is case-insensitive and outer whitespace is ignored.
+    """
+    if not (bool(object_title) ^ bool(object_id)):
+        raise ToolExecutionError(
+            message="Either object_title or object_id must be provided, but not both.",
+        )
 
-    return {
-        "success": False,
-        "message": (
-            f"There is no {object_type.value} with the title '{title}'. "
-            f"The closest matches are: {candidates}"
-        ),
-    }
+    async def get_metadata_by_title():
+        candidates_response = await search_by_title(
+            context,
+            object_title,
+            select=object_type,
+            order_by=SortDirection.DESCENDING,
+            limit=3,
+        )
+
+        if object_type:
+            candidates = [
+                page
+                for page in candidates_response["results"]
+                if page["object"] == object_type.value
+            ]
+        else:
+            candidates = candidates_response["results"]
+
+        normalized_title = object_title.lower().strip()
+        error_msg = (
+            f"The {object_type.value if object_type else 'object'} with "
+            f"the title '{object_title}' could not be found. "
+            "Either it does not exist, or it has not been shared with the integration."
+        )
+
+        if not candidates:
+            raise ToolExecutionError(message=error_msg)
+
+        for object_ in candidates:
+            if object_["title"].lower().strip() == normalized_title:
+                # object_ is either a page object: https://developers.notion.com/reference/page
+                # or a database object: https://developers.notion.com/reference/database
+                return object_
+
+        raise ToolExecutionError(
+            message=error_msg,
+            developer_message=f"The closest matches are: {candidates}",
+        )
+
+    async def get_metadata_by_id():
+        url = get_url("retrieve_a_page", page_id=object_id)
+        headers = get_headers(context)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            if response.status_code != 200:
+                raise ToolExecutionError(
+                    message="The page or database could not be found.",
+                    developer_message=f"The response was: {response.json()}",
+                )
+
+            return dict(response.json())
+
+    return await get_metadata_by_title() if object_title else await get_metadata_by_id()
 
 
 @tool(requires_auth=Notion())
@@ -133,7 +165,7 @@ async def get_workspace_structure(
     dict,
     "A dictionary containing the workspace structure.",
 ]:
-    """Get the workspace structure."""
+    """Get the Notion workspace file structure."""
     results = []
     current_cursor = None
 

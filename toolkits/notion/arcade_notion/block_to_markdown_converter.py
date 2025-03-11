@@ -7,12 +7,12 @@ from arcade_notion.enums import BlockType
 from arcade_notion.utils import get_page_url
 
 
-class NotionMarkdownConverter:
+class BlockToMarkdownConverter:
     """
     A converter class that transforms Notion blocks into Markdown.
 
-    The class registers conversion handlers for different Notion block types
-    and provides methods to recursively assemble a Markdown string.
+    The class registers conversion handlers for different Notion block types.
+    If a block type does not have a handler, then the block's plain text is returned.
     """
 
     def __init__(self, context: ToolContext):
@@ -92,7 +92,7 @@ class NotionMarkdownConverter:
                 continue
 
             # Apply annotation formatting.
-            text = NotionMarkdownConverter.apply_formatting(text, annotations, link)
+            text = BlockToMarkdownConverter.apply_formatting(text, annotations, link)
 
             md += text
 
