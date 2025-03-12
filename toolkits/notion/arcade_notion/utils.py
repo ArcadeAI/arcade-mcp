@@ -65,10 +65,6 @@ def extract_title(item: dict) -> str:
     if item["object"] == "database" and "title" in item:
         return "".join([t.get("plain_text", "") for t in item.get("title", [])])
 
-    # Case 2: Extract title from a page object that is parented a database
-    # if item["object"] == "page" and "Title" in properties:
-    #     return "".join([t["plain_text"] for t in properties["Title"].get("title", [])])
-
     # Case 2: Extract title from a page object that is parented by the workspace or a page
     if item["object"] == "page" and "title" in properties:
         return "".join([t["plain_text"] for t in properties["title"].get("title", [])])
