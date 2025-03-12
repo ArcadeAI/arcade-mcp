@@ -205,7 +205,7 @@ async def search_documents(
 
 @tool(
     requires_auth=Google(
-        scopes=["https://www.googleapis.com/auth/drive.readonly"],
+        scopes=["https://www.googleapis.com/auth/drive.file"],
     )
 )
 async def search_and_retrieve_documents(
