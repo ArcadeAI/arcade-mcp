@@ -23,6 +23,9 @@ async def search_hotels(
     sort_by: Annotated[
         GoogleHotelsSortBy, "The sorting order of the results. Defaults to RELEVANCE"
     ] = GoogleHotelsSortBy.RELEVANCE,
+    num_results: Annotated[
+        Optional[int], "Maximum number of results to return. Defaults to 5. Max 20"
+    ] = 5,
 ) -> Annotated[dict[str, Any], "Hotel search results from the Google Hotels API"]:
     """Retrieve hotel search results using the Google Hotels API."""
     # Prepare the request
@@ -43,5 +46,13 @@ async def search_hotels(
     results = call_serpapi(context, params)
 
     # Parse the results
-    properties = results.get("properties", [])
+    properties = results.get("properties", [])[:num_results]
+
+    # Remove unwanted fields from each property
+    for hotel in properties:
+        hotel.pop("images", None)
+        hotel.pop("extracted_hotel_class", None)
+        hotel.pop("reviews_breakdown", None)
+        hotel.pop("serpapi_property_details_link", None)
+
     return {"properties": properties}
