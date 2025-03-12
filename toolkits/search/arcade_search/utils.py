@@ -1,7 +1,12 @@
+from typing import Any
+
 import serpapi
 from arcade.sdk import ToolContext
 
 
+# ------------------------------------------------------------------------------------------------
+# General SerpAPI utils
+# ------------------------------------------------------------------------------------------------
 def prepare_params(engine: str, **kwargs) -> dict:
     """
     Prepares a parameters dictionary for the SerpAPI call.
@@ -34,3 +39,23 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
     client = serpapi.Client(api_key=api_key)
     search = client.search(params)
     return search.as_dict()
+
+
+# ------------------------------------------------------------------------------------------------
+# Google Flights utils
+# ------------------------------------------------------------------------------------------------
+def parse_flight_results(results: dict[str, Any]) -> dict[str, Any]:
+    """Parse the flight results from the Google Flights API"""
+    flight_data = {}
+    flights = []
+
+    if "best_flights" in results:
+        flights.extend(results["best_flights"])
+    if "other_flights" in results:
+        flights.extend(results["other_flights"])
+    if "price_insights" in results:
+        flight_data["price_insights"] = results["price_insights"]
+
+    flight_data["flights"] = flights
+
+    return flight_data
