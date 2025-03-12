@@ -7,7 +7,7 @@ from arcade.sdk import ToolContext
 # ------------------------------------------------------------------------------------------------
 # General SerpAPI utils
 # ------------------------------------------------------------------------------------------------
-def prepare_params(engine: str, **kwargs) -> dict:
+def prepare_params(engine: str, **kwargs: Any) -> dict:
     """
     Prepares a parameters dictionary for the SerpAPI call.
 
@@ -38,7 +38,7 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
     api_key = context.get_secret("SERP_API_KEY")
     client = serpapi.Client(api_key=api_key)
     search = client.search(params)
-    return search.as_dict()
+    return search.as_dict()  # type: ignore[no-any-return]
 
 
 # ------------------------------------------------------------------------------------------------

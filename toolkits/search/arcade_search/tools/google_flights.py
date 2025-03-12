@@ -19,17 +19,17 @@ async def search_roundtrip_flights(
         Optional[str], "Currency of the returned prices. Defaults to 'USD'"
     ] = "USD",
     travel_class: Annotated[
-        Optional[GoogleFlightsTravelClass],
+        GoogleFlightsTravelClass,
         "Travel class of the flight. Defaults to 'ECONOMY'",
     ] = GoogleFlightsTravelClass.ECONOMY,
     num_adults: Annotated[Optional[int], "Number of adult passengers. Defaults to 1"] = 1,
     num_children: Annotated[Optional[int], "Number of child passengers. Defaults to 0"] = 0,
     max_stops: Annotated[
-        Optional[GoogleFlightsMaxStops],
+        GoogleFlightsMaxStops,
         "Maximum number of stops (layovers) for the flight. Defaults to any number of stops",
     ] = GoogleFlightsMaxStops.ANY,
     sort_by: Annotated[
-        Optional[GoogleFlightsSortBy],
+        GoogleFlightsSortBy,
         "The sorting order of the results. Defaults to TOP_FLIGHTS.",
     ] = GoogleFlightsSortBy.TOP_FLIGHTS,
 ) -> Annotated[dict[str, Any], "Flight search results from the Google Flights API"]:
@@ -71,17 +71,17 @@ async def search_one_way_flights(
         Optional[str], "Currency of the returned prices. Defaults to 'USD'"
     ] = "USD",
     travel_class: Annotated[
-        Optional[GoogleFlightsTravelClass],
+        GoogleFlightsTravelClass,
         "Travel class of the flight. Defaults to 'ECONOMY'",
     ] = GoogleFlightsTravelClass.ECONOMY,
     num_adults: Annotated[Optional[int], "Number of adult passengers. Defaults to 1"] = 1,
     num_children: Annotated[Optional[int], "Number of child passengers. Defaults to 0"] = 0,
     max_stops: Annotated[
-        Optional[GoogleFlightsMaxStops],
+        GoogleFlightsMaxStops,
         "Maximum number of stops (layovers) for the flight. Defaults to any number of stops",
     ] = GoogleFlightsMaxStops.ANY,
     sort_by: Annotated[
-        Optional[GoogleFlightsSortBy],
+        GoogleFlightsSortBy,
         "The sorting order of the results. Defaults to TOP_FLIGHTS.",
     ] = GoogleFlightsSortBy.TOP_FLIGHTS,
 ) -> Annotated[dict[str, Any], "Flight search results from the Google Flights API"]:
