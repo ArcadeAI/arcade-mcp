@@ -7,10 +7,10 @@ from arcade.sdk.errors import ToolExecutionError
 
 from arcade_notion.enums import ObjectType, SortDirection
 from arcade_notion.utils import (
-    _simplify_search_result,
     get_headers,
     get_url,
     remove_none_values,
+    simplify_search_result,
 )
 
 
@@ -66,7 +66,7 @@ async def search_by_title(
             response.raise_for_status()
             data = response.json()
 
-            page_results = [_simplify_search_result(item) for item in data.get("results", [])]
+            page_results = [simplify_search_result(item) for item in data.get("results", [])]
             results.extend(page_results)
 
             # If a limit is set and we've reached or exceeded it, truncate the results.
@@ -166,40 +166,97 @@ async def get_object_metadata(
 
 
 @tool(requires_auth=Notion())
-async def get_workspace_structure(
+async def get_workspace_structure(  # noqa: C901
     context: ToolContext,
-) -> Annotated[
-    dict,
-    "A dictionary containing the complete workspace structure for all pages and databases. ",
-]:
+) -> Annotated[dict[str, Any], "The workspace structure"]:
+    """Get the workspace structure of the user's Notion workspace."""
     """Retrieve the complete Notion workspace structure.
     Ideal for finding where an object is located in the workspace.
     """
-    results = []
-    current_cursor = None
+    api_calls = 0
+    # First, retrieve the complete flat list of all pages and databases.
+    results = await search_by_title(context, None, limit=-1)
 
-    url = get_url("search_by_title")
+    # Get the authentication headers to use for Notion API calls.
     headers = get_headers(context)
-    payload = {
-        "page_size": 100,
-    }
+
+    # Remove database rows from results
+    # They're returned from the search results because they're
+    # technically child pages of the database, but since they're not displayed in the UI's
+    # sidebar workspace structure, we do not include them in this tool's response.
+    results["results"] = [
+        item
+        for item in results.get("results", [])
+        if not (
+            item.get("object", "") == "page"
+            and item.get("parent", {}).get("type", "") == "database_id"
+        )
+    ]
 
     async with httpx.AsyncClient() as client:
-        while True:
-            if current_cursor:
-                payload["start_cursor"] = current_cursor
-            elif "start_cursor" in payload:
-                del payload["start_cursor"]
+        for item in results.get("results", []):
+            # This condition will only be met for databases that are 'child_pages' of a page.
+            # Notion API wraps these databases in a block object, so we need to unwrap it to
+            # link the parent page to the database. Sometimes it takes multiple unwrappings
+            # to get to the parent page.
+            while (
+                item.get("parent", {}).get("type", "") == "block_id"
+                and item.get("type", "database") == "database"
+            ):
+                parent = item.get("parent", {})
+                block_id = parent["block_id"]
+                url = get_url("retrieve_a_block", block_id=block_id)
+                block_response = await client.get(url, headers=headers)
+                api_calls += 1
+                block_response.raise_for_status()
+                block_data = block_response.json()
+                if "parent" in block_data:
+                    item["parent"] = block_data["parent"]
 
-            response = await client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
+    # Create a tree structure from the flat search results.
+    # For each item, we initialize a children list and then attach it
+    # under its parent if one exists.
+    items = results.get("results", [])
+    nodes = {}
+    for item in items:
+        node = item.copy()
+        node["children"] = []
+        nodes[node["id"]] = node
 
-            results.extend(data.get("results", []))
+    roots = []
+    for node in nodes.values():
+        parent = node.get("parent", {})
+        parent_type = parent.get("type")
+        if parent_type == "workspace":
+            # No parent beyond workspace i.e., the node is a root.
+            roots.append(node)
+        elif parent_type == "page_id":
+            parent_id = parent.get("page_id")
+            if parent_id and parent_id in nodes:
+                nodes[parent_id]["children"].append(node)
+            else:
+                roots.append(node)
+        elif parent_type == "database_id":
+            parent_id = parent.get("database_id")
+            if parent_id and parent_id in nodes:
+                nodes[parent_id]["children"].append(node)
+            else:
+                roots.append(node)
+        else:
+            # Fallback: if parent's type is missing or unrecognized, then treat as root.
+            roots.append(node)
 
-            if not data.get("has_more", False):
-                break
+    def prune_node(node: dict) -> dict:
+        """Prune the node of its children, including children only if they exist."""
+        pruned_node = {
+            "id": node["id"],
+            "title": node["title"],
+            "type": node["object"],
+            "url": node["url"],
+        }
+        if node.get("children"):
+            pruned_node["children"] = [prune_node(child) for child in node["children"]]
 
-            current_cursor = data.get("next_cursor")
+        return pruned_node
 
-    return {"results": results}
+    return {"workspace": [prune_node(root) for root in roots]}

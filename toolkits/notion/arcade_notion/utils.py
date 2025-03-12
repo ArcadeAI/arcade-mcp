@@ -3,7 +3,7 @@ from typing import Any, Optional
 import httpx
 from arcade.sdk import ToolContext
 
-from arcade_notion.constants import ENDPOINTS, NOTION_API_URL
+from arcade_notion.constants import ENDPOINTS, NOTION_API_URL, UNTITLED_TITLE
 
 
 def get_url(endpoint: str, **kwargs: Any) -> str:
@@ -52,46 +52,60 @@ def remove_none_values(payload: dict[str, Any]) -> dict[str, Any]:
 
 def extract_title(item: dict) -> str:
     """
-    Extracts a human-readable title from a page, database, or a block if possible.
+    Extracts a human-readable title from a page or database, or a block if possible.
+
+    Args:
+        item (dict): The item to extract the title from.
+
+    Returns:
+        str: The human-readable title of the item.
     """
     properties: dict = item.get("properties", {})
+    # Case 1: Extract title from a database object.
     if item["object"] == "database" and "title" in item:
-        return "".join([t["plain_text"] for t in item.get("title", [])])
+        return "".join([t.get("plain_text", "") for t in item.get("title", [])])
 
+    # Case 2: Extract title from a page object that is parented a database
+    # if item["object"] == "page" and "Title" in properties:
+    #     return "".join([t["plain_text"] for t in properties["Title"].get("title", [])])
+
+    # Case 2: Extract title from a page object that is parented by the workspace or a page
     if item["object"] == "page" and "title" in properties:
         return "".join([t["plain_text"] for t in properties["title"].get("title", [])])
 
-    # For blocks (like child_page blocks).
+    # Case 3: Extract title from a page object that is parented a database
+    elif item["object"] == "page":
+        properties: dict = item.get("properties", {})
+        for prop in properties.values():
+            if isinstance(prop, dict) and prop.get("type") == "title":
+                return "".join([t.get("plain_text", "") for t in prop.get("title", [])])
+
+    # Case 4: Extract title from a child page block object
     if item.get("object") == "block":
         block_type = item.get("type")
         if block_type == "child_page":
-            title: str = item.get("child_page", {}).get("title", "New Page")
+            title: str = item.get("child_page", {}).get("title", UNTITLED_TITLE)
             return title
         # For text-based blocks, try extracting rich_text.
         if block_type in ["paragraph", "heading_1", "heading_2", "heading_3"]:
             rich_text = item.get(block_type, {}).get("rich_text", [])
             return "".join([t.get("plain_text", "") for t in rich_text]) or block_type
 
-    return ""
+    return UNTITLED_TITLE
 
 
-def _simplify_search_result(item: dict) -> dict:
+def simplify_search_result(item: dict) -> dict:
     """
-    Simplifies a search result from the Notion API.
+    Simplifies a 'search by title' result from the Notion API.
+    Takes a page object or database object and extracts only the necessary data.
 
     Args:
         item (dict): The search result to simplify.
 
     Returns:
-        dict: A simplified search result.
+        dict: A simplified search result
     """
     title = extract_title(item)
-    # properties = item.get("properties", {})
-    # title = ""
-    # if item["object"] == "database" and "title" in item:
-    #     title = "".join([t["plain_text"] for t in item.get("title", [])])
-    # elif item["object"] == "page" and "title" in properties:
-    #     title = "".join([t["plain_text"] for t in properties["title"].get("title", [])])
 
     return {
         "id": item.get("id"),
@@ -114,6 +128,7 @@ async def get_next_page(
 ) -> tuple[dict, bool, str]:
     """
     Retrieves the next page of results from a Notion API endpoint.
+    This is a helper function that is useful when paginating through Notion API responses.
 
     Args:
         client (httpx.AsyncClient): The HTTP client to use for the request.

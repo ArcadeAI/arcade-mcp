@@ -11,4 +11,7 @@ ENDPOINTS = {
     "retrieve_a_database": "/databases/{database_id}",
     "create_comment": "/comments",
     "retrieve_a_page": "/pages/{page_id}",
+    "retrieve_a_block": "/blocks/{block_id}",
 }
+
+UNTITLED_TITLE = "New Page"
