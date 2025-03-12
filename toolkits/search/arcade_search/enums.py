@@ -27,7 +27,7 @@ class GoogleFlightsTravelClass(Enum):
     BUSINESS = "BUSINESS"
     FIRST = "FIRST"
 
-    def to_int(self) -> int:
+    def to_api_value(self) -> int:
         map_ = {
             "ECONOMY": 1,
             "PREMIUM_ECONOMY": 2,
@@ -43,7 +43,7 @@ class GoogleFlightsMaxStops(Enum):
     ONE = "ONE"
     TWO = "TWO"
 
-    def to_int(self) -> int:
+    def to_api_value(self) -> int:
         map_ = {
             "ANY": 0,
             "NONSTOP": 1,
@@ -61,7 +61,7 @@ class GoogleFlightsSortBy(Enum):
     DURATION = "DURATION"
     EMISSIONS = "EMISSIONS"
 
-    def to_int(self) -> int:
+    def to_api_value(self) -> int:
         map_ = {
             "TOP_FLIGHTS": 1,
             "PRICE": 2,
@@ -69,5 +69,26 @@ class GoogleFlightsSortBy(Enum):
             "ARRIVAL_TIME": 4,
             "DURATION": 5,
             "EMISSIONS": 6,
+        }
+        return map_[self.value]
+
+
+# ------------------------------------------------------------------------------
+# Google Hotels
+# ------------------------------------------------------------------------------
+
+
+class GoogleHotelsSortBy(Enum):
+    RELEVANCE = "RELEVANCE"
+    LOWEST_PRICE = "LOWEST_PRICE"
+    HIGHEST_RATING = "HIGHEST_RATING"
+    MOST_REVIEWED = "MOST_REVIEWED"
+
+    def to_api_value(self) -> int | None:
+        map_ = {
+            "RELEVANCE": None,
+            "LOWEST_PRICE": 3,
+            "HIGHEST_RATING": 8,
+            "MOST_REVIEWED": 13,
         }
         return map_[self.value]

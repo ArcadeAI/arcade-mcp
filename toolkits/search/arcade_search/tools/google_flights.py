@@ -42,11 +42,11 @@ async def search_roundtrip_flights(
         outbound_date=outbound_date,
         return_date=return_date,
         currency=currency_code,
-        travel_class=travel_class.to_int(),
+        travel_class=travel_class.to_api_value(),
         adults=num_adults,
         children=num_children,
-        stops=max_stops.to_int(),
-        sort_by=sort_by.to_int(),
+        stops=max_stops.to_api_value(),
+        sort_by=sort_by.to_api_value(),
         deep_search=True,  # Same search depth of the Google Flights page in the browser
     )
 
@@ -92,11 +92,11 @@ async def search_one_way_flights(
         arrival_id=arrival_airport_code,
         outbound_date=outbound_date,
         currency=currency_code,
-        travel_class=travel_class.to_int(),
+        travel_class=travel_class.to_api_value(),
         adults=num_adults,
         children=num_children,
-        stops=max_stops.to_int(),
-        sort_by=sort_by.to_int(),
+        stops=max_stops.to_api_value(),
+        sort_by=sort_by.to_api_value(),
         type=2,  # indicates one-way
         deep_search=True,  # Same search depth as the Google Flights page in the browser
     )

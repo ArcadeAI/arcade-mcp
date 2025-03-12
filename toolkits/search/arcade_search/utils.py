@@ -2,6 +2,7 @@ from typing import Any
 
 import serpapi
 from arcade.sdk import ToolContext
+from arcade.sdk.errors import ToolExecutionError
 
 
 # ------------------------------------------------------------------------------------------------
@@ -37,8 +38,17 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
     """
     api_key = context.get_secret("SERP_API_KEY")
     client = serpapi.Client(api_key=api_key)
-    search = client.search(params)
-    return search.as_dict()  # type: ignore[no-any-return]
+    try:
+        search = client.search(params)
+        return search.as_dict()  # type: ignore[no-any-return]
+    except Exception as e:
+        error_message = str(e)
+        if "api_key" in error_message:
+            error_message = error_message.split("api_key")[0] + "api_key=***"
+        raise ToolExecutionError(
+            message="Failed to fetch search results",
+            developer_message=error_message,
+        )
 
 
 # ------------------------------------------------------------------------------------------------
