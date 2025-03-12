@@ -1,9 +1,9 @@
 from typing import Annotated, Any
 
-import serpapi
 from arcade.sdk import ToolContext, tool
 
 from arcade_search.enums import GoogleFinanceWindow
+from arcade_search.utils import call_serpapi, prepare_params
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
@@ -22,24 +22,20 @@ async def get_stock_summary(
     This tool uses the SerpApi Google Finance endpoint to fetch summary details such as the
     stock title, exchange, current price, and other summary fields.
     """
-    api_key = context.get_secret("SERP_API_KEY")
-    client = serpapi.Client(api_key=api_key)
-
+    # Prepare the request
     query = (
         f"{ticker_symbol.upper()}:{exchange_identifier.upper()}"
         if exchange_identifier
         else ticker_symbol.upper()
     )
+    params = prepare_params("google_finance", q=query)
 
-    params = {
-        "engine": "google_finance",
-        "q": query,
-    }
+    # Execute the request
+    results = call_serpapi(context, params)
 
-    search = client.search(params)
-    results = search.as_dict()
-
+    # Parse the results
     summary: dict = results.get("summary", {})
+
     return summary
 
 
@@ -59,22 +55,21 @@ async def get_stock_chart_data(
     """
     Retrieve chart data and key events for a given stock ticker using the Google Finance API.
 
-    This tool uses the SerpApi Google Finance endpoint with the specified time window to fetch
-    graph data (historical prices) and, if available, key events associated with the stock.
+    Uses the specified time window to fetch graph data (historical prices) and, if available,
+    key events associated with the stock.
     """
-    api_key = context.get_secret("SERP_API_KEY")
-    client = serpapi.Client(api_key=api_key)
-
+    # Prepare the request
     query = (
         f"{ticker_symbol.upper()}:{exchange_identifier.upper()}"
         if exchange_identifier
         else ticker_symbol.upper()
     )
-    params = {"engine": "google_finance", "q": query, "window": window.value}
+    params = prepare_params("google_finance", q=query, window=window.value)
 
-    search = client.search(params)
-    results = search.as_dict()
+    # Execute the request
+    results = call_serpapi(context, params)
 
+    # Parse the results
     data = {
         "summary": results.get("summary", {}),
         "graph": results.get("graph", []),

@@ -1,0 +1,63 @@
+from typing import Annotated, Any, Optional
+
+from arcade.sdk import ToolContext, tool
+
+from arcade_search.enums import GoogleFlightsMaxStops, GoogleFlightsSortBy, GoogleFlightsTravelClass
+from arcade_search.utils import call_serpapi, prepare_params
+
+
+@tool(requires_secrets=["SERP_API_KEY"])
+async def search_roundtrip_flights(
+    context: ToolContext,
+    departure_airport_code: Annotated[
+        str, "The departure airport code. An uppercase 3-letter code"
+    ],
+    arrival_airport_code: Annotated[str, "The arrival airport code. An uppercase 3-letter code"],
+    outbound_date: Annotated[str, "Flight outbound date in YYYY-MM-DD format"],
+    return_date: Annotated[Optional[str], "Flight return date in YYYY-MM-DD format"],
+    currency_code: Annotated[
+        Optional[str], "Currency of the returned prices. Defaults to 'USD'"
+    ] = "USD",
+    travel_class: Annotated[
+        Optional[GoogleFlightsTravelClass],
+        "Travel class of the flight. Defaults to 'ECONOMY'",
+    ] = GoogleFlightsTravelClass.ECONOMY,
+    num_adults: Annotated[Optional[int], "Number of adult passengers. Defaults to 1"] = 1,
+    num_children: Annotated[Optional[int], "Number of child passengers. Defaults to 0"] = 0,
+    max_stops: Annotated[
+        Optional[GoogleFlightsMaxStops],
+        "Maximum number of stops (layovers) for the flight. Defaults to any number of stops",
+    ] = GoogleFlightsMaxStops.ANY,
+    sort_by: Annotated[
+        Optional[GoogleFlightsSortBy],
+        "The sorting order of the results. Defaults to TOP_FLIGHTS.",
+    ] = GoogleFlightsSortBy.TOP_FLIGHTS,
+) -> Annotated[dict[str, Any], "Flight search results from the Google Flights API"]:
+    """Retrieve flight search results using Google Flights"""
+    # Prepare the request
+    params = prepare_params(
+        "google_flights",
+        departure_id=departure_airport_code,
+        arrival_id=arrival_airport_code,
+        outbound_date=outbound_date,
+        return_date=return_date,
+        currency=currency_code,
+        travel_class=travel_class.to_int(),
+        adults=num_adults,
+        children=num_children,
+        stops=max_stops.to_int(),
+        sort_by=sort_by.to_int(),
+        deep_search=True,  # Same search depth of the Google Flights page in the browser
+    )
+
+    # Execute the request
+    results = call_serpapi(context, params)
+
+    # Parse the results
+    keys_to_include = ["best_flights", "price_insights"]
+    if "best_flights" not in results:
+        keys_to_include.remove("best_flights")
+        keys_to_include.append("other_flights")
+
+    trimmed_results = {key: results[key] for key in keys_to_include if key in results}
+    return trimmed_results

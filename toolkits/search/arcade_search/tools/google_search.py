@@ -1,8 +1,9 @@
 import json
 from typing import Annotated
 
-import serpapi
 from arcade.sdk import ToolContext, tool
+
+from arcade_search.utils import call_serpapi, prepare_params
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
@@ -13,13 +14,8 @@ async def search_google(
 ) -> str:
     """Search Google using SerpAPI and return organic search results."""
 
-    api_key = context.get_secret("SERP_API_KEY")
-
-    client = serpapi.Client(api_key=api_key)
-    params = {"engine": "google", "q": query}
-
-    search = client.search(params)
-    results = search.as_dict()
+    params = prepare_params("google", q=query)
+    results = call_serpapi(context, params)
     organic_results = results.get("organic_results", [])
 
     return json.dumps(organic_results[:n_results])
