@@ -2,11 +2,11 @@ import re
 from typing import Any
 
 # TODO: This is a partial implementation.
-# Does not support children blocks. Instead, the markdown content is flattened.
-# Does not support equation blocks.
-# Does not support colored text styling.
-# Does not properly handle underline text styling.
-# Does not support multiple text styles for the same block.
+# TODO: Does not support children blocks. Instead, the markdown content is flattened.
+# TODO: Does not support equation blocks.
+# TODO: Does not support colored text styling.
+# TODO: Does not support underline text styling.
+# TODO: Does not support multiple text styles for the same block.
 
 
 def convert_markdown_to_blocks(content: str) -> list[dict[str, Any]]:  # noqa: C901
