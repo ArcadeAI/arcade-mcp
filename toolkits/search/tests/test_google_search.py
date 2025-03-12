@@ -5,7 +5,7 @@ import pytest
 from arcade.core.schema import ToolSecretItem
 from arcade.sdk import ToolContext
 
-from arcade_search.tools.google import search_google
+from arcade_search.tools import search_google
 
 
 @pytest.fixture
