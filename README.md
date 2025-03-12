@@ -435,7 +435,7 @@ auth_response = client.tools.authorize(
 # If the tool is not already authorized, prompt the user to authenticate
 if auth_response.status != "completed":
     print("Please authorize by visiting:")
-    print(auth_response.authorization_url)
+    print(auth_response.url)
     client.auth.wait_for_completion(auth_response)
 
 # Execute the tool to send a Slack message after authorization

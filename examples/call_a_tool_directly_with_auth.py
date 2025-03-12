@@ -23,7 +23,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 
     # If not already authorized, then wait for the user to authorize the permissions required by the tool
     if auth_response.status != "completed":
-        print(f"Click this link to authorize: {auth_response.authorization_url}")
+        print(f"Click this link to authorize: {auth_response.url}")
 
     # Wait for the user to complete the auth flow, if necessary
     client.auth.wait_for_completion(auth_response)
