@@ -75,7 +75,6 @@ def extract_title(item: dict) -> str:
 
     # Case 3: Extract title from a page object that is parented a database
     elif item["object"] == "page":
-        properties: dict = item.get("properties", {})
         for prop in properties.values():
             if isinstance(prop, dict) and prop.get("type") == "title":
                 return "".join([t.get("plain_text", "") for t in prop.get("title", [])])
