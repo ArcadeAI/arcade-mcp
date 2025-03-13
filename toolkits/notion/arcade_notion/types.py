@@ -39,6 +39,18 @@ class BlockParent(Parent):
 
 
 def create_parent(parent_data: dict) -> Parent:
+    """
+    Create a parent object from a dictionary.
+
+    See https://developers.notion.com/reference/parent-object for more information
+    about the parent object.
+
+    Args:
+        parent_data (dict): The dictionary containing the parent data.
+
+    Returns:
+        Parent: The parent object.
+    """
     parent_type = parent_data.get("type")
     if parent_type == "database_id":
         return DatabaseParent(database_id=parent_data.get("database_id", ""))
@@ -62,6 +74,8 @@ def create_parent(parent_data: dict) -> Parent:
 
 @dataclass
 class PageWithPageParentProperties:
+    """Properties for a page that has a parent that is also a page"""
+
     title: str
 
     def to_dict(self) -> dict:
