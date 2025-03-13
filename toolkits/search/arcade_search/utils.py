@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 import serpapi
@@ -8,7 +9,7 @@ from arcade.sdk.errors import ToolExecutionError
 # ------------------------------------------------------------------------------------------------
 # General SerpAPI utils
 # ------------------------------------------------------------------------------------------------
-def prepare_params(engine: str, **kwargs: Any) -> dict:
+def prepare_params(engine: str, **kwargs: Any) -> dict[str, Any]:
     """
     Prepares a parameters dictionary for the SerpAPI call.
 
@@ -42,12 +43,11 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
         search = client.search(params)
         return search.as_dict()  # type: ignore[no-any-return]
     except Exception as e:
-        error_message = str(e)
-        if "api_key" in error_message:
-            error_message = error_message.split("api_key")[0] + "api_key=***"
+        # SerpAPI error messages sometimes contain the API key, so we need to sanitize it
+        sanitized_e = re.sub(r"(api_key=)[^ &]+", r"\1***", str(e))
         raise ToolExecutionError(
             message="Failed to fetch search results",
-            developer_message=error_message,
+            developer_message=sanitized_e,
         )
 
 
@@ -55,7 +55,10 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
 # Google Flights utils
 # ------------------------------------------------------------------------------------------------
 def parse_flight_results(results: dict[str, Any]) -> dict[str, Any]:
-    """Parse the flight results from the Google Flights API"""
+    """Parse the flight results from the Google Flights API
+
+    Note: Best flights is not always returned from the API.
+    """
     flight_data = {}
     flights = []
 

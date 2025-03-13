@@ -9,18 +9,19 @@ from arcade_search.utils import call_serpapi, prepare_params
 @tool(requires_secrets=["SERP_API_KEY"])
 async def get_stock_summary(
     context: ToolContext,
-    ticker_symbol: Annotated[str, "The stock ticker to get summary for (e.g., GOOG)"],
+    ticker_symbol: Annotated[
+        str,
+        "The stock ticker to get summary for. For example, 'GOOG' is the ticker symbol for Google",
+    ],
     exchange_identifier: Annotated[
         str,
         "The exchange identifier. This part indicates the market where the "
-        "stock is traded (e.g., NASDAQ)",
+        "stock is traded. For example, 'NASDAQ', 'NYSE', 'TSE', 'LSE', etc.",
     ],
 ) -> Annotated[dict[str, Any], "Summary of the stock's recent performance"]:
-    """
-    Retrieve the summary information for a given stock ticker using the Google Finance API.
+    """Retrieve the summary information for a given stock ticker using the Google Finance API.
 
-    This tool uses the SerpApi Google Finance endpoint to fetch summary details such as the
-    stock title, exchange, current price, and other summary fields.
+    Gets the stock's current price as well as price movement from the most recent trading day.
     """
     # Prepare the request
     query = (
@@ -40,23 +41,27 @@ async def get_stock_summary(
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def get_stock_chart_data(
+async def get_stock_historical_data(
     context: ToolContext,
-    ticker_symbol: Annotated[str, "The stock ticker to get summary for (e.g., GOOG)"],
+    ticker_symbol: Annotated[
+        str,
+        "The stock ticker to get summary for. For example, 'GOOG' is the ticker symbol for Google",
+    ],
     exchange_identifier: Annotated[
         str,
         "The exchange identifier. This part indicates the market where the "
-        "stock is traded (e.g., NASDAQ)",
+        "stock is traded. For example, 'NASDAQ', 'NYSE', 'TSE', 'LSE', etc.",
     ],
     window: Annotated[
-        GoogleFinanceWindow, "Time window for the chart data. Defaults to 1 day"
-    ] = GoogleFinanceWindow.ONE_DAY,
-) -> Annotated[dict[str, Any], "Chart data and key events if there are any"]:
-    """
-    Retrieve chart data and key events for a given stock ticker using the Google Finance API.
+        GoogleFinanceWindow, "Time window for the graph data. Defaults to 1 month"
+    ] = GoogleFinanceWindow.ONE_MONTH,
+) -> Annotated[
+    dict[str, Any],
+    "A stock's price and volume data at a specific time interval over a specified time window",
+]:
+    """Fetch historical stock price data over a specified time window
 
-    Uses the specified time window to fetch graph data (historical prices) and, if available,
-    key events associated with the stock.
+    Returns a stock's price and volume data over a specified time window
     """
     # Prepare the request
     query = (

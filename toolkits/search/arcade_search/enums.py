@@ -1,9 +1,5 @@
 from enum import Enum
 
-# ------------------------------------------------------------------------------
-# Google Finance
-# ------------------------------------------------------------------------------
-
 
 class GoogleFinanceWindow(Enum):
     ONE_DAY = "1D"
@@ -16,11 +12,6 @@ class GoogleFinanceWindow(Enum):
     MAX = "MAX"
 
 
-# ------------------------------------------------------------------------------
-# Google Flights
-# ------------------------------------------------------------------------------
-
-
 class GoogleFlightsTravelClass(Enum):
     ECONOMY = "ECONOMY"
     PREMIUM_ECONOMY = "PREMIUM_ECONOMY"
@@ -28,13 +19,13 @@ class GoogleFlightsTravelClass(Enum):
     FIRST = "FIRST"
 
     def to_api_value(self) -> int:
-        map_ = {
+        _map = {
             "ECONOMY": 1,
             "PREMIUM_ECONOMY": 2,
             "BUSINESS": 3,
             "FIRST": 4,
         }
-        return map_[self.value]
+        return _map[self.value]
 
 
 class GoogleFlightsMaxStops(Enum):
@@ -44,13 +35,13 @@ class GoogleFlightsMaxStops(Enum):
     TWO = "TWO"
 
     def to_api_value(self) -> int:
-        map_ = {
+        _map = {
             "ANY": 0,
             "NONSTOP": 1,
             "ONE": 2,
             "TWO": 3,
         }
-        return map_[self.value]
+        return _map[self.value]
 
 
 class GoogleFlightsSortBy(Enum):
@@ -62,7 +53,7 @@ class GoogleFlightsSortBy(Enum):
     EMISSIONS = "EMISSIONS"
 
     def to_api_value(self) -> int:
-        map_ = {
+        _map = {
             "TOP_FLIGHTS": 1,
             "PRICE": 2,
             "DEPARTURE_TIME": 3,
@@ -70,12 +61,7 @@ class GoogleFlightsSortBy(Enum):
             "DURATION": 5,
             "EMISSIONS": 6,
         }
-        return map_[self.value]
-
-
-# ------------------------------------------------------------------------------
-# Google Hotels
-# ------------------------------------------------------------------------------
+        return _map[self.value]
 
 
 class GoogleHotelsSortBy(Enum):
@@ -85,10 +71,10 @@ class GoogleHotelsSortBy(Enum):
     MOST_REVIEWED = "MOST_REVIEWED"
 
     def to_api_value(self) -> int | None:
-        map_ = {
+        _map = {
             "RELEVANCE": None,
             "LOWEST_PRICE": 3,
             "HIGHEST_RATING": 8,
             "MOST_REVIEWED": 13,
         }
-        return map_[self.value]
+        return _map[self.value]
