@@ -167,3 +167,59 @@ async def get_page_url(context: ToolContext, page_id: str) -> str:
             return ""
         data = response.json()
         return data.get("url", "")  # type: ignore[no-any-return]
+
+
+def build_workspace_structure(items: list[dict[str, Any]]) -> dict[str, list]:
+    """Build a tree structure from a flat list of Notion objects.
+
+    Args:
+        items (list[dict[str, Any]]): A list of Notion objects.
+
+    Returns:
+        dict[str, list]: A tree structure of the workspace.
+    """
+    # For each item, we initialize a children list and then attach it
+    # under its parent if one exists.
+    nodes = {}
+    for item in items:
+        node = item.copy()
+        node["children"] = []
+        nodes[node["id"]] = node
+
+    roots = []
+    for node in nodes.values():
+        parent = node.get("parent", {})
+        parent_type = parent.get("type")
+        if parent_type == "workspace":
+            # No parent beyond workspace i.e., the node is a root.
+            roots.append(node)
+        elif parent_type == "page_id":
+            parent_id = parent.get("page_id")
+            if parent_id and parent_id in nodes:
+                nodes[parent_id]["children"].append(node)
+            else:
+                roots.append(node)
+        elif parent_type == "database_id":
+            parent_id = parent.get("database_id")
+            if parent_id and parent_id in nodes:
+                nodes[parent_id]["children"].append(node)
+            else:
+                roots.append(node)
+        else:
+            # Fallback: if parent's type is missing or unrecognized, then treat as root.
+            roots.append(node)
+
+    def prune_node(node: dict) -> dict:
+        """Get rid of all of the unnecessary fields in a node"""
+        pruned_node = {
+            "id": node["id"],
+            "title": node["title"],
+            "type": node["object"],
+            "url": node["url"],
+        }
+        if node.get("children"):
+            pruned_node["children"] = [prune_node(child) for child in node["children"]]
+
+        return pruned_node
+
+    return {"workspace": [prune_node(root) for root in roots]}
