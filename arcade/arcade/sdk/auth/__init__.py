@@ -7,9 +7,11 @@ from arcade.core.auth import (
     LinkedIn,
     Notion,
     OAuth2,
+    Reddit,
     Slack,
     Spotify,
     ToolAuthorization,
+    Twitch,
     X,
     Zoom,
 )
@@ -23,9 +25,11 @@ __all__ = [
     "LinkedIn",
     "Notion",
     "OAuth2",
+    "Reddit",
     "Slack",
     "Spotify",
     "ToolAuthorization",
+    "Twitch",
     "X",
     "Zoom",
 ]
