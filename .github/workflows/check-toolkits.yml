@@ -1,9 +1,6 @@
 name: Check Toolkits
 
-on:
-  push:
-    branches:
-      - main
+on: push
 
 jobs:
   check-toolkits:
@@ -61,7 +58,6 @@ jobs:
         if [ -n "$dirs" ]; then
           echo "$dirs" | while read -r dir; do
             echo "Publishing toolkit: $dir"
-            gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit="${dir}"
           done
         else
           echo "No toolkit directories were changed"
