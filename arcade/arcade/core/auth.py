@@ -96,6 +96,15 @@ class Notion(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Reddit(OAuth2):
+    """Marks a tool as requiring Reddit authorization."""
+
+    provider_id: str = "reddit"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Slack(OAuth2):
     """Marks a tool as requiring Slack (user token) authorization."""
 
@@ -109,6 +118,15 @@ class Spotify(OAuth2):
     """Marks a tool as requiring Spotify authorization."""
 
     provider_id: str = "spotify"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
+class Twitch(OAuth2):
+    """Marks a tool as requiring Twitch authorization."""
+
+    provider_id: str = "twitch"
 
     def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
         super().__init__(id=id, scopes=scopes)

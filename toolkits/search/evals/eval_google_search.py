@@ -9,7 +9,7 @@ from arcade.sdk.eval import (
 )
 
 import arcade_search
-from arcade_search.tools.google import search_google
+from arcade_search.tools import search_google
 
 # Evaluation rubric
 rubric = EvalRubric(

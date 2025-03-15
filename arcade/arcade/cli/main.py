@@ -611,7 +611,7 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
-    excluded_commands = {login.__name__, logout.__name__, serve.__name__}
+    excluded_commands = {login.__name__, logout.__name__, serve.__name__, workerup.__name__}
     if ctx.invoked_subcommand in excluded_commands:
         return
 
