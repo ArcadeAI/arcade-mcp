@@ -21,10 +21,36 @@ jobs:
 
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v45
-      with:
-        files: |
-          toolkits/**
+      run: |
+        echo "Determining the base commit from the event payload..."
+        # Attempt to retrieve the 'before' commit from the event JSON.
+        if [ -f "$GITHUB_EVENT_PATH" ]; then
+          BASE=$(jq -r '.before' "$GITHUB_EVENT_PATH")
+        fi
+        # If not available or if it's the all-zero SHA (i.e. first commit), fallback to HEAD^.
+        if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+          BASE=HEAD^
+        fi
+        echo "Using commit range: $BASE...$GITHUB_SHA"
+
+        # List all files changed between BASE and the current commit.
+        CHANGED_FILES=$(git diff --name-only "$BASE" "$GITHUB_SHA")
+        echo "Changed files (raw):"
+        echo "$CHANGED_FILES"
+
+        # Filter only files under the toolkits/ directory.
+        matched=""
+        for file in $CHANGED_FILES; do
+          if [[ "$file" == toolkits/* ]]; then
+            matched="$matched$file "
+          fi
+        done
+        # Trim any extra whitespace.
+        matched=$(echo "$matched" | xargs)
+        echo "Matched changed files: $matched"
+
+        # Make the list available to subsequent steps as an output.
+        echo "all_changed_files=$matched" >> $GITHUB_OUTPUT
 
     - name: List all added files
       env:
@@ -34,8 +60,8 @@ jobs:
         dirs=$(echo "${CHANGED_FILES}" | tr ' ' '\n' | grep "toolkits/" | cut -d'/' -f2 | sort -u)
         if [ -n "$dirs" ]; then
           echo "$dirs" | while read -r dir; do
-            echo "$dir"
-            gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit=${dir}
+            echo "Publishing toolkit: $dir"
+            gh workflow -R ArcadeAI/arcade-ai run "Publish Toolkit" -f toolkit="${dir}"
           done
         else
           echo "No toolkit directories were changed"
