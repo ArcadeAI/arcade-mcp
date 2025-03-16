@@ -125,7 +125,7 @@ async def get_crawl_status(
 
 # TODO: Support responses greater than 10 MB. If the response is greater than 10 MB,
 #       then the Firecrawl API response will have a next_url field.
-@tool
+@tool(requires_secrets=["FIRECRAWL_API_KEY"])
 async def get_crawl_data(
     context: ToolContext,
     crawl_id: Annotated[str, "The ID of the crawl job"],
