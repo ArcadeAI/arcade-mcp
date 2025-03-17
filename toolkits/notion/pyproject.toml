@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "arcade_notion"
-version = "0.0.1"
+name = "arcade_notion_toolkit"
+version = "0.1.0"
 description = "LLM tools for essential Notion interactions such as creating, updating, retrieving, and searching pages."
 authors = ["ArcadeAI <dev@arcade.dev>"]
 
