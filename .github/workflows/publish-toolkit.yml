@@ -59,18 +59,21 @@ jobs:
         VERSION=$(poetry version -s)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-        # Attempt to publish the toolkit to PyPI. Skip if the version already exists
-        if OUTPUT=$(poetry publish --skip-existing 2>&1); then
-          if echo "$OUTPUT" | grep -q "File exists. Skipping"; then
-            echo "Version already exists on PyPI. Skipping publish."
-            echo "skip_publish=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip_publish=false" >> $GITHUB_OUTPUT
-          fi
-        else
+        # Attempt to publish the toolkit to PyPI.
+        # If the toolkit version already exists, skip publishing.
+        # If another error occurs, exit with the error code so that the step fails.
+        PUBLISH_OUTPUT=$(poetry publish --skip-existing 2>&1)
+        PUBLISH_STATUS=$?
+        if echo "$PUBLISH_OUTPUT" | grep -q "File exists. Skipping"; then
+          echo "Version already exists on PyPI. Skipping publish."
+          echo "skip_publish=true" >> $GITHUB_OUTPUT
+        elif [ $PUBLISH_STATUS -ne 0 ]; then
           echo "Failed to publish package:"
-          echo "$OUTPUT"
-          exit 1
+          echo "$PUBLISH_OUTPUT"
+          echo "skip_publish=false" >> $GITHUB_OUTPUT
+          exit $PUBLISH_STATUS
+        else
+          echo "skip_publish=false" >> $GITHUB_OUTPUT
         fi
 
     - name: Send status to Slack
