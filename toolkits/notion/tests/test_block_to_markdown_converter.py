@@ -126,7 +126,9 @@ async def test_convert_child_page(monkeypatch):
     async def fake_get_page_url(context, block_id):
         return f"http://example.com/{block_id}"
 
-    monkeypatch.setattr("arcade_notion.block_to_markdown_converter.get_page_url", fake_get_page_url)
+    monkeypatch.setattr(
+        "arcade_notion_toolkit.block_to_markdown_converter.get_page_url", fake_get_page_url
+    )
     converter = BlockToMarkdownConverter(context=None)
     result = await converter.convert_block(block)
     expected = "[Child Title](http://example.com/child123)  \n"
