@@ -3,8 +3,8 @@ from typing import Any, Optional
 
 from arcade.sdk import ToolContext
 
-from arcade_notion.enums import BlockType
-from arcade_notion.utils import get_page_url
+from arcade_notion_toolkit.enums import BlockType
+from arcade_notion_toolkit.utils import get_page_url
 
 
 class BlockToMarkdownConverter:

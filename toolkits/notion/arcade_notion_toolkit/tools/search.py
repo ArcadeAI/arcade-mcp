@@ -5,8 +5,8 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Notion
 from arcade.sdk.errors import ToolExecutionError
 
-from arcade_notion.enums import ObjectType, SortDirection
-from arcade_notion.utils import (
+from arcade_notion_toolkit.enums import ObjectType, SortDirection
+from arcade_notion_toolkit.utils import (
     build_workspace_structure,
     get_headers,
     get_url,

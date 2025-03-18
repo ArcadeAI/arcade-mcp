@@ -104,7 +104,7 @@ fake_get_next_page_parent_block = (
 
 @pytest.fixture
 def setup_notion_pages(monkeypatch):
-    from arcade_notion.tools import pages
+    from arcade_notion_toolkit.tools import pages
 
     monkeypatch.setattr(pages, "get_headers", lambda ctx: {"Authorization": "Bearer test"})
     monkeypatch.setattr(

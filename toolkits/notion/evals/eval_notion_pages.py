@@ -8,8 +8,12 @@ from arcade.sdk.eval import (
     tool_eval,
 )
 
-import arcade_notion
-from arcade_notion.tools import create_page, get_page_content_by_id, get_page_content_by_title
+import arcade_notion_toolkit
+from arcade_notion_toolkit.tools import (
+    create_page,
+    get_page_content_by_id,
+    get_page_content_by_title,
+)
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -19,7 +23,7 @@ rubric = EvalRubric(
 
 
 catalog = ToolCatalog()
-catalog.add_module(arcade_notion)
+catalog.add_module(arcade_notion_toolkit)
 
 PAGE_CONTENT = """## Why Build Tools with Arcade?
 

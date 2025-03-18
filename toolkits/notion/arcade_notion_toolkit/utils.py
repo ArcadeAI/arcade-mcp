@@ -3,7 +3,7 @@ from typing import Any, Optional
 import httpx
 from arcade.sdk import ToolContext
 
-from arcade_notion.constants import ENDPOINTS, NOTION_API_URL, UNTITLED_TITLE
+from arcade_notion_toolkit.constants import ENDPOINTS, NOTION_API_URL, UNTITLED_TITLE
 
 
 def get_url(endpoint: str, **kwargs: Any) -> str:

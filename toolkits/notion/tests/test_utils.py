@@ -1,6 +1,6 @@
 import pytest
 
-from arcade_notion.utils import simplify_search_result
+from arcade_notion_toolkit.utils import simplify_search_result
 
 
 @pytest.mark.parametrize(

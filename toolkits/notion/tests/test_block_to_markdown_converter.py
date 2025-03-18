@@ -1,6 +1,6 @@
 import pytest
 
-from arcade_notion.block_to_markdown_converter import BlockToMarkdownConverter
+from arcade_notion_toolkit.block_to_markdown_converter import BlockToMarkdownConverter
 
 
 @pytest.mark.asyncio
