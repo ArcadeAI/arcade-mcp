@@ -6,7 +6,7 @@ authors = ["{{ toolkit_author_name }} <{{ toolkit_author_email }}>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade-ai = "{{ arcade_version }}"
+arcade-ai = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"
