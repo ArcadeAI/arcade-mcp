@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "arcade_notion_toolkit"
-version = "0.1.0"
+version = "0.0.1"
 description = "LLM tools for essential Notion interactions such as creating, updating, retrieving, and searching pages."
 authors = ["ArcadeAI <dev@arcade.dev>"]
+
+# Distribution name varies from directory name, so explicitly define the folder name
+packages = [
+    { include = "arcade_notion" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
