@@ -1,8 +1,11 @@
+import decimal
 import math
 from decimal import Decimal
 from typing import Annotated
 
 from arcade.sdk import tool
+
+decimal.getcontext().prec = 100
 
 
 @tool
