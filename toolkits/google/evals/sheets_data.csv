@@ -1,0 +1,60 @@
+name, age, email, score, gender, city, country, registration_date
+John Doe, 28, johndoe@example.com, 85, Male, New York, USA, 2023-01-15
+Jane Smith, 34, janesmith@example.com, 92, Female, Los Angeles, USA, 2023-02-20
+Alice Johnson, 22, alicej@example.com, 78, Female, Chicago, USA, 2023-03-10
+Bob Brown, 45, bobbrown@example.com, 88, Male, Houston, USA, 2023-04-05
+Charlie Davis, 30, charlied@example.com, 95, Male, Phoenix, USA, 2023-05-12
+Eve White, 27, evewhite@example.com, 82, Female, Philadelphia, USA, 2023-06-18
+Frank Black, 40, frankb@example.com, 90, Male, San Antonio, USA, 2023-07-25
+Grace Green, 29, graceg@example.com, 76, Female, Dallas, USA, 2023-08-30
+Hank Blue, 35, hankb@example.com, 89, Male, San Diego, USA, 2023-09-15
+Ivy Red, 31, ivyred@example.com, 91, Female, San Jose, USA, 2023-10-01
+Michael Grey, 33, michaelg@example.com, 87, Male, Seattle, USA, 2023-10-05
+Nina Black, 26, ninab@example.com, 84, Female, Miami, USA, 2023-10-10
+Oscar White, 38, oscarw@example.com, 90, Male, Atlanta, USA, 2023-10-15
+Paula Green, 32, paulag@example.com, 93, Female, Boston, USA, 2023-10-20
+Quentin Brown, 29, quentinb@example.com, 81, Male, Denver, USA, 2023-10-25
+Rachel Blue, 24, rachelb@example.com, 79, Female, Orlando, USA, 2023-10-30
+Steve Red, 36, stever@example.com, 88, Male, Las Vegas, USA, 2023-11-01
+Tina Yellow, 30, tinay@example.com, 85, Female, Portland, USA, 2023-11-05
+Ursula Pink, 27, ursulap@example.com, 82, Female, San Francisco, USA, 2023-11-10
+Victor Grey, 41, victorg@example.com, 91, Male, Charlotte, USA, 2023-11-15
+Wendy Black, 34, wendyb@example.com, 89, Female, Detroit, USA, 2023-11-20
+Xander White, 29, xanderw@example.com, 86, Male, Indianapolis, USA, 2023-11-25
+Yvonne Green, 25, yvonnag@example.com, 83, Female, Columbus, USA, 2023-11-30
+Zachary Blue, 37, zacharyb@example.com, 90, Male, Jacksonville, USA, 2023-12-01
+Alice Brown, 28, aliceb@example.com, 80, Female, Memphis, USA, 2023-12-05
+Brian Black, 39, brianb@example.com, 92, Male, Nashville, USA, 2023-12-10
+Cathy Green, 31, cathyg@example.com, 84, Female, Virginia Beach, USA, 2023-12-15
+Daniel White, 30, danielw@example.com, 88, Male, Atlanta, USA, 2023-12-20
+Eva Red, 26, evar@example.com, 81, Female, New Orleans, USA, 2023-12-25
+Frankie Grey, 35, frankieg@example.com, 90, Male, San Antonio, USA, 2023-12-30
+Gina Blue, 29, ginab@example.com, 87, Female, San Diego, USA, 2024-01-01
+Henry Black, 42, henryb@example.com, 93, Male, Philadelphia, USA, 2024-01-05
+Isla Green, 24, islag@example.com, 79, Female, Chicago, USA, 2024-01-10
+Jack White, 33, jackw@example.com, 85, Male, Los Angeles, USA, 2024-01-15
+Kathy Red, 31, kathyr@example.com, 82, Female, Miami, USA, 2024-01-20
+Liam Grey, 36, liamg@example.com, 89, Male, Seattle, USA, 2024-01-25
+Mia Black, 27, miab@example.com, 80, Female, Denver, USA, 2024-01-30
+Nate Green, 30, nateg@example.com, 88, Male, Orlando, USA, 2024-02-01
+- (empty row)
+- (empty row)
+- (empty row)
+100, 300, 234, 399, 5039, 2345, 23526, 123, 54, 234, 54, 23, 12, 57, 1324, (the formula for sum of everything to the left)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+- (empty row)
+456, 234, 234, 399, 234, 1234, 23526, 123, 54, 234, 4567, 23, 12, 234, 1324, (the formula for sum of everything to the left)
