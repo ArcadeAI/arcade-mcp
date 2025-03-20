@@ -9,6 +9,8 @@ from arcade.sdk.errors import ToolExecutionError
 from serpapi import Client as SerpClient
 
 from arcade_search.constants import (
+    DEFAULT_GOOGLE_COUNTRY,
+    DEFAULT_GOOGLE_LANGUAGE,
     DEFAULT_GOOGLE_MAPS_COUNTRY,
     DEFAULT_GOOGLE_MAPS_DISTANCE_UNIT,
     DEFAULT_GOOGLE_MAPS_LANGUAGE,
@@ -62,6 +64,61 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
             message="Failed to fetch search results",
             developer_message=sanitized_e,
         )
+
+
+# ------------------------------------------------------------------------------------------------
+# Google general utils
+# ------------------------------------------------------------------------------------------------
+def default_language_code(default_service_language_code: Optional[str] = None) -> Optional[str]:
+    if isinstance(default_service_language_code, str):
+        return default_service_language_code.lower()
+    elif isinstance(DEFAULT_GOOGLE_LANGUAGE, str):
+        return DEFAULT_GOOGLE_LANGUAGE.lower()
+    return None
+
+
+def default_country_code(default_service_country_code: Optional[str] = None) -> Optional[str]:
+    if isinstance(default_service_country_code, str):
+        return default_service_country_code.lower()
+    elif isinstance(DEFAULT_GOOGLE_COUNTRY, str):
+        return DEFAULT_GOOGLE_COUNTRY.lower()
+    return None
+
+
+def resolve_language_code(
+    language_code: Optional[str] = None,
+    default_service_language_code: Optional[str] = None,
+    final_default: Optional[str] = None,
+) -> Optional[str]:
+    language_code = language_code or default_language_code(default_service_language_code)
+
+    if not language_code and final_default:
+        language_code = final_default
+
+    if isinstance(language_code, str):
+        language_code = language_code.lower()
+        if language_code not in LANGUAGE_CODES:
+            raise LanguageNotFoundError(language_code)
+
+    return language_code
+
+
+def resolve_country_code(
+    country_code: Optional[str] = None,
+    default_service_country_code: Optional[str] = None,
+    final_default: Optional[str] = None,
+) -> Optional[str]:
+    country_code = country_code or default_country_code(default_service_country_code)
+
+    if not country_code and final_default:
+        country_code = final_default
+
+    if isinstance(country_code, str):
+        country_code = country_code.lower()
+        if country_code not in COUNTRY_CODES:
+            raise CountryNotFoundError(country_code)
+
+    return country_code
 
 
 # ------------------------------------------------------------------------------------------------
@@ -222,3 +279,25 @@ def extract_news_results(
     if limit:
         return news_results[:limit]
     return news_results
+
+
+# ------------------------------------------------------------------------------------------------
+# Google News utils
+# ------------------------------------------------------------------------------------------------
+def extract_shopping_results(results: dict[str, Any]) -> list[dict[str, Any]]:
+    results = results.get("shopping_results", [])
+    return [
+        {
+            "title": result.get("title"),
+            "direct_link": result.get("link"),
+            "google_link": result.get("product_link"),
+            "source": result.get("source"),
+            "price": result.get("price"),
+            "product_rating": result.get("rating"),
+            "product_reviews": result.get("reviews"),
+            "store_rating": result.get("store_rating"),
+            "store_reviews": result.get("store_reviews"),
+            "delivery": result.get("delivery"),
+        }
+        for result in results
+    ]
