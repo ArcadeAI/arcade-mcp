@@ -603,15 +603,6 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-# Sheets utils
-def build_sheets_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
-    """
-    Build a Sheets service object.
-    """
-    auth_token = auth_token or ""
-    return build("sheets", "v4", credentials=Credentials(auth_token))
-
-
 # Drive utils
 def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
     """
@@ -839,6 +830,14 @@ def search_contacts(service: Any, query: str, limit: Optional[int]) -> list[dict
 # ----------------------------------------------------------------
 # Sheets utils
 # ----------------------------------------------------------------
+
+
+def build_sheets_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+    """
+    Build a Sheets service object.
+    """
+    auth_token = auth_token or ""
+    return build("sheets", "v4", credentials=Credentials(auth_token))
 
 
 def col_to_index(col: str) -> int:
@@ -1085,3 +1084,108 @@ def create_sheet_data(
         sheet_data.append(grid_data)
 
     return sheet_data
+
+
+def parse_get_spreadsheet_response(api_response: dict) -> dict:
+    """
+    Parse the get spreadsheet Google Sheets API response into a structured dictionary.
+    """
+    properties = api_response.get("properties", {})
+    sheets = [parse_sheet(sheet) for sheet in api_response.get("sheets", [])]
+
+    return {
+        "title": properties.get("title", ""),
+        "spreadsheetId": api_response.get("spreadsheetId", ""),
+        "spreadsheetUrl": api_response.get("spreadsheetUrl", ""),
+        "sheets": sheets,
+    }
+
+
+def parse_sheet(api_sheet: dict) -> dict:
+    """
+    Parse an individual sheet's data from the Google Sheets 'get spreadsheet'
+    API response into a structured dictionary.
+    """
+    props = api_sheet.get("properties", {})
+    grid_props = props.get("gridProperties", {})
+    cell_data = convert_api_grid_data_to_dict(api_sheet.get("data", []))
+
+    return {
+        "sheetId": props.get("sheetId"),
+        "title": props.get("title", ""),
+        "rowCount": grid_props.get("rowCount", 0),
+        "columnCount": grid_props.get("columnCount", 0),
+        "data": cell_data,
+    }
+
+
+def extract_user_entered_cell_value(cell: dict) -> Optional[Any]:
+    """
+    Extract the user entered value from a cell's 'userEnteredValue'.
+
+    Args:
+        cell (dict): A cell dictionary from the grid data.
+
+    Returns:
+        The extracted value if present, otherwise None.
+    """
+    user_val = cell.get("userEnteredValue", {})
+    for key in ["stringValue", "numberValue", "boolValue", "formulaValue"]:
+        if key in user_val:
+            return user_val[key]
+
+    return None
+
+
+def process_row(row: dict, start_column_index: int) -> dict:
+    """
+    Process a single row from grid data, converting non-empty cells into a dictionary
+    that maps column letters to cell values.
+
+    Args:
+        row (dict): A row from the grid data.
+        start_column_index (int): The starting column index for this row.
+
+    Returns:
+        dict: A mapping of column letters to cell values for non-empty cells.
+    """
+    row_result = {}
+    for j, cell in enumerate(row.get("values", [])):
+        column_index = start_column_index + j
+        column_string = index_to_col(column_index)
+        cell_value = extract_user_entered_cell_value(cell)
+
+        if cell_value not in (None, ""):
+            row_result[column_string] = cell_value
+
+    return row_result
+
+
+def convert_api_grid_data_to_dict(grids: list[dict]) -> dict:
+    """
+    Convert a list of grid data dictionaries from the 'get spreadsheet' API
+    response into a structured cell dictionary.
+
+    The returned dictionary maps row numbers to sub-dictionaries that map column letters
+    (e.g., 'A', 'B', etc.) to their corresponding non-empty cell values.
+
+    Args:
+        grids (list[dict]): The list of grid data dictionaries from the API.
+
+    Returns:
+        dict: A dictionary mapping row numbers to dictionaries of column letter/value pairs.
+            Only includes non-empty rows and non-empty cells.
+    """
+    result = {}
+    for grid in grids:
+        start_row = grid.get("startRow", 0)
+        start_column = grid.get("startColumn", 0)
+
+        for i, row in enumerate(grid.get("rowData", []), start=1):
+            current_row = start_row + i
+            row_data = process_row(row, start_column)
+
+            if row_data:
+                result[current_row] = row_data
+
+    return dict(sorted(result.items()))

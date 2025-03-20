@@ -12,6 +12,7 @@ from arcade_google.models import (
 from arcade_google.utils import (
     build_sheets_service,
     create_sheet,
+    parse_get_spreadsheet_response,
 )
 
 """
@@ -89,10 +90,16 @@ def create_spreadsheet(
     body = spreadsheet.model_dump()
 
     response = (
-        service.spreadsheets().create(body=body, fields="spreadsheetId,properties/title").execute()
+        service.spreadsheets()
+        .create(body=body, fields="spreadsheetId,spreadsheetUrl,properties/title")
+        .execute()
     )
 
-    return {"title": response["properties"]["title"], "id": response["spreadsheetId"]}
+    return {
+        "title": response["properties"]["title"],
+        "spreadsheetId": response["spreadsheetId"],
+        "spreadsheetUrl": response["spreadsheetUrl"],
+    }
 
 
 # @tool(
@@ -153,54 +160,33 @@ def create_spreadsheet(
 #     return {"status": "success"}
 
 
-# # Implements: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get
-# @tool(
-#     requires_auth=Google(
-#         scopes=["https://www.googleapis.com/auth/drive.readonly"],
-#     )
-# )
-# async def get_sheet_data(
-#     context: ToolContext,
-#     spreadsheet_name: Annotated[
-#         Optional[str], "The name of the spreadsheet to get"
-#     ] = "1v4Gp6-a3hWdR-dc4kCUdM0D4vV1OmL7mMgV5g76jL4U",
-#     sheet_name: Annotated[Optional[str], "The name of the sheet to get"] = "Sheet1",
-#     start_column: Annotated[Optional[str], "The start column of the range to get"] = "A",
-#     end_column: Annotated[Optional[str], "The end column of the range to get"] = "Z",
-#     start_row: Annotated[Optional[int], "The start row of the range to get"] = 1,
-#     end_row: Annotated[Optional[int], "The end row of the range to get"] = 1000,
-# ) -> Annotated[
-#     dict,
-#     "The spreadsheet data",
-# ]:
-#     """
-#     Get the data from a sheet in a spreadsheet.
-
-#     Returns a dictionary mapping cells to their values, organized by column letter and row number.
-
-#     For example:
-#     {
-#         "range": "Sheet1!A1:Z1000",
-#         "values": {
-#             "A": {"1": "header1", "2": "value1"},
-#             "B": {"1": "header2", "2": "value2"}
-#         }
-#     }
-#     This represents a spreadsheet where A1="header1", A2="value1", B1="header2", B2="value2".
-#     """
-#     # TODO: Validate start_column and end_column are valid column names
-#     # TODO: Validate start_row and end_row are valid row numbers
-#     # TODO: Get the spreadsheet id from the spreadsheet name
-#     spreadsheet_name = "10JHkLnt4BXj420EjATGno4yDSOWd1xHUI2BdwQwpcSE"
-#     range_ = f"'{sheet_name}'!{start_column}{start_row}:{end_column}{end_row}"
-
-#     service = build_sheets_service(context.get_auth_token_or_empty())
-
-#     results = (
-#         service.spreadsheets().values().get(spreadsheetId=spreadsheet_name, range=range_)
-#         .execute()
-#     )
-#     return convert_to_column_dict(results)
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/drive.readonly"],
+    )
+)
+async def get_spreadsheet(
+    context: ToolContext,
+    spreadsheet_id: Annotated[str, "The id of the spreadsheet to get"],
+) -> Annotated[
+    dict,
+    "The spreadsheet properties and data for all sheets in the spreadsheet",
+]:
+    """
+    Get the user entered data for all sheets in the spreadsheet
+    along with the spreadsheet's properties
+    """
+    service = build_sheets_service(context.get_auth_token_or_empty())
+    response = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            includeGridData=True,
+            fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
+        )
+        .execute()
+    )
+    return parse_get_spreadsheet_response(response)
 
 
 # @tool(

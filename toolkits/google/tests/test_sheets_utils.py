@@ -4,13 +4,16 @@ from arcade_google.models import CellData, CellExtendedValue, RowData, SheetData
 from arcade_google.utils import (
     col_to_index,
     compute_sheet_data_dimensions,
+    convert_api_grid_data_to_dict,
     create_cell_data,
     create_row_data,
     create_sheet_data,
     create_sheet_properties,
+    extract_user_entered_cell_value,
     group_contiguous_rows,
     index_to_col,
     is_col_greater,
+    process_row,
 )
 
 
@@ -267,3 +270,130 @@ def test_create_sheet_data():
     ]
     for cell, expected in zip(row5_cells, expected_row5):
         assert cell.userEnteredValue == expected.userEnteredValue
+
+
+@pytest.mark.parametrize(
+    "cell, expected",
+    [
+        ({}, None),
+        ({"userEnteredValue": {}}, None),
+        ({"userEnteredValue": {"stringValue": "hello"}}, "hello"),
+        ({"userEnteredValue": {"numberValue": 123}}, 123),
+        ({"userEnteredValue": {"boolValue": True}}, True),
+        ({"userEnteredValue": {"formulaValue": "=SUM(A1:A2)"}}, "=SUM(A1:A2)"),
+    ],
+)
+def test_extract_user_entered_cell_value(cell, expected):
+    result = extract_user_entered_cell_value(cell)
+    assert result == expected
+
+
+def test_process_row_empty():
+    row = {}
+    assert process_row(row, 0) == {}
+
+
+def test_process_row_non_empty():
+    row = {
+        "values": [
+            {"userEnteredValue": {"stringValue": "cell1"}},
+            {"userEnteredValue": {}},  # should be ignored
+            {"userEnteredValue": {"numberValue": 42}},
+            {"userEnteredValue": {"stringValue": ""}},  # should be ignored
+            {"userEnteredValue": {"boolValue": False}},
+        ]
+    }
+    expected = {"A": "cell1", "C": 42, "E": False}
+    assert process_row(row, 0) == expected
+
+
+def test_process_row_with_start_index():
+    row = {
+        "values": [
+            {"userEnteredValue": {"stringValue": "x"}},
+            {"userEnteredValue": {"numberValue": 10}},
+        ]
+    }
+    expected = {"C": "x", "D": 10}
+    assert process_row(row, 2) == expected
+
+
+def test_convert_api_grid_data_to_dict_single_grid():
+    data = [
+        {
+            "startRow": 0,
+            "startColumn": 0,
+            "rowData": [
+                {
+                    "values": [
+                        {"userEnteredValue": {"stringValue": "A1"}},
+                        {"userEnteredValue": {"numberValue": 1}},
+                    ]
+                },
+                {
+                    "values": [
+                        {"userEnteredValue": {"stringValue": "A2"}},
+                        {"userEnteredValue": {"numberValue": 2}},
+                    ]
+                },
+                {
+                    "values": [
+                        {"userEnteredValue": {}},
+                        {"userEnteredValue": {"stringValue": "ignored"}},
+                        {"userEnteredValue": {"numberValue": 3}},
+                    ]
+                },
+            ],
+        }
+    ]
+    result = convert_api_grid_data_to_dict(data)
+    expected = {1: {"A": "A1", "B": 1}, 2: {"A": "A2", "B": 2}, 3: {"B": "ignored", "C": 3}}
+
+    assert result == expected
+
+
+def test_convert_api_grid_data_to_dict_multiple_grids():
+    data = [
+        {
+            "startRow": 5,
+            "startColumn": 1,
+            "rowData": [
+                {
+                    "values": [
+                        {"userEnteredValue": {"numberValue": 100}},
+                        {"userEnteredValue": {"stringValue": "B6"}},
+                    ]
+                }
+            ],
+        },
+        {
+            "startRow": 0,
+            "startColumn": 0,
+            "rowData": [
+                {
+                    "values": [
+                        {"userEnteredValue": {"stringValue": "First"}},
+                        {"userEnteredValue": {"numberValue": 10}},
+                    ]
+                }
+            ],
+        },
+    ]
+    result = convert_api_grid_data_to_dict(data)
+    expected = {1: {"A": "First", "B": 10}, 6: {"B": 100, "C": "B6"}}
+
+    assert result == expected
+
+
+def test_convert_api_grid_data_to_dict_empty_rows():
+    data = [
+        {
+            "startRow": 10,
+            "startColumn": 0,
+            "rowData": [{"values": [{"userEnteredValue": {}}]}, {"values": []}],
+        }
+    ]
+    result = convert_api_grid_data_to_dict(data)
+    expected = {}
+
+    assert result == expected
