@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.errors import ToolExecutionError
@@ -25,19 +25,26 @@ async def search_shopping_products(
         "Keywords to search for products in Google Shopping. E.g. 'Apple iPhone'.",
     ],
     country_code: Annotated[
-        str,
+        Optional[str],
         "2-character country code to search for products in Google Shopping. "
-        f"E.g. 'us' (United States). Defaults to '{DEFAULT_GOOGLE_SHOPPING_COUNTRY}'.",
+        f"E.g. 'us' (United States). Defaults to '{DEFAULT_GOOGLE_SHOPPING_COUNTRY or 'us'}'.",
     ] = DEFAULT_GOOGLE_SHOPPING_COUNTRY,
     language_code: Annotated[
-        str,
+        Optional[str],
         "2-character language code to search for news articles. E.g. 'en' (English). "
-        f"Defaults to '{DEFAULT_GOOGLE_SHOPPING_LANGUAGE}'.",
+        f"Defaults to '{DEFAULT_GOOGLE_SHOPPING_LANGUAGE or 'en'}'.",
     ] = DEFAULT_GOOGLE_SHOPPING_LANGUAGE,
 ) -> Annotated[dict[str, list[dict[str, Any]]], "News results."]:
     """Search for news articles related to a given query."""
-    country_code = resolve_country_code(country_code, DEFAULT_GOOGLE_SHOPPING_COUNTRY, "us")
-    language_code = resolve_language_code(language_code, DEFAULT_GOOGLE_SHOPPING_LANGUAGE, "en")
+    country_code = resolve_country_code(country_code, DEFAULT_GOOGLE_SHOPPING_COUNTRY)
+    language_code = resolve_language_code(language_code, DEFAULT_GOOGLE_SHOPPING_LANGUAGE)
+
+    if not isinstance(country_code, str):
+        country_code = "us"
+
+    if not isinstance(language_code, str):
+        language_code = "en"
+
     google_domain = GOOGLE_DOMAIN_BY_COUNTRY_CODE.get(country_code, "google.com")
 
     params = prepare_params(
@@ -55,5 +62,5 @@ async def search_shopping_products(
         raise ToolExecutionError(error_msg)
 
     return {
-        "products": extract_shopping_results(response),
+        "products": extract_shopping_results(response.get("shopping_results", [])),
     }

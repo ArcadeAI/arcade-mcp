@@ -88,12 +88,8 @@ def default_country_code(default_service_country_code: Optional[str] = None) -> 
 def resolve_language_code(
     language_code: Optional[str] = None,
     default_service_language_code: Optional[str] = None,
-    final_default: Optional[str] = None,
 ) -> Optional[str]:
     language_code = language_code or default_language_code(default_service_language_code)
-
-    if not language_code and final_default:
-        language_code = final_default
 
     if isinstance(language_code, str):
         language_code = language_code.lower()
@@ -106,12 +102,8 @@ def resolve_language_code(
 def resolve_country_code(
     country_code: Optional[str] = None,
     default_service_country_code: Optional[str] = None,
-    final_default: Optional[str] = None,
 ) -> Optional[str]:
     country_code = country_code or default_country_code(default_service_country_code)
-
-    if not country_code and final_default:
-        country_code = final_default
 
     if isinstance(country_code, str):
         country_code = country_code.lower()
@@ -284,8 +276,7 @@ def extract_news_results(
 # ------------------------------------------------------------------------------------------------
 # Google News utils
 # ------------------------------------------------------------------------------------------------
-def extract_shopping_results(results: dict[str, Any]) -> list[dict[str, Any]]:
-    results = results.get("shopping_results", [])
+def extract_shopping_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
             "title": result.get("title"),
