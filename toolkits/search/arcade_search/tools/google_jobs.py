@@ -23,7 +23,7 @@ async def search_jobs(
     ] = None,
     language: Annotated[
         str,
-        "2-character language code to use in the Google Jobs search. ",
+        "2-character language code to use in the Google Jobs search. "
         f"E.g. 'en' for English. Defaults to '{DEFAULT_GOOGLE_JOBS_LANGUAGE}'.",
     ] = DEFAULT_GOOGLE_JOBS_LANGUAGE,
     limit: Annotated[
