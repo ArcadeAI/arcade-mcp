@@ -31,11 +31,11 @@ async def search_shopping_products(
     ] = DEFAULT_GOOGLE_SHOPPING_COUNTRY,
     language_code: Annotated[
         Optional[str],
-        "2-character language code to search for news articles. E.g. 'en' (English). "
+        "2-character language code to search for products on Google Shopping. E.g. 'en' (English). "
         f"Defaults to '{DEFAULT_GOOGLE_SHOPPING_LANGUAGE or 'en'}'.",
     ] = DEFAULT_GOOGLE_SHOPPING_LANGUAGE,
-) -> Annotated[dict[str, list[dict[str, Any]]], "News results."]:
-    """Search for news articles related to a given query."""
+) -> Annotated[dict[str, list[dict[str, Any]]], "Products on Google Shopping."]:
+    """Search for products on Google Shopping related to a given query."""
     country_code = resolve_country_code(country_code, DEFAULT_GOOGLE_SHOPPING_COUNTRY)
     language_code = resolve_language_code(language_code, DEFAULT_GOOGLE_SHOPPING_LANGUAGE)
 
