@@ -2,6 +2,7 @@ import contextlib
 import re
 from datetime import datetime
 from typing import Any, Optional, cast
+from urllib.parse import parse_qs, urlparse
 from zoneinfo import ZoneInfo
 
 from arcade.sdk import ToolContext
@@ -15,6 +16,7 @@ from arcade_search.constants import (
     DEFAULT_GOOGLE_MAPS_DISTANCE_UNIT,
     DEFAULT_GOOGLE_MAPS_LANGUAGE,
     DEFAULT_GOOGLE_MAPS_TRAVEL_MODE,
+    YOUTUBE_MAX_DESCRIPTION_LENGTH,
 )
 from arcade_search.enums import GoogleMapsDistanceUnit, GoogleMapsTravelMode
 from arcade_search.exceptions import CountryNotFoundError, LanguageNotFoundError
@@ -124,7 +126,7 @@ def get_google_maps_directions(
     origin_longitude: Optional[str] = None,
     destination_latitude: Optional[str] = None,
     destination_longitude: Optional[str] = None,
-    language: str = DEFAULT_GOOGLE_MAPS_LANGUAGE,
+    language: Optional[str] = DEFAULT_GOOGLE_MAPS_LANGUAGE,
     country: Optional[str] = DEFAULT_GOOGLE_MAPS_COUNTRY,
     distance_unit: GoogleMapsDistanceUnit = DEFAULT_GOOGLE_MAPS_DISTANCE_UNIT,
     travel_mode: GoogleMapsTravelMode = DEFAULT_GOOGLE_MAPS_TRAVEL_MODE,
@@ -153,7 +155,8 @@ def get_google_maps_directions(
     Returns:
         The directions from Google Maps.
     """
-    language = language.lower()
+    if isinstance(language, str):
+        language = language.lower()
 
     if language not in LANGUAGE_CODES:
         raise LanguageNotFoundError(language)
@@ -274,7 +277,7 @@ def extract_news_results(
 
 
 # ------------------------------------------------------------------------------------------------
-# Google News utils
+# Google Shopping utils
 # ------------------------------------------------------------------------------------------------
 def extract_shopping_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
@@ -292,3 +295,74 @@ def extract_shopping_results(results: list[dict[str, Any]]) -> list[dict[str, An
         }
         for result in results
     ]
+
+
+# ------------------------------------------------------------------------------------------------
+# YouTube utils
+# ------------------------------------------------------------------------------------------------
+def extract_video_id_from_link(link: Optional[str]) -> Optional[str]:
+    if not isinstance(link, str):
+        return None
+
+    parsed_url = urlparse(link)
+    query_params = parse_qs(parsed_url.query)
+    return query_params.get("v", [""])[0]
+
+
+def extract_video_description(
+    video: dict[str, Any],
+    max_description_length: int = YOUTUBE_MAX_DESCRIPTION_LENGTH,
+) -> Optional[str]:
+    description = video.get("description", "")
+
+    if isinstance(description, dict):
+        description = description.get("content", "")
+
+    if isinstance(description, str):
+        too_long = len(description) > max_description_length
+        if too_long:
+            description = description[:max_description_length] + " [truncated]"
+
+    if description is not None:
+        description = str(description).strip()
+
+    return cast(Optional[str], description)
+
+
+def extract_video_results(
+    results: dict[str, Any],
+    max_description_length: int = YOUTUBE_MAX_DESCRIPTION_LENGTH,
+) -> list[dict[str, Any]]:
+    videos = []
+
+    for video in results.get("video_results", []):
+        videos.append({
+            "id": extract_video_id_from_link(video.get("link")),
+            "title": video.get("title"),
+            "description": extract_video_description(video, max_description_length),
+            "link": video.get("link"),
+            "published_date": video.get("published_date"),
+            "duration": video.get("duration"),
+            "channel": {
+                "name": video.get("channel", {}).get("name"),
+                "link": video.get("channel", {}).get("link"),
+            },
+        })
+
+    return videos
+
+
+def extract_video_details(video: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": extract_video_id_from_link(video.get("link")),
+        "title": video.get("title"),
+        "description": extract_video_description(video, YOUTUBE_MAX_DESCRIPTION_LENGTH),
+        "published_date": video.get("published_date"),
+        "channel": {
+            "name": video.get("channel", {}).get("name"),
+            "link": video.get("channel", {}).get("link"),
+        },
+        "like_count": video.get("extracted_likes"),
+        "view_count": video.get("extracted_views"),
+        "live": video.get("live", False),
+    }

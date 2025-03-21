@@ -25,7 +25,6 @@ from arcade_slack.utils import (
     convert_relative_datetime_to_unix_timestamp,
     enrich_message_datetime,
     extract_conversation_metadata,
-    format_conversations_as_csv,
     format_users,
     get_user_by_username,
     retrieve_conversations_by_user_ids,
@@ -120,28 +119,9 @@ async def send_message_to_channel(
             else ""
         )
 
-        # Step 1: Retrieve the list of channels
-        channels_response = await slackClient.conversations_list()
-        channel_id = None
-        for channel in channels_response["channels"]:
-            response_channel_name = (
-                "" if not isinstance(channel.get("name"), str) else channel["name"].lower()
-            )
-            if response_channel_name == channel_name.lower():
-                channel_id = channel["id"]
-                break
+        channel = await get_channel_metadata_by_name(context=context, channel_name=channel_name)
+        channel_id = channel["id"]
 
-        if not channel_id:
-            raise RetryableToolError(
-                "Channel not found",
-                developer_message=f"Channel with name '{channel_name}' not found.",
-                additional_prompt_content=format_conversations_as_csv({
-                    "channels": channels_response["channels"],
-                }),
-                retry_after_ms=500,  # Play nice with Slack API rate limits
-            )
-
-        # Step 2: Send the message to the channel
         response = await slackClient.chat_postMessage(channel=channel_id, text=message)
 
     except SlackApiError as e:

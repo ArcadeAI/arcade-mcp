@@ -9,3 +9,4 @@ arcade-spotify
 arcade-web
 arcade-x
 arcade-zoom
+arcade-notion-toolkit

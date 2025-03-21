@@ -40,6 +40,7 @@ tools:
   directors:
     - id: default
       enabled: true
+      max_tools: 64
       workers:
         - id: "localworker"
           enabled: true

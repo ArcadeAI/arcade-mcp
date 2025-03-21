@@ -82,7 +82,7 @@ async def test_send_dm_to_inexistent_user(mock_context, mock_chat_slack_client):
 async def test_send_message_to_channel(mock_context, mock_chat_slack_client):
     mock_chat_slack_client.conversations_list.return_value = {
         "ok": True,
-        "channels": [{"id": "C12345", "name": "general"}],
+        "channels": [{"id": "C12345", "name": "general", "is_member": True, "is_group": True}],
     }
     mock_slack_response = Mock(spec=AsyncSlackResponse)
     mock_slack_response.data = {"ok": True}
