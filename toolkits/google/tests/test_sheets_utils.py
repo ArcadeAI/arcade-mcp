@@ -1,4 +1,7 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_google.models import CellData, CellExtendedValue, RowData, SheetDataInput
 from arcade_google.utils import (
@@ -14,6 +17,7 @@ from arcade_google.utils import (
     index_to_col,
     is_col_greater,
     process_row,
+    validate_write_to_cell_params,
 )
 
 
@@ -397,3 +401,86 @@ def test_convert_api_grid_data_to_dict_empty_rows():
     expected = {}
 
     assert result == expected
+
+
+FAKE_SHEET_RESPONSE = {
+    "sheets": [
+        {"properties": {"title": "Sheet1", "gridProperties": {"rowCount": 10, "columnCount": 6}}}
+    ]
+}
+
+
+@patch("arcade_google.utils.build_sheets_service")
+def test_validate_write_to_cell_params_valid(mock_build):
+    mock_service = MagicMock()
+    mock_service.spreadsheets().get().execute.return_value = FAKE_SHEET_RESPONSE
+    mock_build.return_value = mock_service
+
+    service = mock_build("dummy_token")
+
+    validate_write_to_cell_params(
+        service=service,
+        spreadsheet_id="dummy_id",
+        sheet_name="Sheet1",
+        column="B",
+        row=5,
+    )
+
+
+@patch("arcade_google.utils.build_sheets_service")
+def test_validate_write_to_cell_params_invalid_sheet_name(mock_build):
+    mock_service = MagicMock()
+    mock_service.spreadsheets().get().execute.return_value = FAKE_SHEET_RESPONSE
+    mock_build.return_value = mock_service
+
+    service = mock_build("dummy_token")
+
+    with pytest.raises(RetryableToolError) as excinfo:
+        validate_write_to_cell_params(
+            service=service,
+            spreadsheet_id="dummy_id",
+            sheet_name="NonExistentSheet",
+            column="A",
+            row=5,
+        )
+    assert "Sheet name NonExistentSheet not found" in str(excinfo.value)
+
+
+@patch("arcade_google.utils.build_sheets_service")
+def test_validate_write_to_cell_params_row_out_of_bounds(mock_build):
+    mock_service = MagicMock()
+    mock_service.spreadsheets().get().execute.return_value = FAKE_SHEET_RESPONSE
+    mock_build.return_value = mock_service
+
+    service = mock_build("dummy_token")
+
+    out_of_bounds_row = 15
+    with pytest.raises(ToolExecutionError) as excinfo:
+        validate_write_to_cell_params(
+            service=service,
+            spreadsheet_id="dummy_id",
+            sheet_name="Sheet1",
+            column="A",
+            row=out_of_bounds_row,
+        )
+    assert f"Row {out_of_bounds_row} is out of bounds" in str(excinfo.value)
+
+
+@patch("arcade_google.utils.build_sheets_service")
+def test_validate_write_to_cell_params_column_out_of_bounds(mock_build):
+    mock_service = MagicMock()
+    mock_service.spreadsheets().get().execute.return_value = FAKE_SHEET_RESPONSE
+    mock_build.return_value = mock_service
+
+    service = mock_build("dummy_token")
+
+    out_of_bounds_column = "Z"
+    with pytest.raises(ToolExecutionError) as excinfo:
+        validate_write_to_cell_params(
+            service=service,
+            spreadsheet_id="dummy_id",
+            sheet_name="Sheet1",
+            column=out_of_bounds_column,
+            row=5,
+        )
+    assert f"Column {out_of_bounds_column} is out of bounds" in str(excinfo.value)

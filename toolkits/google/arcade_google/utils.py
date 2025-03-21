@@ -9,6 +9,7 @@ from typing import Any, Optional, Union, cast
 from zoneinfo import ZoneInfo
 
 from arcade.sdk import ToolContext
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
@@ -1189,3 +1190,92 @@ def convert_api_grid_data_to_dict(grids: list[dict]) -> dict:
                 result[current_row] = row_data
 
     return dict(sorted(result.items()))
+
+
+def validate_write_to_cell_params(
+    service: Resource,
+    spreadsheet_id: str,
+    sheet_name: str,
+    column: str,
+    row: int,
+) -> None:
+    """Validates the input parameters for the write to cell tool.
+
+    Args:
+        service (Resource): The Google Sheets service.
+        spreadsheet_id (str): The ID of the spreadsheet provided to the tool.
+        sheet_name (str): The name of the sheet provided to the tool.
+        column (str): The column to write to provided to the tool.
+        row (int): The row to write to provided to the tool.
+
+    Raises:
+        RetryableToolError:
+            If the sheet name is not found in the spreadsheet
+        ToolExecutionError:
+            If the column is not alphabetical
+            If the row is not a positive number
+            If the row is out of bounds for the sheet
+            If the column is out of bounds for the sheet
+    """
+    if not column.isalpha():
+        raise ToolExecutionError(
+            message=(
+                f"Invalid column name {column}. "
+                "It must be a non-empty string containing only letters"
+            ),
+        )
+
+    if row < 1:
+        raise ToolExecutionError(
+            message=(f"Invalid row number {row}. It must be a positive integer greater than 0."),
+        )
+
+    sheet_properties = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            includeGridData=True,
+            fields="sheets/properties/title,sheets/properties/gridProperties/rowCount,sheets/properties/gridProperties/columnCount",
+        )
+        .execute()
+    )
+    sheet_names = [sheet["properties"]["title"] for sheet in sheet_properties["sheets"]]
+    sheet_row_count = sheet_properties["sheets"][0]["properties"]["gridProperties"]["rowCount"]
+    sheet_column_count = sheet_properties["sheets"][0]["properties"]["gridProperties"][
+        "columnCount"
+    ]
+
+    if sheet_name not in sheet_names:
+        raise RetryableToolError(
+            message=f"Sheet name {sheet_name} not found in spreadsheet with id {spreadsheet_id}",
+            additional_prompt_content=f"Sheet names in the spreadsheet: {sheet_names}",
+            retry_after_ms=100,
+        )
+
+    if row > sheet_row_count:
+        raise ToolExecutionError(
+            message=(
+                f"Row {row} is out of bounds for sheet {sheet_name} "
+                f"in spreadsheet with id {spreadsheet_id}. "
+                f"Sheet only has {sheet_row_count} rows which is less than the requested row {row}"
+            )
+        )
+
+    if col_to_index(column) > sheet_column_count:
+        raise ToolExecutionError(
+            message=(
+                f"Column {column} is out of bounds for sheet {sheet_name} "
+                f"in spreadsheet with id {spreadsheet_id}. "
+                f"Sheet only has {sheet_column_count} columns which "
+                f"is less than the requested column {column}"
+            )
+        )
+
+
+def parse_write_to_cell_response(response: dict) -> dict:
+    return {
+        "spreadsheetId": response["spreadsheetId"],
+        "sheetTitle": response["updatedData"]["range"].split("!")[0],
+        "updatedCell": response["updatedData"]["range"].split("!")[1],
+        "value": response["updatedData"]["values"][0][0],
+    }
