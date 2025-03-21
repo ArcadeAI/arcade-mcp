@@ -421,6 +421,31 @@ class CellExtendedValue(BaseModel):
         return instance
 
 
+class NumberFormatType(str, Enum):
+    NUMBER = "NUMBER"
+    PERCENT = "PERCENT"
+    CURRENCY = "CURRENCY"
+
+
+class NumberFormat(BaseModel):
+    """The format of a number
+
+    Implementation of https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#NumberFormat
+    """
+
+    pattern: str
+    type: NumberFormatType
+
+
+class CellFormat(BaseModel):
+    """The format of a cell
+
+    Partial implementation of https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#CellFormat
+    """
+
+    numberFormat: NumberFormat
+
+
 class CellData(BaseModel):
     """Data about a specific cell
 
@@ -428,6 +453,7 @@ class CellData(BaseModel):
     """
 
     userEnteredValue: CellExtendedValue
+    userEnteredFormat: Optional[CellFormat] = None
 
 
 class RowData(BaseModel):

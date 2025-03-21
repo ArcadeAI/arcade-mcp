@@ -3,7 +3,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_google.models import CellData, CellExtendedValue, RowData, SheetDataInput
+from arcade_google.models import (
+    CellData,
+    CellExtendedValue,
+    NumberFormatType,
+    RowData,
+    SheetDataInput,
+)
 from arcade_google.utils import (
     col_to_index,
     compute_sheet_data_dimensions,
@@ -176,19 +182,32 @@ def test_group_contiguous_rows(row_numbers, expected_groups):
 
 
 @pytest.mark.parametrize(
-    "cell_value, expected_cell_data",
+    "input_value, expected_key, expected_value, expected_type, expected_pattern",
     [
-        (1, CellExtendedValue(numberValue=1)),
-        (1.567, CellExtendedValue(numberValue=1.567)),
-        ("test", CellExtendedValue(stringValue="test")),
-        (True, CellExtendedValue(boolValue=True)),
-        (False, CellExtendedValue(boolValue=False)),
-        ("=SUM(A1:B1)", CellExtendedValue(formulaValue="=SUM(A1:B1)")),
+        (1234, "numberValue", 1234, NumberFormatType.NUMBER, "#,##0"),
+        (1.234, "numberValue", 1.234, NumberFormatType.NUMBER, "#,##0.00"),
+        ("$100", "numberValue", 100, NumberFormatType.CURRENCY, "$#,##0"),
+        ("$100.50", "numberValue", 100.50, NumberFormatType.CURRENCY, "$#,##0.00"),
+        ("75%", "numberValue", 75.00, NumberFormatType.PERCENT, "0.00%"),
+        ("75.34%", "numberValue", 75.34, NumberFormatType.PERCENT, "0.00%"),
+        ("$1abc", "stringValue", "$1abc", None, None),
+        ("abc7%", "stringValue", "abc7%", None, None),
+        ("=SUM(A1:B1)", "formulaValue", "=SUM(A1:B1)", None, None),
+        (True, "boolValue", True, None, None),
     ],
 )
-def test_create_cell_data(cell_value, expected_cell_data):
-    cell_data = create_cell_data(cell_value)
-    assert cell_data.userEnteredValue == expected_cell_data
+def test_create_cell_data(
+    input_value, expected_key, expected_value, expected_type, expected_pattern
+):
+    cell_data = create_cell_data(input_value)
+    expected_cell_value = CellExtendedValue(**{expected_key: expected_value})
+    assert cell_data.userEnteredValue == expected_cell_value
+    if expected_type is None:
+        assert cell_data.userEnteredFormat is None
+    else:
+        assert cell_data.userEnteredFormat is not None
+        assert cell_data.userEnteredFormat.numberFormat.type == expected_type
+        assert cell_data.userEnteredFormat.numberFormat.pattern == expected_pattern
 
 
 def test_create_row_data():
@@ -279,8 +298,8 @@ def test_create_sheet_data():
 @pytest.mark.parametrize(
     "cell, expected",
     [
-        ({}, None),
-        ({"userEnteredValue": {}}, None),
+        ({}, ""),
+        ({"userEnteredValue": {}}, ""),
         ({"userEnteredValue": {"stringValue": "hello"}}, "hello"),
         ({"userEnteredValue": {"numberValue": 123}}, 123),
         ({"userEnteredValue": {"boolValue": True}}, True),
@@ -300,25 +319,34 @@ def test_process_row_empty():
 def test_process_row_non_empty():
     row = {
         "values": [
-            {"userEnteredValue": {"stringValue": "cell1"}},
+            {"userEnteredValue": {"stringValue": "cell1"}, "formattedValue": "cell1"},
             {"userEnteredValue": {}},  # should be ignored
-            {"userEnteredValue": {"numberValue": 42}},
-            {"userEnteredValue": {"stringValue": ""}},  # should be ignored
-            {"userEnteredValue": {"boolValue": False}},
+            {"userEnteredValue": {"formulaValue": "=C1+D4"}, "formattedValue": 42},
+            {"userEnteredValue": {"stringValue": ""}, "formattedValue": ""},  # should be ignored
+            {"userEnteredValue": {"boolValue": False}, "formattedValue": False},
         ]
     }
-    expected = {"A": "cell1", "C": 42, "E": False}
+    expected = {
+        "A": {"userEnteredValue": "cell1", "formattedValue": "cell1"},
+        "C": {"userEnteredValue": "=C1+D4", "formattedValue": 42},
+        "E": {"userEnteredValue": False, "formattedValue": False},
+    }
+
     assert process_row(row, 0) == expected
 
 
 def test_process_row_with_start_index():
     row = {
         "values": [
-            {"userEnteredValue": {"stringValue": "x"}},
-            {"userEnteredValue": {"numberValue": 10}},
+            {"userEnteredValue": {"stringValue": "x"}, "formattedValue": "x"},
+            {"userEnteredValue": {"formulaValue": "=C1+D4"}, "formattedValue": "$10.00"},
         ]
     }
-    expected = {"C": "x", "D": 10}
+    expected = {
+        "C": {"userEnteredValue": "x", "formattedValue": "x"},
+        "D": {"userEnteredValue": "=C1+D4", "formattedValue": "$10.00"},
+    }
+
     assert process_row(row, 2) == expected
 
 
@@ -330,28 +358,44 @@ def test_convert_api_grid_data_to_dict_single_grid():
             "rowData": [
                 {
                     "values": [
-                        {"userEnteredValue": {"stringValue": "A1"}},
-                        {"userEnteredValue": {"numberValue": 1}},
+                        {"userEnteredValue": {"stringValue": "A1"}, "formattedValue": "A1"},
+                        {"userEnteredValue": {"numberValue": 1}, "formattedValue": 1},
                     ]
                 },
                 {
                     "values": [
-                        {"userEnteredValue": {"stringValue": "A2"}},
-                        {"userEnteredValue": {"numberValue": 2}},
+                        {"userEnteredValue": {"stringValue": "A2"}, "formattedValue": "A2"},
+                        {"userEnteredValue": {"numberValue": 2}, "formattedValue": 2},
                     ]
                 },
                 {
                     "values": [
                         {"userEnteredValue": {}},
-                        {"userEnteredValue": {"stringValue": "ignored"}},
-                        {"userEnteredValue": {"numberValue": 3}},
+                        {
+                            "userEnteredValue": {"stringValue": "ignored"},
+                            "formattedValue": "ignored",
+                        },
+                        {"userEnteredValue": {"numberValue": 3}, "formattedValue": 3},
                     ]
                 },
             ],
         }
     ]
     result = convert_api_grid_data_to_dict(data)
-    expected = {1: {"A": "A1", "B": 1}, 2: {"A": "A2", "B": 2}, 3: {"B": "ignored", "C": 3}}
+    expected = {
+        1: {
+            "A": {"userEnteredValue": "A1", "formattedValue": "A1"},
+            "B": {"userEnteredValue": 1, "formattedValue": 1},
+        },
+        2: {
+            "A": {"userEnteredValue": "A2", "formattedValue": "A2"},
+            "B": {"userEnteredValue": 2, "formattedValue": 2},
+        },
+        3: {
+            "B": {"userEnteredValue": "ignored", "formattedValue": "ignored"},
+            "C": {"userEnteredValue": 3, "formattedValue": 3},
+        },
+    }
 
     assert result == expected
 
@@ -364,8 +408,8 @@ def test_convert_api_grid_data_to_dict_multiple_grids():
             "rowData": [
                 {
                     "values": [
-                        {"userEnteredValue": {"numberValue": 100}},
-                        {"userEnteredValue": {"stringValue": "B6"}},
+                        {"userEnteredValue": {"numberValue": 100}, "formattedValue": 100},
+                        {"userEnteredValue": {"stringValue": "=SUM(A1:A2)"}, "formattedValue": 23},
                     ]
                 }
             ],
@@ -376,15 +420,24 @@ def test_convert_api_grid_data_to_dict_multiple_grids():
             "rowData": [
                 {
                     "values": [
-                        {"userEnteredValue": {"stringValue": "First"}},
-                        {"userEnteredValue": {"numberValue": 10}},
+                        {"userEnteredValue": {"stringValue": "First"}, "formattedValue": "First"},
+                        {"userEnteredValue": {"numberValue": 10}, "formattedValue": 10},
                     ]
                 }
             ],
         },
     ]
     result = convert_api_grid_data_to_dict(data)
-    expected = {1: {"A": "First", "B": 10}, 6: {"B": 100, "C": "B6"}}
+    expected = {
+        1: {
+            "A": {"userEnteredValue": "First", "formattedValue": "First"},
+            "B": {"userEnteredValue": 10, "formattedValue": 10},
+        },
+        6: {
+            "B": {"userEnteredValue": 100, "formattedValue": 100},
+            "C": {"userEnteredValue": "=SUM(A1:A2)", "formattedValue": 23},
+        },
+    }
 
     assert result == expected
 
@@ -394,7 +447,10 @@ def test_convert_api_grid_data_to_dict_empty_rows():
         {
             "startRow": 10,
             "startColumn": 0,
-            "rowData": [{"values": [{"userEnteredValue": {}}]}, {"values": []}],
+            "rowData": [
+                {"values": [{"userEnteredValue": {}, "formattedValue": ""}]},
+                {"values": []},
+            ],
         }
     ]
     result = convert_api_grid_data_to_dict(data)

@@ -23,6 +23,7 @@ from arcade_google.exceptions import GmailToolError, GoogleServiceError
 from arcade_google.models import (
     CellData,
     CellExtendedValue,
+    CellFormat,
     CellValue,
     Corpora,
     Day,
@@ -30,6 +31,8 @@ from arcade_google.models import (
     GmailReplyToWhom,
     GridData,
     GridProperties,
+    NumberFormat,
+    NumberFormatType,
     OrderBy,
     RowData,
     Sheet,
@@ -1007,24 +1010,88 @@ def group_contiguous_rows(row_numbers: list[int]) -> list[list[int]]:
 
 
 def create_cell_data(cell_value: CellValue) -> CellData:
-    """Returns a CellData object for the provided cell value.
-
-    Args:
-        cell_value (CellValue): The value of the cell.
-
-    Returns:
-        CellData: The created cell data object.
+    """
+    Create a CellData object based on the type of cell_value.
     """
     if isinstance(cell_value, bool):
-        cell_val = CellExtendedValue(boolValue=cell_value)
-    elif isinstance(cell_value, (int, float)):
-        cell_val = CellExtendedValue(numberValue=cell_value)
-    elif isinstance(cell_value, str) and cell_value.startswith("="):
-        cell_val = CellExtendedValue(formulaValue=cell_value)
+        return _create_bool_cell(cell_value)
+    elif isinstance(cell_value, int):
+        return _create_int_cell(cell_value)
+    elif isinstance(cell_value, float):
+        return _create_float_cell(cell_value)
     elif isinstance(cell_value, str):
-        cell_val = CellExtendedValue(stringValue=cell_value)
+        return _create_string_cell(cell_value)
 
+
+def _create_formula_cell(cell_value: str) -> CellData:
+    cell_val = CellExtendedValue(formulaValue=cell_value)
     return CellData(userEnteredValue=cell_val)
+
+
+def _create_currency_cell(cell_value: str) -> CellData:
+    value_without_symbol = cell_value[1:]
+    try:
+        num_value = int(value_without_symbol)
+        cell_format = CellFormat(
+            numberFormat=NumberFormat(type=NumberFormatType.CURRENCY, pattern="$#,##0")
+        )
+        cell_val = CellExtendedValue(numberValue=num_value)
+        return CellData(userEnteredValue=cell_val, userEnteredFormat=cell_format)
+    except ValueError:
+        try:
+            num_value = float(value_without_symbol)  # type: ignore[assignment]
+            cell_format = CellFormat(
+                numberFormat=NumberFormat(type=NumberFormatType.CURRENCY, pattern="$#,##0.00")
+            )
+            cell_val = CellExtendedValue(numberValue=num_value)
+            return CellData(userEnteredValue=cell_val, userEnteredFormat=cell_format)
+        except ValueError:
+            return CellData(userEnteredValue=CellExtendedValue(stringValue=cell_value))
+
+
+def _create_percent_cell(cell_value: str) -> CellData:
+    try:
+        num_value = float(cell_value[:-1].strip())
+        cell_format = CellFormat(
+            numberFormat=NumberFormat(type=NumberFormatType.PERCENT, pattern="0.00%")
+        )
+        cell_val = CellExtendedValue(numberValue=num_value)
+        return CellData(userEnteredValue=cell_val, userEnteredFormat=cell_format)
+    except ValueError:
+        return CellData(userEnteredValue=CellExtendedValue(stringValue=cell_value))
+
+
+def _create_bool_cell(cell_value: bool) -> CellData:
+    return CellData(userEnteredValue=CellExtendedValue(boolValue=cell_value))
+
+
+def _create_int_cell(cell_value: int) -> CellData:
+    cell_format = CellFormat(
+        numberFormat=NumberFormat(type=NumberFormatType.NUMBER, pattern="#,##0")
+    )
+    return CellData(
+        userEnteredValue=CellExtendedValue(numberValue=cell_value), userEnteredFormat=cell_format
+    )
+
+
+def _create_float_cell(cell_value: float) -> CellData:
+    cell_format = CellFormat(
+        numberFormat=NumberFormat(type=NumberFormatType.NUMBER, pattern="#,##0.00")
+    )
+    return CellData(
+        userEnteredValue=CellExtendedValue(numberValue=cell_value), userEnteredFormat=cell_format
+    )
+
+
+def _create_string_cell(cell_value: str) -> CellData:
+    if cell_value.startswith("="):
+        return _create_formula_cell(cell_value)
+    elif cell_value.startswith("$") and len(cell_value) > 1:
+        return _create_currency_cell(cell_value)
+    elif cell_value.endswith("%") and len(cell_value) > 1:
+        return _create_percent_cell(cell_value)
+
+    return CellData(userEnteredValue=CellExtendedValue(stringValue=cell_value))
 
 
 def create_row_data(
@@ -1120,7 +1187,7 @@ def parse_sheet(api_sheet: dict) -> dict:
     }
 
 
-def extract_user_entered_cell_value(cell: dict) -> Optional[Any]:
+def extract_user_entered_cell_value(cell: dict) -> Any:
     """
     Extract the user entered value from a cell's 'userEnteredValue'.
 
@@ -1135,7 +1202,7 @@ def extract_user_entered_cell_value(cell: dict) -> Optional[Any]:
         if key in user_val:
             return user_val[key]
 
-    return None
+    return ""
 
 
 def process_row(row: dict, start_column_index: int) -> dict:
@@ -1154,10 +1221,14 @@ def process_row(row: dict, start_column_index: int) -> dict:
     for j, cell in enumerate(row.get("values", [])):
         column_index = start_column_index + j
         column_string = index_to_col(column_index)
-        cell_value = extract_user_entered_cell_value(cell)
+        user_entered_cell_value = extract_user_entered_cell_value(cell)
+        formatted_cell_value = cell.get("formattedValue", "")
 
-        if cell_value not in (None, ""):
-            row_result[column_string] = cell_value
+        if user_entered_cell_value != "" or formatted_cell_value != "":
+            row_result[column_string] = {
+                "userEnteredValue": user_entered_cell_value,
+                "formattedValue": formatted_cell_value,
+            }
 
     return row_result
 
