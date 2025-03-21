@@ -908,7 +908,7 @@ def compute_sheet_data_dimensions(
             (start, end).
     """
     max_row = 0
-    min_row = float("inf")
+    min_row = 10_000_000  # max number of cells in a sheet
     max_col_str = None
     min_col_str = None
 
@@ -1192,7 +1192,7 @@ def convert_api_grid_data_to_dict(grids: list[dict]) -> dict:
     return dict(sorted(result.items()))
 
 
-def validate_write_to_cell_params(
+def validate_write_to_cell_params(  # type: ignore[no-any-unimported]
     service: Resource,
     spreadsheet_id: str,
     sheet_name: str,

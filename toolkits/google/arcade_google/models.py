@@ -411,7 +411,7 @@ class CellExtendedValue(BaseModel):
     errorValue: Optional["CellErrorValue"] = None
 
     @model_validator(mode="after")
-    def check_exactly_one_value(cls, instance):
+    def check_exactly_one_value(cls, instance):  # type: ignore[no-untyped-def]
         provided = [v for v in instance.__dict__.values() if v is not None]
         if len(provided) != 1:
             raise ValueError(
@@ -522,7 +522,7 @@ class SheetDataInput(BaseModel):
     data: dict[int, dict[str, CellValue]]
 
     @classmethod
-    def _parse_json_if_string(cls, value):
+    def _parse_json_if_string(cls, value):  # type: ignore[no-untyped-def]
         """Parses the value if it is a JSON string, otherwise returns it.
 
         Helper method for when validating the `data` field.
@@ -535,7 +535,7 @@ class SheetDataInput(BaseModel):
         return value
 
     @classmethod
-    def _validate_row_key(cls, row_key) -> int:
+    def _validate_row_key(cls, row_key) -> int:  # type: ignore[no-untyped-def]
         """Converts the row key to an integer, raising an error if conversion fails.
 
         Helper method for when validating the `data` field.
@@ -546,7 +546,7 @@ class SheetDataInput(BaseModel):
             raise TypeError(f"Row key '{row_key}' is not convertible to int.")
 
     @classmethod
-    def _validate_inner_cells(cls, cells, row_int: int) -> dict:
+    def _validate_inner_cells(cls, cells, row_int: int) -> dict:  # type: ignore[no-untyped-def]
         """Validates that 'cells' is a dict mapping column letters to valid cell values
         and normalizes the keys.
 
@@ -572,7 +572,7 @@ class SheetDataInput(BaseModel):
 
     @field_validator("data", mode="before")
     @classmethod
-    def validate_and_convert_keys(cls, value):
+    def validate_and_convert_keys(cls, value):  # type: ignore[no-untyped-def]
         """
         Validates data when SheetDataInput is instantiated and converts it to the correct format.
         Uses private helper methods to parse JSON, validate row keys, and validate inner cell data.

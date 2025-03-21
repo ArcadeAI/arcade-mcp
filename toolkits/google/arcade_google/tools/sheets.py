@@ -42,7 +42,7 @@ def create_spreadsheet(
     service = build_sheets_service(context.get_auth_token_or_empty())
 
     try:
-        sheet_data = SheetDataInput(data=data)
+        sheet_data = SheetDataInput(data=data)  # type: ignore[arg-type]
     except Exception as e:
         msg = "Invalid JSON or unexpected data format for parameter `data`"
         raise RetryableToolError(
@@ -112,7 +112,7 @@ def write_to_cell(
     row: Annotated[int, "The row number to write to"],
     value: Annotated[str, "The value to write to the cell"],
     sheet_name: Annotated[
-        Optional[str], "The name of the sheet to write to. Defaults to 'Sheet1'"
+        str, "The name of the sheet to write to. Defaults to 'Sheet1'"
     ] = "Sheet1",
 ) -> Annotated[dict, "The status of the operation"]:
     """
