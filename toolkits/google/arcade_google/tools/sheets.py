@@ -84,7 +84,7 @@ async def get_spreadsheet(
     "The spreadsheet properties and data for all sheets in the spreadsheet",
 ]:
     """
-    Get the user entered values for all cells in all sheets in the spreadsheet
+    Get the user entered values and formatted values for all cells in all sheets in the spreadsheet
     along with the spreadsheet's properties
     """
     service = build_sheets_service(context.get_auth_token_or_empty())
