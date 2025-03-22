@@ -145,7 +145,7 @@ Now you can install the Tool SDK through pip.
     If you plan on writing evaluations for your tools and the LLMs you use, you will also need to install the `evals` extra.
 
     ```bash
-    pip install arcade-ai[evals]
+    pip install 'arcade-ai[evals]'
     ```
 
 2. **Log in to Arcade:**
