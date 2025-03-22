@@ -298,6 +298,81 @@ def extract_shopping_results(results: list[dict[str, Any]]) -> list[dict[str, An
 
 
 # ------------------------------------------------------------------------------------------------
+# Walmart utils
+# ------------------------------------------------------------------------------------------------
+def extract_walmart_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "item_id": result.get("us_item_id"),
+            "title": result.get("title"),
+            "description": result.get("description"),
+            "rating": result.get("rating"),
+            "reviews_count": result.get("reviews"),
+            "seller": {
+                "id": result.get("seller_id"),
+                "name": result.get("seller_name"),
+            },
+            "price": {
+                "value": result.get("primary_offer", {}).get("offer_price"),
+                "currency": result.get("primary_offer", {}).get("offer_currency"),
+            },
+            "link": result.get("product_page_url"),
+        }
+        for result in results
+    ]
+
+
+def get_walmart_last_page_integer(results: dict[str, Any]) -> int:
+    try:
+        return int(list(results["pagination"]["other_pages"].keys())[-1])
+    except (KeyError, IndexError, ValueError):
+        return 1
+
+
+def extract_walmart_product_details(product: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "item_id": product.get("us_item_id"),
+        "product_type": product.get("product_type"),
+        "title": product.get("title"),
+        "description_html": product.get("short_description_html"),
+        "rating": product.get("rating"),
+        "reviews_count": product.get("reviews"),
+        "seller": {
+            "id": product.get("seller_id"),
+            "name": product.get("seller_name"),
+        },
+        "manufacturer_name": product.get("manufacturer"),
+        "price": {
+            "value": product.get("price_map", {}).get("price"),
+            "currency": product.get("price_map", {}).get("currency"),
+            "previous_price": product.get("price_map", {}).get("was_price", {}).get("price"),
+        },
+        "link": product.get("product_page_url"),
+        "variant_options": extract_walmart_variant_options(product.get("variant_swatches", [])),
+    }
+
+
+def extract_walmart_variant_options(variant_swatches: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    variants = []
+
+    for variant_swatch in variant_swatches:
+        variant_name = variant_swatch.get("name")
+        if not variant_name:
+            continue
+
+        options = []
+
+        for selection in variant_swatch.get("available_selections", []):
+            selection_name = selection.get("name")
+            if selection_name and selection_name not in options:
+                options.append(selection_name)
+
+        variants.append({variant_name: options})
+
+    return variants
+
+
+# ------------------------------------------------------------------------------------------------
 # YouTube utils
 # ------------------------------------------------------------------------------------------------
 def extract_video_id_from_link(link: Optional[str]) -> Optional[str]:
