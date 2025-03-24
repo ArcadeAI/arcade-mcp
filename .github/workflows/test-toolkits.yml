@@ -47,9 +47,6 @@ jobs:
         python-version: '3.12'
         cache: 'pip'
 
-    - name: Upgrade build tools
-      run: pip install --upgrade pip setuptools wheel
-
     - name: Test Toolkit
       id: Test_Toolkit
       working-directory: toolkits/${{ matrix.target }}
