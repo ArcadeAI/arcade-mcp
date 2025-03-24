@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, NotRequired, Optional, TypedDict
+from typing import Literal, Optional, TypedDict
 
 from arcade_slack.custom_types import (
     SlackOffsetSecondsFromUTC,
@@ -172,7 +172,7 @@ class Message(SlackMessage, total=False):
     datetime_timestamp: str  # Human-readable datetime string (e.g. "2025-01-22 12:00:00")
 
 
-class ConversationMetadata(TypedDict, total=True):
+class ConversationMetadata(TypedDict, total=False):
     """Type definition for the conversation metadata dictionary."""
 
     id: Optional[str]
@@ -182,9 +182,9 @@ class ConversationMetadata(TypedDict, total=True):
     is_archived: Optional[bool]
     is_member: Optional[bool]
     purpose: Optional[str]
-    num_members: NotRequired[Optional[int]]
-    user: NotRequired[Optional[SlackUser]]
-    is_user_deleted: NotRequired[Optional[bool]]
+    num_members: Optional[int]
+    user: Optional[SlackUser]
+    is_user_deleted: Optional[bool]
 
 
 class BasicUserInfo(TypedDict, total=False):
