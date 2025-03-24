@@ -26,7 +26,7 @@ from arcade_slack.models import (
 
 
 def format_users(user_list_response: SlackUserList) -> str:
-    """Format a list of Slack users into a CSV string.
+    """Format a list of Slack users into a CSV string
 
     Args:
         userListResponse: The response from the Slack API's users_list method.
