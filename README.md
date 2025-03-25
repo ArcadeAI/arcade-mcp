@@ -406,7 +406,7 @@ graph = create_react_agent(model=bound_model, tools=lc_tools, checkpointer=memor
 config = {"configurable": {"thread_id": "1", "user_id": "user@example.com"}}
 user_input = {"messages": [("user", "star the arcadeai/arcade-ai repo on github")]}
 
-# 7) Stream the agent's output. If the tool is unauthorized, it may trigger interrupts
+# 8) Stream the agent's output. If the tool is unauthorized, it may trigger interrupts
 for chunk in graph.stream(user_input, config, stream_mode="values"):
     chunk["messages"][-1].pretty_print()
 
