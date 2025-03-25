@@ -55,7 +55,7 @@ def create_cli_catalog(
     Load toolkits from the python environment.
     """
     if toolkit:
-        toolkit = toolkit.lower()
+        toolkit = toolkit.lower().replace("-", "_")
         try:
             prefixed_toolkit = "arcade_" + toolkit
             toolkits = [Toolkit.from_package(prefixed_toolkit)]
