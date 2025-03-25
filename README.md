@@ -401,7 +401,7 @@ memory = MemorySaver()
 # 6) Create a ReAct-style agent from the prebuilt function.
 graph = create_react_agent(model=bound_model, tools=lc_tools, checkpointer=memory)
 
-# 6) Provide basic config and a user query.
+# 7) Provide basic config and a user query.
 # Note: user_id is required for the tool to be authorized
 config = {"configurable": {"thread_id": "1", "user_id": "user@example.com"}}
 user_input = {"messages": [("user", "star the arcadeai/arcade-ai repo on github")]}
