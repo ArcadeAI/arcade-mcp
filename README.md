@@ -398,7 +398,7 @@ bound_model = model.bind_tools(lc_tools)
 # 5) Use MemorySaver for checkpointing.
 memory = MemorySaver()
 
-# 5) Create a ReAct-style agent from the prebuilt function.
+# 6) Create a ReAct-style agent from the prebuilt function.
 graph = create_react_agent(model=bound_model, tools=lc_tools, checkpointer=memory)
 
 # 6) Provide basic config and a user query.
