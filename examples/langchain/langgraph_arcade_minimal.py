@@ -17,7 +17,7 @@ tools = manager.init_tools(tools=["Web.ScrapeUrl"])
 print(manager.tools)
 
 # Get all tools from a toolkit
-tools = manager.init_tools(toolkits=["Google"])
+tools = manager.init_tools(toolkits=["github"])
 print(manager.tools)
 
 # add a tool
@@ -43,11 +43,11 @@ graph = create_react_agent(model=bound_model, tools=lc_tools, checkpointer=memor
 
 # 6) Provide basic config and a user query.
 # Note: user_id is required for the tool to be authorized
-config = {"configurable": {"thread_id": "1", "user_id": "userrerr@example.coom"}}
-user_input = {"messages": [("user", "List any new and important emails in my inbox.")]}
+config = {"configurable": {"thread_id": "1", "user_id": "user@example.com"}}
+user_input = {"messages": [("user", "star the arcadeai/arcade-ai repo on github")]}
 
 # 7) Stream the agent's output. If the tool is unauthorized, it may trigger interrupts
-for chunk in graph.stream(user_input, config, stream_mode="values", debug=True):
+for chunk in graph.stream(user_input, config, stream_mode="values"):
     chunk["messages"][-1].pretty_print()
 
 # if we were interrupted, we can check for interrupts in state
