@@ -30,3 +30,18 @@ class RedditTimeFilter(str, Enum):
             RedditTimeFilter.ALL_TIME: "all",
         }
         return _map[self]
+
+
+class RedditThingType(str, Enum):
+    """The type of a Reddit 'thing'.
+
+    Typically used as a prefix for fullnames, e.g. t1_1234567890
+    is the fullname of a comment with id 1234567890
+    """
+
+    COMMENT = "t1"
+    ACCOUNT = "t2"
+    LINK = "t3"
+    MESSAGE = "t4"
+    SUBREDDIT = "t5"
+    AWARD = "t6"

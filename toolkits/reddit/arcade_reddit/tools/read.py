@@ -8,7 +8,12 @@ from arcade_reddit.enums import (
     RedditTimeFilter,
     SubredditListingType,
 )
-from arcade_reddit.utils import parse_get_posts_in_subreddit_response, remove_none_values
+from arcade_reddit.utils import (
+    parse_get_content_of_post_response,
+    parse_get_posts_in_subreddit_response,
+    parse_get_top_level_comments_response,
+    remove_none_values,
+)
 
 
 @tool(requires_auth=Reddit(scopes=["read"]))
@@ -27,8 +32,9 @@ async def get_posts_in_subreddit(
     cursor: Annotated[Optional[str], "The pagination token from a previous call"] = None,
     time_range: Annotated[
         RedditTimeFilter,
-        "The time range for filtering posts. Must be provided if the listing type is time-based. "
-        "Otherwise, it is ignored. Defaults to today.",
+        "The time range for filtering posts. Must be provided if the listing type is "
+        f"{SubredditListingType.TOP.value} or {SubredditListingType.CONTROVERSIAL.value}. "
+        f"Otherwise, it is ignored. Defaults to {RedditTimeFilter.TODAY.value}.",
     ] = RedditTimeFilter.TODAY,
 ) -> Annotated[dict, "A dictionary with a cursor for the next page and a list of posts"]:
     """Get posts in the specified subreddit
@@ -44,5 +50,32 @@ async def get_posts_in_subreddit(
     params = remove_none_values(params)
     data = await client.get(f"r/{subreddit}/{listing.value}", params=params)
     result = parse_get_posts_in_subreddit_response(data)
+
+    return result
+
+
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def get_content_of_post(
+    context: ToolContext, permalink: Annotated[str, "The permalink of the Reddit post"]
+) -> Annotated[dict, "The content (body) of the Reddit post"]:
+    """Get the content (body) of a Reddit post by its permalink."""
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    data = await client.get(f"{permalink}.json")
+    result = parse_get_content_of_post_response(data)
+
+    return result
+
+
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def get_top_level_comments(
+    context: ToolContext,
+    permalink: Annotated[str, "The permalink of the Reddit post to fetch comments from"],
+) -> Annotated[dict, "A dictionary with a list of top level comments"]:
+    """Get the first page of top-level comments of a Reddit post."""
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    data = await client.get(f"{permalink}.json")
+    result = parse_get_top_level_comments_response(data)
 
     return result
