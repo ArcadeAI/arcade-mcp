@@ -100,3 +100,25 @@ def parse_get_top_level_comments_response(data: list) -> dict:
         })
 
     return {"comments": comments, "num_comments": len(comments)}
+
+
+def parse_api_comment_response(data: dict) -> dict:
+    """Parse the response from the Reddit API's /api/comment endpoint
+
+    Args:
+        data: The response from the Reddit API deserialized as a dictionary
+
+    Returns:
+        A dictionary with the comment data
+    """
+    result = {
+        "created_utc": data.get("created_utc"),
+        "name": data.get("name"),
+        "parent_id": data.get("parent_id"),
+        "permalink": data.get("permalink"),
+        "subreddit": data.get("subreddit"),
+        "subreddit_id": data.get("subreddit_id"),
+        "subreddit_name_prefixed": data.get("subreddit_name_prefixed"),
+    }
+
+    return result

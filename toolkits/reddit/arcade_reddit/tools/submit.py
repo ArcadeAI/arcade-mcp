@@ -4,6 +4,7 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Reddit
 
 from arcade_reddit.client import RedditClient
+from arcade_reddit.utils import parse_api_comment_response
 
 
 @tool(requires_auth=Reddit(scopes=["submit"]))
@@ -32,7 +33,7 @@ async def submit_text_post(
     }
 
     data = await client.post("api/submit", data=params)
-    return cast(dict, data)
+    return cast(dict, data["json"]["data"])
 
 
 @tool(requires_auth=Reddit(scopes=["submit"]))
@@ -57,4 +58,30 @@ async def comment_on_post(
     }
 
     data = await client.post("api/comment", data=params)
-    return cast(dict, data)
+
+    return parse_api_comment_response(data)
+
+
+@tool(requires_auth=Reddit(scopes=["submit"]))
+async def reply_to_comment(
+    context: ToolContext,
+    comment_id: Annotated[str, "The id of the Reddit comment to reply to"],
+    text: Annotated[str, "The body of the reply in markdown format"],
+) -> Annotated[dict, "Response from Reddit after submission"]:
+    """Reply to a Reddit comment"""
+
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    # TODO: Validate it is a COMMENT type.
+    #       Probably should have some helper like is_valid_comment_id
+    fullname = comment_id if comment_id.startswith("t1_") else f"t1_{comment_id}"
+
+    params = {
+        "api_type": "json",
+        "thing_id": fullname,
+        "text": text,
+        "return_rtjson": True,
+    }
+
+    data = await client.post("api/comment", data=params)
+    return parse_api_comment_response(data)
