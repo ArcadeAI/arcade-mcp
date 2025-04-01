@@ -1,3 +1,8 @@
+import re
+from urllib.parse import urlparse
+
+from arcade.sdk.errors import ToolExecutionError
+
 from arcade_reddit.enums import RedditThingType
 
 
@@ -122,3 +127,199 @@ def parse_api_comment_response(data: dict) -> dict:
     }
 
     return result
+
+
+def _extract_id_from_url(identifier: str, regex: str, error_msg: str) -> str:
+    """
+    Extract an ID from a Reddit URL using the provided regular expression.
+
+    Args:
+        identifier: The URL string from which to extract the ID.
+        regex: The regular expression pattern containing a capturing group for the ID.
+        error_msg: The error message to use if no ID can be extracted.
+
+    Returns:
+        The extracted ID as a string.
+
+    Raises:
+        ToolExecutionError: If the URL is not a Reddit URL or the pattern does not match.
+    """
+    parsed = urlparse(identifier)
+    if not parsed.netloc.endswith("reddit.com"):
+        raise ToolExecutionError(
+            message=f"Expected a reddit URL, but got: {identifier}",
+            developer_message="The identifier should be a valid Reddit URL.",
+        )
+    match = re.search(regex, parsed.path)
+    if not match:
+        raise ToolExecutionError(
+            message=f"Could not extract id from URL: {identifier}",
+            developer_message=error_msg,
+        )
+    return match.group(1)
+
+
+def _extract_id_from_permalink(identifier: str, regex: str, error_msg: str) -> str:
+    """
+    Extract an ID from a Reddit permalink using the provided regular expression.
+
+    Args:
+        identifier: The permalink string from which to extract the ID.
+        regex: The regular expression pattern containing a capturing group for the ID.
+        error_msg: The error message to use if no ID can be extracted.
+
+    Returns:
+        The extracted ID as a string.
+
+    Raises:
+        ToolExecutionError: If the pattern does not match the permalink.
+    """
+    match = re.search(regex, identifier)
+    if not match:
+        raise ToolExecutionError(
+            message=f"Could not extract id from permalink: {identifier}",
+            developer_message=error_msg,
+        )
+    return match.group(1)
+
+
+def _get_post_id(identifier: str) -> str:
+    """
+    Retrieve the post ID from various types of Reddit post identifiers.
+
+    The identifier can be a Reddit URL to the post, a permalink for the post,
+    a fullname for the post (starting with 't3_'), or a raw post ID.
+
+    Args:
+        identifier: The Reddit post identifier.
+
+    Returns:
+        The post ID as a string.
+
+    Raises:
+        ToolExecutionError: If the identifier does not contain a valid post ID.
+    """
+    if identifier.startswith("http://") or identifier.startswith("https://"):
+        return _extract_id_from_url(
+            identifier,
+            r"/comments/([A-Za-z0-9]+)",
+            "The reddit URL does not contain a valid post id.",
+        )
+    elif identifier.startswith("/r/"):
+        return _extract_id_from_permalink(
+            identifier,
+            r"/comments/([A-Za-z0-9]+)",
+            "The permalink does not contain a valid post id.",
+        )
+    else:
+        pattern = re.compile(r"^(t3_)?([A-Za-z0-9]+)$")
+        match = pattern.match(identifier)
+        if match:
+            return match.group(2)
+    raise ToolExecutionError(
+        message=f"Invalid identifier: {identifier}",
+        developer_message=(
+            "The identifier should be a valid Reddit URL, permalink, fullname, or post id."
+        ),
+    )
+
+
+def _get_comment_id(identifier: str) -> str:
+    """
+    Retrieve the comment ID from various types of Reddit comment identifiers.
+
+    The identifier can be a Reddit URL to the comment, a permalink for the comment,
+    a fullname for the comment (starting with 't1_'), or a raw comment ID.
+
+    Args:
+        identifier: The Reddit comment identifier.
+
+    Returns:
+        The comment ID as a string.
+
+    Raises:
+        ToolExecutionError: If the identifier does not contain a valid comment ID.
+    """
+    if identifier.startswith("http://") or identifier.startswith("https://"):
+        return _extract_id_from_url(
+            identifier,
+            r"/comment/([A-Za-z0-9]+)",
+            "The reddit URL does not contain a valid comment id.",
+        )
+    elif identifier.startswith("/r/"):
+        return _extract_id_from_permalink(
+            identifier,
+            r"/comment/([A-Za-z0-9]+)",
+            "The permalink does not contain a valid comment id.",
+        )
+    else:
+        if identifier.startswith("t1_"):
+            return identifier[3:]
+        if re.fullmatch(r"[A-Za-z0-9]+", identifier):
+            return identifier
+    raise ToolExecutionError(
+        message=f"Invalid identifier: {identifier}",
+        developer_message=(
+            "The identifier should be a valid Reddit URL, permalink, fullname, or comment id."
+        ),
+    )
+
+
+def create_path_for_post(identifier: str) -> str:
+    """
+    Create a path for a Reddit post.
+
+    Args:
+        identifier: The identifier of the post. The identifier may be a reddit URL,
+        a permalink for the post, a fullname for the post, or a post id.
+
+    Returns:
+        The path for the post.
+    """
+    if identifier.startswith("http://") or identifier.startswith("https://"):
+        parsed = urlparse(identifier)
+        if not parsed.netloc.endswith("reddit.com"):
+            raise ToolExecutionError(
+                message=f"Expected a reddit URL, but got: {identifier}",
+                developer_message="The identifier should be a valid Reddit URL.",
+            )
+        return parsed.path
+    if identifier.startswith("/r/"):
+        return identifier
+    post_id = _get_post_id(identifier)
+    return f"/comments/{post_id}"
+
+
+def create_fullname_for_post(identifier: str) -> str:
+    """
+    Create a fullname for a Reddit post.
+
+    Args:
+        identifier: The identifier of the post. The identifier may be a reddit URL,
+        a permalink for the post, a fullname for the post, or a post id.
+
+    Returns:
+        The fullname for the post.
+    """
+    if identifier.startswith("t3_"):
+        return identifier
+    post_id = _get_post_id(identifier)
+    return f"t3_{post_id}"
+
+
+def create_fullname_for_comment(identifier: str) -> str:
+    """
+    Create a fullname for a Reddit comment.
+
+    Args:
+        identifier: The identifier of the comment. The identifier may be a
+        reddit URL to the comment, a permalink for the comment, a fullname for
+        the comment, or a comment id.
+
+    Returns:
+        The fullname for the comment.
+    """
+    if identifier.startswith("t1_"):
+        return identifier
+    comment_id = _get_comment_id(identifier)
+    return f"t1_{comment_id}"

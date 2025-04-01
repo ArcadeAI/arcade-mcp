@@ -1,10 +1,15 @@
-from typing import Annotated, Optional, cast
+from typing import Annotated, Optional
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Reddit
 
 from arcade_reddit.client import RedditClient
-from arcade_reddit.utils import parse_api_comment_response
+from arcade_reddit.utils import (
+    create_fullname_for_comment,
+    create_fullname_for_post,
+    parse_api_comment_response,
+    remove_none_values,
+)
 
 
 @tool(requires_auth=Reddit(scopes=["submit"]))
@@ -12,10 +17,15 @@ async def submit_text_post(
     context: ToolContext,
     subreddit: Annotated[str, "The name of the subreddit to which the post will be submitted"],
     title: Annotated[str, "The title of the submission"],
-    text: Annotated[str, "The body of the post in markdown format"],
+    body: Annotated[
+        Optional[str],
+        "The body of the post in markdown format. Should never be the same as the title",
+    ] = None,
     nsfw: Annotated[Optional[bool], "Indicates if the submission is NSFW"] = False,
     spoiler: Annotated[Optional[bool], "Indicates if the post is marked as a spoiler"] = False,
-    sendreplies: Annotated[Optional[bool], "If true, sends replies to the user's inbox"] = True,
+    send_replies: Annotated[
+        Optional[bool], "If true, sends replies to the user's inbox. Default is True"
+    ] = True,
 ) -> Annotated[dict, "Response from Reddit after submission"]:
     """Submit a text-based post to a subreddit"""
 
@@ -28,27 +38,30 @@ async def submit_text_post(
         "kind": "self",
         "nsfw": nsfw,
         "spoiler": spoiler,
-        "sendreplies": sendreplies,
-        "text": text,
+        "sendreplies": send_replies,
+        "text": body,
     }
+    params = remove_none_values(params)
 
     data = await client.post("api/submit", data=params)
-    return cast(dict, data["json"]["data"])
+    return {"data": data["json"].get("data", {}), "errors": data["json"].get("errors", [])}
 
 
 @tool(requires_auth=Reddit(scopes=["submit"]))
 async def comment_on_post(
     context: ToolContext,
-    post_id: Annotated[str, "The id of the Reddit post to comment on"],
+    post_identifier: Annotated[
+        str,
+        "The identifier of the Reddit post. "
+        "The identifier may be a reddit URL, a permalink, a fullname, or a post id.",
+    ],
     text: Annotated[str, "The body of the comment in markdown format"],
 ) -> Annotated[dict, "Response from Reddit after submission"]:
     """Comment on a Reddit post"""
 
     client = RedditClient(context.get_auth_token_or_empty())
 
-    # TODO: Validate it is a LINK type (post).
-    #       Probably should have some helper like is_valid_post_id
-    fullname = post_id if post_id.startswith("t3_") else f"t3_{post_id}"
+    fullname = create_fullname_for_post(post_identifier)
 
     params = {
         "api_type": "json",
@@ -65,16 +78,19 @@ async def comment_on_post(
 @tool(requires_auth=Reddit(scopes=["submit"]))
 async def reply_to_comment(
     context: ToolContext,
-    comment_id: Annotated[str, "The id of the Reddit comment to reply to"],
+    comment_identifier: Annotated[
+        str,
+        "The identifier of the Reddit comment to reply to. "
+        "The identifier may be a comment ID, a reddit URL to the comment, "
+        "a permalink to the comment, or the fullname of the comment.",
+    ],
     text: Annotated[str, "The body of the reply in markdown format"],
 ) -> Annotated[dict, "Response from Reddit after submission"]:
     """Reply to a Reddit comment"""
 
     client = RedditClient(context.get_auth_token_or_empty())
 
-    # TODO: Validate it is a COMMENT type.
-    #       Probably should have some helper like is_valid_comment_id
-    fullname = comment_id if comment_id.startswith("t1_") else f"t1_{comment_id}"
+    fullname = create_fullname_for_comment(comment_identifier)
 
     params = {
         "api_type": "json",

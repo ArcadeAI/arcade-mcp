@@ -9,6 +9,7 @@ from arcade_reddit.enums import (
     SubredditListingType,
 )
 from arcade_reddit.utils import (
+    create_path_for_post,
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
     parse_get_top_level_comments_response,
@@ -37,7 +38,7 @@ async def get_posts_in_subreddit(
         f"Otherwise, it is ignored. Defaults to {RedditTimeFilter.TODAY.value}.",
     ] = RedditTimeFilter.TODAY,
 ) -> Annotated[dict, "A dictionary with a cursor for the next page and a list of posts"]:
-    """Get posts in the specified subreddit
+    """Gets posts titles, links, and other metadata in the specified subreddit
 
     The time_range is required if the listing type is 'top' or 'controversial'.
     """
@@ -56,12 +57,18 @@ async def get_posts_in_subreddit(
 
 @tool(requires_auth=Reddit(scopes=["read"]))
 async def get_content_of_post(
-    context: ToolContext, permalink: Annotated[str, "The permalink of the Reddit post"]
+    context: ToolContext,
+    post_identifier: Annotated[
+        str,
+        "The identifier of the Reddit post. "
+        "The identifier may be a reddit URL, a permalink, a fullname, or a post id.",
+    ],
 ) -> Annotated[dict, "The content (body) of the Reddit post"]:
-    """Get the content (body) of a Reddit post by its permalink."""
+    """Get the content (body) of a Reddit post by its identifier."""
     client = RedditClient(context.get_auth_token_or_empty())
 
-    data = await client.get(f"{permalink}.json")
+    path = create_path_for_post(post_identifier)
+    data = await client.get(f"{path}.json")
     result = parse_get_content_of_post_response(data)
 
     return result
@@ -70,12 +77,18 @@ async def get_content_of_post(
 @tool(requires_auth=Reddit(scopes=["read"]))
 async def get_top_level_comments(
     context: ToolContext,
-    permalink: Annotated[str, "The permalink of the Reddit post to fetch comments from"],
+    post_identifier: Annotated[
+        str,
+        "The identifier of the Reddit post to fetch comments from. "
+        "The identifier may be a reddit URL, a permalink, a fullname, or a post id.",
+    ],
 ) -> Annotated[dict, "A dictionary with a list of top level comments"]:
     """Get the first page of top-level comments of a Reddit post."""
     client = RedditClient(context.get_auth_token_or_empty())
 
-    data = await client.get(f"{permalink}.json")
+    path = create_path_for_post(post_identifier)
+
+    data = await client.get(f"{path}.json")
     result = parse_get_top_level_comments_response(data)
 
     return result
