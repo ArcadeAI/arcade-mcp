@@ -77,7 +77,7 @@ def parse_get_content_of_post_response(data: list) -> dict:
         return {}
 
 
-def parse_get_content_of_multiple_posts_response(data: dict) -> dict:
+def parse_get_content_of_multiple_posts_response(data: dict) -> list[dict]:
     """Parse the json representation of multiple Reddit posts to get the content of each post
 
     Args:
@@ -88,14 +88,14 @@ def parse_get_content_of_multiple_posts_response(data: dict) -> dict:
         A dictionary with the simplified content of each post
     """
     if not data or not isinstance(data, dict) or len(data) == 0:
-        return {"posts": []}
+        return []
 
     result = []
     for post in data.get("data", {}).get("children", []):
         post_data = post.get("data", {})
         result.append(_simplify_post_data(post_data, include_body=True))
 
-    return {"posts": result}
+    return result
 
 
 def parse_get_top_level_comments_response(data: list) -> dict:

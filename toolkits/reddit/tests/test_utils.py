@@ -169,7 +169,7 @@ def test_parse_get_content_of_post_response_empty_and_malformed():
 
 
 def test_parse_get_content_of_multiple_posts_response_empty_and_malformed():
-    expected = {"posts": []}
+    expected = []
 
     data = {}
     result = parse_get_content_of_multiple_posts_response(data)

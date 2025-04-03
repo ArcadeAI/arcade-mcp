@@ -98,10 +98,9 @@ async def get_content_of_multiple_posts(
 
     data = await client.get("api/info.json", params={"id": ",".join(fullnames)})
 
-    result = parse_get_content_of_multiple_posts_response(data)
-    result["warnings"] = warnings
+    posts = parse_get_content_of_multiple_posts_response(data)
 
-    return result
+    return {"posts": posts, "warnings": warnings}
 
 
 @tool(requires_auth=Reddit(scopes=["read"]))
