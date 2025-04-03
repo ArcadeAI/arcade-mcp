@@ -16,7 +16,7 @@ class RedditClient:
         }
         async with httpx.AsyncClient() as client:
             response = await client.request(
-                method, f"{self.BASE_URL}/{path}", headers=headers, **kwargs
+                method, f"{self.BASE_URL}/{path.lstrip('/')}", headers=headers, **kwargs
             )
             response.raise_for_status()
             return response.json()

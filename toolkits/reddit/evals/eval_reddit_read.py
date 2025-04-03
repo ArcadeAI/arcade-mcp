@@ -49,10 +49,10 @@ def reddit_get_posts_in_subreddit_eval_suite() -> EvalSuite:
                 func=get_posts_in_subreddit,
                 args={
                     "subreddit": "AskReddit",
-                    "listing": SubredditListingType.CONTROVERSIAL,
+                    "listing": SubredditListingType.CONTROVERSIAL.value,
                     "limit": 30,
                     "cursor": None,
-                    "time_range": RedditTimeFilter.NOW,
+                    "time_range": RedditTimeFilter.NOW.value,
                 },
             ),
         ],
@@ -74,7 +74,7 @@ def reddit_get_posts_in_subreddit_eval_suite() -> EvalSuite:
                 func=get_posts_in_subreddit,
                 args={
                     "subreddit": "AskReddit",
-                    "listing": SubredditListingType.CONTROVERSIAL,
+                    "listing": SubredditListingType.CONTROVERSIAL.value,
                     "limit": 5,
                     "cursor": "t3_1abcdef",
                 },
@@ -89,6 +89,46 @@ def reddit_get_posts_in_subreddit_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="time_range", weight=0.2),
         ],
         additional_messages=get_post_in_subreddit_messages,
+    )
+
+    suite.add_case(  # time-based listing, but don't provide a specific time range
+        name="reddit_get_posts_in_subreddit_3",
+        user_message="Get 5 top posts from AskReddit",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_posts_in_subreddit,
+                args={
+                    "subreddit": "AskReddit",
+                    "listing": SubredditListingType.TOP.value,
+                    "limit": 5,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=0.3),
+            BinaryCritic(critic_field="listing", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.3),
+        ],
+    )
+
+    suite.add_case(
+        name="reddit_get_posts_in_subreddit_4",
+        user_message="Get posts from AskReddit that are gaining traction as we speak",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_posts_in_subreddit,
+                args={
+                    "subreddit": "AskReddit",
+                    "listing": SubredditListingType.RISING.value,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=0.3),
+            BinaryCritic(critic_field="listing", weight=0.7),
+        ],
     )
 
     return suite
