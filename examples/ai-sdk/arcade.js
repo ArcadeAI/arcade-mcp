@@ -1,11 +1,11 @@
-import { Arcade } from "@arcadeai/arcadejs";
-import { PermissionDeniedError } from "@arcadeai/arcadejs";
-import { ToolExecutionError } from "ai";
-import { jsonSchema } from "ai";
+import { Arcade } from "@arcadeai/arcadejs"
+import { PermissionDeniedError } from "@arcadeai/arcadejs"
+import { ToolExecutionError } from "ai"
+import { jsonSchema } from "ai"
 
 const arcadeClient = new Arcade({
-  baseURL: "http://localhost:9099",
-});
+    baseURL: "http://localhost:9099",
+})
 
 /**
  * Retrieves and formats tools from Arcade.dev to the format required by the AI SDK.
@@ -14,35 +14,26 @@ const arcadeClient = new Arcade({
  * @param {string} options.user_id - The user ID from your application (e.g. an email, UUID, etc.)
  */
 export const getArcadeTools = async ({ toolkit, user_id }) => {
-  const tools = await arcadeClient.tools.list({
-    ...(toolkit && { toolkit }),
-  });
+    const tools = await arcadeClient.tools.formatted.list({
+        ...(toolkit && { toolkit }),
+        format: "openai",
+    })
 
-  const toolsSet = {};
-
-  for (const item of tools.items) {
-    if (!item.name) continue;
-
-    const toolName = `${item.toolkit.name}.${item.name}`;
-
-    const formattedTool = await arcadeClient.tools.formatted.get(toolName, {
-      format: "openai",
-    });
-
-    toolsSet[formattedTool.function.name] = {
-      parameters: jsonSchema(formattedTool.function.parameters),
-      description: item.description,
-      execute: async (input) =>
-        await arcadeClient.tools.execute({
-          tool_name: toolName,
-          input,
-          user_id,
-        }),
-    };
-  }
-
-  return toolsSet;
-};
+    return tools.items.reduce((acc, item) => {
+        if (!item.function.name) return acc
+        acc[item.function.name] = {
+            parameters: jsonSchema(item.function.parameters),
+            description: item.description,
+            execute: async (input) =>
+                await arcadeClient.tools.execute({
+                    tool_name: item.function.name,
+                    input,
+                    user_id,
+                }),
+        }
+        return acc
+    }, {})
+}
 
 /**
  * Determines if the error indicates that user authorization is needed for the tool
@@ -50,11 +41,8 @@ export const getArcadeTools = async ({ toolkit, user_id }) => {
  * @returns {boolean} True if the error indicates authorization is required
  */
 export const isAuthorizationRequiredError = (error) => {
-  return (
-    error instanceof ToolExecutionError &&
-    error.cause instanceof PermissionDeniedError
-  );
-};
+    return error instanceof ToolExecutionError && error.cause instanceof PermissionDeniedError
+}
 
 /**
  * Gets the authorization response for a tool that requires authentication
@@ -63,11 +51,11 @@ export const isAuthorizationRequiredError = (error) => {
  * @returns {Promise<{url: string}>} The authorization response
  */
 export const getAuthorizationResponse = async (toolName, user_id) => {
-  return await arcadeClient.tools.authorize({
-    tool_name: toolName,
-    user_id,
-  });
-};
+    return await arcadeClient.tools.authorize({
+        tool_name: toolName,
+        user_id,
+    })
+}
 
 /**
  * Handles authorization errors by returning the authorization URL if needed, otherwise rethrows the error
@@ -76,10 +64,10 @@ export const getAuthorizationResponse = async (toolName, user_id) => {
  * @returns {Promise<string>} The authorization URL if needed, otherwise the error is rethrown
  */
 export const handleAuthorizationError = async (error, user_id) => {
-  if (isAuthorizationRequiredError(error)) {
-    const response = await getAuthorizationResponse(error.toolName, user_id);
-    return response.url;
-  }
+    if (isAuthorizationRequiredError(error)) {
+        const response = await getAuthorizationResponse(error.toolName, user_id)
+        return response.url
+    }
 
-  throw error;
-};
+    throw error
+}
