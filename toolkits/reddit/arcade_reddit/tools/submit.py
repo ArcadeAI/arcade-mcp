@@ -7,6 +7,7 @@ from arcade_reddit.client import RedditClient
 from arcade_reddit.utils import (
     create_fullname_for_comment,
     create_fullname_for_post,
+    normalize_subreddit_name,
     parse_api_comment_response,
     remove_none_values,
 )
@@ -37,6 +38,8 @@ async def submit_text_post(
     """Submit a text-based post to a subreddit"""
 
     client = RedditClient(context.get_auth_token_or_empty())
+
+    subreddit = normalize_subreddit_name(subreddit)
 
     params = {
         "api_type": "json",

@@ -11,6 +11,11 @@ def remove_none_values(data: dict) -> dict:
     return {k: v for k, v in data.items() if v is not None}
 
 
+def normalize_subreddit_name(subreddit: str) -> str:
+    """Normalize a subreddit name"""
+    return subreddit.lower().replace("r/", "").replace(" ", "")
+
+
 def _simplify_post_data(post_data: dict, include_body: bool = False) -> dict:
     simplified_data = {
         "id": post_data.get("id"),

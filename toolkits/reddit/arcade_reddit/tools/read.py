@@ -11,6 +11,7 @@ from arcade_reddit.enums import (
 from arcade_reddit.utils import (
     create_fullname_for_multiple_posts,
     create_path_for_post,
+    normalize_subreddit_name,
     parse_get_content_of_multiple_posts_response,
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
@@ -51,6 +52,7 @@ async def get_posts_in_subreddit(
         params["t"] = time_range.to_api_value()
 
     params = remove_none_values(params)
+    subreddit = normalize_subreddit_name(subreddit)
     data = await client.get(f"r/{subreddit}/{listing.value}", params=params)
     result = parse_get_posts_in_subreddit_response(data)
 
