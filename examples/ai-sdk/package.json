@@ -1,0 +1,19 @@
+{
+	"name": "arcade-ai-sdk",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"dev": "node --env-file=.env index.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"packageManager": "pnpm@10.6.5",
+	"dependencies": {
+		"@ai-sdk/openai": "^1.3.6",
+		"@arcadeai/arcadejs": "^1.2.1",
+		"ai": "^4.2.11"
+	}
+}
