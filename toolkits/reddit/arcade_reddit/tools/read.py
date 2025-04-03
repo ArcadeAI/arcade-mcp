@@ -84,7 +84,7 @@ async def get_content_of_multiple_posts(
         list[str],
         "A list of Reddit post identifiers. "
         "The identifiers may be reddit URLs to the posts, permalinks to the posts, "
-        "fullnames for the posts, or post ids.",
+        "fullnames for the posts, or post ids. Must be less than or equal to 100 identifiers.",
     ],
 ) -> Annotated[dict, "A dictionary containing the content of multiple Reddit posts"]:
     """Get the content (body) of multiple Reddit posts by their identifiers.

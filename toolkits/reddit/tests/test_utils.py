@@ -149,16 +149,20 @@ def test_parse_get_content_of_post_response_empty_and_malformed():
     # missing expected keys
     data = [{}]
     expected = {
-        "title": None,
-        "body": None,
-        "author": None,
-        "url": None,
-        "permalink": None,
         "id": None,
         "name": None,
-        "ups": None,
-        "upvote_ratio": None,
+        "title": None,
+        "author": None,
+        "subreddit": None,
+        "created_utc": None,
         "num_comments": None,
+        "score": None,
+        "upvote_ratio": None,
+        "upvotes": None,
+        "permalink": None,
+        "url": None,
+        "is_video": None,
+        "body": None,
     }
     result = parse_get_content_of_post_response(data)
     assert result == expected

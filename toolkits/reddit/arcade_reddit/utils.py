@@ -11,6 +11,27 @@ def remove_none_values(data: dict) -> dict:
     return {k: v for k, v in data.items() if v is not None}
 
 
+def _simplify_post_data(post_data: dict, include_body: bool = False) -> dict:
+    simplified_data = {
+        "id": post_data.get("id"),
+        "name": post_data.get("name"),
+        "title": post_data.get("title"),
+        "author": post_data.get("author"),
+        "subreddit": post_data.get("subreddit"),
+        "created_utc": post_data.get("created_utc"),
+        "num_comments": post_data.get("num_comments"),
+        "score": post_data.get("score"),
+        "upvote_ratio": post_data.get("upvote_ratio"),
+        "upvotes": post_data.get("ups"),
+        "permalink": post_data.get("permalink"),
+        "url": post_data.get("url"),
+        "is_video": post_data.get("is_video"),
+    }
+    if include_body:
+        simplified_data["body"] = post_data.get("selftext")
+    return simplified_data
+
+
 def parse_get_posts_in_subreddit_response(data: dict) -> dict:
     """Parse the response from the Reddit API for getting posts in a subreddit
 
@@ -21,47 +42,19 @@ def parse_get_posts_in_subreddit_response(data: dict) -> dict:
     https://www.reddit.com/dev/api/#GET_{sort}
 
     Args:
-        data: The response from the Reddit API deserialized as a dictionary
+        data: The response from the Reddit API deserialized as a dictionary.
+              NOTE: The response doesn't contain the body of the posts.
 
     Returns:
         A dictionary with a cursor for the next page and a list of posts
     """
     posts = []
     for child in data.get("data", {}).get("children", []):
-        d = child.get("data", {})
-        post = {
-            "id": d.get("id"),
-            "name": d.get("name"),
-            "title": d.get("title"),
-            "author": d.get("author"),
-            "subreddit": d.get("subreddit"),
-            "created_utc": d.get("created_utc"),
-            "num_comments": d.get("num_comments"),
-            "score": d.get("score"),
-            "upvote_ratio": d.get("upvote_ratio"),
-            "upvotes": d.get("ups"),
-            "permalink": d.get("permalink"),
-            "url": d.get("url"),
-            "is_video": d.get("is_video"),
-        }
+        post_data = child.get("data", {})
+        post = _simplify_post_data(post_data)
         posts.append(post)
     result = {"cursor": data.get("data", {}).get("after"), "posts": posts}
     return result
-
-
-def _simplify_post_data(post_data: dict) -> dict:
-    return {
-        "title": post_data.get("title"),
-        "body": post_data.get("selftext"),
-        "author": post_data.get("author"),
-        "url": post_data.get("url"),
-        "permalink": post_data.get("permalink"),
-        "id": post_data.get("id"),
-        "name": post_data.get("name"),
-        "ups": post_data.get("ups"),
-        "upvote_ratio": post_data.get("upvote_ratio"),
-        "num_comments": post_data.get("num_comments"),
-    }
 
 
 def parse_get_content_of_post_response(data: list) -> dict:
@@ -79,7 +72,7 @@ def parse_get_content_of_post_response(data: list) -> dict:
 
     try:
         post_data = data[0].get("data", {}).get("children", [{}])[0].get("data", {})
-        return _simplify_post_data(post_data)
+        return _simplify_post_data(post_data, include_body=True)
     except (IndexError, AttributeError, KeyError):
         return {}
 
@@ -100,7 +93,7 @@ def parse_get_content_of_multiple_posts_response(data: dict) -> dict:
     result = []
     for post in data.get("data", {}).get("children", []):
         post_data = post.get("data", {})
-        result.append(_simplify_post_data(post_data))
+        result.append(_simplify_post_data(post_data, include_body=True))
 
     return {"posts": result}
 
