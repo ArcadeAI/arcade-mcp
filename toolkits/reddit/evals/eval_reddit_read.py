@@ -14,8 +14,9 @@ from arcade_reddit.tools import (
     get_posts_in_subreddit,
     get_top_level_comments,
 )
+from arcade_reddit.tools.read import get_content_of_multiple_posts
 from evals.additional_messages import get_post_in_subreddit_messages
-from evals.any_of_critic import AnyOfCritic
+from evals.critics import AnyOfCritic, ListCritic
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -129,6 +130,59 @@ def reddit_get_content_of_post_eval_suite() -> EvalSuite:
             ),
         ],
         additional_messages=get_post_in_subreddit_messages,
+    )
+
+    return suite
+
+
+@tool_eval()
+def reddit_get_content_of_multiple_posts_eval_suite() -> EvalSuite:
+    suite = EvalSuite(
+        name="reddit_get_content_of_multiple_posts",
+        system_message=(
+            "You are an AI assistant with access to reddit tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="reddit_get_content_of_multiple_posts_1",
+        user_message=(
+            "Get the content of the posts t3_1abcdef, "
+            "https://www.reddit.com/r/AskReddit/comments/1jdfgk1vn/why_is_water_wet/, "
+            "t3_3abcdef, t3_4abcdef, and t3_5abcdef, t3_6abcdef, and t3_7abcdef, 4jfnsklf, "
+            "/r/AskReddit/comments/2dsghr/, and /r/AskReddit/comments/1jdfg35dvn/"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_content_of_multiple_posts,
+                args={
+                    "post_identifiers": [
+                        "t3_1abcdef",
+                        "https://www.reddit.com/r/AskReddit/comments/1jdfgk1vn/why_is_water_wet/",
+                        "t3_3abcdef",
+                        "t3_4abcdef",
+                        "t3_5abcdef",
+                        "t3_6abcdef",
+                        "t3_7abcdef",
+                        "4jfnsklf",
+                        "/r/AskReddit/comments/2dsghr/",
+                        "/r/AskReddit/comments/1jdfg35dvn/",
+                    ],
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            ListCritic(
+                critic_field="post_identifiers",
+                weight=1.0,
+                order_matters=False,
+                duplicates_matter=True,
+            ),
+        ],
     )
 
     return suite

@@ -13,7 +13,7 @@ from arcade_reddit.tools import (
 )
 from arcade_reddit.tools.submit import comment_on_post
 from evals.additional_messages import get_post_in_subreddit_messages
-from evals.any_of_critic import AnyOfCritic
+from evals.critics import AnyOfCritic
 
 # Evaluation rubric
 rubric = EvalRubric(

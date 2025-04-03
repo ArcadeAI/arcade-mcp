@@ -49,6 +49,21 @@ def parse_get_posts_in_subreddit_response(data: dict) -> dict:
     return result
 
 
+def _simplify_post_data(post_data: dict) -> dict:
+    return {
+        "title": post_data.get("title"),
+        "body": post_data.get("selftext"),
+        "author": post_data.get("author"),
+        "url": post_data.get("url"),
+        "permalink": post_data.get("permalink"),
+        "id": post_data.get("id"),
+        "name": post_data.get("name"),
+        "ups": post_data.get("ups"),
+        "upvote_ratio": post_data.get("upvote_ratio"),
+        "num_comments": post_data.get("num_comments"),
+    }
+
+
 def parse_get_content_of_post_response(data: list) -> dict:
     """Parse the json representation of a Reddit post to get the content of a post
 
@@ -64,17 +79,30 @@ def parse_get_content_of_post_response(data: list) -> dict:
 
     try:
         post_data = data[0].get("data", {}).get("children", [{}])[0].get("data", {})
-        return {
-            "title": post_data.get("title"),
-            "body": post_data.get("selftext"),
-            "author": post_data.get("author"),
-            "url": post_data.get("url"),
-            "permalink": post_data.get("permalink"),
-            "id": post_data.get("id"),
-            "name": post_data.get("name"),
-        }
+        return _simplify_post_data(post_data)
     except (IndexError, AttributeError, KeyError):
         return {}
+
+
+def parse_get_content_of_multiple_posts_response(data: dict) -> dict:
+    """Parse the json representation of multiple Reddit posts to get the content of each post
+
+    Args:
+        data: The json representation of multiple Reddit posts
+              (retrieved from the /api/info.json endpoint)
+
+    Returns:
+        A dictionary with the simplified content of each post
+    """
+    if not data or not isinstance(data, dict) or len(data) == 0:
+        return {"posts": []}
+
+    result = []
+    for post in data.get("data", {}).get("children", []):
+        post_data = post.get("data", {})
+        result.append(_simplify_post_data(post_data))
+
+    return {"posts": result}
 
 
 def parse_get_top_level_comments_response(data: list) -> dict:
@@ -305,6 +333,30 @@ def create_fullname_for_post(identifier: str) -> str:
         return identifier
     post_id = _get_post_id(identifier)
     return f"t3_{post_id}"
+
+
+def create_fullname_for_multiple_posts(post_identifiers: list[str]) -> tuple[list[str], list[dict]]:
+    """
+    Create fullnames for multiple Reddit posts.
+
+    Args:
+        post_identifiers: A list of Reddit post identifiers. The identifiers may be
+        reddit URLs, permalinks, fullnames, or post ids.
+
+    Returns:
+        (fullnames, warnings): A tuple of a list of fullnames for the posts and
+        a list of warnings if any of the identifiers are invalid.
+    """
+    fullnames = []
+    warnings = []
+    for identifier in post_identifiers:
+        try:
+            fullnames.append(create_fullname_for_post(identifier))
+        except ToolExecutionError:
+            message = f"'{identifier}' is not a valid Reddit post identifier."
+            warnings.append({"message": message, "identifier": identifier})
+
+    return fullnames, warnings
 
 
 def create_fullname_for_comment(identifier: str) -> str:

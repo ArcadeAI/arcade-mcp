@@ -21,8 +21,15 @@ async def submit_text_post(
         Optional[str],
         "The body of the post in markdown format. Should never be the same as the title",
     ] = None,
-    nsfw: Annotated[Optional[bool], "Indicates if the submission is NSFW"] = False,
-    spoiler: Annotated[Optional[bool], "Indicates if the post is marked as a spoiler"] = False,
+    nsfw: Annotated[
+        Optional[bool],
+        "Indicates if the submission has content that is 'Not Safe For Work' (NSFW). "
+        "Default is False",
+    ] = False,
+    spoiler: Annotated[
+        Optional[bool],
+        "Indicates if the post is marked as a spoiler. Default is False",
+    ] = False,
     send_replies: Annotated[
         Optional[bool], "If true, sends replies to the user's inbox. Default is True"
     ] = True,

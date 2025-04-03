@@ -9,7 +9,9 @@ from arcade_reddit.enums import (
     SubredditListingType,
 )
 from arcade_reddit.utils import (
+    create_fullname_for_multiple_posts,
     create_path_for_post,
+    parse_get_content_of_multiple_posts_response,
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
     parse_get_top_level_comments_response,
@@ -61,7 +63,8 @@ async def get_content_of_post(
     post_identifier: Annotated[
         str,
         "The identifier of the Reddit post. "
-        "The identifier may be a reddit URL, a permalink, a fullname, or a post id.",
+        "The identifier may be a reddit URL to the post, a permalink to the post, "
+        "a fullname for the post, or a post id.",
     ],
 ) -> Annotated[dict, "The content (body) of the Reddit post"]:
     """Get the content (body) of a Reddit post by its identifier."""
@@ -70,6 +73,33 @@ async def get_content_of_post(
     path = create_path_for_post(post_identifier)
     data = await client.get(f"{path}.json")
     result = parse_get_content_of_post_response(data)
+
+    return result
+
+
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def get_content_of_multiple_posts(
+    context: ToolContext,
+    post_identifiers: Annotated[
+        list[str],
+        "A list of Reddit post identifiers. "
+        "The identifiers may be reddit URLs to the posts, permalinks to the posts, "
+        "fullnames for the posts, or post ids.",
+    ],
+) -> Annotated[dict, "A dictionary containing the content of multiple Reddit posts"]:
+    """Get the content (body) of multiple Reddit posts by their identifiers.
+
+    Efficiently retrieve the content of multiple posts in a single request.
+    Always use this tool to retrieve more than one post's content.
+    """
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    fullnames, warnings = create_fullname_for_multiple_posts(post_identifiers)
+
+    data = await client.get("api/info.json", params={"id": ",".join(fullnames)})
+
+    result = parse_get_content_of_multiple_posts_response(data)
+    result["warnings"] = warnings
 
     return result
 

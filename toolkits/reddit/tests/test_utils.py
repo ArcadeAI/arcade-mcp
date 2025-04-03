@@ -3,8 +3,10 @@ from arcade.sdk.errors import ToolExecutionError
 
 from arcade_reddit.utils import (
     create_fullname_for_comment,
+    create_fullname_for_multiple_posts,
     create_fullname_for_post,
     create_path_for_post,
+    parse_get_content_of_multiple_posts_response,
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
     parse_get_top_level_comments_response,
@@ -87,6 +89,47 @@ def test_create_fullname_for_post(identifier, expected):
             create_fullname_for_post(identifier)
 
 
+@pytest.mark.parametrize(
+    "identifiers, expected_fullnames, expected_warnings",
+    [
+        ([], [], []),
+        (
+            ["t3_1234abc", "https://www.reddit.com/r/test/comments/1234abc/"],
+            ["t3_1234abc", "t3_1234abc"],
+            [],
+        ),
+        (
+            ["t3_1234abc", "not-a-valid-identifier"],
+            ["t3_1234abc"],
+            [
+                {
+                    "message": "'not-a-valid-identifier' is not a valid Reddit post identifier.",
+                    "identifier": "not-a-valid-identifier",
+                }
+            ],
+        ),
+        (
+            ["inv@lid", "not-a-valid-identifier"],
+            [],
+            [
+                {
+                    "message": "'inv@lid' is not a valid Reddit post identifier.",
+                    "identifier": "inv@lid",
+                },
+                {
+                    "message": "'not-a-valid-identifier' is not a valid Reddit post identifier.",
+                    "identifier": "not-a-valid-identifier",
+                },
+            ],
+        ),
+    ],
+)
+def test_create_fullname_for_multiple_posts(identifiers, expected_fullnames, expected_warnings):
+    actual_fullnames, actual_warnings = create_fullname_for_multiple_posts(identifiers)
+    assert actual_fullnames == expected_fullnames
+    assert actual_warnings == expected_warnings
+
+
 def test_parse_get_posts_in_subreddit_response_empty():
     data = {}
     expected = {"cursor": None, "posts": []}
@@ -113,8 +156,27 @@ def test_parse_get_content_of_post_response_empty_and_malformed():
         "permalink": None,
         "id": None,
         "name": None,
+        "ups": None,
+        "upvote_ratio": None,
+        "num_comments": None,
     }
     result = parse_get_content_of_post_response(data)
+    assert result == expected
+
+
+def test_parse_get_content_of_multiple_posts_response_empty_and_malformed():
+    expected = {"posts": []}
+
+    data = {}
+    result = parse_get_content_of_multiple_posts_response(data)
+    assert result == expected
+
+    data = None
+    result = parse_get_content_of_multiple_posts_response(data)
+    assert result == expected
+
+    data = [{}]
+    result = parse_get_content_of_multiple_posts_response(data)
     assert result == expected
 
 
