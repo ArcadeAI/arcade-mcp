@@ -20,10 +20,10 @@ class DateRange(Enum):
 
     def to_datetime_range(
         self,
-        start_time: Optional[time] = None,
-        end_time: Optional[time] = None,
-        time_zone: Optional[ZoneInfo] = None,
-        today: Optional[date] = None,
+        start_time: time | None = None,
+        end_time: time | None = None,
+        time_zone: ZoneInfo | None = None,
+        today: date | None = None,
     ) -> tuple[datetime, datetime]:
         """
         Convert a DateRange enum value to a tuple with two datetime objects representing the start
@@ -427,10 +427,10 @@ class CellExtendedValue(BaseModel):
     Implementation of https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#ExtendedValue
     """
 
-    numberValue: Optional[float] = None
-    stringValue: Optional[str] = None
-    boolValue: Optional[bool] = None
-    formulaValue: Optional[str] = None
+    numberValue: float | None = None
+    stringValue: str | None = None
+    boolValue: bool | None = None
+    formulaValue: str | None = None
     errorValue: Optional["CellErrorValue"] = None
 
     @model_validator(mode="after")
@@ -476,7 +476,7 @@ class CellData(BaseModel):
     """
 
     userEnteredValue: CellExtendedValue
-    userEnteredFormat: Optional[CellFormat] = None
+    userEnteredFormat: CellFormat | None = None
 
 
 class RowData(BaseModel):
@@ -517,7 +517,7 @@ class SheetProperties(BaseModel):
 
     sheetId: int
     title: str
-    gridProperties: Optional[GridProperties] = None
+    gridProperties: GridProperties | None = None
 
 
 class Sheet(BaseModel):
@@ -527,7 +527,7 @@ class Sheet(BaseModel):
     """
 
     properties: SheetProperties
-    data: Optional[list[GridData]] = None
+    data: list[GridData] | None = None
 
 
 class SpreadsheetProperties(BaseModel):
@@ -612,7 +612,7 @@ class SheetDataInput(BaseModel):
             col_string = col_key.upper()
             if not col_string.isalpha():
                 raise TypeError(f"Column key '{col_key}' is invalid. Must be alphabetic.")
-            if not isinstance(cell_value, (int, float, str, bool)):
+            if not isinstance(cell_value, int | float | str | bool):
                 raise TypeError(
                     f"Cell value for {col_string}{row_int} must be an int, float, str, or bool."
                 )

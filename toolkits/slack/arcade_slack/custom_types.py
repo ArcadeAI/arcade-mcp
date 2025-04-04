@@ -1,8 +1,8 @@
-from typing import NewType, Optional, Union
+from typing import NewType
 
 
 class PositiveInt(int):
-    def __new__(cls, value: Union[str, int], name: str = "value") -> "PositiveInt":
+    def __new__(cls, value: str | int, name: str = "value") -> "PositiveInt":
         def validate(val: int) -> int:
             if val <= 0:
                 raise ValueError(f"{name} must be positive, got {val}")
@@ -19,7 +19,7 @@ class PositiveInt(int):
 
 
 SlackOffsetSecondsFromUTC = NewType("SlackOffsetSecondsFromUTC", int)  # observe it can be negative
-SlackPaginationNextCursor = Optional[str]
+SlackPaginationNextCursor = str | None
 SlackUserFieldId = NewType("SlackUserFieldId", str)
 SlackUserId = NewType("SlackUserId", str)
 SlackTeamId = NewType("SlackTeamId", str)

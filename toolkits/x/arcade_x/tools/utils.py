@@ -38,7 +38,9 @@ def parse_search_recent_tweets_response(response_data: dict[str, Any]) -> dict[s
         tweet["tweet_url"] = get_tweet_url(tweet["id"])
 
     # Add 'author_username' and 'author_name' to each tweet
-    for tweet_data, user_data in zip(response_data["data"], response_data["includes"]["users"]):
+    for tweet_data, user_data in zip(
+        response_data["data"], response_data["includes"]["users"], strict=False
+    ):
         tweet_data["author_username"] = user_data["username"]
         tweet_data["author_name"] = user_data["name"]
 
