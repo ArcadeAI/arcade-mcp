@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
@@ -27,7 +27,7 @@ async def get_file_tree_structure(
         bool, "Whether to include shared drives in the file tree structure. Defaults to False."
     ] = False,
     restrict_to_shared_drive_id: Annotated[
-        Optional[str],
+        str | None,
         "If provided, only include files from this shared drive in the file tree structure. "
         "Defaults to None, which will include files and folders from all drives.",
     ] = None,
@@ -38,11 +38,11 @@ async def get_file_tree_structure(
         "account. Defaults to False.",
     ] = False,
     order_by: Annotated[
-        Optional[list[OrderBy]],
+        list[OrderBy] | None,
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = None,
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The number of files and folders to list. Defaults to None, "
         "which will list all files and folders.",
     ] = None,
@@ -121,17 +121,17 @@ async def get_file_tree_structure(
 async def search_documents(
     context: ToolContext,
     document_contains: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         "Keywords or phrases that must be in the document title or body. Provide a list of "
         "keywords or phrases if needed.",
     ] = None,
     document_not_contains: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
         "keywords or phrases if needed.",
     ] = None,
     search_only_in_shared_drive_id: Annotated[
-        Optional[str],
+        str | None,
         "The ID of the shared drive to restrict the search to. If provided, the search will only "
         "return documents from this drive. Defaults to None, which searches across all drives.",
     ] = None,
@@ -147,12 +147,12 @@ async def search_documents(
         "account. Defaults to False.",
     ] = False,
     order_by: Annotated[
-        Optional[list[OrderBy]],
+        list[OrderBy] | None,
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = None,
     limit: Annotated[int, "The number of documents to list"] = 50,
     pagination_token: Annotated[
-        Optional[str], "The pagination token to continue a previous request"
+        str | None, "The pagination token to continue a previous request"
     ] = None,
 ) -> Annotated[
     dict,
@@ -215,17 +215,17 @@ async def search_and_retrieve_documents(
         "The format of the document to return. Defaults to Markdown.",
     ] = DocumentFormat.MARKDOWN,
     document_contains: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         "Keywords or phrases that must be in the document title or body. Provide a list of "
         "keywords or phrases if needed.",
     ] = None,
     document_not_contains: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         "Keywords or phrases that must NOT be in the document title or body. Provide a list of "
         "keywords or phrases if needed.",
     ] = None,
     search_only_in_shared_drive_id: Annotated[
-        Optional[str],
+        str | None,
         "The ID of the shared drive to restrict the search to. If provided, the search will only "
         "return documents from this drive. Defaults to None, which searches across all drives.",
     ] = None,
@@ -241,12 +241,12 @@ async def search_and_retrieve_documents(
         "account. Defaults to False.",
     ] = False,
     order_by: Annotated[
-        Optional[list[OrderBy]],
+        list[OrderBy] | None,
         "Sort order. Defaults to listing the most recently modified documents first",
     ] = None,
     limit: Annotated[int, "The number of documents to list"] = 50,
     pagination_token: Annotated[
-        Optional[str], "The pagination token to continue a previous request"
+        str | None, "The pagination token to continue a previous request"
     ] = None,
 ) -> Annotated[
     dict,

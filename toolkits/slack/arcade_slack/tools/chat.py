@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Annotated, Optional, cast
+from typing import Annotated, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
@@ -149,8 +149,8 @@ async def send_message_to_channel(
 async def get_members_in_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get members for"],
-    limit: Annotated[Optional[int], "The maximum number of members to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of members to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID."""
     token = (
@@ -209,8 +209,8 @@ async def get_members_in_conversation_by_id(
 async def get_members_in_channel_by_name(
     context: ToolContext,
     channel_name: Annotated[str, "The name of the channel to get members for"],
-    limit: Annotated[Optional[int], "The maximum number of members to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of members to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The channel members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name."""
     channel = await get_channel_metadata_by_name(context=context, channel_name=channel_name)
@@ -235,35 +235,35 @@ async def get_messages_in_conversation_by_id(
     context: ToolContext,
     conversation_id: Annotated[str, "The ID of the conversation to get history for"],
     oldest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     latest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     oldest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
     latest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of messages to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -367,35 +367,35 @@ async def get_messages_in_channel_by_name(
     context: ToolContext,
     channel_name: Annotated[str, "The name of the channel"],
     oldest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     latest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     oldest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
     latest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of messages to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -438,35 +438,35 @@ async def get_messages_in_direct_message_conversation_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the user to get messages from"],
     oldest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     latest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     oldest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
     latest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of messages to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -511,35 +511,35 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users to get messages from"],
     oldest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     latest_relative: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a time offset from the "
             "current time in the format 'DD:HH:MM'"
         ),
     ] = None,
     oldest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The oldest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
     latest_datetime: Annotated[
-        Optional[str],
+        str | None,
         (
             "The latest message to include in the results, specified as a datetime object in the "
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[Optional[int], "The maximum number of messages to return."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of messages to return."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -629,7 +629,7 @@ async def get_channel_metadata_by_name(
     context: ToolContext,
     channel_name: Annotated[str, "The name of the channel to get metadata for"],
     next_cursor: Annotated[
-        Optional[str],
+        str | None,
         "The cursor to use for pagination, if continuing from a previous search.",
     ] = None,
 ) -> Annotated[dict, "The channel metadata"]:
@@ -698,11 +698,11 @@ async def get_direct_message_conversation_metadata_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the user/person to get messages with"],
     next_cursor: Annotated[
-        Optional[str],
+        str | None,
         "The cursor to use for pagination, if continuing from a previous search.",
     ] = None,
 ) -> Annotated[
-    Optional[dict],
+    dict | None,
     "The direct message conversation metadata.",
 ]:
     """Get the metadata of a direct message conversation in Slack by the username.
@@ -750,11 +750,11 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users/people to get messages with"],
     next_cursor: Annotated[
-        Optional[str],
+        str | None,
         "The cursor to use for pagination, if continuing from a previous search.",
     ] = None,
 ) -> Annotated[
-    Optional[dict],
+    dict | None,
     "The multi-person direct message conversation metadata.",
 ]:
     """Get the metadata of a multi-person direct message conversation in Slack by the usernames.
@@ -818,11 +818,11 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
 async def list_conversations_metadata(
     context: ToolContext,
     conversation_types: Annotated[
-        Optional[list[ConversationType]],
+        list[ConversationType] | None,
         "The type(s) of conversations to list. Defaults to all types.",
     ] = None,
-    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
-    next_cursor: Annotated[Optional[str], "The cursor to use for pagination."] = None,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
     (
@@ -873,7 +873,7 @@ async def list_conversations_metadata(
 )
 async def list_public_channels_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
+    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The public channels"]:
     """List metadata for public channels in Slack that the user is a member of."""
 
@@ -891,7 +891,7 @@ async def list_public_channels_metadata(
 )
 async def list_private_channels_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of channels to list."] = None,
+    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
 ) -> Annotated[dict, "The private channels"]:
     """List metadata for private channels in Slack that the user is a member of."""
 
@@ -909,7 +909,7 @@ async def list_private_channels_metadata(
 )
 async def list_group_direct_message_conversations_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
 ) -> Annotated[dict, "The group direct message conversations metadata"]:
     """List metadata for group direct message conversations that the user is a member of."""
 
@@ -929,7 +929,7 @@ async def list_group_direct_message_conversations_metadata(
 )
 async def list_direct_message_conversations_metadata(
     context: ToolContext,
-    limit: Annotated[Optional[int], "The maximum number of conversations to list."] = None,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
 ) -> Annotated[dict, "The direct message conversations metadata"]:
     """List metadata for direct message conversations in Slack that the user is a member of."""
 

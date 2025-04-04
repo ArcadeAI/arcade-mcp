@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 
@@ -13,18 +13,18 @@ async def search_hotels(
     check_in_date: Annotated[str, "Check-in date in YYYY-MM-DD format"],
     check_out_date: Annotated[str, "Check-out date in YYYY-MM-DD format"],
     query: Annotated[
-        Optional[str], "Anything that would be used in a regular Google Hotels search"
+        str | None, "Anything that would be used in a regular Google Hotels search"
     ] = None,
-    currency: Annotated[Optional[str], "Currency code for prices. Defaults to 'USD'"] = "USD",
-    min_price: Annotated[Optional[int], "Minimum price per night. Defaults to no minimum"] = None,
-    max_price: Annotated[Optional[int], "Maximum price per night. Defaults to no maximum"] = None,
-    num_adults: Annotated[Optional[int], "Number of adults per room. Defaults to 2"] = 2,
-    num_children: Annotated[Optional[int], "Number of children per room. Defaults to 0"] = 0,
+    currency: Annotated[str | None, "Currency code for prices. Defaults to 'USD'"] = "USD",
+    min_price: Annotated[int | None, "Minimum price per night. Defaults to no minimum"] = None,
+    max_price: Annotated[int | None, "Maximum price per night. Defaults to no maximum"] = None,
+    num_adults: Annotated[int | None, "Number of adults per room. Defaults to 2"] = 2,
+    num_children: Annotated[int | None, "Number of children per room. Defaults to 0"] = 0,
     sort_by: Annotated[
         GoogleHotelsSortBy, "The sorting order of the results. Defaults to RELEVANCE"
     ] = GoogleHotelsSortBy.RELEVANCE,
     num_results: Annotated[
-        Optional[int], "Maximum number of results to return. Defaults to 5. Max 20"
+        int | None, "Maximum number of results to return. Defaults to 5. Max 20"
     ] = 5,
 ) -> Annotated[dict[str, Any], "Hotel search results from the Google Hotels API"]:
     """Retrieve hotel search results using the Google Hotels API."""

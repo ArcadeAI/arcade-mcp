@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Reddit
@@ -19,20 +19,20 @@ async def submit_text_post(
     subreddit: Annotated[str, "The name of the subreddit to which the post will be submitted"],
     title: Annotated[str, "The title of the submission"],
     body: Annotated[
-        Optional[str],
+        str | None,
         "The body of the post in markdown format. Should never be the same as the title",
     ] = None,
     nsfw: Annotated[
-        Optional[bool],
+        bool | None,
         "Indicates if the submission has content that is 'Not Safe For Work' (NSFW). "
         "Default is False",
     ] = False,
     spoiler: Annotated[
-        Optional[bool],
+        bool | None,
         "Indicates if the post is marked as a spoiler. Default is False",
     ] = False,
     send_replies: Annotated[
-        Optional[bool], "If true, sends replies to the user's inbox. Default is True"
+        bool | None, "If true, sends replies to the user's inbox. Default is True"
     ] = True,
 ) -> Annotated[dict, "Response from Reddit after submission"]:
     """Submit a text-based post to a subreddit"""

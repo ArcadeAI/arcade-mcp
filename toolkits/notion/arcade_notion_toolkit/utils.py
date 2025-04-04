@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from arcade.sdk import ToolContext
@@ -118,8 +118,8 @@ async def get_next_page(
     client: httpx.AsyncClient,
     url: str,
     headers: dict,
-    params: Optional[dict] = None,
-    cursor: Optional[str] = None,
+    params: dict | None = None,
+    cursor: str | None = None,
 ) -> tuple[dict, bool, str]:
     """
     Retrieves the next page of results from a Notion API endpoint.
@@ -129,8 +129,8 @@ async def get_next_page(
         client (httpx.AsyncClient): The HTTP client to use for the request.
         url (str): The URL of the endpoint to request.
         headers (dict): The headers to use for the request.
-        params (Optional[dict]): The parameters to use for the request.
-        cursor (Optional[str]): The cursor to use for the request.
+        params (dict | None): The parameters to use for the request.
+        cursor (str | None): The cursor to use for the request.
 
     Returns:
         tuple[dict, bool, str]: A tuple containing the results, a boolean indicating if there is a

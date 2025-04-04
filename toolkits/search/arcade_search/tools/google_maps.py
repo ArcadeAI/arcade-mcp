@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 
@@ -27,7 +27,7 @@ async def get_directions_between_addresses(
         f"Defaults to '{DEFAULT_GOOGLE_MAPS_LANGUAGE}'.",
     ] = DEFAULT_GOOGLE_MAPS_LANGUAGE,
     country: Annotated[
-        Optional[str],
+        str | None,
         "2-character country code to use in the Google Maps search. "
         f"Defaults to '{DEFAULT_GOOGLE_MAPS_COUNTRY}'.",
     ] = DEFAULT_GOOGLE_MAPS_COUNTRY,
@@ -69,7 +69,7 @@ async def get_directions_between_coordinates(
         f"Defaults to '{DEFAULT_GOOGLE_MAPS_LANGUAGE}'.",
     ] = DEFAULT_GOOGLE_MAPS_LANGUAGE,
     country: Annotated[
-        Optional[str],
+        str | None,
         f"2-letter country code to use in the Google Maps search. Defaults to "
         f"'{DEFAULT_GOOGLE_MAPS_COUNTRY}'.",
     ] = DEFAULT_GOOGLE_MAPS_COUNTRY,

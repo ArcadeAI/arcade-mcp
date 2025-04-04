@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional
 
 
 # ------------------------------------------------------------------------------------------------
@@ -138,7 +137,7 @@ class WalmartSortBy(Enum):
     RATING_HIGH = "highest_rating_first"
     NEW_ARRIVALS = "new_arrivals_first"
 
-    def to_api_value(self: "WalmartSortBy") -> Optional[str]:
+    def to_api_value(self: "WalmartSortBy") -> str | None:
         _map = {
             str(self.RELEVANCE): None,
             str(self.PRICE_LOW_TO_HIGH): "price_low",

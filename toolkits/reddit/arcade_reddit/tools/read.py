@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Reddit
@@ -33,7 +33,7 @@ async def get_posts_in_subreddit(
         ),
     ] = SubredditListingType.HOT,
     limit: Annotated[int, "The maximum number of posts to fetch. Default is 10, max is 100."] = 10,
-    cursor: Annotated[Optional[str], "The pagination token from a previous call"] = None,
+    cursor: Annotated[str | None, "The pagination token from a previous call"] = None,
     time_range: Annotated[
         RedditTimeFilter,
         "The time range for filtering posts. Must be provided if the listing type is "

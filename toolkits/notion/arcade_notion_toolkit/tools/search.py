@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -19,12 +19,12 @@ from arcade_notion_toolkit.utils import (
 async def search_by_title(
     context: ToolContext,
     query: Annotated[
-        Optional[str],
+        str | None,
         "A substring to search for within page and database titles. "
         "If not provided (default), all pages and/or databases are returned.",
     ] = None,
     select: Annotated[
-        Optional[ObjectType],
+        ObjectType | None,
         "Limit the results to either only pages or only databases. Defaults to both.",
     ] = None,
     order_by: Annotated[
@@ -87,11 +87,11 @@ async def search_by_title(
 async def get_object_metadata(
     context: ToolContext,
     object_title: Annotated[
-        Optional[str], "Title of the page or database whose metadata to get"
+        str | None, "Title of the page or database whose metadata to get"
     ] = None,
-    object_id: Annotated[Optional[str], "ID of the page or database whose metadata to get"] = None,
+    object_id: Annotated[str | None, "ID of the page or database whose metadata to get"] = None,
     object_type: Annotated[
-        Optional[ObjectType],
+        ObjectType | None,
         "The type of object to match title to. Only used if `object_title` is provided. "
         "Defaults to both",
     ] = None,

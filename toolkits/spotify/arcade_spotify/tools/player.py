@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -20,10 +20,10 @@ from arcade_spotify.tools.utils import (
 async def adjust_playback_position(
     context: ToolContext,
     absolute_position_ms: Annotated[
-        Optional[int], "The absolute position in milliseconds to seek to"
+        int | None, "The absolute position in milliseconds to seek to"
     ] = None,
     relative_position_ms: Annotated[
-        Optional[int],
+        int | None,
         "The relative position from the current playback position in milliseconds to seek to",
     ] = None,
 ) -> Annotated[str, "Success/failure message"]:
@@ -173,7 +173,7 @@ async def start_tracks_playback_by_id(
         "A list of Spotify track (song) IDs to play. Order of execution is not guarenteed.",
     ],
     position_ms: Annotated[
-        Optional[int],
+        int | None,
         "The position in milliseconds to start the first track from",
     ] = 0,
 ) -> Annotated[str, "Success/failure message"]:
@@ -270,7 +270,7 @@ async def play_artist_by_name(
 async def play_track_by_name(
     context: ToolContext,
     track_name: Annotated[str, "The name of the track to play"],
-    artist_name: Annotated[Optional[str], "The name of the artist of the track"] = None,
+    artist_name: Annotated[str | None, "The name of the artist of the track"] = None,
 ) -> Annotated[str, "Success/failure message"]:
     """Plays a song by name"""
     q = f"track:{track_name}"

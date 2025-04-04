@@ -1,6 +1,7 @@
 import asyncio
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from typing import Any
 
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError
@@ -137,7 +138,7 @@ def extract_conversation_metadata(conversation: SlackConversation) -> Conversati
     """
     conversation_type = get_slack_conversation_type_as_str(conversation)
 
-    purpose: Optional[SlackConversationPurpose] = conversation.get("purpose")
+    purpose: SlackConversationPurpose | None = conversation.get("purpose")
     purpose_value = "" if not purpose else purpose.get("value", "")
 
     metadata = ConversationMetadata(
@@ -219,8 +220,8 @@ async def retrieve_conversations_by_user_ids(
     conversation_types: list[ConversationType],
     user_ids: list[str],
     exact_match: bool = False,
-    limit: Optional[int] = None,
-    next_cursor: Optional[str] = None,
+    limit: int | None = None,
+    next_cursor: str | None = None,
 ) -> list[dict]:
     """
     Retrieve conversations filtered by the given user IDs. Includes pagination support
@@ -312,13 +313,13 @@ def is_user_deleted(user: SlackUser) -> bool:
 
 async def async_paginate(
     func: Callable,
-    response_key: Optional[str] = None,
-    limit: Optional[int] = None,
-    next_cursor: Optional[SlackPaginationNextCursor] = None,
+    response_key: str | None = None,
+    limit: int | None = None,
+    next_cursor: SlackPaginationNextCursor | None = None,
     max_pagination_timeout_seconds: int = MAX_PAGINATION_TIMEOUT_SECONDS,
     *args: Any,
     **kwargs: Any,
-) -> tuple[list, Optional[SlackPaginationNextCursor]]:
+) -> tuple[list, SlackPaginationNextCursor | None]:
     """Paginate a Slack AsyncWebClient's method results.
 
     The purpose is to abstract the pagination work and make it easier for the LLM to retrieve the
@@ -425,7 +426,7 @@ def convert_datetime_to_unix_timestamp(datetime_str: str) -> int:
 
 def convert_relative_datetime_to_unix_timestamp(
     relative_datetime: str,
-    current_unix_timestamp: Optional[int] = None,
+    current_unix_timestamp: int | None = None,
 ) -> int:
     """Convert a relative datetime string in the format 'DD:HH:MM' to unix timestamp.
 

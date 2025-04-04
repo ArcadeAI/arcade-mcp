@@ -5,7 +5,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from enum import Enum
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 from arcade.sdk import ToolContext
@@ -114,15 +114,15 @@ def build_email_message(
     recipient: str,
     subject: str,
     body: str,
-    cc: Optional[list[str]] = None,
-    bcc: Optional[list[str]] = None,
-    replying_to: Optional[dict[str, Any]] = None,
+    cc: list[str] | None = None,
+    bcc: list[str] | None = None,
+    replying_to: dict[str, Any] | None = None,
     action: GmailAction = GmailAction.SEND,
 ) -> dict[str, Any]:
     if replying_to:
         body = build_reply_body(body, replying_to)
 
-    message: Union[EmailMessage, MIMEText]
+    message: EmailMessage | MIMEText
 
     if action == GmailAction.SEND:
         message = EmailMessage()
@@ -183,10 +183,10 @@ def parse_plain_text_email(email_data: dict[str, Any]) -> dict[str, Any]:
     Only returns the plain text body.
 
     Args:
-        email_data (Dict[str, Any]): Raw email data from Gmail API.
+        email_data (dict[str, Any]): Raw email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, str]]: Parsed email details or None if parsing fails.
+        dict[str, str]: Parsed email details
     """
     payload = email_data.get("payload", {})
     headers = {d["name"].lower(): d["value"] for d in payload.get("headers", [])}
@@ -223,7 +223,7 @@ def parse_multipart_email(email_data: dict[str, Any]) -> dict[str, Any]:
         email_data (Dict[str, Any]): Raw email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, Any]]: Parsed email details or None if parsing fails.
+        dict[str, Any]: Parsed email details
     """
 
     payload = email_data.get("payload", {})
@@ -263,7 +263,7 @@ def parse_draft_email(draft_email_data: dict[str, Any]) -> dict[str, str]:
         draft_email_data (Dict[str, Any]): Raw draft email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, str]]: Parsed draft email details or None if parsing fails.
+        dict[str, str]: Parsed draft email details
     """
     message = draft_email_data.get("message", {})
     payload = message.get("payload", {})
@@ -342,7 +342,7 @@ def _build_gmail_service(context: ToolContext) -> Any:
     return build("gmail", "v1", credentials=credentials)
 
 
-def _extract_plain_body(parts: list) -> Optional[str]:
+def _extract_plain_body(parts: list) -> str | None:
     """
     Recursively extract the email body from parts, handling both plain text and HTML.
 
@@ -350,7 +350,7 @@ def _extract_plain_body(parts: list) -> Optional[str]:
         parts (List[Dict[str, Any]]): List of email parts.
 
     Returns:
-        Optional[str]: Decoded and cleaned email body or None if not found.
+        str | None: Decoded and cleaned email body or None if not found.
     """
     for part in parts:
         mime_type = part.get("mimeType")
@@ -367,7 +367,7 @@ def _extract_plain_body(parts: list) -> Optional[str]:
     return _extract_html_body(parts)
 
 
-def _extract_html_body(parts: list) -> Optional[str]:
+def _extract_html_body(parts: list) -> str | None:
     """
     Recursively extract the email body from parts, handling only HTML.
 
@@ -375,7 +375,7 @@ def _extract_html_body(parts: list) -> Optional[str]:
         parts (List[Dict[str, Any]]): List of email parts.
 
     Returns:
-        Optional[str]: Decoded and cleaned email body or None if not found.
+        str | None: Decoded and cleaned email body or None if not found.
     """
     for part in parts:
         mime_type = part.get("mimeType")
@@ -393,7 +393,7 @@ def _extract_html_body(parts: list) -> Optional[str]:
     return None
 
 
-def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
+def _get_email_images(payload: dict[str, Any]) -> list[str] | None:
     """
     Extract the email images from an email payload.
 
@@ -401,7 +401,7 @@ def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[List[str]]: List of decoded image contents or None if none found.
+        list[str] | None: List of decoded image contents or None if none found.
     """
     images = []
     for part in payload.get("parts", []):
@@ -423,7 +423,7 @@ def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
     return None
 
 
-def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
+def _get_email_plain_text_body(payload: dict[str, Any]) -> str | None:
     """
     Extract email body from payload, handling 'multipart/alternative' parts.
 
@@ -431,7 +431,7 @@ def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[str]: Decoded email body or None if not found.
+        str | None: Decoded email body or None if not found.
     """
     # Direct body extraction
     if "body" in payload and payload["body"].get("data"):
@@ -441,7 +441,7 @@ def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
     return _clean_email_body(_extract_plain_body(payload.get("parts", [])))
 
 
-def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
+def _get_email_html_body(payload: dict[str, Any]) -> str | None:
     """
     Extract email html body from payload, handling 'multipart/alternative' parts.
 
@@ -449,7 +449,7 @@ def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[str]: Decoded email body or None if not found.
+        str | None: Decoded email body or None if not found.
     """
     # Direct body extraction
     if "body" in payload and payload["body"].get("data"):
@@ -459,7 +459,7 @@ def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
     return _extract_html_body(payload.get("parts", []))
 
 
-def _clean_email_body(body: Optional[str]) -> str:
+def _clean_email_body(body: str | None) -> str:
     """
     Remove HTML tags and clean up email body text while preserving most content.
 
@@ -608,7 +608,7 @@ def remove_none_values(params: dict) -> dict:
 
 
 # Drive utils
-def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_drive_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
@@ -618,8 +618,8 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
 
 def build_files_list_query(
     mime_type: str,
-    document_contains: Optional[list[str]] = None,
-    document_not_contains: Optional[list[str]] = None,
+    document_contains: list[str] | None = None,
+    document_not_contains: list[str] | None = None,
 ) -> str:
     query = [f"(mimeType = '{mime_type}' and trashed = false)"]
 
@@ -655,12 +655,12 @@ def build_files_list_params(
     mime_type: str,
     page_size: int,
     order_by: list[OrderBy],
-    pagination_token: Optional[str],
+    pagination_token: str | None,
     include_shared_drives: bool,
-    search_only_in_shared_drive_id: Optional[str],
+    search_only_in_shared_drive_id: str | None,
     include_organization_domain_documents: bool,
-    document_contains: Optional[list[str]] = None,
-    document_not_contains: Optional[list[str]] = None,
+    document_contains: list[str] | None = None,
+    document_not_contains: list[str] | None = None,
 ) -> dict[str, Any]:
     query = build_files_list_query(
         mime_type=mime_type,
@@ -696,11 +696,11 @@ def build_files_list_params(
 
 
 def build_file_tree_request_params(
-    order_by: Optional[list[OrderBy]],
-    page_token: Optional[str],
-    limit: Optional[int],
+    order_by: list[OrderBy] | None,
+    page_token: str | None,
+    limit: int | None,
     include_shared_drives: bool,
-    restrict_to_shared_drive_id: Optional[str],
+    restrict_to_shared_drive_id: str | None,
     include_organization_domain_documents: bool,
 ) -> dict[str, Any]:
     if order_by is None:
@@ -787,7 +787,7 @@ def build_file_tree(files: dict[str, Any]) -> dict[str, Any]:
 
 
 # Docs utils
-def build_docs_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_docs_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
@@ -989,7 +989,7 @@ def get_now(tz: ZoneInfo | None = None) -> datetime:
 
 
 # Contacts utils
-def build_people_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_people_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a People service object.
     """
@@ -997,7 +997,7 @@ def build_people_service(auth_token: Optional[str]) -> Resource:  # type: ignore
     return build("people", "v1", credentials=Credentials(auth_token))
 
 
-def search_contacts(service: Any, query: str, limit: Optional[int]) -> list[dict[str, Any]]:
+def search_contacts(service: Any, query: str, limit: int | None) -> list[dict[str, Any]]:
     """
     Search the user's contacts in Google Contacts.
     """
@@ -1029,7 +1029,7 @@ def search_contacts(service: Any, query: str, limit: Optional[int]) -> list[dict
 # ----------------------------------------------------------------
 
 
-def build_sheets_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_sheets_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Sheets service object.
     """

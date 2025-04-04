@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
@@ -27,7 +27,7 @@ def create_spreadsheet(
     context: ToolContext,
     title: Annotated[str, "The title of the new spreadsheet"] = "Untitled spreadsheet",
     data: Annotated[
-        Optional[str],
+        str | None,
         "The data to write to the spreadsheet. A JSON string "
         "(property names enclosed in double quotes) representing a dictionary that "
         "maps row numbers to dictionaries that map column letters to cell values. "

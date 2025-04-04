@@ -1,7 +1,7 @@
 import contextlib
 import re
 from datetime import datetime
-from typing import Any, Optional, cast
+from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 from zoneinfo import ZoneInfo
 
@@ -71,7 +71,7 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
 # ------------------------------------------------------------------------------------------------
 # Google general utils
 # ------------------------------------------------------------------------------------------------
-def default_language_code(default_service_language_code: Optional[str] = None) -> Optional[str]:
+def default_language_code(default_service_language_code: str | None = None) -> str | None:
     if isinstance(default_service_language_code, str):
         return default_service_language_code.lower()
     elif isinstance(DEFAULT_GOOGLE_LANGUAGE, str):
@@ -79,7 +79,7 @@ def default_language_code(default_service_language_code: Optional[str] = None) -
     return None
 
 
-def default_country_code(default_service_country_code: Optional[str] = None) -> Optional[str]:
+def default_country_code(default_service_country_code: str | None = None) -> str | None:
     if isinstance(default_service_country_code, str):
         return default_service_country_code.lower()
     elif isinstance(DEFAULT_GOOGLE_COUNTRY, str):
@@ -88,9 +88,9 @@ def default_country_code(default_service_country_code: Optional[str] = None) -> 
 
 
 def resolve_language_code(
-    language_code: Optional[str] = None,
-    default_service_language_code: Optional[str] = None,
-) -> Optional[str]:
+    language_code: str | None = None,
+    default_service_language_code: str | None = None,
+) -> str | None:
     language_code = language_code or default_language_code(default_service_language_code)
 
     if isinstance(language_code, str):
@@ -102,9 +102,9 @@ def resolve_language_code(
 
 
 def resolve_country_code(
-    country_code: Optional[str] = None,
-    default_service_country_code: Optional[str] = None,
-) -> Optional[str]:
+    country_code: str | None = None,
+    default_service_country_code: str | None = None,
+) -> str | None:
     country_code = country_code or default_country_code(default_service_country_code)
 
     if isinstance(country_code, str):
@@ -120,14 +120,14 @@ def resolve_country_code(
 # ------------------------------------------------------------------------------------------------
 def get_google_maps_directions(
     context: ToolContext,
-    origin_address: Optional[str] = None,
-    destination_address: Optional[str] = None,
-    origin_latitude: Optional[str] = None,
-    origin_longitude: Optional[str] = None,
-    destination_latitude: Optional[str] = None,
-    destination_longitude: Optional[str] = None,
-    language: Optional[str] = DEFAULT_GOOGLE_MAPS_LANGUAGE,
-    country: Optional[str] = DEFAULT_GOOGLE_MAPS_COUNTRY,
+    origin_address: str | None = None,
+    destination_address: str | None = None,
+    origin_latitude: str | None = None,
+    origin_longitude: str | None = None,
+    destination_latitude: str | None = None,
+    destination_longitude: str | None = None,
+    language: str | None = DEFAULT_GOOGLE_MAPS_LANGUAGE,
+    country: str | None = DEFAULT_GOOGLE_MAPS_COUNTRY,
     distance_unit: GoogleMapsDistanceUnit = DEFAULT_GOOGLE_MAPS_DISTANCE_UNIT,
     travel_mode: GoogleMapsTravelMode = DEFAULT_GOOGLE_MAPS_TRAVEL_MODE,
 ) -> list[dict[str, Any]]:
@@ -224,7 +224,7 @@ def clean_google_maps_direction(direction: dict[str, Any]) -> None:
                 del stop["data_id"]
 
 
-def enrich_google_maps_arrive_around(timestamp: Optional[int]) -> dict[str, Any]:
+def enrich_google_maps_arrive_around(timestamp: int | None) -> dict[str, Any]:
     if not timestamp:
         return {}
 
@@ -258,9 +258,7 @@ def parse_flight_results(results: dict[str, Any]) -> dict[str, Any]:
 # ------------------------------------------------------------------------------------------------
 # Google News utils
 # ------------------------------------------------------------------------------------------------
-def extract_news_results(
-    results: dict[str, Any], limit: Optional[int] = None
-) -> list[dict[str, Any]]:
+def extract_news_results(results: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
     news_results = []
     for result in results.get("news_results", []):
         news_results.append({
@@ -375,7 +373,7 @@ def extract_walmart_variant_options(variant_swatches: list[dict[str, Any]]) -> l
 # ------------------------------------------------------------------------------------------------
 # YouTube utils
 # ------------------------------------------------------------------------------------------------
-def extract_video_id_from_link(link: Optional[str]) -> Optional[str]:
+def extract_video_id_from_link(link: str | None) -> str | None:
     if not isinstance(link, str):
         return None
 
@@ -387,7 +385,7 @@ def extract_video_id_from_link(link: Optional[str]) -> Optional[str]:
 def extract_video_description(
     video: dict[str, Any],
     max_description_length: int = YOUTUBE_MAX_DESCRIPTION_LENGTH,
-) -> Optional[str]:
+) -> str | None:
     description = video.get("description", "")
 
     if isinstance(description, dict):
@@ -401,7 +399,7 @@ def extract_video_description(
     if description is not None:
         description = str(description).strip()
 
-    return cast(Optional[str], description)
+    return cast(str | None, description)
 
 
 def extract_video_results(

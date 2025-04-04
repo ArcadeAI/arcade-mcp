@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from firecrawl import FirecrawlApp
@@ -14,20 +14,20 @@ async def scrape_url(
     context: ToolContext,
     url: Annotated[str, "URL to scrape"],
     formats: Annotated[
-        Optional[list[Formats]], "Formats to retrieve. Defaults to ['markdown']."
+        list[Formats] | None, "Formats to retrieve. Defaults to ['markdown']."
     ] = None,
     only_main_content: Annotated[
-        Optional[bool],
+        bool | None,
         "Only return the main content of the page excluding headers, navs, footers, etc.",
     ] = True,
     include_tags: Annotated[list[str] | None, "List of tags to include in the output"] = None,
     exclude_tags: Annotated[list[str] | None, "List of tags to exclude from the output"] = None,
     wait_for: Annotated[
-        Optional[int],
+        int | None,
         "Specify a delay in milliseconds before fetching the content, allowing the page "
         "sufficient time to load.",
     ] = 10,
-    timeout: Annotated[Optional[int], "Timeout in milliseconds for the request"] = 30000,
+    timeout: Annotated[int | None, "Timeout in milliseconds for the request"] = 30000,
 ) -> Annotated[dict[str, Any], "Scraped data in specified formats"]:
     """Scrape a URL using Firecrawl and return the data in specified formats."""
 
@@ -66,7 +66,7 @@ async def crawl_website(
     ] = False,
     allow_external_links: Annotated[bool, "Allow following links to external websites"] = False,
     webhook: Annotated[
-        Optional[str],
+        str | None,
         "The URL to send a POST request to when the crawl is started, updated and completed.",
     ] = None,
     async_crawl: Annotated[bool, "Run the crawl asynchronously"] = True,
@@ -163,7 +163,7 @@ async def cancel_crawl(
 async def map_website(
     context: ToolContext,
     url: Annotated[str, "The base URL to start crawling from"],
-    search: Annotated[Optional[str], "Search query to use for mapping"] = None,
+    search: Annotated[str | None, "Search query to use for mapping"] = None,
     ignore_sitemap: Annotated[bool, "Ignore the website sitemap when crawling"] = True,
     include_subdomains: Annotated[bool, "Include subdomains of the website"] = False,
     limit: Annotated[int, "Maximum number of links to return"] = 5000,

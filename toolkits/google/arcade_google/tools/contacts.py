@@ -1,5 +1,5 @@
 import asyncio
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
@@ -25,7 +25,7 @@ async def search_contacts_by_email(
     context: ToolContext,
     email: Annotated[str, "The email address to search for"],
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The maximum number of contacts to return (30 is the max allowed by Google API)",
     ] = DEFAULT_SEARCH_CONTACTS_LIMIT,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
@@ -47,7 +47,7 @@ async def search_contacts_by_name(
     context: ToolContext,
     name: Annotated[str, "The full name to search for"],
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The maximum number of contacts to return (30 is the max allowed by Google API)",
     ] = DEFAULT_SEARCH_CONTACTS_LIMIT,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
@@ -67,8 +67,8 @@ async def search_contacts_by_name(
 async def create_contact(
     context: ToolContext,
     given_name: Annotated[str, "The given name of the contact"],
-    family_name: Annotated[Optional[str], "The optional family name of the contact"],
-    email: Annotated[Optional[str], "The optional email address of the contact"],
+    family_name: Annotated[str | None, "The optional family name of the contact"],
+    email: Annotated[str | None, "The optional email address of the contact"],
 ) -> Annotated[dict, "A dictionary containing the details of the created contact"]:
     """
     Create a new contact record in Google Contacts.

@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from arcade.sdk import ToolContext, tool
@@ -373,18 +373,18 @@ async def delete_event(
 async def find_time_slots_when_everyone_is_free(
     context: ToolContext,
     email_addresses: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         "The list of email addresses from people in the same organization domain (apart from the "
         "currently logged in user) to search for free time slots. Defaults to None, which will "
         "return free time slots for the current user only.",
     ] = None,
     start_date: Annotated[
-        Optional[str],
+        str | None,
         "The start date to search for time slots in the format 'YYYY-MM-DD'. Defaults to today's "
         "date. It will search starting from this date at the time 00:00:00.",
     ] = None,
     end_date: Annotated[
-        Optional[str],
+        str | None,
         "The end date to search for time slots in the format 'YYYY-MM-DD'. Defaults to seven days "
         "from the start date. It will search until this date at the time 23:59:59.",
     ] = None,
