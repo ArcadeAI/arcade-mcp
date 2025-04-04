@@ -236,7 +236,7 @@ def test_create_row_data():
     row_data = create_row_data(row_data, min_col_index, max_col_index)
 
     assert len(row_data.values) == len(expected_row_data.values)
-    for cell, expected in zip(row_data.values, expected_row_data.values):
+    for cell, expected in zip(row_data.values, expected_row_data.values, strict=False):
         assert cell.userEnteredValue == expected.userEnteredValue
 
 
@@ -268,7 +268,7 @@ def test_create_sheet_data():
         create_cell_data("row2B"),
         create_cell_data(200),
     ]
-    for cell, expected in zip(row2_cells, expected_row2):
+    for cell, expected in zip(row2_cells, expected_row2, strict=False):
         assert cell.userEnteredValue == expected.userEnteredValue
 
     row3_cells = group1.rowData[1].values
@@ -277,7 +277,7 @@ def test_create_sheet_data():
         create_cell_data("row3B"),
         CellData(userEnteredValue=CellExtendedValue(stringValue="")),
     ]
-    for cell, expected in zip(row3_cells, expected_row3):
+    for cell, expected in zip(row3_cells, expected_row3, strict=False):
         assert cell.userEnteredValue == expected.userEnteredValue
 
     group2 = grid_data_list[1]
@@ -291,7 +291,7 @@ def test_create_sheet_data():
         CellData(userEnteredValue=CellExtendedValue(stringValue="")),
         create_cell_data("row5C"),
     ]
-    for cell, expected in zip(row5_cells, expected_row5):
+    for cell, expected in zip(row5_cells, expected_row5, strict=False):
         assert cell.userEnteredValue == expected.userEnteredValue
 
 
