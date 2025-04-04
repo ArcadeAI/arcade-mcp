@@ -8,6 +8,11 @@ help:
 install: ## Install the poetry environment and install the pre-commit hooks
 	@echo "📦 Checking if Poetry is installed"
 	@if ! command -v poetry &> /dev/null; then \
+    	echo "📦 Poetry not found. Checking if pip is available"; \
+		if ! command -v pip &> /dev/null; then \
+			echo "❌ pip is not installed. Please install pip first."; \
+			exit 1; \
+		fi; \
 		echo "📦 Installing Poetry with pip"; \
 		pip install poetry==1.8.5; \
 	else \
