@@ -63,12 +63,12 @@ jobs:
         if: steps.Publish_LangChain.outputs.skip_publish != 'true'
         uses: slackapi/slack-github-action@v2.0.0
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.PACKAGE_RELEASE_SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
             {
               "status": "${{ job.status }}",
-              "project": "langchain_arcade",
+              "package": "langchain_arcade",
               "version": "${{ env.VERSION }}",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
