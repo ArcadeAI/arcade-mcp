@@ -1,6 +1,8 @@
+import httpx
 import pytest
 from arcade.sdk.errors import ToolExecutionError
 
+from arcade_reddit.client import RedditClient
 from arcade_reddit.utils import (
     create_fullname_for_comment,
     create_fullname_for_multiple_posts,
@@ -10,7 +12,15 @@ from arcade_reddit.utils import (
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
     parse_get_top_level_comments_response,
+    parse_subreddit_rules_response,
+    parse_user_posts_response,
+    resolve_subreddit_access,
 )
+
+
+class DummyRedditClientResponse:
+    def __init__(self, status_code):
+        self.status_code = status_code
 
 
 @pytest.mark.parametrize(
@@ -188,4 +198,126 @@ def test_parse_get_top_level_comments_response_missing_data():
     data = [{}]
     expected = {"comments": [], "num_comments": 0}
     result = parse_get_top_level_comments_response(data)
+    assert result == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status_code, expected_result, expected_exception",
+    [
+        (None, {"exists": True, "accessible": True}, None),
+        (404, {"exists": False, "accessible": False}, None),
+        (302, {"exists": False, "accessible": False}, None),
+        (403, {"exists": True, "accessible": False}, None),
+        (500, None, httpx.HTTPStatusError),
+    ],
+)
+async def test_resolve_subreddit_access(status_code, expected_result, expected_exception):
+    class DummyRedditClient(RedditClient):
+        async def get(self, path: str, **kwargs):
+            if status_code is not None:
+                raise httpx.HTTPStatusError(
+                    "Error", request=None, response=DummyRedditClientResponse(status_code)
+                )
+            return "dummy_success"
+
+    client = DummyRedditClient(token="dummy")  # noqa: S106
+    if expected_exception:
+        with pytest.raises(expected_exception):
+            await resolve_subreddit_access(client, "testsub")
+    else:
+        result = await resolve_subreddit_access(client, "testsub")
+        assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        (
+            {
+                "rules": [
+                    {"priority": 1, "short_name": "Rule1", "description": "Desc1"},
+                    {"priority": 2, "short_name": "Rule2", "description": "Desc2"},
+                ]
+            },
+            {
+                "rules": [
+                    {"priority": 1, "title": "Rule1", "body": "Desc1"},
+                    {"priority": 2, "title": "Rule2", "body": "Desc2"},
+                ]
+            },
+        ),
+        ({}, {"rules": []}),
+    ],
+)
+def test_parse_subreddit_rules_response(data, expected):
+    result = parse_subreddit_rules_response(data)
+    assert result == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "posts_data, expected_cursor, expected_posts",
+    [
+        (
+            {
+                "data": {
+                    "after": "cursor123",
+                    "children": [
+                        {
+                            "data": {
+                                "id": "1",
+                                "name": "t3_1",
+                                "title": "Post 1",
+                                "author": "user1",
+                                "subreddit": "subreddit1",
+                                "created_utc": 1712345678,
+                                "num_comments": 10,
+                                "score": 100,
+                                "upvote_ratio": 0.5,
+                                "ups": 50,
+                                "permalink": "permalink1",
+                                "url": "url1",
+                                "is_video": False,
+                                "selftext": "This is the body of post 1",
+                                "all_awardings": [],
+                                "allow_live_comments": False,
+                                "approved": False,
+                                "approved_at_utc": None,
+                            }
+                        },
+                    ],
+                }
+            },
+            "cursor123",
+            [
+                {
+                    "id": "1",
+                    "name": "t3_1",
+                    "title": "Post 1",
+                    "author": "user1",
+                    "subreddit": "subreddit1",
+                    "created_utc": 1712345678,
+                    "num_comments": 10,
+                    "score": 100,
+                    "upvote_ratio": 0.5,
+                    "upvotes": 50,
+                    "permalink": "permalink1",
+                    "url": "url1",
+                    "is_video": False,
+                },
+            ],
+        ),
+        ({"data": {"after": None, "children": []}}, None, []),
+    ],
+)
+async def test_parse_user_posts_response_without_body(posts_data, expected_cursor, expected_posts):
+    dummy_context = object()
+    result = await parse_user_posts_response(dummy_context, posts_data, include_body=False)
+
+    if expected_cursor:
+        expected = {"cursor": expected_cursor, "posts": expected_posts}
+    else:
+        expected = {"posts": expected_posts}
+
     assert result == expected

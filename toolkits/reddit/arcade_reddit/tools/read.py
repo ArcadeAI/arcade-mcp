@@ -2,6 +2,7 @@ from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Reddit
+from arcade.sdk.errors import ToolExecutionError
 
 from arcade_reddit.client import RedditClient
 from arcade_reddit.enums import (
@@ -11,7 +12,6 @@ from arcade_reddit.enums import (
 from arcade_reddit.utils import (
     create_fullname_for_multiple_posts,
     create_path_for_post,
-    get_authenticated_username,
     normalize_subreddit_name,
     parse_get_content_of_multiple_posts_response,
     parse_get_content_of_post_response,
@@ -101,9 +101,7 @@ async def get_content_of_multiple_posts(
     client = RedditClient(context.get_auth_token_or_empty())
 
     fullnames, warnings = create_fullname_for_multiple_posts(post_identifiers)
-
     data = await client.get("api/info.json", params={"id": ",".join(fullnames)})
-
     posts = parse_get_content_of_multiple_posts_response(data)
 
     return {"posts": posts, "warnings": warnings}
@@ -122,7 +120,6 @@ async def get_top_level_comments(
     client = RedditClient(context.get_auth_token_or_empty())
 
     path = create_path_for_post(post_identifier)
-
     data = await client.get(f"{path}.json")
     result = parse_get_top_level_comments_response(data)
 
@@ -158,12 +155,27 @@ async def get_subreddit_rules(
 ) -> Annotated[dict, "A dictionary containing the subreddit rules"]:
     """Gets the rules of the specified subreddit"""
     client = RedditClient(context.get_auth_token_or_empty())
-    normalized = normalize_subreddit_name(subreddit)
-    data = await client.get(f"r/{normalized}/about/rules")
+
+    normalized_subreddit = normalize_subreddit_name(subreddit)
+    data = await client.get(f"r/{normalized_subreddit}/about/rules")
+
     return parse_subreddit_rules_response(data)
 
 
-@tool(requires_auth=Reddit(scopes=["identity", "history"]))
+@tool(requires_auth=Reddit(scopes=["identity"]))
+async def get_my_username(context: ToolContext) -> str:
+    """Get the Reddit username of the authenticated user"""
+    client = RedditClient(context.get_auth_token_or_empty())
+    user_info = await client.get("api/v1/me")
+    username = user_info.get("name")
+
+    if not username:
+        raise ToolExecutionError(message="Failed to retrieve the authenticated user's name")
+
+    return username
+
+
+@tool(requires_auth=Reddit(scopes=["identity", "history", "read"]))
 async def get_my_posts(
     context: ToolContext,
     limit: Annotated[
@@ -178,14 +190,13 @@ async def get_my_posts(
     "A dictionary with a cursor for the next page and "
     "a list of posts created by the authenticated user",
 ]:
-    """
-    Get posts that were created by the authenticated user.
-    """
+    """Get posts that were created by the authenticated user sorted by newest first"""
     client = RedditClient(context.get_auth_token_or_empty())
 
-    username = await get_authenticated_username(context=context)
-    params = {"limit": limit}
-    if cursor:
-        params["after"] = cursor
+    username = await get_my_username(context=context)
+    params = {"limit": limit, "after": cursor}
+    params = remove_none_values(params)
+
     posts_data = await client.get(f"user/{username}/submitted", params=params)
+
     return await parse_user_posts_response(context, posts_data, include_body)

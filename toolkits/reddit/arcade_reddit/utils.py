@@ -2,8 +2,7 @@ import re
 from urllib.parse import urlparse
 
 import httpx
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Reddit
+from arcade.sdk import ToolContext
 from arcade.sdk.errors import ToolExecutionError
 
 from arcade_reddit.client import RedditClient
@@ -382,6 +381,14 @@ def create_fullname_for_comment(identifier: str) -> str:
 async def resolve_subreddit_access(client: RedditClient, subreddit: str) -> dict:
     """Checks whether the specified subreddit exists and is accessible.
     Helps abstract the logic of checking subreddit access.
+
+    Args:
+        client: The Reddit client
+        subreddit: The subreddit to check
+
+    Returns:
+        A dictionary that specifies whether the subreddit exists and
+        whether it is accessible to the user.
     """
     normalized_name = normalize_subreddit_name(subreddit)
     try:
@@ -415,28 +422,28 @@ def parse_subreddit_rules_response(data: dict) -> dict:
     return {"rules": rules}
 
 
-@tool(requires_auth=Reddit(scopes=["identity", "history"]))
-async def get_authenticated_username(context: ToolContext) -> str:
-    """Get the Reddit username of the authenticated user"""
-    client = RedditClient(context.get_auth_token_or_empty())
-    user_info = await client.get("api/v1/me")
-    username = user_info.get("name")
-    if not username:
-        raise ToolExecutionError(message="Failed to retrieve the authenticated user's name")
-    return username
-
-
 async def parse_user_posts_response(
     context: ToolContext, posts_data: dict, include_body: bool
 ) -> dict:
+    """Parse the response from the Reddit API for user posts
+
+    Args:
+        context: The tool context
+        posts_data: The response from the Reddit API for getting the authenticated user's posts
+        include_body: Whether to include the body of the posts in the parsed response
+
+    Returns:
+        A dictionary with a cursor for the next page (if there is one) and a list of posts
+    """
     next_cursor = posts_data.get("data", {}).get("after")
+    parsed_response = {"cursor": next_cursor} if next_cursor else {}
     if not include_body:
         posts = []
         for child in posts_data.get("data", {}).get("children", []):
             post_data = child.get("data", {})
             simplified = _simplify_post_data(post_data, include_body=False)
             posts.append(simplified)
-        return {"cursor": next_cursor, "posts": posts}
+        parsed_response["posts"] = posts
     else:
         post_ids = []
         for child in posts_data.get("data", {}).get("children", []):
@@ -451,4 +458,6 @@ async def parse_user_posts_response(
             context=context, post_identifiers=post_ids
         )
         posts_with_body = content_response.get("posts", [])
-        return {"cursor": next_cursor, "posts": posts_with_body}
+        parsed_response["posts"] = posts_with_body
+
+    return parsed_response
