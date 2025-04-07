@@ -1,8 +1,12 @@
 import re
 from urllib.parse import urlparse
 
+import httpx
+from arcade.sdk import ToolContext, tool
+from arcade.sdk.auth import Reddit
 from arcade.sdk.errors import ToolExecutionError
 
+from arcade_reddit.client import RedditClient
 from arcade_reddit.enums import RedditThingType
 
 
@@ -373,3 +377,78 @@ def create_fullname_for_comment(identifier: str) -> str:
         return identifier
     comment_id = _get_comment_id(identifier)
     return f"t1_{comment_id}"
+
+
+async def resolve_subreddit_access(client: RedditClient, subreddit: str) -> dict:
+    """Checks whether the specified subreddit exists and is accessible.
+    Helps abstract the logic of checking subreddit access.
+    """
+    normalized_name = normalize_subreddit_name(subreddit)
+    try:
+        await client.get(f"r/{normalized_name}/about.json")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code in (404, 302):
+            return {"exists": False, "accessible": False}
+        elif e.response.status_code == 403:
+            return {"exists": True, "accessible": False}
+        raise
+    return {"exists": True, "accessible": True}
+
+
+def parse_subreddit_rules_response(data: dict) -> dict:
+    """
+    Parse the response data from the Reddit API for subreddit rules.
+
+    Args:
+        data (dict): The raw API response containing subreddit rules.
+
+    Returns:
+        dict: A dictionary with a 'rules' key containing a list of parsed rules.
+    """
+    rules = []
+    for rule in data.get("rules", []):
+        rules.append({
+            "priority": rule.get("priority"),
+            "title": rule.get("short_name"),
+            "body": rule.get("description"),
+        })
+    return {"rules": rules}
+
+
+@tool(requires_auth=Reddit(scopes=["identity", "history"]))
+async def get_authenticated_username(context: ToolContext) -> str:
+    """Get the Reddit username of the authenticated user"""
+    client = RedditClient(context.get_auth_token_or_empty())
+    user_info = await client.get("api/v1/me")
+    username = user_info.get("name")
+    if not username:
+        raise ToolExecutionError(message="Failed to retrieve the authenticated user's name")
+    return username
+
+
+async def parse_user_posts_response(
+    context: ToolContext, posts_data: dict, include_body: bool
+) -> dict:
+    next_cursor = posts_data.get("data", {}).get("after")
+    if not include_body:
+        posts = []
+        for child in posts_data.get("data", {}).get("children", []):
+            post_data = child.get("data", {})
+            simplified = _simplify_post_data(post_data, include_body=False)
+            posts.append(simplified)
+        return {"cursor": next_cursor, "posts": posts}
+    else:
+        post_ids = []
+        for child in posts_data.get("data", {}).get("children", []):
+            post_data = child.get("data", {})
+            identifier = post_data.get("name") or post_data.get("id")
+            if identifier:
+                post_ids.append(identifier)
+        # Dynamically import get_content_of_multiple_posts to avoid circular dependency
+        from arcade_reddit.tools.read import get_content_of_multiple_posts
+
+        content_response = await get_content_of_multiple_posts(
+            context=context, post_identifiers=post_ids
+        )
+        posts_with_body = content_response.get("posts", [])
+        return {"cursor": next_cursor, "posts": posts_with_body}

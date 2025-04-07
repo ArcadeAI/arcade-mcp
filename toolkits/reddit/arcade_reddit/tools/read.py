@@ -11,12 +11,16 @@ from arcade_reddit.enums import (
 from arcade_reddit.utils import (
     create_fullname_for_multiple_posts,
     create_path_for_post,
+    get_authenticated_username,
     normalize_subreddit_name,
     parse_get_content_of_multiple_posts_response,
     parse_get_content_of_post_response,
     parse_get_posts_in_subreddit_response,
     parse_get_top_level_comments_response,
+    parse_subreddit_rules_response,
+    parse_user_posts_response,
     remove_none_values,
+    resolve_subreddit_access,
 )
 
 
@@ -123,3 +127,65 @@ async def get_top_level_comments(
     result = parse_get_top_level_comments_response(data)
 
     return result
+
+
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def check_subreddit_access(
+    context: ToolContext,
+    subreddit: Annotated[str, "The name of the subreddit to check access for"],
+) -> Annotated[
+    dict,
+    "A dict indicating whether the subreddit exists and is accessible to the authenticated user",
+]:
+    """
+    Checks whether the specified subreddit exists and also if it is accessible
+    to the authenticated user.
+
+    Returns:
+        {"exists": True, "accessible": True} if the subreddit exists and is accessible.
+        {"exists": True, "accessible": False} if the subreddit exists but is private or restricted.
+        {"exists": False, "accessible": False} if the subreddit does not exist.
+    """
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    return await resolve_subreddit_access(client, subreddit)
+
+
+@tool(requires_auth=Reddit(scopes=["read"]))
+async def get_subreddit_rules(
+    context: ToolContext,
+    subreddit: Annotated[str, "The name of the subreddit for which to fetch rules"],
+) -> Annotated[dict, "A dictionary containing the subreddit rules"]:
+    """Gets the rules of the specified subreddit"""
+    client = RedditClient(context.get_auth_token_or_empty())
+    normalized = normalize_subreddit_name(subreddit)
+    data = await client.get(f"r/{normalized}/about/rules")
+    return parse_subreddit_rules_response(data)
+
+
+@tool(requires_auth=Reddit(scopes=["identity", "history"]))
+async def get_my_posts(
+    context: ToolContext,
+    limit: Annotated[
+        int, "The maximum number of posts to fetch. Default is 10. Maximum is 100"
+    ] = 10,
+    include_body: Annotated[
+        bool, "Whether to include the body (content) of the posts. Defaults to True."
+    ] = True,
+    cursor: Annotated[str | None, "The pagination token from a previous call"] = None,
+) -> Annotated[
+    dict,
+    "A dictionary with a cursor for the next page and "
+    "a list of posts created by the authenticated user",
+]:
+    """
+    Get posts that were created by the authenticated user.
+    """
+    client = RedditClient(context.get_auth_token_or_empty())
+
+    username = await get_authenticated_username(context=context)
+    params = {"limit": limit}
+    if cursor:
+        params["after"] = cursor
+    posts_data = await client.get(f"user/{username}/submitted", params=params)
+    return await parse_user_posts_response(context, posts_data, include_body)
