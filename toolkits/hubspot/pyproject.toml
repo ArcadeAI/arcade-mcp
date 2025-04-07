@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "arcade_dropbox"
+name = "arcade_hubspot"
 version = "0.1.0"
-description = "Arcade tools designed for LLMs to interact with Dropbox"
+description = "Arcade tools designed for LLMs to interact with Hubspot"
 authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
@@ -24,7 +24,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
-files = ["arcade_dropbox/**/*.py"]
+files = ["arcade_hubspot/**/*.py"]
 python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
