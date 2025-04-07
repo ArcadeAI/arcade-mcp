@@ -3,10 +3,11 @@ arcade-github
 arcade-google
 arcade-linkedin
 arcade-math
+arcade-notion-toolkit
+arcade-reddit
 arcade-search
 arcade-slack
 arcade-spotify
 arcade-web
 arcade-x
 arcade-zoom
-arcade-notion-toolkit
