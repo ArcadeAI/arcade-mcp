@@ -167,7 +167,7 @@ async def get_my_username(context: ToolContext) -> str:
     """Get the Reddit username of the authenticated user"""
     client = RedditClient(context.get_auth_token_or_empty())
     user_info = await client.get("api/v1/me")
-    username = user_info.get("name")
+    username: str = user_info.get("name", "")
 
     if not username:
         raise ToolExecutionError(message="Failed to retrieve the authenticated user's name")
