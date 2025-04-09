@@ -1,4 +1,3 @@
-import "dotenv/config";
 import type { RunnableConfig } from "@langchain/core/runnables";
 /**
  * Define the configurable parameters for the agent.

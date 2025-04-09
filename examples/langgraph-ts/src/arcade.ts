@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { Arcade } from "@arcadeai/arcadejs";
 import { JSONSchemaToZod } from "@dmitryrechkin/json-schema-to-zod";
 import { tool } from "@langchain/core/tools";

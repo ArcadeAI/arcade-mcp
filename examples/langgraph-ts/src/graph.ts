@@ -5,6 +5,8 @@ import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { getArcadeTools } from "./arcade.ts";
 import { ConfigurationSchema, ensureConfiguration } from "./configuration.ts";
 import { loadChatModel } from "./utils.ts";
+import { ChatOpenAI } from "@langchain/openai";
+
 
 // Replace this with your application's user ID (e.g. email address, UUID, etc.)
 const USER_ID = "user@example.com";
@@ -13,7 +15,6 @@ const arcadeTools = await getArcadeTools({
 	toolkit: "github",
 	user_id: USER_ID,
 });
-
 // Define the function that calls the model
 async function callModel(
 	state: typeof MessagesAnnotation.State,
@@ -22,10 +23,13 @@ async function callModel(
 	/** Call the LLM powering our agent. **/
 	const configuration = ensureConfiguration(config);
 
-	// Feel free to customize the prompt, model, and other logic!
-	const model = (await loadChatModel(configuration.model)).bindTools(
-		arcadeTools,
-	);
+	/**
+	 * Initialize the model and bind the tools
+	 */
+	const model = new ChatOpenAI({
+		model: configuration.model,
+		apiKey: process.env.OPENAI_API_KEY,
+	}).bindTools(arcadeTools);
 
 	const response = await model.invoke([
 		{
