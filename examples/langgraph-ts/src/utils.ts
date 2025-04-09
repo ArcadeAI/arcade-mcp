@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { initChatModel } from "langchain/chat_models/universal";
 
 /**
