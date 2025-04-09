@@ -16,7 +16,7 @@ The Arcade LangGraph agent:
 4. Observes the result of the action
 5. Repeats steps 2-4 until it can provide a final answer
 
-This approach creates a flexible agent that can interact with GitHub repositories, Google services, and other external tools through Arcade's unified API.
+This approach creates a flexible agent that can interact with multiple services like Google, GitHub, and other external tools through Arcade's unified API.
 
 ## Getting Started
 
@@ -52,7 +52,7 @@ This approach creates a flexible agent that can interact with GitHub repositorie
 
 The core logic is defined in `src/graph.ts`
 
-1. Loads Arcade tools for the GitHub toolkit
+1. Loads Arcade tools for multiple toolkits (e.g., Google, GitHub)
 2. Creates a model with the tools bound to it
 3. Routes messages between tool calls and model reasoning
 4. Compiles everything into a graph you can invoke and deploy
@@ -69,7 +69,7 @@ The core logic is defined in `src/graph.ts`
 
 To use different Arcade toolkits or queries:
 
-1. Modify the toolkit parameter in `getArcadeTools()` in `src/graph.ts`
+1. Modify the `toolkits` array in `getArcadeTools()` in `src/graph.ts` to include the desired toolkits (e.g., `["google", "github", "notion"]`)
 2. Change the default model in `src/configuration.ts`
 3. Update the system prompt in `src/prompts.ts`
 

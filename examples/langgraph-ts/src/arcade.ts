@@ -34,18 +34,42 @@ async function getAuthorizationResponse(toolName: string, user_id: string) {
 type LangChainTool = ReturnType<typeof tool>;
 
 export const getArcadeTools = async ({
-	toolkit,
+	toolkits,
 	user_id,
 }: {
-	toolkit?: string;
+	toolkits?: string[];
 	user_id: string;
 }): Promise<LangChainTool[]> => {
-	const tools = await arcadeClient.tools.formatted.list({
-		...(toolkit && { toolkit }),
-		format: "openai",
-	});
+	// If no toolkits provided, fetch all tools
+	if (!toolkits || toolkits.length === 0) {
+		const tools = await arcadeClient.tools.formatted.list({
+			format: "openai",
+		});
+		return processTools(tools.items, user_id);
+	}
 
-	const validTools = tools.items
+	// Fetch tools for each toolkit and merge them
+	const toolkitPromises = toolkits.map((toolkit) =>
+		arcadeClient.tools.formatted.list({
+			toolkit,
+			format: "openai",
+		})
+	);
+
+	const toolkitResults = await Promise.all(toolkitPromises);
+	const allTools = toolkitResults.flatMap((result) => result.items);
+
+	// Remove duplicates based on tool name
+	const uniqueTools = Array.from(
+		new Map(allTools.map((item) => [item.function.name, item])).values()
+	);
+
+	return processTools(uniqueTools, user_id);
+};
+
+// Helper function to process tools and create LangChain tools
+const processTools = (tools: unknown[], user_id: string): LangChainTool[] => {
+	const validTools = tools
 		.filter((item) => arcadeToolMinimumSchema.safeParse(item).success)
 		.map((item) => arcadeToolMinimumSchema.parse(item));
 

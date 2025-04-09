@@ -12,7 +12,7 @@ import { ChatOpenAI } from "@langchain/openai";
 const USER_ID = "user@example.com";
 // Get the Arcade tools, you can customize the toolkit (e.g. "github", "notion", "google", etc.)
 const arcadeTools = await getArcadeTools({
-	toolkit: "github",
+	toolkits: ["google", "github"],
 	user_id: USER_ID,
 });
 // Define the function that calls the model
