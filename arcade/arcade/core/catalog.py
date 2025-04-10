@@ -39,6 +39,7 @@ from arcade.core.schema import (
     ToolDefinition,
     ToolInput,
     ToolkitDefinition,
+    ToolMetadataKey,
     ToolMetadataRequirement,
     ToolOutput,
     ToolRequirements,
@@ -398,10 +399,17 @@ class ToolCatalog(BaseModel):
 
         metadata_requirement = getattr(tool, "__tool_requires_metadata__", None)
         if isinstance(metadata_requirement, list):
-            if any(not isinstance(metadata, str) for metadata in metadata_requirement):
-                raise ToolDefinitionError(
-                    f"Metadata must be strings (error in tool {raw_tool_name})."
-                )
+            for metadata in metadata_requirement:
+                if not isinstance(metadata, str):
+                    raise ToolDefinitionError(
+                        f"Metadata must be strings (error in tool {raw_tool_name})."
+                    )
+                if ToolMetadataKey.requires_auth(metadata) and auth_requirement is None:
+                    raise ToolDefinitionError(
+                        f"Tool {raw_tool_name} declares metadata key '{metadata}', "
+                        "which requires that the tool has an auth requirement, "
+                        "but no auth requirement was provided. Please specify an auth requirement."
+                    )
 
             metadata_requirement = to_tool_metadata_requirements(metadata_requirement)
             if any(

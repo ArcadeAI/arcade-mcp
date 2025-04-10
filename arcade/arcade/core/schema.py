@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
@@ -107,6 +108,19 @@ class ToolSecretRequirement(BaseModel):
 
     key: str
     """The ID of the secret."""
+
+
+class ToolMetadataKey(str, Enum):
+    """Convience enum for commonly used metadata keys."""
+
+    CLIENT_ID = "client_id"
+    COORDINATOR_URL = "coordinator_url"
+
+    @staticmethod
+    def requires_auth(key: str) -> bool:
+        """Whether the key depends on the tool having an authorization requirement."""
+        keys_that_require_auth = [ToolMetadataKey.CLIENT_ID]
+        return key.strip().lower() in keys_that_require_auth
 
 
 class ToolMetadataRequirement(BaseModel):
