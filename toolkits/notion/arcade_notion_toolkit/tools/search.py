@@ -146,8 +146,9 @@ async def get_object_metadata(
     async def get_metadata_by_id(object_id: str) -> dict[str, Any]:
         url = get_url("retrieve_a_page", page_id=object_id)
         headers = get_headers(context)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(url, headers=headers)
+
             if response.status_code != 200:
                 raise ToolExecutionError(
                     message="The page or database could not be found.",
