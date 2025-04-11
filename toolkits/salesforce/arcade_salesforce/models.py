@@ -71,8 +71,6 @@ class SalesforceClient:
                 params=params,
                 headers=self._build_headers(headers),
             )
-            if response.status_code >= 400:
-                print("\n\nresponse:", response.text, "\n\n")
             response.raise_for_status()
             return cast(dict, response.json())
 
@@ -201,7 +199,10 @@ class SalesforceClient:
 
         for association in associations:
             for item in association:
-                obj_type = SalesforceObject(get_object_type(item)).plural
+                try:
+                    obj_type = SalesforceObject(get_object_type(item)).plural
+                except ValueError:
+                    obj_type = get_object_type(item) + "s"
                 if obj_type not in account_data:
                     account_data[obj_type] = []
                 account_data[obj_type].append(item)
