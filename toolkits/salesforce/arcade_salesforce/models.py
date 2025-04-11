@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 from dataclasses import dataclass
 from typing import Any, Optional, cast
@@ -7,7 +8,16 @@ import httpx
 
 from arcade_salesforce.constants import SALESFORCE_API_VERSION
 from arcade_salesforce.enums import SalesforceObject
-from arcade_salesforce.utils import clean_contact_data, clean_lead_data, clean_note_data
+from arcade_salesforce.utils import (
+    clean_contact_data,
+    clean_lead_data,
+    clean_note_data,
+    clean_object_data,
+    clean_task_data,
+    expand_associations,
+    get_ids_referenced,
+    get_object_type,
+)
 
 
 @dataclass
@@ -89,9 +99,6 @@ class SalesforceClient:
     async def _describe_object(self, object_type: SalesforceObject) -> dict:
         return await self.get(f"sobjects/{object_type.value}/describe/")
 
-    async def get_account(self, account_id: str) -> dict[str, Any]:
-        return cast(dict, await self.get(f"sobjects/Account/{account_id}"))
-
     async def _get_related_objects(
         self,
         child_object_type: SalesforceObject,
@@ -107,6 +114,21 @@ class SalesforceClient:
             if e.response.status_code == 404:
                 return []
             raise
+
+    async def get_generic_object_by_id(self, object_id: str) -> Optional[dict]:
+        try:
+            response = await self.get(f"sobjects/{object_id}")
+            return clean_object_data(response)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                if "User" not in object_id:
+                    return await self.get_generic_object_by_id(f"User/{object_id}")
+                else:
+                    return None
+            raise
+
+    async def get_account(self, account_id: str) -> dict[str, Any]:
+        return cast(dict, await self.get(f"sobjects/Account/{account_id}"))
 
     async def get_account_contacts(self, account_id: str) -> list[dict]:
         contacts = await self._get_related_objects(
@@ -125,6 +147,12 @@ class SalesforceClient:
             SalesforceObject.NOTE, SalesforceObject.ACCOUNT, account_id
         )
         return [clean_note_data(note) for note in notes]
+
+    async def get_account_tasks(self, account_id: str) -> list[dict]:
+        tasks = await self._get_related_objects(
+            SalesforceObject.TASK, SalesforceObject.ACCOUNT, account_id
+        )
+        return [clean_task_data(task) for task in tasks]
 
     async def enrich_account(
         self,
@@ -148,14 +176,52 @@ class SalesforceClient:
             self.get_account_contacts(account_id),
             self.get_account_leads(account_id),
             self.get_account_notes(account_id),
+            self.get_account_tasks(account_id),
         )
-
-        account_data[SalesforceObject.CONTACT.value + "s"] = []
-        account_data[SalesforceObject.LEAD.value + "s"] = []
-        account_data[SalesforceObject.NOTE.value + "s"] = []
 
         for association in associations:
             for item in association:
-                account_data[item["ObjectType"] + "s"].append(item)
+                obj_type = get_object_type(item) + "s"
+                if obj_type not in account_data:
+                    account_data[obj_type] = []
+                account_data[obj_type].append(item)
 
-        return account_data
+        return await self.expand_account_associations(account_data)
+
+    async def expand_account_associations(self, account: dict) -> dict:
+        relations = ["contacts", "leads", "notes", "calls", "tasks"]
+
+        objects_by_id = {
+            obj["Id"]: obj for relation in relations for obj in account.get(relation, [])
+        }
+        objects_by_id[account["Id"]] = account
+
+        referenced_ids = get_ids_referenced(
+            account,
+            *[account.get(relation, []) for relation in relations],
+        )
+
+        missing_referenced_ids = [ref for ref in referenced_ids if ref not in objects_by_id]
+
+        if missing_referenced_ids:
+            missing_objects = await asyncio.gather(*[
+                self.get_generic_object_by_id(missing_id) for missing_id in missing_referenced_ids
+            ])
+            objects_by_id.update({obj["Id"]: obj for obj in missing_objects if obj is not None})
+
+        account = expand_associations(account, objects_by_id)
+
+        for object_type in SalesforceObject:
+            if object_type.plural not in account:
+                continue
+
+            expanded_items = []
+
+            for item in account[object_type.plural]:
+                with contextlib.suppress(KeyError):
+                    del item["AccountId"]
+                expanded_items.append(expand_associations(item, objects_by_id))
+
+            account[object_type.plural] = expanded_items
+
+        return account

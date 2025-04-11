@@ -6,3 +6,10 @@ class SalesforceObject(Enum):
     CONTACT = "Contact"
     LEAD = "Lead"
     NOTE = "Note"
+    CALL = "Call"
+    TASK = "Task"
+    USER = "User"
+
+    @property
+    def plural(self) -> str:
+        return self.value + "s"

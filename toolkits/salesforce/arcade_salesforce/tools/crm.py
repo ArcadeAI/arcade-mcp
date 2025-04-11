@@ -17,14 +17,22 @@ from arcade_salesforce.utils import clean_account_data
 )
 async def search_accounts(
     context: ToolContext,
-    query: Annotated[str, "The query to search for accounts. E.g. 'Acme'"],
+    query: Annotated[
+        str,
+        "The query to search for accounts. It will match the keywords against all fields, such as "
+        "name, website, phone, etc. E.g. 'Acme'",
+    ],
     limit: Annotated[int, "The maximum number of accounts to return. Defaults to 10."] = 10,
     page: Annotated[int, "The page number to return. Defaults to 1 (first page of results)."] = 1,
-) -> Annotated[dict, "The list of accounts that match the query"]:
-    """Searches for accounts in Salesforce that match the query.
+) -> Annotated[
+    dict,
+    "The accounts matching the query with related info (contacts, leads, notes, calls, etc)",
+]:
+    """Searches for accounts in Salesforce and returns them with related info (contacts, leads,
+    notes, calls, etc).
 
-    An account is an organization or person involved with the business (such as a customer,
-    competitor, or partner).
+    An account is an organization (such as a customer, supplier, or partner, although more commonly
+    a customer). In some Salesforce account setups, an account can also represent a person.
     """
     client = SalesforceClient(context.get_auth_token_or_empty())
 
@@ -42,6 +50,7 @@ async def search_accounts(
     }
     response = await client.post("parameterizedSearch", json_data=params)
     accounts = response["searchRecords"]
+
     return {
         "accounts": [
             clean_account_data(account_data)
