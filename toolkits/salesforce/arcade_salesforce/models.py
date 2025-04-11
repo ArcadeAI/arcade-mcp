@@ -241,6 +241,7 @@ class SalesforceClient:
             for item in account[object_type.plural]:
                 with contextlib.suppress(KeyError):
                     del item["AccountId"]
+
                 expanded_items.append(expand_associations(item, objects_by_id))
 
             account[object_type.plural] = expanded_items

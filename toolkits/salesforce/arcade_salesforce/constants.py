@@ -8,3 +8,16 @@ ASSOCIATION_REFERENCE_FIELDS = [
     "AssociatedToWhom",
     "ContactId",
 ]
+
+GLOBALLY_IGNORED_FIELDS = [
+    "attributes",
+    "CleanStatus",
+    "IsDeleted",
+    "LastModifiedBy",
+    "LastModifiedDate",
+    "LastReferencedDate",
+    "LastViewedDate",
+    "PhotoUrl",
+    "SystemModstamp",
+    "WhatId",
+]
