@@ -1,5 +1,7 @@
-from typing import cast
+import string
+from typing import Any, cast
 
+from arcade_salesforce.constants import ASSOCIATION_REFERENCE_FIELDS
 from arcade_salesforce.enums import SalesforceObject
 
 
@@ -74,6 +76,29 @@ def clean_lead_data(data: dict) -> dict:
     return {k: v for k, v in data.items() if v is not None and k not in ignore_fields}
 
 
+def clean_opportunity_data(data: dict) -> dict:
+    data["ObjectType"] = SalesforceObject.OPPORTUNITY.value
+    ignore_fields = [
+        "attributes",
+        "CleanStatus",
+        "LastReferencedDate",
+        "LastViewedDate",
+        "SystemModstamp",
+    ]
+    data = {k: v for k, v in data.items() if v is not None and k not in ignore_fields}
+
+    data["Amount"] = {
+        "Value": data["Amount"],
+        "ClosingProbability": None
+        if not isinstance(data["Probability"], (int, float))
+        else data["Probability"] / 100,
+        "ExpectedRevenue": data["ExpectedRevenue"],
+    }
+    del data["Probability"]
+    del data["ExpectedRevenue"]
+    return data
+
+
 def clean_note_data(data: dict) -> dict:
     data["ObjectType"] = SalesforceObject.NOTE.value
     ignore_fields = [
@@ -88,11 +113,18 @@ def clean_note_data(data: dict) -> dict:
 
 def clean_task_data(data: dict) -> dict:
     data["ObjectType"] = data["TaskSubtype"]
-    del data["TaskSubtype"]
+    data["AssociatedToWhom"] = data["WhoId"]
     ignore_fields = [
         "attributes",
         "CleanStatus",
         "SystemModstamp",
+        "IsArchived",
+        "IsDeleted",
+        "IsRecurrence",
+        "IsReminderSet",
+        "TaskSubtype",
+        "WhoId",
+        "WhatId",
     ]
     return {k: v for k, v in data.items() if v is not None and k not in ignore_fields}
 
@@ -110,19 +142,16 @@ def clean_user_data(data: dict) -> dict:
 
 
 def get_ids_referenced(*data_objects: dict) -> set[str]:
-    fields = ["AccountId", "CreatedById", "LastModifiedById", "OwnerId", "WhoId"]
     referenced_ids = set()
     for data in data_objects:
-        for field in fields:
+        for field in ASSOCIATION_REFERENCE_FIELDS:
             if field in data:
                 referenced_ids.add(data[field])
     return referenced_ids
 
 
 def expand_associations(data: dict, objects_by_id: dict) -> dict:
-    fields = ["AccountId", "CreatedById", "LastModifiedById", "OwnerId", "WhoId"]
-
-    for field in fields:
+    for field in ASSOCIATION_REFERENCE_FIELDS:
         if field not in data:
             continue
 
@@ -145,3 +174,14 @@ def simplified_object_data(data: dict) -> dict:
 
 def get_object_type(data: dict) -> str:
     return cast(str, data.get("ObjectType")) or cast(str, data["attributes"]["type"])
+
+
+def build_soql_query(query: str, **kwargs: Any) -> str:
+    return query.format(**{key: sanitize_soql_argument(value) for key, value in kwargs.items()})
+
+
+def sanitize_soql_argument(value: Any) -> str:
+    allowed_chars = string.ascii_letters + string.digits
+    if not isinstance(value, str):
+        value = str(value)
+    return "".join([char for char in value if char in allowed_chars])

@@ -9,10 +9,12 @@ import httpx
 from arcade_salesforce.constants import SALESFORCE_API_VERSION
 from arcade_salesforce.enums import SalesforceObject
 from arcade_salesforce.utils import (
+    build_soql_query,
     clean_contact_data,
     clean_lead_data,
     clean_note_data,
     clean_object_data,
+    clean_opportunity_data,
     clean_task_data,
     expand_associations,
     get_ids_referenced,
@@ -69,6 +71,8 @@ class SalesforceClient:
                 params=params,
                 headers=self._build_headers(headers),
             )
+            if response.status_code >= 400:
+                print("\n\nresponse:", response.text, "\n\n")
             response.raise_for_status()
             return cast(dict, response.json())
 
@@ -148,6 +152,21 @@ class SalesforceClient:
         )
         return [clean_note_data(note) for note in notes]
 
+    # TODO: Add support for retrieving Currency, when enabled in the org account.
+    # If not enabled and we try to retrieve it, we get a 400 error.
+    # More inf: https://developer.salesforce.com/docs/atlas.en-us.254.0.object_reference.meta/object_reference/sforce_api_objects_opportunity.htm#i1455437
+    async def get_account_opportunities(self, account_id: str) -> list[dict]:
+        query = build_soql_query(
+            "SELECT Id, Name, Type, StageName, OwnerId, CreatedById, LastModifiedById, "
+            "Description, Amount, Probability, ExpectedRevenue, CloseDate, ContactId "
+            "FROM Opportunity "
+            "WHERE AccountId = '{account_id}'",
+            account_id=account_id,
+        )
+        response = await self.get("query", params={"q": query})
+        opportunities = response["records"]
+        return [clean_opportunity_data(opportunity) for opportunity in opportunities]
+
     async def get_account_tasks(self, account_id: str) -> list[dict]:
         tasks = await self._get_related_objects(
             SalesforceObject.TASK, SalesforceObject.ACCOUNT, account_id
@@ -175,13 +194,14 @@ class SalesforceClient:
         associations = await asyncio.gather(
             self.get_account_contacts(account_id),
             self.get_account_leads(account_id),
+            self.get_account_opportunities(account_id),
             self.get_account_notes(account_id),
             self.get_account_tasks(account_id),
         )
 
         for association in associations:
             for item in association:
-                obj_type = get_object_type(item) + "s"
+                obj_type = SalesforceObject(get_object_type(item)).plural
                 if obj_type not in account_data:
                     account_data[obj_type] = []
                 account_data[obj_type].append(item)
@@ -189,16 +209,16 @@ class SalesforceClient:
         return await self.expand_account_associations(account_data)
 
     async def expand_account_associations(self, account: dict) -> dict:
-        relations = ["contacts", "leads", "notes", "calls", "tasks"]
-
         objects_by_id = {
-            obj["Id"]: obj for relation in relations for obj in account.get(relation, [])
+            obj["Id"]: obj
+            for obj_type in SalesforceObject
+            for obj in account.get(obj_type.plural, [])
         }
         objects_by_id[account["Id"]] = account
 
         referenced_ids = get_ids_referenced(
             account,
-            *[account.get(relation, []) for relation in relations],
+            *[account.get(obj_type.plural, []) for obj_type in SalesforceObject],
         )
 
         missing_referenced_ids = [ref for ref in referenced_ids if ref not in objects_by_id]
