@@ -12,6 +12,8 @@ ASSOCIATION_REFERENCE_FIELDS = [
 GLOBALLY_IGNORED_FIELDS = [
     "attributes",
     "CleanStatus",
+    "CreatedBy",
+    "CreatedDate",
     "IsDeleted",
     "LastModifiedBy",
     "LastModifiedDate",

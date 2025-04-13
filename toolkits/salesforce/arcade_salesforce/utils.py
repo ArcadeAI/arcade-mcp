@@ -71,7 +71,8 @@ def clean_account_data(data: dict) -> dict:
 @remove_fields_globally_ignored
 def clean_contact_data(data: dict) -> dict:
     data["ObjectType"] = SalesforceObject.CONTACT.value
-    return data
+    ignore_fields = ["IsEmailBounced", "IsPriorityRecord"]
+    return {k: v for k, v in data.items() if v is not None and k not in ignore_fields}
 
 
 @remove_fields_globally_ignored
@@ -202,3 +203,7 @@ def format_email(description: str) -> dict:
         email["Attachment"] = None
 
     return email
+
+
+def remove_none_values(data: dict) -> dict:
+    return {k: v for k, v in data.items() if v is not None}
