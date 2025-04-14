@@ -2,10 +2,10 @@ import json
 
 from arcadepy import Arcade
 
-client = Arcade()  # Automatically finds the `ARCADE_API_KEY` env variable
+client = Arcade(base_url="http://localhost:9099")
 
 USER_ID = "rmbyrro+hubspot1@gmail.com"
-TOOL_NAME = "Hubspot.SearchCompanies"
+TOOL_NAME = "Hubspot.GetCompanyDataByKeywords"
 
 auth_response = client.tools.authorize(tool_name=TOOL_NAME, user_id=USER_ID)
 
@@ -16,7 +16,7 @@ if auth_response.status != "completed":
 client.auth.wait_for_completion(auth_response)
 
 tool_input = {
-    "query": "Acme Inc",
+    "keywords": "acme",
 }
 
 response = client.tools.execute(
