@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_slack"
-version = "0.4.2"
+version = "0.4.3"
 description = "Arcade.dev LLM tools for Slack"
 authors = ["Arcade <dev@arcade.dev>"]
 
@@ -9,7 +9,7 @@ python = "^3.10"
 aiodns = "^1.0"  # required by slack - not picked by poetry due to slack requirements txt quirk :/
 typing = { version = "*", markers = "python_version < '3.7'" } # prevent aiodns from installing typing package
 aiohttp = ">=3.7.3,<4"  # same as aiodns, above comment
-arcade-ai = ">=0.1,<2.0"
+arcade-ai = ">=1.2.0,<2.0"
 slack-sdk = "^3.31.0"
 
 [tool.poetry.dev-dependencies]
