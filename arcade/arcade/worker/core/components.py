@@ -1,9 +1,38 @@
-from typing import Any
+from typing import Any, Optional, Protocol
 
+from fastapi import FastAPI
 from opentelemetry import trace
 
+from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 from arcade.worker.core.common import RequestData, Router, Worker, WorkerComponent
+
+
+class Component(Protocol):
+    """Protocol for worker components that are not route-based."""
+
+    def initialize(self) -> None:
+        """Initialize the component."""
+        pass
+
+
+class ComponentProvider(Protocol):
+    """Protocol for component providers that create components."""
+
+    def get_component(
+        self, app: FastAPI, catalog: ToolCatalog, **kwargs: Any
+    ) -> Optional[Component]:
+        """Get a component instance.
+
+        Args:
+            app: The FastAPI app to add routes to
+            catalog: The tool catalog to serve
+            **kwargs: Additional configuration options
+
+        Returns:
+            A component instance or None if the component should not be created
+        """
+        ...
 
 
 class CatalogComponent(WorkerComponent):

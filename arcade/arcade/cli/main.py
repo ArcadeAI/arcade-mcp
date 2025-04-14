@@ -61,7 +61,7 @@ cli = typer.Typer(
 )
 
 
-cli.add_typer(worker.app, name="worker", help="Manage workers")
+cli.add_typer(worker.app, name="worker", help="Manage workers", rich_help_panel="Launch")
 console = Console()
 
 
@@ -460,12 +460,93 @@ def serve(
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
+    enable_mcp: bool = typer.Option(
+        False, "--mcp", help="Enable Model Control Protocol (MCP)", show_default=True
+    ),
+    mcp_type: str = typer.Option(
+        "sse", "--mcp-type", help="MCP type: 'sse' or 'stdio'", show_default=True
+    ),
+    mcp_server_name: str = typer.Option(
+        "Arcade Worker", "--mcp-server-name", help="MCP server name", show_default=True
+    ),
+    mcp_server_version: str = typer.Option(
+        "0.1.0", "--mcp-server-version", help="MCP server version", show_default=True
+    ),
+    mcp_instructions: str = typer.Option(
+        "Arcade Worker with MCP enabled",
+        "--mcp-instructions",
+        help="MCP instructions",
+        show_default=True,
+    ),
+    mcp_sse_path: str = typer.Option(
+        "/sse", "--mcp-sse-path", help="MCP SSE path", show_default=True
+    ),
+    mcp_message_path: str = typer.Option(
+        "messages/", "--mcp-message-path", help="MCP message path", show_default=True
+    ),
+    enable_mcp_logging: bool = typer.Option(
+        False, "--mcp-logging", help="Enable MCP logging middleware", show_default=True
+    ),
+    mcp_log_level: str = typer.Option(
+        "INFO", "--mcp-log-level", help="MCP log level", show_default=True
+    ),
+    mcp_log_request_body: bool = typer.Option(
+        True, "--mcp-log-request-body", help="Log MCP request body", show_default=True
+    ),
+    mcp_log_response_body: bool = typer.Option(
+        True, "--mcp-log-response-body", help="Log MCP response body", show_default=True
+    ),
+    mcp_log_errors: bool = typer.Option(
+        True, "--mcp-log-errors", help="Log MCP errors", show_default=True
+    ),
+    mcp_min_duration_to_log_ms: int = typer.Option(
+        0,
+        "--mcp-min-duration-to-log-ms",
+        help="Minimum duration to log MCP requests in milliseconds",
+        show_default=True,
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Start a local Arcade Worker server.
     """
-    workerup(host, port, disable_auth, otel_enable, debug)
+    # Construct MCP configuration dictionaries
+    mcp_config = {
+        "server_name": mcp_server_name,
+        "server_version": mcp_server_version,
+        "instructions": mcp_instructions,
+        "sse_path": mcp_sse_path,
+        "message_path": mcp_message_path,
+    }
+
+    mcp_logging_config = {
+        "log_level": mcp_log_level,
+        "log_request_body": mcp_log_request_body,
+        "log_response_body": mcp_log_response_body,
+        "log_errors": mcp_log_errors,
+        "min_duration_to_log_ms": mcp_min_duration_to_log_ms,
+    }
+    from arcade.cli.serve import serve_default_worker
+
+    try:
+        serve_default_worker(
+            host,
+            port,
+            disable_auth=disable_auth,
+            enable_otel=otel_enable,
+            enable_mcp=enable_mcp,
+            mcp_type=mcp_type,
+            mcp_config=mcp_config,
+            enable_mcp_logging=enable_mcp_logging,
+            mcp_logging_config=mcp_logging_config,
+            debug=debug,
+        )
+    except KeyboardInterrupt:
+        typer.Exit()
+    except Exception as e:
+        error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
+        console.print(error_message, style="bold red")
+        typer.Exit(code=1)
 
 
 @cli.command(help="Launch Arcade Worker and Engine locally", rich_help_panel="Launch")
@@ -493,7 +574,6 @@ def dev(
         typer.Exit(code=1)
 
 
-# TODO: deprecate this next major version
 @cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
 def workerup(
     host: str = typer.Option(
@@ -513,6 +593,9 @@ def workerup(
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
+    enable_mcp: bool = False,
+    mcp_type: str = "sse",
+    enable_mcp_logging: bool = False,
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
@@ -523,7 +606,14 @@ def workerup(
 
     try:
         serve_default_worker(
-            host, port, disable_auth=disable_auth, enable_otel=otel_enable, debug=debug
+            host,
+            port,
+            disable_auth=disable_auth,
+            enable_otel=otel_enable,
+            enable_mcp=enable_mcp,
+            mcp_type=mcp_type,
+            enable_mcp_logging=enable_mcp_logging,
+            debug=debug,
         )
     except KeyboardInterrupt:
         typer.Exit()
@@ -533,7 +623,7 @@ def workerup(
         typer.Exit(code=1)
 
 
-@cli.command(help="Deploy worker to Arcade Cloud", rich_help_panel="Deployment")
+@cli.command(help="Deploy worker to Arcade Cloud", rich_help_panel="Launch")
 def deploy(
     deployment_file: str = typer.Option(
         "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
