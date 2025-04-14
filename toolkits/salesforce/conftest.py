@@ -11,6 +11,6 @@ def mock_context():
 
 
 @pytest.fixture
-def mock_httpx_client(mocker):
-    with patch("arcade_salesforce.utils.httpx") as mock_httpx:
+def mock_httpx_client():
+    with patch("arcade_salesforce.models.httpx") as mock_httpx:
         yield mock_httpx.AsyncClient().__aenter__.return_value

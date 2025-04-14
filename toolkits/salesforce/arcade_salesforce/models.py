@@ -78,12 +78,15 @@ class SalesforceClient:
         params: Optional[dict] = None,
         headers: Optional[dict] = None,
     ) -> dict:
-        with httpx.Client() as client:
-            response = client.get(
-                self._endpoint_url(endpoint),
-                params=params,
-                headers=self._build_headers(headers),
-            )
+        async with httpx.AsyncClient() as client:
+            kwargs = {
+                "url": self._endpoint_url(endpoint),
+                "headers": self._build_headers(headers),
+            }
+            if params:
+                kwargs["params"] = params
+
+            response = await client.get(**kwargs)
 
             if response.status_code >= 300:
                 self._raise_http_error(response)
@@ -97,13 +100,17 @@ class SalesforceClient:
         json_data: Optional[dict] = None,
         headers: Optional[dict] = None,
     ) -> dict:
-        with httpx.Client() as client:
-            response = client.post(
-                self._endpoint_url(endpoint),
-                data=data,
-                json=json_data,
-                headers=self._build_headers(headers),
-            )
+        async with httpx.AsyncClient() as client:
+            kwargs = {
+                "url": self._endpoint_url(endpoint),
+                "headers": self._build_headers(headers),
+            }
+            if data:
+                kwargs["data"] = data
+            if json_data:
+                kwargs["json"] = json_data
+
+            response = await client.post(**kwargs)
 
             if response.status_code >= 300:
                 self._raise_http_error(response)
@@ -129,7 +136,7 @@ class SalesforceClient:
     ) -> list[dict]:
         try:
             response = await self.get(
-                f"sobjects/{parent_object_type.value}/{parent_object_id}/{child_object_type.value.lower()}s",
+                f"sobjects/{parent_object_type.value}/{parent_object_id}/{child_object_type.plural.lower()}",
                 params={"limit": limit},
             )
             return cast(list, response["records"])
@@ -145,7 +152,7 @@ class SalesforceClient:
                 return await self.get_object_by_id(f"User/{object_id}")
             return None
 
-    async def get_account(self, account_id: str) -> dict[str, Any]:
+    async def get_account(self, account_id: str) -> Optional[dict[str, Any]]:
         try:
             return cast(dict, await self.get(f"sobjects/Account/{account_id}"))
         except ResourceNotFoundError:
@@ -234,6 +241,9 @@ class SalesforceClient:
 
         if account_data is None:
             account_data = await self.get_account(cast(str, account_id))
+
+            if not account_data:
+                raise ResourceNotFoundError([f"Account not found with ID: {account_id}"])
 
         if not account_id:
             account_id = cast(str, account_data["Id"])

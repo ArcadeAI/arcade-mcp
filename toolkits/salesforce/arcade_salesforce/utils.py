@@ -14,8 +14,15 @@ def remove_fields_globally_ignored(clean_func: Callable[[dict], dict]) -> Callab
 
             if isinstance(value, dict):
                 cleaned_data[key] = global_cleaner(value)
+
             elif isinstance(value, (list, tuple, set)):
-                cleaned_data[key] = [global_cleaner(item) for item in value]
+                cleaned_items = []
+                for item in value:
+                    if isinstance(item, dict):
+                        cleaned_items.append(global_cleaner(item))
+                    else:
+                        cleaned_items.append(item)
+                cleaned_data[key] = cleaned_items  # type: ignore[assignment]
             else:
                 cleaned_data[key] = value
         return cleaned_data
@@ -175,7 +182,8 @@ def simplified_object_data(data: dict) -> dict:
 
 
 def get_object_type(data: dict) -> str:
-    return cast(str, data.get("ObjectType")) or cast(str, data["attributes"]["type"])
+    obj_type = data.get("ObjectType") or data["attributes"]["type"]
+    return cast(str, obj_type)
 
 
 def build_soql_query(query: str, **kwargs: Any) -> str:
@@ -200,7 +208,7 @@ def format_email(description: str) -> dict:
     }
 
     if email["Attachment"] == "--none--":
-        email["Attachment"] = None
+        del email["Attachment"]
 
     return email
 

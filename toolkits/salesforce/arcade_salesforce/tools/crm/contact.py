@@ -58,7 +58,7 @@ async def create_contact(
     if not contact.get("success"):
         raise SalesforceToolExecutionError(
             message="Failed to create contact",
-            errors=contact.get("errors"),
+            errors=contact.get("errors", []),
         )
 
     return {"success": True, "contactId": contact.get("id")}

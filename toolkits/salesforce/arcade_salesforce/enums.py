@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import cast
 
 
 class SalesforceObject(Enum):
@@ -17,4 +18,4 @@ class SalesforceObject(Enum):
     def plural(self) -> str:
         if self == SalesforceObject.OPPORTUNITY:
             return "Opportunities"
-        return self.value + "s"
+        return cast(str, self.value) + "s"
