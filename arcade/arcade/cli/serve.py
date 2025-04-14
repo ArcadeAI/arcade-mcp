@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import signal
 import sys
 from contextlib import asynccontextmanager
 from typing import Any
@@ -67,7 +68,7 @@ async def lifespan(app: fastapi.FastAPI):  # type: ignore[no-untyped-def]
         logger.debug("Lifespan cancelled.")
 
 
-def serve_default_worker(
+def serve_default_worker(  # noqa: C901
     host: str = "127.0.0.1",
     port: int = 8002,
     disable_auth: bool = False,
@@ -75,6 +76,11 @@ def serve_default_worker(
     timeout_keep_alive: int = 5,
     enable_otel: bool = False,
     debug: bool = False,
+    enable_mcp: bool = False,
+    mcp_type: str = "sse",
+    mcp_config: dict[str, str | int | bool] | None = None,
+    enable_mcp_logging: bool = False,
+    mcp_logging_config: dict[str, str | int | bool] | None = None,
     **kwargs: Any,
 ) -> None:
     """
@@ -103,8 +109,36 @@ def serve_default_worker(
 
     otel_handler = OTELHandler(app, enable=enable_otel)
 
+    # Default MCP configuration if not provided
+    if mcp_config is None:
+        mcp_config = {
+            "server_name": "Arcade Worker",
+            "server_version": "0.1.0",
+            "instructions": "Arcade Worker with MCP enabled",
+            "sse_path": "/sse",
+            "message_path": "messages/",
+        }
+
+    # Default MCP logging configuration if not provided
+    if mcp_logging_config is None:
+        mcp_logging_config = {
+            "log_level": "INFO",
+            "log_request_body": True,
+            "log_response_body": True,
+            "log_errors": True,
+            "min_duration_to_log_ms": 0,
+        }
+
     worker = FastAPIWorker(
-        app, secret=worker_secret, disable_auth=disable_auth, otel_meter=otel_handler.get_meter()
+        app,
+        secret=worker_secret,
+        disable_auth=disable_auth,
+        otel_meter=otel_handler.get_meter(),
+        enable_mcp=enable_mcp,
+        mcp_type=mcp_type,
+        mcp_config=mcp_config,
+        enable_mcp_logging=enable_mcp_logging,
+        mcp_logging_config=mcp_logging_config,
     )
 
     toolkit_tool_counts = {}
@@ -120,11 +154,40 @@ def serve_default_worker(
     for name, tool_count in toolkit_tool_counts.items():
         logger.info(f"  - {name}: {tool_count} tools")
 
+    if enable_mcp:
+        logger.info(f"MCP enabled with type: {mcp_type}")
+        if mcp_type == "sse" or mcp_type == "both":
+            logger.info(f"MCP SSE endpoint: http://{host}:{port}/mcp{mcp_config['sse_path']}")
+            logger.info(
+                f"MCP message endpoint: http://{host}:{port}/mcp/{mcp_config['message_path']}"
+            )
+
     logger.info("Starting FastAPI server...")
 
     class CustomUvicornServer(uvicorn.Server):
         def install_signal_handlers(self) -> None:
             pass  # Disable Uvicorn's default signal handlers
+
+        async def shutdown(self, sockets=None) -> None:
+            """
+            Custom shutdown that properly cleans up resources.
+            """
+            logger.info("Initiating graceful shutdown...")
+
+            # If MCP is enabled, properly shutdown MCP servers
+            if enable_mcp and hasattr(worker, "mcp_components"):
+                for component in worker.mcp_components:
+                    if hasattr(component, "mcp_server") and hasattr(
+                        component.mcp_server, "shutdown"
+                    ):
+                        try:
+                            logger.debug("Shutting down MCP server...")
+                            await component.mcp_server.shutdown()
+                        except Exception as e:
+                            logger.exception(f"Error shutting down MCP server: {e}")
+
+            # Now do the standard server shutdown
+            await super().shutdown(sockets=sockets)
 
     config = uvicorn.Config(
         app=app,
@@ -140,11 +203,51 @@ def serve_default_worker(
     async def serve() -> None:
         await server.serve()
 
+    async def shutdown() -> None:
+        # Custom clean shutdown
+        try:
+            logger.info("Shutting down")
+            await server.shutdown()
+
+            # Give a brief period for connections to close properly
+            logger.info("Waiting for connections to close. (CTRL+C to force quit)")
+            try:
+                # Wait a short time for connections to finalize
+                await asyncio.sleep(0.5)
+            except asyncio.CancelledError:
+                logger.info("Forced immediate shutdown")
+
+        except Exception as e:
+            logger.exception(f"Error during server shutdown: {e}")
+
+        if enable_otel:
+            otel_handler.shutdown()
+        logger.debug("Server shutdown complete.")
+
     try:
+        loop = asyncio.get_event_loop()
+
+        # Setup graceful shutdown handlers
+        for signal_name in ("SIGINT", "SIGTERM"):
+            if hasattr(signal, signal_name):
+                loop.add_signal_handler(
+                    getattr(signal, signal_name), lambda: asyncio.create_task(shutdown())
+                )
+
+        # Run the server
         asyncio.run(serve())
     except KeyboardInterrupt:
         logger.info("Server stopped by user.")
+    except asyncio.CancelledError:
+        logger.info("Server tasks cancelled.")
+    except Exception as e:
+        logger.error(f"Error running server: {e}")
     finally:
-        if enable_otel:
-            otel_handler.shutdown()
+        # Ensure cleanup runs even if there's an exception
+        try:
+            if enable_otel:
+                otel_handler.shutdown()
+        except Exception as e:
+            logger.error(f"Error during final cleanup: {e}")
+
         logger.debug("Server shutdown complete.")
