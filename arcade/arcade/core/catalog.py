@@ -350,7 +350,7 @@ class ToolCatalog(BaseModel):
         return len(self._tools)
 
     @staticmethod
-    def create_tool_definition(  # noqa: C901
+    def create_tool_definition(
         tool: Callable,
         toolkit_name: str,
         toolkit_version: Optional[str] = None,
@@ -371,54 +371,9 @@ class ToolCatalog(BaseModel):
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
             raise ToolDefinitionError(f"Tool {raw_tool_name} must have a return type annotation")
 
-        auth_requirement = getattr(tool, "__tool_requires_auth__", None)
-        if isinstance(auth_requirement, ToolAuthorization):
-            new_auth_requirement = ToolAuthRequirement(
-                provider_id=auth_requirement.provider_id,
-                provider_type=auth_requirement.provider_type,
-                id=auth_requirement.id,
-            )
-            if isinstance(auth_requirement, OAuth2):
-                new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
-            auth_requirement = new_auth_requirement
-
-        secrets_requirement = getattr(tool, "__tool_requires_secrets__", None)
-        if isinstance(secrets_requirement, list):
-            if any(not isinstance(secret, str) for secret in secrets_requirement):
-                raise ToolDefinitionError(
-                    f"Secret keys must be strings (error in tool {raw_tool_name})."
-                )
-
-            secrets_requirement = to_tool_secret_requirements(secrets_requirement)
-            if any(
-                secret.key is None or secret.key.strip() == "" for secret in secrets_requirement
-            ):
-                raise ToolDefinitionError(
-                    f"Secrets must have a non-empty key (error in tool {raw_tool_name})."
-                )
-
-        metadata_requirement = getattr(tool, "__tool_requires_metadata__", None)
-        if isinstance(metadata_requirement, list):
-            for metadata in metadata_requirement:
-                if not isinstance(metadata, str):
-                    raise ToolDefinitionError(
-                        f"Metadata must be strings (error in tool {raw_tool_name})."
-                    )
-                if ToolMetadataKey.requires_auth(metadata) and auth_requirement is None:
-                    raise ToolDefinitionError(
-                        f"Tool {raw_tool_name} declares metadata key '{metadata}', "
-                        "which requires that the tool has an auth requirement, "
-                        "but no auth requirement was provided. Please specify an auth requirement."
-                    )
-
-            metadata_requirement = to_tool_metadata_requirements(metadata_requirement)
-            if any(
-                metadata.key is None or metadata.key.strip() == ""
-                for metadata in metadata_requirement
-            ):
-                raise ToolDefinitionError(
-                    f"Metadata must have a non-empty key (error in tool {raw_tool_name})."
-                )
+        auth_requirement = create_auth_requirement(tool)
+        secrets_requirement = create_secrets_requirement(tool)
+        metadata_requirement = create_metadata_requirement(tool, auth_requirement)
 
         toolkit_definition = ToolkitDefinition(
             name=snake_to_pascal_case(toolkit_name),
@@ -529,6 +484,77 @@ def create_output_definition(func: Callable) -> ToolOutput:
             enum=wire_type_info.enum_values,
         ),
     )
+
+
+def create_auth_requirement(tool: Callable) -> ToolAuthRequirement | None:
+    """
+    Create an auth requirement for a tool.
+    """
+    auth_requirement = getattr(tool, "__tool_requires_auth__", None)
+    if isinstance(auth_requirement, ToolAuthorization):
+        new_auth_requirement = ToolAuthRequirement(
+            provider_id=auth_requirement.provider_id,
+            provider_type=auth_requirement.provider_type,
+            id=auth_requirement.id,
+        )
+        if isinstance(auth_requirement, OAuth2):
+            new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
+        auth_requirement = new_auth_requirement
+
+    return auth_requirement
+
+
+def create_secrets_requirement(tool: Callable) -> list[ToolSecretRequirement] | None:
+    """
+    Create a secrets requirement for a tool.
+    """
+    raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
+    secrets_requirement = getattr(tool, "__tool_requires_secrets__", None)
+    if isinstance(secrets_requirement, list):
+        if any(not isinstance(secret, str) for secret in secrets_requirement):
+            raise ToolDefinitionError(
+                f"Secret keys must be strings (error in tool {raw_tool_name})."
+            )
+
+        secrets_requirement = to_tool_secret_requirements(secrets_requirement)
+        if any(secret.key is None or secret.key.strip() == "" for secret in secrets_requirement):
+            raise ToolDefinitionError(
+                f"Secrets must have a non-empty key (error in tool {raw_tool_name})."
+            )
+
+    return secrets_requirement
+
+
+def create_metadata_requirement(
+    tool: Callable, auth_requirement: ToolAuthRequirement | None
+) -> list[ToolMetadataRequirement] | None:
+    """
+    Create a metadata requirement for a tool.
+    """
+    raw_tool_name = getattr(tool, "__tool_name__", tool.__name__)
+    metadata_requirement = getattr(tool, "__tool_requires_metadata__", None)
+    if isinstance(metadata_requirement, list):
+        for metadata in metadata_requirement:
+            if not isinstance(metadata, str):
+                raise ToolDefinitionError(
+                    f"Metadata must be strings (error in tool {raw_tool_name})."
+                )
+            if ToolMetadataKey.requires_auth(metadata) and auth_requirement is None:
+                raise ToolDefinitionError(
+                    f"Tool {raw_tool_name} declares metadata key '{metadata}', "
+                    "which requires that the tool has an auth requirement, "
+                    "but no auth requirement was provided. Please specify an auth requirement."
+                )
+
+        metadata_requirement = to_tool_metadata_requirements(metadata_requirement)
+        if any(
+            metadata.key is None or metadata.key.strip() == "" for metadata in metadata_requirement
+        ):
+            raise ToolDefinitionError(
+                f"Metadata must have a non-empty key (error in tool {raw_tool_name})."
+            )
+
+    return metadata_requirement
 
 
 @dataclass

@@ -312,7 +312,9 @@ class ToolContext(BaseModel):
         """Retrieve the metadata for the tool invocation."""
         return self._get_item(key, self.metadata, "metadata")
 
-    def _get_item(self, key: str, items: list, item_name: str) -> str:
+    def _get_item(
+        self, key: str, items: list[ToolMetadataItem] | list[ToolSecretItem] | None, item_name: str
+    ) -> str:
         if not key or not key.strip():
             raise ValueError(
                 f"{item_name.capitalize()} key passed to get_{item_name} cannot be empty."
