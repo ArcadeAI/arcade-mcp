@@ -79,7 +79,7 @@ class SalesforceClient:
         headers: Optional[dict] = None,
     ) -> dict:
         async with httpx.AsyncClient() as client:
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "url": self._endpoint_url(endpoint),
                 "headers": self._build_headers(headers),
             }
@@ -101,7 +101,7 @@ class SalesforceClient:
         headers: Optional[dict] = None,
     ) -> dict:
         async with httpx.AsyncClient() as client:
-            kwargs = {
+            kwargs: dict[str, Any] = {
                 "url": self._endpoint_url(endpoint),
                 "headers": self._build_headers(headers),
             }
