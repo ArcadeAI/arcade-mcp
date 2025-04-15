@@ -22,6 +22,63 @@ from arcade_google.utils import (
         scopes=[
             "https://www.googleapis.com/auth/calendar.readonly",
             "https://www.googleapis.com/auth/calendar.events",
+        ]
+    )
+)
+async def list_calendars(
+    context: ToolContext,
+    max_results: Annotated[int, "The maximum number of calendars to return"] = 10,
+    page_token: Annotated[
+        str | None, "The page token to retrieve the next page of calendars"
+    ] = None,
+    show_deleted: Annotated[bool, "Whether to show deleted calendars"] = False,
+    show_hidden: Annotated[bool, "Whether to show hidden calendars"] = False,
+) -> Annotated[
+    dict, "A dictionary containing the calendars accessible by the and this is very long user"
+]:
+    """
+    List all calendars accessible by the user.
+    """
+    if max_results < 1 or max_results > 250:
+        raise RetryableToolError(
+            "The maximum number of calendars to return must be between 1 and 250",
+            developer_message=f"max_results must be between 1 and 250, got {max_results}",
+            retry_after_ms=1000,
+            additional_prompt_content="max_results must be between 1 and 250",
+        )
+
+    service = build(
+        "calendar",
+        "v3",
+        credentials=Credentials(
+            context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        ),
+    )
+    calendars = (
+        service.calendarList()
+        .list(
+            pageToken=page_token,
+            showDeleted=show_deleted,
+            showHidden=show_hidden,
+            maxResults=max_results,
+        )
+        .execute()
+    )
+
+    return {
+        "next_page_token": calendars.get("nextPageToken"),
+        "next_sync_token": calendars.get("nextSyncToken"),
+        "calendars": calendars.get("items", []),
+    }
+
+
+@tool(
+    requires_auth=Google(
+        scopes=[
+            "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.events",
         ],
     )
 )

@@ -12,6 +12,7 @@ from arcade_google.tools.calendar import (
     create_event,
     delete_event,
     find_time_slots_when_everyone_is_free,
+    list_calendars,
     list_events,
     update_event,
 )
@@ -21,6 +22,81 @@ from arcade_google.tools.calendar import (
 def mock_context():
     mock_auth = ToolAuthorizationContext(token="fake-token")  # noqa: S106
     return ToolContext(authorization=mock_auth)
+
+
+@pytest.mark.asyncio
+@patch("arcade_google.tools.calendar.build")
+async def test_list_calendars(mock_build, mock_context):
+    mock_service = MagicMock()
+    mock_build.return_value = mock_service
+
+    expected_api_response = {
+        "etag": '"p33for2n0pvc8o0o"',
+        "items": [
+            {
+                "accessRole": "reader",
+                "backgroundColor": "#16a765",
+                "colorId": "8",
+                "conferenceProperties": {"allowedConferenceSolutionTypes": ["hangoutsMeet"]},
+                "defaultReminders": [],
+                "description": "Holidays and Observances in Brazil",
+                "etag": '"2347287866334000"',
+                "foregroundColor": "#000000",
+                "id": "en.brazilian#holiday@group.v.calendar.google.com",
+                "kind": "calendar#calendarListEntry",
+                "selected": True,
+                "summary": "Holidays in Brazil",
+                "timeZone": "America/Sao_Paulo",
+            },
+            {
+                "accessRole": "owner",
+                "backgroundColor": "#9fe1e7",
+                "colorId": "14",
+                "conferenceProperties": {"allowedConferenceSolutionTypes": ["hangoutsMeet"]},
+                "defaultReminders": [{"method": "popup", "minutes": 10}],
+                "etag": '"1743169667849567"',
+                "foregroundColor": "#000000",
+                "id": "example@arcade.dev",
+                "kind": "calendar#calendarListEntry",
+                "notificationSettings": {
+                    "notifications": [
+                        {"method": "email", "type": "eventCreation"},
+                        {"method": "email", "type": "eventChange"},
+                        {"method": "email", "type": "eventCancellation"},
+                        {"method": "email", "type": "eventResponse"},
+                    ]
+                },
+                "primary": True,
+                "selected": True,
+                "summary": "example@arcade.dev",
+                "timeZone": "America/Sao_Paulo",
+            },
+        ],
+        "kind": "calendar#calendarList",
+        "nextSyncToken": "XkJ8Hy5mN2pQvL9sR4tW7cA3fE1iU6nB",
+    }
+
+    mock_service.calendarList().list().execute.return_value = expected_api_response
+
+    expected_tool_response = {
+        "calendars": expected_api_response.get("items", []),
+        "next_page_token": expected_api_response.get("nextPageToken"),
+        "next_sync_token": expected_api_response.get("nextSyncToken"),
+    }
+
+    response = await list_calendars(context=mock_context)
+    assert response == expected_tool_response
+
+    # Case: non-positive max_results
+    with pytest.raises(RetryableToolError):
+        await list_calendars(context=mock_context, max_results=0)
+
+    with pytest.raises(RetryableToolError):
+        await list_calendars(context=mock_context, max_results=-1)
+
+    # Case: max_results greater than 250
+    with pytest.raises(RetryableToolError):
+        await list_calendars(context=mock_context, max_results=123456)
 
 
 @pytest.mark.asyncio
