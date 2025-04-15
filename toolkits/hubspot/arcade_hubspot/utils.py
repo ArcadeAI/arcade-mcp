@@ -76,13 +76,14 @@ def global_cleaner(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]
         return cleaned_data
 
     def wrapper(data: dict) -> dict:
-        return remove_none_values(clean_func(global_cleaner(data["properties"])))
+        return remove_none_values(global_cleaner(clean_func(data["properties"])))
 
     return wrapper
 
 
 def clean_data(data: dict, object_type: HubspotObject) -> dict:
     _mapping = {
+        HubspotObject.CALL: clean_call_data,
         HubspotObject.COMPANY: clean_company_data,
         HubspotObject.CONTACT: clean_contact_data,
         HubspotObject.DEAL: clean_deal_data,
@@ -161,4 +162,20 @@ def clean_deal_data(data: dict) -> dict:
     data.pop("hs_forecast_probability", None)
     data.pop("hs_forecast_amount", None)
 
+    return data
+
+
+@global_cleaner
+def clean_call_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.CALL.value
+    rename = {
+        "hs_body_preview": "body",
+        "hs_call_direction": "direction",
+        "hs_call_status": "status",
+        "hs_call_summary": "summary",
+        "hs_call_title": "title",
+        "hs_call_disposition": "outcome",
+        "hs_timestamp": "datetime",
+    }
+    data = rename_dict_keys(data, rename)
     return data

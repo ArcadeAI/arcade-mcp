@@ -191,14 +191,38 @@ class HubspotClient:
             ],
         )
 
-    async def search_by_keywords(
+    async def get_company_calls(
         self,
-        object_type: HubspotObject,
+        company_id: str,
+        limit: int = 10,
+        after: Optional[str] = None,
+    ) -> dict:
+        return await self._get_associated_objects(
+            parent_object=HubspotObject.COMPANY,
+            parent_id=company_id,
+            associated_object=HubspotObject.CALL,
+            limit=limit,
+            after=after,
+            properties=[
+                "hs_body_preview",
+                "hs_call_direction",
+                "hs_call_status",
+                "hs_call_summary",
+                "hs_call_title",
+                "hs_createdate",
+                "hubspot_owner_id",
+                "hs_call_disposition",
+                "hs_timestamp",
+            ],
+        )
+
+    async def search_company_by_keywords(
+        self,
         keywords: str,
         limit: int = 10,
         next_page_token: Optional[str] = None,
     ) -> dict:
-        endpoint = f"objects/{object_type.plural}/search"
+        endpoint = f"objects/{HubspotObject.COMPANY.plural}/search"
         request_data = {
             "query": keywords,
             "limit": limit,
@@ -210,15 +234,18 @@ class HubspotClient:
 
         data = prepare_api_search_response(
             data=await self.post(endpoint, json_data=request_data),
-            object_type=object_type,
+            object_type=HubspotObject.COMPANY,
         )
 
-        for company in data[object_type.plural]:
+        for company in data[HubspotObject.COMPANY.plural]:
             contacts = await self.get_company_contacts(company["id"], limit=10)
             deals = await self.get_company_deals(company["id"], limit=10)
+            calls = await self.get_company_calls(company["id"], limit=10)
             if contacts:
                 company["contacts"] = contacts
             if deals:
                 company["deals"] = deals
+            if calls:
+                company["calls"] = calls
 
         return data

@@ -3,7 +3,6 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import OAuth2
 
-from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.models import HubspotClient
 
 
@@ -46,8 +45,7 @@ async def get_company_data_by_keywords(
     print("\n\n", context.get_auth_token_or_empty(), "\n\n")
     limit = min(limit, 10)
     client = HubspotClient(context.get_auth_token_or_empty())
-    return await client.search_by_keywords(
-        object_type=HubspotObject.COMPANY,
+    return await client.search_company_by_keywords(
         keywords=keywords,
         limit=limit,
         next_page_token=next_page_token,
