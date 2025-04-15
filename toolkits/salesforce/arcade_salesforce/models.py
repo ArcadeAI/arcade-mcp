@@ -237,7 +237,7 @@ class SalesforceClient:
         Must provide either `account_id` or `account_data`.
         """
         if (account_id and account_data) or (not account_id and not account_data):
-            raise ValueError("Must provide either `account_id` or `account_data`")
+            raise ValueError("Must provide exactly one of `account_id` or `account_data`")
 
         if account_data is None:
             account_data = await self.get_account(cast(str, account_id))
