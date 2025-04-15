@@ -98,6 +98,15 @@ async def test_list_calendars(mock_build, mock_context):
     with pytest.raises(RetryableToolError):
         await list_calendars(context=mock_context, max_results=123456)
 
+    # Case: HttpError during calendars listing
+    mock_service.calendarList().list().execute.side_effect = HttpError(
+        resp=MagicMock(status=400),
+        content=b'{"error": {"message": "Invalid request"}}',
+    )
+
+    with pytest.raises(ToolExecutionError):
+        await list_calendars(context=mock_context)
+
 
 @pytest.mark.asyncio
 @patch("arcade_google.tools.calendar.build")
