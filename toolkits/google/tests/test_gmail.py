@@ -8,7 +8,7 @@ from arcade.sdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import GmailReplyToWhom
-from arcade_google.tools.gmail import (
+from arcade_google.tools import (
     delete_draft_email,
     get_thread,
     list_draft_emails,

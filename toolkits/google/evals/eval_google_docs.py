@@ -9,7 +9,7 @@ from arcade.sdk.eval import (
 )
 
 import arcade_google
-from arcade_google.tools.docs import (
+from arcade_google.tools import (
     create_blank_document,
     create_document_from_text,
     get_document_by_id,

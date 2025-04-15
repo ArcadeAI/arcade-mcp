@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from arcade.sdk import ToolContext
 
-from arcade_google.tools.contacts import create_contact
+from arcade_google.tools import create_contact
 
 
 @pytest.fixture

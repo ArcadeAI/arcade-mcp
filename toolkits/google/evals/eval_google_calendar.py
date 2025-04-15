@@ -12,7 +12,7 @@ from arcade.sdk.eval import (
 
 import arcade_google
 from arcade_google.models import EventVisibility, SendUpdatesOptions
-from arcade_google.tools.calendar import (
+from arcade_google.tools import (
     create_event,
     delete_event,
     list_events,
