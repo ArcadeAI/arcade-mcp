@@ -4,7 +4,7 @@ from enum import Enum
 class HubspotObject(Enum):
     COMPANY = "company"
     CONTACT = "contact"
-    LEAD = "lead"
+    DEAL = "deal"
 
     @property
     def plural(self) -> str:

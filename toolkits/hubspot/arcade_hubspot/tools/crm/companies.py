@@ -14,6 +14,7 @@ from arcade_hubspot.models import HubspotClient
             "oauth",
             "crm.objects.companies.read",
             "crm.objects.contacts.read",
+            "crm.objects.deals.read",
         ],
     ),
 )

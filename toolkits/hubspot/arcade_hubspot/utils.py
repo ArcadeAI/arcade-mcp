@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import Callable
 
 from arcade_hubspot.constants import GLOBALLY_IGNORED_FIELDS
@@ -60,6 +61,7 @@ def clean_data(data: dict, object_type: HubspotObject) -> dict:
     _mapping = {
         HubspotObject.COMPANY: clean_company_data,
         HubspotObject.CONTACT: clean_contact_data,
+        HubspotObject.DEAL: clean_deal_data,
     }
     try:
         return _mapping[object_type](data)
@@ -69,19 +71,20 @@ def clean_data(data: dict, object_type: HubspotObject) -> dict:
 
 @global_cleaner
 def clean_company_data(data: dict) -> dict:
-    return {
-        "id": data.get("id"),
-        "name": data.get("name"),
-        "phone": data.get("phone"),
-        "website": data.get("website", data.get("domain")),
-    }
+    data["object_type"] = HubspotObject.COMPANY.value
+    data["website"] = data.get("website", data.get("domain"))
+    with suppress(KeyError):
+        del data["domain"]
+    return data
 
 
 @global_cleaner
 def clean_contact_data(data: dict) -> dict:
-    return {
-        "id": data.get("id"),
-        "email": data.get("email"),
-        "first_name": data.get("firstname"),
-        "last_name": data.get("lastname"),
-    }
+    data["object_type"] = HubspotObject.CONTACT.value
+    return data
+
+
+@global_cleaner
+def clean_deal_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.DEAL.value
+    return data

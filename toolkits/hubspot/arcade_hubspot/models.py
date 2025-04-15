@@ -7,7 +7,7 @@ import httpx
 from arcade_hubspot.constants import HUBSPOT_CRM_BASE_URL, HUBSPOT_DEFAULT_API_VERSION
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.exceptions import HubspotToolExecutionError, NotFoundError
-from arcade_hubspot.utils import clean_contact_data, prepare_api_search_response
+from arcade_hubspot.utils import clean_data, prepare_api_search_response
 
 
 @dataclass
@@ -78,9 +78,36 @@ class HubspotClient:
             self._raise_for_status(response)
         return response.json()
 
-    async def get_contact_by_id(self, contact_id: str) -> dict:
-        endpoint = f"objects/{HubspotObject.CONTACT.value}/{contact_id}"
-        return clean_contact_data(await self.get(endpoint))
+    async def _get_associated_objects(
+        self,
+        parent_object: HubspotObject,
+        parent_id: str,
+        associated_object: HubspotObject,
+        limit: int = 10,
+        after: Optional[str] = None,
+    ) -> list[dict]:
+        endpoint = (
+            f"objects/{parent_object.value}/{parent_id}/associations/{associated_object.value}"
+        )
+        params = {
+            "limit": limit,
+        }
+        if after:
+            params["after"] = after
+
+        response = await self.get(endpoint, params=params, api_version="v4")
+
+        if not response["results"]:
+            return []
+
+        return await asyncio.gather(*[
+            self._get_object_by_id(associated_object, object_data["toObjectId"])
+            for object_data in response["results"]
+        ])
+
+    async def _get_object_by_id(self, object_type: HubspotObject, object_id: str) -> dict:
+        endpoint = f"objects/{object_type.value}/{object_id}"
+        return clean_data(await self.get(endpoint), object_type)
 
     async def get_company_contacts(
         self,
@@ -88,23 +115,27 @@ class HubspotClient:
         limit: int = 10,
         after: Optional[str] = None,
     ) -> dict:
-        endpoint = (
-            f"objects/{HubspotObject.COMPANY.value}/{company_id}"
-            f"/associations/{HubspotObject.CONTACT.value}"
+        return await self._get_associated_objects(
+            parent_object=HubspotObject.COMPANY,
+            parent_id=company_id,
+            associated_object=HubspotObject.CONTACT,
+            limit=limit,
+            after=after,
         )
 
-        params = {
-            "limit": limit,
-        }
-
-        if after:
-            params["after"] = after
-
-        response = await self.get(endpoint, params=params, api_version="v4")
-
-        return await asyncio.gather(*[
-            self.get_contact_by_id(contact["toObjectId"]) for contact in response["results"]
-        ])
+    async def get_company_deals(
+        self,
+        company_id: str,
+        limit: int = 10,
+        after: Optional[str] = None,
+    ) -> dict:
+        return await self._get_associated_objects(
+            parent_object=HubspotObject.COMPANY,
+            parent_id=company_id,
+            associated_object=HubspotObject.DEAL,
+            limit=limit,
+            after=after,
+        )
 
     async def search_by_keywords(
         self,
@@ -129,6 +160,11 @@ class HubspotClient:
         )
 
         for company in data[object_type.plural]:
-            company["contacts"] = await self.get_company_contacts(company["id"], limit=10)
+            contacts = await self.get_company_contacts(company["id"], limit=10)
+            deals = await self.get_company_deals(company["id"], limit=10)
+            if contacts:
+                company["contacts"] = contacts
+            if deals:
+                company["deals"] = deals
 
         return data

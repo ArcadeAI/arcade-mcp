@@ -4,4 +4,5 @@ HUBSPOT_DEFAULT_API_VERSION = "v3"
 GLOBALLY_IGNORED_FIELDS = [
     "createdate",
     "hs_lastmodifieddate",
+    "lastmodifieddate",
 ]
