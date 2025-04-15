@@ -57,9 +57,13 @@ def global_cleaner(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]
 
 
 def clean_data(data: dict, object_type: HubspotObject) -> dict:
-    if object_type == HubspotObject.COMPANY:
-        return clean_company_data(data)
-    else:
+    _mapping = {
+        HubspotObject.COMPANY: clean_company_data,
+        HubspotObject.CONTACT: clean_contact_data,
+    }
+    try:
+        return _mapping[object_type](data)
+    except KeyError:
         raise ValueError(f"Unsupported object type: {object_type}")
 
 
@@ -70,4 +74,14 @@ def clean_company_data(data: dict) -> dict:
         "name": data.get("name"),
         "phone": data.get("phone"),
         "website": data.get("website", data.get("domain")),
+    }
+
+
+@global_cleaner
+def clean_contact_data(data: dict) -> dict:
+    return {
+        "id": data.get("id"),
+        "email": data.get("email"),
+        "first_name": data.get("firstname"),
+        "last_name": data.get("lastname"),
     }

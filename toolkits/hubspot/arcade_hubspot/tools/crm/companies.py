@@ -10,7 +10,11 @@ from arcade_hubspot.models import HubspotClient
 @tool(
     requires_auth=OAuth2(
         id="arcade-hubspot",
-        scopes=["oauth", "crm.objects.companies.read"],
+        scopes=[
+            "oauth",
+            "crm.objects.companies.read",
+            "crm.objects.contacts.read",
+        ],
     ),
 )
 async def get_company_data_by_keywords(
