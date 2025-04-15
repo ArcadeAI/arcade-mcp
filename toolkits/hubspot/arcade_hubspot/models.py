@@ -85,6 +85,7 @@ class HubspotClient:
         associated_object: HubspotObject,
         limit: int = 10,
         after: Optional[str] = None,
+        properties: Optional[list[str]] = None,
     ) -> list[dict]:
         endpoint = (
             f"objects/{parent_object.value}/{parent_id}/associations/{associated_object.value}"
@@ -101,13 +102,21 @@ class HubspotClient:
             return []
 
         return await asyncio.gather(*[
-            self._get_object_by_id(associated_object, object_data["toObjectId"])
+            self._get_object_by_id(associated_object, object_data["toObjectId"], properties)
             for object_data in response["results"]
         ])
 
-    async def _get_object_by_id(self, object_type: HubspotObject, object_id: str) -> dict:
-        endpoint = f"objects/{object_type.value}/{object_id}"
-        return clean_data(await self.get(endpoint), object_type)
+    async def _get_object_by_id(
+        self,
+        object_type: HubspotObject,
+        object_id: str,
+        properties: Optional[list[str]] = None,
+    ) -> dict:
+        endpoint = f"objects/{object_type.plural}/{object_id}"
+        params = {}
+        if properties:
+            params["properties"] = properties
+        return clean_data(await self.get(endpoint, params=params), object_type)
 
     async def get_company_contacts(
         self,
@@ -121,6 +130,33 @@ class HubspotClient:
             associated_object=HubspotObject.CONTACT,
             limit=limit,
             after=after,
+            properties=[
+                "salutation",
+                "email",
+                "work_email",
+                "hs_additional_emails",
+                "mobilephone",
+                "phone",
+                "firstname",
+                "lastname",
+                "lifecyclestage",
+                "annualrevenue",
+                "address",
+                "date_of_birth",
+                "degree",
+                "gender",
+                "buying_role",
+                "hs_language",
+                "hs_lead_status",
+                "hs_timezone",
+                "hubspot_owner_id",
+                "hubspot_owner_name",
+                "job_function",
+                "jobtitle",
+                "seniority",
+                "industry",
+                "twitterhandle",
+            ],
         )
 
     async def get_company_deals(
@@ -135,6 +171,24 @@ class HubspotClient:
             associated_object=HubspotObject.DEAL,
             limit=limit,
             after=after,
+            properties=[
+                "dealname",
+                "dealstage",
+                "dealtype",
+                "closedate",
+                "closed_lost_reason",
+                "closed_won_reason",
+                "hs_is_closed_won",
+                "hs_is_closed_lost",
+                "hs_closed_amount",
+                "pipeline",
+                "hubspot_owner_id",
+                "description",
+                "hs_deal_score",
+                "amount",
+                "hs_forecast_probability",
+                "hs_forecast_amount",
+            ],
         )
 
     async def search_by_keywords(

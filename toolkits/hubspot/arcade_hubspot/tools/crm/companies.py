@@ -43,6 +43,7 @@ async def get_company_data_by_keywords(
 
     This tool will return up to 10 items of each associated object (contacts, leads, etc).
     """
+    print("\n\n", context.get_auth_token_or_empty(), "\n\n")
     limit = min(limit, 10)
     client = HubspotClient(context.get_auth_token_or_empty())
     return await client.search_by_keywords(
