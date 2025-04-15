@@ -12,7 +12,7 @@ from arcade.sdk.eval import (
 
 import arcade_google
 from arcade_google.models import GmailReplyToWhom
-from arcade_google.tools.gmail import (
+from arcade_google.tools import (
     get_thread,
     list_emails_by_header,
     list_threads,

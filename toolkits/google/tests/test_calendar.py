@@ -8,7 +8,7 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import EventVisibility, SendUpdatesOptions
-from arcade_google.tools.calendar import (
+from arcade_google.tools import (
     create_event,
     delete_event,
     find_time_slots_when_everyone_is_free,
