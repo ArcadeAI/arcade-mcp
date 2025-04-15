@@ -10,6 +10,8 @@ from arcade.core.schema import (
     ToolAuthRequirement,
     ToolContext,
     ToolInput,
+    ToolMetadataKey,
+    ToolMetadataRequirement,
     ToolOutput,
     ToolRequirements,
     ToolSecretRequirement,
@@ -60,6 +62,38 @@ def func_with_secret_requirement():
     requires_secrets=["my_secret_id", "my_secret_id2", "MY_SECRET_ID"],
 )
 def func_with_multiple_secret_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires metadata",
+    requires_metadata=[ToolMetadataKey.COORDINATOR_URL],
+)
+def func_with_metadata_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires multiple metadata fields, deduped case-insensitively",
+    requires_metadata=[
+        ToolMetadataKey.COORDINATOR_URL,
+        "my_other_metadata_key",
+        "MY_OTHER_METADATA_KEY",
+    ],
+)
+def func_with_multiple_metadata_requirement():
+    pass
+
+
+@tool(
+    desc="A function that requires a metadata field that depends on the tool having an auth requirement",
+    requires_auth=OAuth2(
+        id="my_example_provider123",
+        scopes=["scope1", "scope2"],
+    ),
+    requires_metadata=[ToolMetadataKey.CLIENT_ID],
+)
+def func_with_metadata_and_auth_dependency():
     pass
 
 
@@ -335,6 +369,43 @@ def func_with_complex_return() -> dict[str, str]:
                 )
             },
             id="func_with_multiple_secret_requirement",
+        ),
+        pytest.param(
+            func_with_metadata_requirement,
+            {
+                "requirements": ToolRequirements(
+                    metadata=[ToolMetadataRequirement(key=ToolMetadataKey.COORDINATOR_URL)]
+                )
+            },
+            id="func_with_metadata_requirement",
+        ),
+        pytest.param(
+            func_with_multiple_metadata_requirement,
+            {
+                "requirements": ToolRequirements(
+                    metadata=[
+                        ToolMetadataRequirement(key=ToolMetadataKey.COORDINATOR_URL),
+                        ToolMetadataRequirement(key="my_other_metadata_key"),
+                    ]
+                )
+            },
+            id="func_with_multiple_metadata_requirement",
+        ),
+        pytest.param(
+            func_with_metadata_and_auth_dependency,
+            {
+                "requirements": ToolRequirements(
+                    metadata=[ToolMetadataRequirement(key=ToolMetadataKey.CLIENT_ID)],
+                    authorization=ToolAuthRequirement(
+                        provider_type="oauth2",
+                        id="my_example_provider123",
+                        oauth2=OAuth2Requirement(
+                            scopes=["scope1", "scope2"],
+                        ),
+                    ),
+                )
+            },
+            id="func_with_metadata_and_auth_dependency",
         ),
         pytest.param(
             func_with_auth_requirement,
