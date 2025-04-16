@@ -10,7 +10,7 @@ from arcade_hubspot.constants import (
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.exceptions import HubspotToolExecutionError, NotFoundError
 from arcade_hubspot.properties import get_object_properties
-from arcade_hubspot.utils import clean_data, prepare_api_search_response
+from arcade_hubspot.utils import clean_data, prepare_api_search_response, remove_none_values
 
 
 @dataclass
@@ -176,3 +176,37 @@ class HubspotCrmClient:
                     object_[association.plural] = results
 
         return data
+
+    async def create_contact(
+        self,
+        company_id: str,
+        first_name: str,
+        last_name: Optional[str] = None,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        mobile_phone: Optional[str] = None,
+        job_title: Optional[str] = None,
+    ) -> dict:
+        request_data = {
+            "associations": [
+                {
+                    "types": [
+                        {
+                            "associationCategory": "HUBSPOT_DEFINED",
+                            "associationTypeId": "1",
+                        }
+                    ],
+                    "to": {"id": company_id},
+                },
+            ],
+            "properties": remove_none_values({
+                "firstname": first_name,
+                "lastname": last_name,
+                "email": email,
+                "phone": phone,
+                "mobilephone": mobile_phone,
+                "jobtitle": job_title,
+            }),
+        }
+        endpoint = "objects/contacts"
+        return await self.post(endpoint, json_data=request_data)

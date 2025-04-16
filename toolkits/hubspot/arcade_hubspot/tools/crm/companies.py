@@ -5,6 +5,7 @@ from arcade.sdk.auth import OAuth2
 
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.models import HubspotCrmClient
+from arcade_hubspot.utils import clean_data
 
 
 @tool(
@@ -115,3 +116,34 @@ async def get_contact_data_by_keywords(
             HubspotObject.TASK,
         ],
     )
+
+
+@tool(
+    requires_auth=OAuth2(
+        id="arcade-hubspot",
+        scopes=["oauth", "crm.objects.contacts.write"],
+    ),
+)
+async def create_contact(
+    context: ToolContext,
+    company_id: Annotated[str, "The ID of the company to create the contact for."],
+    first_name: Annotated[str, "The first name of the contact."],
+    last_name: Annotated[Optional[str], "The last name of the contact."] = None,
+    email: Annotated[Optional[str], "The email address of the contact."] = None,
+    phone: Annotated[Optional[str], "The phone number of the contact."] = None,
+    mobile_phone: Annotated[Optional[str], "The mobile phone number of the contact."] = None,
+    job_title: Annotated[Optional[str], "The job title of the contact."] = None,
+) -> Annotated[dict, "Create a contact associated with a company."]:
+    """Create a contact associated with a company."""
+    client = HubspotCrmClient(context.get_auth_token_or_empty())
+    response = await client.create_contact(
+        company_id=company_id,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        phone=phone,
+        mobile_phone=mobile_phone,
+        job_title=job_title,
+    )
+
+    return clean_data(response, HubspotObject.CONTACT)
