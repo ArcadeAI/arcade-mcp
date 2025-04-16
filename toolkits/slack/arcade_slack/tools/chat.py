@@ -940,3 +940,151 @@ async def list_direct_message_conversations_metadata(
     )
 
     return response  # type: ignore[no-any-return]
+
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:history",
+            "groups:history",
+            "im:history",
+            "mpim:history",
+        ],
+    )
+)
+async def get_thread_replies(
+    context: ToolContext,
+    channel_id: Annotated[str, "The ID of the channel/conversation containing the thread."],
+    thread_ts: Annotated[str, "The timestamp ('ts') of the parent message of the thread."],
+    limit: Annotated[int, "The maximum number of replies to return (max 200)."] = 200,
+) -> Annotated[list[dict], "A list of message objects representing the replies in the thread (excluding the parent message)."]:
+    """Fetches replies for a specific thread in a Slack conversation."""
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    if not token:
+        # This should generally not happen if requires_auth is working, but good practice to check.
+        raise ToolExecutionError("Slack token not available via Arcade Auth.")
+
+    client = AsyncWebClient(token=token)
+
+    try:
+        # Use conversations.replies method
+        result = await client.conversations_replies(
+            channel=channel_id,
+            ts=thread_ts,
+            limit=min(limit, 200) # Ensure limit doesn't exceed API max
+        )
+
+        messages = result.get("messages", [])
+        # The first message in the replies is the parent message, skip it.
+        replies = messages[1:] if messages else []
+        
+        # Enrich replies with datetime objects like get_messages_in_conversation_by_id does
+        enriched_replies = [enrich_message_datetime(reply) for reply in replies]
+
+        return enriched_replies
+
+    except SlackApiError as e:
+        error_code = e.response.get("error", "unknown_error")
+        if error_code in ["channel_not_found", "thread_not_found"]:
+             # Suggest listing conversations or checking thread_ts if not found
+            conversations = await list_conversations_metadata(context)
+            available_conversations = ", ".join(
+                f"{conversation['id']} ({conversation.get('name', 'DM')})"
+                for conversation in conversations.get("conversations", [])
+            )
+            raise RetryableToolError(
+                f"Error fetching replies: {error_code}",
+                developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}",
+                additional_prompt_content=f"Could not find channel or thread. Verify channel_id and thread_ts. Available conversations: {available_conversations}"
+            )
+        # Handle other common errors
+        elif error_code in ["ratelimited", "service_unavailable"]:
+             raise RetryableToolError(
+                 f"Slack API Error: {error_code}",
+                 developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}",
+                 retry_after_ms=10000 # Suggest longer wait for rate limits/service issues
+             )
+        else:
+            # General tool execution error for other Slack API errors
+            raise ToolExecutionError(
+                f"Error fetching Slack thread replies: {error_code}",
+                developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}. Response: {e.response}"
+            )
+    except Exception as e:
+        # Catch any other unexpected errors
+        raise ToolExecutionError(
+            f"An unexpected error occurred fetching Slack replies: {str(e)}",
+            developer_message=f"Unexpected error: {str(e)}. Channel: {channel_id}, Thread TS: {thread_ts}"
+        )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["chat:write"],
+    )
+)
+async def send_reply_in_thread(
+    context: ToolContext,
+    channel_id: Annotated[str, "The ID of the channel/conversation where the thread exists."],
+    thread_ts: Annotated[str, "The timestamp ('ts') of the parent message to reply to."],
+    text: Annotated[str, "The message text to send as a reply."],
+) -> Annotated[dict, "A dictionary containing the timestamp ('ts') of the sent reply message and other API response data."]:
+    """Sends a reply message within a specific Slack thread."""
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    if not token:
+        raise ToolExecutionError("Slack token not available via Arcade Auth.")
+
+    client = AsyncWebClient(token=token)
+
+    try:
+        # Use chat.postMessage with thread_ts to send the reply
+        result = await client.chat_postMessage(
+            channel=channel_id,
+            text=text,
+            thread_ts=thread_ts # This makes it a reply in the specified thread
+        )
+        
+        # Check if the operation was successful and return relevant data
+        if result.get("ok"):
+            return {
+                "ok": True,
+                "ts": result.get("ts"),
+                "channel": result.get("channel"),
+                "message_details": result.get("message") # Includes text, user, etc.
+            }
+        else:
+             # If 'ok' is false, raise an error
+             error_code = result.get("error", "unknown_error")
+             raise ToolExecutionError(
+                 f"Failed to send threaded reply: {error_code}",
+                 developer_message=f"Slack API Error on chat.postMessage: {error_code}. Response: {result}"
+             )
+
+    except SlackApiError as e:
+        error_code = e.response.get("error", "unknown_error")
+        # Check for common retryable or specific errors
+        if error_code in ["channel_not_found", "is_archived", "message_not_found"]:
+             raise RetryableToolError(
+                 f"Error sending reply: {error_code}",
+                 developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}",
+                 additional_prompt_content=f"Could not send reply. Verify channel_id is correct and not archived, and thread_ts points to a valid message."
+             )
+        elif error_code in ["ratelimited", "service_unavailable"]:
+             raise RetryableToolError(
+                 f"Slack API Error: {error_code}",
+                 developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}",
+                 retry_after_ms=10000
+             )
+        else:
+             raise ToolExecutionError(
+                 f"Error sending Slack threaded reply: {error_code}",
+                 developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}. Response: {e.response}"
+             )
+    except Exception as e:
+        raise ToolExecutionError(
+            f"An unexpected error occurred sending Slack reply: {str(e)}",
+            developer_message=f"Unexpected error: {str(e)}. Channel: {channel_id}, Thread TS: {thread_ts}"
+        )
