@@ -31,10 +31,14 @@ def prepare_api_search_response(data: dict, object_type: HubspotObject) -> dict:
     after = data.get("paging", {}).get("next", {}).get("after")
 
     if after:
-        response["more_results"] = True
-        response["next_page_token"] = after
+        response["pagination"] = {
+            "are_there_more_results?": True,
+            "next_page_token": after,
+        }
     else:
-        response["more_results"] = False
+        response["pagination"] = {
+            "are_there_more_results?": False,
+        }
 
     return response
 
@@ -54,7 +58,14 @@ def global_cleaner(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]
             cleaned_data["id"] = data["hs_object_id"]
             del data["hs_object_id"]
 
-        data = rename_dict_keys(data, {"hubspot_owner_id": "owner_id"})
+        data = rename_dict_keys(
+            data,
+            {
+                "hubspot_owner_id": "owner_id",
+                "hs_timestamp": "datetime",
+                "hs_body_preview": "body",
+            },
+        )
 
         for key, value in data.items():
             if key in GLOBALLY_IGNORED_FIELDS or value is None:
@@ -87,6 +98,10 @@ def clean_data(data: dict, object_type: HubspotObject) -> dict:
         HubspotObject.COMPANY: clean_company_data,
         HubspotObject.CONTACT: clean_contact_data,
         HubspotObject.DEAL: clean_deal_data,
+        HubspotObject.EMAIL: clean_email_data,
+        HubspotObject.MEETING: clean_meeting_data,
+        HubspotObject.NOTE: clean_note_data,
+        HubspotObject.TASK: clean_task_data,
     }
     try:
         return _mapping[object_type](data)
@@ -99,6 +114,36 @@ def clean_company_data(data: dict) -> dict:
     data["object_type"] = HubspotObject.COMPANY.value
     data["website"] = data.get("website", data.get("domain"))
     data.pop("domain", None)
+
+    data["address"] = {
+        "street": data.get("address"),
+        "city": data.get("city"),
+        "state": data.get("state"),
+        "zip": data.get("zip"),
+        "country": data.get("country"),
+    }
+    data.pop("address", None)
+    data.pop("city", None)
+    data.pop("state", None)
+    data.pop("zip", None)
+    data.pop("country", None)
+
+    data["annual_revenue"] = {
+        "value": data.get("annualrevenue"),
+        "currency": data.get("hs_annual_revenue_currency_code"),
+    }
+    data.pop("annualrevenue", None)
+    data.pop("hs_annual_revenue_currency_code", None)
+
+    rename = {
+        "linkedin_company_page": "linkedin_url",
+        "numberofemployees": "employee_count",
+        "type": "company_type",
+        "annualrevenue": "annual_revenue",
+        "lifecyclestage": "lifecycle_stage",
+        "hs_lead_status": "lead_status",
+    }
+    data = rename_dict_keys(data, rename)
     return data
 
 
@@ -166,16 +211,102 @@ def clean_deal_data(data: dict) -> dict:
 
 
 @global_cleaner
+def clean_email_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.EMAIL.value
+    rename = {
+        "hs_body_preview": "body",
+        "hs_email_from_raw": "from",
+        "hs_email_to_raw": "to",
+        "hs_email_bcc_raw": "bcc",
+        "hs_email_cc_raw": "cc",
+        "hs_email_subject": "subject",
+        "hs_email_status": "status",
+        "hs_email_associated_contact_id": "contact_id",
+    }
+    data = rename_dict_keys(data, rename)
+    return data
+
+
+@global_cleaner
 def clean_call_data(data: dict) -> dict:
     data["object_type"] = HubspotObject.CALL.value
     rename = {
-        "hs_body_preview": "body",
         "hs_call_direction": "direction",
         "hs_call_status": "status",
         "hs_call_summary": "summary",
         "hs_call_title": "title",
         "hs_call_disposition": "outcome",
-        "hs_timestamp": "datetime",
     }
     data = rename_dict_keys(data, rename)
+    return data
+
+
+@global_cleaner
+def clean_note_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.NOTE.value
+    return data
+
+
+@global_cleaner
+def clean_meeting_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.MEETING.value
+    rename = {
+        "hs_meeting_outcome": "outcome",
+        "hs_meeting_location": "location",
+        "hs_meeting_start_time": "start_time",
+        "hs_meeting_end_time": "end_time",
+    }
+    data = rename_dict_keys(data, rename)
+
+    data["content"] = {
+        "title": data.get("hs_meeting_title"),
+        "body": data.get("hs_body_preview"),
+    }
+
+    data.pop("hs_meeting_title", None)
+    data.pop("hs_body_preview", None)
+
+    data["schedule"] = {
+        "start_time": data.get("start_time"),
+        "end_time": data.get("end_time"),
+    }
+
+    data.pop("start_time", None)
+    data.pop("end_time", None)
+
+    return data
+
+
+@global_cleaner
+def clean_task_data(data: dict) -> dict:
+    data["object_type"] = HubspotObject.TASK.value
+
+    if data.get("hs_task_priority") == "NONE":
+        data["hs_task_priority"] = None
+
+    rename = {
+        "hs_task_status": "status",
+        "hs_task_priority": "priority",
+        "hs_task_missed_due_date": "missed_due_date",
+        "hs_task_type": "task_type",
+        "hs_associated_contact_labels": "associated_contact",
+    }
+    data = rename_dict_keys(data, rename)
+
+    data["content"] = {
+        "body": data.get("hs_body_preview"),
+        "subject": data.get("hs_task_subject"),
+    }
+
+    data.pop("hs_body_preview", None)
+    data.pop("hs_task_subject", None)
+
+    data["schedule"] = {
+        "datetime": data.get("hs_timestamp"),
+        "is_overdue": data.get("hs_task_is_overdue"),
+    }
+
+    data.pop("hs_timestamp", None)
+    data.pop("hs_task_is_overdue", None)
+
     return data

@@ -3,7 +3,7 @@ from typing import Annotated, Any, Optional
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import OAuth2
 
-from arcade_hubspot.models import HubspotClient
+from arcade_hubspot.models import HubspotCrmClient
 
 
 @tool(
@@ -14,6 +14,7 @@ from arcade_hubspot.models import HubspotClient
             "crm.objects.companies.read",
             "crm.objects.contacts.read",
             "crm.objects.deals.read",
+            "sales-email-read",
         ],
     ),
 )
@@ -34,17 +35,17 @@ async def get_company_data_by_keywords(
     ] = None,
 ) -> Annotated[
     dict[str, Any],
-    "Retrieve company data with associated contacts, leads, deals, leads, calls, emails, "
+    "Retrieve company data with associated contacts, deals, calls, emails, "
     "meetings, notes, and tasks.",
 ]:
-    """Retrieve company data with associated contacts, leads, deals, leads, calls, emails,
+    """Retrieve company data with associated contacts, deals, calls, emails,
     meetings, notes, and tasks.
 
     This tool will return up to 10 items of each associated object (contacts, leads, etc).
     """
     print("\n\n", context.get_auth_token_or_empty(), "\n\n")
     limit = min(limit, 10)
-    client = HubspotClient(context.get_auth_token_or_empty())
+    client = HubspotCrmClient(context.get_auth_token_or_empty())
     return await client.search_company_by_keywords(
         keywords=keywords,
         limit=limit,
