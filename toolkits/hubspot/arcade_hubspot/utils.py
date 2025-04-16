@@ -153,6 +153,7 @@ def clean_contact_data(data: dict) -> dict:
     rename = {
         "lifecyclestage": "lifecycle_stage",
         "hs_lead_status": "lead_status",
+        "email": "email_address",
     }
     data = rename_dict_keys(data, rename)
     return data

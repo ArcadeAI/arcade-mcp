@@ -3,9 +3,13 @@ from typing import Optional
 
 import httpx
 
-from arcade_hubspot.constants import HUBSPOT_CRM_BASE_URL, HUBSPOT_DEFAULT_API_VERSION
+from arcade_hubspot.constants import (
+    HUBSPOT_CRM_BASE_URL,
+    HUBSPOT_DEFAULT_API_VERSION,
+)
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.exceptions import HubspotToolExecutionError, NotFoundError
+from arcade_hubspot.properties import get_object_properties
 from arcade_hubspot.utils import clean_data, prepare_api_search_response
 
 
@@ -101,9 +105,9 @@ class HubspotCrmClient:
             return []
 
         return await self.batch_get_objects(
-            associated_object,
-            [object_data["toObjectId"] for object_data in response["results"]],
-            properties,
+            object_type=associated_object,
+            object_ids=[object_data["toObjectId"] for object_data in response["results"]],
+            properties=properties or get_object_properties(associated_object),
         )
 
     async def get_object_by_id(
@@ -131,237 +135,25 @@ class HubspotCrmClient:
         response = await self.post(endpoint, json_data=data)
         return [clean_data(object_data, object_type) for object_data in response["results"]]
 
-    async def get_company_contacts(
+    async def search_by_keywords(
         self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.CONTACT,
-            limit=limit,
-            after=after,
-            properties=[
-                "salutation",
-                "email",
-                "work_email",
-                "hs_additional_emails",
-                "mobilephone",
-                "phone",
-                "firstname",
-                "lastname",
-                "lifecyclestage",
-                "annualrevenue",
-                "address",
-                "date_of_birth",
-                "degree",
-                "gender",
-                "buying_role",
-                "hs_language",
-                "hs_lead_status",
-                "hs_timezone",
-                "hubspot_owner_id",
-                "hubspot_owner_name",
-                "job_function",
-                "jobtitle",
-                "seniority",
-                "industry",
-                "twitterhandle",
-            ],
-        )
-
-    async def get_company_deals(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.DEAL,
-            limit=limit,
-            after=after,
-            properties=[
-                "dealname",
-                "dealstage",
-                "dealtype",
-                "closedate",
-                "closed_lost_reason",
-                "closed_won_reason",
-                "hs_is_closed_won",
-                "hs_is_closed_lost",
-                "hs_closed_amount",
-                "pipeline",
-                "hubspot_owner_id",
-                "description",
-                "hs_deal_score",
-                "amount",
-                "hs_forecast_probability",
-                "hs_forecast_amount",
-            ],
-        )
-
-    async def get_company_calls(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.CALL,
-            limit=limit,
-            after=after,
-            properties=[
-                "hs_body_preview",
-                "hs_call_direction",
-                "hs_call_status",
-                "hs_call_summary",
-                "hs_call_title",
-                "hs_createdate",
-                "hubspot_owner_id",
-                "hs_call_disposition",
-                "hs_timestamp",
-            ],
-        )
-
-    async def get_company_emails(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.EMAIL,
-            limit=limit,
-            after=after,
-            properties=[
-                "hs_object_id",
-                "hs_body_preview",
-                "hs_email_sender_raw",
-                "hs_email_from_raw",
-                "hs_email_to_raw",
-                "hs_email_bcc_raw",
-                "hs_email_cc_raw",
-                "hs_email_subject",
-                "hs_email_status",
-                "hs_timestamp",
-                "hubspot_owner_id",
-                "hs_email_associated_contact_id",
-            ],
-        )
-
-    async def get_company_notes(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.NOTE,
-            limit=limit,
-            after=after,
-            properties=[
-                "hs_object_id",
-                "hs_meeting_body",
-                "hs_timestamp",
-                "hubspot_owner_id",
-            ],
-        )
-
-    async def get_company_meetings(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.MEETING,
-            limit=limit,
-            after=after,
-            properties=[
-                "hs_object_id",
-                "hs_meeting_title",
-                "hs_body_preview",
-                "hs_meeting_location",
-                "hs_meeting_outcome",
-                "hubspot_owner_id",
-                "hs_meeting_start_time",
-                "hs_meeting_end_time",
-            ],
-        )
-
-    async def get_company_tasks(
-        self,
-        company_id: str,
-        limit: int = 10,
-        after: Optional[str] = None,
-    ) -> dict:
-        return await self.get_associated_objects(
-            parent_object=HubspotObject.COMPANY,
-            parent_id=company_id,
-            associated_object=HubspotObject.TASK,
-            limit=limit,
-            after=after,
-            properties=[
-                "hs_object_id",
-                "hs_body_preview",
-                "hs_timestamp",
-                "hubspot_owner_id",
-                "hs_associated_contact_labels",
-                "hs_task_is_overdue",
-                "hs_task_priority",
-                "hs_task_status",
-                "hs_task_subject",
-                "hs_task_type",
-            ],
-        )
-
-    async def search_company_by_keywords(
-        self,
+        object_type: HubspotObject,
         keywords: str,
         limit: int = 10,
         next_page_token: Optional[str] = None,
+        associations: Optional[list[HubspotObject]] = None,
     ) -> dict:
         if not keywords:
             raise HubspotToolExecutionError("`keywords` must be a non-empty string")
 
-        endpoint = f"objects/{HubspotObject.COMPANY.plural}/search"
+        associations = associations or []
+
+        endpoint = f"objects/{object_type.plural}/search"
         request_data = {
             "query": keywords,
             "limit": limit,
             "sorts": [{"propertyName": "hs_lastmodifieddate", "direction": "DESCENDING"}],
-            "properties": [
-                "type",
-                "name",
-                "about_us",
-                "address",
-                "city",
-                "state",
-                "zip",
-                "country",
-                "annualrevenue",
-                "hs_annual_revenue_currency_code",
-                "industry",
-                "phone",
-                "website",
-                "domain",
-                "numberofemployees",
-                "hs_lead_status",
-                "lifecyclestage",
-                "linkedin_company_page",
-                "twitterhandle",
-            ],
+            "properties": get_object_properties(object_type),
         }
 
         if next_page_token:
@@ -369,21 +161,18 @@ class HubspotCrmClient:
 
         data = prepare_api_search_response(
             data=await self.post(endpoint, json_data=request_data),
-            object_type=HubspotObject.COMPANY,
+            object_type=object_type,
         )
 
-        for company in data[HubspotObject.COMPANY.plural]:
-            associated = {
-                "calls": await self.get_company_calls(company["id"], limit=10),
-                "contacts": await self.get_company_contacts(company["id"], limit=10),
-                "deals": await self.get_company_deals(company["id"], limit=10),
-                "emails": await self.get_company_emails(company["id"], limit=10),
-                "meetings": await self.get_company_meetings(company["id"], limit=10),
-                "notes": await self.get_company_notes(company["id"], limit=10),
-                "tasks": await self.get_company_tasks(company["id"], limit=10),
-            }
-            for key, value in associated.items():
-                if value:
-                    company[key] = value
+        for object_ in data[object_type.plural]:
+            for association in associations:
+                results = await self.get_associated_objects(
+                    parent_object=object_type,
+                    parent_id=object_["id"],
+                    associated_object=association,
+                    limit=10,
+                )
+                if results:
+                    object_[association.plural] = results
 
         return data

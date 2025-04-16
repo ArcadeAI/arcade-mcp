@@ -16,7 +16,7 @@ if auth_response.status != "completed":
 client.auth.wait_for_completion(auth_response)
 
 tool_input = {
-    "keywords": "a",
+    "keywords": "Acme",
     "limit": 2,
     # "next_page_token": "1",
 }
