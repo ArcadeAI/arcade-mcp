@@ -333,6 +333,9 @@ class HubspotCrmClient:
         limit: int = 10,
         next_page_token: Optional[str] = None,
     ) -> dict:
+        if not keywords:
+            raise HubspotToolExecutionError("`keywords` must be a non-empty string")
+
         endpoint = f"objects/{HubspotObject.COMPANY.plural}/search"
         request_data = {
             "query": keywords,
