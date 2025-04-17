@@ -64,6 +64,7 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
     Raises:
         ValueError: If the datetime string is not in the correct format.
     """
+    datetime_str = datetime_str.upper().strip().rstrip("Z")
     try:
         dt = datetime.fromisoformat(datetime_str)
         if dt.tzinfo is None:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_google"
-version = "1.1.0"
+version = "1.1.1"
 description = "Arcade.dev LLM tools for Google Workspace"
 authors = ["Arcade <dev@arcade.dev>"]
 
