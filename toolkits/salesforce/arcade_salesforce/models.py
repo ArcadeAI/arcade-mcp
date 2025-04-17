@@ -101,7 +101,7 @@ class SalesforceClient:
         if params:
             kwargs["params"] = params
 
-        async with self._semaphore, httpx.AsyncClient() as client:
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.get(**kwargs)
 
         if response.status_code >= 300:
@@ -136,7 +136,7 @@ class SalesforceClient:
         if json_data:
             kwargs["json"] = json_data
 
-        async with self._semaphore, httpx.AsyncClient() as client:
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)
 
         if response.status_code >= 300:
