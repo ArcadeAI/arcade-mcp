@@ -1,11 +1,18 @@
 import string
-from typing import Any, Callable, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from arcade_salesforce.constants import ASSOCIATION_REFERENCE_FIELDS, GLOBALLY_IGNORED_FIELDS
 from arcade_salesforce.enums import SalesforceObject
 
 
 def remove_fields_globally_ignored(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]:
+    """Remove fields that are irrelevant for our tools' responses.
+
+    The main purpose of cleaning and removing unnecessary fields from data is to make our
+    responses more concise and save on LLM tokens/context window.
+    """
+
     def global_cleaner(data: dict) -> dict:
         cleaned_data = {}
         for key, value in data.items():
@@ -15,7 +22,7 @@ def remove_fields_globally_ignored(clean_func: Callable[[dict], dict]) -> Callab
             if isinstance(value, dict):
                 cleaned_data[key] = global_cleaner(value)
 
-            elif isinstance(value, (list, tuple, set)):
+            elif isinstance(value, list | tuple | set):
                 cleaned_items = []
                 for item in value:
                     if isinstance(item, dict):
@@ -34,6 +41,8 @@ def remove_fields_globally_ignored(clean_func: Callable[[dict], dict]) -> Callab
 
 
 def clean_object_data(data: dict) -> dict:
+    """Clean Salesforce object dictionary based on the object type."""
+
     obj_type = data["attributes"]["type"]
     if obj_type == SalesforceObject.ACCOUNT.value:
         return clean_account_data(data)
@@ -94,7 +103,7 @@ def clean_opportunity_data(data: dict) -> dict:
     data["Amount"] = {
         "Value": data["Amount"],
         "ClosingProbability": data["Probability"]
-        if not isinstance(data["Probability"], (int, float))
+        if not isinstance(data["Probability"], int | float)
         else data["Probability"] / 100,
         "ExpectedRevenue": data["ExpectedRevenue"],
     }
@@ -151,6 +160,14 @@ def clean_user_data(data: dict) -> dict:
 
 
 def get_ids_referenced(*data_objects: dict) -> set[str]:
+    """Build a set of IDs referenced in a list of dictionaries.
+
+    Args:
+        data_objects: The list of dictionaries to search for referenced IDs.
+
+    Returns:
+        The set of IDs referenced in the dictionaries.
+    """
     referenced_ids = set()
     for data in data_objects:
         for field in ASSOCIATION_REFERENCE_FIELDS:
@@ -160,6 +177,15 @@ def get_ids_referenced(*data_objects: dict) -> set[str]:
 
 
 def expand_associations(data: dict, objects_by_id: dict) -> dict:
+    """Expand a Salesforce object referenced by ID with metadata about the object.
+
+    Args:
+        data: The dictionary to expand.
+        objects_by_id: The dictionary of objects metadata by ID.
+
+    Returns:
+        The expanded dictionary.
+    """
     for field in ASSOCIATION_REFERENCE_FIELDS:
         if field not in data:
             continue
@@ -187,10 +213,30 @@ def get_object_type(data: dict) -> str:
 
 
 def build_soql_query(query: str, **kwargs: Any) -> str:
+    """Build a SOQL query with sanitized arguments.
+
+    Args:
+        query: The SOQL query to build.
+        **kwargs: The arguments to sanitize and format into the query.
+
+    Returns:
+        The SOQL query with the arguments formatted.
+    """
     return query.format(**{key: sanitize_soql_argument(value) for key, value in kwargs.items()})
 
 
 def sanitize_soql_argument(value: Any) -> str:
+    """Sanitize an argument for a SOQL query.
+
+    The goal is to prevent SQL injection, since Salesforce does not support parameterized queries.
+    This function will only accept ASCII letters and digits in the value.
+
+    Args:
+        value: The value to sanitize.
+
+    Returns:
+        The sanitized value.
+    """
     allowed_chars = string.ascii_letters + string.digits
     if not isinstance(value, str):
         value = str(value)
@@ -198,6 +244,14 @@ def sanitize_soql_argument(value: Any) -> str:
 
 
 def format_email(description: str) -> dict:
+    """Turns a Salesforce email description string into a more readable dictionary.
+
+    Args:
+        description: The email description to format.
+
+    Returns:
+        The formatted email as a dictionary.
+    """
     email = {
         "To": description.split("To:")[1].split("\n")[0].strip(),
         "CC": description.split("CC:")[1].split("\n")[0].strip(),
@@ -214,4 +268,12 @@ def format_email(description: str) -> dict:
 
 
 def remove_none_values(data: dict) -> dict:
+    """Remove None values from a dictionary.
+
+    Args:
+        data: The dictionary to clean.
+
+    Returns:
+        The cleaned dictionary.
+    """
     return {k: v for k, v in data.items() if v is not None}

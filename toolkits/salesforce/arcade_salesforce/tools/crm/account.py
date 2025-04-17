@@ -29,8 +29,9 @@ async def get_account_data_by_keywords(
     context: ToolContext,
     query: Annotated[
         str,
-        "The query to search for accounts. It will match the keywords against all account fields, "
-        "such as name, website, phone, address, etc. E.g. 'Acme'",
+        "The query to search for accounts. MUST be longer than one character. It will match the "
+        "keywords against all account fields, such as name, website, phone, address, etc. "
+        "E.g. 'Acme'",
     ],
     # Note: Salesforce supports up to 200 results, but since we're enriching each account with
     # related objects, we limit to 10, so that the response is not too lengthy for LLMs.
@@ -50,8 +51,8 @@ async def get_account_data_by_keywords(
     An account is an organization (such as a customer, supplier, or partner, though more commonly
     a customer). In some Salesforce account setups, an account can also represent a person.
     """
-    if not query:
-        raise ToolExecutionError("Provide a query to search for accounts.")
+    if len(query) < 2:
+        raise ToolExecutionError("The `query` argument must be longer than one character.")
 
     limit = min(limit, 10)
 
@@ -70,20 +71,15 @@ async def get_account_data_by_keywords(
         "offset": (page - 1) * limit,
     }
     response = await client.post("parameterizedSearch", json_data=params)
-    accounts = response["searchRecords"]
-
-    return {
-        "accounts": [
-            clean_account_data(account_data)
-            for account_data in await asyncio.gather(*[
-                client.enrich_account(
-                    account_data=account,
-                    limit_per_association=10,
-                )
-                for account in accounts
-            ])
-        ]
-    }
+    search_results = response["searchRecords"]
+    accounts = await asyncio.gather(*[
+        client.enrich_account(
+            account_data=account,
+            limit_per_association=10,
+        )
+        for account in search_results
+    ])
+    return {"accounts": [clean_account_data(account) for account in accounts]}
 
 
 @tool(
