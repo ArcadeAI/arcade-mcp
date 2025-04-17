@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Optional
 
@@ -22,10 +23,18 @@ class HubspotCrmClient:
         if response.status_code < 300:
             return
 
-        if response.status_code == 404:
-            raise NotFoundError(response.text)
+        try:
+            data = response.json()
+            error_message = data["message"]
+            developer_message = json.dumps(data["errors"])
+        except Exception:
+            error_message = response.text
+            developer_message = None
 
-        raise HubspotToolExecutionError(response.text)
+        if response.status_code == 404:
+            raise NotFoundError(error_message, developer_message)
+
+        raise HubspotToolExecutionError(error_message, developer_message)
 
     async def get(
         self,

@@ -12,5 +12,5 @@ def mock_context():
 
 @pytest.fixture
 def mock_httpx_client():
-    with patch("arcade_hubspot.utils.httpx") as mock_httpx:
+    with patch("arcade_hubspot.models.httpx") as mock_httpx:
         yield mock_httpx.AsyncClient().__aenter__.return_value
