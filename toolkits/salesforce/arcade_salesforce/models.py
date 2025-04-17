@@ -229,7 +229,7 @@ class SalesforceClient:
             SalesforceObject.CONTACT, SalesforceObject.ACCOUNT, account_id, limit
         )
 
-        async def _enrich_with_semaphore(contact):
+        async def _enrich_with_semaphore(contact: dict) -> dict:
             async with asyncio.Semaphore(3):
                 return await self.enrich_contact_with_notes(contact, limit)
 
