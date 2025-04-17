@@ -72,12 +72,18 @@ async def get_account_data_by_keywords(
     }
     response = await client.post("parameterizedSearch", json_data=params)
     search_results = response["searchRecords"]
+
+    semaphore = asyncio.Semaphore(2)
+
+    async def _enrich_with_semaphore(account: dict) -> dict:
+        async with semaphore:
+            return await client.enrich_account(
+                account_data=account,
+                limit_per_association=10,
+            )
+
     accounts = await asyncio.gather(*[
-        client.enrich_account(
-            account_data=account,
-            limit_per_association=10,
-        )
-        for account in search_results
+        _enrich_with_semaphore(account) for account in search_results
     ])
     return {"accounts": [clean_account_data(account) for account in accounts]}
 

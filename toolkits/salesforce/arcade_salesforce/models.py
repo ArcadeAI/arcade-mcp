@@ -229,8 +229,10 @@ class SalesforceClient:
             SalesforceObject.CONTACT, SalesforceObject.ACCOUNT, account_id, limit
         )
 
+        semaphore = asyncio.Semaphore(2)
+
         async def _enrich_with_semaphore(contact: dict) -> dict:
-            async with asyncio.Semaphore(3):
+            async with semaphore:
                 return await self.enrich_contact_with_notes(contact, limit)
 
         return [
@@ -418,9 +420,10 @@ class SalesforceClient:
         missing_referenced_ids = [ref for ref in referenced_ids if ref not in objects_by_id]
 
         if missing_referenced_ids:
+            semaphore = asyncio.Semaphore(2)
 
             async def get_object_by_id_with_semaphore(missing_id: str) -> dict | None:
-                async with asyncio.Semaphore(2):
+                async with semaphore:
                     return await self.get_object_by_id(missing_id)
 
             missing_objects = await asyncio.gather(*[
