@@ -1,11 +1,11 @@
-from typing import Callable
+from typing import Any, Callable
 
 from arcade_hubspot.constants import GLOBALLY_IGNORED_FIELDS
 from arcade_hubspot.enums import HubspotObject
 
 
 def remove_none_values(data: dict) -> dict:
-    cleaned = {}
+    cleaned: dict[str, Any] = {}
     for key, value in data.items():
         if value is None or key in GLOBALLY_IGNORED_FIELDS:
             continue
@@ -24,7 +24,7 @@ def remove_none_values(data: dict) -> dict:
 
 
 def prepare_api_search_response(data: dict, object_type: HubspotObject) -> dict:
-    response = {
+    response: dict[str, Any] = {
         object_type.plural: [clean_data(company, object_type) for company in data["results"]],
     }
 
@@ -53,7 +53,7 @@ def rename_dict_keys(data: dict, rename: dict) -> dict:
 
 def global_cleaner(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]:
     def global_cleaner(data: dict) -> dict:
-        cleaned_data = {}
+        cleaned_data: dict[str, Any] = {}
         if "hs_object_id" in data:
             cleaned_data["id"] = data["hs_object_id"]
             del data["hs_object_id"]
@@ -81,7 +81,7 @@ def global_cleaner(clean_func: Callable[[dict], dict]) -> Callable[[dict], dict]
                         cleaned_items.append(global_cleaner(item))
                     else:
                         cleaned_items.append(item)
-                cleaned_data[key] = cleaned_items  # type: ignore[assignment]
+                cleaned_data[key] = cleaned_items
             else:
                 cleaned_data[key] = value
         return cleaned_data

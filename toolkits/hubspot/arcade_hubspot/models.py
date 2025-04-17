@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional, cast
 
 import httpx
 
@@ -19,7 +19,7 @@ class HubspotCrmClient:
     auth_token: str
     base_url: str = HUBSPOT_CRM_BASE_URL
 
-    def _raise_for_status(self, response: httpx.Response):
+    def _raise_for_status(self, response: httpx.Response) -> None:
         if response.status_code < 300:
             return
 
@@ -55,9 +55,9 @@ class HubspotCrmClient:
             kwargs["params"] = params
 
         async with httpx.AsyncClient() as client:
-            response = await client.get(**kwargs)
+            response = await client.get(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
-        return response.json()
+        return cast(dict, response.json())
 
     async def post(
         self,
@@ -86,9 +86,9 @@ class HubspotCrmClient:
             kwargs["json"] = json_data
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(**kwargs)
+            response = await client.post(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
-        return response.json()
+        return cast(dict, response.json())
 
     async def get_associated_objects(
         self,
@@ -106,7 +106,7 @@ class HubspotCrmClient:
             "limit": limit,
         }
         if after:
-            params["after"] = after
+            params["after"] = after  # type: ignore[assignment]
 
         response = await self.get(endpoint, params=params, api_version="v4")
 
@@ -138,7 +138,7 @@ class HubspotCrmClient:
         properties: Optional[list[str]] = None,
     ) -> list[dict]:
         endpoint = f"objects/{object_type.plural}/batch/read"
-        data = {"inputs": [{"id": object_id} for object_id in object_ids]}
+        data: dict[str, Any] = {"inputs": [{"id": object_id} for object_id in object_ids]}
         if properties:
             data["properties"] = properties
         response = await self.post(endpoint, json_data=data)
