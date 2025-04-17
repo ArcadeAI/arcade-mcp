@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import httpx
 
-from arcade_salesforce.constants import SALESFORCE_API_VERSION
+from arcade_salesforce.constants import MAX_CONCURRENT_REQUESTS, SALESFORCE_API_VERSION
 from arcade_salesforce.enums import SalesforceObject
 from arcade_salesforce.exceptions import (
     BadRequestError,
@@ -32,10 +32,12 @@ class SalesforceClient:
     auth_token: str
     org_domain: str | None = None
     api_version: str = SALESFORCE_API_VERSION
+    max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS
 
     # Internal state properties
     _state_object_fields: dict[SalesforceObject, list[str]] | None = None
     _state_is_person_account_enabled: bool | None = None
+    _semaphore: asyncio.Semaphore | None = None
 
     def __post_init__(self) -> None:
         if self.org_domain is None:
@@ -47,6 +49,9 @@ class SalesforceClient:
 
         if self._state_object_fields is None:
             self._state_object_fields = {}
+
+        if self._semaphore is None:
+            self._semaphore = asyncio.Semaphore(self.max_concurrent_requests)
 
     @property
     def _base_url(self) -> str:
@@ -89,20 +94,20 @@ class SalesforceClient:
         Returns:
             The JSON-loaded representation of the response from the Salesforce API.
         """
-        async with httpx.AsyncClient() as client:
-            kwargs: dict[str, Any] = {
-                "url": self._endpoint_url(endpoint),
-                "headers": self._build_headers(headers),
-            }
-            if params:
-                kwargs["params"] = params
+        kwargs: dict[str, Any] = {
+            "url": self._endpoint_url(endpoint),
+            "headers": self._build_headers(headers),
+        }
+        if params:
+            kwargs["params"] = params
 
+        async with self._semaphore, httpx.AsyncClient() as client:
             response = await client.get(**kwargs)
 
-            if response.status_code >= 300:
-                self._raise_salesforce_error(response)
+        if response.status_code >= 300:
+            self._raise_salesforce_error(response)
 
-            return cast(dict, response.json())
+        return cast(dict, response.json())
 
     async def post(
         self,
@@ -122,20 +127,20 @@ class SalesforceClient:
         Returns:
             The JSON-loaded representation of the response from the Salesforce API.
         """
-        async with httpx.AsyncClient() as client:
-            kwargs: dict[str, Any] = {
-                "url": self._endpoint_url(endpoint),
-                "headers": self._build_headers(headers),
-            }
-            if data:
-                kwargs["data"] = data
-            if json_data:
-                kwargs["json"] = json_data
+        kwargs: dict[str, Any] = {
+            "url": self._endpoint_url(endpoint),
+            "headers": self._build_headers(headers),
+        }
+        if data:
+            kwargs["data"] = data
+        if json_data:
+            kwargs["json"] = json_data
 
+        async with self._semaphore, httpx.AsyncClient() as client:
             response = await client.post(**kwargs)
 
-            if response.status_code >= 300:
-                self._raise_salesforce_error(response)
+        if response.status_code >= 300:
+            self._raise_salesforce_error(response)
 
         return cast(dict, response.json())
 
@@ -229,16 +234,10 @@ class SalesforceClient:
             SalesforceObject.CONTACT, SalesforceObject.ACCOUNT, account_id, limit
         )
 
-        semaphore = asyncio.Semaphore(2)
-
-        async def _enrich_with_semaphore(contact: dict) -> dict:
-            async with semaphore:
-                return await self.enrich_contact_with_notes(contact, limit)
-
         return [
             clean_contact_data(contact)
             for contact in await asyncio.gather(*[
-                _enrich_with_semaphore(contact) for contact in contacts
+                self.enrich_contact_with_notes(contact, limit) for contact in contacts
             ])
         ]
 
@@ -420,14 +419,8 @@ class SalesforceClient:
         missing_referenced_ids = [ref for ref in referenced_ids if ref not in objects_by_id]
 
         if missing_referenced_ids:
-            semaphore = asyncio.Semaphore(2)
-
-            async def get_object_by_id_with_semaphore(missing_id: str) -> dict | None:
-                async with semaphore:
-                    return await self.get_object_by_id(missing_id)
-
             missing_objects = await asyncio.gather(*[
-                get_object_by_id_with_semaphore(missing_id) for missing_id in missing_referenced_ids
+                self.get_object_by_id(missing_id) for missing_id in missing_referenced_ids
             ])
             objects_by_id.update({obj["Id"]: obj for obj in missing_objects if obj is not None})
 
