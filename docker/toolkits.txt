@@ -8,6 +8,7 @@ arcade-reddit
 arcade-search
 arcade-slack
 arcade-spotify
+arcade-stripe
 arcade-web
 arcade-x
 arcade-zoom
