@@ -52,7 +52,7 @@ async def get_account_data_by_keywords(
     a customer). In some Salesforce account setups, an account can also represent a person.
     """
     if len(query) < 2:
-        raise ToolExecutionError("The `query` argument must be longer than one character.")
+        raise ToolExecutionError("The `query` argument must have two or more characters.")
 
     limit = min(limit, 10)
 
@@ -104,9 +104,11 @@ async def get_account_data_by_id(
     ],
 ) -> Annotated[
     dict,
-    "The account with related info (contacts, leads, notes, calls, etc)",
+    "The account with related info: contacts, leads, notes, calls, opportunities, tasks, emails, "
+    "and events (up to 10 items of each type)",
 ]:
-    """Gets the account with related info (contacts, leads, notes, calls, etc).
+    """Gets the account with related info: contacts, leads, notes, calls, opportunities, tasks,
+    emails, and events (up to 10 items of each type).
 
     An account is an organization (such as a customer, supplier, or partner, though more commonly
     a customer). In some Salesforce account setups, an account can also represent a person.
