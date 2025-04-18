@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_reddit"
-version = "0.0.1"
+version = "0.1.0"
 description = "Arcade.dev LLM tools Reddit"
 authors = ["Arcade <dev@arcade.dev>"]
 
