@@ -7,52 +7,60 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import fastapi
+import psutil
 import uvicorn
 from loguru import logger
+from rich.console import Console
 
 from arcade.core.telemetry import OTELHandler
 from arcade.sdk import Toolkit
 from arcade.worker.fastapi.worker import FastAPIWorker
 
+console = Console(width=70, color_system="auto")
 
-class InterceptHandler(logging.Handler):
+
+class RichInterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
-        # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
         except ValueError:
-            level = record.levelno  # type: ignore[assignment]
+            level = record.levelno
 
-        # Find caller from where originated the logged message
-        frame, depth = sys._getframe(6), 6
-        while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back  # type: ignore[assignment]
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        # Let Loguru handle caller info; don't do stack inspection here
+        logger.opt(exception=record.exc_info).log(level, record.getMessage())
 
 
 def setup_logging(log_level: int = logging.INFO) -> None:
     # Intercept everything at the root logger
-    logging.root.handlers = [InterceptHandler()]
+    logging.root.handlers = [RichInterceptHandler()]
     logging.root.setLevel(log_level)
 
-    # Remove every other logger's handlers
-    # and propagate to root logger
+    # Remove every other logger's handlers and propagate to root logger
     for name in logging.root.manager.loggerDict:
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
 
-    # Configure loguru with custom format, no colors
+    # Remove default handlers
+    logger.remove()
+
+    # Configure loguru with a cleaner format and colors
+    if log_level == logging.DEBUG:
+        format_string = "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{file}:{line: <4}</cyan> | <level>{message}</level>"
+    else:
+        format_string = (
+            "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
+        )
     logger.configure(
         handlers=[
             {
                 "sink": sys.stdout,
-                "serialize": False,
+                "colorize": True,
                 "level": log_level,
-                "format": "{level}  [{time:HH:mm:ss.SSS}] {message}"
-                + (" {name}:{function}:{line}" if log_level <= logging.DEBUG else "")
-                + ("\n{exception}" if "{exception}" in "{message}" else ""),
+                # Format that ensures timestamp on every line and better alignment
+                "format": format_string,
+                # Make sure multiline messages are handled properly
+                "enqueue": True,
+                "diagnose": True,  # Disable traceback framing which adds noise
             }
         ]
     )
@@ -62,10 +70,12 @@ def setup_logging(log_level: int = logging.INFO) -> None:
 async def lifespan(app: fastapi.FastAPI):  # type: ignore[no-untyped-def]
     try:
         yield
-    except asyncio.CancelledError:
+    except (asyncio.CancelledError, KeyboardInterrupt):
         # This is necessary to prevent an unhandled error
         # when the user presses Ctrl+C
         logger.debug("Lifespan cancelled.")
+        app.lifespan_context.cancel()
+        raise
 
 
 def serve_default_worker(  # noqa: C901
@@ -76,11 +86,6 @@ def serve_default_worker(  # noqa: C901
     timeout_keep_alive: int = 5,
     enable_otel: bool = False,
     debug: bool = False,
-    enable_mcp: bool = False,
-    mcp_type: str = "sse",
-    mcp_config: dict[str, str | int | bool] | None = None,
-    enable_mcp_logging: bool = False,
-    mcp_logging_config: dict[str, str | int | bool] | None = None,
     **kwargs: Any,
 ) -> None:
     """
@@ -109,36 +114,11 @@ def serve_default_worker(  # noqa: C901
 
     otel_handler = OTELHandler(app, enable=enable_otel)
 
-    # Default MCP configuration if not provided
-    if mcp_config is None:
-        mcp_config = {
-            "server_name": "Arcade Worker",
-            "server_version": "0.1.0",
-            "instructions": "Arcade Worker with MCP enabled",
-            "sse_path": "/sse",
-            "message_path": "messages/",
-        }
-
-    # Default MCP logging configuration if not provided
-    if mcp_logging_config is None:
-        mcp_logging_config = {
-            "log_level": "INFO",
-            "log_request_body": True,
-            "log_response_body": True,
-            "log_errors": True,
-            "min_duration_to_log_ms": 0,
-        }
-
     worker = FastAPIWorker(
         app,
         secret=worker_secret,
         disable_auth=disable_auth,
         otel_meter=otel_handler.get_meter(),
-        enable_mcp=enable_mcp,
-        mcp_type=mcp_type,
-        mcp_config=mcp_config,
-        enable_mcp_logging=enable_mcp_logging,
-        mcp_logging_config=mcp_logging_config,
     )
 
     toolkit_tool_counts = {}
@@ -154,15 +134,7 @@ def serve_default_worker(  # noqa: C901
     for name, tool_count in toolkit_tool_counts.items():
         logger.info(f"  - {name}: {tool_count} tools")
 
-    if enable_mcp:
-        logger.info(f"MCP enabled with type: {mcp_type}")
-        if mcp_type == "sse" or mcp_type == "both":
-            logger.info(f"MCP SSE endpoint: http://{host}:{port}/mcp{mcp_config['sse_path']}")
-            logger.info(
-                f"MCP message endpoint: http://{host}:{port}/mcp/{mcp_config['message_path']}"
-            )
-
-    logger.info("Starting FastAPI server...")
+    logger.info(f"Starting FastAPI server with PID: {psutil.Process().pid}")
 
     class CustomUvicornServer(uvicorn.Server):
         def install_signal_handlers(self) -> None:
@@ -173,18 +145,6 @@ def serve_default_worker(  # noqa: C901
             Custom shutdown that properly cleans up resources.
             """
             logger.info("Initiating graceful shutdown...")
-
-            # If MCP is enabled, properly shutdown MCP servers
-            if enable_mcp and hasattr(worker, "mcp_components"):
-                for component in worker.mcp_components:
-                    if hasattr(component, "mcp_server") and hasattr(
-                        component.mcp_server, "shutdown"
-                    ):
-                        try:
-                            logger.debug("Shutting down MCP server...")
-                            await component.mcp_server.shutdown()
-                        except Exception as e:
-                            logger.exception(f"Error shutting down MCP server: {e}")
 
             # Now do the standard server shutdown
             await super().shutdown(sockets=sockets)
@@ -227,8 +187,11 @@ def serve_default_worker(  # noqa: C901
     try:
         loop = asyncio.get_event_loop()
 
+        # Signals we want to forward from wrapper process to the child
+        sig_names = ["SIGINT", "SIGTERM", "SIGHUP", "SIGUSR1", "SIGUSR2", "SIGWINCH", "SIGBREAK"]
+
         # Setup graceful shutdown handlers
-        for signal_name in ("SIGINT", "SIGTERM"):
+        for signal_name in sig_names:
             if hasattr(signal, signal_name):
                 loop.add_signal_handler(
                     getattr(signal, signal_name), lambda: asyncio.create_task(shutdown())

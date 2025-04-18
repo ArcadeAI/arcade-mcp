@@ -18,13 +18,21 @@ from tqdm import tqdm
 
 import arcade.cli.worker as worker
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade.cli.collect import (
+    ProcessCollector,
+    SystemCollector,
+    get_process_by_name,
+    get_process_by_pid,
+)
 from arcade.cli.constants import (
     CREDENTIALS_FILE_PATH,
     LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
+from arcade.cli.deployment import Deployment
 from arcade.cli.display import (
+    display_all_info,
     display_arcade_chat_header,
     display_eval_results,
     display_tool_messages,
@@ -48,7 +56,6 @@ from arcade.cli.utils import (
     version_callback,
 )
 from arcade.cli.worker import parse_deployment_response
-from arcade.worker.config.deployment import Deployment
 
 cli = typer.Typer(
     cls=OrderCommands,
@@ -61,7 +68,12 @@ cli = typer.Typer(
 )
 
 
-cli.add_typer(worker.app, name="worker", help="Manage workers", rich_help_panel="Launch")
+cli.add_typer(
+    worker.app,
+    name="worker",
+    help="Manage workers (logs, list, etc)",
+    rich_help_panel="Manage",
+)
 console = Console()
 
 
@@ -192,7 +204,10 @@ def show(
     show_logic(toolkit, tool, host, local, port, force_tls, force_no_tls, debug)
 
 
-@cli.command(help="Start Arcade Chat in the terminal", rich_help_panel="Launch")
+@cli.command(
+    help="Start a chat with a model in the terminal to test tools",
+    rich_help_panel="Tool Development",
+)
 def chat(
     model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
     stream: bool = typer.Option(
@@ -460,72 +475,11 @@ def serve(
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
-    enable_mcp: bool = typer.Option(
-        False, "--mcp", help="Enable Model Control Protocol (MCP)", show_default=True
-    ),
-    mcp_type: str = typer.Option(
-        "sse", "--mcp-type", help="MCP type: 'sse' or 'stdio'", show_default=True
-    ),
-    mcp_server_name: str = typer.Option(
-        "Arcade Worker", "--mcp-server-name", help="MCP server name", show_default=True
-    ),
-    mcp_server_version: str = typer.Option(
-        "0.1.0", "--mcp-server-version", help="MCP server version", show_default=True
-    ),
-    mcp_instructions: str = typer.Option(
-        "Arcade Worker with MCP enabled",
-        "--mcp-instructions",
-        help="MCP instructions",
-        show_default=True,
-    ),
-    mcp_sse_path: str = typer.Option(
-        "/sse", "--mcp-sse-path", help="MCP SSE path", show_default=True
-    ),
-    mcp_message_path: str = typer.Option(
-        "messages/", "--mcp-message-path", help="MCP message path", show_default=True
-    ),
-    enable_mcp_logging: bool = typer.Option(
-        False, "--mcp-logging", help="Enable MCP logging middleware", show_default=True
-    ),
-    mcp_log_level: str = typer.Option(
-        "INFO", "--mcp-log-level", help="MCP log level", show_default=True
-    ),
-    mcp_log_request_body: bool = typer.Option(
-        True, "--mcp-log-request-body", help="Log MCP request body", show_default=True
-    ),
-    mcp_log_response_body: bool = typer.Option(
-        True, "--mcp-log-response-body", help="Log MCP response body", show_default=True
-    ),
-    mcp_log_errors: bool = typer.Option(
-        True, "--mcp-log-errors", help="Log MCP errors", show_default=True
-    ),
-    mcp_min_duration_to_log_ms: int = typer.Option(
-        0,
-        "--mcp-min-duration-to-log-ms",
-        help="Minimum duration to log MCP requests in milliseconds",
-        show_default=True,
-    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Start a local Arcade Worker server.
     """
-    # Construct MCP configuration dictionaries
-    mcp_config = {
-        "server_name": mcp_server_name,
-        "server_version": mcp_server_version,
-        "instructions": mcp_instructions,
-        "sse_path": mcp_sse_path,
-        "message_path": mcp_message_path,
-    }
-
-    mcp_logging_config = {
-        "log_level": mcp_log_level,
-        "log_request_body": mcp_log_request_body,
-        "log_response_body": mcp_log_response_body,
-        "log_errors": mcp_log_errors,
-        "min_duration_to_log_ms": mcp_min_duration_to_log_ms,
-    }
     from arcade.cli.serve import serve_default_worker
 
     try:
@@ -534,11 +488,6 @@ def serve(
             port,
             disable_auth=disable_auth,
             enable_otel=otel_enable,
-            enable_mcp=enable_mcp,
-            mcp_type=mcp_type,
-            mcp_config=mcp_config,
-            enable_mcp_logging=enable_mcp_logging,
-            mcp_logging_config=mcp_logging_config,
             debug=debug,
         )
     except KeyboardInterrupt:
@@ -574,6 +523,66 @@ def dev(
         typer.Exit(code=1)
 
 
+@cli.command(help="Display system and process statistics", rich_help_panel="Manage")
+def stats(
+    pid: int = typer.Option(None, "--pid", "-p", help="Process ID to monitor"),
+    name: str = typer.Option(None, "--name", "-n", help="Process name to monitor"),
+):
+    """
+    Display comprehensive statistics for a system process.
+
+    Either specify a process ID (--pid) or a process name (--name).
+    """
+    console = Console()
+
+    # Validate input parameters
+    if pid is None and name is None:
+        console.print(
+            "[bold red]Error:[/bold red] You must specify either a --pid or --name parameter"
+        )
+        console.print("Usage examples:")
+        console.print("  [cyan]arcade stats --pid 1234[/cyan]")
+        console.print("  [cyan]arcade stats --name python[/cyan]")
+        raise typer.Exit(code=1)
+
+    # Try to get the process
+    try:
+        if pid:
+            console.print(f"Looking for process with PID: [cyan]{pid}[/cyan]")
+            proc = get_process_by_pid(pid)
+        elif name:
+            console.print(f"Looking for process with name: [cyan]{name}[/cyan]")
+            proc = get_process_by_name(name)
+
+        if not proc:
+            process_type = "PID" if pid else "name"
+            process_value = pid if pid else name
+            console.print(
+                f"[bold red]Error:[/bold red] No process with {process_type} '{process_value}' found"
+            )
+            raise typer.Exit(code=1)
+
+        console.print(f"[bold green]Found process:[/bold green] {proc.name()} (PID: {proc.pid})")
+        console.print("[bold]Press Ctrl+C to exit[/bold]")
+
+        # Start data collection
+        system_collector = SystemCollector()
+        system_collector.start()
+
+        process_collector = ProcessCollector(proc)
+        process_collector.start()
+
+        # Display the interface
+        try:
+            display_all_info(system_collector, process_collector)
+        except KeyboardInterrupt:
+            console.print("\n[bold]Exiting stats monitor...[/bold]")
+
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {e!s}")
+        raise typer.Exit(code=1)
+
+
 @cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
 def workerup(
     host: str = typer.Option(
@@ -593,9 +602,6 @@ def workerup(
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
-    enable_mcp: bool = False,
-    mcp_type: str = "sse",
-    enable_mcp_logging: bool = False,
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
@@ -610,9 +616,6 @@ def workerup(
             port,
             disable_auth=disable_auth,
             enable_otel=otel_enable,
-            enable_mcp=enable_mcp,
-            mcp_type=mcp_type,
-            enable_mcp_logging=enable_mcp_logging,
             debug=debug,
         )
     except KeyboardInterrupt:
@@ -623,7 +626,7 @@ def workerup(
         typer.Exit(code=1)
 
 
-@cli.command(help="Deploy worker to Arcade Cloud", rich_help_panel="Launch")
+@cli.command(help="Deploy worker to Arcade Cloud", rich_help_panel="Manage")
 def deploy(
     deployment_file: str = typer.Option(
         "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
@@ -697,6 +700,48 @@ def deploy(
                     f"❌ Failed to deploy worker '{worker.config.id}': {e}", style="bold red"
                 )
                 raise typer.Exit(code=1)
+
+
+@cli.command(help="Launch an MCP server with locally installed tools", rich_help_panel="Launch")
+def mcp(
+    mcp_type: str = typer.Option("stdio", "--type", "-t", help="The type of MCP server to launch"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Launch an MCP server with locally installed tools.
+    """
+    from arcade.core.catalog import ToolCatalog
+    from arcade.sdk import Toolkit
+    from arcade.worker.mcp.stdio import StdioServer
+
+    validate_and_get_config()
+
+    async def run_mcp_stdio():
+        tool_catalog = ToolCatalog()
+        toolkits = Toolkit.find_all_arcade_toolkits()
+
+        if not toolkits:
+            raise RuntimeError("No toolkits found in Python environment.")
+
+        for toolkit in toolkits:
+            tool_catalog.add_toolkit(toolkit)
+
+        server = StdioServer(
+            tool_catalog,
+            enable_logging=debug if debug else False,
+        )
+        await server.run()
+
+    try:
+        if mcp_type == "stdio":
+            asyncio.run(run_mcp_stdio())
+        else:
+            typer.Exit(code=1)
+    except KeyboardInterrupt:
+        typer.Exit()
+    except Exception as e:
+        console.print(f"❌ Failed to start MCP server: {e}", style="bold red")
+        raise typer.Exit(code=1)
 
 
 @cli.callback()

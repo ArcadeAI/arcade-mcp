@@ -175,7 +175,7 @@ class BaseWorker(Worker):
         """
         Provide a health check that serves as a heartbeat of worker health.
         """
-        return {"status": "ok", "tool_count": len(self.catalog)}
+        return {"status": "ok", "tool_count": str(len(self.catalog))}
 
     def register_routes(self, router: Router) -> None:
         """

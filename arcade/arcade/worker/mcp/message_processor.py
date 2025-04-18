@@ -1,106 +1,81 @@
+import inspect
+import json
 import logging
-from typing import Callable
+from typing import Any, Callable, TypeVar
 
-try:
-    from mcp.types import JSONRPCMessage
-
-    MCP_AVAILABLE = True
-except ImportError:
-    MCP_AVAILABLE = False
-
-    # Define stub for type hints when MCP isn't available
-    class JSONRPCMessage:
-        pass
-
+from arcade.worker.mcp.types import InitializeRequest, JSONRPCRequest, MCPMessage
 
 logger = logging.getLogger("arcade.mcp")
 
+T = TypeVar("T")
 
 # Type definition for middleware functions
-MessageProcessor = Callable[[JSONRPCMessage, str], JSONRPCMessage]
+MessageProcessor = Callable[[Any, str], Any]
 
 
 class MCPMessageProcessor:
     """
     Processes MCP messages through a chain of middleware.
-
-    This class manages a chain of middleware that can process MCP messages
-    before they are sent or after they are received.
+    Supports both synchronous and asynchronous middleware.
     """
 
-    def __init__(self):
-        """Initialize an empty middleware chain."""
-        self.middleware: list[MessageProcessor] = []
+    def __init__(self) -> None:
+        self.middleware: list[Callable[[MCPMessage, str], Any]] = []
 
-    def add_middleware(self, middleware: MessageProcessor) -> None:
-        """
-        Add middleware to the processing chain.
+    def add_middleware(self, mw: Callable[[MCPMessage, str], Any]) -> None:
+        self.middleware.append(mw)
 
-        Args:
-            middleware: A callable that takes a message and direction and returns a processed message
-        """
-        if middleware not in self.middleware:
-            self.middleware.append(middleware)
-            logger.debug(f"Added middleware: {middleware.__class__.__name__}")
+    async def process(self, message: Any, direction: str) -> Any:
+        # First, try to parse the message if it's a string
+        if isinstance(message, str):
+            # Strip any whitespace including newlines
+            message = message.strip()
+            if not message:
+                return None
 
-    def process_request(self, message: JSONRPCMessage) -> JSONRPCMessage:
-        """
-        Process an outgoing request message through the middleware chain.
-
-        Args:
-            message: The MCP message to process
-
-        Returns:
-            The processed message
-        """
-        return self._process_message(message, "request")
-
-    def process_response(self, message: JSONRPCMessage) -> JSONRPCMessage:
-        """
-        Process an incoming response message through the middleware chain.
-
-        Args:
-            message: The MCP message to process
-
-        Returns:
-            The processed message
-        """
-        return self._process_message(message, "response")
-
-    def _process_message(self, message: JSONRPCMessage, direction: str) -> JSONRPCMessage:
-        """
-        Process a message through all middleware in the chain.
-
-        Args:
-            message: The MCP message to process
-            direction: The message direction ("request" or "response")
-
-        Returns:
-            The processed message
-        """
-        if not MCP_AVAILABLE:
-            return message
-
-        processed_message = message
-        for middleware in self.middleware:
             try:
-                processed_message = middleware(processed_message, direction)
+                parsed = json.loads(message)
+                if isinstance(parsed, dict):
+                    method = parsed.get("method")
+                    # Convert to appropriate message type
+                    if method == "initialize" and "id" in parsed:
+                        logger.debug(f"Parsed initialize request: {parsed}")
+                        message = InitializeRequest(**parsed)
+                    elif method and method.startswith("notifications/"):
+                        # It's a notification, log it but pass through as dict
+                        logger.debug(f"Received notification: {method}")
+                        # Keep as parsed dict to avoid validation errors on unknown notifications
+                        message = parsed
+                    elif "method" in parsed and "id" in parsed:
+                        # Regular method request
+                        logger.debug(f"Parsed method request: {method}")
+                        message = JSONRPCRequest(**parsed)
+                    # Other message types can be handled similarly
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse message as JSON: {message[:100]}...")
             except Exception as e:
-                logger.exception(f"Error in middleware {middleware.__class__.__name__}, {e!s}")  # noqa: TRY401
+                logger.exception(f"Error processing message: {e}")
 
-        return processed_message
+        # Process through middleware chain
+        result = message
+        for mw in self.middleware:
+            try:
+                if inspect.iscoroutinefunction(mw):
+                    result = await mw(result, direction)
+                else:
+                    result = mw(result, direction)
+            except Exception as e:
+                logger.exception(f"Error in middleware {mw}: {e}")
+        return result
+
+    async def process_request(self, message: Any) -> Any:
+        return await self.process(message, "request")
+
+    async def process_response(self, message: Any) -> Any:
+        return await self.process(message, "response")
 
 
 def create_message_processor(*middleware: MessageProcessor) -> MCPMessageProcessor:
-    """
-    Create a message processor with the given middleware.
-
-    Args:
-        *middleware: Middleware functions to add to the processor
-
-    Returns:
-        An MCPMessageProcessor instance
-    """
     processor = MCPMessageProcessor()
     for m in middleware:
         if m is not None:

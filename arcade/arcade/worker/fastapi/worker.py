@@ -9,13 +9,9 @@ from arcade.worker.core.base import (
     BaseWorker,
     Router,
 )
-from arcade.worker.core.common import RequestData, WorkerComponent
+from arcade.worker.core.common import RequestData, ResponseData, WorkerComponent
 from arcade.worker.fastapi.auth import validate_engine_request
-from arcade.worker.mcp.logging import create_mcp_logging_middleware
-from arcade.worker.mcp.sse import create_mcp_sse_component
 from arcade.worker.utils import is_async_callable
-
-MCP_AVAILABLE = True
 
 
 class FastAPIWorker(BaseWorker):
@@ -30,11 +26,6 @@ class FastAPIWorker(BaseWorker):
         *,
         disable_auth: bool = False,
         otel_meter: Meter | None = None,
-        enable_mcp: bool = False,
-        mcp_config: dict[str, Any] | None = None,
-        mcp_type: str = "sse",
-        enable_mcp_logging: bool = True,
-        mcp_logging_config: dict[str, Any] | None = None,
     ) -> None:
         """
         Initialize the FastAPIWorker with a FastAPI app instance.
@@ -45,11 +36,6 @@ class FastAPIWorker(BaseWorker):
             secret: Optional secret for authorization
             disable_auth: Whether to disable authorization
             otel_meter: Optional OpenTelemetry meter
-            enable_mcp: Whether to enable MCP support
-            mcp_config: Configuration for MCP components
-            mcp_type: Type of MCP transport ("sse", "stdio", or "both")
-            enable_mcp_logging: Whether to enable MCP logging middleware
-            mcp_logging_config: Configuration for MCP logging middleware
         """
         super().__init__(secret, disable_auth, otel_meter)
         self.app = app
@@ -58,30 +44,6 @@ class FastAPIWorker(BaseWorker):
 
         # Initialize components
         self.components: list[WorkerComponent] = []
-
-        # Enable MCP if requested
-        if enable_mcp:
-            config = mcp_config or {}
-
-            # Add logging middleware if enabled
-            if enable_mcp_logging:
-                logging_middleware = create_mcp_logging_middleware(**(mcp_logging_config or {}))
-                if logging_middleware:
-                    config["middleware"] = [logging_middleware]
-
-            self._initialize_mcp(mcp_type, config)
-
-    def _initialize_mcp(self, mcp_type: str, config: dict[str, Any]) -> None:
-        """Initialize MCP components based on the requested type."""
-        if mcp_type == "sse" or mcp_type == "both":
-            mcp_sse = create_mcp_sse_component(self, self.app, **config)
-            if mcp_sse:
-                self.components.append(mcp_sse)
-                print("Registered MCP SSE component")
-
-        # Register all components with the router
-        for component in self.components:
-            component.register(self.router)
 
 
 security = HTTPBearer()  # Authorization: Bearer <xxx>
@@ -128,7 +90,13 @@ class FastAPIRouter(Router):
         return wrapped_handler
 
     def add_route(
-        self, endpoint_path: str, handler: Callable, method: str, require_auth: bool = True
+        self,
+        endpoint_path: str,
+        handler: Callable,
+        method: str,
+        require_auth: bool = True,
+        response_type: type[ResponseData] | None = None,
+        **kwargs: Any,
     ) -> None:
         """
         Add a route to the FastAPI application.
@@ -137,4 +105,7 @@ class FastAPIRouter(Router):
             f"{self.worker.base_path}/{endpoint_path}",
             self._wrap_handler(handler, require_auth),
             methods=[method],
+            response_model=response_type,
+            # **kwargs to pass to FastAPI
+            **kwargs,
         )

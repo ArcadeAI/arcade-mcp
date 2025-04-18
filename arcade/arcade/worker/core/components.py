@@ -1,38 +1,16 @@
-from typing import Any, Optional, Protocol
-
-from fastapi import FastAPI
 from opentelemetry import trace
 
-from arcade.core.catalog import ToolCatalog
-from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
-from arcade.worker.core.common import RequestData, Router, Worker, WorkerComponent
-
-
-class Component(Protocol):
-    """Protocol for worker components that are not route-based."""
-
-    def initialize(self) -> None:
-        """Initialize the component."""
-        pass
-
-
-class ComponentProvider(Protocol):
-    """Protocol for component providers that create components."""
-
-    def get_component(
-        self, app: FastAPI, catalog: ToolCatalog, **kwargs: Any
-    ) -> Optional[Component]:
-        """Get a component instance.
-
-        Args:
-            app: The FastAPI app to add routes to
-            catalog: The tool catalog to serve
-            **kwargs: Additional configuration options
-
-        Returns:
-            A component instance or None if the component should not be created
-        """
-        ...
+from arcade.worker.core.common import (
+    CatalogResponse,
+    HealthCheckResponse,
+    MetricsResponse,
+    RequestData,
+    Router,
+    ToolCallRequest,
+    ToolCallResponse,
+    Worker,
+    WorkerComponent,
+)
 
 
 class CatalogComponent(WorkerComponent):
@@ -43,9 +21,17 @@ class CatalogComponent(WorkerComponent):
         """
         Register the catalog route with the router.
         """
-        router.add_route("tools", self, method="GET")
+        router.add_route(
+            "tools",
+            self,
+            method="GET",
+            response_type=CatalogResponse,
+            operation_id="get_catalog",
+            description="Get the catalog of tools",
+            tags=["base"],
+        )
 
-    async def __call__(self, request: RequestData) -> list[ToolDefinition]:
+    async def __call__(self, request: RequestData) -> CatalogResponse:
         """
         Handle the request to get the catalog.
         """
@@ -62,7 +48,15 @@ class CallToolComponent(WorkerComponent):
         """
         Register the call tool route with the router.
         """
-        router.add_route("tools/invoke", self, method="POST")
+        router.add_route(
+            "tools/invoke",
+            self,
+            method="POST",
+            response_type=ToolCallResponse,
+            operation_id="call_tool",
+            description="Call a tool",
+            tags=["base"],
+        )
 
     async def __call__(self, request: RequestData) -> ToolCallResponse:
         """
@@ -83,12 +77,49 @@ class HealthCheckComponent(WorkerComponent):
         """
         Register the health check route with the router.
         """
-        router.add_route("health", self, method="GET", require_auth=False)
+        router.add_route(
+            "health",
+            self,
+            method="GET",
+            require_auth=False,
+            response_type=HealthCheckResponse,
+            operation_id="health_check",
+            description="Check the health of the worker",
+            tags=["base"],
+        )
 
-    async def __call__(self, request: RequestData) -> dict[str, Any]:
+    async def __call__(self, request: RequestData) -> HealthCheckResponse:
         """
         Handle the request for a health check.
         """
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("HealthCheck"):
             return self.worker.health_check()
+
+
+class MetricsComponent(WorkerComponent):
+    def __init__(self, worker: Worker) -> None:
+        self.worker = worker
+
+    def register(self, router: Router) -> None:
+        """
+        Register the prometheus metrics route with the router.
+        """
+        router.add_route(
+            "metrics",
+            self,
+            method="GET",
+            require_auth=False,
+            response_type=MetricsResponse,
+            operation_id="get_metrics",
+            description="Get the worker performance metrics",
+            tags=["base"],
+        )
+
+    async def __call__(self, request: RequestData) -> str:
+        """
+        Handle the request for prometheus metrics.
+        """
+        tracer = trace.get_tracer(__name__)
+        with tracer.start_as_current_span("Metrics"):
+            return await self.worker.get_metrics()

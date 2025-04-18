@@ -1,289 +1,582 @@
 import asyncio
 import logging
-import threading
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Optional, Union
+import os
+from enum import Enum
+from typing import Any, Callable, Union
 
-try:
-    from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
-    from mcp.server.lowlevel import Server as MCPServer
-    from mcp.server.models import InitializationOptions
-    from mcp.types import JSONRPCMessage
+from arcadepy import ArcadeError, AsyncArcade
+from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
+from arcadepy.types.shared import AuthorizationResponse
 
-    MCP_AVAILABLE = True
-except ImportError:
-    MCP_AVAILABLE = False
-
-
-from arcade.worker.mcp.message_processor import MCPMessageProcessor
+from arcade.core.catalog import MaterializedTool, ToolCatalog
+from arcade.core.config import config
+from arcade.core.executor import ToolExecutor
+from arcade.core.schema import ToolAuthorizationContext, ToolContext
+from arcade.worker.mcp.convert import convert_to_mcp_content, create_mcp_tool
+from arcade.worker.mcp.logging import create_mcp_logging_middleware
+from arcade.worker.mcp.message_processor import MCPMessageProcessor, create_message_processor
+from arcade.worker.mcp.types import (
+    CallToolRequest,
+    CallToolResponse,
+    CallToolResult,
+    CancelRequest,
+    Implementation,
+    InitializeRequest,
+    InitializeResponse,
+    InitializeResult,
+    JSONRPCError,
+    JSONRPCResponse,
+    ListPromptsRequest,
+    ListPromptsResponse,
+    ListResourcesRequest,
+    ListResourcesResponse,
+    ListToolsRequest,
+    ListToolsResponse,
+    ListToolsResult,
+    PingRequest,
+    PingResponse,
+    ProgressNotification,
+    ServerCapabilities,
+    ShutdownRequest,
+    ShutdownResponse,
+    Tool,
+)
 
 logger = logging.getLogger("arcade.mcp")
 
-
-class StreamProcessor:
-    """Processes messages between streams with middleware support."""
-
-    def __init__(self, processor: Optional[MCPMessageProcessor] = None):
-        """Initialize the stream processor."""
-        self.processor = processor
-        self.running = False
-        self._lock = threading.RLock()
-
-    async def process_receive_stream(
-        self,
-        receive_stream: MemoryObjectReceiveStream,
-        send_stream: MemoryObjectSendStream,
-        is_request: bool = True,
-    ) -> None:
-        """
-        Process messages from a receive stream to a send stream.
-
-        Args:
-            receive_stream: Stream to read messages from
-            send_stream: Stream to write messages to
-            is_request: Whether we're processing a request (True) or response (False)
-        """
-        try:
-            with self._lock:
-                self.running = True
-
-            async with send_stream:
-                async for message in receive_stream:
-                    try:
-                        processed_message = message
-                        if isinstance(message, JSONRPCMessage) and self.processor:
-                            if is_request:
-                                processed_message = self.processor.process_request(message)
-                            else:
-                                processed_message = self.processor.process_response(message)
-
-                        await send_stream.send(processed_message)
-                    except Exception as e:
-                        logger.error(f"Error processing message: {e}", exc_info=True)
-                        # In case of error, pass through the original message
-                        try:
-                            await send_stream.send(message)
-                        except Exception as send_err:
-                            logger.exception(
-                                f"Failed to send original message after error: {send_err}"  # noqa: TRY401
-                            )
-        except Exception as e:
-            logger.error(f"Stream processing error: {e}", exc_info=True)
-        finally:
-            with self._lock:
-                self.running = False
-            logger.debug("Stream processor stopped")
+MCP_PROTOCOL_VERSION = "2024-11-05"
 
 
-class DirectPassthrough:
+class MessageMethod(str, Enum):
+    """Enumeration of supported MCP message methods"""
+
+    PING = "ping"
+    INITIALIZE = "initialize"
+    LIST_TOOLS = "tools/list"
+    CALL_TOOL = "tools/call"
+    PROGRESS = "progress"
+    CANCEL = "$/cancelRequest"
+    SHUTDOWN = "shutdown"
+    LIST_RESOURCES = "resources/list"
+    LIST_PROMPTS = "prompts/list"
+
+
+class MCPServer:
     """
-    A direct passthrough for streams, avoiding task groups for initialization.
-    This sequential approach helps avoid initialization timing issues.
-    """
-
-    def __init__(self, connection_id: str = "unknown"):
-        """Initialize a direct passthrough."""
-        self.connection_id = connection_id
-        self.initialized = False
-        self._lock = threading.RLock()
-        self._shutdown_requested = False
-
-    async def shutdown(self) -> None:
-        """Request shutdown of this connection."""
-        self._shutdown_requested = True
-        logger.debug(f"Shutdown requested for connection {self.connection_id}")
-
-    async def run(
-        self,
-        original_server: MCPServer,
-        client_stream: MemoryObjectReceiveStream,
-        server_stream: MemoryObjectSendStream,
-        init_options: Any,
-        processor: Optional[MCPMessageProcessor] = None,
-    ) -> None:
-        """
-        Run the server directly with the provided streams.
-
-        Args:
-            original_server: The server to run
-            client_stream: Stream to receive messages from the client
-            server_stream: Stream to send messages to the client
-            init_options: Initialization options
-            processor: Optional message processor
-        """
-        logger.debug(f"Starting direct passthrough for connection {self.connection_id}")
-
-        # For simplicity, we'll use the parent MCPServer directly without
-        # middleware processing, as that seems to be causing initialization issues
-        try:
-            # Get the parent MCPServer's run method directly
-            parent_run = MCPServer.run.__get__(original_server, type(original_server))
-
-            # Run the MCP server directly - this ensures initialization completes
-            # before any messages are processed
-            await parent_run(client_stream, server_stream, init_options)
-            self.initialized = True
-
-        except asyncio.CancelledError:
-            logger.debug(f"Connection {self.connection_id} cancelled gracefully")
-        except Exception as e:
-            if "before initialization was complete" in str(e):
-                logger.exception(
-                    f"Initialization timing issue for {self.connection_id} "
-                    f"This is likely due to the server receiving messages before init completes."
-                )
-            else:
-                logger.exception(f"Error in direct passthrough for {self.connection_id}")
-            raise
-
-
-class PatchedMCPServer(MCPServer):
-    """
-    A patched version of the MCP Server that supports middleware and multiple connections.
+    Unified async MCP server that manages connections, middleware, and tool invocation.
+    Handles protocol-level messages (ping, initialize, list_tools, call_tool, etc.).
     """
 
     def __init__(
-        self, max_connections: int = 100, max_worker_threads: int = 10, *args: Any, **kwargs: Any
-    ):
-        """Initialize the patched MCP server."""
-        if not MCP_AVAILABLE:
-            raise ImportError("The MCP package is required for the PatchedMCPServer")
-
-        # Initialize the base MCPServer
-        super().__init__(*args, **kwargs)
-
-        # Store message processor
-        self.message_processor: Optional[MCPMessageProcessor] = None
-
-        self.max_connections = max_connections
-        self.max_worker_threads = max_worker_threads
-
-        # Connection management
-        self.connections: dict[str, DirectPassthrough] = {}
-        self.connection_count = 0
-        self._lock = threading.RLock()
-
-        # Thread pool for concurrent processing
-        self.executor = ThreadPoolExecutor(
-            max_workers=self.max_worker_threads, thread_name_prefix="mcp_worker_"
-        )
-
-        # Shutdown flag
-        self._shutdown = False
-
-    def set_message_processor(self, processor: MCPMessageProcessor) -> None:
-        """
-        Set the message processor for this server.
-
-        Args:
-            processor: The message processor to use
-        """
-        self.message_processor = processor
-        logger.debug("Message processor set for MCP server")
-
-    def _get_connection_id(self) -> str:
-        """Generate a unique connection ID."""
-        with self._lock:
-            self.connection_count += 1
-            return f"conn_{self.connection_count}"
-
-    async def shutdown(self) -> None:
-        """
-        Gracefully shutdown the server and all connections.
-        """
-        logger.info("Shutting down MCP server...")
-
-        if not hasattr(self, "_lock"):
-            logger.warning("MCP server not fully initialized, skipping detailed shutdown")
-            return
-
-        # Set the shutdown flag first
-        with self._lock:
-            self._shutdown = True
-            # Make a copy of connections to avoid modification during iteration
-            connections = list(self.connections.items())
-
-        # Notify all connections to shut down first
-        logger.debug(f"Notifying {len(connections)} connections to shut down")
-        for conn_id, conn in connections:
-            try:
-                if hasattr(conn, "shutdown"):
-                    await conn.shutdown()
-            except Exception as e:
-                logger.exception(f"Error requesting shutdown for connection {conn_id}: {e}")
-
-        # Now clean them up
-        for conn_id, _ in connections:
-            try:
-                logger.debug(f"Cleaning up connection {conn_id}")
-                with self._lock:
-                    if conn_id in self.connections:
-                        del self.connections[conn_id]
-            except Exception as e:
-                logger.exception(f"Error cleaning up connection {conn_id}: {e}")
-
-        # Shutdown the executor
-        try:
-            if hasattr(self, "executor"):
-                self.executor.shutdown(wait=False)
-        except Exception as e:
-            logger.exception(f"Error shutting down executor: {e}")
-
-        logger.info("MCP server shutdown complete")
-
-    async def run(
         self,
-        read_stream: MemoryObjectReceiveStream,
-        write_stream: MemoryObjectSendStream,
-        init_options: Union[dict[str, Any], InitializationOptions],
+        tool_catalog: Any,
+        enable_logging: bool = True,
+        **client_kwargs: dict[str, Any],
     ) -> None:
         """
-        Run a new MCP server instance for this connection.
-
-        This method creates a new direct passthrough for each connection.
+        Initialize the MCP server.
 
         Args:
-            read_stream: Stream to read messages from
-            write_stream: Stream to write messages to
-            init_options: Initialization options
+            tool_catalog: Catalog of available tools
+            **client_kwargs: Additional arguments to pass to the AsyncArcade client
         """
-        if hasattr(self, "_shutdown") and self._shutdown:
-            logger.info("Server is shutting down, rejecting new connection")
-            return
+        self.tool_catalog: ToolCatalog = tool_catalog
+        self.message_processor: MCPMessageProcessor = create_message_processor()
+        if enable_logging:
+            self.message_processor.add_middleware(create_mcp_logging_middleware())
+        self._shutdown: bool = False
+        self.arcade = AsyncArcade(**client_kwargs)
 
-        connection_id = self._get_connection_id()
-        logger.info(f"Starting server for connection {connection_id}")
+        # Initialize handler dispatch table
+        self._method_handlers: dict[str, Callable] = {
+            MessageMethod.PING: self._handle_ping,
+            MessageMethod.INITIALIZE: self._handle_initialize,
+            MessageMethod.LIST_TOOLS: self._handle_list_tools,
+            MessageMethod.CALL_TOOL: self._handle_call_tool,
+            MessageMethod.PROGRESS: self._handle_progress,
+            MessageMethod.CANCEL: self._handle_cancel,
+            MessageMethod.SHUTDOWN: self._handle_shutdown,
+            MessageMethod.LIST_RESOURCES: self._handle_list_resources,
+            MessageMethod.LIST_PROMPTS: self._handle_list_prompts,
+        }
 
-        # Create a direct passthrough handler
-        passthrough = DirectPassthrough(connection_id)
+    async def run_connection(
+        self,
+        read_stream: Any,
+        write_stream: Any,
+        init_options: Any,
+    ) -> None:
+        """
+        Handle a single MCP connection (SSE or stdio).
 
-        # Store the connection
-        with self._lock:
-            self.connections[connection_id] = passthrough
+        Args:
+            read_stream: Async iterable yielding incoming messages.
+            write_stream: Object with an async send(message) method.
+            init_options: Initialization options for the connection.
+        """
+        # Generate a user ID if possible
+        user_id = self._get_user_id(init_options)
 
         try:
-            # Run the passthrough directly - this ensures proper initialization
-            # before any messages are processed
-            await passthrough.run(
-                original_server=self,
-                client_stream=read_stream,
-                server_stream=write_stream,
-                init_options=init_options,
-                processor=self.message_processor,
+            logger.info(f"Starting MCP connection for user {user_id}")
+
+            async for message in read_stream:
+                # Process the message
+                response = await self.handle_message(message, user_id=user_id)
+
+                # Skip sending responses for None (e.g., notifications)
+                if response is None:
+                    continue
+
+                await self._send_response(write_stream, response)
+
+        except asyncio.CancelledError:
+            logger.info("Connection cancelled")
+        except Exception as e:
+            logger.exception(f"Error in connection: {e}")
+
+    def _get_user_id(self, init_options: Any) -> str:
+        """
+        Get the user ID for a connection.
+
+        Args:
+            init_options: Initialization options for the connection
+
+        Returns:
+            A user ID string
+        """
+        # Prefer config.user.email if available
+        if config.user.email:
+            return config.user.email
+        # Otherwise, try init_options['user_id']
+        elif os.environ.get("ARCADE_USER_ID"):
+            return os.environ.get("ARCADE_USER_ID")
+        elif isinstance(init_options, dict):
+            user_id = init_options.get("user_id")
+            if user_id:
+                return user_id
+        # Fallback to 'anonymous'
+        return "anonymous"
+
+    async def _send_response(self, write_stream: Any, response: Any) -> None:
+        """
+        Send a response to the client.
+
+        Args:
+            write_stream: Stream to write the response to
+            response: Response object to send
+        """
+        # Ensure the response is properly serialized to JSON
+        if hasattr(response, "model_dump_json"):
+            # It's a Pydantic model, serialize it
+            json_response = response.model_dump_json()
+            # Ensure it ends with a newline for JSON-RPC-over-stdio
+            if not json_response.endswith("\n"):
+                json_response += "\n"
+            logger.debug(f"Sending response: {json_response[:200]}...")
+            await write_stream.send(json_response)
+        elif isinstance(response, dict):
+            # It's a dict, convert to JSON
+            import json
+
+            json_response = json.dumps(response)
+            # Ensure it ends with a newline for JSON-RPC-over-stdio
+            if not json_response.endswith("\n"):
+                json_response += "\n"
+            logger.debug(f"Sending response: {json_response[:200]}...")
+            await write_stream.send(json_response)
+        else:
+            # It's already a string or something else
+            response_str = str(response)
+            # Ensure it ends with a newline for JSON-RPC-over-stdio
+            if not response_str.endswith("\n"):
+                response_str += "\n"
+            logger.debug(f"Sending raw response type: {type(response)}")
+            await write_stream.send(response_str)
+
+    async def handle_message(self, message: Any, user_id: str | None = None) -> Any:
+        """
+        Handle an incoming MCP message. Processes it through middleware and dispatches
+        to the appropriate handler based on the message method.
+
+        Args:
+            message: The raw incoming message
+            user_id: Optional user ID for authentication
+
+        Returns:
+            A properly formatted response message
+        """
+        # Pre-process message through middleware
+        processed = await self.message_processor.process_request(message)
+
+        # Handle special case for JSON string initialize requests
+        if isinstance(processed, str):
+            try:
+                import json
+
+                parsed = json.loads(processed)
+                if (
+                    isinstance(parsed, dict)
+                    and parsed.get("method") == MessageMethod.INITIALIZE
+                    and "id" in parsed
+                ):
+                    # This is an initialize request
+                    init_response = await self._handle_initialize(InitializeRequest(**parsed))
+                    return init_response
+            except Exception as e:
+                logger.exception(f"Error processing JSON string: {e}")
+                # Not parseable JSON, continue with normal processing
+                pass
+
+        # Check if it's a notification
+        if hasattr(processed, "method"):
+            method = getattr(processed, "method", None)
+
+            # Handle notifications (methods starting with "notifications/")
+            if method and method.startswith("notifications/"):
+                await self._handle_notification(method, processed)
+                return None
+
+            # Handle regular methods using the dispatch table
+            if method in self._method_handlers:
+                # If it's a call_tool request, we need to pass the user_id
+                if method == MessageMethod.CALL_TOOL:
+                    return await self._method_handlers[method](processed, user_id=user_id)
+                # For other methods, just pass the processed message
+                return await self._method_handlers[method](processed)
+
+            # Unknown method
+            return JSONRPCError(
+                id=getattr(processed, "id", None),
+                error={
+                    "code": -32601,
+                    "message": f"Method not found: {method}",
+                },
             )
 
-            logger.info(f"Connection {connection_id} completed")
-        except asyncio.CancelledError:
-            logger.info(f"Connection {connection_id} cancelled gracefully")
+        # If it's not a method request, just pass it through
+        return processed
+
+    async def _handle_notification(self, method: str, message: Any) -> None:
+        """
+        Handle notification messages.
+
+        Args:
+            method: The notification method
+            message: The notification message
+        """
+        if method == "notifications/cancelled":
+            logger.info(f"Request cancelled: {getattr(message, 'params', {})}")
+        else:
+            logger.debug(f"Received notification: {method}")
+
+    async def _handle_ping(self, message: PingRequest) -> PingResponse:
+        """
+        Handle a ping request and return a pong response.
+
+        Args:
+            message: The ping request
+
+        Returns:
+            A properly formatted pong response
+        """
+        return PingResponse(id=message.id)
+
+    async def _handle_initialize(self, message: InitializeRequest) -> InitializeResponse:
+        """
+        Handle an initialize request and return a proper initialize response.
+
+        Args:
+            message: The initialize request
+
+        Returns:
+            A properly formatted initialize response
+        """
+        # Create the result data
+        result = InitializeResult(
+            protocolVersion=MCP_PROTOCOL_VERSION,
+            capabilities=ServerCapabilities(),
+            serverInfo=Implementation(name="Arcade MCP Worker", version="0.1.0"),
+            instructions="Arcade MCP Worker initialized.",
+        )
+
+        # Construct proper response with result field
+        response = InitializeResponse(id=message.id, result=result)
+
+        logger.debug(f"Initialize response: {response.model_dump_json()}")
+        return response
+
+    async def _handle_list_tools(
+        self, message: ListToolsRequest
+    ) -> Union[ListToolsResponse, JSONRPCError]:
+        """
+        Handle a tools/list request and return a list of available tools.
+
+        Args:
+            message: The tools/list request
+
+        Returns:
+            A properly formatted tools/list response or error
+        """
+        try:
+            # Get all tools from the catalog
+            tools = []
+            tool_conversion_errors = []
+
+            for tool in self.tool_catalog:
+                try:
+                    mcp_tool = create_mcp_tool(tool)
+                    if mcp_tool:
+                        tools.append(mcp_tool)
+                except Exception:
+                    tool_name = getattr(tool, "name", str(tool))
+                    logger.exception(f"Error converting tool: {tool_name}")
+                    tool_conversion_errors.append(tool_name)
+
+            # Log summary if we had errors
+            if tool_conversion_errors:
+                logger.warning(
+                    f"Failed to convert {len(tool_conversion_errors)} tools: {tool_conversion_errors}"
+                )
+
+            # Create tool objects with exception handling for each one
+            tool_objects = []
+            for t in tools:
+                try:
+                    # Make input schema optional if missing
+                    tool_dict = dict(t)
+                    if "inputSchema" not in tool_dict:
+                        tool_dict["inputSchema"] = {"type": "object", "properties": {}}
+
+                    tool_objects.append(Tool(**tool_dict))
+                except Exception:
+                    logger.exception(f"Error creating Tool object for {t.get('name', 'unknown')}")
+
+            # Return successful response with the tools we were able to convert
+            result = ListToolsResult(tools=tool_objects)
+            response = ListToolsResponse(id=message.id, result=result)
+
+            return response
+
+        except Exception:
+            logger.exception("Error listing tools")
+            return JSONRPCError(
+                id=message.id,
+                error={
+                    "code": -32603,
+                    "message": "Internal error listing tools",
+                },
+            )
+
+    async def _handle_call_tool(
+        self, message: CallToolRequest, user_id: str | None = None
+    ) -> CallToolResponse:
+        """
+        Handle a tools/call request to execute a tool.
+
+        Args:
+            message: The tools/call request
+            user_id: Optional user ID for authentication
+
+        Returns:
+            A properly formatted tools/call response
+        """
+        tool_name: str = message.params["name"]
+        # Extract input from the correct field
+        input_params: dict[str, Any] = message.params.get("input", {})
+        if not input_params:
+            input_params = message.params.get("arguments", {})
+
+        logger.info(f"Handling tool call for {tool_name}")
+
+        try:
+            tool = self.tool_catalog.get_tool_by_name(tool_name, separator="_")
+            tool_context = ToolContext()
+
+            # Set up context with secrets
+            if tool.definition.requirements and tool.definition.requirements.secrets:
+                self._setup_tool_secrets(tool, tool_context)
+
+            # Handle authorization if needed
+            requirement = self._get_auth_requirement(tool)
+            if requirement:
+                auth_result = await self._check_authorization(requirement, user_id=user_id)
+                if auth_result.status != "completed":
+                    return CallToolResponse(
+                        id=message.id,
+                        result=CallToolResult(content=[{"type": "text", "text": auth_result.url}]),
+                    )
+                else:
+                    tool_context.authorization = ToolAuthorizationContext(
+                        token=auth_result.context.token,
+                        user_info={"user_id": user_id} if user_id else None,
+                    )
+
+            # Execute the tool
+            logger.debug(f"Executing tool {tool_name} with input: {input_params}")
+            result = await ToolExecutor.run(
+                func=tool.tool,
+                definition=tool.definition,
+                input_model=tool.input_model,
+                output_model=tool.output_model,
+                context=tool_context,
+                **input_params,
+            )
+            logger.debug(f"Tool result: {result}")
+            if result.value:
+                return CallToolResponse(
+                    id=message.id,
+                    result=CallToolResult(content=convert_to_mcp_content(result.value)),
+                )
+            else:
+                error = result.error or "Error calling tool"
+                logger.error(f"Tool {tool_name} returned error: {error}")
+                return CallToolResponse(
+                    id=message.id,
+                    result=CallToolResult(
+                        content=[{"type": "text", "text": convert_to_mcp_content(error)}]
+                    ),
+                )
         except Exception as e:
-            logger.error(f"Error in connection {connection_id}: {e}", exc_info=True)
+            logger.exception(f"Error calling tool {tool_name}")
+            error = f"Error calling tool {tool_name}: {e!s}"
+            return CallToolResponse(
+                id=message.id,
+                result=CallToolResult(
+                    content=[{"type": "text", "text": convert_to_mcp_content(error)}]
+                ),
+            )
+
+    def _setup_tool_secrets(self, tool: Any, tool_context: ToolContext) -> None:
+        """
+        Set up tool secrets in the tool context.
+
+        Args:
+            tool: The tool to set up secrets for
+            tool_context: The tool context to update
+        """
+        for secret in tool.definition.requirements.secrets:
+            value = os.environ.get(secret.key)
+            if value is not None:
+                tool_context.set_secret(secret.key, value)
+
+    async def _handle_progress(self, message: ProgressNotification) -> JSONRPCResponse:
+        """
+        Handle a progress notification.
+
+        Args:
+            message: The progress notification
+
+        Returns:
+            A response acknowledging the notification
+        """
+        return JSONRPCResponse(id=getattr(message, "id", None), result={"ok": True})
+
+    async def _handle_cancel(self, message: CancelRequest) -> JSONRPCResponse:
+        """
+        Handle a cancel request.
+
+        Args:
+            message: The cancel request
+
+        Returns:
+            A response acknowledging the cancellation
+        """
+        return JSONRPCResponse(id=getattr(message, "id", None), result={"ok": True})
+
+    async def _handle_shutdown(self, message: ShutdownRequest) -> ShutdownResponse:
+        """
+        Handle a shutdown request.
+
+        Args:
+            message: The shutdown request
+
+        Returns:
+            A response acknowledging the shutdown request
+        """
+        # Schedule a task to shutdown the server after sending the response
+        asyncio.create_task(self.shutdown())
+
+        return ShutdownResponse(id=message.id, result={"ok": True})
+
+    async def _handle_list_resources(self, message: ListResourcesRequest) -> ListResourcesResponse:
+        """
+        Handle a resources/list request.
+
+        Args:
+            message: The resources/list request
+
+        Returns:
+            A properly formatted resources/list response
+        """
+        return ListResourcesResponse(id=message.id, result={"resources": []})
+
+    async def _handle_list_prompts(self, message: ListPromptsRequest) -> ListPromptsResponse:
+        """
+        Handle a prompts/list request.
+
+        Args:
+            message: The prompts/list request
+
+        Returns:
+            A properly formatted prompts/list response
+        """
+        return ListPromptsResponse(id=message.id, result={"prompts": []})
+
+    def _get_auth_requirement(self, tool: MaterializedTool) -> AuthRequirement | None:
+        """
+        Get the authentication requirement for a tool.
+
+        Args:
+            tool: The tool to get the requirement for
+
+        Returns:
+            An authentication requirement or None if not required
+        """
+        req = tool.definition.requirements.authorization
+        if not req:
+            return None
+        if hasattr(req, "oauth2") and req.oauth2:
+            return AuthRequirement(
+                provider_id=req.provider_id,
+                provider_type=req.provider_type,
+                oauth2=AuthRequirementOauth2(scopes=req.oauth2.scopes),
+            )
+        return AuthRequirement(
+            provider_id=req.provider_id,
+            provider_type=req.provider_type,
+        )
+
+    async def _check_authorization(
+        self, auth_requirement: AuthRequirement, user_id: str | None = None
+    ) -> AuthorizationResponse:
+        """
+        Check if a tool is authorized for a user.
+
+        Args:
+            tool: The tool to check authorization for
+            user_id: The user ID to check authorization for
+
+        Returns:
+            An authorization response
+
+        Raises:
+            RuntimeError: If the tool has no authorization requirement
+            Exception: If authorization fails
+        """
+        try:
+            response = await self.arcade.auth.authorize(
+                auth_requirement=auth_requirement,
+                user_id=user_id or "anonymous",
+            )
+            logger.debug(f"Authorization response: {response}")
+
+            return response
+        except ArcadeError as e:
+            logger.exception(f"Error authorizing tool: {e}")
             raise
-        finally:
-            # Clean up the connection
-            try:
-                with self._lock:
-                    if connection_id in self.connections:
-                        del self.connections[connection_id]
-                logger.info(f"Connection {connection_id} cleanup complete")
-            except Exception as cleanup_error:
-                logger.error(f"Error cleaning up connection {connection_id}: {cleanup_error}")
+
+    async def shutdown(self) -> None:
+        """Shutdown the server."""
+        self._shutdown = True
+        logger.info("MCP server shutdown complete")
