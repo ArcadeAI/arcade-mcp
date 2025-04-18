@@ -42,10 +42,8 @@ def generate_google_file_picker_url(
         },
     }
     config_json = json.dumps(config)
-    config_base64 = (
-        base64.urlsafe_b64encode(config_json.encode("utf-8")).decode("utf-8").rstrip("=")
-    )
-    url = f"{cloud_coordinator_url}/drive_picker?config={config_base64}"
+    config_base64 = base64.urlsafe_b64encode(config_json.encode("utf-8")).decode("utf-8")
+    url = f"{cloud_coordinator_url}/google/drive_picker?config={config_base64}"
 
     return {
         "url": url,
