@@ -15,6 +15,7 @@ from arcade_google.models import EventVisibility, SendUpdatesOptions
 from arcade_google.tools.calendar import (
     create_event,
     delete_event,
+    list_calendars,
     list_events,
     update_event,
 )
@@ -71,6 +72,23 @@ def calendar_eval_suite() -> EvalSuite:
         ),
         catalog=catalog,
         rubric=rubric,
+    )
+
+    # Cases for list_calendars
+    suite.add_case(
+        name="List Calendars",
+        user_message=(
+            "What calendars do I have?"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_calendars,
+                args={
+                },
+            )
+        ],
+        critics=[
+        ],
     )
 
     # Cases for create_event
@@ -139,7 +157,7 @@ def calendar_eval_suite() -> EvalSuite:
         name="Update a calendar event",
         user_message=(
             "Oh no! I can't make it to the API Test since I have lunch with an old friend at that time. "
-            "Change the meeting my meeting tomorrow at 3pm to 4pm. Let everyone know."
+            "Change my meeting tomorrow at 3pm to 4pm. Let everyone know."
         ),
         expected_tool_calls=[
             ExpectedToolCall(

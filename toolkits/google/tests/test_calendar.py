@@ -25,10 +25,10 @@ def mock_context():
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.calendar.build")
-async def test_list_calendars(mock_build, mock_context):
+@patch("arcade_google.tools.calendar.build_calendar_service")
+async def test_list_calendars(mock_build_calendar_service, mock_context):
     mock_service = MagicMock()
-    mock_build.return_value = mock_service
+    mock_build_calendar_service.return_value = mock_service
 
     expected_api_response = {
         "etag": '"p33for2n0pvc8o0o"',
@@ -76,27 +76,28 @@ async def test_list_calendars(mock_build, mock_context):
         "nextSyncToken": "XkJ8Hy5mN2pQvL9sR4tW7cA3fE1iU6nB",
     }
 
-    mock_service.calendarList().list().execute.return_value = expected_api_response
-
     expected_tool_response = {
-        "calendars": expected_api_response.get("items", []),
-        "next_page_token": expected_api_response.get("nextPageToken"),
-        "next_sync_token": expected_api_response.get("nextSyncToken"),
+        "num_calendars": 2,
+        "calendars": [
+            {
+                "description": "Holidays and Observances in Brazil",
+                "id": "en.brazilian#holiday@group.v.calendar.google.com",
+                "summary": "Holidays in Brazil",
+                "timeZone": "America/Sao_Paulo",
+            },
+            {
+                "id": "example@arcade.dev",
+                "summary": "example@arcade.dev",
+                "timeZone": "America/Sao_Paulo",
+            },
+        ],
+        "next_page_token": None,
     }
+
+    mock_service.calendarList().list().execute.return_value = expected_api_response
 
     response = await list_calendars(context=mock_context)
     assert response == expected_tool_response
-
-    # Case: non-positive max_results
-    with pytest.raises(RetryableToolError):
-        await list_calendars(context=mock_context, max_results=0)
-
-    with pytest.raises(RetryableToolError):
-        await list_calendars(context=mock_context, max_results=-1)
-
-    # Case: max_results greater than 250
-    with pytest.raises(RetryableToolError):
-        await list_calendars(context=mock_context, max_results=123456)
 
     # Case: HttpError during calendars listing
     mock_service.calendarList().list().execute.side_effect = HttpError(
@@ -109,7 +110,7 @@ async def test_list_calendars(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_create_event(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -137,7 +138,7 @@ async def test_create_event(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_list_events(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -202,7 +203,7 @@ async def test_list_events(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_update_event(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -230,7 +231,7 @@ async def test_update_event(mock_build, mock_context):
 
 
 @pytest.mark.asyncio
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_delete_event(mock_build, mock_context):
     mock_service = MagicMock()
     mock_build.return_value = mock_service
@@ -249,15 +250,19 @@ async def test_delete_event(mock_build, mock_context):
 
 @pytest.mark.asyncio
 @patch("arcade_google.utils.get_now")
-@patch("arcade_google.tools.calendar.build")
-async def test_find_free_slots_happiest_path_single_user(mock_build, mock_get_now, mock_context):
+@patch("arcade_google.tools.calendar.build_oauth_service")
+@patch("arcade_google.tools.calendar.build_calendar_service")
+async def test_find_free_slots_happiest_path_single_user(
+        mock_build_calendar_service, mock_build_oauth_service,
+        mock_get_now, mock_context):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
 
     mock_get_now.return_value = datetime(
         2025, 3, 10, 9, 25, 0, tzinfo=ZoneInfo("America/Los_Angeles")
     )
-    mock_build.side_effect = [oauth_service, calendar_service]
+    mock_build_oauth_service.return_value = oauth_service
+    mock_build_calendar_service.return_value = calendar_service
 
     oauth_service.userinfo().get().execute.return_value = {
         "email": "example@arcade.dev",
@@ -311,17 +316,20 @@ async def test_find_free_slots_happiest_path_single_user(mock_build, mock_get_no
 
 @pytest.mark.asyncio
 @patch("arcade_google.utils.get_now")
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_oauth_service")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_happiest_path_single_user_with_busy_times(
-    mock_build, mock_get_now, mock_context
-):
+        mock_build_calendar_service, mock_build_oauth_service,
+        mock_get_now, mock_context):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
 
     mock_get_now.return_value = datetime(
         2025, 3, 10, 9, 25, 0, tzinfo=ZoneInfo("America/Los_Angeles")
     )
-    mock_build.side_effect = [oauth_service, calendar_service]
+
+    mock_build_oauth_service.return_value = oauth_service
+    mock_build_calendar_service.return_value = calendar_service
 
     oauth_service.userinfo().get().execute.return_value = {
         "email": "example@arcade.dev",
@@ -406,9 +414,10 @@ async def test_find_free_slots_happiest_path_single_user_with_busy_times(
 
 @pytest.mark.asyncio
 @patch("arcade_google.utils.get_now")
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_oauth_service")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_happiest_path_multiple_users_with_busy_times(
-    mock_build, mock_get_now, mock_context
+    mock_build_calendar_service, mock_build_oauth_service, mock_get_now, mock_context
 ):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
@@ -416,7 +425,9 @@ async def test_find_free_slots_happiest_path_multiple_users_with_busy_times(
     mock_get_now.return_value = datetime(
         2025, 3, 10, 9, 25, 0, tzinfo=ZoneInfo("America/Los_Angeles")
     )
-    mock_build.side_effect = [oauth_service, calendar_service]
+
+    mock_build_oauth_service.return_value = oauth_service
+    mock_build_calendar_service.return_value = calendar_service
 
     oauth_service.userinfo().get().execute.return_value = {
         "email": "example@arcade.dev",
@@ -513,9 +524,12 @@ async def test_find_free_slots_happiest_path_multiple_users_with_busy_times(
 
 @pytest.mark.asyncio
 @patch("arcade_google.utils.get_now")
-@patch("arcade_google.tools.calendar.build")
+@patch("arcade_google.tools.calendar.build_oauth_service")
+@patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_with_google_calendar_error_not_found(
-    mock_build, mock_get_now, mock_context
+    mock_build_calendar_service,
+    mock_build_oauth_service,
+    mock_get_now, mock_context
 ):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
@@ -523,7 +537,8 @@ async def test_find_free_slots_with_google_calendar_error_not_found(
     mock_get_now.return_value = datetime(
         2025, 3, 10, 9, 25, 0, tzinfo=ZoneInfo("America/Los_Angeles")
     )
-    mock_build.side_effect = [oauth_service, calendar_service]
+    mock_build_oauth_service.return_value = oauth_service
+    mock_build_calendar_service.return_value = calendar_service
 
     oauth_service.userinfo().get().execute.return_value = {
         "email": "example@arcade.dev",
