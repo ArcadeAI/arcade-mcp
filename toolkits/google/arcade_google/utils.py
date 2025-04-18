@@ -829,6 +829,7 @@ def merge_intervals(intervals: list[tuple[datetime, datetime]]) -> list[tuple[da
 
 # Calendar utils
 
+
 def build_oauth_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build an OAuth2 service object.

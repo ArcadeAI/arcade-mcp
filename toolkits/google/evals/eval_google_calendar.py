@@ -77,18 +77,14 @@ def calendar_eval_suite() -> EvalSuite:
     # Cases for list_calendars
     suite.add_case(
         name="List Calendars",
-        user_message=(
-            "What calendars do I have?"
-        ),
+        user_message=("What calendars do I have?"),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_calendars,
-                args={
-                },
+                args={},
             )
         ],
-        critics=[
-        ],
+        critics=[],
     )
 
     # Cases for create_event

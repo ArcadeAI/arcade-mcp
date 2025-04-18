@@ -253,8 +253,8 @@ async def test_delete_event(mock_build, mock_context):
 @patch("arcade_google.tools.calendar.build_oauth_service")
 @patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_happiest_path_single_user(
-        mock_build_calendar_service, mock_build_oauth_service,
-        mock_get_now, mock_context):
+    mock_build_calendar_service, mock_build_oauth_service, mock_get_now, mock_context
+):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
 
@@ -319,8 +319,8 @@ async def test_find_free_slots_happiest_path_single_user(
 @patch("arcade_google.tools.calendar.build_oauth_service")
 @patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_happiest_path_single_user_with_busy_times(
-        mock_build_calendar_service, mock_build_oauth_service,
-        mock_get_now, mock_context):
+    mock_build_calendar_service, mock_build_oauth_service, mock_get_now, mock_context
+):
     calendar_service = MagicMock()
     oauth_service = MagicMock()
 
@@ -527,9 +527,7 @@ async def test_find_free_slots_happiest_path_multiple_users_with_busy_times(
 @patch("arcade_google.tools.calendar.build_oauth_service")
 @patch("arcade_google.tools.calendar.build_calendar_service")
 async def test_find_free_slots_with_google_calendar_error_not_found(
-    mock_build_calendar_service,
-    mock_build_oauth_service,
-    mock_get_now, mock_context
+    mock_build_calendar_service, mock_build_oauth_service, mock_get_now, mock_context
 ):
     calendar_service = MagicMock()
     oauth_service = MagicMock()

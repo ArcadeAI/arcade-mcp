@@ -27,19 +27,17 @@ from arcade_google.utils import (
 )
 async def list_calendars(
     context: ToolContext,
-    max_results: Annotated[int, "The maximum number of calendars to return. "
-                           "Up to 250 calendars, defaults to 10."] = 10,
-    show_deleted: Annotated[bool, "Whether to show deleted calendars."
-                            " Defaults to False"] = False,
-    show_hidden: Annotated[bool, "Whether to show hidden calendars."
-                           " Defaults to False"] = False,
+    max_results: Annotated[
+        int, "The maximum number of calendars to return. " "Up to 250 calendars, defaults to 10."
+    ] = 10,
+    show_deleted: Annotated[
+        bool, "Whether to show deleted calendars." " Defaults to False"
+    ] = False,
+    show_hidden: Annotated[bool, "Whether to show hidden calendars." " Defaults to False"] = False,
     next_page_token: Annotated[
-        str | None,
-        "The token to retrieve the next page of calendars. Optional."
+        str | None, "The token to retrieve the next page of calendars. Optional."
     ] = None,
-) -> Annotated[
-    dict, "A dictionary containing the calendars accessible by the end user"
-]:
+) -> Annotated[dict, "A dictionary containing the calendars accessible by the end user"]:
     """
     List all calendars accessible by the user.
     """
@@ -57,12 +55,7 @@ async def list_calendars(
     )
 
     items = calendars.get("items", [])
-    keys = [
-        "description",
-        "id",
-        "summary",
-        "timeZone"
-    ]
+    keys = ["description", "id", "summary", "timeZone"]
     relevant_items = [{k: i.get(k) for k in keys if i.get(k)} for i in items]
     return {
         "next_page_token": calendars.get("nextPageToken"),
