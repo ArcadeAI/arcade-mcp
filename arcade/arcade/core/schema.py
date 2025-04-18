@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
@@ -109,6 +110,26 @@ class ToolSecretRequirement(BaseModel):
     """The ID of the secret."""
 
 
+class ToolMetadataKey(str, Enum):
+    """Convience enum for commonly used metadata keys."""
+
+    CLIENT_ID = "client_id"
+    COORDINATOR_URL = "coordinator_url"
+
+    @staticmethod
+    def requires_auth(key: str) -> bool:
+        """Whether the key depends on the tool having an authorization requirement."""
+        keys_that_require_auth = [ToolMetadataKey.CLIENT_ID]
+        return key.strip().lower() in keys_that_require_auth
+
+
+class ToolMetadataRequirement(BaseModel):
+    """A requirement for a tool to run."""
+
+    key: str
+    """The ID of the metadata."""
+
+
 class ToolRequirements(BaseModel):
     """The requirements for a tool to run."""
 
@@ -116,6 +137,10 @@ class ToolRequirements(BaseModel):
     """The authorization requirements for the tool, if any."""
 
     secrets: Union[list[ToolSecretRequirement], None] = None
+    """The secret requirements for the tool, if any."""
+
+    metadata: Union[list[ToolMetadataRequirement], None] = None
+    """The metadata requirements for the tool, if any."""
 
 
 class ToolkitDefinition(BaseModel):
@@ -250,6 +275,16 @@ class ToolSecretItem(BaseModel):
     """The value of the secret."""
 
 
+class ToolMetadataItem(BaseModel):
+    """The context for a tool metadata."""
+
+    key: str
+    """The key of the metadata."""
+
+    value: str
+    """The value of the metadata."""
+
+
 class ToolContext(BaseModel):
     """The context for a tool invocation."""
 
@@ -258,6 +293,9 @@ class ToolContext(BaseModel):
 
     secrets: list[ToolSecretItem] | None = None
     """The secrets for the tool invocation."""
+
+    metadata: list[ToolMetadataItem] | None = None
+    """The metadata for the tool invocation."""
 
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
@@ -268,17 +306,27 @@ class ToolContext(BaseModel):
 
     def get_secret(self, key: str) -> str:
         """Retrieve the secret for the tool invocation."""
-        if not key or not key.strip():
-            raise ValueError("Secret key ID passed to get_secret cannot be empty.")
+        return self._get_item(key, self.secrets, "secret")
 
-        if not self.secrets:
-            raise ValueError("Secrets not found in context.")
+    def get_metadata(self, key: str) -> str:
+        """Retrieve the metadata for the tool invocation."""
+        return self._get_item(key, self.metadata, "metadata")
+
+    def _get_item(
+        self, key: str, items: list[ToolMetadataItem] | list[ToolSecretItem] | None, item_name: str
+    ) -> str:
+        if not key or not key.strip():
+            raise ValueError(
+                f"{item_name.capitalize()} key passed to get_{item_name} cannot be empty."
+            )
+        if not items:
+            raise ValueError(f"{item_name.capitalize()}s not found in context.")
 
         normalized_key = key.lower()
-        for secret in self.secrets:
-            if secret.key.lower() == normalized_key:
-                return secret.value
-        raise ValueError(f"Secret {key} not found in context.")
+        for item in items:
+            if item.key.lower() == normalized_key:
+                return item.value
+        raise ValueError(f"{item_name.capitalize()} {key} not found in context.")
 
 
 class ToolCallRequest(BaseModel):

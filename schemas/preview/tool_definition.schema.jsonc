@@ -159,6 +159,24 @@
             }
           ]
         },
+        "metadata": {
+          "oneOf": [
+            { "type": "null" }, // Can be unset,
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                },
+                "required": ["key"],
+                "additionalProperties": false
+              }
+            }
+          ]
+        },
         "authorization": {
           "oneOf": [
             { "type": "null" }, // Can be unset

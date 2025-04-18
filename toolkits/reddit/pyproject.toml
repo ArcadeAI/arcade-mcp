@@ -7,6 +7,7 @@ authors = ["Arcade <dev@arcade.dev>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 arcade-ai = "^1.0.5"
+httpx = "^0.27.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.0"

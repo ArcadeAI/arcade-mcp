@@ -6,15 +6,62 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 from arcade.sdk.errors import RetryableToolError
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import EventVisibility, SendUpdatesOptions
 from arcade_google.utils import (
+    build_calendar_service,
+    build_oauth_service,
     compute_free_time_intersection,
     parse_datetime,
 )
+
+
+@tool(
+    requires_auth=Google(
+        scopes=[
+            "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.events",
+        ]
+    )
+)
+async def list_calendars(
+    context: ToolContext,
+    max_results: Annotated[
+        int, "The maximum number of calendars to return. " "Up to 250 calendars, defaults to 10."
+    ] = 10,
+    show_deleted: Annotated[
+        bool, "Whether to show deleted calendars." " Defaults to False"
+    ] = False,
+    show_hidden: Annotated[bool, "Whether to show hidden calendars." " Defaults to False"] = False,
+    next_page_token: Annotated[
+        str | None, "The token to retrieve the next page of calendars. Optional."
+    ] = None,
+) -> Annotated[dict, "A dictionary containing the calendars accessible by the end user"]:
+    """
+    List all calendars accessible by the user.
+    """
+    max_results = max(1, min(max_results, 250))
+    service = build_calendar_service(context.get_auth_token_or_empty())
+    calendars = (
+        service.calendarList()
+        .list(
+            pageToken=next_page_token,
+            showDeleted=show_deleted,
+            showHidden=show_hidden,
+            maxResults=max_results,
+        )
+        .execute()
+    )
+
+    items = calendars.get("items", [])
+    keys = ["description", "id", "summary", "timeZone"]
+    relevant_items = [{k: i.get(k) for k in keys if i.get(k)} for i in items]
+    return {
+        "next_page_token": calendars.get("nextPageToken"),
+        "num_calendars": len(relevant_items),
+        "calendars": relevant_items,
+    }
 
 
 @tool(
@@ -49,15 +96,7 @@ async def create_event(
 ) -> Annotated[dict, "A dictionary containing the created event details"]:
     """Create a new event/meeting/sync/meetup in the specified calendar."""
 
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -121,15 +160,7 @@ async def list_events(
     ending at 10:00 on September 15 would be included, but an
     event starting at 17:00 on September 16 would not be included.
     """
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -229,15 +260,7 @@ async def update_event(
     `updated_start_datetime` and `updated_end_datetime` are
     independent and can be provided separately.
     """
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     calendar = service.calendars().get(calendarId="primary").execute()
     time_zone = calendar["timeZone"]
@@ -335,15 +358,7 @@ async def delete_event(
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     service.events().delete(
         calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value
@@ -405,13 +420,10 @@ async def find_time_slots_when_everyone_is_free(
     """
     Provides time slots when everyone is free within a given date range and time boundaries.
     """
-    credentials = Credentials(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
 
     # Build google api services
-    oauth_service = build("oauth2", "v2", credentials=credentials)
-    calendar_service = build("calendar", "v3", credentials=credentials)
+    oauth_service = build_oauth_service(context.get_auth_token_or_empty())
+    calendar_service = build_calendar_service(context.get_auth_token_or_empty())
 
     email_addresses = email_addresses or []
 

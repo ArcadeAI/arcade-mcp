@@ -28,7 +28,9 @@ async def test_create_contact_success(mock_context):
     service_mock = MagicMock()
     service_mock.people.return_value = people_mock
 
-    with patch("arcade_google.tools.contacts.build", return_value=service_mock) as mock_build:
+    with patch(
+        "arcade_google.tools.contacts.build_people_service", return_value=service_mock
+    ) as mock_build:
         result = await create_contact(
             mock_context,
             given_name="Alice",
@@ -63,7 +65,7 @@ async def test_create_contact_success_without_optional(mock_context):
     service_mock = MagicMock()
     service_mock.people.return_value = people_mock
 
-    with patch("arcade_google.tools.contacts.build", return_value=service_mock):
+    with patch("arcade_google.tools.contacts.build_people_service", return_value=service_mock):
         result = await create_contact(mock_context, given_name="Bob", family_name=None, email=None)
         assert "contact" in result
         assert result["contact"] == created_contact_data
@@ -88,7 +90,7 @@ async def test_create_contact_error(mock_context):
     service_mock.people.return_value = people_mock
 
     with (
-        patch("arcade_google.tools.contacts.build", return_value=service_mock),
+        patch("arcade_google.tools.contacts.build_people_service", return_value=service_mock),
         pytest.raises(Exception, match="Error in execution of CreateContact"),
     ):
         await create_contact(mock_context, given_name="Alice", family_name="Doe", email=None)

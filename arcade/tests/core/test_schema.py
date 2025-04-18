@@ -1,6 +1,11 @@
 import pytest
 
-from arcade.core.schema import ToolAuthorizationContext, ToolContext, ToolSecretItem
+from arcade.core.schema import (
+    ToolAuthorizationContext,
+    ToolContext,
+    ToolMetadataItem,
+    ToolSecretItem,
+)
 
 
 def test_get_auth_token_or_empty_with_token():
@@ -68,5 +73,47 @@ def test_get_secret_when_secrets_is_none():
 def test_get_secret_with_empty_key():
     tool_context = ToolContext(secrets=[])
 
-    with pytest.raises(ValueError, match="Secret key ID passed to get_secret cannot be empty."):
+    with pytest.raises(ValueError, match="Secret key passed to get_secret cannot be empty."):
         tool_context.get_secret("")
+
+
+def test_get_metadata_valid():
+    key = "my_key"
+    val = "metadata_value"
+    metadata = [ToolMetadataItem(key=key, value=val)]
+    tool_context = ToolContext(metadata=metadata)
+
+    assert tool_context.get_metadata(key) == val
+
+
+def test_get_metadata_with_case_insensitive_key():
+    key = "My_key"
+    val = "metadata_value"
+    metadata = [ToolMetadataItem(key=key, value=val)]
+    tool_context = ToolContext(metadata=metadata)
+
+    assert tool_context.get_metadata(key.upper()) == val
+    assert tool_context.get_metadata(key.lower()) == val
+
+
+def test_get_metadata_key_not_found():
+    key = "nonexistent_key"
+    metadata = [ToolMetadataItem(key="other_key", value="another_metadata")]
+    tool_context = ToolContext(metadata=metadata)
+
+    with pytest.raises(ValueError, match=f"Metadata {key} not found in context."):
+        tool_context.get_metadata(key)
+
+
+def test_get_metadata_when_metadata_is_none():
+    tool_context = ToolContext(metadata=None)
+
+    with pytest.raises(ValueError, match="Metadatas not found in context."):
+        tool_context.get_metadata("missing_key")
+
+
+def test_get_metadata_with_empty_key():
+    tool_context = ToolContext(metadata=[])
+
+    with pytest.raises(ValueError, match="Metadata key passed to get_metadata cannot be empty."):
+        tool_context.get_metadata("")

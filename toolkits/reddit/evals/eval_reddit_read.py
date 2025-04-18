@@ -14,7 +14,12 @@ from arcade_reddit.tools import (
     get_posts_in_subreddit,
     get_top_level_comments,
 )
-from arcade_reddit.tools.read import get_content_of_multiple_posts
+from arcade_reddit.tools.read import (
+    check_subreddit_access,
+    get_content_of_multiple_posts,
+    get_my_posts,
+    get_subreddit_rules,
+)
 from evals.additional_messages import get_post_in_subreddit_messages
 from evals.critics import AnyOfCritic, ListCritic
 
@@ -264,6 +269,193 @@ def reddit_get_top_level_comments_eval_suite() -> EvalSuite:
             ),
         ],
         additional_messages=get_post_in_subreddit_messages,
+    )
+
+    return suite
+
+
+@tool_eval()
+def reddit_check_subreddit_access_eval_suite() -> EvalSuite:
+    suite = EvalSuite(
+        name="reddit_check_subreddit_access",
+        system_message=(
+            "You are an AI assistant with access to reddit tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="reddit_check_subreddit_access_1",
+        user_message="does r/WaterBottleCollecting exist?",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=check_subreddit_access,
+                args={
+                    "subreddit": "WaterBottleCollecting",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="reddit_check_subreddit_access_2",
+        user_message=(
+            "so my friend is a part of the WaterBottleCollecting subreddit, "
+            "but i cant find it. Why?"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=check_subreddit_access,
+                args={
+                    "subreddit": "WaterBottleCollecting",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=1.0),
+        ],
+    )
+
+    return suite
+
+
+@tool_eval()
+def reddit_get_subreddit_rules_eval_suite() -> EvalSuite:
+    suite = EvalSuite(
+        name="reddit_get_subreddit_rules",
+        system_message=(
+            "You are an AI assistant with access to reddit tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="reddit_get_subreddit_rules_1",
+        user_message=(
+            "I'm going to be posting some stuff on WaterBottleCollecting, "
+            "but I'm scared that I might go against their terms & conditions "
+            "and get my post removed."
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_subreddit_rules,
+                args={"subreddit": "WaterBottleCollecting"},
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="reddit_get_subreddit_rules_2",
+        user_message=(
+            "What are WaterBottleCollecting's bannable offenses? I don't want to get banned!"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_subreddit_rules,
+                args={"subreddit": "WaterBottleCollecting"},
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="subreddit", weight=1.0),
+        ],
+    )
+
+    return suite
+
+
+@tool_eval()
+def reddit_get_my_posts_eval_suite() -> EvalSuite:
+    get_my_posts_response = [
+        {"role": "user", "content": "get 1 of my posts"},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_hPacHNSvuKKamoKKoPWBQosv",
+                    "type": "function",
+                    "function": {"name": "Reddit_GetMyPosts", "arguments": '{"limit":1}'},
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "content": '{"cursor":"t3_1jt9jz4","posts":[{"author":"RedditUser123","body":"i just wanted to say that i love thisapp\\n\\n","created_utc":1743988489,"id":"1jt9jz4","is_video":false,"name":"t3_1jt9jz4","num_comments":1,"permalink":"/r/SparkingWater/comments/1jt9jz4/this_is_fun/","score":1,"subreddit":"SparklingWater","title":"this isfun","upvote_ratio":1,"upvotes":1,"url":"https://www.reddit.com/r/SparklingWater/comments/1jt9jz4/this_is_fun/"}]}',  # noqa: E501
+            "tool_call_id": "call_hPacHNSvuKKamoKKoPWBQosv",
+            "name": "Reddit_GetMyPosts",
+        },
+        {
+            "role": "assistant",
+            "content": "Here is one of your posts on Reddit:\n\n**Title:** [this isfun](https://www.reddit.com/r/SparklingWater/comments/1jt9jz4/this_is_fun/)\n\n**Subreddit:**r/SparklingWater\n\n**Content:** \n```\ni just wanted to say that i love this app\n```\n\n**Upvotes:** 1  \n**Comments:** 1",  # noqa: E501
+        },
+    ]
+
+    suite = EvalSuite(
+        name="reddit_get_my_posts",
+        system_message=(
+            "You are an AI assistant with access to reddit tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="reddit_get_my_posts_1",
+        user_message=(
+            "I want to train an AI on the voice I use for my reddit posts. "
+            "Help me out here & get my last 100"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_my_posts,
+                args={
+                    "limit": 100,
+                    "include_body": True,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="limit", weight=0.5),
+            BinaryCritic(critic_field="include_body", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="reddit_get_my_posts_2",
+        user_message=("get 25 more but w/o their content"),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_my_posts,
+                args={
+                    "limit": 25,
+                    "include_body": False,
+                    "cursor": "t3_1jt9jz4",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="limit", weight=0.3),
+            BinaryCritic(critic_field="include_body", weight=0.3),
+            BinaryCritic(critic_field="cursor", weight=0.4),
+        ],
+        additional_messages=get_my_posts_response,
     )
 
     return suite

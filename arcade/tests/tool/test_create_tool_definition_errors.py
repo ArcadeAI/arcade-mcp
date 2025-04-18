@@ -4,7 +4,7 @@ import pytest
 
 from arcade.core.catalog import ToolCatalog
 from arcade.core.errors import ToolDefinitionError
-from arcade.core.schema import ToolContext
+from arcade.core.schema import ToolContext, ToolMetadataKey
 from arcade.sdk import tool
 
 
@@ -81,6 +81,30 @@ def func_with_secret_requirement_invalid_type():
     pass
 
 
+@tool(
+    desc="A function with a required metadata with a missing key (illegal)",
+    requires_metadata=[""],
+)
+def func_with_missing_metadata_key(context: ToolContext):
+    pass
+
+
+@tool(
+    desc="A function that requires metadata with an invalid type (illegal)",
+    requires_metadata=[True],
+)
+def func_with_metadata_requirement_invalid_type():
+    pass
+
+
+@tool(
+    desc="A function with a required metadata key that depends on the tool having an auth requirement, but the tool does not have an auth requirement (illegal)",
+    requires_metadata=[ToolMetadataKey.CLIENT_ID],
+)
+def func_with_metadata_and_auth_dependency():
+    pass
+
+
 @pytest.mark.parametrize(
     "func_under_test, exception_type",
     [
@@ -138,6 +162,21 @@ def func_with_secret_requirement_invalid_type():
             func_with_secret_requirement_invalid_type,
             ToolDefinitionError,
             id=func_with_secret_requirement_invalid_type.__name__,
+        ),
+        pytest.param(
+            func_with_missing_metadata_key,
+            ToolDefinitionError,
+            id=func_with_missing_metadata_key.__name__,
+        ),
+        pytest.param(
+            func_with_metadata_requirement_invalid_type,
+            ToolDefinitionError,
+            id=func_with_metadata_requirement_invalid_type.__name__,
+        ),
+        pytest.param(
+            func_with_metadata_and_auth_dependency,
+            ToolDefinitionError,
+            id=func_with_metadata_and_auth_dependency.__name__,
         ),
         pytest.param(
             func_with_union_return_type_1,
