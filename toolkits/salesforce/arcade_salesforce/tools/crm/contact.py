@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import OAuth2
@@ -21,19 +21,19 @@ async def create_contact(
     context: ToolContext,
     account_id: Annotated[str, "The ID of the account to create the contact for."],
     last_name: Annotated[str, "The last name of the contact."],
-    first_name: Annotated[Optional[str], "The first name of the contact."] = None,
-    email: Annotated[Optional[str], "The email of the contact."] = None,
-    phone: Annotated[Optional[str], "The phone number of the contact."] = None,
-    mobile_phone: Annotated[Optional[str], "The mobile phone number of the contact."] = None,
+    first_name: Annotated[str | None, "The first name of the contact."] = None,
+    email: Annotated[str | None, "The email of the contact."] = None,
+    phone: Annotated[str | None, "The phone number of the contact."] = None,
+    mobile_phone: Annotated[str | None, "The mobile phone number of the contact."] = None,
     title: Annotated[
-        Optional[str],
+        str | None,
         "The title of the contact. E.g. 'CEO', 'Sales Director', 'CTO', etc.",
     ] = None,
     department: Annotated[
-        Optional[str],
+        str | None,
         "The department of the contact. E.g. 'Marketing', 'Sales', 'IT', etc.",
     ] = None,
-    description: Annotated[Optional[str], "The description of the contact."] = None,
+    description: Annotated[str | None, "The description of the contact."] = None,
 ) -> Annotated[
     dict,
     "The created contact.",
