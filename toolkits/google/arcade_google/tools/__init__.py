@@ -17,9 +17,9 @@ from arcade_google.tools.docs import (
     insert_text_at_end_of_document,
 )
 from arcade_google.tools.drive import (
-    get_file_tree_structure,
-    search_and_retrieve_documents,
-    search_documents,
+    get_file_tree_structure,  # type: ignore[has-type]
+    search_and_retrieve_documents,  # type: ignore[has-type]
+    search_documents,  # type: ignore[has-type]
 )
 from arcade_google.tools.file_picker import generate_google_file_picker_url
 from arcade_google.tools.gmail import (
