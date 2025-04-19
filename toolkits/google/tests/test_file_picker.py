@@ -33,7 +33,7 @@ async def test_generate_google_file_picker_url(mock_context):
 
     result = generate_google_file_picker_url(mock_context)
 
-    assert result["url"].startswith("https://mock_coordinator_url/drive_picker?config=")
+    assert result["url"].startswith("https://mock_coordinator_url/google/drive_picker?config=")
 
     # Decode the config from the URL
     parsed_url = urlparse(result["url"])

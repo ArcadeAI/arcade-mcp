@@ -28,12 +28,10 @@ from arcade_google.utils import (
 async def list_calendars(
     context: ToolContext,
     max_results: Annotated[
-        int, "The maximum number of calendars to return. " "Up to 250 calendars, defaults to 10."
+        int, "The maximum number of calendars to return. Up to 250 calendars, defaults to 10."
     ] = 10,
-    show_deleted: Annotated[
-        bool, "Whether to show deleted calendars." " Defaults to False"
-    ] = False,
-    show_hidden: Annotated[bool, "Whether to show hidden calendars." " Defaults to False"] = False,
+    show_deleted: Annotated[bool, "Whether to show deleted calendars. Defaults to False"] = False,
+    show_hidden: Annotated[bool, "Whether to show hidden calendars. Defaults to False"] = False,
     next_page_token: Annotated[
         str | None, "The token to retrieve the next page of calendars. Optional."
     ] = None,
