@@ -15,7 +15,7 @@ MCPContent = MCPTextContent | MCPImageContent | MCPEmbeddedResource
 logger = logging.getLogger("arcade.mcp")
 
 
-def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:
+def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C901
     """
     Create an MCP-compatible tool definition from an Arcade tool.
 
@@ -143,13 +143,13 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:
         }
 
         logger.debug(f"Created tool definition for {name}")
-        return tool_def
 
     except Exception:
         logger.exception(
             f"Error creating MCP tool definition for {getattr(tool, 'name', str(tool))}"
         )
         return None
+    return tool_def
 
 
 def convert_to_mcp_content(value: Any) -> list[dict[str, Any]]:

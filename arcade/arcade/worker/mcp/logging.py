@@ -76,7 +76,7 @@ class MCPLoggingMiddleware:
 
         try:
             # Store request start time for duration calculation
-            message._mcp_start_time = time.time()  # type: ignore
+            message._mcp_start_time = time.time()  # type: ignore[attr-defined]
 
             # Format parameters for logging
             params_str = ""
@@ -88,8 +88,8 @@ class MCPLoggingMiddleware:
             )
 
             logger.log(self.log_level, log_msg)
-        except Exception as e:
-            logger.exception(f"Error logging request: {e!s}")
+        except Exception:
+            logger.exception("Error logging request")
 
     def _log_response(self, message: MCPMessage) -> None:
         """
@@ -136,11 +136,12 @@ class MCPLoggingMiddleware:
                 method=getattr(message, "method", "unknown"),
                 duration=duration_ms,
                 id=getattr(message, "id", "none"),
+                result_str=result_str,
             )
 
             logger.log(self.log_level, log_msg)
-        except Exception as e:
-            logger.exception(f"Error logging response: {e!s}")
+        except Exception:
+            logger.exception("Error logging response")
 
     def _format_params(self, params: Any) -> str:
         """
@@ -153,8 +154,8 @@ class MCPLoggingMiddleware:
                     return f"{params['name']}({json.dumps(params.get('arguments', {}))})"
                 return json.dumps(params)
             return str(params)
-        except Exception as e:
-            logger.debug(f"Error formatting params: {e!s}")
+        except Exception:
+            logger.debug(f"Error formatting params {params!s}")
             return str(params)
 
     def _format_result(self, result: Any) -> str:
@@ -166,7 +167,7 @@ class MCPLoggingMiddleware:
                 return json.dumps(result)
             return str(result)
         except Exception as e:
-            logger.debug(f"Error formatting result: {e!s}")
+            logger.debug(f"Error formatting result {e!s}")
             return str(result)
 
 

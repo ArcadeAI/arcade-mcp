@@ -3,7 +3,6 @@ from opentelemetry import trace
 from arcade.worker.core.common import (
     CatalogResponse,
     HealthCheckResponse,
-    MetricsResponse,
     RequestData,
     Router,
     ToolCallRequest,
@@ -95,31 +94,3 @@ class HealthCheckComponent(WorkerComponent):
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("HealthCheck"):
             return self.worker.health_check()
-
-
-class MetricsComponent(WorkerComponent):
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
-    def register(self, router: Router) -> None:
-        """
-        Register the prometheus metrics route with the router.
-        """
-        router.add_route(
-            "metrics",
-            self,
-            method="GET",
-            require_auth=False,
-            response_type=MetricsResponse,
-            operation_id="get_metrics",
-            description="Get the worker performance metrics",
-            tags=["base"],
-        )
-
-    async def __call__(self, request: RequestData) -> str:
-        """
-        Handle the request for prometheus metrics.
-        """
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("Metrics"):
-            return await self.worker.get_metrics()

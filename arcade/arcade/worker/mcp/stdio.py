@@ -91,8 +91,8 @@ class StdioServer(MCPServer):
                 msg = q.get()
                 if msg is None:
                     break
-                stdout.write(msg)
-                stdout.flush()
+                stdout.write(msg)  # type: ignore[attr-defined]
+                stdout.flush()  # type: ignore[attr-defined]
         except Exception:
             logger.exception("Error in stdio writer")
 

@@ -18,12 +18,6 @@ from tqdm import tqdm
 
 import arcade.cli.worker as worker
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade.cli.collect import (
-    ProcessCollector,
-    SystemCollector,
-    get_process_by_name,
-    get_process_by_pid,
-)
 from arcade.cli.constants import (
     CREDENTIALS_FILE_PATH,
     LOCALHOST,
@@ -32,7 +26,6 @@ from arcade.cli.constants import (
 )
 from arcade.cli.deployment import Deployment
 from arcade.cli.display import (
-    display_all_info,
     display_arcade_chat_header,
     display_eval_results,
     display_tool_messages,
@@ -523,66 +516,6 @@ def dev(
         typer.Exit(code=1)
 
 
-@cli.command(help="Display system and process statistics", rich_help_panel="Manage")
-def stats(
-    pid: int = typer.Option(None, "--pid", "-p", help="Process ID to monitor"),
-    name: str = typer.Option(None, "--name", "-n", help="Process name to monitor"),
-):
-    """
-    Display comprehensive statistics for a system process.
-
-    Either specify a process ID (--pid) or a process name (--name).
-    """
-    console = Console()
-
-    # Validate input parameters
-    if pid is None and name is None:
-        console.print(
-            "[bold red]Error:[/bold red] You must specify either a --pid or --name parameter"
-        )
-        console.print("Usage examples:")
-        console.print("  [cyan]arcade stats --pid 1234[/cyan]")
-        console.print("  [cyan]arcade stats --name python[/cyan]")
-        raise typer.Exit(code=1)
-
-    # Try to get the process
-    try:
-        if pid:
-            console.print(f"Looking for process with PID: [cyan]{pid}[/cyan]")
-            proc = get_process_by_pid(pid)
-        elif name:
-            console.print(f"Looking for process with name: [cyan]{name}[/cyan]")
-            proc = get_process_by_name(name)
-
-        if not proc:
-            process_type = "PID" if pid else "name"
-            process_value = pid if pid else name
-            console.print(
-                f"[bold red]Error:[/bold red] No process with {process_type} '{process_value}' found"
-            )
-            raise typer.Exit(code=1)
-
-        console.print(f"[bold green]Found process:[/bold green] {proc.name()} (PID: {proc.pid})")
-        console.print("[bold]Press Ctrl+C to exit[/bold]")
-
-        # Start data collection
-        system_collector = SystemCollector()
-        system_collector.start()
-
-        process_collector = ProcessCollector(proc)
-        process_collector.start()
-
-        # Display the interface
-        try:
-            display_all_info(system_collector, process_collector)
-        except KeyboardInterrupt:
-            console.print("\n[bold]Exiting stats monitor...[/bold]")
-
-    except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e!s}")
-        raise typer.Exit(code=1)
-
-
 @cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
 def workerup(
     host: str = typer.Option(
@@ -716,7 +649,7 @@ def mcp(
 
     validate_and_get_config()
 
-    async def run_mcp_stdio():
+    async def run_mcp_stdio() -> None:
         tool_catalog = ToolCatalog()
         toolkits = Toolkit.find_all_arcade_toolkits()
 

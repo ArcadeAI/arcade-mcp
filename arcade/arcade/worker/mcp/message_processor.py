@@ -25,7 +25,7 @@ class MCPMessageProcessor:
     def add_middleware(self, mw: Callable[[MCPMessage, str], Any]) -> None:
         self.middleware.append(mw)
 
-    async def process(self, message: Any, direction: str) -> Any:
+    async def process(self, message: Any, direction: str) -> Any:  # noqa: C901
         # First, try to parse the message if it's a string
         if isinstance(message, str):
             # Strip any whitespace including newlines
@@ -53,8 +53,8 @@ class MCPMessageProcessor:
                     # Other message types can be handled similarly
             except json.JSONDecodeError:
                 logger.warning(f"Failed to parse message as JSON: {message[:100]}...")
-            except Exception as e:
-                logger.exception(f"Error processing message: {e}")
+            except Exception:
+                logger.exception("Error processing message")
 
         # Process through middleware chain
         result = message
@@ -64,8 +64,8 @@ class MCPMessageProcessor:
                     result = await mw(result, direction)
                 else:
                     result = mw(result, direction)
-            except Exception as e:
-                logger.exception(f"Error in middleware {mw}: {e}")
+            except Exception:
+                logger.exception(f"Error in middleware {mw}")
         return result
 
     async def process_request(self, message: Any) -> Any:

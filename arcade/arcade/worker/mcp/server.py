@@ -132,8 +132,8 @@ class MCPServer:
 
         except asyncio.CancelledError:
             logger.info("Connection cancelled")
-        except Exception as e:
-            logger.exception(f"Error in connection: {e}")
+        except Exception:
+            logger.exception("Error in connection")
 
     def _get_user_id(self, init_options: Any) -> str:
         """
@@ -223,8 +223,8 @@ class MCPServer:
                     # This is an initialize request
                     init_response = await self._handle_initialize(InitializeRequest(**parsed))
                     return init_response
-            except Exception as e:
-                logger.exception(f"Error processing JSON string: {e}")
+            except Exception:
+                logger.exception("Error processing JSON string")
                 # Not parseable JSON, continue with normal processing
                 pass
 
@@ -356,8 +356,6 @@ class MCPServer:
             result = ListToolsResult(tools=tool_objects)
             response = ListToolsResponse(id=message.id, result=result)
 
-            return response
-
         except Exception:
             logger.exception("Error listing tools")
             return JSONRPCError(
@@ -367,6 +365,7 @@ class MCPServer:
                     "message": "Internal error listing tools",
                 },
             )
+        return response
 
     async def _handle_call_tool(
         self, message: CallToolRequest, user_id: str | None = None
@@ -495,8 +494,8 @@ class MCPServer:
             A response acknowledging the shutdown request
         """
         # Schedule a task to shutdown the server after sending the response
-        asyncio.create_task(self.shutdown())
-
+        proc = asyncio.create_task(self.shutdown())
+        proc.add_done_callback(lambda _: logger.info("MCP server shutdown complete"))
         return ShutdownResponse(id=message.id, result={"ok": True})
 
     async def _handle_list_resources(self, message: ListResourcesRequest) -> ListResourcesResponse:
@@ -571,10 +570,10 @@ class MCPServer:
             )
             logger.debug(f"Authorization response: {response}")
 
-            return response
-        except ArcadeError as e:
-            logger.exception(f"Error authorizing tool: {e}")
+        except ArcadeError:
+            logger.exception("Error authorizing tool")
             raise
+        return response
 
     async def shutdown(self) -> None:
         """Shutdown the server."""

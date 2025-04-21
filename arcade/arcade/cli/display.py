@@ -1,18 +1,10 @@
 from typing import TYPE_CHECKING, Any
 
-from rich.box import ROUNDED
 from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from arcade.cli.collect import (
-    ProcessCollector,
-    ProcessInfo,
-    SystemCollector,
-)
 from arcade.core.schema import ToolDefinition
 
 if TYPE_CHECKING:
@@ -260,90 +252,3 @@ def display_arcade_chat_header(base_url: str, stream: bool) -> None:
     if stream:
         chat_header.append(" (streaming)")
     console.print(chat_header)
-
-
-def display_all_info(system: SystemCollector, process: ProcessCollector):
-    """
-    Display system and process information in a compact layout
-    """
-    layout = Layout()
-
-    # Create a very compact layout with minimal spacing
-    layout.split_column(
-        Layout(name="header", size=2),  # Header
-        Layout(name="system_section", size=8, ratio=6),  # Combined system section
-        Layout(name="process_section", size=10, ratio=6),  # Combined process section
-        Layout(name="spacing1", size=1, ratio=1),
-        Layout(name="process_connections"),  # Connections take remaining space
-    )
-
-    # Split system section into info and metrics
-    layout["system_section"].split_row(
-        Layout(name="system_info", ratio=1),
-        Layout(name="system_metrics", ratio=1),
-    )
-
-    # Split process section into info and metrics
-    layout["process_section"].split_row(
-        Layout(name="process_info", ratio=1),
-        Layout(name="process_metrics", ratio=1),
-    )
-
-    # Compact header with purple color
-    header_text = Text(
-        f"Arcade Stats: {process.process_info.name} (PID: {process.process_info.pid})",
-        style="bold magenta",
-    )
-    layout["header"].update(header_text)
-
-    # Add empty text for spacing
-    layout["spacing1"].update(Text(""))
-
-    # Update the initial system information
-    layout["system_info"].update(system.system_info.as_rich_table())
-    layout["system_metrics"].update(system.system_metrics.as_rich_table())
-    layout["process_info"].update(proc_table(process.process_info))
-
-    with Live(layout, refresh_per_second=2, screen=True) as live:
-        while process.is_alive():
-            try:
-                system_stats = system.system_metrics
-                process_stats = process.process_metrics
-
-                # Get the process metrics tables
-                proc_stat_table, connection_table = process_stats.as_rich_table()
-
-                # Update the layout with the latest data
-                layout["system_metrics"].update(system_stats.as_rich_table())
-                layout["process_metrics"].update(proc_stat_table)
-                layout["process_connections"].update(connection_table)
-                live.refresh()
-            except Exception as e:
-                # Gracefully handle errors
-                error_panel = Panel(
-                    f"Error updating stats: {e!s}", title="Error", border_style="red"
-                )
-                layout["process_metrics"].update(error_panel)
-                live.refresh()
-
-
-def proc_table(proc_info: ProcessInfo):
-    """Create a compact table for process information"""
-    table = Table(
-        title="Process Info",
-        show_header=True,
-        header_style="bold magenta",  # Changed to magenta/purple
-        expand=True,
-        box=ROUNDED,
-        padding=(0, 0),  # Minimal padding
-    )
-
-    # Use one row to display all process info
-    table.add_column("Property", style="bold dim", width=10)  # Grey
-    table.add_column("Details", style="blue")  # Blue
-
-    # Combine all info into a single row
-    info = f"Name: {proc_info.name}, PID: {proc_info.pid}, User: {proc_info.username}"
-    table.add_row("Process", info)
-
-    return table

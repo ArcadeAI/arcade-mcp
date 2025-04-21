@@ -24,7 +24,7 @@ class RichInterceptHandler(logging.Handler):
         try:
             level = logger.level(record.levelname).name
         except ValueError:
-            level = record.levelno
+            level = str(record.levelno)
 
         # Let Loguru handle caller info; don't do stack inspection here
         logger.opt(exception=record.exc_info).log(level, record.getMessage())
@@ -140,7 +140,7 @@ def serve_default_worker(  # noqa: C901
         def install_signal_handlers(self) -> None:
             pass  # Disable Uvicorn's default signal handlers
 
-        async def shutdown(self, sockets=None) -> None:
+        async def shutdown(self, sockets: Any = None) -> None:
             """
             Custom shutdown that properly cleans up resources.
             """

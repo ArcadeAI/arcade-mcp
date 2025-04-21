@@ -94,7 +94,7 @@ class JSONRPCResponse(JSONRPCMessage):
     result: Any = None
     error: dict[str, Any] | None = None
 
-    def model_dump_json(self, **kwargs):
+    def model_dump_json(self, **kwargs) -> str:
         """Convert to JSON string with proper formatting."""
 
         # Convert to dict
@@ -277,7 +277,7 @@ class InitializeResponse(JSONRPCResponse):
 
     result: InitializeResult
 
-    def model_dump_json(self, **kwargs):
+    def model_dump_json(self, **kwargs) -> str:
         """Convert to JSON string with proper formatting."""
         # Convert to dict
         data = {
