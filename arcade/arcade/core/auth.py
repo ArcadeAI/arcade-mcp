@@ -78,6 +78,15 @@ class Google(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class Hubspot(OAuth2):
+    """Marks a tool as requiring Hubspot authorization."""
+
+    provider_id: str = "hubspot"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class LinkedIn(OAuth2):
     """Marks a tool as requiring LinkedIn authorization."""
 
