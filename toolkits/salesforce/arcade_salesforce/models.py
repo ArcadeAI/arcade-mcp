@@ -30,7 +30,7 @@ from arcade_salesforce.utils import (
 @dataclass
 class SalesforceClient:
     auth_token: str
-    org_domain: str | None = None
+    org_subdomain: str | None = None
     api_version: str = SALESFORCE_API_VERSION
     max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS
 
@@ -40,11 +40,11 @@ class SalesforceClient:
     _semaphore: asyncio.Semaphore | None = None
 
     def __post_init__(self) -> None:
-        if self.org_domain is None:
-            self.org_domain = os.getenv("SALESFORCE_ORG_DOMAIN")
-        if self.org_domain is None:
+        if self.org_subdomain is None:
+            self.org_subdomain = os.getenv("SALESFORCE_ORG_SUBDOMAIN")
+        if self.org_subdomain is None:
             raise ValueError(
-                "Either `org_domain` argument or `SALESFORCE_ORG_DOMAIN` env var must be set"
+                "Either `org_subdomain` argument or `SALESFORCE_ORG_SUBDOMAIN` env var must be set"
             )
 
         if self._state_object_fields is None:
@@ -55,7 +55,7 @@ class SalesforceClient:
 
     @property
     def _base_url(self) -> str:
-        return f"https://{self.org_domain}.my.salesforce.com/services/data/{self.api_version}"
+        return f"https://{self.org_subdomain}.my.salesforce.com/services/data/{self.api_version}"
 
     @property
     def object_fields(self) -> dict[SalesforceObject, list[str]]:

@@ -14,7 +14,7 @@ from arcade_salesforce.utils import clean_account_data
 # separate tools for each related object, so that we can return more items, when needed.
 @tool(
     requires_auth=OAuth2(
-        id="arcade-salesforce",
+        id="salesforce",
         scopes=[
             "read_account",
             "read_contact",
@@ -85,7 +85,7 @@ async def get_account_data_by_keywords(
 
 @tool(
     requires_auth=OAuth2(
-        id="arcade-salesforce",
+        id="salesforce",
         scopes=[
             "read_account",
             "read_contact",

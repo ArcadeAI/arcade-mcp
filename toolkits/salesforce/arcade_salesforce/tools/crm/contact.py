@@ -13,7 +13,7 @@ from arcade_salesforce.models import SalesforceClient
 # raise a RetryableToolError providing the matches for the user to choose.
 @tool(
     requires_auth=OAuth2(
-        id="arcade-salesforce",
+        id="salesforce",
         scopes=["write_contact"],
     )
 )

@@ -27,7 +27,7 @@ async def test_get_account_success(mock_context, mock_httpx_client):
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
     response = await client.get_account(account_id)
 
@@ -51,7 +51,7 @@ async def test_get_account_not_found_error(mock_context, mock_httpx_client):
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
     response = await client.get_account(account_id)
     assert response is None
@@ -69,7 +69,7 @@ async def test_get_account_bad_request_error(mock_context, mock_httpx_client):
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
     with pytest.raises(SalesforceToolExecutionError) as exc_info:
         await client.get_account(account_id)
@@ -88,7 +88,7 @@ async def test_get_account_internal_server_error(mock_context, mock_httpx_client
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
     with pytest.raises(SalesforceToolExecutionError) as exc_info:
         await client.get_account(account_id)
@@ -101,7 +101,7 @@ async def test_create_contact(mock_context, mock_httpx_client):
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
 
     mock_response = MagicMock(spec=httpx.Response)
@@ -133,7 +133,7 @@ async def test_create_contact(mock_context, mock_httpx_client):
 async def test_get_related_objects_success(mock_context, mock_httpx_client):
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
 
     parent_object_id = "001gK000003DIn0QAG"
@@ -170,7 +170,7 @@ async def test_get_related_objects_not_found_error(mock_context, mock_httpx_clie
 
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
 
     parent_object_id = "001gK000003DIn0QAG"
@@ -203,7 +203,7 @@ async def test_get_related_objects_not_found_error(mock_context, mock_httpx_clie
 async def test_get_notes_success(mock_build_soql_query, mock_context, mock_httpx_client):
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
 
     note_data = {
@@ -256,7 +256,7 @@ async def test_get_notes_success(mock_build_soql_query, mock_context, mock_httpx
 async def test_get_notes_not_found_error(mock_build_soql_query, mock_context, mock_httpx_client):
     client = SalesforceClient(
         auth_token=mock_context.authorization.token,
-        org_domain="org_domain",
+        org_subdomain="org_domain",
     )
 
     mock_response = MagicMock(spec=httpx.Response)
