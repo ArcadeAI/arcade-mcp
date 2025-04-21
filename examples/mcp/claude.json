@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arcade": {
+      "command": "bash",
+      "args": ["-c", "export ARCADE_API_KEY=arc_xxxx && /path/to/python /path/to/arcade mcp"]
+    }
+  }
+}
