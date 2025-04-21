@@ -1,3 +1,4 @@
+import asyncio
 import json
 from dataclasses import dataclass
 from typing import Any, Optional, cast
@@ -7,6 +8,7 @@ import httpx
 from arcade_hubspot.constants import (
     HUBSPOT_CRM_BASE_URL,
     HUBSPOT_DEFAULT_API_VERSION,
+    HUBSPOT_MAX_CONCURRENT_REQUESTS,
 )
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.exceptions import HubspotToolExecutionError, NotFoundError
@@ -18,6 +20,11 @@ from arcade_hubspot.utils import clean_data, prepare_api_search_response, remove
 class HubspotCrmClient:
     auth_token: str
     base_url: str = HUBSPOT_CRM_BASE_URL
+    max_concurrent_requests: int = HUBSPOT_MAX_CONCURRENT_REQUESTS
+    _semaphore: asyncio.Semaphore | None = None
+
+    def __post_init__(self) -> None:
+        self._semaphore = self._semaphore or asyncio.Semaphore(self.max_concurrent_requests)
 
     def _raise_for_status(self, response: httpx.Response) -> None:
         if response.status_code < 300:
@@ -54,7 +61,7 @@ class HubspotCrmClient:
         if isinstance(params, dict):
             kwargs["params"] = params
 
-        async with httpx.AsyncClient() as client:
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.get(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
         return cast(dict, response.json())
@@ -85,7 +92,7 @@ class HubspotCrmClient:
         elif json_data:
             kwargs["json"] = json_data
 
-        async with httpx.AsyncClient() as client:
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
         return cast(dict, response.json())
