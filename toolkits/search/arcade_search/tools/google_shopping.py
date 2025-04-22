@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.errors import ToolExecutionError
@@ -25,12 +25,12 @@ async def search_shopping_products(
         "Keywords to search for products in Google Shopping. E.g. 'Apple iPhone'.",
     ],
     country_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character country code to search for products in Google Shopping. "
         f"E.g. 'us' (United States). Defaults to '{DEFAULT_GOOGLE_SHOPPING_COUNTRY or 'us'}'.",
     ] = DEFAULT_GOOGLE_SHOPPING_COUNTRY,
     language_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character language code to search for products on Google Shopping. E.g. 'en' (English). "
         f"Defaults to '{DEFAULT_GOOGLE_SHOPPING_LANGUAGE or 'en'}'.",
     ] = DEFAULT_GOOGLE_SHOPPING_LANGUAGE,

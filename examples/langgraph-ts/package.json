@@ -1,0 +1,28 @@
+{
+	"name": "arcade-langgraph",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"dev": "npx @langchain/langgraph-cli dev"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"packageManager": "pnpm@10.8.0",
+	"dependencies": {
+		"@arcadeai/arcadejs": "1.2.1",
+		"@dmitryrechkin/json-schema-to-zod": "^1.0.1",
+		"@langchain/community": "^0.3.27",
+		"@langchain/core": "^0.3.37",
+		"@langchain/langgraph": "^0.2.43",
+		"langchain": "^0.3.14",
+		"@langchain/openai": "^0.5.4",
+		"dotenv": "^16.4.7",
+		"zod": "^3.24.2"
+	},
+	"devDependencies": {
+		"@types/node": "^22.14.0"
+	}
+}

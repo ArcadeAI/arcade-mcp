@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -95,7 +95,7 @@ async def create_page(
         "Title of an existing page/database within which the new page will be created. ",
     ],
     title: Annotated[str, "Title of the new page"],
-    content: Annotated[Optional[str], "The content of the new page"] = None,
+    content: Annotated[str | None, "The content of the new page"] = None,
 ) -> Annotated[str, "The ID of the new page"]:
     """Create a new Notion page by the title of the new page's parent."""
     # Notion API does not support creating a page at the root of the workspace... sigh

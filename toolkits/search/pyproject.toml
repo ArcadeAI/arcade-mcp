@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "arcade_search"
 version = "1.4.0"
-description = "Tools for searching the web"
+description = "Arcade.dev LLM tools for searching the web"
 authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]

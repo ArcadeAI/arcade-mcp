@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Optional
+from typing import Annotated
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -191,28 +191,28 @@ async def list_repository_activities(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     direction: Annotated[
-        Optional[SortDirection], "The direction to sort the results by."
+        SortDirection | None, "The direction to sort the results by."
     ] = SortDirection.DESC,
     per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
     before: Annotated[
-        Optional[str],
+        str | None,
         "A cursor (unique ID, e.g., a SHA of a commit) to search for results before this cursor.",
     ] = None,
     after: Annotated[
-        Optional[str],
+        str | None,
         "A cursor (unique ID, e.g., a SHA of a commit) to search for results after this cursor.",
     ] = None,
     ref: Annotated[
-        Optional[str],
+        str | None,
         "The Git reference for the activities you want to list. The ref for a branch can be "
         "formatted either as refs/heads/BRANCH_NAME or BRANCH_NAME, where BRANCH_NAME is the name "
         "of your branch.",
     ] = None,
     actor: Annotated[
-        Optional[str], "The GitHub username to filter by the actor who performed the activity."
+        str | None, "The GitHub username to filter by the actor who performed the activity."
     ] = None,
-    time_period: Annotated[Optional[RepoTimePeriod], "The time period to filter by."] = None,
-    activity_type: Annotated[Optional[ActivityType], "The activity type to filter by."] = None,
+    time_period: Annotated[RepoTimePeriod | None, "The time period to filter by."] = None,
+    activity_type: Annotated[ActivityType | None, "The activity type to filter by."] = None,
     include_extra_data: Annotated[
         bool,
         "If true, return all the data available about the repository activities. "
@@ -293,14 +293,14 @@ async def list_review_comments_in_a_repository(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     sort: Annotated[
-        Optional[ReviewCommentSortProperty], "Can be one of: created, updated."
+        ReviewCommentSortProperty | None, "Can be one of: created, updated."
     ] = ReviewCommentSortProperty.CREATED,
     direction: Annotated[
-        Optional[SortDirection],
+        SortDirection | None,
         "The direction to sort results. Ignored without sort parameter. Can be one of: asc, desc.",
     ] = SortDirection.DESC,
     since: Annotated[
-        Optional[str],
+        str | None,
         "Only show results that were last updated after the given time. "
         "This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
     ] = None,

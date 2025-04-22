@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Optional
+from typing import Annotated
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -38,17 +38,17 @@ async def list_pull_requests(
         str,
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
-    state: Annotated[Optional[PRState], "The state of the pull requests to return."] = PRState.OPEN,
+    state: Annotated[PRState | None, "The state of the pull requests to return."] = PRState.OPEN,
     head: Annotated[
-        Optional[str],
+        str | None,
         "Filter pulls by head user or head organization and branch name in the format of "
         "user:ref-name or organization:ref-name.",
     ] = None,
-    base: Annotated[Optional[str], "Filter pulls by base branch name."] = "main",
+    base: Annotated[str | None, "Filter pulls by base branch name."] = "main",
     sort: Annotated[
-        Optional[PRSortProperty], "The property to sort the results by."
+        PRSortProperty | None, "The property to sort the results by."
     ] = PRSortProperty.CREATED,
-    direction: Annotated[Optional[SortDirection], "The direction of the sort."] = None,
+    direction: Annotated[SortDirection | None, "The direction of the sort."] = None,
     per_page: Annotated[int, "The number of results per page (max 100)."] = 30,
     page: Annotated[int, "The page number of the results to fetch."] = 1,
     include_extra_data: Annotated[
@@ -120,11 +120,11 @@ async def get_pull_request(
     ],
     pull_number: Annotated[int, "The number that identifies the pull request."],
     include_diff_content: Annotated[
-        Optional[bool],
+        bool | None,
         "If true, return the diff content of the pull request.",
     ] = False,
     include_extra_data: Annotated[
-        Optional[bool],
+        bool | None,
         "If true, return all the data available about the pull requests. "
         "This is a large payload and may impact performance - use with caution.",
     ] = False,
@@ -201,16 +201,12 @@ async def update_pull_request(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     pull_number: Annotated[int, "The number that identifies the pull request."],
-    title: Annotated[Optional[str], "The title of the pull request."] = None,
-    body: Annotated[Optional[str], "The contents of the pull request."] = None,
-    state: Annotated[
-        Optional[PRState], "State of this Pull Request. Either open or closed."
-    ] = None,
-    base: Annotated[
-        Optional[str], "The name of the branch you want your changes pulled into."
-    ] = None,
+    title: Annotated[str | None, "The title of the pull request."] = None,
+    body: Annotated[str | None, "The contents of the pull request."] = None,
+    state: Annotated[PRState | None, "State of this Pull Request. Either open or closed."] = None,
+    base: Annotated[str | None, "The name of the branch you want your changes pulled into."] = None,
     maintainer_can_modify: Annotated[
-        Optional[bool], "Indicates whether maintainers can modify the pull request."
+        bool | None, "Indicates whether maintainers can modify the pull request."
     ] = None,
 ) -> Annotated[str, "JSON string containing updated information about the pull request"]:
     """
@@ -398,14 +394,14 @@ async def list_review_comments_on_pull_request(
     ],
     pull_number: Annotated[int, "The number that identifies the pull request."],
     sort: Annotated[
-        Optional[ReviewCommentSortProperty],
+        ReviewCommentSortProperty | None,
         "The property to sort the results by. Can be one of: created, updated.",
     ] = ReviewCommentSortProperty.CREATED,
     direction: Annotated[
-        Optional[SortDirection], "The direction to sort results. Can be one of: asc, desc."
+        SortDirection | None, "The direction to sort results. Can be one of: asc, desc."
     ] = SortDirection.DESC,
     since: Annotated[
-        Optional[str],
+        str | None,
         "Only show results that were last updated after the given time. "
         "This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.",
     ] = None,
@@ -494,31 +490,31 @@ async def create_review_comment(
     body: Annotated[str, "The text of the review comment."],
     path: Annotated[str, "The relative path to the file that necessitates a comment."],
     commit_id: Annotated[
-        Optional[str],
+        str | None,
         "The SHA of the commit needing a comment. If not provided, the latest commit SHA of the "
         "PR's base branch will be used.",
     ] = None,
     start_line: Annotated[
-        Optional[int],
+        int | None,
         "The start line of the range of lines in the pull request diff that the "
         "comment applies to. Required unless 'subject_type' is 'file'.",
     ] = None,
     end_line: Annotated[
-        Optional[int],
+        int | None,
         "The end line of the range of lines in the pull request diff that the "
         "comment applies to. Required unless 'subject_type' is 'file'.",
     ] = None,
     side: Annotated[
-        Optional[DiffSide],
+        DiffSide | None,
         "The side of the diff that the pull request's changes appear on. "
         "Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green "
         "or unchanged lines that appear in white and are shown for context",
     ] = DiffSide.RIGHT,
     start_side: Annotated[
-        Optional[str], "The starting side of the diff that the comment applies to."
+        str | None, "The starting side of the diff that the comment applies to."
     ] = None,
     subject_type: Annotated[
-        Optional[ReviewCommentSubjectType],
+        ReviewCommentSubjectType | None,
         "The type of subject that the comment applies to. Can be one of: file, hunk, or line.",
     ] = ReviewCommentSubjectType.FILE,
     include_extra_data: Annotated[

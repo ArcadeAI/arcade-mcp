@@ -1,11 +1,11 @@
 import logging
 import re
 from base64 import urlsafe_b64decode, urlsafe_b64encode
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 from enum import Enum
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 from arcade.sdk import ToolContext
@@ -64,6 +64,7 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
     Raises:
         ValueError: If the datetime string is not in the correct format.
     """
+    datetime_str = datetime_str.upper().strip().rstrip("Z")
     try:
         dt = datetime.fromisoformat(datetime_str)
         if dt.tzinfo is None:
@@ -114,15 +115,15 @@ def build_email_message(
     recipient: str,
     subject: str,
     body: str,
-    cc: Optional[list[str]] = None,
-    bcc: Optional[list[str]] = None,
-    replying_to: Optional[dict[str, Any]] = None,
+    cc: list[str] | None = None,
+    bcc: list[str] | None = None,
+    replying_to: dict[str, Any] | None = None,
     action: GmailAction = GmailAction.SEND,
 ) -> dict[str, Any]:
     if replying_to:
         body = build_reply_body(body, replying_to)
 
-    message: Union[EmailMessage, MIMEText]
+    message: EmailMessage | MIMEText
 
     if action == GmailAction.SEND:
         message = EmailMessage()
@@ -183,10 +184,10 @@ def parse_plain_text_email(email_data: dict[str, Any]) -> dict[str, Any]:
     Only returns the plain text body.
 
     Args:
-        email_data (Dict[str, Any]): Raw email data from Gmail API.
+        email_data (dict[str, Any]): Raw email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, str]]: Parsed email details or None if parsing fails.
+        dict[str, str]: Parsed email details
     """
     payload = email_data.get("payload", {})
     headers = {d["name"].lower(): d["value"] for d in payload.get("headers", [])}
@@ -223,7 +224,7 @@ def parse_multipart_email(email_data: dict[str, Any]) -> dict[str, Any]:
         email_data (Dict[str, Any]): Raw email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, Any]]: Parsed email details or None if parsing fails.
+        dict[str, Any]: Parsed email details
     """
 
     payload = email_data.get("payload", {})
@@ -263,7 +264,7 @@ def parse_draft_email(draft_email_data: dict[str, Any]) -> dict[str, str]:
         draft_email_data (Dict[str, Any]): Raw draft email data from Gmail API.
 
     Returns:
-        Optional[Dict[str, str]]: Parsed draft email details or None if parsing fails.
+        dict[str, str]: Parsed draft email details
     """
     message = draft_email_data.get("message", {})
     payload = message.get("payload", {})
@@ -342,7 +343,7 @@ def _build_gmail_service(context: ToolContext) -> Any:
     return build("gmail", "v1", credentials=credentials)
 
 
-def _extract_plain_body(parts: list) -> Optional[str]:
+def _extract_plain_body(parts: list) -> str | None:
     """
     Recursively extract the email body from parts, handling both plain text and HTML.
 
@@ -350,7 +351,7 @@ def _extract_plain_body(parts: list) -> Optional[str]:
         parts (List[Dict[str, Any]]): List of email parts.
 
     Returns:
-        Optional[str]: Decoded and cleaned email body or None if not found.
+        str | None: Decoded and cleaned email body or None if not found.
     """
     for part in parts:
         mime_type = part.get("mimeType")
@@ -367,7 +368,7 @@ def _extract_plain_body(parts: list) -> Optional[str]:
     return _extract_html_body(parts)
 
 
-def _extract_html_body(parts: list) -> Optional[str]:
+def _extract_html_body(parts: list) -> str | None:
     """
     Recursively extract the email body from parts, handling only HTML.
 
@@ -375,7 +376,7 @@ def _extract_html_body(parts: list) -> Optional[str]:
         parts (List[Dict[str, Any]]): List of email parts.
 
     Returns:
-        Optional[str]: Decoded and cleaned email body or None if not found.
+        str | None: Decoded and cleaned email body or None if not found.
     """
     for part in parts:
         mime_type = part.get("mimeType")
@@ -393,7 +394,7 @@ def _extract_html_body(parts: list) -> Optional[str]:
     return None
 
 
-def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
+def _get_email_images(payload: dict[str, Any]) -> list[str] | None:
     """
     Extract the email images from an email payload.
 
@@ -401,7 +402,7 @@ def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[List[str]]: List of decoded image contents or None if none found.
+        list[str] | None: List of decoded image contents or None if none found.
     """
     images = []
     for part in payload.get("parts", []):
@@ -423,7 +424,7 @@ def _get_email_images(payload: dict[str, Any]) -> Optional[list[str]]:
     return None
 
 
-def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
+def _get_email_plain_text_body(payload: dict[str, Any]) -> str | None:
     """
     Extract email body from payload, handling 'multipart/alternative' parts.
 
@@ -431,7 +432,7 @@ def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[str]: Decoded email body or None if not found.
+        str | None: Decoded email body or None if not found.
     """
     # Direct body extraction
     if "body" in payload and payload["body"].get("data"):
@@ -441,7 +442,7 @@ def _get_email_plain_text_body(payload: dict[str, Any]) -> Optional[str]:
     return _clean_email_body(_extract_plain_body(payload.get("parts", [])))
 
 
-def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
+def _get_email_html_body(payload: dict[str, Any]) -> str | None:
     """
     Extract email html body from payload, handling 'multipart/alternative' parts.
 
@@ -449,7 +450,7 @@ def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
         payload (Dict[str, Any]): Email payload data.
 
     Returns:
-        Optional[str]: Decoded email body or None if not found.
+        str | None: Decoded email body or None if not found.
     """
     # Direct body extraction
     if "body" in payload and payload["body"].get("data"):
@@ -459,7 +460,7 @@ def _get_email_html_body(payload: dict[str, Any]) -> Optional[str]:
     return _extract_html_body(payload.get("parts", []))
 
 
-def _clean_email_body(body: Optional[str]) -> str:
+def _clean_email_body(body: str | None) -> str:
     """
     Remove HTML tags and clean up email body text while preserving most content.
 
@@ -608,7 +609,7 @@ def remove_none_values(params: dict) -> dict:
 
 
 # Drive utils
-def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_drive_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
@@ -618,8 +619,8 @@ def build_drive_service(auth_token: Optional[str]) -> Resource:  # type: ignore[
 
 def build_files_list_query(
     mime_type: str,
-    document_contains: Optional[list[str]] = None,
-    document_not_contains: Optional[list[str]] = None,
+    document_contains: list[str] | None = None,
+    document_not_contains: list[str] | None = None,
 ) -> str:
     query = [f"(mimeType = '{mime_type}' and trashed = false)"]
 
@@ -655,12 +656,12 @@ def build_files_list_params(
     mime_type: str,
     page_size: int,
     order_by: list[OrderBy],
-    pagination_token: Optional[str],
+    pagination_token: str | None,
     include_shared_drives: bool,
-    search_only_in_shared_drive_id: Optional[str],
+    search_only_in_shared_drive_id: str | None,
     include_organization_domain_documents: bool,
-    document_contains: Optional[list[str]] = None,
-    document_not_contains: Optional[list[str]] = None,
+    document_contains: list[str] | None = None,
+    document_not_contains: list[str] | None = None,
 ) -> dict[str, Any]:
     query = build_files_list_query(
         mime_type=mime_type,
@@ -696,11 +697,11 @@ def build_files_list_params(
 
 
 def build_file_tree_request_params(
-    order_by: Optional[list[OrderBy]],
-    page_token: Optional[str],
-    limit: Optional[int],
+    order_by: list[OrderBy] | None,
+    page_token: str | None,
+    limit: int | None,
     include_shared_drives: bool,
-    restrict_to_shared_drive_id: Optional[str],
+    restrict_to_shared_drive_id: str | None,
     include_organization_domain_documents: bool,
 ) -> dict[str, Any]:
     if order_by is None:
@@ -787,7 +788,7 @@ def build_file_tree(files: dict[str, Any]) -> dict[str, Any]:
 
 
 # Docs utils
-def build_docs_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_docs_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Drive service object.
     """
@@ -795,8 +796,219 @@ def build_docs_service(auth_token: Optional[str]) -> Resource:  # type: ignore[n
     return build("docs", "v1", credentials=Credentials(auth_token))
 
 
+def parse_rfc3339_datetime_str(dt_str: str, tz: timezone = timezone.utc) -> datetime:
+    """
+    Parse an RFC3339 datetime string into a timezone-aware datetime.
+    Converts a trailing 'Z' (UTC) into +00:00.
+    If the parsed datetime is naive, assume it is in the provided timezone.
+    """
+    if dt_str.endswith("Z"):
+        dt_str = dt_str[:-1] + "+00:00"
+    dt = datetime.fromisoformat(dt_str)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=tz)
+    return dt
+
+
+def merge_intervals(intervals: list[tuple[datetime, datetime]]) -> list[tuple[datetime, datetime]]:
+    """
+    Given a list of (start, end) tuples, merge overlapping or adjacent intervals.
+    """
+    merged: list[tuple[datetime, datetime]] = []
+    for start, end in sorted(intervals, key=lambda x: x[0]):
+        if not merged:
+            merged.append((start, end))
+        else:
+            last_start, last_end = merged[-1]
+            if start <= last_end:
+                merged[-1] = (last_start, max(last_end, end))
+            else:
+                merged.append((start, end))
+    return merged
+
+
+# Calendar utils
+
+
+def build_oauth_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
+    """
+    Build an OAuth2 service object.
+    """
+    auth_token = auth_token or ""
+    return build("oauth2", "v2", credentials=Credentials(auth_token))
+
+
+def build_calendar_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
+    """
+    Build a Calendar service object.
+    """
+    auth_token = auth_token or ""
+    return build("calendar", "v3", credentials=Credentials(auth_token))
+
+
+def weekday_to_name(weekday: int) -> str:
+    return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][weekday]
+
+
+def get_time_boundaries_for_date(
+    current_date: date,
+    global_start: datetime,
+    global_end: datetime,
+    start_time_boundary: time,
+    end_time_boundary: time,
+    tz: ZoneInfo,
+) -> tuple[datetime, datetime]:
+    """Compute the allowed start and end times for the given day, adjusting for global bounds."""
+    day_start_time = datetime.combine(current_date, start_time_boundary).replace(tzinfo=tz)
+    day_end_time = datetime.combine(current_date, end_time_boundary).replace(tzinfo=tz)
+
+    if current_date == global_start.date():
+        day_start_time = max(day_start_time, global_start)
+
+    if current_date == global_end.date():
+        day_end_time = min(day_end_time, global_end)
+
+    return day_start_time, day_end_time
+
+
+def gather_busy_intervals(
+    busy_data: dict[str, Any],
+    day_start: datetime,
+    day_end: datetime,
+    business_tz: ZoneInfo,
+) -> list[tuple[datetime, datetime]]:
+    """
+    Collect busy intervals from all calendars that intersect with the day's business hours.
+    Busy intervals are clipped to lie within [day_start, day_end].
+    """
+    busy_intervals = []
+    for calendar in busy_data:
+        for slot in busy_data[calendar].get("busy", []):
+            slot_start = parse_rfc3339_datetime_str(slot["start"]).astimezone(business_tz)
+            slot_end = parse_rfc3339_datetime_str(slot["end"]).astimezone(business_tz)
+            if slot_end > day_start and slot_start < day_end:
+                busy_intervals.append((max(slot_start, day_start), min(slot_end, day_end)))
+    return busy_intervals
+
+
+def subtract_busy_intervals(
+    business_start: datetime,
+    business_end: datetime,
+    busy_intervals: list[tuple[datetime, datetime]],
+) -> list[dict[str, Any]]:
+    """
+    Subtract the merged busy intervals from the business hours and return free time slots.
+    """
+    free_slots = []
+    merged_busy = merge_intervals(busy_intervals)
+
+    # If there are no busy intervals, return the entire business window as free.
+    if not merged_busy:
+        return [
+            {
+                "start": {
+                    "datetime": business_start.isoformat(),
+                    "weekday": weekday_to_name(business_start.weekday()),
+                },
+                "end": {
+                    "datetime": business_end.isoformat(),
+                    "weekday": weekday_to_name(business_end.weekday()),
+                },
+            }
+        ]
+
+    current_free_start = business_start
+    for busy_start, busy_end in merged_busy:
+        if current_free_start < busy_start:
+            free_slots.append({
+                "start": {
+                    "datetime": current_free_start.isoformat(),
+                    "weekday": weekday_to_name(current_free_start.weekday()),
+                },
+                "end": {
+                    "datetime": busy_start.isoformat(),
+                    "weekday": weekday_to_name(busy_start.weekday()),
+                },
+            })
+        current_free_start = max(current_free_start, busy_end)
+    if current_free_start < business_end:
+        free_slots.append({
+            "start": {
+                "datetime": current_free_start.isoformat(),
+                "weekday": weekday_to_name(current_free_start.weekday()),
+            },
+            "end": {
+                "datetime": business_end.isoformat(),
+                "weekday": weekday_to_name(business_end.weekday()),
+            },
+        })
+    return free_slots
+
+
+def compute_free_time_intersection(
+    busy_data: dict[str, Any],
+    global_start: datetime,
+    global_end: datetime,
+    start_time_boundary: time,
+    end_time_boundary: time,
+    include_weekends: bool,
+    tz: ZoneInfo,
+) -> list[dict[str, Any]]:
+    """
+    Returns the free time slots across all calendars within the global bounds,
+    ensuring that the global start is not in the past.
+
+    Only considers business days (Monday to Friday) and business hours (08:00-19:00)
+    in the provided timezone.
+    """
+    # Ensure global_start is never in the past relative to now.
+    now = get_now(tz)
+
+    if now > global_start:
+        global_start = now
+
+    # If after adjusting the start, there's no interval left, return empty.
+    if global_start >= global_end:
+        return []
+
+    free_slots = []
+    current_date = global_start.date()
+
+    while current_date <= global_end.date():
+        if not include_weekends and current_date.weekday() >= 5:
+            current_date += timedelta(days=1)
+            continue
+
+        day_start, day_end = get_time_boundaries_for_date(
+            current_date=current_date,
+            global_start=global_start,
+            global_end=global_end,
+            start_time_boundary=start_time_boundary,
+            end_time_boundary=end_time_boundary,
+            tz=tz,
+        )
+
+        # Skip if the day's allowed time window is empty.
+        if day_start >= day_end:
+            current_date += timedelta(days=1)
+            continue
+
+        busy_intervals = gather_busy_intervals(busy_data, day_start, day_end, tz)
+        free_slots.extend(subtract_busy_intervals(day_start, day_end, busy_intervals))
+
+        current_date += timedelta(days=1)
+
+    return free_slots
+
+
+def get_now(tz: ZoneInfo | None = None) -> datetime:
+    if not tz:
+        tz = ZoneInfo("UTC")
+    return datetime.now(tz)
+
+
 # Contacts utils
-def build_people_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_people_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a People service object.
     """
@@ -804,7 +1016,7 @@ def build_people_service(auth_token: Optional[str]) -> Resource:  # type: ignore
     return build("people", "v1", credentials=Credentials(auth_token))
 
 
-def search_contacts(service: Any, query: str, limit: Optional[int]) -> list[dict[str, Any]]:
+def search_contacts(service: Any, query: str, limit: int | None) -> list[dict[str, Any]]:
     """
     Search the user's contacts in Google Contacts.
     """
@@ -836,7 +1048,7 @@ def search_contacts(service: Any, query: str, limit: Optional[int]) -> list[dict
 # ----------------------------------------------------------------
 
 
-def build_sheets_service(auth_token: Optional[str]) -> Resource:  # type: ignore[no-any-unimported]
+def build_sheets_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
     """
     Build a Sheets service object.
     """

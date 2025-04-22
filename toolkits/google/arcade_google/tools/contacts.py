@@ -1,10 +1,8 @@
 import asyncio
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 
 from arcade_google.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
 from arcade_google.utils import build_people_service, search_contacts
@@ -25,16 +23,14 @@ async def search_contacts_by_email(
     context: ToolContext,
     email: Annotated[str, "The email address to search for"],
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The maximum number of contacts to return (30 is the max allowed by Google API)",
     ] = DEFAULT_SEARCH_CONTACTS_LIMIT,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
     """
     Search the user's contacts in Google Contacts by email address.
     """
-    service = build_people_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_people_service(context.get_auth_token_or_empty())
     # Warm-up the cache before performing search.
     # TODO: Ideally we should warmup only if this user (or google domain?) hasn't warmed up recently
     await _warmup_cache(service)
@@ -47,16 +43,14 @@ async def search_contacts_by_name(
     context: ToolContext,
     name: Annotated[str, "The full name to search for"],
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The maximum number of contacts to return (30 is the max allowed by Google API)",
     ] = DEFAULT_SEARCH_CONTACTS_LIMIT,
 ) -> Annotated[dict, "A dictionary containing the list of matching contacts"]:
     """
     Search the user's contacts in Google Contacts by name.
     """
-    service = build_people_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_people_service(context.get_auth_token_or_empty())
     # Warm-up the cache before performing search.
     # TODO: Ideally we should warmup only if this user (or google domain?) hasn't warmed up recently
     await _warmup_cache(service)
@@ -67,8 +61,8 @@ async def search_contacts_by_name(
 async def create_contact(
     context: ToolContext,
     given_name: Annotated[str, "The given name of the contact"],
-    family_name: Annotated[Optional[str], "The optional family name of the contact"],
-    email: Annotated[Optional[str], "The optional email address of the contact"],
+    family_name: Annotated[str | None, "The optional family name of the contact"],
+    email: Annotated[str | None, "The optional email address of the contact"],
 ) -> Annotated[dict, "A dictionary containing the details of the created contact"]:
     """
     Create a new contact record in Google Contacts.
@@ -81,15 +75,7 @@ async def create_contact(
     ```
     """
     # Build the People API service
-    service = build(
-        "people",
-        "v1",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_people_service(context.get_auth_token_or_empty())
 
     # Construct the person payload with the specified names
     name_body = {"givenName": given_name}

@@ -1,15 +1,65 @@
+import json
 from datetime import datetime, timedelta
 from typing import Annotated, Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
 from arcade.sdk.errors import RetryableToolError
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import EventVisibility, SendUpdatesOptions
-from arcade_google.utils import parse_datetime
+from arcade_google.utils import (
+    build_calendar_service,
+    build_oauth_service,
+    compute_free_time_intersection,
+    parse_datetime,
+)
+
+
+@tool(
+    requires_auth=Google(
+        scopes=[
+            "https://www.googleapis.com/auth/calendar.readonly",
+            "https://www.googleapis.com/auth/calendar.events",
+        ]
+    )
+)
+async def list_calendars(
+    context: ToolContext,
+    max_results: Annotated[
+        int, "The maximum number of calendars to return. Up to 250 calendars, defaults to 10."
+    ] = 10,
+    show_deleted: Annotated[bool, "Whether to show deleted calendars. Defaults to False"] = False,
+    show_hidden: Annotated[bool, "Whether to show hidden calendars. Defaults to False"] = False,
+    next_page_token: Annotated[
+        str | None, "The token to retrieve the next page of calendars. Optional."
+    ] = None,
+) -> Annotated[dict, "A dictionary containing the calendars accessible by the end user"]:
+    """
+    List all calendars accessible by the user.
+    """
+    max_results = max(1, min(max_results, 250))
+    service = build_calendar_service(context.get_auth_token_or_empty())
+    calendars = (
+        service.calendarList()
+        .list(
+            pageToken=next_page_token,
+            showDeleted=show_deleted,
+            showHidden=show_hidden,
+            maxResults=max_results,
+        )
+        .execute()
+    )
+
+    items = calendars.get("items", [])
+    keys = ["description", "id", "summary", "timeZone"]
+    relevant_items = [{k: i.get(k) for k in keys if i.get(k)} for i in items]
+    return {
+        "next_page_token": calendars.get("nextPageToken"),
+        "num_calendars": len(relevant_items),
+        "calendars": relevant_items,
+    }
 
 
 @tool(
@@ -44,15 +94,7 @@ async def create_event(
 ) -> Annotated[dict, "A dictionary containing the created event details"]:
     """Create a new event/meeting/sync/meetup in the specified calendar."""
 
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -116,15 +158,7 @@ async def list_events(
     ending at 10:00 on September 15 would be included, but an
     event starting at 17:00 on September 16 would not be included.
     """
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     # Get the calendar's time zone
     calendar = service.calendars().get(calendarId=calendar_id).execute()
@@ -224,15 +258,7 @@ async def update_event(
     `updated_start_datetime` and `updated_end_datetime` are
     independent and can be provided separately.
     """
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     calendar = service.calendars().get(calendarId="primary").execute()
     time_zone = calendar["timeZone"]
@@ -330,15 +356,7 @@ async def delete_event(
     ] = SendUpdatesOptions.ALL,
 ) -> Annotated[str, "A string containing the deletion confirmation message"]:
     """Delete an event from Google Calendar."""
-    service = build(
-        "calendar",
-        "v3",
-        credentials=Credentials(
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        ),
-    )
+    service = build_calendar_service(context.get_auth_token_or_empty())
 
     service.events().delete(
         calendarId=calendar_id, eventId=event_id, sendUpdates=send_updates.value
@@ -356,3 +374,137 @@ async def delete_event(
         f"Event with ID '{event_id}' successfully deleted from calendar '{calendar_id}'. "
         f"{notification_message}"
     )
+
+
+# TODO: would be nice to have a "min_slot_duration" parameter
+# TODO: find a way to have "include_weekends" parameter without confusing LLMs
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/calendar.readonly"],
+    ),
+)
+async def find_time_slots_when_everyone_is_free(
+    context: ToolContext,
+    email_addresses: Annotated[
+        list[str] | None,
+        "The list of email addresses from people in the same organization domain (apart from the "
+        "currently logged in user) to search for free time slots. Defaults to None, which will "
+        "return free time slots for the current user only.",
+    ] = None,
+    start_date: Annotated[
+        str | None,
+        "The start date to search for time slots in the format 'YYYY-MM-DD'. Defaults to today's "
+        "date. It will search starting from this date at the time 00:00:00.",
+    ] = None,
+    end_date: Annotated[
+        str | None,
+        "The end date to search for time slots in the format 'YYYY-MM-DD'. Defaults to seven days "
+        "from the start date. It will search until this date at the time 23:59:59.",
+    ] = None,
+    start_time_boundary: Annotated[
+        str,
+        "Will return free slots in any given day starting from this time in the format 'HH:MM'. "
+        "Defaults to '08:00', which is a usual business hour start time.",
+    ] = "08:00",
+    end_time_boundary: Annotated[
+        str,
+        "Will return free slots in any given day until this time in the format 'HH:MM'. "
+        "Defaults to '18:00', which is a usual business hour end time.",
+    ] = "18:00",
+) -> Annotated[
+    dict,
+    "A dictionary with the free slots and the timezone in which time slots are represented.",
+]:
+    """
+    Provides time slots when everyone is free within a given date range and time boundaries.
+    """
+
+    # Build google api services
+    oauth_service = build_oauth_service(context.get_auth_token_or_empty())
+    calendar_service = build_calendar_service(context.get_auth_token_or_empty())
+
+    email_addresses = email_addresses or []
+
+    if isinstance(email_addresses, str):
+        email_addresses = [email_addresses]
+
+    # Add the currently logged in user to the list of email addresses
+    user_info = oauth_service.userinfo().get().execute()
+    if user_info["email"] not in email_addresses:
+        email_addresses.append(user_info["email"])
+
+    # Get the timezone of the currently logged in user
+    calendar = calendar_service.calendars().get(calendarId="primary").execute()
+    timezone_name = calendar.get("timeZone")
+
+    try:
+        tz = ZoneInfo(timezone_name)
+    # If the calendar timezone name is not supported by Python's zoneinfo, use UTC
+    except ZoneInfoNotFoundError:
+        timezone_name = "UTC"
+        tz = ZoneInfo("UTC")
+
+    # Set default start and end dates, if not provided by the caller
+    start_date = start_date or datetime.now(tz=tz).date().isoformat()
+    end_date = end_date or (datetime.now(tz=tz).date() + timedelta(days=7)).isoformat()
+
+    # Parse start and end dates to datetime objects
+    start_datetime = datetime.strptime(start_date, "%Y-%m-%d").replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=tz
+    )
+    end_datetime = datetime.strptime(end_date, "%Y-%m-%d").replace(
+        hour=23, minute=59, second=59, microsecond=0, tzinfo=tz
+    )
+
+    # Get the busy slots from the calendars of the users
+    freebusy_response = (
+        calendar_service.freebusy()
+        .query(
+            body={
+                "timeMin": start_datetime.isoformat(),
+                "timeMax": end_datetime.isoformat(),
+                "timeZone": timezone_name,
+                "items": [{"id": email_address} for email_address in email_addresses],
+            }
+        )
+        .execute()
+    )
+    busy_slots = freebusy_response["calendars"]
+
+    response_errors = []
+
+    for email in email_addresses:
+        if "errors" not in busy_slots[email]:
+            continue
+        errors = busy_slots[email]["errors"]
+        for error in errors:
+            response_errors.append(
+                f"Error retrieving free slots from calendar of '{email}': "
+                f"{error.get('reason', 'not determined')}"
+            )
+
+    if response_errors:
+        raise RetryableToolError(
+            "Error retrieving free slots from calendars of one or more users.",
+            additional_prompt_content=json.dumps(response_errors),
+            retry_after_ms=1000,
+            developer_message="Error retrieving free slots from calendars of one or more users.",
+        )
+
+    # Compute the free slots
+    free_slots = compute_free_time_intersection(
+        busy_data=busy_slots,
+        global_start=start_datetime,
+        global_end=end_datetime,
+        start_time_boundary=datetime.strptime(start_time_boundary, "%H:%M")
+        .time()
+        .replace(tzinfo=tz),
+        end_time_boundary=datetime.strptime(end_time_boundary, "%H:%M").time().replace(tzinfo=tz),
+        include_weekends=True,
+        tz=tz,
+    )
+
+    return {
+        "free_slots": free_slots,
+        "timezone": timezone_name,
+    }

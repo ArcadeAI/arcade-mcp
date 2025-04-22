@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -50,7 +50,7 @@ async def list_stargazers(
     owner: Annotated[str, "The owner of the repository"],
     repo: Annotated[str, "The name of the repository"],
     limit: Annotated[
-        Optional[int],
+        int | None,
         "The maximum number of stargazers to return. "
         "If not provided, all stargazers will be returned.",
     ] = None,

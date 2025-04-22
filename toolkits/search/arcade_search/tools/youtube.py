@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional, cast
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.errors import ToolExecutionError
@@ -24,17 +24,17 @@ async def search_youtube_videos(
         "The keywords to search for. E.g. 'Python tutorial'.",
     ],
     language_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character language code to search for. E.g. 'en' for English. "
         f"Defaults to '{default_language_code(DEFAULT_YOUTUBE_SEARCH_LANGUAGE)}'.",
     ] = None,
     country_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character country code to search for. E.g. 'us' for United States. "
         f"Defaults to '{default_country_code(DEFAULT_YOUTUBE_SEARCH_COUNTRY)}'.",
     ] = None,
     next_page_token: Annotated[
-        Optional[str],
+        str | None,
         "The next page token to use for pagination. "
         "Defaults to `None` (start from the first page).",
     ] = None,
@@ -70,12 +70,12 @@ async def get_youtube_video_details(
         "The ID of the YouTube video to get details about. E.g. 'dQw4w9WgXcQ'.",
     ],
     language_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character language code to search for. E.g. 'en' for English. "
         f"Defaults to '{default_language_code(DEFAULT_YOUTUBE_SEARCH_LANGUAGE)}'.",
     ] = None,
     country_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character country code to search for. E.g. 'us' for United States. "
         f"Defaults to '{default_country_code(DEFAULT_YOUTUBE_SEARCH_COUNTRY)}'.",
     ] = None,

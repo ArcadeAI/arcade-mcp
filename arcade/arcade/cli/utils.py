@@ -2,6 +2,7 @@ import importlib.util
 import ipaddress
 import webbrowser
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from textwrap import dedent
@@ -16,6 +17,7 @@ from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
+from pydantic import ValidationError
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -200,7 +202,11 @@ def get_tools_from_engine(
     try:
         page_iterator = client.tools.list(toolkit=toolkit or NOT_GIVEN)
         for tool in page_iterator:
-            tools.append(ToolDefinition.model_validate(tool.model_dump()))
+            try:
+                tools.append(ToolDefinition.model_validate(tool.model_dump()))
+            except ValidationError:
+                # Skip listing tools that aren't valid ToolDefinitions
+                continue
     except APIConnectionError:
         console.print(
             f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)", style="bold red"
@@ -658,3 +664,9 @@ def version_callback(value: bool) -> None:
         version = importlib.import_module("arcade").__version__
         console.print(f"[bold]Arcade[/bold] (version {version})")
         exit()
+
+
+def get_today_context() -> str:
+    today = datetime.now().strftime("%Y-%m-%d")
+    day_of_week = datetime.now().strftime("%A")
+    return f"Today is {today}, {day_of_week}."

@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -67,7 +67,7 @@ async def search_recent_tweets_by_username(
         int, "The maximum number of results to return. Must be in range [1, 100] inclusive"
     ] = 10,
     next_token: Annotated[
-        Optional[str], "The pagination token starting from which to return results"
+        str | None, "The pagination token starting from which to return results"
     ] = None,
 ) -> Annotated[dict[str, Any], "Dictionary containing the search results"]:
     """Search for recent tweets (last 7 days) on X (Twitter) by username.
@@ -121,7 +121,7 @@ async def search_recent_tweets_by_keywords(
         int, "The maximum number of results to return. Must be in range [1, 100] inclusive"
     ] = 10,
     next_token: Annotated[
-        Optional[str], "The pagination token starting from which to return results"
+        str | None, "The pagination token starting from which to return results"
     ] = None,
 ) -> Annotated[dict[str, Any], "Dictionary containing the search results"]:
     """

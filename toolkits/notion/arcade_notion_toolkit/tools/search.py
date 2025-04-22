@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -19,12 +19,12 @@ from arcade_notion_toolkit.utils import (
 async def search_by_title(
     context: ToolContext,
     query: Annotated[
-        Optional[str],
+        str | None,
         "A substring to search for within page and database titles. "
         "If not provided (default), all pages and/or databases are returned.",
     ] = None,
     select: Annotated[
-        Optional[ObjectType],
+        ObjectType | None,
         "Limit the results to either only pages or only databases. Defaults to both.",
     ] = None,
     order_by: Annotated[
@@ -87,11 +87,11 @@ async def search_by_title(
 async def get_object_metadata(
     context: ToolContext,
     object_title: Annotated[
-        Optional[str], "Title of the page or database whose metadata to get"
+        str | None, "Title of the page or database whose metadata to get"
     ] = None,
-    object_id: Annotated[Optional[str], "ID of the page or database whose metadata to get"] = None,
+    object_id: Annotated[str | None, "ID of the page or database whose metadata to get"] = None,
     object_type: Annotated[
-        Optional[ObjectType],
+        ObjectType | None,
         "The type of object to match title to. Only used if `object_title` is provided. "
         "Defaults to both",
     ] = None,
@@ -146,8 +146,9 @@ async def get_object_metadata(
     async def get_metadata_by_id(object_id: str) -> dict[str, Any]:
         url = get_url("retrieve_a_page", page_id=object_id)
         headers = get_headers(context)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(url, headers=headers)
+
             if response.status_code != 200:
                 raise ToolExecutionError(
                     message="The page or database could not be found.",

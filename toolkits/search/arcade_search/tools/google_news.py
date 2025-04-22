@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.errors import ToolExecutionError
@@ -17,7 +17,7 @@ async def search_news_stories(
         "Keywords to search for news articles. E.g. 'Apple launches new iPhone'.",
     ],
     country_code: Annotated[
-        Optional[str],
+        str | None,
         "2-character country code to search for news articles. E.g. 'us' (United States). "
         f"Defaults to '{DEFAULT_GOOGLE_NEWS_COUNTRY}'.",
     ] = None,
@@ -27,7 +27,7 @@ async def search_news_stories(
         f"Defaults to '{DEFAULT_GOOGLE_NEWS_LANGUAGE}'.",
     ] = DEFAULT_GOOGLE_NEWS_LANGUAGE,
     limit: Annotated[
-        Optional[int],
+        int | None,
         "Maximum number of news articles to return. Defaults to None "
         "(returns all results found by the API).",
     ] = None,

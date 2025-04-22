@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional, cast
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
@@ -59,9 +59,9 @@ async def get_user_info_by_id(
 )
 async def list_users(
     context: ToolContext,
-    exclude_bots: Annotated[Optional[bool], "Whether to exclude bots from the results"] = True,
-    limit: Annotated[Optional[int], "The maximum number of users to return."] = None,
-    next_cursor: Annotated[Optional[str], "The next cursor token to use for pagination."] = None,
+    exclude_bots: Annotated[bool | None, "Whether to exclude bots from the results"] = True,
+    limit: Annotated[int | None, "The maximum number of users to return."] = None,
+    next_cursor: Annotated[str | None, "The next cursor token to use for pagination."] = None,
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
 

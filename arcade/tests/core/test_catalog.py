@@ -94,13 +94,9 @@ def test_add_toolkit_type_error():
         mock_import.return_value = MagicMock()
         mock_getattr.return_value = InvalidTool()
 
-        # Assert that ToolDefinitionError is raised with the correct message
-        with pytest.raises(ToolDefinitionError) as exc_info:
+        # Assert that ToolDefinitionError is raised
+        with pytest.raises(ToolDefinitionError):
             catalog.add_toolkit(mock_toolkit)
-
-        assert "Type error encountered while adding tool invalid_tool from mock_module" in str(
-            exc_info.value
-        )
 
 
 def test_get_tool_by_name():

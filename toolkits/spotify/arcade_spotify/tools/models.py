@@ -1,33 +1,32 @@
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 @dataclass
 class PlaybackState:
-    is_playing: Optional[bool] = None
-    progress_ms: Optional[int] = (
+    is_playing: bool | None = None
+    progress_ms: int | None = (
         None  # Progress into the currently playing track or episode in milliseconds
     )
-    device_name: Optional[str] = None
-    device_id: Optional[str] = None
-    currently_playing_type: Optional[str] = None
-    album_id: Optional[str] = None
-    album_name: Optional[str] = None
+    device_name: str | None = None
+    device_id: str | None = None
+    currently_playing_type: str | None = None
+    album_id: str | None = None
+    album_name: str | None = None
     album_artists: list[str] = field(default_factory=list)
-    album_spotify_url: Optional[str] = None
-    track_id: Optional[str] = None
-    track_name: Optional[str] = None
-    track_spotify_url: Optional[str] = None
+    album_spotify_url: str | None = None
+    track_id: str | None = None
+    track_name: str | None = None
+    track_spotify_url: str | None = None
     track_artists: list[str] = field(default_factory=list)
     track_artists_ids: list[str] = field(default_factory=list)
-    show_name: Optional[str] = None
-    show_id: Optional[str] = None
-    show_spotify_url: Optional[str] = None
-    episode_name: Optional[str] = None
-    episode_id: Optional[str] = None
-    episode_spotify_url: Optional[str] = None
-    message: Optional[str] = None
+    show_name: str | None = None
+    show_id: str | None = None
+    show_spotify_url: str | None = None
+    episode_name: str | None = None
+    episode_id: str | None = None
+    episode_spotify_url: str | None = None
+    message: str | None = None
 
     def to_dict(self) -> dict:
         """Convert the PlaybackState instance to a dictionary, excluding None values."""

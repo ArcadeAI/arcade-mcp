@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Optional
+from typing import Annotated
 
 import httpx
 from arcade.sdk import ToolContext, tool
@@ -27,12 +27,12 @@ async def create_issue(
         "The name of the repository without the .git extension. The name is not case sensitive.",
     ],
     title: Annotated[str, "The title of the issue."],
-    body: Annotated[Optional[str], "The contents of the issue."] = None,
-    assignees: Annotated[Optional[list[str]], "Logins for Users to assign to this issue."] = None,
+    body: Annotated[str | None, "The contents of the issue."] = None,
+    assignees: Annotated[list[str] | None, "Logins for Users to assign to this issue."] = None,
     milestone: Annotated[
-        Optional[int], "The number of the milestone to associate this issue with."
+        int | None, "The number of the milestone to associate this issue with."
     ] = None,
-    labels: Annotated[Optional[list[str]], "Labels to associate with this issue."] = None,
+    labels: Annotated[list[str] | None, "Labels to associate with this issue."] = None,
     include_extra_data: Annotated[
         bool,
         "If true, return all the data available about the pull requests. "

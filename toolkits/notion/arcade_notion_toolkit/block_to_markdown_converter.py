@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Optional
+from typing import Any
 
 from arcade.sdk import ToolContext
 
@@ -100,14 +100,14 @@ class BlockToMarkdownConverter:
         return md
 
     @staticmethod
-    def apply_formatting(text: str, annotations: dict[str, Any], link: Optional[str] = None) -> str:
+    def apply_formatting(text: str, annotations: dict[str, Any], link: str | None = None) -> str:
         """Apply formatting to a text string based on the annotations.
         Used when converting rich text to markdown
 
         Args:
             text (str): The text to format.
             annotations (dict[str, Any]): The annotations to apply to the text.
-            link (Optional[str]): An optional link for a hyperlink.
+            link (str | None): An optional link for a hyperlink.
 
         Returns:
             str: The formatted text.

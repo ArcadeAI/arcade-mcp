@@ -1,5 +1,5 @@
 import random
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import tool
 
@@ -9,7 +9,7 @@ def generate_random_int(
     min_value: Annotated[str, "The minimum value of the random integer as a string"],
     max_value: Annotated[str, "The maximum value of the random integer as a string"],
     seed: Annotated[
-        Optional[str],
+        str | None,
         "The seed for the random number generator as a string."
         " If None, the current system time is used.",
     ] = None,
@@ -26,7 +26,7 @@ def generate_random_float(
     min_value: Annotated[str, "The minimum value of the random float as a string"],
     max_value: Annotated[str, "The maximum value of the random float as a string"],
     seed: Annotated[
-        Optional[str],
+        str | None,
         "The seed for the random number generator as a string."
         " If None, the current system time is used.",
     ] = None,

@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import ToolExecutionError
@@ -24,11 +24,11 @@ async def search_walmart_products(
         f"Defaults to '{WalmartSortBy.RELEVANCE.value}'.",
     ] = WalmartSortBy.RELEVANCE,
     min_price: Annotated[
-        Optional[float],
+        float | None,
         "Minimum price to filter the results by. E.g. 100.00",
     ] = None,
     max_price: Annotated[
-        Optional[float],
+        float | None,
         "Maximum price to filter the results by. E.g. 100.00",
     ] = None,
     next_day_delivery: Annotated[

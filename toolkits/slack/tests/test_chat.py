@@ -322,7 +322,14 @@ async def test_get_conversation_metadata_by_name(
     response = await get_channel_metadata_by_name(mock_context, sample_conversation["name"])
 
     assert response == sample_conversation
-    mock_list_conversations_metadata.assert_called_once_with(mock_context, next_cursor=None)
+    mock_list_conversations_metadata.assert_called_once_with(
+        context=mock_context,
+        conversation_types=[
+            ConversationType.PUBLIC_CHANNEL,
+            ConversationType.PRIVATE_CHANNEL,
+        ],
+        next_cursor=None,
+    )
 
 
 @pytest.mark.asyncio
@@ -349,8 +356,16 @@ async def test_get_channel_metadata_by_name_triggering_pagination(
     assert response == target_channel
     assert mock_list_conversations_metadata.call_count == 2
     mock_list_conversations_metadata.assert_has_calls([
-        call(mock_context, next_cursor=None),
-        call(mock_context, next_cursor="123"),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor=None,
+        ),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor="123",
+        ),
     ])
 
 
@@ -378,8 +393,16 @@ async def test_get_channel_metadata_by_name_not_found(
 
     assert mock_list_conversations_metadata.call_count == 2
     mock_list_conversations_metadata.assert_has_calls([
-        call(mock_context, next_cursor=None),
-        call(mock_context, next_cursor="123"),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor=None,
+        ),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor="123",
+        ),
     ])
 
 
@@ -479,7 +502,14 @@ async def test_get_members_in_channel_by_name(
     )
 
     assert response == mock_get_members_in_conversation_by_id.return_value
-    mock_list_conversations_metadata.assert_called_once_with(mock_context, next_cursor=None)
+    mock_list_conversations_metadata.assert_called_once_with(
+        context=mock_context,
+        conversation_types=[
+            ConversationType.PUBLIC_CHANNEL,
+            ConversationType.PRIVATE_CHANNEL,
+        ],
+        next_cursor=None,
+    )
     mock_get_members_in_conversation_by_id.assert_called_once_with(
         context=mock_context,
         conversation_id="C12345",
@@ -517,8 +547,16 @@ async def test_get_members_in_channel_by_name_triggering_pagination(
 
     assert response == mock_get_members_in_conversation_by_id.return_value
     mock_list_conversations_metadata.assert_has_calls([
-        call(mock_context, next_cursor=None),
-        call(mock_context, next_cursor="123"),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor=None,
+        ),
+        call(
+            context=mock_context,
+            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
+            next_cursor="123",
+        ),
     ])
     mock_get_members_in_conversation_by_id.assert_called_once_with(
         context=mock_context,

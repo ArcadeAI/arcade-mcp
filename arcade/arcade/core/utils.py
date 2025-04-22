@@ -52,6 +52,14 @@ def is_union(_type: type) -> bool:
     return get_origin(_type) in {Union, UnionType}
 
 
+def is_strict_optional(_type: type) -> bool:
+    """
+    Returns True if the given type is a strict optional type, i.e. a union with exactly two types
+    where one type is None. This covers Optional[T], Union[T, None] and T | None
+    """
+    return is_union(_type) and len(get_args(_type)) == 2 and type(None) in get_args(_type)
+
+
 def does_function_return_value(func: Callable) -> bool:
     """
     Returns True if the given function returns a value, i.e. if it has a return statement with a value.

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Union
 
 import pytest
 from pydantic import Field
@@ -21,6 +21,20 @@ def field_with_literal_default_factory(
     pass
 
 
+@tool(desc="A function that accepts an optional Pydantic Field with non-strict optional syntax")
+def func_takes_pydantic_field_non_strict_optional_bar_syntax(
+    product_name: str | int | None = Field(None, description="The name of the product"),
+) -> str:
+    return product_name
+
+
+@tool(desc="A function that accepts an optional Pydantic Field with non-strict optional syntax")
+def func_takes_pydantic_field_non_strict_optional_union_syntax(
+    product_name: Union[str, int, None] = Field(None, description="The name of the product"),
+) -> str:
+    return product_name
+
+
 @pytest.mark.parametrize(
     "func_under_test, exception_type",
     [
@@ -28,6 +42,16 @@ def field_with_literal_default_factory(
             field_with_literal_default_factory,
             ToolDefinitionError,
             id=field_with_literal_default_factory.__name__,
+        ),
+        pytest.param(
+            func_takes_pydantic_field_non_strict_optional_bar_syntax,
+            ToolDefinitionError,
+            id=func_takes_pydantic_field_non_strict_optional_bar_syntax.__name__,
+        ),
+        pytest.param(
+            func_takes_pydantic_field_non_strict_optional_union_syntax,
+            ToolDefinitionError,
+            id=func_takes_pydantic_field_non_strict_optional_union_syntax.__name__,
         ),
     ],
 )

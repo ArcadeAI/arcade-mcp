@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Zoom
@@ -14,7 +14,7 @@ from arcade_zoom.tools.utils import _handle_zoom_api_error, _send_zoom_request
 async def list_upcoming_meetings(
     context: ToolContext,
     user_id: Annotated[
-        Optional[str],
+        str | None,
         "The user's user ID or email address. Defaults to 'me' for the current user.",
     ] = "me",
 ) -> Annotated[dict, "List of upcoming meetings within the next 24 hours"]:

@@ -1,6 +1,6 @@
 import base64
 from email.mime.text import MIMEText
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Google
@@ -40,8 +40,8 @@ async def send_email(
     subject: Annotated[str, "The subject of the email"],
     body: Annotated[str, "The body of the email"],
     recipient: Annotated[str, "The recipient of the email"],
-    cc: Annotated[Optional[list[str]], "CC recipients of the email"] = None,
-    bcc: Annotated[Optional[list[str]], "BCC recipients of the email"] = None,
+    cc: Annotated[list[str] | None, "CC recipients of the email"] = None,
+    bcc: Annotated[list[str] | None, "BCC recipients of the email"] = None,
 ) -> Annotated[dict, "A dictionary containing the sent email details"]:
     """
     Send an email using the Gmail API.
@@ -96,7 +96,7 @@ async def reply_to_email(
         "Whether to reply to every recipient (including cc) or only to the original sender. "
         f"Defaults to '{GMAIL_DEFAULT_REPLY_TO}'.",
     ] = GMAIL_DEFAULT_REPLY_TO,
-    bcc: Annotated[Optional[list[str]], "BCC recipients of the email"] = None,
+    bcc: Annotated[list[str] | None, "BCC recipients of the email"] = None,
 ) -> Annotated[dict, "A dictionary containing the sent email details"]:
     """
     Send a reply to an email message.
@@ -156,8 +156,8 @@ async def write_draft_email(
     subject: Annotated[str, "The subject of the draft email"],
     body: Annotated[str, "The body of the draft email"],
     recipient: Annotated[str, "The recipient of the draft email"],
-    cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
-    bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
+    cc: Annotated[list[str] | None, "CC recipients of the draft email"] = None,
+    bcc: Annotated[list[str] | None, "BCC recipients of the draft email"] = None,
 ) -> Annotated[dict, "A dictionary containing the created draft email details"]:
     """
     Compose a new email draft using the Gmail API.
@@ -193,7 +193,7 @@ async def write_draft_reply_email(
         "Whether to reply to every recipient (including cc) or only to the original sender. "
         f"Defaults to '{GMAIL_DEFAULT_REPLY_TO}'.",
     ] = GMAIL_DEFAULT_REPLY_TO,
-    bcc: Annotated[Optional[list[str]], "BCC recipients of the draft reply email"] = None,
+    bcc: Annotated[list[str] | None, "BCC recipients of the draft reply email"] = None,
 ) -> Annotated[dict, "A dictionary containing the created draft reply email details"]:
     """
     Compose a draft reply to an email message.
@@ -256,8 +256,8 @@ async def update_draft_email(
     subject: Annotated[str, "The subject of the draft email"],
     body: Annotated[str, "The body of the draft email"],
     recipient: Annotated[str, "The recipient of the draft email"],
-    cc: Annotated[Optional[list[str]], "CC recipients of the draft email"] = None,
-    bcc: Annotated[Optional[list[str]], "BCC recipients of the draft email"] = None,
+    cc: Annotated[list[str] | None, "CC recipients of the draft email"] = None,
+    bcc: Annotated[list[str] | None, "BCC recipients of the draft email"] = None,
 ) -> Annotated[dict, "A dictionary containing the updated draft email details"]:
     """
     Update an existing email draft using the Gmail API.
@@ -374,12 +374,12 @@ async def list_draft_emails(
 )
 async def list_emails_by_header(
     context: ToolContext,
-    sender: Annotated[Optional[str], "The name or email address of the sender of the email"] = None,
-    recipient: Annotated[Optional[str], "The name or email address of the recipient"] = None,
-    subject: Annotated[Optional[str], "Words to find in the subject of the email"] = None,
-    body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
-    date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
-    label: Annotated[Optional[str], "The label name to filter by"] = None,
+    sender: Annotated[str | None, "The name or email address of the sender of the email"] = None,
+    recipient: Annotated[str | None, "The name or email address of the recipient"] = None,
+    subject: Annotated[str | None, "Words to find in the subject of the email"] = None,
+    body: Annotated[str | None, "Words to find in the body of the email"] = None,
+    date_range: Annotated[DateRange | None, "The date range of the email"] = None,
+    label: Annotated[str | None, "The label name to filter by"] = None,
     max_results: Annotated[int, "The maximum number of emails to return"] = 25,
 ) -> Annotated[
     dict, "A dictionary containing a list of email details matching the search criteria"
@@ -475,16 +475,16 @@ async def list_emails(
 async def search_threads(
     context: ToolContext,
     page_token: Annotated[
-        Optional[str], "Page token to retrieve a specific page of results in the list"
+        str | None, "Page token to retrieve a specific page of results in the list"
     ] = None,
     max_results: Annotated[int, "The maximum number of threads to return"] = 10,
     include_spam_trash: Annotated[bool, "Whether to include spam and trash in the results"] = False,
-    label_ids: Annotated[Optional[list[str]], "The IDs of labels to filter by"] = None,
-    sender: Annotated[Optional[str], "The name or email address of the sender of the email"] = None,
-    recipient: Annotated[Optional[str], "The name or email address of the recipient"] = None,
-    subject: Annotated[Optional[str], "Words to find in the subject of the email"] = None,
-    body: Annotated[Optional[str], "Words to find in the body of the email"] = None,
-    date_range: Annotated[Optional[DateRange], "The date range of the email"] = None,
+    label_ids: Annotated[list[str] | None, "The IDs of labels to filter by"] = None,
+    sender: Annotated[str | None, "The name or email address of the sender of the email"] = None,
+    recipient: Annotated[str | None, "The name or email address of the recipient"] = None,
+    subject: Annotated[str | None, "Words to find in the subject of the email"] = None,
+    body: Annotated[str | None, "Words to find in the body of the email"] = None,
+    date_range: Annotated[DateRange | None, "The date range of the email"] = None,
 ) -> Annotated[dict, "A dictionary containing a list of thread details"]:
     """Search for threads in the user's mailbox"""
     service = _build_gmail_service(context)
@@ -535,7 +535,7 @@ async def search_threads(
 async def list_threads(
     context: ToolContext,
     page_token: Annotated[
-        Optional[str], "Page token to retrieve a specific page of results in the list"
+        str | None, "Page token to retrieve a specific page of results in the list"
     ] = None,
     max_results: Annotated[int, "The maximum number of threads to return"] = 10,
     include_spam_trash: Annotated[bool, "Whether to include spam and trash in the results"] = False,

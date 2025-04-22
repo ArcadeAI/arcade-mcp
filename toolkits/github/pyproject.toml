@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "arcade_github"
 version = "0.1.10"
-description = "LLM tools for interacting with Github"
+description = "Arcade.dev LLM tools for Github"
 authors = ["Arcade <dev@arcade.dev>"]
 
 [tool.poetry.dependencies]
@@ -20,7 +20,7 @@ tox = "^4.11.1"
 ruff = "^0.7.4"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0.0,<2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]

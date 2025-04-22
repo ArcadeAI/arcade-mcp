@@ -18,36 +18,59 @@ class DateRange(Enum):
     THIS_MONTH = "this_month"
     NEXT_MONTH = "next_month"
 
-    def to_date_range(self) -> tuple[date, date]:
-        today = datetime.now().date()
-        if self == DateRange.TODAY:
-            return today, today + timedelta(days=1)
-        elif self == DateRange.TOMORROW:
-            return today + timedelta(days=1), today + timedelta(days=2)
-        elif self == DateRange.THIS_WEEK:
-            start = today - timedelta(days=today.weekday())
-            return start, start + timedelta(days=7)
-        elif self == DateRange.NEXT_WEEK:
-            start = today + timedelta(days=7 - today.weekday())
-            return start, start + timedelta(days=7)
-        elif self == DateRange.THIS_MONTH:
-            start = today.replace(day=1)
-            next_month = start + timedelta(days=32)
-            end = next_month.replace(day=1)
-            return start, end
-        elif self == DateRange.NEXT_MONTH:
-            start = (today.replace(day=1) + timedelta(days=32)).replace(day=1)
-            next_month = start + timedelta(days=32)
-            end = next_month.replace(day=1)
-            return start, end
+    def to_datetime_range(
+        self,
+        start_time: time | None = None,
+        end_time: time | None = None,
+        time_zone: ZoneInfo | None = None,
+        today: date | None = None,
+    ) -> tuple[datetime, datetime]:
+        """
+        Convert a DateRange enum value to a tuple with two datetime objects representing the start
+        and end of the date range.
 
-    def to_datetime_range(self, time_zone_name: str | None = None) -> tuple[datetime, datetime]:
-        start_date, end_date = self.to_date_range()
-        # time_zone = ZoneInfo(time_zone_name)
-        start_datetime = datetime.combine(
-            start_date, datetime.min.time()
-        )  # .replace(tzinfo=time_zone)
-        end_datetime = datetime.combine(end_date, datetime.min.time())  # .replace(tzinfo=time_zone)
+        :param start_time: The start time of the date range. Defaults to the current time.
+        :param end_time: The end time of the date range. Defaults to 23:59:59.
+        :param time_zone: The time zone to use for the date range. Defaults to UTC.
+        :param today: Today's date. Defaults to the current date provided by `datetime.now().date()`
+        """
+        start_time = start_time or datetime.now().time()
+        end_time = end_time or time(23, 59, 59)
+        today = today or datetime.now().date()
+
+        if self == DateRange.TODAY:
+            start_date, end_date = today, today
+        elif self == DateRange.TOMORROW:
+            start_date, end_date = today + timedelta(days=1), today + timedelta(days=1)
+        elif self == DateRange.THIS_WEEK:
+            start_date = today - timedelta(days=today.weekday())
+            end_date = start_date + timedelta(days=6)
+        elif self == DateRange.NEXT_WEEK:
+            start_date = today + timedelta(days=7 - today.weekday())
+            end_date = start_date + timedelta(days=6)
+        elif self == DateRange.THIS_MONTH:
+            start_date = today.replace(day=1)
+            next_month = start_date + timedelta(days=31)
+            end_date = next_month.replace(day=1) - timedelta(days=1)
+        elif self == DateRange.NEXT_MONTH:
+            start_date = (today.replace(day=1) + timedelta(days=31)).replace(day=1)
+            next_month = start_date + timedelta(days=31)
+            end_date = next_month.replace(day=1) - timedelta(days=1)
+        else:
+            raise ValueError(
+                f"DateRange enum value: {self} is not supported for date range conversion"
+            )
+
+        start_time = start_time or time(0, 0, 0)
+        end_time = end_time or time(23, 59, 59)
+
+        start_datetime = datetime.combine(start_date, start_time)
+        end_datetime = datetime.combine(end_date, end_time)
+
+        if time_zone:
+            start_datetime = start_datetime.replace(tzinfo=time_zone)
+            end_datetime = end_datetime.replace(tzinfo=time_zone)
+
         return start_datetime, end_datetime
 
 
@@ -404,10 +427,10 @@ class CellExtendedValue(BaseModel):
     Implementation of https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#ExtendedValue
     """
 
-    numberValue: Optional[float] = None
-    stringValue: Optional[str] = None
-    boolValue: Optional[bool] = None
-    formulaValue: Optional[str] = None
+    numberValue: float | None = None
+    stringValue: str | None = None
+    boolValue: bool | None = None
+    formulaValue: str | None = None
     errorValue: Optional["CellErrorValue"] = None
 
     @model_validator(mode="after")
@@ -453,7 +476,7 @@ class CellData(BaseModel):
     """
 
     userEnteredValue: CellExtendedValue
-    userEnteredFormat: Optional[CellFormat] = None
+    userEnteredFormat: CellFormat | None = None
 
 
 class RowData(BaseModel):
@@ -494,7 +517,7 @@ class SheetProperties(BaseModel):
 
     sheetId: int
     title: str
-    gridProperties: Optional[GridProperties] = None
+    gridProperties: GridProperties | None = None
 
 
 class Sheet(BaseModel):
@@ -504,7 +527,7 @@ class Sheet(BaseModel):
     """
 
     properties: SheetProperties
-    data: Optional[list[GridData]] = None
+    data: list[GridData] | None = None
 
 
 class SpreadsheetProperties(BaseModel):
@@ -589,7 +612,7 @@ class SheetDataInput(BaseModel):
             col_string = col_key.upper()
             if not col_string.isalpha():
                 raise TypeError(f"Column key '{col_key}' is invalid. Must be alphabetic.")
-            if not isinstance(cell_value, (int, float, str, bool)):
+            if not isinstance(cell_value, int | float | str | bool):
                 raise TypeError(
                     f"Cell value for {col_string}{row_int} must be an int, float, str, or bool."
                 )

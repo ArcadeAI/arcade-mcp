@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
 from arcade.sdk import ToolContext, tool
 
@@ -18,7 +18,7 @@ async def search_jobs(
         "or 'data analyst at Apple'.",
     ],
     location: Annotated[
-        Optional[str],
+        str | None,
         "Location to search for jobs. E.g. 'United States' or 'New York, NY'. Defaults to None.",
     ] = None,
     language: Annotated[
@@ -31,7 +31,7 @@ async def search_jobs(
         "Maximum number of results to retrieve. Defaults to 10 (max supported by the API).",
     ] = 10,
     next_page_token: Annotated[
-        Optional[str],
+        str | None,
         "Next page token to paginate results. Defaults to None (start from the first page).",
     ] = None,
 ) -> Annotated[dict, "Google Jobs results"]:

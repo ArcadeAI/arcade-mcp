@@ -60,6 +60,10 @@ langchain_tools = manager.to_langchain()
 
 ### 2. Use with LangGraph
 
+```bash
+pip install langgraph
+```
+
 Here's a simple example of using Arcade tools with LangGraph:
 
 ```python

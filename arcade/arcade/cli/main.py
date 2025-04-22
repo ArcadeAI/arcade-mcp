@@ -36,6 +36,7 @@ from arcade.cli.utils import (
     compute_base_url,
     compute_login_url,
     get_eval_files,
+    get_today_context,
     get_user_input,
     handle_chat_interaction,
     handle_tool_authorization,
@@ -56,6 +57,7 @@ cli = typer.Typer(
     pretty_exceptions_enable=False,
     pretty_exceptions_show_locals=False,
     pretty_exceptions_short=True,
+    rich_markup_mode="markdown",
 )
 
 
@@ -242,7 +244,15 @@ def chat(
         # start messages conversation
         history: list[dict[str, Any]] = []
 
+        # Ground the LLM with today's date and day of the week to help when calling date-related tools
+        # in case the user refers to relative dates (e.g. next Monday, last month, etc)
+        today_context = get_today_context()
+
         if prompt:
+            prompt = f"{today_context} {prompt}"
+        else:
+            prompt = today_context
+
             history.append({"role": "system", "content": prompt})
 
         display_arcade_chat_header(base_url, stream)

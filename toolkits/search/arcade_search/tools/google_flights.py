@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 
@@ -14,16 +14,16 @@ async def search_roundtrip_flights(
     ],
     arrival_airport_code: Annotated[str, "The arrival airport code. An uppercase 3-letter code"],
     outbound_date: Annotated[str, "Flight outbound date in YYYY-MM-DD format"],
-    return_date: Annotated[Optional[str], "Flight return date in YYYY-MM-DD format"],
+    return_date: Annotated[str | None, "Flight return date in YYYY-MM-DD format"],
     currency_code: Annotated[
-        Optional[str], "Currency of the returned prices. Defaults to 'USD'"
+        str | None, "Currency of the returned prices. Defaults to 'USD'"
     ] = "USD",
     travel_class: Annotated[
         GoogleFlightsTravelClass,
         "Travel class of the flight. Defaults to 'ECONOMY'",
     ] = GoogleFlightsTravelClass.ECONOMY,
-    num_adults: Annotated[Optional[int], "Number of adult passengers. Defaults to 1"] = 1,
-    num_children: Annotated[Optional[int], "Number of child passengers. Defaults to 0"] = 0,
+    num_adults: Annotated[int | None, "Number of adult passengers. Defaults to 1"] = 1,
+    num_children: Annotated[int | None, "Number of child passengers. Defaults to 0"] = 0,
     max_stops: Annotated[
         GoogleFlightsMaxStops,
         "Maximum number of stops (layovers) for the flight. Defaults to any number of stops",
@@ -68,14 +68,14 @@ async def search_one_way_flights(
     arrival_airport_code: Annotated[str, "The arrival airport code. An uppercase 3-letter code"],
     outbound_date: Annotated[str, "Flight departure date in YYYY-MM-DD format"],
     currency_code: Annotated[
-        Optional[str], "Currency of the returned prices. Defaults to 'USD'"
+        str | None, "Currency of the returned prices. Defaults to 'USD'"
     ] = "USD",
     travel_class: Annotated[
         GoogleFlightsTravelClass,
         "Travel class of the flight. Defaults to 'ECONOMY'",
     ] = GoogleFlightsTravelClass.ECONOMY,
-    num_adults: Annotated[Optional[int], "Number of adult passengers. Defaults to 1"] = 1,
-    num_children: Annotated[Optional[int], "Number of child passengers. Defaults to 0"] = 0,
+    num_adults: Annotated[int | None, "Number of adult passengers. Defaults to 1"] = 1,
+    num_children: Annotated[int | None, "Number of child passengers. Defaults to 0"] = 0,
     max_stops: Annotated[
         GoogleFlightsMaxStops,
         "Maximum number of stops (layovers) for the flight. Defaults to any number of stops",

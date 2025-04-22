@@ -35,9 +35,23 @@ def func_takes_pydantic_field_with_description(
     return product_name
 
 
-@tool(desc="A function that accepts an Pydantic Field")
+@tool(desc="A function that accepts an optional Pydantic Field")
 def func_takes_pydantic_field_optional(
     product_name: Optional[str] = Field(None, description="The name of the product"),
+) -> str:
+    return product_name
+
+
+@tool(desc="A function that accepts an optional Pydantic Field with bar syntax")
+def func_takes_pydantic_field_optional_bar_syntax(
+    product_name: str | None = Field(None, description="The name of the product"),
+) -> str:
+    return product_name
+
+
+@tool(desc="A function that accepts an optional Pydantic Field with union syntax")
+def func_takes_pydantic_field_optional_union_syntax(
+    product_name: Union[str, None] = Field(None, description="The name of the product"),
 ) -> str:
     return product_name
 
@@ -173,6 +187,40 @@ def read_products(
                 )
             },
             id="func_takes_pydantic_field_optional",
+        ),
+        pytest.param(
+            func_takes_pydantic_field_optional_bar_syntax,
+            {
+                "input": ToolInput(
+                    parameters=[
+                        InputParameter(
+                            name="product_name",
+                            description="The name of the product",
+                            required=False,
+                            inferrable=True,
+                            value_schema=ValueSchema(val_type="string", enum=None),
+                        )
+                    ]
+                )
+            },
+            id="func_takes_pydantic_field_optional_bar_syntax",
+        ),
+        pytest.param(
+            func_takes_pydantic_field_optional_union_syntax,
+            {
+                "input": ToolInput(
+                    parameters=[
+                        InputParameter(
+                            name="product_name",
+                            description="The name of the product",
+                            required=False,
+                            inferrable=True,
+                            value_schema=ValueSchema(val_type="string", enum=None),
+                        )
+                    ]
+                )
+            },
+            id="func_takes_pydantic_field_optional_union_syntax",
         ),
         pytest.param(
             func_takes_pydantic_field_annotated_description,
