@@ -493,11 +493,7 @@ def get_eval_files(directory: str) -> list[Path]:
     directory_path = Path(directory).resolve()
 
     if directory_path.is_dir():
-        eval_files = [
-            f
-            for f in directory_path.iterdir()
-            if f.is_file() and f.name.startswith("eval_") and f.name.endswith(".py")
-        ]
+        eval_files = [f for f in directory_path.rglob("eval_*.py") if f.is_file()]
     elif directory_path.is_file():
         eval_files = (
             [directory_path]
