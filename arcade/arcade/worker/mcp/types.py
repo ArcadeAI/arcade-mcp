@@ -11,8 +11,6 @@ from typing import (
 
 from pydantic import BaseModel, ConfigDict, Field
 
-LATEST_PROTOCOL_VERSION = "2024-11-05"
-
 ProgressToken = str | int
 Cursor = str
 Role = Literal["user", "assistant"]
@@ -94,7 +92,7 @@ class JSONRPCResponse(JSONRPCMessage):
     result: Any = None
     error: dict[str, Any] | None = None
 
-    def model_dump_json(self, **kwargs) -> str:
+    def model_dump_json(self, **kwargs: Any) -> str:
         """Convert to JSON string with proper formatting."""
 
         # Convert to dict
@@ -277,7 +275,7 @@ class InitializeResponse(JSONRPCResponse):
 
     result: InitializeResult
 
-    def model_dump_json(self, **kwargs) -> str:
+    def model_dump_json(self, **kwargs: Any) -> str:
         """Convert to JSON string with proper formatting."""
         # Convert to dict
         data = {
@@ -383,8 +381,3 @@ MCPMessage = Union[
     ListPromptsRequest,
     ListPromptsResponse,
 ]
-
-# For backwards compatibility - these will be removed in a future version
-InvokeToolRequest = CallToolRequest
-InvokeToolResponse = CallToolResponse
-InvokeToolResult = CallToolResult

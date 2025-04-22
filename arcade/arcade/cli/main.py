@@ -491,11 +491,11 @@ def serve(
         typer.Exit(code=1)
 
 
-@cli.command(help="Launch Arcade Worker and Engine locally", rich_help_panel="Launch")
+@cli.command(help="Launch complete deployment of Arcade locally", rich_help_panel="Launch")
 def dev(
-    host: str = typer.Option("127.0.0.1", help="Host for the worker server.", show_default=True),
+    host: str = typer.Option("127.0.0.1", help="Host for the toolkit server.", show_default=True),
     port: int = typer.Option(
-        8002, "-p", "--port", help="Port for the worker server.", show_default=True
+        8002, "-p", "--port", help="Port for the toolkit server.", show_default=True
     ),
     engine_config: str = typer.Option(
         None, "-c", "--config", help="Path to the engine configuration file."
@@ -506,7 +506,7 @@ def dev(
     debug: bool = typer.Option(False, "-d", "--debug", help="Show debug information"),
 ) -> None:
     """
-    Start both the worker and engine servers.
+    Start both the toolkit server and engine servers.
     """
     try:
         start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
@@ -516,7 +516,9 @@ def dev(
         typer.Exit(code=1)
 
 
-@cli.command(help="Start a local Arcade Worker server", rich_help_panel="Launch", hidden=True)
+@cli.command(
+    help="Start a server with locally installed Arcade tools", rich_help_panel="Launch", hidden=True
+)
 def workerup(
     host: str = typer.Option(
         "127.0.0.1",
@@ -554,12 +556,12 @@ def workerup(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
+        error_message = f"❌ Failed to start Arcade Toolkit Server: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
 
 
-@cli.command(help="Deploy worker to Arcade Cloud", rich_help_panel="Manage")
+@cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Manage")
 def deploy(
     deployment_file: str = typer.Option(
         "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
@@ -635,7 +637,9 @@ def deploy(
                 raise typer.Exit(code=1)
 
 
-@cli.command(help="Launch an MCP server with locally installed tools", rich_help_panel="Launch")
+@cli.command(
+    help="Launch an MCP server with locally installed Arcade tools", rich_help_panel="Launch"
+)
 def mcp(
     mcp_type: str = typer.Option("stdio", "--type", "-t", help="The type of MCP server to launch"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
@@ -661,7 +665,7 @@ def mcp(
 
         server = StdioServer(
             tool_catalog,
-            enable_logging=debug if debug else False,
+            enable_logging=debug,
         )
         await server.run()
 

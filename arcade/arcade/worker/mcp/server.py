@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import uuid
 from enum import Enum
 from typing import Any, Callable, Union
 
@@ -85,7 +86,7 @@ class MCPServer:
         if enable_logging:
             self.message_processor.add_middleware(create_mcp_logging_middleware())
         self._shutdown: bool = False
-        self.arcade = AsyncArcade(**client_kwargs)
+        self.arcade = AsyncArcade(**client_kwargs)  # type: ignore[arg-type]
 
         # Initialize handler dispatch table
         self._method_handlers: dict[str, Callable] = {
@@ -149,14 +150,15 @@ class MCPServer:
         if config.user.email:
             return config.user.email
         # Otherwise, try init_options['user_id']
-        elif os.environ.get("ARCADE_USER_ID"):
-            return os.environ.get("ARCADE_USER_ID")
+        fallback = str(uuid.uuid4())
+        if os.environ.get("ARCADE_USER_ID", None):
+            return os.environ.get("ARCADE_USER_ID", fallback)
         elif isinstance(init_options, dict):
             user_id = init_options.get("user_id")
             if user_id:
                 return user_id
-        # Fallback to 'anonymous'
-        return "anonymous"
+        # Fallback to random UUID
+        return fallback
 
     async def _send_response(self, write_stream: Any, response: Any) -> None:
         """
@@ -407,7 +409,7 @@ class MCPServer:
                     )
                 else:
                     tool_context.authorization = ToolAuthorizationContext(
-                        token=auth_result.context.token,
+                        token=auth_result.context.token if auth_result.context else None,
                         user_info={"user_id": user_id} if user_id else None,
                     )
 
@@ -535,15 +537,17 @@ class MCPServer:
         req = tool.definition.requirements.authorization
         if not req:
             return None
+        if not req.provider_id and not req.provider_type:
+            return None
         if hasattr(req, "oauth2") and req.oauth2:
             return AuthRequirement(
-                provider_id=req.provider_id,
-                provider_type=req.provider_type,
+                provider_id=str(req.provider_id),
+                provider_type=str(req.provider_type),
                 oauth2=AuthRequirementOauth2(scopes=req.oauth2.scopes),
             )
         return AuthRequirement(
-            provider_id=req.provider_id,
-            provider_type=req.provider_type,
+            provider_id=str(req.provider_id),
+            provider_type=str(req.provider_type),
         )
 
     async def _check_authorization(

@@ -98,9 +98,7 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
                 except (AttributeError, TypeError):
                     # Fallback if is_required() doesn't exist or fails
                     try:
-                        from pydantic.fields import Undefined
-
-                        has_default = getattr(field, "default", Undefined) is not Undefined
+                        has_default = getattr(field, "default", None) is not None
                         has_factory = getattr(field, "default_factory", None) is not None
                         if not (has_default or has_factory):
                             required.append(field_name)
