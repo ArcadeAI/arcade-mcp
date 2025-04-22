@@ -4,6 +4,7 @@ arcade-google
 arcade-hubspot
 arcade-linkedin
 arcade-math
+arcade-salesforce
 arcade-search
 arcade-slack
 arcade-spotify
