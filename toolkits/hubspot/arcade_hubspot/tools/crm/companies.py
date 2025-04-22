@@ -1,15 +1,14 @@
 from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Hubspot
 
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.models import HubspotCrmClient
 
 
 @tool(
-    requires_auth=OAuth2(
-        id="hubspot",
+    requires_auth=Hubspot(
         scopes=[
             "oauth",
             "crm.objects.companies.read",

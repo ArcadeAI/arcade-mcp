@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Optional
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Hubspot
 
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.models import HubspotCrmClient
@@ -9,8 +9,7 @@ from arcade_hubspot.utils import clean_data
 
 
 @tool(
-    requires_auth=OAuth2(
-        id="hubspot",
+    requires_auth=Hubspot(
         scopes=[
             "oauth",
             "crm.objects.contacts.read",
@@ -61,8 +60,7 @@ async def get_contact_data_by_keywords(
 
 
 @tool(
-    requires_auth=OAuth2(
-        id="hubspot",
+    requires_auth=Hubspot(
         scopes=["oauth", "crm.objects.contacts.write"],
     ),
 )
