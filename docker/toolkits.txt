@@ -1,6 +1,7 @@
 arcade-code-sandbox
 arcade-github
 arcade-google
+arcade-hubspot
 arcade-linkedin
 arcade-math
 arcade-search
