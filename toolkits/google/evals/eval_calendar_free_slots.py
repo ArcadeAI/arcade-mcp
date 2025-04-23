@@ -13,7 +13,7 @@ from arcade.sdk.eval import (
 
 import arcade_google
 from arcade_google.critics import AnyDatetimeCritic, DatetimeOrNoneCritic
-from arcade_google.tools.calendar import find_time_slots_when_everyone_is_free
+from arcade_google.tools import find_time_slots_when_everyone_is_free
 
 rubric = EvalRubric(
     fail_threshold=0.9,

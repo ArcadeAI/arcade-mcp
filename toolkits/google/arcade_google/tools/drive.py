@@ -7,7 +7,7 @@ from googleapiclient.errors import HttpError
 from arcade_google.doc_to_html import convert_document_to_html
 from arcade_google.doc_to_markdown import convert_document_to_markdown
 from arcade_google.models import DocumentFormat, OrderBy
-from arcade_google.tools.docs import get_document_by_id
+from arcade_google.tools import get_document_by_id
 from arcade_google.utils import (
     build_drive_service,
     build_file_tree,

@@ -1,8 +1,11 @@
 import re
 from urllib.parse import urlparse
 
+import httpx
+from arcade.sdk import ToolContext
 from arcade.sdk.errors import ToolExecutionError
 
+from arcade_reddit.client import RedditClient
 from arcade_reddit.enums import RedditThingType
 
 
@@ -373,3 +376,88 @@ def create_fullname_for_comment(identifier: str) -> str:
         return identifier
     comment_id = _get_comment_id(identifier)
     return f"t1_{comment_id}"
+
+
+async def resolve_subreddit_access(client: RedditClient, subreddit: str) -> dict:
+    """Checks whether the specified subreddit exists and is accessible.
+    Helps abstract the logic of checking subreddit access.
+
+    Args:
+        client: The Reddit client
+        subreddit: The subreddit to check
+
+    Returns:
+        A dictionary that specifies whether the subreddit exists and
+        whether it is accessible to the user.
+    """
+    normalized_name = normalize_subreddit_name(subreddit)
+    try:
+        await client.get(f"r/{normalized_name}/about.json")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code in (404, 302):
+            return {"exists": False, "accessible": False}
+        elif e.response.status_code == 403:
+            return {"exists": True, "accessible": False}
+        raise
+    return {"exists": True, "accessible": True}
+
+
+def parse_subreddit_rules_response(data: dict) -> dict:
+    """
+    Parse the response data from the Reddit API for subreddit rules.
+
+    Args:
+        data (dict): The raw API response containing subreddit rules.
+
+    Returns:
+        dict: A dictionary with a 'rules' key containing a list of parsed rules.
+    """
+    rules = []
+    for rule in data.get("rules", []):
+        rules.append({
+            "priority": rule.get("priority"),
+            "title": rule.get("short_name"),
+            "body": rule.get("description"),
+        })
+    return {"rules": rules}
+
+
+async def parse_user_posts_response(
+    context: ToolContext, posts_data: dict, include_body: bool
+) -> dict:
+    """Parse the response from the Reddit API for user posts
+
+    Args:
+        context: The tool context
+        posts_data: The response from the Reddit API for getting the authenticated user's posts
+        include_body: Whether to include the body of the posts in the parsed response
+
+    Returns:
+        A dictionary with a cursor for the next page (if there is one) and a list of posts
+    """
+    next_cursor = posts_data.get("data", {}).get("after")
+    parsed_response = {"cursor": next_cursor} if next_cursor else {}
+    if not include_body:
+        posts = []
+        for child in posts_data.get("data", {}).get("children", []):
+            post_data = child.get("data", {})
+            simplified = _simplify_post_data(post_data, include_body=False)
+            posts.append(simplified)
+        parsed_response["posts"] = posts
+    else:
+        post_ids = []
+        for child in posts_data.get("data", {}).get("children", []):
+            post_data = child.get("data", {})
+            identifier = post_data.get("name") or post_data.get("id")
+            if identifier:
+                post_ids.append(identifier)
+        # Dynamically import get_content_of_multiple_posts to avoid circular dependency
+        from arcade_reddit.tools.read import get_content_of_multiple_posts
+
+        content_response = await get_content_of_multiple_posts(
+            context=context, post_identifiers=post_ids
+        )
+        posts_with_body = content_response.get("posts", [])
+        parsed_response["posts"] = posts_with_body
+
+    return parsed_response

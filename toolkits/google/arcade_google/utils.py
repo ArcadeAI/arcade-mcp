@@ -64,6 +64,7 @@ def parse_datetime(datetime_str: str, time_zone: str) -> datetime:
     Raises:
         ValueError: If the datetime string is not in the correct format.
     """
+    datetime_str = datetime_str.upper().strip().rstrip("Z")
     try:
         dt = datetime.fromisoformat(datetime_str)
         if dt.tzinfo is None:
@@ -827,6 +828,24 @@ def merge_intervals(intervals: list[tuple[datetime, datetime]]) -> list[tuple[da
 
 
 # Calendar utils
+
+
+def build_oauth_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
+    """
+    Build an OAuth2 service object.
+    """
+    auth_token = auth_token or ""
+    return build("oauth2", "v2", credentials=Credentials(auth_token))
+
+
+def build_calendar_service(auth_token: str | None) -> Resource:  # type: ignore[no-any-unimported]
+    """
+    Build a Calendar service object.
+    """
+    auth_token = auth_token or ""
+    return build("calendar", "v3", credentials=Credentials(auth_token))
+
+
 def weekday_to_name(weekday: int) -> str:
     return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][weekday]
 

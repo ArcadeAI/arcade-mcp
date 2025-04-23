@@ -1,10 +1,13 @@
 arcade-code-sandbox
+arcade-dropbox
 arcade-github
 arcade-google
+arcade-hubspot
 arcade-linkedin
 arcade-math
 arcade-notion-toolkit
 arcade-reddit
+arcade-salesforce
 arcade-search
 arcade-slack
 arcade-spotify

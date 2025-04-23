@@ -8,7 +8,7 @@ from arcade.sdk.eval import (
 from arcade.sdk.eval.critic import BinaryCritic
 
 import arcade_google
-from arcade_google.tools.contacts import (
+from arcade_google.tools import (
     create_contact,
     search_contacts_by_email,
     search_contacts_by_name,
