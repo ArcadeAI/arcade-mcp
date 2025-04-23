@@ -83,9 +83,21 @@ class MCPServer:
         """
         self.tool_catalog: ToolCatalog = tool_catalog
         self.message_processor: MCPMessageProcessor = create_message_processor()
+
+        # Pop middleware_config from client_kwargs regardless of logging state,
+        # as it's internal config not meant for AsyncArcade.
+        middleware_config = client_kwargs.pop("middleware_config", {})
+
         if enable_logging:
-            self.message_processor.add_middleware(create_mcp_logging_middleware())
+            # Create and add the logging middleware if logging is enabled.
+            # Note: enable_logging must be True for this middleware (and its stdio_mode behavior)
+            # to be activated.
+            self.message_processor.add_middleware(
+                create_mcp_logging_middleware(**middleware_config)
+            )
+
         self._shutdown: bool = False
+        # Initialize AsyncArcade with the *remaining* client_kwargs
         self.arcade = AsyncArcade(**client_kwargs)  # type: ignore[arg-type]
 
         # Initialize handler dispatch table
@@ -147,18 +159,18 @@ class MCPServer:
             A user ID string
         """
         # Prefer config.user.email if available
-        if config.user.email:
+        if config.user and config.user.email:
             return config.user.email
-        # Otherwise, try init_options['user_id']
+
         fallback = str(uuid.uuid4())
         if os.environ.get("ARCADE_USER_ID", None):
             return os.environ.get("ARCADE_USER_ID", fallback)
         elif isinstance(init_options, dict):
             user_id = init_options.get("user_id")
             if user_id:
-                return user_id
+                return str(user_id)
         # Fallback to random UUID
-        return fallback
+        return str(fallback)
 
     async def _send_response(self, write_stream: Any, response: Any) -> None:
         """
@@ -410,7 +422,7 @@ class MCPServer:
                 else:
                     tool_context.authorization = ToolAuthorizationContext(
                         token=auth_result.context.token if auth_result.context else None,
-                        user_info={"user_id": user_id} if user_id else None,
+                        user_info={"user_id": user_id} if user_id else {},
                     )
 
             # Execute the tool
@@ -543,7 +555,7 @@ class MCPServer:
             return AuthRequirement(
                 provider_id=str(req.provider_id),
                 provider_type=str(req.provider_type),
-                oauth2=AuthRequirementOauth2(scopes=req.oauth2.scopes),
+                oauth2=AuthRequirementOauth2(scopes=req.oauth2.scopes or []),
             )
         return AuthRequirement(
             provider_id=str(req.provider_id),

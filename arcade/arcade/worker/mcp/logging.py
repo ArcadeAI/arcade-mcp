@@ -1,5 +1,6 @@
 import json
 import logging
+import sys
 import time
 from typing import Any
 
@@ -26,6 +27,7 @@ class MCPLoggingMiddleware:
         log_response_body: bool = False,
         log_errors: bool = True,
         min_duration_to_log_ms: int = 0,
+        stdio_mode: bool = False,
     ) -> None:
         """
         Initialize the MCP logging middleware.
@@ -36,6 +38,7 @@ class MCPLoggingMiddleware:
             log_response_body: Whether to log full response bodies (default: False).
             log_errors: Whether to log errors at ERROR level (default: True).
             min_duration_to_log_ms: Minimum duration in ms to log (0 logs all).
+            stdio_mode: Whether running in stdio mode (redirects logs to stderr).
         """
         self.log_level = getattr(logging, log_level.upper())
         self.log_request_body = log_request_body
@@ -46,8 +49,29 @@ class MCPLoggingMiddleware:
         self.response_log_format = "[MCP<] {method} completed in {duration:.2f}ms (id: {id})"
         self.error_log_format = "[MCP!] {method} error: {error} (id: {id})"
 
+        # If in stdio mode, ensure MCP logs go to stderr
+        if stdio_mode:
+            self._redirect_logs_to_stderr()
+
         # Log that middleware is initialized
         logger.debug(f"MCP logging middleware initialized (level: {log_level})")
+
+    def _redirect_logs_to_stderr(self) -> None:
+        """Redirect MCP logs to stderr to avoid interfering with stdio communication."""
+        # Remove any existing handlers
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+
+        # Add a stderr handler
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        stderr_handler.setFormatter(formatter)
+        logger.addHandler(stderr_handler)
+
+        # Ensure we're not propagating to root logger which might log to stdout
+        logger.propagate = False
+
+        logger.debug("MCP logs redirected to stderr for stdio mode")
 
     def __call__(self, message: MCPMessage, direction: str) -> MCPMessage:
         """
@@ -187,4 +211,5 @@ def create_mcp_logging_middleware(**config: Any) -> MCPLoggingMiddleware:
         log_response_body=config.get("log_response_body", False),
         log_errors=config.get("log_errors", True),
         min_duration_to_log_ms=config.get("min_duration_to_log_ms", 0),
+        stdio_mode=config.get("stdio_mode", False),
     )

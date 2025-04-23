@@ -49,7 +49,7 @@ async def test_message_processor_middleware_execution_order(monkeypatch):
 
     processor = create_message_processor(mw_sync, mw_async)
 
-    # Use a pre‑parsed PingRequest instance so we don't test parsing again here
+    # Use a pre-parsed PingRequest instance so we don't test parsing again here
     ping = PingRequest(id=42)
 
     _ = await processor.process_request(ping)

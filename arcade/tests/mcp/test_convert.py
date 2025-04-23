@@ -7,7 +7,7 @@ from arcade.worker.mcp.convert import convert_to_mcp_content, create_mcp_tool
 
 
 @tool
-def sample_tool(x: Annotated[int, "first"], y: Annotated[int, "second"]) -> int:  # noqa: D401
+def sample_tool(x: Annotated[int, "first"], y: Annotated[int, "second"]) -> int:
     """Return x+y"""
 
     return x + y

@@ -1,5 +1,7 @@
 import importlib.util
 import ipaddress
+import os
+import shlex
 import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
@@ -32,6 +34,11 @@ from arcade.core.schema import ToolDefinition
 from arcade.sdk import ToolCatalog, Toolkit
 
 console = Console()
+
+
+# -----------------------------------------------------------------------------
+# Shared helpers for the CLI
+# -----------------------------------------------------------------------------
 
 
 class OrderCommands(TyperGroup):
@@ -670,3 +677,81 @@ def get_today_context() -> str:
     today = datetime.now().strftime("%Y-%m-%d")
     day_of_week = datetime.now().strftime("%A")
     return f"Today is {today}, {day_of_week}."
+
+
+def discover_toolkits() -> list[Toolkit]:
+    """Return all Arcade toolkits installed in the active Python environment.
+
+    Raises:
+        RuntimeError: If no toolkits are found, mirroring the behaviour of Toolkit discovery elsewhere.
+    """
+    toolkits = Toolkit.find_all_arcade_toolkits()
+    if not toolkits:
+        raise RuntimeError("No toolkits found in Python environment.")
+    return toolkits
+
+
+def build_tool_catalog(toolkits: list[Toolkit]) -> ToolCatalog:
+    """Construct a ``ToolCatalog`` populated with *toolkits*.
+
+
+    Args:
+        toolkits: Toolkits to register in the catalog.
+
+    Returns:
+        ToolCatalog
+    """
+    catalog = ToolCatalog()
+    for tk in toolkits:
+        catalog.add_toolkit(tk)
+    return catalog
+
+
+def _parse_line(line: str) -> tuple[str, str] | None:
+    """
+    Return (key, value) if the line looks like KEY=VALUE, else None.
+    Handles quotes and escaped chars via shlex.
+    """
+    if not line or line.startswith("#") or "=" not in line:
+        return None
+    key, raw_val = line.split("=", 1)
+    key = key.strip()
+    raw_val = raw_val.strip()
+
+    # Use shlex to handle "quoted strings with # hash" etc.
+    try:
+        value = shlex.split(raw_val)[0] if raw_val else ""
+    except ValueError:
+        # Fallback: naked value without shlex parsing
+        value = raw_val
+
+    return key, value
+
+
+def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
+    """
+    Load variables from *path* into os.environ.
+
+    Args:
+        path: .env file path
+        override: replace existing env vars if True
+
+    Returns:
+        The mapping of vars that were added/updated.
+    """
+    path = Path(path).expanduser()
+    if not path.is_file():
+        return {}
+
+    loaded: dict[str, str] = {}
+
+    for raw in path.read_text().splitlines():
+        parsed = _parse_line(raw.strip())
+        if parsed is None:
+            continue
+        k, v = parsed
+        if override or k not in os.environ:
+            os.environ[k] = v
+            loaded[k] = v
+
+    return loaded

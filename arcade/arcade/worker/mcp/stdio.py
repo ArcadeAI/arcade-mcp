@@ -19,7 +19,7 @@ T = TypeVar("T")
 
 def stdio_reader(stdin: object, q: queue.Queue[str | None]) -> None:
     """Read lines from stdin and put them into a queue."""
-    for line in stdin:
+    for line in stdin:  # type: ignore[attr-defined]
         q.put(line)
     q.put(None)
 
@@ -36,8 +36,8 @@ def stdio_writer(stdout: object, q: queue.Queue[str | None]) -> None:
             if not msg.endswith("\n"):
                 msg += "\n"
 
-            stdout.write(msg)
-            stdout.flush()  # Important to ensure the message gets sent
+            stdout.write(msg)  # type: ignore[attr-defined]
+            stdout.flush()  # type: ignore[attr-defined]
     except Exception:
         logger.exception("Error in stdio writer")
 
@@ -53,6 +53,11 @@ class StdioServer(MCPServer):
         enable_logging: bool = True,
         **client_kwargs: dict[str, Any],
     ):
+        # Set up stdio-specific middleware configuration
+        middleware_config = client_kwargs.get("middleware_config", {})
+        middleware_config["stdio_mode"] = True
+        client_kwargs["middleware_config"] = middleware_config
+
         super().__init__(tool_catalog, enable_logging, **client_kwargs)
         self.read_q: queue.Queue[str | None] = queue.Queue()
         self.write_q: queue.Queue[str | None] = queue.Queue()
@@ -75,7 +80,7 @@ class StdioServer(MCPServer):
     def _stdio_reader(self, stdin: object, q: queue.Queue[str | None]) -> None:
         """Read lines from stdin and put them into a queue."""
         try:
-            for line in stdin:
+            for line in stdin:  # type: ignore[attr-defined]
                 if not self.running:
                     break
                 q.put(line)

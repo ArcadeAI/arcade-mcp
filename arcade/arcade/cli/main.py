@@ -64,8 +64,8 @@ cli = typer.Typer(
 cli.add_typer(
     worker.app,
     name="worker",
-    help="Manage workers (logs, list, etc)",
-    rich_help_panel="Manage",
+    help="Manage deployments of tool servers (logs, list, etc)",
+    rich_help_panel="Deployment",
 )
 console = Console()
 
@@ -447,7 +447,7 @@ def evals(
 
 
 @cli.command(
-    help="Start Arcade Worker serving tools installed in the current python environment",
+    help="Start tool server worker with locally installed tools",
     rich_help_panel="Launch",
 )
 def serve(
@@ -468,6 +468,9 @@ def serve(
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
+    mcp: bool = typer.Option(
+        False, "--mcp", help="Run as a local MCP server over stdio", show_default=True
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
@@ -482,6 +485,7 @@ def serve(
             disable_auth=disable_auth,
             enable_otel=otel_enable,
             debug=debug,
+            mcp=mcp,
         )
     except KeyboardInterrupt:
         typer.Exit()
@@ -491,7 +495,7 @@ def serve(
         typer.Exit(code=1)
 
 
-@cli.command(help="Launch complete deployment of Arcade locally", rich_help_panel="Launch")
+@cli.command(help="Launch Arcade - requires 'arcade-engine'", rich_help_panel="Launch")
 def dev(
     host: str = typer.Option("127.0.0.1", help="Host for the toolkit server.", show_default=True),
     port: int = typer.Option(
@@ -561,7 +565,7 @@ def workerup(
         typer.Exit(code=1)
 
 
-@cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Manage")
+@cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Deployment")
 def deploy(
     deployment_file: str = typer.Option(
         "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
@@ -635,50 +639,6 @@ def deploy(
                     f"❌ Failed to deploy worker '{worker.config.id}': {e}", style="bold red"
                 )
                 raise typer.Exit(code=1)
-
-
-@cli.command(
-    help="Launch an MCP server with locally installed Arcade tools", rich_help_panel="Launch"
-)
-def mcp(
-    mcp_type: str = typer.Option("stdio", "--type", "-t", help="The type of MCP server to launch"),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-) -> None:
-    """
-    Launch an MCP server with locally installed tools.
-    """
-    from arcade.core.catalog import ToolCatalog
-    from arcade.sdk import Toolkit
-    from arcade.worker.mcp.stdio import StdioServer
-
-    validate_and_get_config()
-
-    async def run_mcp_stdio() -> None:
-        tool_catalog = ToolCatalog()
-        toolkits = Toolkit.find_all_arcade_toolkits()
-
-        if not toolkits:
-            raise RuntimeError("No toolkits found in Python environment.")
-
-        for toolkit in toolkits:
-            tool_catalog.add_toolkit(toolkit)
-
-        server = StdioServer(
-            tool_catalog,
-            enable_logging=debug,
-        )
-        await server.run()
-
-    try:
-        if mcp_type == "stdio":
-            asyncio.run(run_mcp_stdio())
-        else:
-            typer.Exit(code=1)
-    except KeyboardInterrupt:
-        typer.Exit()
-    except Exception as e:
-        console.print(f"❌ Failed to start MCP server: {e}", style="bold red")
-        raise typer.Exit(code=1)
 
 
 @cli.callback()

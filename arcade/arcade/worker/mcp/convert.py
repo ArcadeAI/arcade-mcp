@@ -80,7 +80,7 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
                     ann = field.annotation
                     # Handle typing.Annotated[Enum, ...]
                     if getattr(ann, "__origin__", None) is not None and hasattr(ann, "__args__"):
-                        for arg in ann.__args__:
+                        for arg in ann.__args__:  # type: ignore[union-attr]
                             if isinstance(arg, type) and issubclass(arg, Enum):
                                 enum_type = arg
                                 break
@@ -122,7 +122,7 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
         annotations = {}
 
         # Use tool name as title if available
-        annotations["title"] = getattr(tool.definition, "title", name.replace(".", "_"))
+        annotations["title"] = getattr(tool.definition, "title", str(name).replace(".", "_"))
 
         # Determine hints based on tool properties
         if hasattr(tool.definition, "metadata"):
@@ -133,9 +133,9 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
             annotations["openWorldHint"] = metadata.get("open_world", False)
 
         # Create the final tool definition
-        tool_def = {
-            "name": name.replace(".", "_"),
-            "description": description,
+        tool_def: MCPTool = {
+            "name": str(name).replace(".", "_"),
+            "description": str(description),
             "inputSchema": input_schema,
             "annotations": annotations,
         }

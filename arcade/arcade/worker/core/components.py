@@ -27,7 +27,8 @@ class CatalogComponent(WorkerComponent):
             response_type=CatalogResponse,
             operation_id="get_catalog",
             description="Get the catalog of tools",
-            tags=["base"],
+            summary="Get the catalog of tools",
+            tags=["Arcade"],
         )
 
     async def __call__(self, request: RequestData) -> CatalogResponse:
@@ -54,7 +55,8 @@ class CallToolComponent(WorkerComponent):
             response_type=ToolCallResponse,
             operation_id="call_tool",
             description="Call a tool",
-            tags=["base"],
+            summary="Call a tool",
+            tags=["Arcade"],
         )
 
     async def __call__(self, request: RequestData) -> ToolCallResponse:
@@ -84,7 +86,8 @@ class HealthCheckComponent(WorkerComponent):
             response_type=HealthCheckResponse,
             operation_id="health_check",
             description="Check the health of the worker",
-            tags=["base"],
+            summary="Check the health of the worker",
+            tags=["Arcade"],
         )
 
     async def __call__(self, request: RequestData) -> HealthCheckResponse:

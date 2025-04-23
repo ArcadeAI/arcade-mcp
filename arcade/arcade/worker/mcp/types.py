@@ -110,14 +110,14 @@ class JSONRPCResponse(JSONRPCMessage):
             elif (
                 isinstance(self.result, (dict, list, str, int, float, bool)) or self.result is None
             ):
-                data["result"] = self.result
+                data["result"] = self.result  # type: ignore[assignment]
             else:
                 # Try to convert using str() as a fallback
                 data["result"] = str(self.result)
 
         # Add error if present
         if self.error is not None:
-            data["error"] = self.error
+            data["error"] = self.error  # type: ignore[assignment]
 
         return json.dumps(data, ensure_ascii=False)
 

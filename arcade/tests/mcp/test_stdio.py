@@ -1,12 +1,11 @@
 import io
 import queue
-from unittest import mock
 
 from arcade.worker.mcp.stdio import stdio_reader, stdio_writer
 
 
 def test_stdio_reader_puts_lines_and_none():
-    q: "queue.Queue[str | None]" = queue.Queue()
+    q: queue.Queue[str | None] = queue.Queue()
     test_input = io.StringIO("line1\nline2\n")
 
     stdio_reader(test_input, q)
@@ -18,7 +17,7 @@ def test_stdio_reader_puts_lines_and_none():
 
 
 def test_stdio_writer_reads_until_none():
-    q: "queue.Queue[str | None]" = queue.Queue()
+    q: queue.Queue[str | None] = queue.Queue()
     output_stream = io.StringIO()
 
     # preload queue with two messages and sentinel

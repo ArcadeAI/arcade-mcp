@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 import ast
 import inspect
 import re
 from collections.abc import Iterable
 from types import UnionType
-from typing import Any, Callable, Literal, Optional, TypeVar, Union, get_args, get_origin
+from typing import Any, Callable, Literal, TypeVar, Union, get_args, get_origin
 
 T = TypeVar("T")
 
 
-def first_or_none(_type: type[T], iterable: Iterable[Any]) -> Optional[T]:
+def first_or_none(_type: type[T], iterable: Iterable[Any]) -> T | None:
     """
     Returns the first item in the iterable that is an instance of the given type, or None if no such item is found.
     """
@@ -65,7 +67,7 @@ def does_function_return_value(func: Callable) -> bool:
     Returns True if the given function returns a value, i.e. if it has a return statement with a value.
     """
     try:
-        source: Optional[str] = inspect.getsource(func)
+        source: str | None = inspect.getsource(func)
     except OSError:
         # Workaround for parameterized unit tests that use a dynamically-generated function
         source = getattr(func, "__source__", None)

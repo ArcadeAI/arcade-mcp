@@ -21,11 +21,11 @@ from arcade.worker.mcp.types import (
 
 
 class _FakeAuth:
-    async def authorize(self, auth_requirement: Any, user_id: str):  # noqa: D401
+    async def authorize(self, auth_requirement: Any, user_id: str):
         """Return an object that mimics AuthorizationResponse with completed status."""
 
         class _Ctx:  # minimal stub
-            token = "dummy-token"
+            token = "dummy-token"  # noqa: S105
 
         class _Resp:  # pylint: disable=too-few-public-methods
             status = "completed"
@@ -48,14 +48,14 @@ pytestmark = pytest.mark.asyncio
 def _patch_arcadepy(monkeypatch):
     """Patch the external `arcadepy` dependency used by mcp.server."""
 
-    # Patch the imported symbols on the already‑imported server module
+    # Patch the imported symbols on the already-imported server module
     monkeypatch.setattr(mcp_server, "AsyncArcade", _FakeArcade, raising=True)
     monkeypatch.setattr(mcp_server, "ArcadeError", Exception, raising=True)
 
     # Provide a dummy `arcadepy` module in sys.modules for any other importers
     fake_arcadepy = types.ModuleType("arcadepy")
     fake_arcadepy.AsyncArcade = _FakeArcade  # type: ignore[attr-defined]
-    fake_arcadepy.ArcadeError = Exception  # type: ignore
+    fake_arcadepy.ArcadeError = Exception  # type: ignore[attr-defined]
     sys.modules["arcadepy"] = fake_arcadepy
 
     yield
@@ -129,7 +129,7 @@ async def test_handle_call_tool_success(server):
     resp = await server._handle_call_tool(req, user_id="tester@example.com")  # pylint: disable=protected-access
 
     assert resp.id == "call-1"
-    # convert_to_mcp_content wraps primitives in list‑of‑dicts
+    # convert_to_mcp_content wraps primitives in list-of-dicts
     assert resp.result.content == [{"type": "text", "text": "42"}]
 
 
@@ -145,12 +145,12 @@ async def test_get_user_id_env(monkeypatch, server):
 
 
 async def test_send_response_dict(server, monkeypatch):
-    """_send_response should JSON‑serialize plain dictionaries."""
+    """_send_response should JSON-serialize plain dictionaries."""
 
     sent: list[str] = []
 
     class _Write:
-        async def send(self, msg):  # noqa: D401
+        async def send(self, msg):
             sent.append(msg)
 
     await server._send_response(_Write(), {"foo": "bar"})  # pylint: disable=protected-access
