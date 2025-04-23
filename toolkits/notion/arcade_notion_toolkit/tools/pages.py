@@ -29,38 +29,46 @@ async def get_page_content_by_id(
 
     async with httpx.AsyncClient() as client:
 
-        async def fetch_markdown_recursive(block_id: str, indent: str = "") -> str:
-            """
-            Gets the markdown content of a Notion page.
-
-            Performs DFS while paginating through the page's block children, converting
-            each block to markdown and conserving the page's indentation level.
-            """
-            markdown_pieces = []
+        async def fetch_blocks(block_id: str) -> list:
+            """Fetch all immediate children blocks for a given block ID, handling pagination"""
+            all_blocks = []
             url = get_url("retrieve_block_children", block_id=block_id)
             cursor = None
 
             while True:
                 data, has_more, cursor = await get_next_page(client, url, headers, params, cursor)
-                for block in data.get("results", []):
-                    block_markdown = await converter.convert_block(block)
-                    if block_markdown:
-                        # Append each line with indent as a separate piece
-                        for line in block_markdown.rstrip("\n").splitlines():
-                            markdown_pieces.append(indent + line + "\n")
-
-                    # If the block has children and is not a child page, recurse.
-                    # We don't recurse into child page content, as this would result in fetching
-                    # the children pages' content, which the Notion UI does not show.
-                    if (
-                        block.get("has_children", False)
-                        and block.get("type") != BlockType.CHILD_PAGE.value
-                    ):
-                        markdown_pieces.append(
-                            await fetch_markdown_recursive(block["id"], indent + "    ")
-                        )
+                all_blocks.extend(data.get("results", []))
                 if not has_more:
                     break
+
+            return all_blocks
+
+        async def process_blocks_to_markdown(blocks: list, indent: str = "") -> str:
+            """Process a list of blocks into markdown.
+
+            If a block has children, we recurse into the children blocks.
+            """
+            markdown_pieces = []
+
+            for block in blocks:
+                block_markdown = await converter.convert_block(block)
+                if block_markdown:
+                    # Append each line with indent as a separate piece
+                    for line in block_markdown.rstrip("\n").splitlines():
+                        markdown_pieces.append(indent + line + "\n")
+
+                # If the block has children and is not a child page, recurse.
+                # We don't recurse into child page content, as this would result in fetching
+                # the children pages' content, which the Notion UI does not show.
+                if (
+                    block.get("has_children", False)
+                    and block.get("type") != BlockType.CHILD_PAGE.value
+                ):
+                    # Fetch all child blocks first
+                    child_blocks = await fetch_blocks(block["id"])
+                    # Then process them all at once
+                    child_markdown = await process_blocks_to_markdown(child_blocks, indent + "    ")
+                    markdown_pieces.append(child_markdown)
 
             return "".join(markdown_pieces)
 
@@ -68,8 +76,11 @@ async def get_page_content_by_id(
         page_metadata = await get_object_metadata(context, object_id=page_id)
         markdown_title = f"# {extract_title(page_metadata)}\n"
 
-        # Get the content
-        markdown_content = await fetch_markdown_recursive(page_id, "")
+        # Get all top-level blocks
+        top_level_blocks = await fetch_blocks(page_id)
+
+        # Process all block content into markdown
+        markdown_content = await process_blocks_to_markdown(top_level_blocks, "")
 
         return markdown_title + markdown_content
 
