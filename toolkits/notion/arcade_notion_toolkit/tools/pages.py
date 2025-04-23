@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated, Any
 
 import httpx
@@ -79,8 +80,15 @@ async def get_page_content_by_id(
         # Get all top-level blocks
         top_level_blocks = await fetch_blocks(page_id)
 
+        chunk_size = max(1, len(top_level_blocks) // 5)
+        chunks = [
+            top_level_blocks[i : i + chunk_size]
+            for i in range(0, len(top_level_blocks), chunk_size)
+        ]
+
         # Process all block content into markdown
-        markdown_content = await process_blocks_to_markdown(top_level_blocks, "")
+        results = await asyncio.gather(*[process_blocks_to_markdown(chunk, "") for chunk in chunks])
+        markdown_content = "".join(results)
 
         return markdown_title + markdown_content
 
