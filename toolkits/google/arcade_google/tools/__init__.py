@@ -66,9 +66,9 @@ __all__ = [
     get_document_by_id,
     insert_text_at_end_of_document,
     # Google Drive
-    get_file_tree_structure,  # type: ignore[has-type]
-    search_and_retrieve_documents,  # type: ignore[has-type]
-    search_documents,  # type: ignore[has-type]
+    "get_file_tree_structure",
+    "search_and_retrieve_documents",
+    "search_documents",
     # Google File Picker
     generate_google_file_picker_url,
     # Google Gmail
