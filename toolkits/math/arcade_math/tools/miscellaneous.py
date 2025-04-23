@@ -36,7 +36,6 @@ def sqrt(
 ) -> Annotated[str, "The square root of the number as a string"]:
     """
     Get the square root of a number
-    If
     """
     # Use Decimal for arbitrary precision
     a_decimal = Decimal(a)
