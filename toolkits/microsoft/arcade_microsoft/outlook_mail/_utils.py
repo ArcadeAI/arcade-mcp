@@ -24,7 +24,7 @@ def remove_none_values(data: dict) -> dict:
     return {k: v for k, v in data.items() if v is not None}
 
 
-def _prepare_list_emails_request_config(
+def prepare_list_emails_request_config(
     limit: int,
 ) -> MailFolderMessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration:
     limit = max(1, min(limit, 100))  # limit must be between 1 and 100
@@ -40,7 +40,7 @@ def _prepare_list_emails_request_config(
     )
 
 
-async def _fetch_emails(
+async def fetch_emails(
     message_builder: MailFolderMessagesRequestBuilder | UserMessagesRequestBuilder,
     pagination_token: str | None = None,
     request_config: MailFolderMessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration
@@ -56,7 +56,7 @@ async def _fetch_emails(
     return await message_builder.get(request_configuration=request_config)  # type: ignore[return-value, arg-type]
 
 
-async def _send_reply_email(
+async def send_reply_email(
     context: ToolContext,
     message_id: str,
     body: str,

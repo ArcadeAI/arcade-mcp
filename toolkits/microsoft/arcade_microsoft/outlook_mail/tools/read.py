@@ -3,15 +3,15 @@ from typing import Annotated
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Microsoft
 from arcade.sdk.errors import ToolExecutionError
+from toolkits.microsoft.arcade_microsoft.outlook_mail._utils import (
+    fetch_emails,
+    prepare_list_emails_request_config,
+    remove_none_values,
+)
 
 from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_mail.enums import WellKnownFolderNames
 from arcade_microsoft.outlook_mail.message import Message
-from arcade_microsoft.outlook_mail.utils import (
-    _fetch_emails,
-    _prepare_list_emails_request_config,
-    remove_none_values,
-)
 
 
 @tool(requires_auth=Microsoft(scopes=["Mail.Read"]))
@@ -28,10 +28,10 @@ async def list_emails(
     and other items that are not in the inbox.
     """
     client = get_client(context.get_auth_token_or_empty())
-    request_config = _prepare_list_emails_request_config(limit)
+    request_config = prepare_list_emails_request_config(limit)
     message_builder = client.me.messages
 
-    response = await _fetch_emails(message_builder, pagination_token, request_config)
+    response = await fetch_emails(message_builder, pagination_token, request_config)
     messages = [Message.from_sdk(msg).to_dict() for msg in response.value or []]
     pagination_token = response.odata_next_link
 
@@ -73,10 +73,10 @@ async def list_emails_in_folder(
         )
     folder_name = well_known_folder_name.value if well_known_folder_name else folder_id
     client = get_client(context.get_auth_token_or_empty())
-    request_config = _prepare_list_emails_request_config(limit)
+    request_config = prepare_list_emails_request_config(limit)
     message_builder = client.me.mail_folders.by_mail_folder_id(folder_name).messages  # type: ignore[arg-type]
 
-    response = await _fetch_emails(message_builder, pagination_token, request_config)
+    response = await fetch_emails(message_builder, pagination_token, request_config)
     messages = [Message.from_sdk(msg).to_dict() for msg in response.value or []]
     pagination_token = response.odata_next_link
 

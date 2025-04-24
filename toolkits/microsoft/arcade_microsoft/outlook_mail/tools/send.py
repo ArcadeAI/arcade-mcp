@@ -5,10 +5,10 @@ from arcade.sdk.auth import Microsoft
 from msgraph.generated.users.item.send_mail.send_mail_post_request_body import (
     SendMailPostRequestBody,
 )
+from toolkits.microsoft.arcade_microsoft.outlook_mail._utils import send_reply_email
 
 from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_mail.message import Message, Recipient
-from arcade_microsoft.outlook_mail.utils import _send_reply_email
 
 
 @tool(requires_auth=Microsoft(scopes=["Mail.Send"]))
@@ -83,7 +83,7 @@ async def reply_to_email(
 
     Use this tool when your answer is relevant only to the sender of the email.
     """
-    return await _send_reply_email(context, message_id, body, "reply")
+    return await send_reply_email(context, message_id, body, "reply")
 
 
 @tool(requires_auth=Microsoft(scopes=["Mail.Send"]))
@@ -98,4 +98,4 @@ async def reply_all_to_email(
     Only use this tool when your reply adds value for ALL participants.
     Otherwise, use the reply_to_email tool.
     """
-    return await _send_reply_email(context, message_id, body, "reply_all")
+    return await send_reply_email(context, message_id, body, "reply_all")
