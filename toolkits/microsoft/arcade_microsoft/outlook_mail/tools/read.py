@@ -3,13 +3,13 @@ from typing import Annotated
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Microsoft
 from arcade.sdk.errors import ToolExecutionError
-from toolkits.microsoft.arcade_microsoft.outlook_mail._utils import (
+
+from arcade_microsoft.client import get_client
+from arcade_microsoft.outlook_mail._utils import (
     fetch_emails,
     prepare_list_emails_request_config,
     remove_none_values,
 )
-
-from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_mail.enums import WellKnownFolderNames
 from arcade_microsoft.outlook_mail.message import Message
 

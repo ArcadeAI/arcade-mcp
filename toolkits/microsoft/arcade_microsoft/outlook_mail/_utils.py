@@ -1,5 +1,3 @@
-from typing import Literal
-
 from arcade.sdk import ToolContext
 from msgraph.generated.models.message_collection_response import MessageCollectionResponse
 from msgraph.generated.users.item.mail_folders.item.messages.messages_request_builder import (
@@ -17,6 +15,7 @@ from msgraph.generated.users.item.messages.messages_request_builder import (
 
 from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_mail.constants import DEFAULT_MESSAGE_FIELDS
+from arcade_microsoft.outlook_mail.enums import ReplyType
 
 
 def remove_none_values(data: dict) -> dict:
@@ -60,15 +59,15 @@ async def send_reply_email(
     context: ToolContext,
     message_id: str,
     body: str,
-    reply_type: Literal["reply", "reply_all"],
+    reply_type: ReplyType,
 ) -> dict:
-    """Send a reply email to the sender of an existing email."""
+    """Send a reply email to the sender or all recipients of an existing email."""
     client = get_client(context.get_auth_token_or_empty())
 
-    if reply_type == "reply":
+    if reply_type == ReplyType.REPLY:
         reply_request_body = ReplyPostRequestBody(comment=body)
         await client.me.messages.by_message_id(message_id).reply.post(reply_request_body)
-    elif reply_type == "reply_all":
+    elif reply_type == ReplyType.REPLY_ALL:
         reply_all_request_body = ReplyAllPostRequestBody(comment=body)
         await client.me.messages.by_message_id(message_id).reply_all.post(reply_all_request_body)
 

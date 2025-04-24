@@ -14,3 +14,10 @@ class WellKnownFolderNames(str, Enum):
     SENT_ITEMS = "sentitems"
     STARRED = "starred"
     TODO = "tasks"
+
+
+class ReplyType(str, Enum):
+    """The type of reply to send to an email."""
+
+    REPLY = "reply"
+    REPLY_ALL = "reply_all"

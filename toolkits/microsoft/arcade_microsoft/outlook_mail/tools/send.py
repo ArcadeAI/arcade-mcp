@@ -5,9 +5,10 @@ from arcade.sdk.auth import Microsoft
 from msgraph.generated.users.item.send_mail.send_mail_post_request_body import (
     SendMailPostRequestBody,
 )
-from toolkits.microsoft.arcade_microsoft.outlook_mail._utils import send_reply_email
 
 from arcade_microsoft.client import get_client
+from arcade_microsoft.outlook_mail._utils import send_reply_email
+from arcade_microsoft.outlook_mail.enums import ReplyType
 from arcade_microsoft.outlook_mail.message import Message, Recipient
 
 
@@ -78,24 +79,16 @@ async def reply_to_email(
     context: ToolContext,
     message_id: Annotated[str, "The ID of the email to reply to"],
     body: Annotated[str, "The body of the reply to the email"],
+    reply_type: Annotated[
+        ReplyType,
+        f"Specify {ReplyType.REPLY} to reply only to the sender or "
+        f"{ReplyType.REPLY_ALL} to reply to all recipients. "
+        f"Defaults to {ReplyType.REPLY}.",
+    ] = ReplyType.REPLY,
 ) -> Annotated[dict, "A dictionary containing the sent email details"]:
-    """Reply only to the sender of an existing email in Outlook.
+    """Reply to an existing email in Outlook.
 
-    Use this tool when your answer is relevant only to the sender of the email.
+    Use this tool to reply to the sender or all recipients of the email.
+    Specify the reply_type to determine the scope of the reply.
     """
-    return await send_reply_email(context, message_id, body, "reply")
-
-
-@tool(requires_auth=Microsoft(scopes=["Mail.Send"]))
-async def reply_all_to_email(
-    context: ToolContext,
-    message_id: Annotated[str, "The ID of the email to reply to"],
-    body: Annotated[str, "The body of the reply to the email"],
-) -> Annotated[dict, "A dictionary containing the sent email details"]:
-    """Reply to all recipients of an existing email in Outlook.
-
-    This includes everyone on the original To and Cc lists.
-    Only use this tool when your reply adds value for ALL participants.
-    Otherwise, use the reply_to_email tool.
-    """
-    return await send_reply_email(context, message_id, body, "reply_all")
+    return await send_reply_email(context, message_id, body, reply_type)

@@ -3,7 +3,6 @@ from arcade_microsoft.outlook_mail.tools import (
     create_draft_email,
     list_emails,
     list_emails_in_folder,
-    reply_all_to_email,
     reply_to_email,
     send_draft_email,
     update_draft_email,
@@ -16,7 +15,6 @@ __all__ = [
     # Send
     "create_and_send_email",
     "send_draft_email",
-    "reply_all_to_email",
     "reply_to_email",
     # Write
     "create_draft_email",

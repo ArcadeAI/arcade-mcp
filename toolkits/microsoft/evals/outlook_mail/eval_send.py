@@ -10,10 +10,10 @@ from arcade.sdk.eval.critic import SimilarityCritic
 
 from arcade_microsoft.outlook_mail import (
     create_and_send_email,
-    reply_all_to_email,
     reply_to_email,
     send_draft_email,
 )
+from arcade_microsoft.outlook_mail.enums import ReplyType
 from evals.outlook_mail.additional_messages import (
     list_emails_with_pagination_token_additional_messages,
 )
@@ -28,7 +28,6 @@ rubric = EvalRubric(
 catalog = ToolCatalog()
 catalog.add_tool(create_and_send_email, "Microsoft")
 catalog.add_tool(send_draft_email, "Microsoft")
-catalog.add_tool(reply_all_to_email, "Microsoft")
 catalog.add_tool(reply_to_email, "Microsoft")
 
 
@@ -88,16 +87,18 @@ def outlook_mail_send_eval_suite() -> EvalSuite:
         user_message=("Reply to everyone - 'sounds good to me'"),
         expected_tool_calls=[
             ExpectedToolCall(
-                func=reply_all_to_email,
+                func=reply_to_email,
                 args={
                     "message_id": "AQMkADAwATM0MDAAMi04Y2Y1LTQ3MTEALTAwAi0wMAoARgAAAyXxSd3UxTpCkDpGouEg0JMHAFuxokOLZRtDncM4_x_WeUwAAAIBDAAAAFuxokOLZRtDncM4_x_WeUwAAAABc_ezAAAA",  # noqa: E501
                     "body": "sounds good to me",
+                    "reply_type": ReplyType.REPLY_ALL,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="message_id", weight=0.5),
-            SimilarityCritic(critic_field="body", weight=0.5),
+            BinaryCritic(critic_field="message_id", weight=1 / 3),
+            SimilarityCritic(critic_field="body", weight=1 / 3),
+            BinaryCritic(critic_field="reply_type", weight=1 / 3),
         ],
         additional_messages=list_emails_with_pagination_token_additional_messages,
     )
@@ -111,12 +112,14 @@ def outlook_mail_send_eval_suite() -> EvalSuite:
                 args={
                     "message_id": "AQMkADAwATM0MDAAMi04Y2Y1LTQ3MTEALTAwAi0wMAoARgAAAyXxSd3UxTpCkDpGouEg0JMHAFuxokOLZRtDncM4_x_WeUwAAAIBDAAAAFuxokOLZRtDncM4_x_WeUwAAAABc_ezAAAA",  # noqa: E501
                     "body": "sounds good to me",
+                    "reply_type": ReplyType.REPLY,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="message_id", weight=0.5),
-            SimilarityCritic(critic_field="body", weight=0.5),
+            BinaryCritic(critic_field="message_id", weight=1 / 3),
+            SimilarityCritic(critic_field="body", weight=1 / 3),
+            BinaryCritic(critic_field="reply_type", weight=1 / 3),
         ],
         additional_messages=list_emails_with_pagination_token_additional_messages,
     )
