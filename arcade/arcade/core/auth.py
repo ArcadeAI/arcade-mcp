@@ -33,6 +33,15 @@ class OAuth2(ToolAuthorization):
         super().__init__(id=id, scopes=scopes, provider_type=AuthProviderType.oauth2)
 
 
+class Asana(OAuth2):
+    """Marks a tool as requiring Asana authorization."""
+
+    provider_id: str = "asana"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Atlassian(OAuth2):
     """Marks a tool as requiring Atlassian authorization."""
 
