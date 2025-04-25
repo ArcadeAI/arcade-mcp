@@ -57,6 +57,18 @@ class AsanaClient:
 
         raise AsanaToolExecutionError(error_message, developer_message)
 
+    def _set_request_body(self, kwargs: dict, data: dict | None, json_data: dict | None) -> dict:
+        if data and json_data:
+            raise ValueError("Cannot provide both data and json_data")
+
+        if data:
+            kwargs["data"] = data
+
+        elif json_data:
+            kwargs["json"] = json_data
+
+        return kwargs
+
     async def get(
         self,
         endpoint: str,
@@ -99,17 +111,35 @@ class AsanaClient:
             "headers": headers,
         }
 
-        if data and json_data:
-            raise ValueError("Cannot provide both data and json_data")
-
-        if data:
-            kwargs["data"] = data
-
-        elif json_data:
-            kwargs["json"] = json_data
+        kwargs = self._set_request_body(kwargs, data, json_data)
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
+
+    async def put(
+        self,
+        endpoint: str,
+        data: Optional[dict] = None,
+        json_data: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        api_version: str | None = None,
+    ) -> dict:
+        headers = headers or {}
+        headers["Authorization"] = f"Bearer {self.auth_token}"
+        headers["Content-Type"] = "application/json"
+        headers["Accept"] = "application/json"
+
+        kwargs = {
+            "url": self._build_url(endpoint, api_version),
+            "headers": headers,
+        }
+
+        kwargs = self._set_request_body(kwargs, data, json_data)
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.put(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
         return cast(dict, response.json())
 
