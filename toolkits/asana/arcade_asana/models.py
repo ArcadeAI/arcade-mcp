@@ -1,0 +1,118 @@
+import asyncio
+import json
+from dataclasses import dataclass
+from typing import Optional, cast
+
+import httpx
+
+from arcade_asana.constants import ASANA_API_VERSION, ASANA_BASE_URL, ASANA_MAX_CONCURRENT_REQUESTS
+from arcade_asana.exceptions import AsanaToolExecutionError
+
+
+@dataclass
+class AsanaClient:
+    auth_token: str
+    base_url: str = ASANA_BASE_URL
+    api_version: str = ASANA_API_VERSION
+    max_concurrent_requests: int = ASANA_MAX_CONCURRENT_REQUESTS
+    _semaphore: asyncio.Semaphore | None = None
+
+    def __post_init__(self) -> None:
+        self._semaphore = self._semaphore or asyncio.Semaphore(self.max_concurrent_requests)
+
+    def _build_url(self, endpoint: str, api_version: str | None = None) -> str:
+        api_version = api_version or self.api_version
+        return f"{self.base_url.rstrip('/')}/{api_version.strip('/')}/{endpoint.lstrip('/')}"
+
+    def _build_error_messages(self, response: httpx.Response) -> tuple[str, str]:
+        try:
+            data = response.json()
+            errors = data["errors"]
+
+            if len(errors) == 1:
+                error_message = errors[0]["message"]
+                developer_message = (
+                    f"{errors[0]['message']} | {errors[0]['help']} "
+                    f"(HTTP status code: {response.status_code})"
+                )
+            else:
+                errors_concat = "', '".join([error["message"] for error in errors])
+                error_message = f"Multiple errors occurred: '{errors_concat}'"
+                developer_message = (
+                    f"Multiple errors occurred: {json.dumps(errors)} "
+                    f"(HTTP status code: {response.status_code})"
+                )
+
+        except Exception as e:
+            error_message = "Failed to parse Asana error response"
+            developer_message = f"Failed to parse Asana error response: {type(e).__name__}: {e!s}"
+
+        return error_message, developer_message
+
+    def _raise_for_status(self, response: httpx.Response) -> None:
+        if response.status_code < 300:
+            return
+
+        error_message, developer_message = self._build_error_messages(response)
+
+        raise AsanaToolExecutionError(error_message, developer_message)
+
+    async def get(
+        self,
+        endpoint: str,
+        params: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        api_version: str | None = None,
+    ) -> dict:
+        headers = headers or {}
+        headers["Authorization"] = f"Bearer {self.auth_token}"
+        headers["Accept"] = "application/json"
+
+        kwargs = {
+            "url": self._build_url(endpoint, api_version),
+            "headers": headers,
+        }
+
+        if params:
+            kwargs["params"] = params
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.get(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
+
+    async def post(
+        self,
+        endpoint: str,
+        data: Optional[dict] = None,
+        json_data: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        api_version: str | None = None,
+    ) -> dict:
+        headers = headers or {}
+        headers["Authorization"] = f"Bearer {self.auth_token}"
+        headers["Content-Type"] = "application/json"
+        headers["Accept"] = "application/json"
+
+        kwargs = {
+            "url": self._build_url(endpoint, api_version),
+            "headers": headers,
+        }
+
+        if data and json_data:
+            raise ValueError("Cannot provide both data and json_data")
+
+        if data:
+            kwargs["data"] = data
+
+        elif json_data:
+            kwargs["json"] = json_data
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.post(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
+
+    async def get_current_user(self) -> dict:
+        response = await self.get("/users/me")
+        return response["data"]

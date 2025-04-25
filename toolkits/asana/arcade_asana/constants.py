@@ -1,0 +1,3 @@
+ASANA_BASE_URL = "https://app.asana.com/api"
+ASANA_API_VERSION = "1.0"
+ASANA_MAX_CONCURRENT_REQUESTS = 3
