@@ -1,19 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
 
 from pydantic import BaseModel
 
 from arcade.core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 
-primitives = TypeVar("primitives", bound=str | int | float | bool | list)
 CatalogResponse = list[ToolDefinition]
-ToolCallResponse = ToolCallResponse
 HealthCheckResponse = dict[str, str]
-MetricsResponse = dict[str, Any]
 JSONResponse = dict[str, Any]
-ResponseData = (
-    CatalogResponse | ToolCallResponse | HealthCheckResponse | MetricsResponse | JSONResponse
-)
+ResponseData = CatalogResponse | ToolCallResponse | HealthCheckResponse
 
 
 class RequestData(BaseModel):
