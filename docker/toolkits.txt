@@ -5,6 +5,7 @@ arcade-google
 arcade-hubspot
 arcade-linkedin
 arcade-math
+arcade-microsoft
 arcade-notion-toolkit
 arcade-reddit
 arcade-salesforce

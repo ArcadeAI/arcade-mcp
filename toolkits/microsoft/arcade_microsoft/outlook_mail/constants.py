@@ -1,5 +1,3 @@
-DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
-
 DEFAULT_MESSAGE_FIELDS = [
     "bccRecipients",
     "body",

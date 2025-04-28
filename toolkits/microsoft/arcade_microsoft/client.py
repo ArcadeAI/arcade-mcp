@@ -4,7 +4,7 @@ from typing import Any
 from azure.core.credentials import AccessToken, TokenCredential
 from msgraph import GraphServiceClient
 
-from arcade_microsoft.outlook_mail.constants import DEFAULT_SCOPE
+DEFAULT_SCOPE = "https://graph.microsoft.com/.default"
 
 
 class StaticTokenCredential(TokenCredential):
