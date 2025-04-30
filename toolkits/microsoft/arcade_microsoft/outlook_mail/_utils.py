@@ -15,7 +15,7 @@ from msgraph.generated.users.item.messages.messages_request_builder import (
 
 from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_mail.constants import DEFAULT_MESSAGE_FIELDS
-from arcade_microsoft.outlook_mail.enums import ReplyType
+from arcade_microsoft.outlook_mail.enums import FilterOperator, FilterProperty, ReplyType
 
 
 def remove_none_values(data: dict) -> dict:
@@ -25,13 +25,38 @@ def remove_none_values(data: dict) -> dict:
 
 def prepare_list_emails_request_config(
     limit: int,
+    property_: FilterProperty | None = None,
+    operator: FilterOperator | None = None,
+    value: str | None = None,
 ) -> MailFolderMessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration:
-    limit = max(1, min(limit, 100))  # limit must be between 1 and 100
     """Prepare a request configuration for listing emails."""
+    limit = max(1, min(limit, 100))  # limit must be between 1 and 100
+
+    orderby = ["receivedDateTime DESC"]
+    filter_expr = None
+
+    if property_ and operator and value:
+        property_value = property_.value
+        operator_value = operator.value
+
+        # Handle function operators (contains, startsWith, endsWith)
+        if operator.is_function():
+            filter_expr = f"{operator_value}({property_value}, '{value}')"
+        else:
+            # Handle comparison operators
+            # TODO: Never use quotes around 'value' for booleans and numerics
+            filter_expr = f"{property_value} {operator_value} '{value}'"
+
+        if property_value == FilterProperty.RECEIVED_DATE_TIME:
+            filter_expr = filter_expr
+        else:  # Since receivedDateTime is in orderby, it must be in filter: https://learn.microsoft.com/en-us/graph/api/user-list-messages?view=graph-rest-1.0&tabs=http#optional-query-parameters
+            filter_expr = f"receivedDateTime ge 1900-01-01T00:00:00Z and {filter_expr}"
+
     query_params = MailFolderMessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters(
         count=True,
         select=DEFAULT_MESSAGE_FIELDS,
-        orderby=["receivedDateTime DESC"],
+        orderby=orderby,
+        filter=filter_expr,
         top=limit,
     )
     return MailFolderMessagesRequestBuilder.MessagesRequestBuilderGetRequestConfiguration(
