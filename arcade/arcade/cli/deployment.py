@@ -4,6 +4,7 @@ import os
 import re
 import secrets
 import tarfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,10 @@ from arcadepy import Arcade, NotFoundError
 from httpx import Client
 from packaging.requirements import Requirement
 from pydantic import BaseModel, field_serializer, field_validator, model_validator
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
 
 
 # Base class for versioned packages
@@ -111,10 +116,32 @@ class Request(BaseModel):
     pypi: Pypi | None = None
     custom_repositories: list[PackageRepository] | None = None
     local_packages: list[LocalPackage] | None = None
+    wait: bool = False
 
     @field_serializer("secret")
     def serialize_secret(self, secret: Secret) -> str:
         return secret.value
+
+    def poll_worker_status(self, cloud_client: Client, worker_name: str) -> Any:
+        while True:
+            try:
+                worker_resp = cloud_client.get(
+                    f"{cloud_client.base_url}/api/v1/workers/{worker_name}?wait_for_completion=true",
+                    timeout=10,
+                )
+                worker_resp.raise_for_status()
+            except httpx.TimeoutException:
+                time.sleep(1)
+                continue
+            except httpx.ConnectError as e:
+                raise ValueError(f"Failed to connect to cloud: {e}")
+            except Exception as e:
+                raise ValueError(f"Failed to start worker: {e}")
+            status = worker_resp.json()["data"]["status"]
+            if status == "Running":
+                return worker_resp.json()["data"]
+            if status == "Failed":
+                raise ValueError(f"Worker failed to start: {worker_resp.json()['data']['error']}")
 
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:
         # Attempt to deploy worker to the cloud
@@ -122,14 +149,16 @@ class Request(BaseModel):
             cloud_response = cloud_client.put(
                 str(cloud_client.base_url) + "/api/v1/workers",
                 json=self.model_dump(mode="json"),
-                timeout=120,
+                timeout=360,
             )
             cloud_response.raise_for_status()
         except httpx.ConnectError as e:
             raise ValueError(f"Failed to connect to cloud: {e}")
-        except Exception:
-            msg = cloud_response.json().get("msg", f"{cloud_response.status_code}: Unknown error")
-            raise ValueError(f"Failed to start worker: {msg}")
+        except Exception as e:
+            # change this so it handles errors that aren't just from cloud
+            raise ValueError(f"Failed to start worker: {e}")
+        parse_deployment_response(cloud_response.json())
+        worker_data = self.poll_worker_status(cloud_client, self.name)
 
         try:
             # Check if worker already exists
@@ -138,7 +167,7 @@ class Request(BaseModel):
                 id=self.name,
                 enabled=self.enabled,
                 http={
-                    "uri": cloud_response.json()["data"]["worker_endpoint"],
+                    "uri": worker_data["worker_endpoint"],
                     "secret": self.secret.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
@@ -150,7 +179,7 @@ class Request(BaseModel):
                 id=self.name,
                 enabled=self.enabled,
                 http={
-                    "uri": cloud_response.json()["data"]["worker_endpoint"],
+                    "uri": worker_data["worker_endpoint"],
                     "secret": self.secret.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
@@ -342,3 +371,33 @@ def get_env_secret(secret: str) -> Secret:
         raise ValueError(f"Multiple environment variables found in secret: {secret}")
     # If no matches are found, return the secret as is
     return Secret(value=secret, pattern=None)
+
+
+def parse_deployment_response(response: dict) -> None:
+    # Check what changes were made to the worker and display
+    changes = response["data"]["changes"]
+    additions = changes.get("additions", [])
+    removals = changes.get("removals", [])
+    updates = changes.get("updates", [])
+    no_changes = changes.get("no_changes", [])
+    print_deployment_table(additions, removals, updates, no_changes)
+
+
+def print_deployment_table(
+    additions: list, removals: list, updates: list, no_changes: list
+) -> None:
+    table = Table(title="Changed Packages")
+    table.add_column("Adding", justify="right", style="green")
+    table.add_column("Removing", justify="right", style="red")
+    table.add_column("Updating", justify="right", style="yellow")
+    table.add_column("No Changes", justify="right", style="dim")
+    max_rows = max(len(additions), len(removals), len(updates), len(no_changes))
+
+    # Add each row of worker package changes to the table
+    for i in range(max_rows):
+        addition = additions[i] if i < len(additions) else ""
+        removal = removals[i] if i < len(removals) else ""
+        update = updates[i] if i < len(updates) else ""
+        no_change = no_changes[i] if i < len(no_changes) else ""
+        table.add_row(addition, removal, update, no_change)
+    console.print(table)

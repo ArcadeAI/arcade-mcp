@@ -170,36 +170,6 @@ def compare_endpoints(worker_id: str, engine_endpoint: str, deployments: list[di
     return engine_endpoint
 
 
-def parse_deployment_response(response: dict) -> None:
-    # Check what changes were made to the worker and display
-    changes = response["data"]["changes"]
-    additions = changes.get("additions", [])
-    removals = changes.get("removals", [])
-    updates = changes.get("updates", [])
-    no_changes = changes.get("no_changes", [])
-    print_deployment_table(additions, removals, updates, no_changes)
-
-
-def print_deployment_table(
-    additions: list, removals: list, updates: list, no_changes: list
-) -> None:
-    table = Table(title="Changed Packages")
-    table.add_column("Added", justify="right", style="green")
-    table.add_column("Removed", justify="right", style="red")
-    table.add_column("Updated", justify="right", style="yellow")
-    table.add_column("No Changes", justify="right", style="dim")
-    max_rows = max(len(additions), len(removals), len(updates), len(no_changes))
-
-    # Add each row of worker package changes to the table
-    for i in range(max_rows):
-        addition = additions[i] if i < len(additions) else ""
-        removal = removals[i] if i < len(removals) else ""
-        update = updates[i] if i < len(updates) else ""
-        no_change = no_changes[i] if i < len(no_changes) else ""
-        table.add_row(addition, removal, update, no_change)
-    console.print(table)
-
-
 @app.command("enable", help="Enable a worker")
 def enable_worker(
     worker_id: str,
