@@ -206,7 +206,7 @@ async def lifespan(app: fastapi.FastAPI) -> AsyncGenerator[None, None]:
         raise
 
 
-def serve_default_worker(
+def serve_default_worker(  # noqa: C901
     host: str = "127.0.0.1",
     port: int = 8002,
     disable_auth: bool = False,
@@ -234,7 +234,8 @@ def serve_default_worker(
 
     # Setup unified logging first
     version = get_pkg_version("arcade-ai")
-    validate_and_get_config()
+    if mcp:
+        validate_and_get_config()
     setup_logging(log_level=logging.DEBUG if debug else logging.INFO, mcp_mode=mcp)
 
     toolkits = discover_toolkits()
