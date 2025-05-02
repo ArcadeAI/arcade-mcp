@@ -99,9 +99,7 @@ async def list_emails_by_property(
     property: Annotated[EmailFilterProperty, "The property to filter the emails by."],  # noqa: A002
     operator: Annotated[FilterOperator, "The operator to use for the filter."],
     value: Annotated[str, "The value to filter the emails by"],
-    limit: Annotated[
-        int | None, "The number of messages to return. Max is 100. Defaults to 5."
-    ] = 5,
+    limit: Annotated[int, "The number of messages to return. Max is 100. Defaults to 5."] = 5,
     pagination_token: Annotated[
         str | None, "The pagination token to continue a previous request"
     ] = None,
