@@ -239,7 +239,7 @@ def serve_default_worker(
 
     toolkits = discover_toolkits()
     logger.info("Serving the following toolkits:")
-    toolkit_tool_counts = {}
+    toolkit_tool_counts: dict[str, int] = {}
     for toolkit in toolkits:
         for _, tools in toolkit.tools.items():
             toolkit_tool_counts[toolkit.name] = toolkit_tool_counts.get(toolkit.name, 0) + len(
