@@ -239,13 +239,20 @@ def serve_default_worker(
 
     toolkits = discover_toolkits()
     logger.info("Serving the following toolkits:")
+    toolkit_tool_counts = {}
+    for toolkit in toolkits:
+        for _, tools in toolkit.tools.items():
+            toolkit_tool_counts[toolkit.name] = toolkit_tool_counts.get(toolkit.name, 0) + len(
+                tools
+            )
     for toolkit in toolkits:
         if debug:
-            for name, tools in toolkit.tools.items():
+            logger.info(f"{toolkit.name}: ({toolkit_tool_counts.get(toolkit.name, 0)} tools)")
+            for filename, tools in toolkit.tools.items():
                 for tool in tools:
-                    logger.info(f"  - {name}: {tool}")
+                    logger.info(f"  - {filename}: {tool}")
         else:
-            logger.info(f"  - {toolkit.name}: {len(toolkit.tools)} tools")
+            logger.info(f"  - {toolkit.name}: {toolkit_tool_counts.get(toolkit.name, 0)} tools")
 
     # --- MCP stdio --------------------------------------------------
     if mcp:
@@ -267,18 +274,23 @@ def serve_default_worker(
     secret = os.getenv("ARCADE_WORKER_SECRET", None)
     if secret is None:
         logger.warning("No secret found for Arcade Worker")
-        logger.info("Setting secret to 'dev'. Set this in production")
+        logger.info(
+            "Setting ARCADE_WORKER_SECRET environment variable to 'dev'. Set this in production"
+        )
         secret = "dev"  # noqa: S105
 
     otel_handler = OTELHandler(
         app, enable=enable_otel, log_level=logging.DEBUG if debug else logging.INFO
     )
-    _ = FastAPIWorker(
+    worker = FastAPIWorker(
         app=app,
         secret=secret,
         disable_auth=disable_auth,
         otel_meter=otel_handler.get_meter(),
     )
+    for toolkit in toolkits:
+        worker.register_toolkit(toolkit)
+
     _run_fastapi_server(
         app,
         host=host,
