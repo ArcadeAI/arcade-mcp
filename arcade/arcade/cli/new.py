@@ -9,7 +9,7 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
-from arcade.worker.config.deployment import (
+from arcade.cli.deployment import (
     create_demo_deployment,
 )
 
