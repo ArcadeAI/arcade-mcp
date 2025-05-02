@@ -23,7 +23,7 @@ class ReplyType(str, Enum):
     REPLY_ALL = "reply_all"
 
 
-class FilterProperty(str, Enum):
+class EmailFilterProperty(str, Enum):
     """The property to filter the emails by."""
 
     # Basic properties
@@ -40,7 +40,7 @@ class FilterOperator(str, Enum):
     """
 
     # Equality operators
-    EQUAL = "eq"  # example: $filter=subject eq 'hello'
+    EQUAL = "eq"  # example: $filter=conversationId eq 'hello'
     NOT_EQUAL = "ne"  # example: $filter=subject ne 'hello'
 
     # Relational operators

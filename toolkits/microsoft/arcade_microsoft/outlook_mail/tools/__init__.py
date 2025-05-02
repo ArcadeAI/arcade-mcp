@@ -1,5 +1,6 @@
 from arcade_microsoft.outlook_mail.tools.read import (
     list_emails,
+    list_emails_by_property,
     list_emails_in_folder,
 )
 from arcade_microsoft.outlook_mail.tools.send import (
@@ -15,6 +16,7 @@ from arcade_microsoft.outlook_mail.tools.write import (
 __all__ = [
     # Read
     "list_emails",
+    "list_emails_by_property",
     "list_emails_in_folder",
     # Send
     "create_and_send_email",

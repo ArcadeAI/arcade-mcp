@@ -10,7 +10,11 @@ from arcade_microsoft.outlook_mail._utils import (
     prepare_list_emails_request_config,
     remove_none_values,
 )
-from arcade_microsoft.outlook_mail.enums import FilterOperator, FilterProperty, WellKnownFolderNames
+from arcade_microsoft.outlook_mail.enums import (
+    EmailFilterProperty,
+    FilterOperator,
+    WellKnownFolderNames,
+)
 from arcade_microsoft.outlook_mail.message import Message
 
 
@@ -92,17 +96,20 @@ async def list_emails_in_folder(
 @tool(requires_auth=Microsoft(scopes=["Mail.Read"]))
 async def list_emails_by_property(
     context: ToolContext,
-    property: Annotated[FilterProperty, "The property to filter the emails by."],  # noqa: A002
+    property: Annotated[EmailFilterProperty, "The property to filter the emails by."],  # noqa: A002
     operator: Annotated[FilterOperator, "The operator to use for the filter."],
     value: Annotated[str, "The value to filter the emails by"],
-    limit: Annotated[int, "The number of messages to return. Max is 100. Defaults to 10."] = 10,
+    limit: Annotated[int, "The number of messages to return. Max is 100. Defaults to 5."] = 5,
+    pagination_token: Annotated[
+        str | None, "The pagination token to continue a previous request"
+    ] = None,
 ) -> Annotated[dict, "A dictionary containing a list of emails"]:
     """List emails in the user's mailbox across all folders filtering by a property."""
     client = get_client(context.get_auth_token_or_empty())
     request_config = prepare_list_emails_request_config(limit, property, operator, value)
     message_builder = client.me.messages
 
-    response = await fetch_emails(message_builder, None, request_config)
+    response = await fetch_emails(message_builder, pagination_token, request_config)
     messages = [Message.from_sdk(msg).to_dict() for msg in response.value or []]
     pagination_token = response.odata_next_link
 
