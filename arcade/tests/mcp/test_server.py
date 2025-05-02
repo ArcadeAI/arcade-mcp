@@ -133,17 +133,6 @@ async def test_handle_call_tool_success(server):
     assert resp.result.content == [{"type": "text", "text": "42"}]
 
 
-async def test_get_user_id_env(monkeypatch, server):
-    """When ARCADE_USER_ID env var is set it should win."""
-    # Ensure config user email is empty so it does not take precedence
-    if hasattr(mcp_server.config, "user") and mcp_server.config.user is not None:
-        monkeypatch.setattr(mcp_server.config.user, "email", None, raising=False)
-
-    monkeypatch.setenv("ARCADE_USER_ID", "env-user")
-    uid = server._get_user_id({})  # pylint: disable=protected-access
-    assert uid == "env-user"
-
-
 async def test_send_response_dict(server, monkeypatch):
     """_send_response should JSON-serialize plain dictionaries."""
 

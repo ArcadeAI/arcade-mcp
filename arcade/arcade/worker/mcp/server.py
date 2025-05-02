@@ -10,7 +10,6 @@ from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequiremen
 from arcadepy.types.shared import AuthorizationResponse
 
 from arcade.core.catalog import MaterializedTool, ToolCatalog
-from arcade.core.config import config
 from arcade.core.executor import ToolExecutor
 from arcade.core.schema import ToolAuthorizationContext, ToolContext
 from arcade.worker.mcp.convert import convert_to_mcp_content, create_mcp_tool
@@ -158,9 +157,14 @@ class MCPServer:
         Returns:
             A user ID string
         """
-        # Prefer config.user.email if available
-        if config.user and config.user.email:
-            return config.user.email
+        try:
+            from arcade.core.config import config
+
+            # Prefer config.user.email if available
+            if config.user and config.user.email:
+                return config.user.email
+        except ValueError:
+            logger.debug("No logged in user for MCP Server")
 
         fallback = str(uuid.uuid4())
         if os.environ.get("ARCADE_USER_ID", None):
