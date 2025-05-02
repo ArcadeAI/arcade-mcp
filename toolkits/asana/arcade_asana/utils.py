@@ -1,12 +1,16 @@
 import asyncio
 import json
-from typing import Any, Callable
+from collections.abc import Awaitable
+from datetime import datetime
+from typing import Any, Callable, TypeVar, cast
 
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_asana.constants import TASK_OPT_FIELDS, SortOrder, TaskSortBy
 from arcade_asana.exceptions import PaginationTimeoutError
+
+ToolResponse = TypeVar("ToolResponse", bound=dict[str, Any])
 
 
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
@@ -19,6 +23,16 @@ def clean_request_params(params: dict[str, Any]) -> dict[str, Any]:
         del params["offset"]
 
     return params
+
+
+def validate_date_format(name: str, date_str: str | None) -> None:
+    if not date_str:
+        return
+
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        raise ToolExecutionError(f"Invalid {name} date format. Use the format YYYY-MM-DD.")
 
 
 def build_task_search_query_params(
@@ -190,7 +204,7 @@ async def get_project_by_name_or_raise_error(
             additional_prompt_content=additional_prompt,
         )
 
-    return response["matches"]["projects"][0]
+    return cast(dict, response["matches"]["projects"][0])
 
 
 async def handle_new_task_tags(
@@ -198,7 +212,7 @@ async def handle_new_task_tags(
     tag_names: list[str] | None,
     tag_ids: list[str] | None,
     workspace_id: str | None,
-) -> list[str]:
+) -> list[str] | None:
     if tag_ids and tag_names:
         raise ToolExecutionError(
             "Provide none or at most one of tag_names and tag_ids, never both."
@@ -221,14 +235,14 @@ async def handle_new_task_tags(
 
 
 async def paginate_tool_call(
-    tool: Callable[[ToolContext, Any], dict],
+    tool: Callable[[ToolContext, Any], Awaitable[ToolResponse]],
     context: ToolContext,
     response_key: str,
     max_items: int = 300,
     timeout_seconds: int = 10,
     **tool_kwargs: Any,
-) -> dict:
-    results: list[dict[str, Any]] = []
+) -> list[ToolResponse]:
+    results: list[ToolResponse] = []
 
     async def paginate_loop() -> None:
         nonlocal results
@@ -238,7 +252,7 @@ async def paginate_tool_call(
             tool_kwargs["limit"] = 100
 
         while keep_paginating:
-            response = await tool(context, **tool_kwargs)
+            response = await tool(context, **tool_kwargs)  # type: ignore[call-arg]
             results.extend(response[response_key])
             if "offset" not in tool_kwargs:
                 tool_kwargs["offset"] = 0
@@ -250,7 +264,7 @@ async def paginate_tool_call(
     try:
         await asyncio.wait_for(paginate_loop(), timeout=timeout_seconds)
     except TimeoutError:
-        raise PaginationTimeoutError(timeout_seconds, tool.__tool_name__)
+        raise PaginationTimeoutError(timeout_seconds, tool.__tool_name__)  # type: ignore[attr-defined]
     else:
         return results
 
@@ -261,7 +275,7 @@ async def get_unique_workspace_id_or_raise_error(context: ToolContext) -> str:
 
     workspaces = await list_workspaces(context)
     if len(workspaces["workspaces"]) == 1:
-        return workspaces["workspaces"][0]["gid"]
+        return cast(str, workspaces["workspaces"][0]["gid"])
     else:
         message = "User has multiple workspaces. Please provide a workspace ID."
         additional_prompt = f"Workspaces available: {json.dumps(workspaces['workspaces'])}"

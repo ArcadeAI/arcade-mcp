@@ -1,6 +1,5 @@
 import asyncio
 import base64
-from datetime import datetime
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
@@ -15,6 +14,7 @@ from arcade_asana.utils import (
     handle_new_task_associations,
     handle_new_task_tags,
     remove_none_values,
+    validate_date_format,
 )
 
 
@@ -140,7 +140,7 @@ async def search_tasks(
     sort_order: Annotated[
         SortOrder,
         "The order to sort the tasks by. Defaults to SortOrder.DESCENDING.",
-    ] = SortOrder.DESCENCING,
+    ] = SortOrder.DESCENDING,
 ) -> Annotated[dict[str, Any], "The tasks that match the query."]:
     """Search for tasks"""
     from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
@@ -148,6 +148,13 @@ async def search_tasks(
     workspace_ids = workspace_ids or await list_workspaces(context)
 
     client = AsanaClient(context.get_auth_token_or_empty())
+
+    validate_date_format("due_on", due_on)
+    validate_date_format("due_on_or_after", due_on_or_after)
+    validate_date_format("due_on_or_before", due_on_or_before)
+    validate_date_format("start_on", start_on)
+    validate_date_format("start_on_or_after", start_on_or_after)
+    validate_date_format("start_on_or_before", start_on_or_before)
 
     responses = await asyncio.gather(*[
         client.get(
@@ -237,6 +244,9 @@ async def update_task(
     """Updates a task in Asana"""
     client = AsanaClient(context.get_auth_token_or_empty())
 
+    validate_date_format("start_date", start_date)
+    validate_date_format("due_date", due_date)
+
     task_data = {
         "data": remove_none_values({
             "name": name,
@@ -316,13 +326,8 @@ async def create_task(
 
     tag_ids = await handle_new_task_tags(context, tag_names, tag_ids, workspace_id)
 
-    try:
-        datetime.strptime(due_date, "%Y-%m-%d")
-        datetime.strptime(start_date, "%Y-%m-%d")
-    except ValueError:
-        raise ToolExecutionError(
-            "Invalid date format. Use the format YYYY-MM-DD for both start_date and due_date."
-        )
+    validate_date_format("start_date", start_date)
+    validate_date_format("due_date", due_date)
 
     task_data = {
         "data": remove_none_values({
@@ -405,7 +410,7 @@ async def attach_file_to_task(
             file_content = file_content_str.encode(file_encoding)
         except LookupError as exc:
             raise ToolExecutionError(f"Unknown encoding: {file_encoding}") from exc
-    else:
+    elif file_content_base64 is not None:
         try:
             file_content = base64.b64decode(file_content_base64)
         except Exception as exc:
@@ -415,7 +420,7 @@ async def attach_file_to_task(
         if file_name.lower().endswith(".pdf"):
             files = {"file": (file_name, file_content, "application/pdf")}
         else:
-            files = {"file": (file_name, file_content)}
+            files = {"file": (file_name, file_content)}  # type: ignore[dict-item]
     else:
         files = None
 

@@ -158,4 +158,4 @@ class AsanaClient:
 
     async def get_current_user(self) -> dict:
         response = await self.get("/users/me")
-        return response["data"]
+        return cast(dict, response["data"])
