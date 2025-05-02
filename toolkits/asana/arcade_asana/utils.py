@@ -5,7 +5,7 @@ from typing import Any, Callable
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_asana.constants import TASK_OPT_FIELDS
+from arcade_asana.constants import TASK_OPT_FIELDS, SortOrder, TaskSortBy
 from arcade_asana.exceptions import PaginationTimeoutError
 
 
@@ -22,6 +22,7 @@ def clean_request_params(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_task_search_query_params(
+    workspace_id: str,
     keywords: str,
     completed: bool,
     assignee_ids: list[str] | None,
@@ -34,11 +35,18 @@ def build_task_search_query_params(
     start_on: str | None,
     start_on_or_after: str | None,
     start_on_or_before: str | None,
+    limit: int,
+    sort_by: TaskSortBy,
+    sort_order: SortOrder,
 ) -> dict[str, Any]:
     query_params: dict[str, Any] = {
+        "workspace": workspace_id,
         "text": keywords,
         "opt_fields": TASK_OPT_FIELDS,
         "completed": completed,
+        "sort_by": sort_by.value,
+        "sort_ascending": sort_order == SortOrder.ASCENDING,
+        "limit": limit,
     }
     if assignee_ids:
         query_params["assignee.any"] = ",".join(assignee_ids)
@@ -119,28 +127,46 @@ async def handle_new_task_associations(
             "Provide none or at most one of project_id and project_name, never both."
         )
 
-    # Importing here to avoid potential circular imports
-    from arcade_asana.tools.projects import (
-        get_project_by_id,
-    )
-    from arcade_asana.tools.tasks import get_task_by_id
-
     if not any([parent_task_id, project_id, project_name, workspace_id]):
         workspace_id = await get_unique_workspace_id_or_raise_error(context)
 
     if not workspace_id:
         if parent_task_id:
+            from arcade_asana.tools.tasks import get_task_by_id  # avoid circular imports
+
             response = await get_task_by_id(context, parent_task_id)
             workspace_id = response["task"]["workspace"]["gid"]
-        elif project_id:
-            response = await get_project_by_id(context, project_id)
-            workspace_id = response["project"]["workspace"]["gid"]
-        elif project_name:
-            project = await get_project_by_name_or_raise_error(context, project_name)
-            project_id = project["gid"]
-            workspace_id = project["workspace"]["gid"]
+        else:
+            project_id, workspace_id = await handle_task_project_association(
+                context, project_id, project_name, workspace_id
+            )
 
     return parent_task_id, project_id, workspace_id
+
+
+async def handle_task_project_association(
+    context: ToolContext,
+    project_id: str | None,
+    project_name: str | None,
+    workspace_id: str | None,
+) -> tuple[str | None, str | None]:
+    if all([project_id, project_name]):
+        raise ToolExecutionError(
+            "Provide none or at most one of project_id and project_name, never both."
+        )
+
+    if project_id:
+        from arcade_asana.tools.projects import get_project_by_id  # avoid circular imports
+
+        response = await get_project_by_id(context, project_id)
+        workspace_id = response["project"]["workspace"]["gid"]
+
+    elif project_name:
+        project = await get_project_by_name_or_raise_error(context, project_name)
+        project_id = project["gid"]
+        workspace_id = project["workspace"]["gid"]
+
+    return project_id, workspace_id
 
 
 async def get_project_by_name_or_raise_error(

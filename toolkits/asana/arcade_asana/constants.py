@@ -74,6 +74,14 @@ TEAM_OPT_FIELDS = [
     "permalink_url",
 ]
 
+USER_OPT_FIELDS = [
+    "gid",
+    "resource_type",
+    "name",
+    "email",
+    "photo",
+    "workspaces",
+]
 
 WORKSPACE_OPT_FIELDS = [
     "gid",
@@ -82,6 +90,19 @@ WORKSPACE_OPT_FIELDS = [
     "email_domains",
     "is_organization",
 ]
+
+
+class TaskSortBy(Enum):
+    DUE_DATE = "due_date"
+    CREATED_AT = "created_at"
+    COMPLETED_AT = "completed_at"
+    MODIFIED_AT = "modified_at"
+    LIKES = "likes"
+
+
+class SortOrder(Enum):
+    ASCENDING = "ascending"
+    DESCENDING = "descending"
 
 
 class TagColor(Enum):

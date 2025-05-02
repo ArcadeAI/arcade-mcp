@@ -76,9 +76,11 @@ class AsanaClient:
         headers: Optional[dict] = None,
         api_version: str | None = None,
     ) -> dict:
-        headers = headers or {}
-        headers["Authorization"] = f"Bearer {self.auth_token}"
-        headers["Accept"] = "application/json"
+        default_headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Accept": "application/json",
+        }
+        headers = {**default_headers, **(headers or {})}
 
         kwargs = {
             "url": self._build_url(endpoint, api_version),
@@ -98,20 +100,31 @@ class AsanaClient:
         endpoint: str,
         data: Optional[dict] = None,
         json_data: Optional[dict] = None,
+        files: Optional[dict] = None,
         headers: Optional[dict] = None,
         api_version: str | None = None,
     ) -> dict:
-        headers = headers or {}
-        headers["Authorization"] = f"Bearer {self.auth_token}"
-        headers["Content-Type"] = "application/json"
-        headers["Accept"] = "application/json"
+        default_headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Accept": "application/json",
+        }
+
+        if files is None and json_data is not None:
+            default_headers["Content-Type"] = "application/json"
+
+        headers = {**default_headers, **(headers or {})}
 
         kwargs = {
             "url": self._build_url(endpoint, api_version),
             "headers": headers,
         }
 
-        kwargs = self._set_request_body(kwargs, data, json_data)
+        if files is not None:
+            kwargs["files"] = files
+            if data is not None:
+                kwargs["data"] = data
+        else:
+            kwargs = self._set_request_body(kwargs, data, json_data)
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)  # type: ignore[arg-type]
