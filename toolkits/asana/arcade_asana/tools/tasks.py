@@ -361,7 +361,7 @@ async def attach_file_to_task(
     ],
     file_content_str: Annotated[
         str | None,
-        "The string contents of the file to attach. Use this if the file IS a text file. "
+        "The string contents of the file to attach. Use this if the file is a text file. "
         "Defaults to None.",
     ] = None,
     file_content_base64: Annotated[
