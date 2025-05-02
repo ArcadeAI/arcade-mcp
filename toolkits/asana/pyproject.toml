@@ -24,7 +24,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
-files = ["arcade_hubspot/**/*.py"]
+files = ["arcade_asana/**/*.py"]
 python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
