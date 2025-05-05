@@ -149,7 +149,7 @@ async def search_tags_by_name(
             "count": len(matches),
         },
         "not_found": {
-            "names": not_found,
+            "tags": not_found,
             "count": len(not_found),
         },
     }

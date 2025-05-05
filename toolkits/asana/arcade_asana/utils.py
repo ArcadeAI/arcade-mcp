@@ -259,6 +259,13 @@ async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str]
         from arcade_asana.tools.tags import search_tags_by_name  # Avoid circular import
 
         searched_tags = await search_tags_by_name(context, tag_names)
+
+        if searched_tags["not_found"]["tags"]:
+            tag_names_not_found = ", ".join(searched_tags["not_found"]["tags"])
+            raise ToolExecutionError(
+                f"Tags not found: {tag_names_not_found}. Please provide valid tag names or IDs."
+            )
+
         tag_ids.extend([tag["gid"] for tag in searched_tags["matches"]["tags"]])
 
     return tag_ids if tag_ids else None

@@ -70,8 +70,8 @@ async def get_subtasks_from_a_task(
 async def search_tasks(
     context: ToolContext,
     keywords: Annotated[
-        str, "Keywords to search for tasks. Matches against the task name and description."
-    ],
+        str | None, "Keywords to search for tasks. Matches against the task name and description."
+    ] = None,
     workspace_ids: Annotated[
         list[str] | None,
         "The IDs of the workspaces to search for tasks. "
@@ -159,7 +159,6 @@ async def search_tasks(
 
     if not project_id and project_name:
         project = await get_project_by_name_or_raise_error(context, project_name)
-        print("\n\nproject:", project, "\n\n")
         project_id = project["gid"]
 
     tag_ids = await get_tag_ids(context, tags)
