@@ -36,7 +36,6 @@ def validate_date_format(name: str, date_str: str | None) -> None:
 
 
 def build_task_search_query_params(
-    workspace_id: str,
     keywords: str,
     completed: bool,
     assignee_ids: list[str] | None,
@@ -54,7 +53,6 @@ def build_task_search_query_params(
     sort_order: SortOrder,
 ) -> dict[str, Any]:
     query_params: dict[str, Any] = {
-        "workspace": workspace_id,
         "text": keywords,
         "opt_fields": TASK_OPT_FIELDS,
         "completed": completed,

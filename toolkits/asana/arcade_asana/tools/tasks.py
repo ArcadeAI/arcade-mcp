@@ -145,7 +145,9 @@ async def search_tasks(
     """Search for tasks"""
     from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
 
-    workspace_ids = workspace_ids or await list_workspaces(context)
+    if not workspace_ids:
+        response = await list_workspaces(context)
+        workspace_ids = [workspace["gid"] for workspace in response["workspaces"]]
 
     client = AsanaClient(context.get_auth_token_or_empty())
 
@@ -160,7 +162,6 @@ async def search_tasks(
         client.get(
             f"/workspaces/{workspace_id}/tasks/search",
             params=build_task_search_query_params(
-                workspace_id=workspace_id,
                 keywords=keywords,
                 completed=completed,
                 assignee_ids=assignee_ids,
@@ -190,6 +191,8 @@ async def search_tasks(
     for response in subtasks:
         for subtask in response["subtasks"]:
             parent_task = tasks_by_id[subtask["parent"]["gid"]]
+            if "subtasks" not in parent_task:
+                parent_task["subtasks"] = []
             parent_task["subtasks"].append(subtask)
 
     tasks = list(tasks_by_id.values())
