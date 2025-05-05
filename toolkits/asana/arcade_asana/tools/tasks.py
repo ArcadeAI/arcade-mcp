@@ -12,6 +12,7 @@ from arcade_asana.utils import (
     build_task_search_query_params,
     clean_request_params,
     get_project_by_name_or_raise_error,
+    get_tag_ids,
     handle_new_task_associations,
     handle_new_task_tags,
     remove_none_values,
@@ -160,20 +161,7 @@ async def search_tasks(
         project = await get_project_by_name_or_raise_error(context, project_name)
         project_id = project["gid"]
 
-    tag_ids = []
-    tag_names = []
-
-    for tag in tags:
-        if tag.isnumeric():
-            tag_ids.append(tag)
-        else:
-            tag_names.append(tag)
-
-    if tag_names:
-        from arcade_asana.tools.tags import search_tags_by_name  # Avoid circular import
-
-        tags = await search_tags_by_name(context, tag_names)
-        tag_ids.extend([tag["gid"] for tag in tags["matches"]["tags"]])
+    tag_ids = await get_tag_ids(context, tags)
 
     client = AsanaClient(context.get_auth_token_or_empty())
 
@@ -315,11 +303,8 @@ async def create_task(
     workspace_id: Annotated[
         str | None, "The ID of the workspace to associate the task to. Defaults to None."
     ] = None,
-    project_id: Annotated[
-        str | None, "The ID of the project to associate the task to. Defaults to None."
-    ] = None,
-    project_name: Annotated[
-        str | None, "The name of the project to associate the task to. Defaults to None."
+    project: Annotated[
+        str | None, "The ID or name of the project to associate the task to. Defaults to None."
     ] = None,
     assignee_id: Annotated[
         str | None,
@@ -337,10 +322,7 @@ async def create_task(
 ]:
     """Creates a task in Asana
 
-    If the user provides tag name(s), it's not necessary to search for it first. Provide the tag
-    name(s) directly in the tags list argument.
-
-    The task must be associated to at least one of the following: parent_task_id, project_id, or
+    The task must be associated to at least one of the following: parent_task_id, project, or
     workspace_id. If none of these are provided and the account has only one workspace, the task
     will be associated to that workspace. If the account has multiple workspaces, an error will
     be raised with a list of available workspaces.
@@ -348,7 +330,7 @@ async def create_task(
     client = AsanaClient(context.get_auth_token_or_empty())
 
     parent_task_id, project_id, workspace_id = await handle_new_task_associations(
-        context, parent_task_id, project_id, project_name, workspace_id
+        context, parent_task_id, project, workspace_id
     )
 
     tag_ids = await handle_new_task_tags(context, tags, workspace_id)

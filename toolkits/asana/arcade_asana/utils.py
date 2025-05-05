@@ -115,8 +115,7 @@ def add_task_search_date_params(
 async def handle_new_task_associations(
     context: ToolContext,
     parent_task_id: str | None,
-    project_id: str | None,
-    project_name: str | None,
+    project: str | None,
     workspace_id: str | None,
 ) -> tuple[str | None, str | None, str | None]:
     """
@@ -134,12 +133,15 @@ async def handle_new_task_associations(
 
     Returns a tuple of (parent_task_id, project_id, workspace_id).
     """
-    if project_id and project_name:
-        raise RetryableToolError(
-            "Provide none or at most one of project_id and project_name, never both."
-        )
+    project_id, project_name = (None, None)
 
-    if not any([parent_task_id, project_id, project_name, workspace_id]):
+    if project:
+        if project.isnumeric():
+            project_id = project
+        else:
+            project_name = project
+
+    if not any([parent_task_id, project_id, workspace_id]):
         workspace_id = await get_unique_workspace_id_or_raise_error(context)
 
     if not workspace_id:
@@ -210,6 +212,9 @@ async def handle_new_task_tags(
     tags: list[str] | None,
     workspace_id: str | None,
 ) -> list[str] | None:
+    if not tags:
+        return None
+
     tag_ids = []
     tag_names = []
     for tag in tags:
@@ -232,6 +237,31 @@ async def handle_new_task_tags(
             tag_ids.extend([response["tag"]["gid"] for response in responses])
 
     return tag_ids
+
+
+async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str] | None:
+    """
+    Returns the IDs of the tags provided in the tags list, which can be either tag IDs or tag names.
+
+    If the tags list is empty, it returns None.
+    """
+    tag_ids = []
+    tag_names = []
+
+    if tags:
+        for tag in tags:
+            if tag.isnumeric():
+                tag_ids.append(tag)
+            else:
+                tag_names.append(tag)
+
+    if tag_names:
+        from arcade_asana.tools.tags import search_tags_by_name  # Avoid circular import
+
+        searched_tags = await search_tags_by_name(context, tag_names)
+        tag_ids.extend([tag["gid"] for tag in searched_tags["matches"]["tags"]])
+
+    return tag_ids if tag_ids else None
 
 
 async def paginate_tool_call(
