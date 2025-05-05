@@ -63,9 +63,9 @@ def build_task_search_query_params(
     if assignee_ids:
         query_params["assignee.any"] = ",".join(assignee_ids)
     if project_id:
-        query_params["projects.any"] = ",".join(project_id)
+        query_params["projects.any"] = project_id
     if team_id:
-        query_params["team.any"] = ",".join(team_id)
+        query_params["team.any"] = team_id
     if tag_ids:
         query_params["tags.any"] = ",".join(tag_ids)
 

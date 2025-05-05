@@ -65,7 +65,7 @@ async def search_projects_by_name(
             matches.append(project)
             names_lower.remove(project_name_lower)
         else:
-            not_matched.append(project["name"])
+            not_matched.append(project)
 
     not_found = [name for name in names if name.casefold() in names_lower]
 

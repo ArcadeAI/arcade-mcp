@@ -159,6 +159,7 @@ async def search_tasks(
 
     if not project_id and project_name:
         project = await get_project_by_name_or_raise_error(context, project_name)
+        print("\n\nproject:", project, "\n\n")
         project_id = project["gid"]
 
     tag_ids = await get_tag_ids(context, tags)
