@@ -314,7 +314,8 @@ async def create_task(
     tags: Annotated[
         list[str] | None,
         "The tags to associate with the task. Each item in the list can be a tag name "
-        "(e.g. 'My Tag') or a tag ID (e.g. '1234567890'). Defaults to None.",
+        "(e.g. 'My Tag') or a tag ID (e.g. '1234567890'). If a tag name does not exist, "
+        "it will be created. Defaults to None (no tags are associated).",
     ] = None,
 ) -> Annotated[
     dict[str, Any],
