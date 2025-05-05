@@ -662,3 +662,237 @@ async def create_label(
     label = service.users().labels().create(userId="me", body={"name": label_name}).execute()
 
     return {"label": label}
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def get_gmail_attachment(
+    context: ToolContext,
+    message_id: Annotated[str, "The ID of the Gmail message containing the attachment"],
+    attachment_id: Annotated[str, "The ID of the attachment to retrieve"],
+) -> Annotated[
+    dict[str, Any], "The attachment data including filename, content (base64), size, and mimeType"
+]:
+    """
+    Retrieve an attachment from a Gmail message.
+
+    This tool accesses the Gmail API to download a specific attachment from a specified email.
+    """
+    # Use the existing helper function
+    service = _build_gmail_service(context)
+
+    try:
+        # Get the attachment data from the message
+        attachment = (
+            service.users()
+            .messages()
+            .attachments()
+            .get(userId="me", messageId=message_id, id=attachment_id)
+            .execute()
+        )
+
+        # Get the email message metadata to find the attachment filename and mimeType
+        message = (
+            service.users()
+            .messages()
+            .get(
+                userId="me",
+                id=message_id,
+                format="metadata",  # Request metadata format for efficiency
+                metadataHeaders=[
+                    "parts",
+                    "filename",
+                    "mimeType",
+                ],  # Ensure needed headers are present
+            )
+            .execute()
+        )
+
+        # Find the attachment metadata in the message payload parts
+        attachment_metadata = None
+
+        def find_attachment_part(parts, target_attachment_id):
+            """Recursively search for the part corresponding to the attachment ID."""
+            local_attachment_part = None
+            if not parts:
+                return None
+
+            queue = parts[:]
+            while queue:
+                part = queue.pop(0)
+                if part.get("body", {}).get("attachmentId") == target_attachment_id:
+                    local_attachment_part = part
+                    break
+                if "parts" in part:
+                    queue.extend(part["parts"])
+            return local_attachment_part
+
+        if "payload" in message:
+            attachment_metadata = find_attachment_part(
+                message["payload"].get("parts"), attachment_id
+            )
+
+        # If metadata is still missing after checking parts (e.g., message is not multipart, or attachment is top-level body)
+        if not attachment_metadata and "payload" in message:
+            payload = message["payload"]
+            if payload.get("body", {}).get("attachmentId") == attachment_id:
+                # Treat the main payload as the attachment metadata source
+                attachment_metadata = payload
+
+        # Gmail API returns data in URL-safe base64 format
+        data = attachment.get("data", "")
+        size = attachment.get("size", 0)
+
+        # Add proper base64 padding if needed (urlsafe_b64decode often handles this, but explicit padding is safer)
+        if data:
+            missing_padding = len(data) % 4
+            if missing_padding:
+                data += "=" * (4 - missing_padding)
+
+        # Build the response
+        result = {
+            "id": attachment_id,
+            "messageId": message_id,
+            "data": data,  # Base64-encoded attachment data
+            "size": size,
+            "filename": f"attachment_{attachment_id}",  # Default filename
+            "mimeType": "application/octet-stream",  # Default mimeType
+        }
+
+        # Add metadata if available
+        if attachment_metadata:
+            result["filename"] = attachment_metadata.get("filename", result["filename"])
+            result["mimeType"] = attachment_metadata.get("mimeType", result["mimeType"])
+
+        return result
+
+    except HttpError as error:
+        # Raise consistent error
+        developer_message = f"HttpError: {error.resp.status} {error.reason}"
+        try:
+            developer_message += f", Details: {error.content.decode()}"
+        except Exception:
+            pass  # Ignore if content cannot be decoded
+        raise GmailToolError(
+            message=f"Failed to retrieve attachment {attachment_id} from message {message_id}",
+            developer_message=developer_message,
+        ) from error
+    except Exception as e:
+        # Catch unexpected errors
+        raise GmailToolError(
+            message=f"An unexpected error occurred while retrieving attachment {attachment_id} from message {message_id}",
+            developer_message=str(e),
+        ) from e
+
+
+@tool(
+    requires_auth=Google(
+        scopes=["https://www.googleapis.com/auth/gmail.readonly"],
+    )
+)
+async def list_message_attachments(
+    context: ToolContext,
+    message_id: Annotated[str, "The ID of the Gmail message to check for attachments"],
+) -> Annotated[dict[str, Any], "Information about attachments in the message"]:
+    """
+    List all attachments in a Gmail message.
+
+    This tool accesses the Gmail API to retrieve metadata about all attachments in a specific email.
+    """
+    # Use the existing helper function
+    service = _build_gmail_service(context)
+
+    try:
+        # Get the email message, request metadata format to ensure payload details are present efficiently
+        message = (
+            service.users()
+            .messages()
+            .get(
+                userId="me",
+                id=message_id,
+                format="metadata",  # Request metadata format
+                metadataHeaders=[
+                    "parts",
+                    "filename",
+                    "mimeType",
+                ],  # Ensure needed headers are present
+            )
+            .execute()
+        )
+
+        attachments = []
+        processed_attachment_ids = set()  # Keep track of added attachments to avoid duplicates
+
+        # Use a queue to process parts recursively (handles nested multiparts)
+        queue = []
+        if "payload" in message:
+            queue.append(message["payload"])
+
+        processed_parts = set()  # Avoid processing the same part multiple times if nested weirdly
+
+        while queue:
+            part = queue.pop(0)
+            part_id = part.get("partId")
+
+            # Basic cycle detection using partId
+            if part_id and part_id in processed_parts:
+                continue
+            if part_id:
+                processed_parts.add(part_id)
+
+            # Check if this part represents an attachment
+            body = part.get("body")
+            if part.get("filename") and body and body.get("attachmentId"):
+                attachment_id = body["attachmentId"]
+                # Avoid duplicates if the same attachment ID appears in multiple parts
+                if attachment_id not in processed_attachment_ids:
+                    attachments.append({
+                        "id": attachment_id,
+                        "filename": part.get("filename"),
+                        "mimeType": part.get("mimeType", "application/octet-stream"),
+                        "size": body.get("size", 0),
+                    })
+                    processed_attachment_ids.add(attachment_id)
+
+            # If the part has subparts, add them to the queue
+            if "parts" in part:
+                queue.extend(part["parts"])
+
+        # Also check the top-level payload if it represents an attachment directly
+        # (e.g., a message that is just an image without multipart structure)
+        if "payload" in message:
+            payload = message["payload"]
+            body = payload.get("body")
+            if payload.get("filename") and body and body.get("attachmentId"):
+                attachment_id = body["attachmentId"]
+                if attachment_id not in processed_attachment_ids:
+                    attachments.append({
+                        "id": attachment_id,
+                        "filename": payload.get("filename"),
+                        "mimeType": payload.get("mimeType", "application/octet-stream"),
+                        "size": body.get("size", 0),
+                    })
+                    # No need to add to processed_attachment_ids here as it's checked above
+
+        return {"messageId": message_id, "attachments": attachments, "count": len(attachments)}
+
+    except HttpError as error:
+        # Raise consistent error
+        developer_message = f"HttpError: {error.resp.status} {error.reason}"
+        try:
+            developer_message += f", Details: {error.content.decode()}"
+        except Exception:
+            pass  # Ignore if content cannot be decoded
+        raise GmailToolError(
+            message=f"Failed to retrieve attachments list for message {message_id}",
+            developer_message=developer_message,
+        ) from error
+    except Exception as e:
+        # Catch unexpected errors
+        raise GmailToolError(
+            message=f"An unexpected error occurred while listing attachments for message {message_id}",
+            developer_message=str(e),
+        ) from e
