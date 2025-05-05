@@ -87,7 +87,10 @@ async def list_tags(
         )
         for workspace_id in workspace_ids
     ])
-    return {"tags": [tag for response in responses for tag in response["data"]]}
+
+    tags = [tag for response in responses for tag in response["data"]]
+
+    return {"tags": tags, "count": len(tags)}
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=[]))
