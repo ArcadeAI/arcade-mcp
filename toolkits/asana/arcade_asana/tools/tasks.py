@@ -334,8 +334,6 @@ async def create_task(
         context, parent_task_id, project, workspace_id
     )
 
-    print("\n\nproject_id:", project_id, "\n\n")
-
     tag_ids = await handle_new_task_tags(context, tags, workspace_id)
 
     validate_date_format("start_date", start_date)
