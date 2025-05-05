@@ -11,6 +11,7 @@ from arcade_asana.models import AsanaClient
 from arcade_asana.utils import (
     build_task_search_query_params,
     clean_request_params,
+    get_project_by_name_or_raise_error,
     handle_new_task_associations,
     handle_new_task_tags,
     remove_none_values,
@@ -80,19 +81,25 @@ async def search_tasks(
         "Restricts the search to tasks assigned to the given users. "
         "Defaults to None (searches tasks assigned to anyone or no one).",
     ] = None,
-    project_ids: Annotated[
-        list[str] | None,
-        "Restricts the search to tasks associated to the given projects. "
+    project_name: Annotated[
+        str | None,
+        "Restricts the search to tasks associated to the given project name. "
         "Defaults to None (searches tasks associated to any project).",
     ] = None,
-    team_ids: Annotated[
-        list[str] | None,
-        "Restricts the search to tasks associated to the given teams. "
+    project_id: Annotated[
+        str | None,
+        "Restricts the search to tasks associated to the given project ID. "
+        "Defaults to None (searches tasks associated to any project).",
+    ] = None,
+    team_id: Annotated[
+        str | None,
+        "Restricts the search to tasks associated to the given team ID. "
         "Defaults to None (searches tasks associated to any team).",
     ] = None,
     tags: Annotated[
         list[str] | None,
         "Restricts the search to tasks associated to the given tags. "
+        "Each item in the list can be a tag name (e.g. 'My Tag') or a tag ID (e.g. '1234567890'). "
         "Defaults to None (searches tasks associated to any tag or no tag).",
     ] = None,
     due_on: Annotated[
@@ -143,11 +150,30 @@ async def search_tasks(
     ] = SortOrder.DESCENDING,
 ) -> Annotated[dict[str, Any], "The tasks that match the query."]:
     """Search for tasks"""
-    from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
-
     if not workspace_ids:
-        response = await list_workspaces(context)
-        workspace_ids = [workspace["gid"] for workspace in response["workspaces"]]
+        from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
+
+        workspaces = await list_workspaces(context)
+        workspace_ids = [workspace["gid"] for workspace in workspaces["workspaces"]]
+
+    if not project_id and project_name:
+        project = await get_project_by_name_or_raise_error(context, project_name)
+        project_id = project["gid"]
+
+    tag_ids = []
+    tag_names = []
+
+    for tag in tags:
+        if tag.isnumeric():
+            tag_ids.append(tag)
+        else:
+            tag_names.append(tag)
+
+    if tag_names:
+        from arcade_asana.tools.tags import search_tags_by_name  # Avoid circular import
+
+        tags = await search_tags_by_name(context, tag_names)
+        tag_ids.extend([tag["gid"] for tag in tags["matches"]["tags"]])
 
     client = AsanaClient(context.get_auth_token_or_empty())
 
@@ -165,9 +191,9 @@ async def search_tasks(
                 keywords=keywords,
                 completed=completed,
                 assignee_ids=assignee_ids,
-                project_ids=project_ids,
-                team_ids=team_ids,
-                tags=tags,
+                project_id=project_id,
+                team_id=team_id,
+                tag_ids=tag_ids,
                 due_on=due_on,
                 due_on_or_after=due_on_or_after,
                 due_on_or_before=due_on_or_before,
@@ -300,11 +326,10 @@ async def create_task(
         "The ID of the user to assign the task to. "
         "Defaults to 'me', which assigns the task to the current user.",
     ] = "me",
-    tag_names: Annotated[
-        list[str] | None, "The names of the tags to associate with the task. Defaults to None."
-    ] = None,
-    tag_ids: Annotated[
-        list[str] | None, "The IDs of the tags to associate with the task. Defaults to None."
+    tags: Annotated[
+        list[str] | None,
+        "The tags to associate with the task. Each item in the list can be a tag name "
+        "(e.g. 'My Tag') or a tag ID (e.g. '1234567890'). Defaults to None.",
     ] = None,
 ) -> Annotated[
     dict[str, Any],
@@ -312,9 +337,8 @@ async def create_task(
 ]:
     """Creates a task in Asana
 
-    Provide none or at most one of the following argument pairs, never both:
-    - tag_names and tag_ids
-    - project_name and project_id
+    If the user provides tag name(s), it's not necessary to search for it first. Provide the tag
+    name(s) directly in the tags list argument.
 
     The task must be associated to at least one of the following: parent_task_id, project_id, or
     workspace_id. If none of these are provided and the account has only one workspace, the task
@@ -327,7 +351,7 @@ async def create_task(
         context, parent_task_id, project_id, project_name, workspace_id
     )
 
-    tag_ids = await handle_new_task_tags(context, tag_names, tag_ids, workspace_id)
+    tag_ids = await handle_new_task_tags(context, tags, workspace_id)
 
     validate_date_format("start_date", start_date)
     validate_date_format("due_date", due_date)

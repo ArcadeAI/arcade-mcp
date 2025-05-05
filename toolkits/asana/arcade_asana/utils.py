@@ -39,9 +39,9 @@ def build_task_search_query_params(
     keywords: str,
     completed: bool,
     assignee_ids: list[str] | None,
-    project_ids: list[str] | None,
-    team_ids: list[str] | None,
-    tags: list[str] | None,
+    project_id: str | None,
+    team_id: str | None,
+    tag_ids: list[str] | None,
     due_on: str | None,
     due_on_or_after: str | None,
     due_on_or_before: str | None,
@@ -62,12 +62,12 @@ def build_task_search_query_params(
     }
     if assignee_ids:
         query_params["assignee.any"] = ",".join(assignee_ids)
-    if project_ids:
-        query_params["projects.any"] = ",".join(project_ids)
-    if team_ids:
-        query_params["team.any"] = ",".join(team_ids)
-    if tags:
-        query_params["tags.any"] = ",".join(tags)
+    if project_id:
+        query_params["projects.any"] = ",".join(project_id)
+    if team_id:
+        query_params["team.any"] = ",".join(team_id)
+    if tag_ids:
+        query_params["tags.any"] = ",".join(tag_ids)
 
     query_params = add_task_search_date_params(
         query_params,
@@ -207,27 +207,29 @@ async def get_project_by_name_or_raise_error(
 
 async def handle_new_task_tags(
     context: ToolContext,
-    tag_names: list[str] | None,
-    tag_ids: list[str] | None,
+    tags: list[str] | None,
     workspace_id: str | None,
 ) -> list[str] | None:
-    if tag_ids and tag_names:
-        raise ToolExecutionError(
-            "Provide none or at most one of tag_names and tag_ids, never both."
-        )
+    tag_ids = []
+    tag_names = []
+    for tag in tags:
+        if tag.isnumeric():
+            tag_ids.append(tag)
+        else:
+            tag_names.append(tag)
 
     if tag_names:
         from arcade_asana.tools.tags import create_tag, search_tags_by_name
 
         response = await search_tags_by_name(context, tag_names)
-        tag_ids = [tag["gid"] for tag in response["matches"]["tags"]]
+        tag_ids.extend([tag["gid"] for tag in response["matches"]["tags"]])
 
         if response["not_found"]["names"]:
             responses = await asyncio.gather(*[
                 create_tag(context, name=name, workspace_id=workspace_id)
                 for name in response["not_found"]["names"]
             ])
-            tag_ids = [response["tag"]["gid"] for response in responses]
+            tag_ids.extend([response["tag"]["gid"] for response in responses])
 
     return tag_ids
 
