@@ -141,46 +141,21 @@ async def handle_new_task_associations(
         else:
             project_name = project
 
-    if not any([parent_task_id, project_id, workspace_id]):
-        workspace_id = await get_unique_workspace_id_or_raise_error(context)
-
-    if not workspace_id:
-        if parent_task_id:
-            from arcade_asana.tools.tasks import get_task_by_id  # avoid circular imports
-
-            response = await get_task_by_id(context, parent_task_id)
-            workspace_id = response["task"]["workspace"]["gid"]
-        else:
-            project_id, workspace_id = await handle_task_project_association(
-                context, project_id, project_name, workspace_id
-            )
-
-    return parent_task_id, project_id, workspace_id
-
-
-async def handle_task_project_association(
-    context: ToolContext,
-    project_id: str | None,
-    project_name: str | None,
-    workspace_id: str | None,
-) -> tuple[str | None, str | None]:
-    if all([project_id, project_name]):
-        raise ToolExecutionError(
-            "Provide none or at most one of project_id and project_name, never both."
-        )
-
-    if project_id:
-        from arcade_asana.tools.projects import get_project_by_id  # avoid circular imports
-
-        response = await get_project_by_id(context, project_id)
-        workspace_id = response["project"]["workspace"]["gid"]
-
-    elif project_name:
+    if project_name:
         project = await get_project_by_name_or_raise_error(context, project_name)
         project_id = project["gid"]
         workspace_id = project["workspace"]["gid"]
 
-    return project_id, workspace_id
+    if not any([parent_task_id, project_id, workspace_id]):
+        workspace_id = await get_unique_workspace_id_or_raise_error(context)
+
+    if not workspace_id and parent_task_id:
+        from arcade_asana.tools.tasks import get_task_by_id  # avoid circular imports
+
+        response = await get_task_by_id(context, parent_task_id)
+        workspace_id = response["task"]["workspace"]["gid"]
+
+    return parent_task_id, project_id, workspace_id
 
 
 async def get_project_by_name_or_raise_error(
@@ -229,10 +204,10 @@ async def handle_new_task_tags(
         response = await search_tags_by_name(context, tag_names)
         tag_ids.extend([tag["gid"] for tag in response["matches"]["tags"]])
 
-        if response["not_found"]["names"]:
+        if response["not_found"]["tags"]:
             responses = await asyncio.gather(*[
                 create_tag(context, name=name, workspace_id=workspace_id)
-                for name in response["not_found"]["names"]
+                for name in response["not_found"]["tags"]
             ])
             tag_ids.extend([response["tag"]["gid"] for response in responses])
 
