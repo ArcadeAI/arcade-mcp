@@ -133,5 +133,5 @@ Before you submit a pull request, check that it meets these guidelines:
    Put your new functionality into a function with a docstring, and add the feature to the list in `README.md`.
 
 3. If making contributions to multiple toolkits (i.e. Google and Slack, etc.), submit a separate pull request for each.
-   This helps us segrate the changes during the review process making it more efficient.
+   This helps us segregate the changes during the review process making it more efficient.
    
