@@ -7,7 +7,14 @@ from typing import Any, Callable, TypeVar, cast
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_asana.constants import TASK_OPT_FIELDS, SortOrder, TaskSortBy
+from arcade_asana.constants import (
+    ASANA_MAX_TIMEOUT_SECONDS,
+    MAX_PROJECTS_TO_SCAN_BY_NAME,
+    MAX_TAGS_TO_SCAN_BY_NAME,
+    TASK_OPT_FIELDS,
+    SortOrder,
+    TaskSortBy,
+)
 from arcade_asana.exceptions import PaginationTimeoutError
 
 ToolResponse = TypeVar("ToolResponse", bound=dict[str, Any])
@@ -159,16 +166,26 @@ async def handle_new_task_associations(
 
 
 async def get_project_by_name_or_raise_error(
-    context: ToolContext, project_name: str
+    context: ToolContext,
+    project_name: str,
+    max_items_to_scan: int = MAX_PROJECTS_TO_SCAN_BY_NAME,
 ) -> dict[str, Any]:
     response = await find_projects_by_name(
-        context, names=[project_name], response_limit=1, return_projects_not_matched=True
+        context=context,
+        names=[project_name],
+        response_limit=1,
+        max_items_to_scan=max_items_to_scan,
+        return_projects_not_matched=True,
     )
 
     if not response["matches"]["projects"]:
         projects = response["not_matched"]["projects"]
         projects = [{"name": project["name"], "id": project["id"]} for project in projects]
-        message = f"Project with name '{project_name}' not found."
+        message = (
+            f"Project with name '{project_name}' was not found. The search scans up to "
+            f"{max_items_to_scan} projects. If the user account has a larger number of projects, "
+            "it's possible that it exists, but the search didn't find it."
+        )
         additional_prompt = f"Projects available: {json.dumps(projects)}"
         raise RetryableToolError(
             message=message,
@@ -211,7 +228,11 @@ async def handle_new_task_tags(
     return tag_ids
 
 
-async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str] | None:
+async def get_tag_ids(
+    context: ToolContext,
+    tags: list[str] | None,
+    max_items_to_scan: int = MAX_TAGS_TO_SCAN_BY_NAME,
+) -> list[str] | None:
     """
     Returns the IDs of the tags provided in the tags list, which can be either tag IDs or tag names.
 
@@ -228,12 +249,18 @@ async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str]
                 tag_names.append(tag)
 
     if tag_names:
-        searched_tags = await find_tags_by_name(context, tag_names)
+        searched_tags = await find_tags_by_name(
+            context=context,
+            names=tag_names,
+            max_items_to_scan=max_items_to_scan,
+        )
 
         if searched_tags["not_found"]["tags"]:
             tag_names_not_found = ", ".join(searched_tags["not_found"]["tags"])
             raise ToolExecutionError(
-                f"Tags not found: {tag_names_not_found}. Please provide valid tag names or IDs."
+                f"Tags not found: {tag_names_not_found}. The search scans up to "
+                f"{max_items_to_scan} tags. If the user account has a larger number of tags, "
+                "it's possible that the tags exist, but the search didn't find them."
             )
 
         tag_ids.extend([tag["id"] for tag in searched_tags["matches"]["tags"]])
@@ -246,7 +273,7 @@ async def paginate_tool_call(
     context: ToolContext,
     response_key: str,
     max_items: int = 300,
-    timeout_seconds: int = 10,
+    timeout_seconds: int = ASANA_MAX_TIMEOUT_SECONDS,
     **tool_kwargs: Any,
 ) -> list[ToolResponse]:
     results: list[ToolResponse] = []
@@ -298,7 +325,7 @@ async def find_projects_by_name(
     names: list[str],
     team_ids: list[str] | None = None,
     response_limit: int = 100,
-    max_items_to_scan: int = 500,
+    max_items_to_scan: int = MAX_PROJECTS_TO_SCAN_BY_NAME,
     return_projects_not_matched: bool = False,
 ) -> dict[str, Any]:
     """Find projects by name using exact match
@@ -372,7 +399,7 @@ async def find_tags_by_name(
     names: list[str],
     workspace_ids: list[str] | None = None,
     response_limit: int = 100,
-    max_items_to_scan: int = 500,
+    max_items_to_scan: int = MAX_TAGS_TO_SCAN_BY_NAME,
     return_tags_not_matched: bool = False,
 ) -> dict[str, Any]:
     """Find tags by name using exact match

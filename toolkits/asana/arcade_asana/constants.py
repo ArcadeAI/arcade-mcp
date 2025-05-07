@@ -9,6 +9,14 @@ try:
 except ValueError:
     ASANA_MAX_CONCURRENT_REQUESTS = 3
 
+try:
+    ASANA_MAX_TIMEOUT_SECONDS = int(os.getenv("ASANA_MAX_TIMEOUT_SECONDS", 20))
+except ValueError:
+    ASANA_MAX_TIMEOUT_SECONDS = 20
+
+MAX_PROJECTS_TO_SCAN_BY_NAME = 1000
+MAX_TAGS_TO_SCAN_BY_NAME = 1000
+
 PROJECT_OPT_FIELDS = [
     "gid",
     "resource_type",
