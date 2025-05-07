@@ -31,7 +31,7 @@ async def list_projects(
     context: ToolContext,
     team_ids: Annotated[
         list[str] | None,
-        "The IDs of the teams to get projects from. "
+        "The team IDs to get projects from. Multiple team IDs can be provided in the list. "
         "Defaults to None (get projects from all teams the user is a member of).",
     ] = None,
     limit: Annotated[

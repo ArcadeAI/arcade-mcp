@@ -27,7 +27,7 @@ async def list_teams_the_current_user_is_a_member_of(
     context: ToolContext,
     workspace_ids: Annotated[
         list[str] | None,
-        "The IDs of the workspaces to get teams from. "
+        "The workspace IDs to get teams from. Multiple workspace IDs can be provided in the list. "
         "Defaults to None (get teams from all workspaces the user is a member of).",
     ] = None,
     limit: Annotated[

@@ -76,13 +76,13 @@ async def search_tasks(
     ] = None,
     workspace_ids: Annotated[
         list[str] | None,
-        "The IDs of the workspaces to search for tasks. "
-        "Defaults to None (searches across all workspaces).",
+        "The workspace IDs to search for tasks. Multiple workspace IDs can be provided in "
+        "the list. Defaults to None (searches across all workspaces).",
     ] = None,
     assignee_ids: Annotated[
         list[str] | None,
-        "Restricts the search to tasks assigned to the given users. "
-        "Defaults to None (searches tasks assigned to anyone or no one).",
+        "Restricts the search to tasks assigned to the given user IDs. Multiple user IDs can be "
+        "provided in the list. Defaults to None (searches tasks assigned to anyone or no one).",
     ] = None,
     project_name: Annotated[
         str | None,
@@ -311,9 +311,10 @@ async def create_task(
     ] = "me",
     tags: Annotated[
         list[str] | None,
-        "The tags to associate with the task. Each item in the list can be a tag name "
-        "(e.g. 'My Tag') or a tag ID (e.g. '1234567890'). If a tag name does not exist, "
-        "it will be created. Defaults to None (no tags are associated).",
+        "The tags to associate with the task. Multiple tags can be provided in the list. "
+        "Each item in the list can be a tag name (e.g. 'My Tag') or a tag ID (e.g. '1234567890'). "
+        "If a tag name does not exist, it will be automatically created with the new task. "
+        "Defaults to None (no tags associated).",
     ] = None,
 ) -> Annotated[
     dict[str, Any],
