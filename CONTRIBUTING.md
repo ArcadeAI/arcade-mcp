@@ -134,4 +134,3 @@ Before you submit a pull request, check that it meets these guidelines:
 
 3. If making contributions to multiple toolkits (i.e. Google and Slack, etc.), submit a separate pull request for each.
    This helps us segregate the changes during the review process making it more efficient.
-   
