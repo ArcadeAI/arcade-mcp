@@ -1,5 +1,5 @@
-from arcade_asana.tools.projects import get_project_by_id, list_projects, search_projects_by_name
-from arcade_asana.tools.tags import create_tag, list_tags, search_tags_by_name
+from arcade_asana.tools.projects import get_project_by_id, list_projects
+from arcade_asana.tools.tags import create_tag, list_tags
 from arcade_asana.tools.tasks import (
     attach_file_to_task,
     create_task,
@@ -26,8 +26,6 @@ __all__ = [
     "list_teams_the_current_user_is_a_member_of",
     "list_users",
     "list_workspaces",
-    "search_projects_by_name",
-    "search_tags_by_name",
     "search_tasks",
     "update_task",
 ]

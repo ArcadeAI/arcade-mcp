@@ -3,14 +3,12 @@ from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import OAuth2
-from arcade.sdk.errors import ToolExecutionError
 
 from arcade_asana.constants import TAG_OPT_FIELDS, TagColor
 from arcade_asana.models import AsanaClient
 from arcade_asana.utils import (
     clean_request_params,
     get_unique_workspace_id_or_raise_error,
-    paginate_tool_call,
     remove_none_values,
 )
 
@@ -32,8 +30,8 @@ async def create_tag(
     ] = None,
 ) -> Annotated[dict[str, Any], "The created tag."]:
     """Create a tag in Asana"""
-    if not 1 <= len(name) <= 100:
-        raise ToolExecutionError("Tag name must be between 1 and 100 characters long.")
+    # if not 1 <= len(name) <= 100:
+    #     raise ToolExecutionError("Tag name must be between 1 and 100 characters long.")
 
     workspace_id = workspace_id or await get_unique_workspace_id_or_raise_error(context)
 
@@ -91,73 +89,3 @@ async def list_tags(
     tags = [tag for response in responses for tag in response["data"]]
 
     return {"tags": tags, "count": len(tags)}
-
-
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=[]))
-async def search_tags_by_name(
-    context: ToolContext,
-    names: Annotated[
-        list[str], "The names of the tags to search for (the search is case-insensitive)."
-    ],
-    workspace_ids: Annotated[
-        list[str] | None,
-        "The IDs of the workspaces to search for tags in. "
-        "If not provided, it will search across all workspaces.",
-    ] = None,
-    limit: Annotated[
-        int, "The maximum number of tags to return. Min is 1, max is 100. Defaults to 100."
-    ] = 100,
-    return_tags_not_matched: Annotated[
-        bool, "Whether to return tags that were not matched. Defaults to False."
-    ] = False,
-) -> Annotated[
-    dict[str, Any],
-    "List tags in Asana with names matching the provided names",
-]:
-    """List tags in Asana with names matching the provided names
-
-    The search is case-insensitive.
-    """
-    names_lower = {name.casefold() for name in names}
-
-    tags = await paginate_tool_call(
-        tool=list_tags,
-        context=context,
-        response_key="tags",
-        max_items=500,
-        timeout_seconds=15,
-        workspace_ids=workspace_ids,
-    )
-
-    matches: list[dict[str, Any]] = []
-    not_matched: list[str] = []
-    for tag in tags:
-        tag_name_lower = tag["name"].casefold()
-        if len(matches) >= limit:
-            break
-        if tag_name_lower in names_lower:
-            matches.append(tag)
-            names_lower.remove(tag_name_lower)
-        else:
-            not_matched.append(tag["name"])
-
-    not_found = [name for name in names if name.casefold() in names_lower]
-
-    response = {
-        "matches": {
-            "tags": matches,
-            "count": len(matches),
-        },
-        "not_found": {
-            "tags": not_found,
-            "count": len(not_found),
-        },
-    }
-
-    if return_tags_not_matched:
-        response["not_matched"] = {
-            "tags": not_matched,
-            "count": len(not_matched),
-        }
-
-    return response

@@ -11,15 +11,15 @@ from arcade_asana.utils import (
 
 
 @pytest.mark.asyncio
-@patch("arcade_asana.tools.tags.search_tags_by_name")
-async def test_get_tag_ids(mock_search_tags_by_name, mock_context):
+@patch("arcade_asana.utils.find_tags_by_name")
+async def test_get_tag_ids(mock_find_tags_by_name, mock_context):
     assert await get_tag_ids(mock_context, None) is None
     assert await get_tag_ids(mock_context, ["1234567890", "1234567891"]) == [
         "1234567890",
         "1234567891",
     ]
 
-    mock_search_tags_by_name.return_value = {
+    mock_find_tags_by_name.return_value = {
         "matches": {
             "tags": [
                 {"gid": "1234567890", "name": "My Tag"},
@@ -58,17 +58,17 @@ async def test_get_unique_workspace_id_or_raise_error(mock_list_workspaces, mock
 
 
 @pytest.mark.asyncio
-@patch("arcade_asana.tools.projects.search_projects_by_name")
-async def test_get_project_by_name_or_raise_error(mock_search_projects_by_name, mock_context):
+@patch("arcade_asana.utils.find_projects_by_name")
+async def test_get_project_by_name_or_raise_error(mock_find_projects_by_name, mock_context):
     project1 = {"gid": "1234567890", "name": "My Project"}
 
-    mock_search_projects_by_name.return_value = {
+    mock_find_projects_by_name.return_value = {
         "matches": {"projects": [project1]},
         "not_matched": {"projects": []},
     }
     assert await get_project_by_name_or_raise_error(mock_context, project1["name"]) == project1
 
-    mock_search_projects_by_name.return_value = {
+    mock_find_projects_by_name.return_value = {
         "matches": {"projects": []},
         "not_matched": {"projects": [project1]},
     }

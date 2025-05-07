@@ -10,7 +10,7 @@ from arcade.sdk.eval import (
 from arcade.sdk.eval.critic import BinaryCritic
 
 import arcade_asana
-from arcade_asana.tools import get_project_by_id, list_projects, search_projects_by_name
+from arcade_asana.tools import get_project_by_id, list_projects
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -187,110 +187,6 @@ def get_project_by_id_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="description", weight=0.1),
             BinaryCritic(critic_field="color", weight=0.1),
             BinaryCritic(critic_field="workspace_id", weight=0.1),
-        ],
-    )
-
-    return suite
-
-
-@tool_eval()
-def search_projects_by_name_eval_suite() -> EvalSuite:
-    suite = EvalSuite(
-        name="search projects by name eval suite",
-        system_message="You are an AI assistant with access to Asana tools. Use them to help the user with their tasks.",
-        catalog=catalog,
-        rubric=rubric,
-    )
-
-    suite.add_case(
-        name="Search projects by name",
-        user_message="Search for the project 'Hello' in Asana.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_projects_by_name,
-                args={
-                    "names": ["Hello"],
-                    "team_ids": None,
-                    "limit": 100,
-                    "return_projects_not_matched": False,
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            BinaryCritic(critic_field="names", weight=0.7),
-            BinaryCritic(critic_field="team_ids", weight=0.1),
-            BinaryCritic(critic_field="limit", weight=0.1),
-            BinaryCritic(critic_field="return_projects_not_matched", weight=0.1),
-        ],
-    )
-
-    suite.add_case(
-        name="Search projects by multiple names with limit",
-        user_message="Search for up to 10 projects with the names 'Hello' or 'World' in Asana.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_projects_by_name,
-                args={
-                    "names": ["Hello", "World"],
-                    "team_ids": None,
-                    "limit": 10,
-                    "return_projects_not_matched": False,
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            BinaryCritic(critic_field="names", weight=0.4),
-            BinaryCritic(critic_field="team_ids", weight=0.1),
-            BinaryCritic(critic_field="limit", weight=0.4),
-            BinaryCritic(critic_field="return_projects_not_matched", weight=0.1),
-        ],
-    )
-
-    suite.add_case(
-        name="Search projects by name and team",
-        user_message="Search for the project 'Hello' in Asana in the team '1234567890'.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_projects_by_name,
-                args={
-                    "names": ["Hello"],
-                    "team_ids": ["1234567890"],
-                    "limit": 100,
-                    "return_projects_not_matched": False,
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            BinaryCritic(critic_field="names", weight=0.4),
-            BinaryCritic(critic_field="team_ids", weight=0.4),
-            BinaryCritic(critic_field="limit", weight=0.1),
-            BinaryCritic(critic_field="return_projects_not_matched", weight=0.1),
-        ],
-    )
-
-    suite.add_case(
-        name="Search projects by name in multiple teams",
-        user_message="Search for the project 'Hello' in Asana in the teams '1234567890' and '1234567891'.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_projects_by_name,
-                args={
-                    "names": ["Hello"],
-                    "team_ids": ["1234567890", "1234567891"],
-                    "limit": 100,
-                    "return_projects_not_matched": False,
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            BinaryCritic(critic_field="names", weight=0.4),
-            BinaryCritic(critic_field="team_ids", weight=0.4),
-            BinaryCritic(critic_field="limit", weight=0.1),
-            BinaryCritic(critic_field="return_projects_not_matched", weight=0.1),
         ],
     )
 

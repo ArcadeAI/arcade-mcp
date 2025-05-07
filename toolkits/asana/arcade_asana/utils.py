@@ -161,10 +161,7 @@ async def handle_new_task_associations(
 async def get_project_by_name_or_raise_error(
     context: ToolContext, project_name: str
 ) -> dict[str, Any]:
-    # Avoid circular imports
-    from arcade_asana.tools.projects import search_projects_by_name
-
-    response = await search_projects_by_name(
+    response = await find_projects_by_name(
         context, names=[project_name], limit=1, return_projects_not_matched=True
     )
 
@@ -199,12 +196,12 @@ async def handle_new_task_tags(
             tag_names.append(tag)
 
     if tag_names:
-        from arcade_asana.tools.tags import create_tag, search_tags_by_name
-
-        response = await search_tags_by_name(context, tag_names)
+        response = await find_tags_by_name(context, tag_names)
         tag_ids.extend([tag["gid"] for tag in response["matches"]["tags"]])
 
         if response["not_found"]["tags"]:
+            from arcade_asana.tools.tags import create_tag  # avoid circular imports
+
             responses = await asyncio.gather(*[
                 create_tag(context, name=name, workspace_id=workspace_id)
                 for name in response["not_found"]["tags"]
@@ -231,9 +228,7 @@ async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str]
                 tag_names.append(tag)
 
     if tag_names:
-        from arcade_asana.tools.tags import search_tags_by_name  # Avoid circular import
-
-        searched_tags = await search_tags_by_name(context, tag_names)
+        searched_tags = await find_tags_by_name(context, tag_names)
 
         if searched_tags["not_found"]["tags"]:
             tag_names_not_found = ", ".join(searched_tags["not_found"]["tags"])
@@ -296,3 +291,114 @@ async def get_unique_workspace_id_or_raise_error(context: ToolContext) -> str:
             developer_message=message,
             additional_prompt_content=additional_prompt,
         )
+
+
+async def find_projects_by_name(
+    context: ToolContext,
+    names: list[str],
+    team_ids: list[str] | None = None,
+    limit: int = 100,
+    return_projects_not_matched: bool = False,
+) -> dict[str, Any]:
+    """Find projects by name using exact match"""
+    from arcade_asana.tools.projects import list_projects  # avoid circular imports
+
+    names_lower = {name.casefold() for name in names}
+
+    projects = await paginate_tool_call(
+        tool=list_projects,
+        context=context,
+        response_key="projects",
+        max_items=500,
+        timeout_seconds=15,
+        team_ids=team_ids,
+    )
+
+    matches: list[dict[str, Any]] = []
+    not_matched: list[str] = []
+
+    for project in projects:
+        project_name_lower = project["name"].casefold()
+        if len(matches) >= limit:
+            break
+        if project_name_lower in names_lower:
+            matches.append(project)
+            names_lower.remove(project_name_lower)
+        else:
+            not_matched.append(project)
+
+    not_found = [name for name in names if name.casefold() in names_lower]
+
+    response = {
+        "matches": {
+            "projects": matches,
+            "count": len(matches),
+        },
+        "not_found": {
+            "names": not_found,
+            "count": len(not_found),
+        },
+    }
+
+    if return_projects_not_matched:
+        response["not_matched"] = {
+            "projects": not_matched,
+            "count": len(not_matched),
+        }
+
+    return response
+
+
+async def find_tags_by_name(
+    context: ToolContext,
+    names: list[str],
+    workspace_ids: list[str] | None = None,
+    limit: int = 100,
+    return_tags_not_matched: bool = False,
+) -> dict[str, Any]:
+    """Find tags by name using exact match"""
+    from arcade_asana.tools.tags import list_tags  # avoid circular imports
+
+    names_lower = {name.casefold() for name in names}
+
+    tags = await paginate_tool_call(
+        tool=list_tags,
+        context=context,
+        response_key="tags",
+        max_items=500,
+        timeout_seconds=15,
+        workspace_ids=workspace_ids,
+    )
+
+    matches: list[dict[str, Any]] = []
+    not_matched: list[str] = []
+    for tag in tags:
+        tag_name_lower = tag["name"].casefold()
+        if len(matches) >= limit:
+            break
+        if tag_name_lower in names_lower:
+            matches.append(tag)
+            names_lower.remove(tag_name_lower)
+        else:
+            not_matched.append(tag["name"])
+
+    not_found = [name for name in names if name.casefold() in names_lower]
+
+    response = {
+        "matches": {
+            "tags": matches,
+            "count": len(matches),
+        },
+        "not_found": {
+            "tags": not_found,
+            "count": len(not_found),
+        },
+    }
+
+    if return_tags_not_matched:
+        response["not_matched"] = {
+            "tags": not_matched,
+            "count": len(not_matched),
+        }
+
+    return response
