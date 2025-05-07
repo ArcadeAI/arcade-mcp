@@ -68,8 +68,8 @@ async def list_projects(
             params=clean_request_params({
                 "limit": limit,
                 "offset": offset,
-                "team": team["gid"],
-                "workspace": team["organization"]["gid"],
+                "team": team["id"],
+                "workspace": team["organization"]["id"],
                 "opt_fields": PROJECT_OPT_FIELDS,
             }),
         )

@@ -48,7 +48,7 @@ async def list_teams_the_current_user_is_a_member_of(
         from arcade_asana.tools.workspaces import list_workspaces
 
         response = await list_workspaces(context)
-        workspace_ids = [workspace["gid"] for workspace in response["workspaces"]]
+        workspace_ids = [workspace["id"] for workspace in response["workspaces"]]
 
     client = AsanaClient(context.get_auth_token_or_empty())
     responses = await asyncio.gather(*[

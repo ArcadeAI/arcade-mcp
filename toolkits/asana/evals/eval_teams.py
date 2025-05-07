@@ -181,11 +181,11 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                     "count": 1,
                     "teams": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Team Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Team World",
                         },
                     ],
@@ -239,11 +239,11 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                     "count": 1,
                     "teams": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Team Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Team World",
                         },
                     ],

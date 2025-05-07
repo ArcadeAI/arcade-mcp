@@ -171,11 +171,11 @@ def list_users_eval_suite() -> EvalSuite:
                     "count": 2,
                     "users": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "User Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "User World",
                         },
                     ],
@@ -231,11 +231,11 @@ def list_users_eval_suite() -> EvalSuite:
                     "count": 2,
                     "users": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "User Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "User World",
                         },
                     ],

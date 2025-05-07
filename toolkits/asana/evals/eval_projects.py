@@ -139,11 +139,11 @@ def list_projects_eval_suite() -> EvalSuite:
                     "count": 2,
                     "workspaces": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Project Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Project World",
                         },
                     ],

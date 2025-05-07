@@ -155,11 +155,11 @@ async def search_tasks(
         from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
 
         workspaces = await list_workspaces(context)
-        workspace_ids = [workspace["gid"] for workspace in workspaces["workspaces"]]
+        workspace_ids = [workspace["id"] for workspace in workspaces["workspaces"]]
 
     if not project_id and project_name:
         project = await get_project_by_name_or_raise_error(context, project_name)
-        project_id = project["gid"]
+        project_id = project["id"]
 
     tag_ids = await get_tag_ids(context, tags)
 
@@ -196,15 +196,15 @@ async def search_tasks(
         for workspace_id in workspace_ids
     ])
 
-    tasks_by_id = {task["gid"]: task for response in responses for task in response["data"]}
+    tasks_by_id = {task["id"]: task for response in responses for task in response["data"]}
 
     subtasks = await asyncio.gather(*[
-        get_subtasks_from_a_task(context, task_id=task["gid"]) for task in tasks_by_id.values()
+        get_subtasks_from_a_task(context, task_id=task["id"]) for task in tasks_by_id.values()
     ])
 
     for response in subtasks:
         for subtask in response["subtasks"]:
-            parent_task = tasks_by_id[subtask["parent"]["gid"]]
+            parent_task = tasks_by_id[subtask["parent"]["id"]]
             if "subtasks" not in parent_task:
                 parent_task["subtasks"] = []
             parent_task["subtasks"].append(subtask)
