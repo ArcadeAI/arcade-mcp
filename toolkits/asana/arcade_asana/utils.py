@@ -162,7 +162,7 @@ async def get_project_by_name_or_raise_error(
     context: ToolContext, project_name: str
 ) -> dict[str, Any]:
     response = await find_projects_by_name(
-        context, names=[project_name], limit=1, return_projects_not_matched=True
+        context, names=[project_name], response_limit=1, return_projects_not_matched=True
     )
 
     if not response["matches"]["projects"]:
@@ -297,10 +297,28 @@ async def find_projects_by_name(
     context: ToolContext,
     names: list[str],
     team_ids: list[str] | None = None,
-    limit: int = 100,
+    response_limit: int = 100,
+    max_items_to_scan: int = 500,
     return_projects_not_matched: bool = False,
 ) -> dict[str, Any]:
-    """Find projects by name using exact match"""
+    """Find projects by name using exact match
+
+    This function will paginate the list_projects tool call and return the projects that match
+    the names provided. If the names provided are not found, it will return the names searched for
+    that did not match any projects.
+
+    If return_projects_not_matched is True, it will also return the projects that were scanned,
+    but did not match any of the names searched for.
+
+    Args:
+        context: The tool context to use in the list_projects tool call.
+        names: The names of the projects to search for.
+        team_ids: The IDs of the teams to search for projects in.
+        response_limit: The maximum number of matched projects to return.
+        max_items_to_scan: The maximum number of projects to scan while looking for matches.
+        return_projects_not_matched: Whether to return the projects that were scanned, but did not
+            match any of the names searched for.
+    """
     from arcade_asana.tools.projects import list_projects  # avoid circular imports
 
     names_lower = {name.casefold() for name in names}
@@ -309,7 +327,7 @@ async def find_projects_by_name(
         tool=list_projects,
         context=context,
         response_key="projects",
-        max_items=500,
+        max_items=max_items_to_scan,
         timeout_seconds=15,
         team_ids=team_ids,
     )
@@ -319,7 +337,7 @@ async def find_projects_by_name(
 
     for project in projects:
         project_name_lower = project["name"].casefold()
-        if len(matches) >= limit:
+        if len(matches) >= response_limit:
             break
         if project_name_lower in names_lower:
             matches.append(project)
@@ -353,10 +371,28 @@ async def find_tags_by_name(
     context: ToolContext,
     names: list[str],
     workspace_ids: list[str] | None = None,
-    limit: int = 100,
+    response_limit: int = 100,
+    max_items_to_scan: int = 500,
     return_tags_not_matched: bool = False,
 ) -> dict[str, Any]:
-    """Find tags by name using exact match"""
+    """Find tags by name using exact match
+
+    This function will paginate the list_tags tool call and return the tags that match the names
+    provided. If the names provided are not found, it will return the names searched for that did
+    not match any tags.
+
+    If return_tags_not_matched is True, it will also return the tags that were scanned, but did not
+    match any of the names searched for.
+
+    Args:
+        context: The tool context to use in the list_tags tool call.
+        names: The names of the tags to search for.
+        workspace_ids: The IDs of the workspaces to search for tags in.
+        response_limit: The maximum number of matched tags to return.
+        max_items_to_scan: The maximum number of tags to scan while looking for matches.
+        return_tags_not_matched: Whether to return the tags that were scanned, but did not match
+            any of the names searched for.
+    """
     from arcade_asana.tools.tags import list_tags  # avoid circular imports
 
     names_lower = {name.casefold() for name in names}
@@ -365,7 +401,7 @@ async def find_tags_by_name(
         tool=list_tags,
         context=context,
         response_key="tags",
-        max_items=500,
+        max_items=max_items_to_scan,
         timeout_seconds=15,
         workspace_ids=workspace_ids,
     )
@@ -374,7 +410,7 @@ async def find_tags_by_name(
     not_matched: list[str] = []
     for tag in tags:
         tag_name_lower = tag["name"].casefold()
-        if len(matches) >= limit:
+        if len(matches) >= response_limit:
             break
         if tag_name_lower in names_lower:
             matches.append(tag)
