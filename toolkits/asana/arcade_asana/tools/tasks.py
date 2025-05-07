@@ -247,11 +247,6 @@ async def update_task(
         "The new description of the task. "
         "Defaults to None (does not change the current description).",
     ] = None,
-    parent_task_id: Annotated[
-        str | None,
-        "The ID of the new parent task. "
-        "Defaults to None (does not change the current parent task).",
-    ] = None,
     assignee_id: Annotated[
         str | None,
         "The ID of the new user to assign the task to. "
@@ -275,7 +270,6 @@ async def update_task(
             "due_on": due_date,
             "start_on": start_date,
             "notes": description,
-            "parent": parent_task_id,
             "assignee": assignee_id,
         }),
     }
