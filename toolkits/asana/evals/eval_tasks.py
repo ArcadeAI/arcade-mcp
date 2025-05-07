@@ -133,11 +133,11 @@ def get_subtasks_from_a_task_eval_suite() -> EvalSuite:
                     "count": 2,
                     "subtasks": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Subtask Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Subtask World",
                         },
                     ],

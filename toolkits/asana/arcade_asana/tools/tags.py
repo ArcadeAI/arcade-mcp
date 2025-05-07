@@ -3,6 +3,7 @@ from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import OAuth2
+from arcade.sdk.errors import ToolExecutionError
 
 from arcade_asana.constants import TAG_OPT_FIELDS, TagColor
 from arcade_asana.models import AsanaClient
@@ -30,8 +31,8 @@ async def create_tag(
     ] = None,
 ) -> Annotated[dict[str, Any], "The created tag."]:
     """Create a tag in Asana"""
-    # if not 1 <= len(name) <= 100:
-    #     raise ToolExecutionError("Tag name must be between 1 and 100 characters long.")
+    if not 1 <= len(name) <= 100:
+        raise ToolExecutionError("Tag name must be between 1 and 100 characters long.")
 
     workspace_id = workspace_id or await get_unique_workspace_id_or_raise_error(context)
 
@@ -70,7 +71,7 @@ async def list_tags(
         from arcade_asana.tools.workspaces import list_workspaces  # avoid circular import
 
         workspaces = await list_workspaces(context)
-        workspace_ids = [workspace["gid"] for workspace in workspaces["workspaces"]]
+        workspace_ids = [workspace["id"] for workspace in workspaces["workspaces"]]
 
     client = AsanaClient(context.get_auth_token_or_empty())
     responses = await asyncio.gather(*[

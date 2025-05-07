@@ -6,6 +6,7 @@ from typing import Optional, cast
 import httpx
 
 from arcade_asana.constants import ASANA_API_VERSION, ASANA_BASE_URL, ASANA_MAX_CONCURRENT_REQUESTS
+from arcade_asana.decorators import clean_asana_response
 from arcade_asana.exceptions import AsanaToolExecutionError
 
 
@@ -69,6 +70,7 @@ class AsanaClient:
 
         return kwargs
 
+    @clean_asana_response
     async def get(
         self,
         endpoint: str,
@@ -95,6 +97,7 @@ class AsanaClient:
             self._raise_for_status(response)
         return cast(dict, response.json())
 
+    @clean_asana_response
     async def post(
         self,
         endpoint: str,
@@ -131,6 +134,7 @@ class AsanaClient:
             self._raise_for_status(response)
         return cast(dict, response.json())
 
+    @clean_asana_response
     async def put(
         self,
         endpoint: str,

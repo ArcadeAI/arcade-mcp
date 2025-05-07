@@ -93,11 +93,11 @@ def list_workspaces_eval_suite() -> EvalSuite:
                     "count": 2,
                     "workspaces": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Workspace Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Workspace World",
                         },
                     ],
@@ -151,11 +151,11 @@ def list_workspaces_eval_suite() -> EvalSuite:
                     "count": 2,
                     "workspaces": [
                         {
-                            "gid": "1234567890",
+                            "id": "1234567890",
                             "name": "Workspace Hello",
                         },
                         {
-                            "gid": "1234567891",
+                            "id": "1234567891",
                             "name": "Workspace World",
                         },
                     ],

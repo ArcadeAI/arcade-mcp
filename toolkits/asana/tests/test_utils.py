@@ -22,8 +22,8 @@ async def test_get_tag_ids(mock_find_tags_by_name, mock_context):
     mock_find_tags_by_name.return_value = {
         "matches": {
             "tags": [
-                {"gid": "1234567890", "name": "My Tag"},
-                {"gid": "1234567891", "name": "My Other Tag"},
+                {"id": "1234567890", "name": "My Tag"},
+                {"id": "1234567891", "name": "My Other Tag"},
             ]
         },
         "not_found": {"tags": []},
@@ -40,15 +40,15 @@ async def test_get_tag_ids(mock_find_tags_by_name, mock_context):
 async def test_get_unique_workspace_id_or_raise_error(mock_list_workspaces, mock_context):
     mock_list_workspaces.return_value = {
         "workspaces": [
-            {"gid": "1234567890", "name": "My Workspace"},
+            {"id": "1234567890", "name": "My Workspace"},
         ]
     }
     assert await get_unique_workspace_id_or_raise_error(mock_context) == "1234567890"
 
     mock_list_workspaces.return_value = {
         "workspaces": [
-            {"gid": "1234567890", "name": "My Workspace"},
-            {"gid": "1234567891", "name": "My Other Workspace"},
+            {"id": "1234567890", "name": "My Workspace"},
+            {"id": "1234567891", "name": "My Other Workspace"},
         ]
     }
     with pytest.raises(RetryableToolError) as exc_info:
@@ -60,7 +60,7 @@ async def test_get_unique_workspace_id_or_raise_error(mock_list_workspaces, mock
 @pytest.mark.asyncio
 @patch("arcade_asana.utils.find_projects_by_name")
 async def test_get_project_by_name_or_raise_error(mock_find_projects_by_name, mock_context):
-    project1 = {"gid": "1234567890", "name": "My Project"}
+    project1 = {"id": "1234567890", "name": "My Project"}
 
     mock_find_projects_by_name.return_value = {
         "matches": {"projects": [project1]},

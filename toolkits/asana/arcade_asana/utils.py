@@ -143,8 +143,8 @@ async def handle_new_task_associations(
 
     if project_name:
         project = await get_project_by_name_or_raise_error(context, project_name)
-        project_id = project["gid"]
-        workspace_id = project["workspace"]["gid"]
+        project_id = project["id"]
+        workspace_id = project["workspace"]["id"]
 
     if not any([parent_task_id, project_id, workspace_id]):
         workspace_id = await get_unique_workspace_id_or_raise_error(context)
@@ -153,7 +153,7 @@ async def handle_new_task_associations(
         from arcade_asana.tools.tasks import get_task_by_id  # avoid circular imports
 
         response = await get_task_by_id(context, parent_task_id)
-        workspace_id = response["task"]["workspace"]["gid"]
+        workspace_id = response["task"]["workspace"]["id"]
 
     return parent_task_id, project_id, workspace_id
 
@@ -167,7 +167,7 @@ async def get_project_by_name_or_raise_error(
 
     if not response["matches"]["projects"]:
         projects = response["not_matched"]["projects"]
-        projects = [{"name": project["name"], "gid": project["gid"]} for project in projects]
+        projects = [{"name": project["name"], "id": project["id"]} for project in projects]
         message = f"Project with name '{project_name}' not found."
         additional_prompt = f"Projects available: {json.dumps(projects)}"
         raise RetryableToolError(
@@ -197,7 +197,7 @@ async def handle_new_task_tags(
 
     if tag_names:
         response = await find_tags_by_name(context, tag_names)
-        tag_ids.extend([tag["gid"] for tag in response["matches"]["tags"]])
+        tag_ids.extend([tag["id"] for tag in response["matches"]["tags"]])
 
         if response["not_found"]["tags"]:
             from arcade_asana.tools.tags import create_tag  # avoid circular imports
@@ -206,7 +206,7 @@ async def handle_new_task_tags(
                 create_tag(context, name=name, workspace_id=workspace_id)
                 for name in response["not_found"]["tags"]
             ])
-            tag_ids.extend([response["tag"]["gid"] for response in responses])
+            tag_ids.extend([response["tag"]["id"] for response in responses])
 
     return tag_ids
 
@@ -236,7 +236,7 @@ async def get_tag_ids(context: ToolContext, tags: list[str] | None) -> list[str]
                 f"Tags not found: {tag_names_not_found}. Please provide valid tag names or IDs."
             )
 
-        tag_ids.extend([tag["gid"] for tag in searched_tags["matches"]["tags"]])
+        tag_ids.extend([tag["id"] for tag in searched_tags["matches"]["tags"]])
 
     return tag_ids if tag_ids else None
 
@@ -282,7 +282,7 @@ async def get_unique_workspace_id_or_raise_error(context: ToolContext) -> str:
 
     workspaces = await list_workspaces(context)
     if len(workspaces["workspaces"]) == 1:
-        return cast(str, workspaces["workspaces"][0]["gid"])
+        return cast(str, workspaces["workspaces"][0]["id"])
     else:
         message = "User has multiple workspaces. Please provide a workspace ID."
         additional_prompt = f"Workspaces available: {json.dumps(workspaces['workspaces'])}"
