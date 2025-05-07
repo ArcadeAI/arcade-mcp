@@ -67,6 +67,8 @@ async def list_tags(
     "List tags in Asana that are visible to the authenticated user",
 ]:
     """List tags in Asana that are visible to the authenticated user"""
+    limit = max(1, min(100, limit))
+
     if not workspace_ids:
         from arcade_asana.tools.workspaces import list_workspaces  # avoid circular import
 

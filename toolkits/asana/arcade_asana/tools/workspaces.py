@@ -22,6 +22,8 @@ async def list_workspaces(
     "List workspaces in Asana that are visible to the authenticated user",
 ]:
     """List workspaces in Asana that are visible to the authenticated user"""
+    limit = max(1, min(100, limit))
+
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         "/workspaces",

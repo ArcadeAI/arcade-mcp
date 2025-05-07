@@ -26,6 +26,8 @@ async def list_users(
     "List users in Asana",
 ]:
     """List users in Asana"""
+    limit = max(1, min(100, limit))
+
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         "/users",

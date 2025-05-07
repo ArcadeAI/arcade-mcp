@@ -45,6 +45,7 @@ async def list_projects(
     """List projects in Asana"""
     # Note: Asana recommends filtering by team to avoid timeout in large domains.
     # Ref: https://developers.asana.com/reference/getprojects
+    limit = max(1, min(100, limit))
 
     client = AsanaClient(context.get_auth_token_or_empty())
 

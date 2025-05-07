@@ -43,6 +43,8 @@ async def list_teams_the_current_user_is_a_member_of(
     "List teams in Asana that the current user is a member of",
 ]:
     """List teams in Asana that the current user is a member of"""
+    limit = max(1, min(100, limit))
+
     if not workspace_ids:
         # Importing here to avoid circular imports
         from arcade_asana.tools.workspaces import list_workspaces

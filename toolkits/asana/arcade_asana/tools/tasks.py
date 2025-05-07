@@ -54,6 +54,8 @@ async def get_subtasks_from_a_task(
     ] = 0,
 ) -> Annotated[dict[str, Any], "The subtasks of the task."]:
     """Get the subtasks of a task"""
+    limit = max(1, min(100, limit))
+
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         f"/tasks/{task_id}/subtasks",
@@ -151,6 +153,8 @@ async def search_tasks(
     ] = SortOrder.DESCENDING,
 ) -> Annotated[dict[str, Any], "The tasks that match the query."]:
     """Search for tasks"""
+    limit = max(1, min(100, limit))
+
     if not workspace_ids:
         from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
 
