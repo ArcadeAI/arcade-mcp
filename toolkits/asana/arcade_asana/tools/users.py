@@ -5,7 +5,11 @@ from arcade.sdk.auth import OAuth2
 
 from arcade_asana.constants import USER_OPT_FIELDS
 from arcade_asana.models import AsanaClient
-from arcade_asana.utils import clean_request_params, get_unique_workspace_id_or_raise_error
+from arcade_asana.utils import (
+    get_next_page,
+    get_unique_workspace_id_or_raise_error,
+    remove_none_values,
+)
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
@@ -13,14 +17,19 @@ async def list_users(
     context: ToolContext,
     workspace_id: Annotated[
         str | None,
-        "The workspace ID to list users from. Defaults to None (list users from all workspaces).",
+        "The workspace ID to list users from. Defaults to None. If no workspace ID is provided, "
+        "it will use the current user's workspace , if there's only one. If the user has multiple "
+        "workspaces, it will raise an error.",
     ] = None,
     limit: Annotated[
-        int, "The maximum number of users to return. Min is 1, max is 100. Defaults to 100."
+        int,
+        "The maximum number of users to retrieve. Min is 1, max is 100. Defaults to 100.",
     ] = 100,
-    offset: Annotated[
-        int | None, "The offset of users to return. Defaults to 0 (first page of results)"
-    ] = 0,
+    next_page_token: Annotated[
+        str | None,
+        "The token to retrieve the next page of users. Defaults to None (start from the first page "
+        "of users)",
+    ] = None,
 ) -> Annotated[
     dict[str, Any],
     "List users in Asana",
@@ -34,10 +43,10 @@ async def list_users(
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         "/users",
-        params=clean_request_params({
+        params=remove_none_values({
             "workspace": workspace_id,
             "limit": limit,
-            "offset": offset,
+            "offset": next_page_token,
             "opt_fields": USER_OPT_FIELDS,
         }),
     )
@@ -45,6 +54,7 @@ async def list_users(
     return {
         "users": response["data"],
         "count": len(response["data"]),
+        "next_page": get_next_page(response),
     }
 
 

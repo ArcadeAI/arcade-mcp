@@ -1,4 +1,3 @@
-import asyncio
 import base64
 from typing import Annotated, Any
 
@@ -10,9 +9,10 @@ from arcade_asana.constants import TASK_OPT_FIELDS, SortOrder, TaskSortBy
 from arcade_asana.models import AsanaClient
 from arcade_asana.utils import (
     build_task_search_query_params,
-    clean_request_params,
+    get_next_page,
     get_project_by_name_or_raise_error,
     get_tag_ids,
+    get_unique_workspace_id_or_raise_error,
     handle_new_task_associations,
     handle_new_task_tags,
     remove_none_values,
@@ -26,7 +26,8 @@ async def get_task_by_id(
     task_id: Annotated[str, "The ID of the task to get."],
     max_subtasks: Annotated[
         int,
-        "The maximum number of subtasks to return. Min of 1, max of 100. Defaults to 100.",
+        "The maximum number of subtasks to return. "
+        "Min of 0 (no subtasks), max of 100. Defaults to 100.",
     ] = 100,
 ) -> Annotated[dict[str, Any], "The task with the given ID."]:
     """Get a task by its ID"""
@@ -35,8 +36,10 @@ async def get_task_by_id(
         f"/tasks/{task_id}",
         params={"opt_fields": TASK_OPT_FIELDS},
     )
-    subtasks = await get_subtasks_from_a_task(context, task_id=task_id, limit=max_subtasks)
-    response["data"]["subtasks"] = subtasks["subtasks"]
+    if max_subtasks > 0:
+        max_subtasks = min(max_subtasks, 100)
+        subtasks = await get_subtasks_from_a_task(context, task_id=task_id, limit=max_subtasks)
+        response["data"]["subtasks"] = subtasks["subtasks"]
     return {"task": response["data"]}
 
 
@@ -48,10 +51,11 @@ async def get_subtasks_from_a_task(
         int,
         "The maximum number of subtasks to return. Min of 1, max of 100. Defaults to 100.",
     ] = 100,
-    offset: Annotated[
-        int,
-        "The offset of the subtasks to return. Defaults to 0.",
-    ] = 0,
+    next_page_token: Annotated[
+        str | None,
+        "The token to retrieve the next page of subtasks. Defaults to None (start from the first "
+        "page of subtasks)",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The subtasks of the task."]:
     """Get the subtasks of a task"""
     limit = max(1, min(100, limit))
@@ -59,13 +63,17 @@ async def get_subtasks_from_a_task(
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         f"/tasks/{task_id}/subtasks",
-        params=clean_request_params({
+        params=remove_none_values({
             "opt_fields": TASK_OPT_FIELDS,
             "limit": limit,
-            "offset": offset,
+            "offset": next_page_token,
         }),
     )
-    return {"subtasks": response["data"], "count": len(response["data"])}
+    return {
+        "subtasks": response["data"],
+        "count": len(response["data"]),
+        "next_page": get_next_page(response),
+    }
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
@@ -74,25 +82,21 @@ async def search_tasks(
     keywords: Annotated[
         str | None, "Keywords to search for tasks. Matches against the task name and description."
     ] = None,
-    workspace_ids: Annotated[
-        list[str] | None,
-        "The workspace IDs to search for tasks. Multiple workspace IDs can be provided in "
-        "the list. Defaults to None (searches across all workspaces).",
-    ] = None,
-    assignee_ids: Annotated[
-        list[str] | None,
-        "Restricts the search to tasks assigned to the given user IDs. Multiple user IDs can be "
-        "provided in the list. Defaults to None (searches tasks assigned to anyone or no one).",
-    ] = None,
-    project_name: Annotated[
+    workspace_id: Annotated[
         str | None,
-        "Restricts the search to tasks associated to the given project name. "
-        "Defaults to None (searches tasks associated to any project).",
+        "The workspace ID to search for tasks. Defaults to None. If not provided and the user "
+        "has only one workspace, it will use that workspace. If not provided and the user has "
+        "multiple workspaces, it will raise an error listing the available workspaces.",
     ] = None,
-    project_id: Annotated[
+    assignee_id: Annotated[
         str | None,
-        "Restricts the search to tasks associated to the given project ID. "
-        "Defaults to None (searches tasks associated to any project).",
+        "The ID of the user to filter tasks assigned to. "
+        "Defaults to None (does not filter by assignee).",
+    ] = None,
+    project: Annotated[
+        str | None,
+        "The ID or name of the project to filter tasks. "
+        "Defaults to None (searches tasks associated to any project or no project).",
     ] = None,
     team_id: Annotated[
         str | None,
@@ -141,8 +145,8 @@ async def search_tasks(
     ] = False,
     limit: Annotated[
         int,
-        "The maximum number of tasks to return. Min of 1, max of 20. Defaults to 20.",
-    ] = 20,
+        "The maximum number of tasks to return. Min of 1, max of 100. Defaults to 100.",
+    ] = 100,
     sort_by: Annotated[
         TaskSortBy,
         "The field to sort the tasks by. Defaults to TaskSortBy.MODIFIED_AT.",
@@ -155,15 +159,16 @@ async def search_tasks(
     """Search for tasks"""
     limit = max(1, min(100, limit))
 
-    if not workspace_ids:
-        from arcade_asana.tools.workspaces import list_workspaces  # Avoid circular import
+    workspace_id = workspace_id or await get_unique_workspace_id_or_raise_error(context)
 
-        workspaces = await list_workspaces(context)
-        workspace_ids = [workspace["id"] for workspace in workspaces["workspaces"]]
+    project_id = None
 
-    if not project_id and project_name:
-        project = await get_project_by_name_or_raise_error(context, project_name)
-        project_id = project["id"]
+    if project:
+        if project.isnumeric():
+            project_id = project
+        else:
+            project_data = await get_project_by_name_or_raise_error(context, project)
+            project_id = project_data["id"]
 
     tag_ids = await get_tag_ids(context, tags)
 
@@ -176,42 +181,28 @@ async def search_tasks(
     validate_date_format("start_on_or_after", start_on_or_after)
     validate_date_format("start_on_or_before", start_on_or_before)
 
-    responses = await asyncio.gather(*[
-        client.get(
-            f"/workspaces/{workspace_id}/tasks/search",
-            params=build_task_search_query_params(
-                keywords=keywords,
-                completed=completed,
-                assignee_ids=assignee_ids,
-                project_id=project_id,
-                team_id=team_id,
-                tag_ids=tag_ids,
-                due_on=due_on,
-                due_on_or_after=due_on_or_after,
-                due_on_or_before=due_on_or_before,
-                start_on=start_on,
-                start_on_or_after=start_on_or_after,
-                start_on_or_before=start_on_or_before,
-                limit=limit,
-                sort_by=sort_by,
-                sort_order=sort_order,
-            ),
-        )
-        for workspace_id in workspace_ids
-    ])
+    response = await client.get(
+        f"/workspaces/{workspace_id}/tasks/search",
+        params=build_task_search_query_params(
+            keywords=keywords,
+            completed=completed,
+            assignee_id=assignee_id,
+            project_id=project_id,
+            team_id=team_id,
+            tag_ids=tag_ids,
+            due_on=due_on,
+            due_on_or_after=due_on_or_after,
+            due_on_or_before=due_on_or_before,
+            start_on=start_on,
+            start_on_or_after=start_on_or_after,
+            start_on_or_before=start_on_or_before,
+            limit=limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        ),
+    )
 
-    tasks_by_id = {task["id"]: task for response in responses for task in response["data"]}
-
-    subtasks = await asyncio.gather(*[
-        get_subtasks_from_a_task(context, task_id=task["id"]) for task in tasks_by_id.values()
-    ])
-
-    for response in subtasks:
-        for subtask in response["subtasks"]:
-            parent_task = tasks_by_id[subtask["parent"]["id"]]
-            if "subtasks" not in parent_task:
-                parent_task["subtasks"] = []
-            parent_task["subtasks"].append(subtask)
+    tasks_by_id = {task["id"]: task for task in response["data"]}
 
     tasks = list(tasks_by_id.values())
 
@@ -419,11 +410,15 @@ async def attach_file_to_task(
             file_content = file_content_str.encode(file_encoding)
         except LookupError as exc:
             raise ToolExecutionError(f"Unknown encoding: {file_encoding}") from exc
+        except Exception as exc:
+            raise ToolExecutionError(
+                f"Failed to encode file content string with {file_encoding} encoding: {exc!s}"
+            ) from exc
     elif file_content_base64 is not None:
         try:
             file_content = base64.b64decode(file_content_base64)
         except Exception as exc:
-            raise ToolExecutionError(f"Invalid base64 encoding: {exc!s}") from exc
+            raise ToolExecutionError(f"Failed to decode base64 file content: {exc!s}") from exc
 
     if file_content:
         if file_name.lower().endswith(".pdf"):

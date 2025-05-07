@@ -24,14 +24,6 @@ def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
 
 
-def clean_request_params(params: dict[str, Any]) -> dict[str, Any]:
-    params = remove_none_values(params)
-    if "offset" in params and params["offset"] == 0:
-        del params["offset"]
-
-    return params
-
-
 def validate_date_format(name: str, date_str: str | None) -> None:
     if not date_str:
         return
@@ -45,7 +37,7 @@ def validate_date_format(name: str, date_str: str | None) -> None:
 def build_task_search_query_params(
     keywords: str | None,
     completed: bool,
-    assignee_ids: list[str] | None,
+    assignee_id: str | None,
     project_id: str | None,
     team_id: str | None,
     tag_ids: list[str] | None,
@@ -67,8 +59,8 @@ def build_task_search_query_params(
         "sort_ascending": sort_order == SortOrder.ASCENDING,
         "limit": limit,
     }
-    if assignee_ids:
-        query_params["assignee.any"] = ",".join(assignee_ids)
+    if assignee_id:
+        query_params["assignee.any"] = assignee_id
     if project_id:
         query_params["projects.any"] = project_id
     if team_id:
@@ -173,7 +165,7 @@ async def get_project_by_name_or_raise_error(
     response = await find_projects_by_name(
         context=context,
         names=[project_name],
-        response_limit=1,
+        response_limit=100,
         max_items_to_scan=max_items_to_scan,
         return_projects_not_matched=True,
     )
@@ -190,6 +182,19 @@ async def get_project_by_name_or_raise_error(
         raise RetryableToolError(
             message=message,
             developer_message=f"{message} {additional_prompt}",
+            additional_prompt_content=additional_prompt,
+        )
+
+    elif response["matches"]["count"] > 1:
+        projects = [
+            {"name": project["name"], "id": project["id"]}
+            for project in response["matches"]["projects"]
+        ]
+        message = "Multiple projects found with the same name. Please provide a project ID instead."
+        additional_prompt = f"Projects matching the name '{project_name}': {json.dumps(projects)}"
+        raise ToolExecutionError(
+            message=message,
+            developer_message=message,
             additional_prompt_content=additional_prompt,
         )
 
@@ -274,6 +279,7 @@ async def paginate_tool_call(
     response_key: str,
     max_items: int = 300,
     timeout_seconds: int = ASANA_MAX_TIMEOUT_SECONDS,
+    next_page_token: str | None = None,
     **tool_kwargs: Any,
 ) -> list[ToolResponse]:
     results: list[ToolResponse] = []
@@ -288,12 +294,12 @@ async def paginate_tool_call(
         while keep_paginating:
             response = await tool(context, **tool_kwargs)  # type: ignore[call-arg]
             results.extend(response[response_key])
-            if "offset" not in tool_kwargs:
-                tool_kwargs["offset"] = 0
-            if "next_page" not in response or len(results) >= max_items:
+            next_page = get_next_page(response)
+            next_page_token = next_page["next_page_token"]
+            if not next_page_token or len(results) >= max_items:
                 keep_paginating = False
             else:
-                tool_kwargs["offset"] += tool_kwargs["limit"]
+                tool_kwargs["next_page_token"] = next_page_token
 
     try:
         await asyncio.wait_for(paginate_loop(), timeout=timeout_seconds)
@@ -323,7 +329,7 @@ async def get_unique_workspace_id_or_raise_error(context: ToolContext) -> str:
 async def find_projects_by_name(
     context: ToolContext,
     names: list[str],
-    team_ids: list[str] | None = None,
+    team_id: list[str] | None = None,
     response_limit: int = 100,
     max_items_to_scan: int = MAX_PROJECTS_TO_SCAN_BY_NAME,
     return_projects_not_matched: bool = False,
@@ -340,7 +346,7 @@ async def find_projects_by_name(
     Args:
         context: The tool context to use in the list_projects tool call.
         names: The names of the projects to search for.
-        team_ids: The IDs of the teams to search for projects in.
+        team_id: The ID of the team to search for projects in.
         response_limit: The maximum number of matched projects to return.
         max_items_to_scan: The maximum number of projects to scan while looking for matches.
         return_projects_not_matched: Whether to return the projects that were scanned, but did not
@@ -356,7 +362,7 @@ async def find_projects_by_name(
         response_key="projects",
         max_items=max_items_to_scan,
         timeout_seconds=15,
-        team_ids=team_ids,
+        team_id=team_id,
     )
 
     matches: list[dict[str, Any]] = []
@@ -397,7 +403,7 @@ async def find_projects_by_name(
 async def find_tags_by_name(
     context: ToolContext,
     names: list[str],
-    workspace_ids: list[str] | None = None,
+    workspace_id: list[str] | None = None,
     response_limit: int = 100,
     max_items_to_scan: int = MAX_TAGS_TO_SCAN_BY_NAME,
     return_tags_not_matched: bool = False,
@@ -414,7 +420,7 @@ async def find_tags_by_name(
     Args:
         context: The tool context to use in the list_tags tool call.
         names: The names of the tags to search for.
-        workspace_ids: The IDs of the workspaces to search for tags in.
+        workspace_id: The ID of the workspace to search for tags in.
         response_limit: The maximum number of matched tags to return.
         max_items_to_scan: The maximum number of tags to scan while looking for matches.
         return_tags_not_matched: Whether to return the tags that were scanned, but did not match
@@ -430,7 +436,7 @@ async def find_tags_by_name(
         response_key="tags",
         max_items=max_items_to_scan,
         timeout_seconds=15,
-        workspace_ids=workspace_ids,
+        workspace_id=workspace_id,
     )
 
     matches: list[dict[str, Any]] = []
@@ -465,3 +471,12 @@ async def find_tags_by_name(
         }
 
     return response
+
+
+def get_next_page(response: dict[str, Any]) -> str | None:
+    try:
+        token = response["next_page"]["offset"]
+    except (KeyError, TypeError):
+        token = None
+
+    return {"has_more_pages": token is not None, "next_page_token": token}

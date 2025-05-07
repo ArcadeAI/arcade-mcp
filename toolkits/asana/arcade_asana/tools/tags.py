@@ -1,4 +1,3 @@
-import asyncio
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
@@ -8,7 +7,7 @@ from arcade.sdk.errors import ToolExecutionError
 from arcade_asana.constants import TAG_OPT_FIELDS, TagColor
 from arcade_asana.models import AsanaClient
 from arcade_asana.utils import (
-    clean_request_params,
+    get_next_page,
     get_unique_workspace_id_or_raise_error,
     remove_none_values,
 )
@@ -51,44 +50,42 @@ async def create_tag(
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=[]))
 async def list_tags(
     context: ToolContext,
-    workspace_ids: Annotated[
-        list[str] | None,
-        "The IDs of the workspaces to search for tags in. "
-        "If not provided, it will search across all workspaces.",
+    workspace_id: Annotated[
+        str | None,
+        "The workspace ID to retrieve tags from. Defaults to None. If not provided and the user "
+        "has only one workspace, it will use that workspace. If not provided and the user has "
+        "multiple workspaces, it will raise an error listing the available workspaces.",
     ] = None,
     limit: Annotated[
         int, "The maximum number of tags to return. Min is 1, max is 100. Defaults to 100."
     ] = 100,
-    offset: Annotated[
-        int | None, "The offset of tags to return. Defaults to 0 (first page of results)"
-    ] = 0,
+    next_page_token: Annotated[
+        str | None,
+        "The token to retrieve the next page of tags. Defaults to None (start from the first page "
+        "of tags)",
+    ] = None,
 ) -> Annotated[
     dict[str, Any],
-    "List tags in Asana that are visible to the authenticated user",
+    "List tags in an Asana workspace",
 ]:
-    """List tags in Asana that are visible to the authenticated user"""
+    """List tags in an Asana workspace"""
     limit = max(1, min(100, limit))
 
-    if not workspace_ids:
-        from arcade_asana.tools.workspaces import list_workspaces  # avoid circular import
-
-        workspaces = await list_workspaces(context)
-        workspace_ids = [workspace["id"] for workspace in workspaces["workspaces"]]
+    workspace_id = workspace_id or await get_unique_workspace_id_or_raise_error(context)
 
     client = AsanaClient(context.get_auth_token_or_empty())
-    responses = await asyncio.gather(*[
-        client.get(
-            "/tags",
-            params=clean_request_params({
-                "limit": limit,
-                "offset": offset,
-                "workspace": workspace_id,
-                "opt_fields": TAG_OPT_FIELDS,
-            }),
-        )
-        for workspace_id in workspace_ids
-    ])
+    response = await client.get(
+        "/tags",
+        params=remove_none_values({
+            "limit": limit,
+            "offset": next_page_token,
+            "workspace": workspace_id,
+            "opt_fields": TAG_OPT_FIELDS,
+        }),
+    )
 
-    tags = [tag for response in responses for tag in response["data"]]
-
-    return {"tags": tags, "count": len(tags)}
+    return {
+        "tags": response["data"],
+        "count": len(response["data"]),
+        "next_page": get_next_page(response),
+    }

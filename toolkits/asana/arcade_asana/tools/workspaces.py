@@ -5,7 +5,7 @@ from arcade.sdk.auth import OAuth2
 
 from arcade_asana.constants import WORKSPACE_OPT_FIELDS
 from arcade_asana.models import AsanaClient
-from arcade_asana.utils import clean_request_params
+from arcade_asana.utils import get_next_page, remove_none_values
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
@@ -14,9 +14,11 @@ async def list_workspaces(
     limit: Annotated[
         int, "The maximum number of workspaces to return. Min is 1, max is 100. Defaults to 100."
     ] = 100,
-    offset: Annotated[
-        int | None, "The offset of workspaces to return. Defaults to 0 (first page of results)"
-    ] = 0,
+    next_page_token: Annotated[
+        str | None,
+        "The token to retrieve the next page of workspaces. Defaults to None (start from the first "
+        "page of workspaces)",
+    ] = None,
 ) -> Annotated[
     dict[str, Any],
     "List workspaces in Asana that are visible to the authenticated user",
@@ -27,9 +29,9 @@ async def list_workspaces(
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
         "/workspaces",
-        params=clean_request_params({
+        params=remove_none_values({
             "limit": limit,
-            "offset": offset,
+            "offset": next_page_token,
             "opt_fields": WORKSPACE_OPT_FIELDS,
         }),
     )
@@ -37,4 +39,5 @@ async def list_workspaces(
     return {
         "workspaces": response["data"],
         "count": len(response["data"]),
+        "next_page": get_next_page(response),
     }
