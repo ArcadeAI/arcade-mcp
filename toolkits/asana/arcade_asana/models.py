@@ -90,6 +90,11 @@ class AsanaClient:
         }
 
         if params:
+            # Weirdly, Asana expects offset to be a string. Decided to sanitize it here
+            # to avoid having to remember every time we call a get endpoint.
+            if "offset" in params:
+                params["offset"] = str(params["offset"])
+
             kwargs["params"] = params
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
