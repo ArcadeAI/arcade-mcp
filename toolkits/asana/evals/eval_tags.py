@@ -184,7 +184,7 @@ def list_tags_eval_suite() -> EvalSuite:
             },
             {
                 "role": "assistant",
-                "content": "Here are five tags in Asana:\n\n1. Tag Hello\n2. Tag World\n3. Tag Hello\n4. Tag World\n5. Tag Hello",
+                "content": "Here are two tags in Asana:\n\n1. Tag Hello\n2. Tag World",
             },
         ],
     )

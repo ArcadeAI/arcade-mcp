@@ -165,7 +165,7 @@ def list_workspaces_eval_suite() -> EvalSuite:
             },
             {
                 "role": "assistant",
-                "content": "Here are five workspaces in Asana:\n\n1. Workspace Hello\n2. Workspace World\n3. Workspace Hello\n4. Workspace World\n5. Workspace Hello",
+                "content": "Here are two workspaces in Asana:\n\n1. Workspace Hello\n2. Workspace World",
             },
         ],
     )

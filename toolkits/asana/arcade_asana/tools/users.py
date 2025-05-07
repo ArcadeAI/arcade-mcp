@@ -5,7 +5,7 @@ from arcade.sdk.auth import OAuth2
 
 from arcade_asana.constants import USER_OPT_FIELDS
 from arcade_asana.models import AsanaClient
-from arcade_asana.utils import clean_request_params
+from arcade_asana.utils import clean_request_params, get_unique_workspace_id_or_raise_error
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
@@ -27,6 +27,9 @@ async def list_users(
 ]:
     """List users in Asana"""
     limit = max(1, min(100, limit))
+
+    if not workspace_id:
+        workspace_id = await get_unique_workspace_id_or_raise_error(context)
 
     client = AsanaClient(context.get_auth_token_or_empty())
     response = await client.get(
