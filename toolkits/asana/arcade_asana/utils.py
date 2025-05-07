@@ -43,7 +43,7 @@ def validate_date_format(name: str, date_str: str | None) -> None:
 
 
 def build_task_search_query_params(
-    keywords: str,
+    keywords: str | None,
     completed: bool,
     assignee_ids: list[str] | None,
     project_id: str | None,
@@ -149,9 +149,9 @@ async def handle_new_task_associations(
             project_name = project
 
     if project_name:
-        project = await get_project_by_name_or_raise_error(context, project_name)
-        project_id = project["id"]
-        workspace_id = project["workspace"]["id"]
+        project_data = await get_project_by_name_or_raise_error(context, project_name)
+        project_id = project_data["id"]
+        workspace_id = project_data["workspace"]["id"]
 
     if not any([parent_task_id, project_id, workspace_id]):
         workspace_id = await get_unique_workspace_id_or_raise_error(context)

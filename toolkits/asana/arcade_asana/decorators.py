@@ -1,8 +1,8 @@
 from functools import wraps
-from typing import Any
+from typing import Any, Callable
 
 
-def clean_asana_response(func):
+def clean_asana_response(func: Callable[..., Any]) -> Callable[..., Any]:
     def response_cleaner(data: dict[str, Any]) -> dict[str, Any]:
         if "gid" in data:
             data["id"] = data["gid"]
@@ -19,7 +19,7 @@ def clean_asana_response(func):
         return data
 
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
         response = await func(*args, **kwargs)
         return response_cleaner(response)
 
