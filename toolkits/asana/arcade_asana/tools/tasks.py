@@ -159,8 +159,6 @@ async def search_tasks(
     """Search for tasks"""
     limit = max(1, min(100, limit))
 
-    workspace_id = workspace_id or await get_unique_workspace_id_or_raise_error(context)
-
     project_id = None
 
     if project:
@@ -169,6 +167,8 @@ async def search_tasks(
         else:
             project_data = await get_project_by_name_or_raise_error(context, project)
             project_id = project_data["id"]
+            if not workspace_id:
+                workspace_id = project_data["workspace"]["id"]
 
     tag_ids = await get_tag_ids(context, tags)
 
@@ -180,6 +180,15 @@ async def search_tasks(
     validate_date_format("start_on", start_on)
     validate_date_format("start_on_or_after", start_on_or_after)
     validate_date_format("start_on_or_before", start_on_or_before)
+
+    if not any([workspace_id, project_id, team_id]):
+        workspace_id = await get_unique_workspace_id_or_raise_error(context)
+
+    if not workspace_id and team_id:
+        from arcade_asana.tools.teams import get_team_by_id
+
+        team = await get_team_by_id(context, team_id)
+        workspace_id = team["organization"]["id"]
 
     response = await client.get(
         f"/workspaces/{workspace_id}/tasks/search",

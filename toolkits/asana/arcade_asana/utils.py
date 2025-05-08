@@ -193,7 +193,7 @@ async def get_project_by_name_or_raise_error(
         ]
         message = "Multiple projects found with the same name. Please provide a project ID instead."
         additional_prompt = f"Projects matching the name '{project_name}': {json.dumps(projects)}"
-        raise ToolExecutionError(
+        raise RetryableToolError(
             message=message,
             developer_message=message,
             additional_prompt_content=additional_prompt,
@@ -474,7 +474,7 @@ async def find_tags_by_name(
     return response
 
 
-def get_next_page(response: dict[str, Any]) -> str | None:
+def get_next_page(response: dict[str, Any]) -> dict[str, Any]:
     try:
         token = response["next_page"]["offset"]
     except (KeyError, TypeError):
