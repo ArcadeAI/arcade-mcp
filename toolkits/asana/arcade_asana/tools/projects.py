@@ -12,7 +12,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def get_project_by_id(
     context: ToolContext,
     project_id: Annotated[str, "The ID of the project."],
@@ -29,7 +29,7 @@ async def get_project_by_id(
     return {"project": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def list_projects(
     context: ToolContext,
     team_id: Annotated[

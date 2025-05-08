@@ -20,7 +20,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def get_task_by_id(
     context: ToolContext,
     task_id: Annotated[str, "The ID of the task to get."],
@@ -43,7 +43,7 @@ async def get_task_by_id(
     return {"task": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def get_subtasks_from_a_task(
     context: ToolContext,
     task_id: Annotated[str, "The ID of the task to get the subtasks of."],
@@ -76,7 +76,7 @@ async def get_subtasks_from_a_task(
     }
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def search_tasks(
     context: ToolContext,
     keywords: Annotated[
@@ -218,7 +218,7 @@ async def search_tasks(
     return {"tasks": tasks, "count": len(tasks)}
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def update_task(
     context: ToolContext,
     task_id: Annotated[str, "The ID of the task to update."],
@@ -282,7 +282,7 @@ async def update_task(
     }
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def create_task(
     context: ToolContext,
     name: Annotated[str, "The name of the task"],
@@ -360,7 +360,7 @@ async def create_task(
     }
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def attach_file_to_task(
     context: ToolContext,
     task_id: Annotated[str, "The ID of the task to attach the file to."],

@@ -12,7 +12,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def list_users(
     context: ToolContext,
     workspace_id: Annotated[
@@ -58,7 +58,7 @@ async def list_users(
     }
 
 
-@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
 async def get_user_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The user ID to get."],
