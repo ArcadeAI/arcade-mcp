@@ -14,6 +14,17 @@ from arcade_asana.utils import (
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+async def get_tag_by_id(
+    context: ToolContext,
+    tag_id: Annotated[str, "The ID of the Asana tag to get"],
+) -> Annotated[dict[str, Any], "Get an Asana tag by its ID"]:
+    """Get an Asana tag by its ID"""
+    client = AsanaClient(context.get_auth_token_or_empty())
+    response = await client.get(f"/tags/{tag_id}")
+    return {"tag": response["data"]}
+
+
+@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
 async def create_tag(
     context: ToolContext,
     name: Annotated[str, "The name of the tag to create. Length must be between 1 and 100."],

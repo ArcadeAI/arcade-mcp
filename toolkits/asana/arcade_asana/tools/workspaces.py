@@ -9,6 +9,17 @@ from arcade_asana.utils import get_next_page, remove_none_values
 
 
 @tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
+async def get_workspace_by_id(
+    context: ToolContext,
+    workspace_id: Annotated[str, "The ID of the Asana workspace to get"],
+) -> Annotated[dict[str, Any], "Get an Asana workspace by its ID"]:
+    """Get an Asana workspace by its ID"""
+    client = AsanaClient(context.get_auth_token_or_empty())
+    response = await client.get(f"/workspaces/{workspace_id}")
+    return {"workspace": response["data"]}
+
+
+@tool(requires_auth=OAuth2(id="arcade-asana", scopes=["default"]))
 async def list_workspaces(
     context: ToolContext,
     limit: Annotated[
