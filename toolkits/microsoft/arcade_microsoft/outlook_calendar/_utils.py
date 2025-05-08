@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import pytz
+from arcade.sdk.errors import ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from kiota_abstractions.headers_collection import HeadersCollection
 from msgraph import GraphServiceClient
@@ -11,6 +12,65 @@ from msgraph.generated.users.item.mailbox_settings.mailbox_settings_request_buil
 )
 
 from arcade_microsoft.outlook_calendar.constants import WINDOWS_TO_IANA
+
+
+def prepare_meeting_body(
+    body: str, custom_meeting_url: str | None, is_online_meeting: bool
+) -> tuple[str, bool]:
+    """Prepare meeting body and determine final online meeting status.
+
+    Args:
+        body: The original meeting body text
+        custom_meeting_url: Custom URL for the meeting, if one exists
+        is_online_meeting: Whether this should be an online meeting
+
+    Returns:
+        tuple: (Updated meeting body, final online meeting status)
+
+    Note:
+        If a custom meeting URL is provided, is_online_meeting will be set to False
+        to prevent Microsoft from generating its own meeting URL. The custom meeting
+        URL will then be added to the body of the meeting.
+    """
+    is_online_meeting = not custom_meeting_url and is_online_meeting
+
+    if custom_meeting_url:
+        body = f"""{body}\n
+.........................................................................
+Join online meeting
+{custom_meeting_url}"""
+
+    return body, is_online_meeting
+
+
+def validate_emails(emails: list[str]) -> None:
+    """Validate a list of email addresses.
+
+    Args:
+        emails: The list of email addresses to validate.
+
+    Raises:
+        ToolExecutionError: If any email address is invalid.
+    """
+    invalid_emails = []
+    for email in emails:
+        if not is_valid_email(email):
+            invalid_emails.append(email)
+    if invalid_emails:
+        raise ToolExecutionError(message=f"Invalid email address(es): {', '.join(invalid_emails)}")
+
+
+def is_valid_email(email: str) -> bool:
+    """Simple check to see if an email address is valid.
+
+    Args:
+        email: The email address to check.
+
+    Returns:
+        True if the email address is valid, False otherwise.
+    """
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return re.match(pattern, email) is not None
 
 
 def remove_timezone_offset(date_time: str) -> str:

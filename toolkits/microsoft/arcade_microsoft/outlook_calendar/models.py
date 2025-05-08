@@ -51,7 +51,11 @@ class Attendee:
         """Convert an Attendee dataclass to a Microsoft Graph SDK Attendee object."""
         return GraphAttendee(
             email_address=GraphEmailAddress(name=self.name, address=self.address),
-            status=GraphResponseStatus(response=GraphResponseType(self.response)),
+            status=GraphResponseStatus(
+                response=GraphResponseType(self.response)
+                if self.response
+                else GraphResponseType.None_
+            ),
         )
 
 
@@ -265,7 +269,7 @@ class Event:
             body=GraphItemBody(content=self.body),
             end=self.end.to_sdk() if self.end else None,
             has_attachments=self.has_attachments,
-            importance=GraphImportance(self.importance),
+            importance=GraphImportance(self.importance) if self.importance else None,
             is_all_day=self.is_all_day,
             is_cancelled=self.is_cancelled,
             is_draft=self.is_draft,
@@ -276,9 +280,9 @@ class Event:
             organizer=self.organizer.to_sdk() if self.organizer else None,
             id=self.id,
             response_status=self.response_status.to_sdk() if self.response_status else None,
-            show_as=GraphFreeBusyStatus(self.show_as),
+            show_as=GraphFreeBusyStatus(self.show_as) if self.show_as else None,
             start=self.start.to_sdk() if self.start else None,
             subject=self.subject,
-            type=GraphEventType(self.type),
+            type=GraphEventType(self.type) if self.type else None,
             web_link=self.web_link,
         )

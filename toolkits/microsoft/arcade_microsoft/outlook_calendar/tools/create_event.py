@@ -7,7 +7,9 @@ from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_calendar._utils import (
     create_timezone_request_config,
     get_default_calendar_timezone,
+    prepare_meeting_body,
     remove_timezone_offset,
+    validate_emails,
 )
 from arcade_microsoft.outlook_calendar.models import (
     Attendee,
@@ -40,6 +42,11 @@ async def create_event(
     is_online_meeting: Annotated[
         bool, "Whether the event is an online meeting. Defaults to False"
     ] = False,
+    custom_meeting_url: Annotated[
+        str | None,
+        "The URL of the online meeting. If not provided and is_online_meeting is True, "
+        "then a url will be generated for you",
+    ] = None,
 ) -> Annotated[dict, "A dictionary containing the created event details"]:
     """Create an event in the authenticated user's default calendar.
 
@@ -47,6 +54,10 @@ async def create_event(
     Instead, uses the user's default calendar timezone to filter events.
     If the user has not set a timezone for their calendar, then the timezone will be UTC.
     """
+    # Validate & cleanse inputs
+    validate_emails(attendee_emails or [])
+    body, is_online_meeting = prepare_meeting_body(body, custom_meeting_url, is_online_meeting)
+
     client = get_client(context.get_auth_token_or_empty())
 
     time_zone = await get_default_calendar_timezone(client)
