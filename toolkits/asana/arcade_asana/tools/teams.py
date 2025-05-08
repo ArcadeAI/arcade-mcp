@@ -77,7 +77,7 @@ async def list_teams(
         str | None,
         "The workspace ID to list teams from. Defaults to None. If no workspace ID is provided, "
         "it will use the current user's workspace, if there's only one. If the user has multiple "
-        "workspaces, it will raise an error.",
+        "workspaces, it will raise an error listing the available workspaces.",
     ] = None,
     limit: Annotated[
         int, "The maximum number of teams to return. Min is 1, max is 100. Defaults to 100."
