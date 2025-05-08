@@ -63,14 +63,14 @@ async def test_get_project_by_name_or_raise_error(mock_find_projects_by_name, mo
     project1 = {"id": "1234567890", "name": "My Project"}
 
     mock_find_projects_by_name.return_value = {
-        "matches": {"projects": [project1]},
-        "not_matched": {"projects": []},
+        "matches": {"projects": [project1], "count": 1},
+        "not_matched": {"projects": [], "count": 0},
     }
     assert await get_project_by_name_or_raise_error(mock_context, project1["name"]) == project1
 
     mock_find_projects_by_name.return_value = {
-        "matches": {"projects": []},
-        "not_matched": {"projects": [project1]},
+        "matches": {"projects": [], "count": 0},
+        "not_matched": {"projects": [project1], "count": 1},
     }
     with pytest.raises(RetryableToolError) as exc_info:
         await get_project_by_name_or_raise_error(mock_context, "Inexistent Project")
