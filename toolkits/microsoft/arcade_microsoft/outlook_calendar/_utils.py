@@ -14,6 +14,39 @@ from msgraph.generated.users.item.mailbox_settings.mailbox_settings_request_buil
 from arcade_microsoft.outlook_calendar.constants import WINDOWS_TO_IANA
 
 
+def validate_date_times(start_date_time: str, end_date_time: str) -> None:
+    """
+    Validate date times are in ISO 8601 format and
+    that end time is after start time (ignoring timezone offsets).
+
+    Args:
+        start_date_time: The start date time string to validate.
+        end_date_time: The end date time string to validate.
+
+    Raises:
+        ValueError: If the date times are not in ISO 8601 format
+        ToolExecutionError: If end time is not after start time.
+
+    Note:
+        This function ignores timezone offsets.
+    """
+    # parse into offset-aware datetimes
+    start_aware = datetime.fromisoformat(start_date_time)
+    end_aware = datetime.fromisoformat(end_date_time)
+
+    # drop tzinfo to treat both as naïve local times
+    start_naive = start_aware.replace(tzinfo=None)
+    end_naive = end_aware.replace(tzinfo=None)
+
+    if start_naive >= end_naive:
+        raise ToolExecutionError(
+            message="Start time must be before end time",
+            developer_message=(
+                f"The start time '{start_naive}' is not before the end time '{end_naive}'"
+            ),
+        )
+
+
 def prepare_meeting_body(
     body: str, custom_meeting_url: str | None, is_online_meeting: bool
 ) -> tuple[str, bool]:

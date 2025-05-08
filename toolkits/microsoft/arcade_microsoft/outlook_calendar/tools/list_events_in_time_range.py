@@ -12,6 +12,7 @@ from arcade_microsoft.outlook_calendar._utils import (
     create_timezone_request_config,
     get_default_calendar_timezone,
     replace_timezone_offset,
+    validate_date_times,
 )
 from arcade_microsoft.outlook_calendar.models import Event
 
@@ -37,8 +38,10 @@ async def list_events_in_time_range(
     Instead, uses the user's default calendar timezone to filter events.
     If the user has not set a timezone for their calendar, then the timezone will be UTC.
     """
-    client = get_client(context.get_auth_token_or_empty())
+    # Validate inputs
+    validate_date_times(start_date_time, end_date_time)
 
+    client = get_client(context.get_auth_token_or_empty())
     time_zone = await get_default_calendar_timezone(client)
     time_zone_offset = convert_timezone_to_offset(time_zone)
     start_date_time = replace_timezone_offset(start_date_time, time_zone_offset)

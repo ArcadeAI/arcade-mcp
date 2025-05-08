@@ -9,6 +9,7 @@ from arcade_microsoft.outlook_calendar._utils import (
     get_default_calendar_timezone,
     prepare_meeting_body,
     remove_timezone_offset,
+    validate_date_times,
     validate_emails,
 )
 from arcade_microsoft.outlook_calendar.models import (
@@ -56,6 +57,7 @@ async def create_event(
     """
     # Validate & cleanse inputs
     validate_emails(attendee_emails or [])
+    validate_date_times(start_date_time, end_date_time)
     body, is_online_meeting = prepare_meeting_body(body, custom_meeting_url, is_online_meeting)
 
     client = get_client(context.get_auth_token_or_empty())
