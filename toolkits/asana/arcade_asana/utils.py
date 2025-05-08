@@ -36,7 +36,7 @@ def validate_date_format(name: str, date_str: str | None) -> None:
 
 def build_task_search_query_params(
     keywords: str | None,
-    completed: bool,
+    completed: bool | None,
     assignee_id: str | None,
     project_id: str | None,
     team_id: str | None,
@@ -54,11 +54,12 @@ def build_task_search_query_params(
     query_params: dict[str, Any] = {
         "text": keywords,
         "opt_fields": TASK_OPT_FIELDS,
-        "completed": completed,
         "sort_by": sort_by.value,
         "sort_ascending": sort_order == SortOrder.ASCENDING,
         "limit": limit,
     }
+    if completed is not None:
+        query_params["completed"] = completed
     if assignee_id:
         query_params["assignee.any"] = assignee_id
     if project_id:

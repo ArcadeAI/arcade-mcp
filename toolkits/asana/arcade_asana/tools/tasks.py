@@ -140,9 +140,9 @@ async def search_tasks(
         "Defaults to None (searches tasks started on any date or without a start date).",
     ] = None,
     completed: Annotated[
-        bool,
-        "Match tasks that are completed. Defaults to False (tasks that are NOT completed).",
-    ] = False,
+        bool | None,
+        "Match tasks that are completed. Defaults to None (does not filter by completion status).",
+    ] = None,
     limit: Annotated[
         int,
         "The maximum number of tasks to return. Min of 1, max of 100. Defaults to 100.",
