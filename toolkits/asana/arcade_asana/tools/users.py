@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Asana
 
 from arcade_asana.constants import USER_OPT_FIELDS
 from arcade_asana.models import AsanaClient
@@ -12,7 +12,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def list_users(
     context: ToolContext,
     workspace_id: Annotated[
@@ -58,7 +58,7 @@ async def list_users(
     }
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def get_user_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The user ID to get."],

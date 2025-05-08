@@ -1,14 +1,14 @@
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Asana
 
 from arcade_asana.constants import WORKSPACE_OPT_FIELDS
 from arcade_asana.models import AsanaClient
 from arcade_asana.utils import get_next_page, remove_none_values
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def get_workspace_by_id(
     context: ToolContext,
     workspace_id: Annotated[str, "The ID of the Asana workspace to get"],
@@ -19,7 +19,7 @@ async def get_workspace_by_id(
     return {"workspace": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def list_workspaces(
     context: ToolContext,
     limit: Annotated[

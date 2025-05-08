@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Asana
 from arcade.sdk.errors import ToolExecutionError
 
 from arcade_asana.constants import TAG_OPT_FIELDS, TagColor
@@ -13,7 +13,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def get_tag_by_id(
     context: ToolContext,
     tag_id: Annotated[str, "The ID of the Asana tag to get"],
@@ -24,7 +24,7 @@ async def get_tag_by_id(
     return {"tag": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def create_tag(
     context: ToolContext,
     name: Annotated[str, "The name of the tag to create. Length must be between 1 and 100."],
@@ -58,7 +58,7 @@ async def create_tag(
     return {"tag": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=[]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def list_tags(
     context: ToolContext,
     workspace_id: Annotated[

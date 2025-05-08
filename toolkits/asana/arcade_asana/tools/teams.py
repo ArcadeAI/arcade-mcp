@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
+from arcade.sdk.auth import Asana
 
 from arcade_asana.constants import TEAM_OPT_FIELDS
 from arcade_asana.models import AsanaClient
@@ -12,7 +12,7 @@ from arcade_asana.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def get_team_by_id(
     context: ToolContext,
     team_id: Annotated[str, "The ID of the Asana team to get"],
@@ -26,7 +26,7 @@ async def get_team_by_id(
     return {"team": response["data"]}
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def list_teams_the_current_user_is_a_member_of(
     context: ToolContext,
     workspace_id: Annotated[
@@ -70,7 +70,7 @@ async def list_teams_the_current_user_is_a_member_of(
     }
 
 
-@tool(requires_auth=OAuth2(id="asana", scopes=["default"]))
+@tool(requires_auth=Asana(scopes=["default"]))
 async def list_teams(
     context: ToolContext,
     workspace_id: Annotated[
