@@ -82,6 +82,7 @@ def test_deployment_dict(test_dir):
     "enabled": true,
     "timeout": 10,
     "retries": 3,
+    "wait": false,
     "pypi": {
         "packages": [
             {
