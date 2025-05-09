@@ -21,63 +21,7 @@ from arcade_asana.utils import (
 
 
 @tool(requires_auth=Asana(scopes=["default"]))
-async def get_task_by_id(
-    context: ToolContext,
-    task_id: Annotated[str, "The ID of the task to get."],
-    max_subtasks: Annotated[
-        int,
-        "The maximum number of subtasks to return. "
-        "Min of 0 (no subtasks), max of 100. Defaults to 100.",
-    ] = 100,
-) -> Annotated[dict[str, Any], "The task with the given ID."]:
-    """Get a task by its ID"""
-    client = AsanaClient(context.get_auth_token_or_empty())
-    response = await client.get(
-        f"/tasks/{task_id}",
-        params={"opt_fields": TASK_OPT_FIELDS},
-    )
-    if max_subtasks > 0:
-        max_subtasks = min(max_subtasks, 100)
-        subtasks = await get_subtasks_from_a_task(context, task_id=task_id, limit=max_subtasks)
-        response["data"]["subtasks"] = subtasks["subtasks"]
-    return {"task": response["data"]}
-
-
-@tool(requires_auth=Asana(scopes=["default"]))
-async def get_subtasks_from_a_task(
-    context: ToolContext,
-    task_id: Annotated[str, "The ID of the task to get the subtasks of."],
-    limit: Annotated[
-        int,
-        "The maximum number of subtasks to return. Min of 1, max of 100. Defaults to 100.",
-    ] = 100,
-    next_page_token: Annotated[
-        str | None,
-        "The token to retrieve the next page of subtasks. Defaults to None (start from the first "
-        "page of subtasks)",
-    ] = None,
-) -> Annotated[dict[str, Any], "The subtasks of the task."]:
-    """Get the subtasks of a task"""
-    limit = max(1, min(100, limit))
-
-    client = AsanaClient(context.get_auth_token_or_empty())
-    response = await client.get(
-        f"/tasks/{task_id}/subtasks",
-        params=remove_none_values({
-            "opt_fields": TASK_OPT_FIELDS,
-            "limit": limit,
-            "offset": next_page_token,
-        }),
-    )
-    return {
-        "subtasks": response["data"],
-        "count": len(response["data"]),
-        "next_page": get_next_page(response),
-    }
-
-
-@tool(requires_auth=Asana(scopes=["default"]))
-async def search_tasks(
+async def get_tasks_without_id(
     context: ToolContext,
     keywords: Annotated[
         str | None, "Keywords to search for tasks. Matches against the task name and description."
@@ -216,6 +160,63 @@ async def search_tasks(
     tasks = list(tasks_by_id.values())
 
     return {"tasks": tasks, "count": len(tasks)}
+
+
+@tool(requires_auth=Asana(scopes=["default"]))
+async def get_task_by_id(
+    context: ToolContext,
+    task_id: Annotated[str, "The ID of the task to get."],
+    max_subtasks: Annotated[
+        int,
+        "The maximum number of subtasks to return. "
+        "Min of 0 (no subtasks), max of 100. Defaults to 100.",
+    ] = 100,
+) -> Annotated[dict[str, Any], "The task with the given ID."]:
+    """Get a task by its ID"""
+    client = AsanaClient(context.get_auth_token_or_empty())
+    response = await client.get(
+        f"/tasks/{task_id}",
+        params={"opt_fields": TASK_OPT_FIELDS},
+    )
+    if max_subtasks > 0:
+        max_subtasks = min(max_subtasks, 100)
+        subtasks = await get_subtasks_from_a_task(context, task_id=task_id, limit=max_subtasks)
+        response["data"]["subtasks"] = subtasks["subtasks"]
+    return {"task": response["data"]}
+
+
+@tool(requires_auth=Asana(scopes=["default"]))
+async def get_subtasks_from_a_task(
+    context: ToolContext,
+    task_id: Annotated[str, "The ID of the task to get the subtasks of."],
+    limit: Annotated[
+        int,
+        "The maximum number of subtasks to return. Min of 1, max of 100. Defaults to 100.",
+    ] = 100,
+    next_page_token: Annotated[
+        str | None,
+        "The token to retrieve the next page of subtasks. Defaults to None (start from the first "
+        "page of subtasks)",
+    ] = None,
+) -> Annotated[dict[str, Any], "The subtasks of the task."]:
+    """Get the subtasks of a task"""
+    limit = max(1, min(100, limit))
+
+    client = AsanaClient(context.get_auth_token_or_empty())
+    response = await client.get(
+        f"/tasks/{task_id}/subtasks",
+        params=remove_none_values({
+            "opt_fields": TASK_OPT_FIELDS,
+            "limit": limit,
+            "offset": next_page_token,
+        }),
+    )
+
+    return {
+        "subtasks": response["data"],
+        "count": len(response["data"]),
+        "next_page": get_next_page(response),
+    }
 
 
 @tool(requires_auth=Asana(scopes=["default"]))

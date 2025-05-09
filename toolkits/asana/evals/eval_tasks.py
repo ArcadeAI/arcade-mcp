@@ -14,7 +14,7 @@ from arcade_asana.constants import SortOrder, TaskSortBy
 from arcade_asana.tools import (
     get_subtasks_from_a_task,
     get_task_by_id,
-    search_tasks,
+    get_tasks_without_id,
     update_task,
 )
 
@@ -100,7 +100,7 @@ def get_subtasks_from_a_task_eval_suite() -> EvalSuite:
                 args={
                     "task_id": "1234567890",
                     "limit": 2,
-                    "offset": 2,
+                    "offset": "abc123",
                 },
             ),
         ],
@@ -130,6 +130,10 @@ def get_subtasks_from_a_task_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 2,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "subtasks": [
                         {
                             "id": "1234567890",
@@ -168,7 +172,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' in Asana.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                 },
@@ -185,7 +189,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' in Asana sorting by likes in descending order.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "sort_by": TaskSortBy.LIKES,
@@ -206,7 +210,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' associated to the project with ID '1234567890'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "project_id": "1234567890",
@@ -225,7 +229,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' associated to the project named 'My Project'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "project_name": "My Project",
@@ -244,7 +248,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' associated to the team with ID '1234567890'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "team_id": "1234567890",
@@ -263,7 +267,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' associated to the tags with IDs '1234567890' and '1234567891'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "tags": ["1234567890", "1234567891"],
@@ -282,7 +286,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for the task 'Hello' associated to the tags 'My Tag' and 'My Other Tag'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "tags": ["My Tag", "My Other Tag"],
@@ -301,7 +305,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for tasks 'Hello' that started on '2025-01-01' and are due on '2025-01-02'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "start_on": "2025-01-01",
@@ -322,7 +326,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for tasks 'Hello' that start on 2025-05-05 and are due on or before 2025-05-11.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "start_on": "2025-05-05",
@@ -343,7 +347,7 @@ def search_tasks_eval_suite() -> EvalSuite:
         user_message="Search for tasks 'Hello' that are not completed and are due on or before 2025-05-11.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=search_tasks,
+                func=get_tasks_without_id,
                 args={
                     "keywords": "Hello",
                     "due_on_or_before": "2025-05-11",

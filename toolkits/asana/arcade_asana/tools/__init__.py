@@ -5,7 +5,7 @@ from arcade_asana.tools.tasks import (
     create_task,
     get_subtasks_from_a_task,
     get_task_by_id,
-    search_tasks,
+    get_tasks_without_id,
     update_task,
 )
 from arcade_asana.tools.teams import get_team_by_id, list_teams_the_current_user_is_a_member_of
@@ -26,6 +26,6 @@ __all__ = [
     "list_teams_the_current_user_is_a_member_of",
     "list_users",
     "list_workspaces",
-    "search_tasks",
+    "get_tasks_without_id",
     "update_task",
 ]

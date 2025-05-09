@@ -150,7 +150,7 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                 func=list_teams_the_current_user_is_a_member_of,
                 args={
                     "limit": 2,
-                    "offset": 2,
+                    "offset": "abc123",
                 },
             ),
         ],
@@ -179,6 +179,10 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 1,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "teams": [
                         {
                             "id": "1234567890",
@@ -208,7 +212,7 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                 func=list_teams_the_current_user_is_a_member_of,
                 args={
                     "limit": 5,
-                    "offset": 2,
+                    "offset": "abc123",
                 },
             ),
         ],
@@ -237,6 +241,10 @@ def list_teams_the_current_user_is_a_member_of_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 1,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "teams": [
                         {
                             "id": "1234567890",

@@ -43,7 +43,7 @@ def list_tags_eval_suite() -> EvalSuite:
                 func=list_tags,
                 args={
                     "limit": 100,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -62,7 +62,7 @@ def list_tags_eval_suite() -> EvalSuite:
                 func=list_tags,
                 args={
                     "limit": 10,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -81,7 +81,7 @@ def list_tags_eval_suite() -> EvalSuite:
                 func=list_tags,
                 args={
                     "limit": 2,
-                    "offset": 2,
+                    "offset": "abc123",
                 },
             ),
         ],
@@ -110,6 +110,10 @@ def list_tags_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 2,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "workspaces": [
                         {
                             "id": "1234567890",
@@ -139,7 +143,7 @@ def list_tags_eval_suite() -> EvalSuite:
                 func=list_tags,
                 args={
                     "limit": 5,
-                    "offset": 2,
+                    "offset": "abc123",
                 },
             ),
         ],
@@ -168,6 +172,10 @@ def list_tags_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 2,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "workspaces": [
                         {
                             "id": "1234567890",

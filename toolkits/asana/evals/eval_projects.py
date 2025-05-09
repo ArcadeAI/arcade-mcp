@@ -44,7 +44,7 @@ def list_projects_eval_suite() -> EvalSuite:
                 args={
                     "team_ids": None,
                     "limit": 100,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -65,7 +65,7 @@ def list_projects_eval_suite() -> EvalSuite:
                 args={
                     "team_ids": ["1234567890"],
                     "limit": 100,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -86,7 +86,7 @@ def list_projects_eval_suite() -> EvalSuite:
                 args={
                     "team_ids": None,
                     "limit": 10,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -106,7 +106,7 @@ def list_projects_eval_suite() -> EvalSuite:
                 func=list_projects,
                 args={
                     "limit": 2,
-                    "offset": 2,
+                    "offset": "abc123",
                     "team_ids": None,
                 },
             ),
@@ -137,6 +137,10 @@ def list_projects_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": json.dumps({
                     "count": 2,
+                    "next_page": {
+                        "has_more_results": True,
+                        "next_page_token": "abc123",
+                    },
                     "workspaces": [
                         {
                             "id": "1234567890",

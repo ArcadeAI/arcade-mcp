@@ -76,7 +76,7 @@ def list_users_eval_suite() -> EvalSuite:
                 args={
                     "workspace_id": None,
                     "limit": 100,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -97,7 +97,7 @@ def list_users_eval_suite() -> EvalSuite:
                 args={
                     "workspace_id": "1234567890",
                     "limit": 100,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
@@ -118,7 +118,7 @@ def list_users_eval_suite() -> EvalSuite:
                 args={
                     "limit": 5,
                     "workspace_id": None,
-                    "offset": 0,
+                    "offset": None,
                 },
             ),
         ],
