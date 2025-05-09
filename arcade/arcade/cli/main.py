@@ -48,7 +48,6 @@ from arcade.cli.utils import (
     validate_and_get_config,
     version_callback,
 )
-from arcade.cli.worker import parse_deployment_response
 
 cli = typer.Typer(
     cls=OrderCommands,

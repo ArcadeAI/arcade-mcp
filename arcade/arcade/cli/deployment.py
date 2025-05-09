@@ -167,7 +167,7 @@ class Request(BaseModel):
                 id=self.name,
                 enabled=self.enabled,
                 http={
-                    "uri": worker_data["worker_endpoint"],
+                    "uri": worker_data["endpoint"],
                     "secret": self.secret.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
@@ -179,7 +179,7 @@ class Request(BaseModel):
                 id=self.name,
                 enabled=self.enabled,
                 http={
-                    "uri": worker_data["worker_endpoint"],
+                    "uri": worker_data["endpoint"],
                     "secret": self.secret.value,
                     "timeout": self.timeout,
                     "retry": self.retries,
