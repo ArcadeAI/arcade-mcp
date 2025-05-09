@@ -1,8 +1,10 @@
 <h3 align="center">
   <a name="readme-top"></a>
-  <img
-    src="https://docs.arcade.dev/images/logo/arcade-logo.png"
-  >
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/ArcadeAI/.github/refs/heads/main/profile/assets/new_arcade_logo_white.svg" width="300">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/ArcadeAI/.github/refs/heads/main/profile/assets/new_arcade_logo_black.svg" width="300">
+    <img alt="Fallback image description" src="https://raw.githubusercontent.com/ArcadeAI/.github/refs/heads/main/profile/assets/new_arcade_logo_black.svg" width="300" >
+  </picture>
 </h3>
 <div align="center">
   <h3>Arcade AI SDK Example</h3>

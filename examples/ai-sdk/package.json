@@ -5,15 +5,16 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"dev": "node --env-file=.env index.js"
+		"dev": "node --env-file=.env index.js",
+		"generateText": "node --env-file=.env generateText.js"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"packageManager": "pnpm@10.6.5",
 	"dependencies": {
-		"@ai-sdk/openai": "^1.3.6",
-		"@arcadeai/arcadejs": "^1.2.1",
-		"ai": "^4.2.11"
+		"@ai-sdk/openai": "^1.3.22",
+		"@arcadeai/arcadejs": "latest",
+		"ai": "^4.3.15"
 	}
 }
