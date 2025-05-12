@@ -5,11 +5,31 @@ import { generateText } from "ai"
 
 const arcade = new Arcade()
 
+/**
+ * Get the Google toolkit.
+ */
 const googleToolkit = await arcade.tools.list({
     limit: 25,
     toolkit: "google",
 })
 
+/**
+ * The Vercel AI SDK requires tools to be defined using Zod, a TypeScript-first schema validation library
+ * that has become the standard for runtime type checking. Zod is particularly valuable because it:
+ * - Provides runtime type safety and validation
+ * - Offers excellent TypeScript integration with automatic type inference
+ * - Has a simple, declarative API for defining schemas
+ * - Is widely adopted in the TypeScript ecosystem
+ *
+ * Arcade provides `toZodToolSet` to convert our tools into Zod format, making them compatible
+ * with the AI SDK.
+ *
+ * The `executeOrAuthorizeZodTool` helper function simplifies authorization.
+ * It checks if the tool requires authorization: if so, it returns an authorization URL,
+ * otherwise, it runs the tool directly without extra boilerplate.
+ *
+ * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
+ */
 const googleTools = toZodToolSet({
     tools: googleToolkit.items,
     client: arcade,
@@ -24,4 +44,5 @@ const result = await generateText({
     maxSteps: 5,
 })
 
+// Log the result
 console.log(result.text)
