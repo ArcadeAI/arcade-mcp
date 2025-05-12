@@ -289,7 +289,7 @@ async def mark_task_as_completed(
     task_id: Annotated[str, "The ID of the task to mark as completed."],
 ) -> Annotated[dict[str, Any], "The task marked as completed."]:
     """Mark a task in Asana as completed"""
-    return await update_task(context, task_id, completed=True)
+    return await update_task(context, task_id, completed=True)  # type: ignore[no-any-return]
 
 
 @tool(requires_auth=Asana(scopes=["default"]))
