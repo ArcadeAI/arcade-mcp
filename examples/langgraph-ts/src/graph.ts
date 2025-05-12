@@ -1,20 +1,54 @@
+import { Arcade } from "@arcadeai/arcadejs";
+import { executeOrAuthorizeZodTool, toZod } from "@arcadeai/arcadejs/lib";
 import type { AIMessage } from "@langchain/core/messages";
 import type { RunnableConfig } from "@langchain/core/runnables";
+import { type Tool, tool } from "@langchain/core/tools";
 import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
-import { getArcadeTools } from "./arcade.ts";
-import { ConfigurationSchema, ensureConfiguration } from "./configuration.ts";
-import { loadChatModel } from "./utils.ts";
 import { ChatOpenAI } from "@langchain/openai";
+import { ConfigurationSchema, ensureConfiguration } from "./configuration.ts";
 
+// Initialize Arcade
+const arcade = new Arcade();
 
 // Replace this with your application's user ID (e.g. email address, UUID, etc.)
 const USER_ID = "user@example.com";
 // Get the Arcade tools, you can customize the toolkit (e.g. "github", "notion", "google", etc.)
-const arcadeTools = await getArcadeTools({
-	toolkits: ["google", "github"],
-	user_id: USER_ID,
+const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
+
+/**
+ * LangGraph requires tools to be defined using Zod, a TypeScript-first schema validation library
+ * that has become the standard for runtime type checking. Zod is particularly valuable because it:
+ * - Provides runtime type safety and validation
+ * - Offers excellent TypeScript integration with automatic type inference
+ * - Has a simple, declarative API for defining schemas
+ * - Is widely adopted in the TypeScript ecosystem
+ *
+ * Arcade provides `toZod` to convert our tools into Zod format, making them compatible
+ * with LangGraph.
+ *
+ * The `executeOrAuthorizeZodTool` helper function simplifies authorization.
+ * It checks if the tool requires authorization: if so, it returns an authorization URL,
+ * otherwise, it runs the tool directly without extra boilerplate.
+ *
+ * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
+ */
+const arcadeTools = toZod({
+	tools: googleToolkit.items,
+	client: arcade,
+	userId: USER_ID,
+	executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 });
+
+// Convert Arcade tools to LangChain tools
+const tools = arcadeTools.map(({ name, description, execute, parameters }) =>
+	tool(execute, {
+		name,
+		description,
+		schema: parameters,
+	}),
+);
+
 // Define the function that calls the model
 async function callModel(
 	state: typeof MessagesAnnotation.State,
@@ -29,7 +63,7 @@ async function callModel(
 	const model = new ChatOpenAI({
 		model: configuration.model,
 		apiKey: process.env.OPENAI_API_KEY,
-	}).bindTools(arcadeTools);
+	}).bindTools(tools);
 
 	const response = await model.invoke([
 		{
@@ -64,7 +98,7 @@ function routeModelOutput(state: typeof MessagesAnnotation.State): string {
 const workflow = new StateGraph(MessagesAnnotation, ConfigurationSchema)
 	// Define the two nodes we will cycle between
 	.addNode("callModel", callModel)
-	.addNode("tools", new ToolNode(arcadeTools))
+	.addNode("tools", new ToolNode(tools))
 	// Set the entrypoint as `callModel`
 	// This means that this node is the first one called
 	.addEdge("__start__", "callModel")

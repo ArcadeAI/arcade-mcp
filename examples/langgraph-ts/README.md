@@ -33,7 +33,6 @@ This approach creates a flexible agent that can interact with multiple services 
    ```
    OPENAI_API_KEY=your-openai-api-key
    ARCADE_API_KEY=your-arcade-api-key
-   ARCADE_BASE_URL=https://api.arcade.dev
    ```
 
 4. Install dependencies:
@@ -52,7 +51,7 @@ This approach creates a flexible agent that can interact with multiple services 
 
 The core logic is defined in `src/graph.ts`
 
-1. Loads Arcade tools for multiple toolkits (e.g., Google, GitHub)
+1. Loads Arcade tools for multiple toolkits (e.g., Google)
 2. Creates a model with the tools bound to it
 3. Routes messages between tool calls and model reasoning
 4. Compiles everything into a graph you can invoke and deploy
@@ -60,16 +59,14 @@ The core logic is defined in `src/graph.ts`
 ## Project Structure
 
 - `src/graph.ts` - Main graph implementation showing how to create and use a LangGraph agent with Arcade tools
-- `src/arcade.ts` - Utility functions for integrating Arcade with LangGraph and converting Arcade tools to LangChain tools
 - `src/configuration.ts` - Configurable parameters for the agent
 - `src/prompts.ts` - Default prompts used by the agent
-- `src/utils.ts` - Helper functions for loading models
 
 ## Customization
 
 To use different Arcade toolkits or queries:
 
-1. Modify the `toolkits` array in `getArcadeTools()` in `src/graph.ts` to include the desired toolkits (e.g., `["google", "github", "notion"]`)
+1. Modify the `toolkit` string in `arcade.tools.list` in `src/graph.ts` to include the desired toolkit (e.g., `["google", "github", "notion"]`)
 2. Change the default model in `src/configuration.ts`
 3. Update the system prompt in `src/prompts.ts`
 
