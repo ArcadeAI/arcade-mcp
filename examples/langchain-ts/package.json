@@ -1,0 +1,27 @@
+{
+  "name": "langchain-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npx tsx --env-file=.env langgraph-arcade-minimal.ts",
+    "dev-auth": "npx tsx --env-file=.env langgraph-with-user-auth.ts",
+    "dev-auth-langchain": "npx tsx --env-file=.env langchain-tool-arcade-auth.ts",
+    "studio": "npx @langchain/langgraph-cli@latest dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.5",
+  "dependencies": {
+    "@arcadeai/arcadejs": "latest",
+    "@langchain/community": "^0.3.42",
+    "@langchain/core": "^0.3.55",
+    "@langchain/langgraph": "^0.2.72",
+    "@langchain/openai": "^0.5.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17"
+  }
+}
