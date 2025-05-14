@@ -1,16 +1,19 @@
 import asyncio
 import logging
 import os
-import signal
 import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from functools import partial
 from importlib.metadata import version as get_pkg_version
 from pathlib import Path
 from typing import Any
 
 import fastapi
 import uvicorn
+
+# TODO make import catch if reload is true
+import watchfiles  # noqa: F401
 from loguru import logger
 from rich.console import Console
 
@@ -19,13 +22,74 @@ from arcade.cli.utils import (
     build_tool_catalog,
     discover_toolkits,
     load_dotenv,
-    validate_and_get_config,
 )
 from arcade.core.telemetry import OTELHandler
-from arcade.sdk import Toolkit
+from arcade.core.toolkit import Toolkit, get_package_directory
 from arcade.worker.fastapi.worker import FastAPIWorker
 
 console = Console(width=70, color_system="auto")
+
+
+# App factory for Uvicorn reload
+def create_arcade_app() -> fastapi.FastAPI:
+    # TODO: Find a better way to pass these configs to factory used for reload
+    debug_mode = os.environ.get("ARCADE_WORKER_SECRET", "dev") == "dev"
+    otel_enabled = os.environ.get("ARCADE_OTEL_ENABLE", "False").lower() == "true"
+    auth_for_reload = not debug_mode
+
+    # Call setup_logging here to ensure Uvicorn worker processes also get Loguru formatting
+    # for all standard library loggers.
+    # The log_level for Uvicorn itself is set via uvicorn.run(log_level=...),
+    # this call primarily aims to capture third-party library logs into Loguru.
+    setup_logging(log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False)
+
+    logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
+
+    version = get_pkg_version("arcade-ai")
+    toolkits = discover_toolkits()
+
+    logger.info("Registered toolkits:")
+    for toolkit in toolkits:
+        logger.info(
+            f"  - {toolkit.name}: {sum(len(tools) for tools in toolkit.tools.values())} tools"
+        )
+
+    # TODO: Ordering of OTELHandler initialization here is odd
+    # and may be a source of bugs. Does this matter for reload?
+    # is otel needed for reload?
+    # should we have a lifespan handler anyway?
+    otel_handler = OTELHandler(
+        None,  # type: ignore[arg-type]
+        enable=otel_enabled,
+        log_level=logging.DEBUG if debug_mode else logging.INFO,
+    )
+
+    custom_lifespan = partial(lifespan, otel_handler=otel_handler, enable_otel=otel_enabled)
+
+    app = fastapi.FastAPI(
+        title="Arcade Worker",
+        description="A worker for the Arcade platform.",
+        version=version,
+        docs_url="/docs" if debug_mode else None,
+        redoc_url="/redoc" if debug_mode else None,
+        openapi_url="/openapi.json" if debug_mode else None,
+        lifespan=custom_lifespan,
+    )
+
+    secret = os.getenv("ARCADE_WORKER_SECRET", "dev")
+    if secret == "dev" and not os.environ.get("ARCADE_WORKER_SECRET"):  # noqa: S105
+        logger.warning("Using default 'dev' for ARCADE_WORKER_SECRET. Set this in production.")
+
+    worker = FastAPIWorker(
+        app=app,
+        secret=secret,
+        disable_auth=not debug_mode,  # TODO (Sam): possible unexpected behavior on reload here?
+        otel_meter=otel_handler.get_meter(),
+    )
+    for tk in toolkits:
+        worker.register_toolkit(tk)
+
+    return app
 
 
 def _run_mcp_stdio(
@@ -63,80 +127,62 @@ def _run_mcp_stdio(
     except Exception as exc:
         logger.exception("Error while running MCP server: %s", exc)
         raise
+    finally:
+        logger.info("Shutting down Server")
+        logger.complete()
+        logger.remove()
 
 
 def _run_fastapi_server(
-    app: fastapi.FastAPI,
-    *,
     host: str,
     port: int,
-    workers: int,
+    workers_param: int,
     timeout_keep_alive: int,
-    enable_otel: bool,
-    otel_handler: OTELHandler,
-    **uvicorn_kwargs: Any,
+    reload: bool,
+    toolkits_for_reload_dirs: list[Toolkit] | None,
+    debug_flag: bool,
 ) -> None:
-    """Run a FastAPI application via Uvicorn with graceful shutdown."""
+    app_import_string = "arcade.cli.serve:create_arcade_app"
+    reload_dirs_str_list: list[str] | None = None
 
-    class CustomUvicornServer(uvicorn.Server):
-        def install_signal_handlers(self) -> None:
-            # Disable Uvicorn's default signal handling; we manage it manually
-            pass
+    if reload:
+        current_reload_dirs_paths = []
+        if toolkits_for_reload_dirs:
+            for tk in toolkits_for_reload_dirs:
+                try:
+                    package_dir_str = get_package_directory(tk.package_name)
+                    current_reload_dirs_paths.append(Path(package_dir_str))
+                except Exception as e:
+                    logger.warning(f"Error getting reload path for toolkit {tk.name}: {e}")
 
-        async def shutdown(self, sockets: Any = None) -> None:
-            logger.info("Initiating graceful shutdown...")
-            await super().shutdown(sockets=sockets)
+        serve_py_dir_path = Path(__file__).resolve().parent
+        current_reload_dirs_paths.append(serve_py_dir_path)
 
-    config = uvicorn.Config(
-        app=app,
-        host=host,
-        port=port,
-        workers=workers,
-        timeout_keep_alive=timeout_keep_alive,
-        log_config=None,
-        **uvicorn_kwargs,
+        if current_reload_dirs_paths:
+            reload_dirs_str_list = [str(p) for p in current_reload_dirs_paths]
+            logger.debug(f"Uvicorn reload_dirs: {reload_dirs_str_list}")
+
+    effective_workers = 1 if reload else workers_param
+    log_level_str = logging.getLevelName(logging.DEBUG if debug_flag else logging.INFO).lower()
+
+    logger.debug(
+        f"Calling uvicorn.run with app='{app_import_string}', factory=True, host='{host}', port={port}, "
+        f"workers={effective_workers}, reload={reload}, log_level='{log_level_str}'"
     )
 
-    server = CustomUvicornServer(config=config)
-
-    async def _serve() -> None:
-        await server.serve()
-
-    async def _graceful_shutdown() -> None:
-        try:
-            logger.info("Shutting down server ...")
-            await server.shutdown()
-
-            # brief pause for connections to close gracefully
-            await asyncio.sleep(0.5)
-        finally:
-            if enable_otel:
-                otel_handler.shutdown()
-            logger.debug("Server shutdown complete.")
-
-    # Map signals to our graceful shutdown
-    loop = asyncio.get_event_loop()
-    for sig_name in (
-        "SIGINT",
-        "SIGTERM",
-        "SIGHUP",
-        "SIGUSR1",
-        "SIGUSR2",
-        "SIGWINCH",
-        "SIGBREAK",
-    ):
-        if hasattr(signal, sig_name):
-            loop.add_signal_handler(
-                getattr(signal, sig_name), lambda: asyncio.create_task(_graceful_shutdown())
-            )
-
-    try:
-        asyncio.run(_serve())
-    except KeyboardInterrupt:
-        logger.info("Server stopped by user.")
-    finally:
-        if enable_otel:
-            otel_handler.shutdown()
+    uvicorn.run(
+        app_import_string,
+        factory=True,
+        host=host,
+        port=port,
+        workers=effective_workers,
+        log_config=None,
+        log_level=log_level_str,
+        reload=reload,
+        reload_dirs=reload_dirs_str_list,
+        lifespan="on",
+        timeout_keep_alive=timeout_keep_alive,
+    )
 
 
 class RichInterceptHandler(logging.Handler):
@@ -145,68 +191,70 @@ class RichInterceptHandler(logging.Handler):
             level = logger.level(record.levelname).name
         except ValueError:
             level = str(record.levelno)
-
-        # Let Loguru handle caller info; don't do stack inspection here
         logger.opt(exception=record.exc_info).log(level, record.getMessage())
 
 
 def setup_logging(log_level: int = logging.INFO, mcp_mode: bool = False) -> None:
-    # Intercept everything at the root logger
+    """Loguru and intercepts standard logging."""
+    # Set our handler on root
     logging.root.handlers = [RichInterceptHandler()]
     logging.root.setLevel(log_level)
 
-    # Remove every other logger's handlers and propagate to root logger
-    for name in logging.root.manager.loggerDict:
-        # Keep handlers for MCP logger if middleware handles it separately
-        if mcp_mode and name == "arcade.mcp":
-            continue
-        logging.getLogger(name).handlers = []
-        logging.getLogger(name).propagate = True
+    # For all existing loggers, remove their handlers and make them propagate to root.
+    for name in list(logging.root.manager.loggerDict.keys()):
+        existing_logger = logging.getLogger(name)
+        existing_logger.handlers = []
+        existing_logger.propagate = True
 
-    # Remove default handlers from Loguru
+    # clear existing loguru handlers to keep worker logging behavior clean
+    # and consistent despite toolkit logging changes
     logger.remove()
 
-    # Configure main Loguru sink
-    # In MCP mode, all general console logs go to stderr to keep stdout clean
+    # set sink destination based on mode
+    # MCP stdio needs to write to stderr to avoid interfering with capture
     sink_destination = sys.stderr if mcp_mode else sys.stdout
 
-    # Configure loguru with a cleaner format and colors
     if log_level == logging.DEBUG:
         format_string = "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{file}:{line: <4}</cyan> | <level>{message}</level>"
     else:
         format_string = (
             "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
         )
+
     logger.configure(
         handlers=[
             {
-                "sink": sink_destination,  # Redirect sink based on mcp_mode
+                "sink": sink_destination,
                 "colorize": True,
                 "level": log_level,
-                # Format that ensures timestamp on every line and better alignment
                 "format": format_string,
-                # Make sure multiline messages are handled properly
-                "enqueue": True,
-                "diagnose": True,  # Disable traceback framing which adds noise
+                "enqueue": True,  # non-blocking logging
+                "diagnose": False,  # disable detailed logging TODO: make this configurable
             }
         ]
     )
-    if mcp_mode:
-        logger.debug("Loguru sink configured for stderr in MCP mode.")
 
 
 @asynccontextmanager
-async def lifespan(app: fastapi.FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(
+    app: fastapi.FastAPI, otel_handler: OTELHandler | None = None, enable_otel: bool = False
+) -> AsyncGenerator[None, None]:
     try:
+        logger.debug(f"Server lifespan startup. OTEL enabled: {enable_otel}")
         yield
     except (asyncio.CancelledError, KeyboardInterrupt):
-        # This is necessary to prevent an unhandled error
-        # when the user presses Ctrl+C
-        logger.debug("Lifespan cancelled.")
+        logger.debug("Server lifespan cancelled.")
         raise
+    finally:
+        logger.debug(f"Server lifespan shutdown. OTEL enabled: {enable_otel}")
+        if enable_otel and otel_handler:
+            otel_handler.shutdown()
+        await logger.complete()
+        logger.remove()
+        logger.debug("Server lifespan shutdown complete.")
 
 
-def serve_default_worker(  # noqa: C901
+def serve_default_worker(
     host: str = "127.0.0.1",
     port: int = 8002,
     disable_auth: bool = False,
@@ -215,90 +263,42 @@ def serve_default_worker(  # noqa: C901
     enable_otel: bool = False,
     debug: bool = False,
     mcp: bool = False,
+    reload: bool = False,
     **kwargs: Any,
 ) -> None:
-    """
-    Get a default instance of a FastAPI server with the Arcade Worker
-    serving tools installed in the current Python environment.
-
-    Args:
-        host: The host to run the server on.
-        port: The port to run the server on.
-        disable_auth: Whether to disable authentication.
-        workers: The number of workers to run.
-        timeout_keep_alive: The timeout for keep-alive connections.
-        enable_otel: Whether to enable OpenTelemetry.
-        debug: Whether to enable debug logging.
-        mcp: Whether to run worker as MCP server over stdio.
-    """
-
-    # Setup unified logging first
-    version = get_pkg_version("arcade-ai")
-    if mcp:
-        validate_and_get_config()
+    # Initial logging setup for the main `arcade serve` process itself.
+    # The Uvicorn worker processes will call setup_logging() again via create_arcade_app().
     setup_logging(log_level=logging.DEBUG if debug else logging.INFO, mcp_mode=mcp)
 
-    toolkits = discover_toolkits()
-    logger.info("Serving the following toolkits:")
-    toolkit_tool_counts: dict[str, int] = {}
-    for toolkit in toolkits:
-        for _, tools in toolkit.tools.items():
-            toolkit_tool_counts[toolkit.name] = toolkit_tool_counts.get(toolkit.name, 0) + len(
-                tools
-            )
-    for toolkit in toolkits:
-        if debug:
-            logger.info(f"{toolkit.name}: ({toolkit_tool_counts.get(toolkit.name, 0)} tools)")
-            for filename, tools in toolkit.tools.items():
-                for tool in tools:
-                    logger.info(f"  - {filename}: {tool}")
-        else:
-            logger.info(f"  - {toolkit.name}: {toolkit_tool_counts.get(toolkit.name, 0)} tools")
-
-    # --- MCP stdio --------------------------------------------------
     if mcp:
-        env_file = kwargs.pop("env_file", None)
-        _run_mcp_stdio(toolkits, logging_enabled=not debug, env_file=env_file)
+        logger.info("MCP mode selected.")
+        toolkits_for_mcp = discover_toolkits()
+        _run_mcp_stdio(
+            toolkits_for_mcp, logging_enabled=not debug, env_file=kwargs.pop("env_file", None)
+        )
         return
 
-    # --- FastAPI HTTP --------------------------------------------------
-    app = fastapi.FastAPI(
-        title="Arcade Worker",
-        description="A worker for the Arcade platform",
-        version=version,
-        docs_url="/docs" if debug else None,
-        redoc_url="/redoc" if debug else None,
-        openapi_url="/openapi.json" if debug else None,
-        lifespan=lifespan,
-    )
+    logger.info("FastAPI mode selected. Configuring for Uvicorn with app factory.")
+    os.environ["ARCADE_DEBUG_MODE"] = str(debug)
+    os.environ["ARCADE_OTEL_ENABLE"] = str(enable_otel)
+    os.environ["ARCADE_DISABLE_AUTH"] = str(disable_auth)
 
-    secret = os.getenv("ARCADE_WORKER_SECRET", None)
-    if secret is None:
-        logger.warning("No secret found for Arcade Worker")
-        logger.info(
-            "Setting ARCADE_WORKER_SECRET environment variable to 'dev'. Set this in production"
+    toolkits_for_reload_dirs: list[Toolkit] | None = None
+    if reload:
+        # This discovery is only to tell the main Uvicorn reloader process which project dirs to watch.
+        # The actual app running in the worker will do its own discovery via create_arcade_app.
+        toolkits_for_reload_dirs = discover_toolkits()
+        logger.debug(
+            f"Reload mode: Uvicorn to watch {len(toolkits_for_reload_dirs) if toolkits_for_reload_dirs else 0} directories."
         )
-        secret = "dev"  # noqa: S105
-
-    otel_handler = OTELHandler(
-        app, enable=enable_otel, log_level=logging.DEBUG if debug else logging.INFO
-    )
-    worker = FastAPIWorker(
-        app=app,
-        secret=secret,
-        disable_auth=disable_auth,
-        otel_meter=otel_handler.get_meter(),
-    )
-    for toolkit in toolkits:
-        worker.register_toolkit(toolkit)
 
     _run_fastapi_server(
-        app,
         host=host,
         port=port,
-        workers=workers,
+        workers_param=workers,
         timeout_keep_alive=timeout_keep_alive,
-        enable_otel=enable_otel,
-        otel_handler=otel_handler,
-        **kwargs,
+        reload=reload,
+        toolkits_for_reload_dirs=toolkits_for_reload_dirs,
+        debug_flag=debug,
     )
+    logger.info("Arcade serve process finished.")

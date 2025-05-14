@@ -471,6 +471,12 @@ def serve(
         False, "--mcp", help="Run as a local MCP server over stdio", show_default=True
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+    reload: bool = typer.Option(
+        False,
+        "--reload",
+        help="Enable auto-reloading when toolkit or server files change.",
+        show_default=True,
+    ),
 ) -> None:
     """
     Start a local Arcade Worker server.
@@ -485,6 +491,7 @@ def serve(
             enable_otel=otel_enable,
             debug=debug,
             mcp=mcp,
+            reload=reload,
         )
     except KeyboardInterrupt:
         typer.Exit()
