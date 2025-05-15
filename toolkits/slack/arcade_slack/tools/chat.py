@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Annotated, cast
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Slack
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
-from slack_sdk.web.async_client import AsyncWebClient
+from slack_sdk.web.async_client import AsyncSlackResponse, AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.exceptions import (
@@ -958,7 +958,7 @@ async def get_thread_replies(
     thread_ts: Annotated[str, "The timestamp ('ts') of the parent message of the thread."],
     limit: Annotated[int, "The maximum number of replies to return (max 200)."] = 200,
 ) -> Annotated[
-    list[dict],
+    dict,
     "A list of message objects representing the replies in the thread (excluding the parent message).",
 ]:
     """Fetches replies for a specific thread in a Slack conversation."""
@@ -973,20 +973,20 @@ async def get_thread_replies(
 
     try:
         # Use conversations.replies method
-        result = await client.conversations_replies(
+        result: AsyncSlackResponse = await client.conversations_replies(
             channel=channel_id,
             ts=thread_ts,
             limit=min(limit, 200),  # Ensure limit doesn't exceed API max
         )
 
-        messages = result.get("messages", [])
+        messages: list[Any] = result.get("messages", [])
         # The first message in the replies is the parent message, skip it.
         replies = messages[1:] if messages else []
 
         # Enrich replies with datetime objects like get_messages_in_conversation_by_id does
         enriched_replies = [enrich_message_datetime(reply) for reply in replies]
 
-        return enriched_replies
+        return {"replies": enriched_replies}  # noqa: TRY300
 
     except SlackApiError as e:
         error_code = e.response.get("error", "unknown_error")
@@ -1018,8 +1018,8 @@ async def get_thread_replies(
     except Exception as e:
         # Catch any other unexpected errors
         raise ToolExecutionError(
-            f"An unexpected error occurred fetching Slack replies: {str(e)}",
-            developer_message=f"Unexpected error: {str(e)}. Channel: {channel_id}, Thread TS: {thread_ts}",
+            f"An unexpected error occurred fetching Slack replies: {e!s}",
+            developer_message=f"Unexpected error: {e!s}. Channel: {channel_id}, Thread TS: {thread_ts}",
         )
 
 
@@ -1077,7 +1077,7 @@ async def send_reply_in_thread(
             raise RetryableToolError(
                 f"Error sending reply: {error_code}",
                 developer_message=f"Slack API Error: {error_code}. Channel: {channel_id}, Thread TS: {thread_ts}",
-                additional_prompt_content=f"Could not send reply. Verify channel_id is correct and not archived, and thread_ts points to a valid message.",
+                additional_prompt_content="Could not send reply. Verify channel_id is correct and not archived, and thread_ts points to a valid message.",
             )
         elif error_code in ["ratelimited", "service_unavailable"]:
             raise RetryableToolError(
@@ -1092,6 +1092,6 @@ async def send_reply_in_thread(
             )
     except Exception as e:
         raise ToolExecutionError(
-            f"An unexpected error occurred sending Slack reply: {str(e)}",
-            developer_message=f"Unexpected error: {str(e)}. Channel: {channel_id}, Thread TS: {thread_ts}",
+            f"An unexpected error occurred sending Slack reply: {e!s}",
+            developer_message=f"Unexpected error: {e!s}. Channel: {channel_id}, Thread TS: {thread_ts}",
         )
