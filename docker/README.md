@@ -55,15 +55,15 @@ docker compose up
 
 This command will build and start all the services defined in the `docker-compose.yml` file and make their ports available to your host machine.
 
-### 4. Verify the Engine is Running
+### 4. Verify the Gateway is Running
 
-In a separate terminal window, check if the engine is running:
+In a separate terminal window, check if the gateway is running:
 
 ```bash
 curl http://localhost:9099/v1/health
 ```
 
-You should receive a response indicating that the engine is healthy:
+You should receive a response indicating that the gateway is healthy:
 
 ```json
 { "status": "healthy" }
@@ -108,7 +108,7 @@ docker compose up
 
 ## Troubleshooting
 
--   **Engine Health Check Fails**: Ensure that all environment variables are correctly set in the `.env` file and that the services have started without errors.
+-   **Gateway Health Check Fails**: Ensure that all environment variables are correctly set in the `.env` file and that the services have started without errors.
 -   **Port Conflicts**: If the default ports are already in use, modify the ports in the `docker-compose.yml` file.
 -   **Authentication Errors**: Double-check the client IDs and secrets provided for auth providers.
 

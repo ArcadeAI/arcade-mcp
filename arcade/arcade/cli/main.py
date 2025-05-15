@@ -164,13 +164,13 @@ def show(
         PROD_ENGINE_HOST,
         "-h",
         "--host",
-        help="The Arcade Engine address to show the tools/toolkits of.",
+        help="The Arcade Gateway address to show the tools/toolkits of.",
     ),
     local: bool = typer.Option(
         False,
         "--local",
         "-l",
-        help="Show the local environment's catalog instead of an Arcade Engine's catalog.",
+        help="Show the local environment's catalog instead of an Arcade Gateway's catalog.",
     ),
     port: Optional[int] = typer.Option(
         None,
@@ -181,12 +181,12 @@ def show(
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        help="Whether to force TLS for the connection to the Arcade Gateway. If not specified, the connection will use TLS if the Gateway URL uses a 'https' scheme.",
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Whether to disable TLS for the connection to the Arcade Gateway.",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
@@ -211,23 +211,23 @@ def chat(
         PROD_ENGINE_HOST,
         "-h",
         "--host",
-        help="The Arcade Engine address to send chat requests to.",
+        help="The Arcade Gateway address to send chat requests to.",
     ),
     port: int = typer.Option(
         None,
         "-p",
         "--port",
-        help="The port of the Arcade Engine.",
+        help="The port of the Arcade Gateway.",
     ),
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        help="Whether to force TLS for the connection to the Arcade Gateway. If not specified, the connection will use TLS if the gateway URL uses a 'https' scheme.",
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Whether to disable TLS for the connection to the Arcade Gateway.",
     ),
 ) -> None:
     """
@@ -346,28 +346,28 @@ def evals(
         LOCALHOST,
         "-h",
         "--host",
-        help="The Arcade Engine address to send chat requests to.",
+        help="The Arcade Gateway address to send chat requests to.",
     ),
     cloud: bool = typer.Option(
         False,
         "--cloud",
-        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
+        help="Whether to run evaluations against the Arcade Cloud Gateway. Overrides the 'host' option.",
     ),
     port: int = typer.Option(
         None,
         "-p",
         "--port",
-        help="The port of the Arcade Engine.",
+        help="The port of the Arcade Gateway.",
     ),
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        help="Whether to force TLS for the connection to the Arcade Gateway. If not specified, the connection will use TLS if the gateway URL uses a 'https' scheme.",
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Whether to disable TLS for the connection to the Arcade Gateway.",
     ),
 ) -> None:
     """
@@ -387,12 +387,12 @@ def evals(
 
     console.print(
         Text.assemble(
-            ("\nRunning evaluations against Arcade Engine at ", "bold"),
+            ("\nRunning evaluations against Arcade Gateway at ", "bold"),
             (base_url, "bold blue"),
         )
     )
 
-    # Try to hit /health endpoint on engine and warn if it is down
+    # Try to hit /health endpoint on gateway and warn if it is down
     with Arcade(api_key=config.api.key, base_url=base_url) as client:
         log_engine_health(client)
 
@@ -587,23 +587,23 @@ def deploy(
         PROD_ENGINE_HOST,
         "--host",
         "-h",
-        help="The Arcade Engine host to register the worker to.",
+        help="The Arcade Gateway host to register the worker to.",
     ),
     port: int = typer.Option(
         None,
         "--port",
         "-p",
-        help="The port of the Arcade Engine host.",
+        help="The port of the Arcade Gateway host.",
     ),
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+        help="Whether to force TLS for the connection to the Arcade Gateway. If not specified, the connection will use TLS if the gateway URL uses a 'https' scheme.",
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Whether to disable TLS for the connection to the Arcade Gateway.",
     ),
 ) -> None:
     """
@@ -645,13 +645,13 @@ def dashboard(
         PROD_ENGINE_HOST,
         "-h",
         "--host",
-        help="The Arcade Engine host that serves the dashboard.",
+        help="The Arcade Gateway host that serves the dashboard.",
     ),
     port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
-        help="The port of the Arcade Engine.",
+        help="The port of the Arcade Gateway.",
     ),
     local: bool = typer.Option(
         False,
@@ -662,17 +662,17 @@ def dashboard(
     force_tls: bool = typer.Option(
         False,
         "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine.",
+        help="Whether to force TLS for the connection to the Arcade Gateway.",
     ),
     force_no_tls: bool = typer.Option(
         False,
         "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+        help="Whether to disable TLS for the connection to the Arcade Gateway.",
     ),
 ) -> None:
     """Opens the Arcade Dashboard in a web browser.
 
-    The Dashboard is a web-based Arcade user interface that is served by the Arcade Engine.
+    The Dashboard is a web-based Arcade user interface that is served by the Arcade Gateway.
     """
     if local:
         host = "localhost"

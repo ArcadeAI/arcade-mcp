@@ -105,7 +105,7 @@ try calling the GitHub.SetStarred tool with a message like "Star the arcade-ai r
 
 === Arcade Chat ===
 
-Chatting with Arcade Engine at https://api.arcade.dev
+Chatting with Arcade Gateway at https://api.arcade.dev
 
 User sam@arcade.dev:
 star the arcadeai/arcade-ai repo
@@ -252,10 +252,10 @@ arcade worker rm demo-worker
 
 Once deployed, your toolkit is immediately available through the Arcade platform. You can now call your tools through the playground, LLM API, or Tools API without any additional setup.
 
-For local development and testing when running the Arcade Engine locally or tunneling to it, you can
-use `arcade serve` to host your toolkit locally and connect it to the Arcade Engine.
+For local development and testing when running the Arcade Gateway locally or tunneling to it, you can
+use `arcade serve` to host your toolkit locally and connect it to the Arcade Gateway.
 
-If you are running the Arcade Engine locally, go to localhost:9099 (or other local address)
+If you are running the Arcade Gateway locally, go to localhost:9099 (or other local address)
 and add the worker address in the "workers" page.
 
 ## Calling your tools
