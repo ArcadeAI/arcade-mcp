@@ -1,0 +1,185 @@
+import asyncio
+import json
+from dataclasses import dataclass
+from typing import Optional, cast
+
+import httpx
+
+from arcade_jira.constants import JIRA_API_VERSION, JIRA_BASE_URL, JIRA_MAX_CONCURRENT_REQUESTS
+from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
+
+
+@dataclass
+class JiraClient:
+    auth_token: str
+    base_url: str = JIRA_BASE_URL
+    api_version: str = JIRA_API_VERSION
+    max_concurrent_requests: int = JIRA_MAX_CONCURRENT_REQUESTS
+    _semaphore: asyncio.Semaphore | None = None
+    _cloud_id: str | None = None
+
+    def __post_init__(self) -> None:
+        self._semaphore = self._semaphore or asyncio.Semaphore(self.max_concurrent_requests)
+        self.base_url = self.base_url.rstrip("/")
+        self.api_version = self.api_version.strip("/")
+
+    @property
+    def cloud_id(self) -> str:
+        if self._cloud_id is None:
+            self._cloud_id = self._get_cloud_id()
+
+        return self._cloud_id
+
+    def _build_url(self, endpoint: str) -> str:
+        return f"{self.base_url}/{self.cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
+
+    def _get_cloud_id(self) -> str:
+        with httpx.Client() as client:  # type: ignore[union-attr]
+            response = client.get(
+                "https://api.atlassian.com/oauth/token/accessible-resources",
+                headers={"Authorization": f"Bearer {self.auth_token}"},
+            )  # type: ignore[arg-type]
+
+            data = response.json()
+
+            if len(data) == 0:
+                raise JiraToolExecutionError(
+                    "No cloud ID returned by Atlassian, cannot make API calls"
+                )
+            if len(data) > 1:
+                cloud_ids_found = json.dumps([
+                    {
+                        "id": item["id"],
+                        "name": item["name"],
+                        "url": item["url"],
+                    }
+                    for item in data
+                ])
+                raise JiraToolExecutionError(
+                    f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
+                    "Cannot resolve which one to use."
+                )
+            return data[0]["id"]
+
+    def _build_error_messages(self, response: httpx.Response) -> tuple[str, str]:
+        try:
+            data = response.json()
+            developer_message = None
+
+            if len(data["errorMessages"]) == 1:
+                error_message = data["errorMessages"][0]
+            else:
+                error_message = json.dumps(data["errorMessages"])
+
+        except Exception as e:
+            error_message = "Failed to parse Jira error response"
+            developer_message = f"Failed to parse Jira error response: {type(e).__name__}: {e!s}"
+
+        return error_message, developer_message
+
+    def _raise_for_status(self, response: httpx.Response) -> None:
+        if response.status_code < 300:
+            return
+
+        error_message, developer_message = self._build_error_messages(response)
+
+        if response.status_code == 404:
+            raise NotFoundError(error_message, developer_message)
+
+        raise JiraToolExecutionError(error_message, developer_message)
+
+    def _set_request_body(self, kwargs: dict, data: dict | None, json_data: dict | None) -> dict:
+        if data and json_data:
+            raise ValueError("Cannot provide both data and json_data")
+
+        if data:
+            kwargs["data"] = data
+
+        elif json_data:
+            kwargs["json"] = json_data
+
+        return kwargs
+
+    async def get(
+        self,
+        endpoint: str,
+        params: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> dict:
+        default_headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Accept": "application/json",
+        }
+        headers = {**default_headers, **(headers or {})}
+
+        kwargs = {
+            "url": self._build_url(endpoint),
+            "headers": headers,
+        }
+
+        if params:
+            kwargs["params"] = params
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.get(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
+
+    async def post(
+        self,
+        endpoint: str,
+        data: Optional[dict] = None,
+        json_data: Optional[dict] = None,
+        files: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> dict:
+        default_headers = {
+            "Authorization": f"Bearer {self.auth_token}",
+            "Accept": "application/json",
+        }
+
+        if files is None and json_data is not None:
+            default_headers["Content-Type"] = "application/json"
+
+        headers = {**default_headers, **(headers or {})}
+
+        kwargs = {
+            "url": self._build_url(endpoint),
+            "headers": headers,
+        }
+
+        if files is not None:
+            kwargs["files"] = files
+            if data is not None:
+                kwargs["data"] = data
+        else:
+            kwargs = self._set_request_body(kwargs, data, json_data)
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.post(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
+
+    async def put(
+        self,
+        endpoint: str,
+        data: Optional[dict] = None,
+        json_data: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> dict:
+        headers = headers or {}
+        headers["Authorization"] = f"Bearer {self.auth_token}"
+        headers["Content-Type"] = "application/json"
+        headers["Accept"] = "application/json"
+
+        kwargs = {
+            "url": self._build_url(endpoint),
+            "headers": headers,
+        }
+
+        kwargs = self._set_request_body(kwargs, data, json_data)
+
+        async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
+            response = await client.put(**kwargs)  # type: ignore[arg-type]
+            self._raise_for_status(response)
+        return cast(dict, response.json())
