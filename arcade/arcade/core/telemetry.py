@@ -23,7 +23,9 @@ class ShutdownError(Exception):
 
 
 class OTELHandler:
-    def __init__(self, app: FastAPI, enable: bool = True, log_level: int = logging.INFO):
+    def __init__(self, enable: bool = True, log_level: int = logging.INFO):
+        self.enable = enable
+        self.log_level = log_level
         self._tracer_provider: Optional[TracerProvider] = None
         self._tracer_span_exporter: Optional[OTLPSpanExporter] = None
         self._meter_provider: Optional[MeterProvider] = None
@@ -33,7 +35,8 @@ class OTELHandler:
         self._log_processor: Optional[BatchLogRecordProcessor] = None
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
 
-        if enable:
+    def instrument_app(self, app: FastAPI) -> None:
+        if self.enable:
             logging.info(
                 "🔎 Initializing OpenTelemetry. Use environment variables to configure the connection"
             )
@@ -43,8 +46,7 @@ class OTELHandler:
 
             self._init_tracer()
             self._init_metrics()
-            self._init_logging(log_level)
-
+            self._init_logging(self.log_level)
             FastAPIInstrumentor().instrument_app(app)
 
     def _init_tracer(self) -> None:

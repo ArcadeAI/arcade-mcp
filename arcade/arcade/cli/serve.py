@@ -54,12 +54,7 @@ def create_arcade_app() -> fastapi.FastAPI:
             f"  - {toolkit.name}: {sum(len(tools) for tools in toolkit.tools.values())} tools"
         )
 
-    # TODO: Ordering of OTELHandler initialization here is odd
-    # and may be a source of bugs. Does this matter for reload?
-    # is otel needed for reload?
-    # should we have a lifespan handler anyway?
     otel_handler = OTELHandler(
-        None,  # type: ignore[arg-type]
         enable=otel_enabled,
         log_level=logging.DEBUG if debug_mode else logging.INFO,
     )
@@ -75,6 +70,7 @@ def create_arcade_app() -> fastapi.FastAPI:
         openapi_url="/openapi.json" if debug_mode else None,
         lifespan=custom_lifespan,
     )
+    otel_handler.instrument_app(app)
 
     secret = os.getenv("ARCADE_WORKER_SECRET", "dev")
     if secret == "dev" and not os.environ.get("ARCADE_WORKER_SECRET"):  # noqa: S105
