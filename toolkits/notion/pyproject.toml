@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_notion"
-version = "0.1.3"
+version = "1.0.0"
 description = "Arcade.dev LLM tools for Notion"
 authors = ["ArcadeAI <dev@arcade.dev>"]
 
