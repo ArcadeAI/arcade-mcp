@@ -13,7 +13,7 @@ def app():
 
 @pytest.fixture
 def handler_disabled(app):
-    return OTELHandler(app, enable=False)
+    return OTELHandler(enable=False)
 
 
 @patch("arcade.core.telemetry.logging")
@@ -35,7 +35,8 @@ def test_init_with_enable_true(
     mock_log_exporter.return_value.shutdown = MagicMock()
 
     # Initialize OTELHandler within the scope of the mocks
-    handler = OTELHandler(app, enable=True)
+    handler = OTELHandler(enable=True)
+    handler.instrument_app(app)
 
     # Verify that the resource is set correctly
     assert handler.resource.attributes["service.name"] == "arcade-worker"
@@ -56,7 +57,8 @@ def test_init_with_enable_true(
 @patch("arcade.core.telemetry.logging")
 @patch("arcade.core.telemetry.FastAPIInstrumentor")
 def test_init_with_enable_false(mock_instrumentor, mock_logging, app):
-    handler = OTELHandler(app, enable=False)
+    handler = OTELHandler(enable=False)
+    handler.instrument_app(app)
 
     # Verify that resources are not initialized
     assert handler._tracer_provider is None
@@ -74,7 +76,8 @@ def test_init_tracer_export_exception(app):
     # Simulate an exception during exporter initialization
 
     with pytest.raises(ConnectionError) as exc_info:
-        OTELHandler(app, enable=True)
+        handler = OTELHandler(enable=True)
+        handler.instrument_app(app)
 
     assert "Could not connect to OpenTelemetry Tracer endpoint" in str(exc_info.value)
 
@@ -88,7 +91,8 @@ def test_shutdown(mock_span_exporter, mock_metric_exporter, mock_log_exporter, a
     mock_metric_exporter.return_value.shutdown = MagicMock()
     mock_log_exporter.return_value.shutdown = MagicMock()
 
-    handler = OTELHandler(app, enable=True)
+    handler = OTELHandler(enable=True)
+    handler.instrument_app(app)
 
     # Call shutdown method
     handler.shutdown()
@@ -129,7 +133,8 @@ def test_get_meter(
     mock_metric_exporter.return_value.shutdown = MagicMock()
     mock_log_exporter.return_value.shutdown = MagicMock()
 
-    handler = OTELHandler(app, enable=True)
+    handler = OTELHandler(enable=True)
+    handler.instrument_app(app)
 
     # Call get_meter method
     handler.get_meter()

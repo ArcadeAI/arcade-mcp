@@ -97,7 +97,7 @@ class OTELHandler:
 
         # Create a filter for urllib3 connection logs related to OpenTelemetry
         class OTELConnectionFilter(logging.Filter):
-            def filter(self, record):
+            def filter(self, record: logging.LogRecord) -> bool:
                 # Filter out connection logs to OpenTelemetry endpoints
                 parsed_url = urllib.parse.urlparse(
                     os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
