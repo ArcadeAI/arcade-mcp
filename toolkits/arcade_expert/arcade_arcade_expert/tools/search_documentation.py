@@ -4,6 +4,7 @@ import httpx
 from arcade.sdk import ToolContext, tool
 from markdownify import markdownify
 from openai import OpenAI
+from openai.types.chat import ParsedChatCompletion
 
 from arcade_arcade_expert.models import Links
 
@@ -33,7 +34,7 @@ async def search_documentation(
         data = markdownify(response.text)
 
     # Get relevant links from the llms.txt file
-    response = openai_client.beta.chat.completions.parse(
+    chat_response: ParsedChatCompletion = openai_client.beta.chat.completions.parse(
         model="gpt-4o",
         messages=[
             {
@@ -47,13 +48,16 @@ async def search_documentation(
         ],
         response_format=Links,
     )
-    links = response.choices[0].message.parsed
+    links = chat_response.choices[0].message.parsed
+
+    if not links:
+        return "No relevant documentation found."
 
     # Get the content of the relevant links
     documentation_content: list[str] = []
     async with httpx.AsyncClient() as client:
         sources = []
-        for link in links:
+        for link in links.links:
             response = await client.get(link)
             if 200 <= response.status_code < 300:
                 documentation_content.append(markdownify(response.text))

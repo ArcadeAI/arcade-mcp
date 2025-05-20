@@ -7,12 +7,6 @@ def test_links_initialization():
     assert links.links == ["https://example.com", "https://test.com"]
 
 
-def test_links_iteration():
-    # Test that Links is iterable
-    links = Links(links=["https://example.com", "https://test.com"])
-    assert list(links) == ["https://example.com", "https://test.com"]
-
-
 def test_validate_links():
     # Test that validate_links removes invalid URLs
     links = Links(links=["https://example.com", "not-a-valid-url", "https://test.com"])
