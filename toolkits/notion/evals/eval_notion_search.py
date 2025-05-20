@@ -8,9 +8,9 @@ from arcade.sdk.eval import (
     tool_eval,
 )
 
-import arcade_notion_toolkit
-from arcade_notion_toolkit.enums import ObjectType
-from arcade_notion_toolkit.tools import (
+import arcade_notion
+from arcade_notion.enums import ObjectType
+from arcade_notion.tools import (
     get_object_metadata,
     get_workspace_structure,
     search_by_title,
@@ -24,7 +24,7 @@ rubric = EvalRubric(
 
 
 catalog = ToolCatalog()
-catalog.add_module(arcade_notion_toolkit)
+catalog.add_module(arcade_notion)
 
 # Additional messages
 TOOL_CALLING_CONVERSATION = [

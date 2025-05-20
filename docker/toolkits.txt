@@ -7,7 +7,7 @@ arcade-hubspot
 arcade-linkedin
 arcade-math
 arcade-microsoft
-arcade-notion-toolkit
+arcade-notion
 arcade-reddit
 arcade-salesforce
 arcade-search
