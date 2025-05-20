@@ -9,6 +9,7 @@ python = "^3.10"
 arcade-ai = "^1.0.5"
 httpx = "^0.28.1"
 markdownify = "^1.1.0"
+openai = "^1.55.3"
 validators = "^0.35.0"
 
 [tool.poetry.dev-dependencies]

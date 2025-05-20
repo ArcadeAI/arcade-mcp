@@ -52,10 +52,12 @@ async def search_documentation(
     # Get the content of the relevant links
     documentation_content: list[str] = []
     async with httpx.AsyncClient() as client:
+        sources = []
         for link in links:
             response = await client.get(link)
-            response.raise_for_status()
-            documentation_content.append(markdownify(response.text))
+            if 200 <= response.status_code < 300:
+                documentation_content.append(markdownify(response.text))
+                sources.append(link)
 
-    links_str = "\n".join(links)
-    return "\n\n".join(documentation_content) + f"\n\nSources: {links_str}"
+    sources_str = "\n".join(sources)
+    return "\n\n".join(documentation_content) + f"\n\nSources: {sources_str}"
