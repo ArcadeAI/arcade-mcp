@@ -4,8 +4,9 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
+from arcade_jira.constants import IssueStatus
 from arcade_jira.exceptions import NotFoundError
-from arcade_jira.utils import build_search_issues_jql, convert_date_string_to_date
+from arcade_jira.utils import build_search_issues_jql, clean_issue_dict, convert_date_string_to_date
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
@@ -26,42 +27,40 @@ async def get_issue_by_id(
 async def get_issues_without_id(
     context: ToolContext,
     keywords: Annotated[
-        list[str] | None,
-        "Keywords to search for issues. Matches against the issue name and description.",
+        str | None,
+        "Keywords to search for issues. Matches against the issue "
+        "name, description, comments, and any custom field of type text. "
+        "Defaults to None (no keywords filtering).",
     ] = None,
     due_from: Annotated[
         str | None,
-        "Match issues that are due on or after this date. Format: YYYY-MM-DD. Ex: '2025-01-01'.",
+        "Match issues that are due on or after this date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (no due date filtering).",
     ] = None,
     due_until: Annotated[
         str | None,
-        "Match issues that are due on or before this date. Format: YYYY-MM-DD. Ex: '2025-01-01'.",
+        "Match issues that are due on or before this date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (no due date filtering).",
     ] = None,
-    start_from: Annotated[
-        str | None,
-        "Match issues that are started on or after this date. "
-        "Format: YYYY-MM-DD. Ex: '2025-01-01'.",
-    ] = None,
-    start_until: Annotated[
-        str | None,
-        "Match issues that are started on or before this date. "
-        "Format: YYYY-MM-DD. Ex: '2025-01-01'.",
-    ] = None,
-    statuses: Annotated[
-        list[str] | None,
-        "Match issues that are in these statuses. Ex: ['To Do', 'In Progress'].",
+    status: Annotated[
+        IssueStatus | None,
+        "Match issues that are in this status. Ex: 'To Do'. Defaults to None (any status).",
     ] = None,
     assignee: Annotated[
         str | None,
-        "Match issues that are assigned to this user. Ex: 'John Doe'.",
+        "Match issues that are assigned to this user. "
+        "Provide the user's display name or email address. "
+        "Ex: 'John Doe' or 'john.doe@example.com'. Defaults to None (any assignee).",
     ] = None,
-    projects: Annotated[
-        list[str] | None,
-        "Match issues that are in these projects names.",
+    project: Annotated[
+        str | None,
+        "Match issues that are associated with this project. "
+        "Provide the project's name, ID, or key. "
+        "Defaults to None (any project or no project).",
     ] = None,
     labels: Annotated[
         list[str] | None,
-        "Match issues that are in these labels..",
+        "Match issues that are in these labels. Defaults to None (any label).",
     ] = None,
     limit: Annotated[
         int,
@@ -69,14 +68,17 @@ async def get_issues_without_id(
     ] = 50,
     next_page_token: Annotated[
         str | None,
-        "The token to use to get the next page of issues.",
+        "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
 ) -> Annotated[dict, "Information about the issue"]:
-    """Get the details of a Jira issue by its ID."""
+    """Search for Jira issues when you don't have the issue ID(s).
+
+    All text-based arguments (keywords, assignee, project, labels) are case-insensitive.
+    """
+    limit = max(1, min(limit, 100))
+
     client = JiraClient(context.get_auth_token_or_empty())
 
-    start_from = convert_date_string_to_date(start_from) if start_from else None
-    start_until = convert_date_string_to_date(start_until) if start_until else None
     due_from = convert_date_string_to_date(due_from) if due_from else None
     due_until = convert_date_string_to_date(due_until) if due_until else None
 
@@ -84,13 +86,22 @@ async def get_issues_without_id(
         keywords=keywords,
         due_from=due_from,
         due_until=due_until,
-        start_from=start_from,
-        start_until=start_until,
-        statuses=statuses,
+        status=status,
         assignee=assignee,
-        projects=projects,
+        project=project,
         labels=labels,
     )
-    body = {"jql": jql, "maxResults": limit, "nextPageToken": next_page_token}
-    response = await client.post("search/jql", json=body)
-    return {"issues": response.json()}
+    body = {
+        "jql": jql,
+        "maxResults": limit,
+        "nextPageToken": next_page_token,
+        "fields": ["*all"],
+        "expand": "renderedFields",
+    }
+    response = await client.post("search/jql", json_data=body)
+
+    return {
+        "issues": [clean_issue_dict(issue) for issue in response["issues"]],
+        "count": len(response["issues"]),
+        "next_page_token": response.get("nextPageToken"),
+    }

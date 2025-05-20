@@ -15,20 +15,18 @@ def quote(v: str) -> str:
 
 
 def build_search_issues_jql(
-    keywords: list[str] | None = None,
+    keywords: str | None = None,
     due_from: date | None = None,
     due_until: date | None = None,
-    start_from: date | None = None,
-    start_until: date | None = None,
-    statuses: list[str] | None = None,
+    status: str | None = None,
     assignee: str | None = None,
-    projects: list[str] | None = None,
+    project: str | None = None,
     labels: list[str] | None = None,
 ) -> str:
     clauses: list[str] = []
 
     if keywords:
-        kw_clauses = [f"text ~ {quote(k)}" for k in keywords]
+        kw_clauses = [f"text ~ {quote(k)}" for k in keywords.split()]
         clauses.append("(" + " AND ".join(kw_clauses) + ")")
 
     if due_from:
@@ -36,25 +34,93 @@ def build_search_issues_jql(
     if due_until:
         clauses.append(f'duedate <= "{due_until.isoformat()}"')
 
-    if start_from:
-        clauses.append(f'"Start date" >= "{start_from.isoformat()}"')
-    if start_until:
-        clauses.append(f'"Start date" <= "{start_until.isoformat()}"')
-
-    if statuses:
-        status_list = ",".join(quote(s) for s in statuses)
-        clauses.append(f"status IN ({status_list})")
+    if status:
+        clauses.append(f"status = {quote(status.value)}")
 
     if assignee:
         quotations = "" if assignee.isalnum() else quote(assignee)
         clauses.append(f"assignee = {quotations or assignee}")
 
-    if projects:
-        proj_list = ",".join(quote(p) for p in projects)
-        clauses.append(f"project IN ({proj_list})")
+    if project:
+        clauses.append(f"project = {quote(project)}")
 
     if labels:
         label_list = ",".join(quote(label) for label in labels)
         clauses.append(f"labels IN ({label_list})")
 
     return " AND ".join(clauses) if clauses else ""
+
+
+def clean_issue_dict(issue: dict) -> dict:
+    fields = issue["fields"]
+
+    fields["id"] = issue["id"]
+    fields["key"] = issue["key"]
+
+    fields["title"] = fields["summary"]
+
+    fields["comments"] = {
+        "items": fields["comment"]["comments"],
+        "total": len(fields["comment"]["comments"]),
+    }
+
+    if fields["assignee"]:
+        fields["assignee"] = {
+            "name": fields["assignee"]["displayName"],
+            "email": fields["assignee"]["emailAddress"],
+        }
+
+    if fields["creator"]:
+        fields["creator"] = {
+            "name": fields["creator"]["displayName"],
+            "email": fields["creator"]["emailAddress"],
+        }
+
+    if fields["reporter"]:
+        fields["reporter"] = {
+            "name": fields["reporter"]["displayName"],
+            "email": fields["reporter"]["emailAddress"],
+        }
+
+    fields["status"] = {
+        "name": fields["status"]["name"],
+        "id": fields["status"]["id"],
+    }
+
+    fields["type"] = fields["issuetype"]["name"]
+    fields["is_subtask"] = fields["issuetype"]["subtask"]
+    fields["priority"] = fields["priority"]["name"]
+
+    if fields["project"]:
+        fields["project"] = {
+            "name": fields["project"]["name"],
+            "id": fields["project"]["id"],
+            "key": fields["project"]["key"],
+        }
+
+    if isinstance(fields.get("renderedFields"), dict):
+        rendered = fields["renderedFields"]
+
+        if rendered.get("description"):
+            fields["description"] = rendered["description"]
+
+        if rendered.get("comment", {}).get("comments"):
+            fields["comments"] = rendered["comment"]["comments"]
+
+        if rendered.get("worklog", {}).get("worklogs"):
+            fields["worklog"] = rendered["worklog"]["worklogs"]
+
+    del fields["summary"]
+    del fields["comment"]
+    del fields["assignee"]
+    del fields["creator"]
+    del fields["issuetype"]
+    del fields["lastViewed"]
+    del fields["updated"]
+    del fields["statusCategory"]
+    del fields["statuscategorychangedate"]
+    del fields["votes"]
+    del fields["watches"]
+    del fields["renderedFields"]
+
+    return fields
