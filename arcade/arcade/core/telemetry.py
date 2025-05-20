@@ -1,5 +1,6 @@
 import logging
 import os
+import urllib.parse
 from typing import Optional
 
 from fastapi import FastAPI
@@ -93,6 +94,20 @@ class OTELHandler:
 
         handler = LoggingHandler(level=log_level, logger_provider=self._logger_provider)
         logging.getLogger().addHandler(handler)
+
+        # Create a filter for urllib3 connection logs related to OpenTelemetry
+        class OTELConnectionFilter(logging.Filter):
+            def filter(self, record):
+                # Filter out connection logs to OpenTelemetry endpoints
+                parsed_url = urllib.parse.urlparse(
+                    os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+                )
+                domain = parsed_url.netloc.split(":")[0]
+                return not (domain and domain in str(getattr(record, "args", ())))
+
+        # Apply the filter to the urllib3 logger
+        urllib3_logger = logging.getLogger("urllib3.connectionpool")
+        urllib3_logger.addFilter(OTELConnectionFilter())
 
     def _shutdown_tracer(self) -> None:
         if self._tracer_span_exporter is None:
