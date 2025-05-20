@@ -1,0 +1,230 @@
+from typing import Annotated
+
+from arcade.sdk import ToolContext, tool
+from arcade.sdk.auth import Atlassian
+from arcade.sdk.errors import ToolExecutionError
+
+from arcade_confluence.client import ConfluenceClientV2
+from arcade_confluence.enums import BodyFormat, PageSortOrder, PageUpdateMode
+from arcade_confluence.utils import remove_none_values, validate_ids
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence", "write:page:confluence"],
+    )
+)
+async def create_page(
+    context: ToolContext,
+    space_identifier: Annotated[str, "The ID or title of the space to create the page in"],
+    title: Annotated[str, "The title of the page"],
+    content: Annotated[str, "The content of the page. Can be plain text"],
+    parent_id: Annotated[
+        str | None,
+        "The ID of the parent. If not provided, the page will be created at the root of the space.",
+    ] = None,
+    is_private: Annotated[
+        bool,
+        "If true, then only the user who creates this page will be able to see it. "
+        "Defaults to False",
+    ] = False,
+    is_draft: Annotated[
+        bool,
+        "If true, then the page will be created as a draft. Defaults to False",
+    ] = False,
+) -> Annotated[dict, "The page"]:
+    """Create a new page at the root of the given space."""
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    space_id = await client.get_space_id(space_identifier)
+
+    parent_id = parent_id or (await client.get_space_homepage(space_id)).get("id")
+    params = remove_none_values({
+        "root-level": False,
+        "private": is_private,
+    })
+
+    body = remove_none_values({
+        "spaceId": space_id,
+        "status": "draft" if is_draft else None,
+        "parentId": parent_id,
+        "title": title,
+        "body": {
+            "storage": {
+                "value": content,
+                "representation": BodyFormat.STORAGE.to_api_value(),
+            }
+        },
+    })
+    page = await client.post("pages", params=params, json=body)
+    return client.transform_page_response(page)
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence", "write:page:confluence"],
+    )
+)
+async def update_page_content(
+    context: ToolContext,
+    page_identifier: Annotated[str, "The ID or title of the page to update"],
+    content: Annotated[str, "The content of the page. Only plain text is supported"],
+    update_mode: Annotated[
+        PageUpdateMode,
+        "The mode of update. Defaults to 'append'.",
+    ] = PageUpdateMode.APPEND,
+) -> Annotated[dict, "The page"]:
+    """Update a page's content."""
+    # Get the page to update
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    page_id = await client.get_page_id(page_identifier)
+
+    page = await get_page(context, page_id, content_format=BodyFormat.STORAGE)
+    status = page.get("page", {}).get("status", "current")
+    title = page.get("page", {}).get("title", "Untitled page")
+    body = page.get("page", {}).get("body", {})
+    old_content = body[BodyFormat.STORAGE].get("value", "")
+    old_version_number = page.get("page", {}).get("version", {}).get("number", 0)
+
+    # Update the page content
+    payload = client.prepare_update_page_content_payload(
+        content=content,
+        update_mode=update_mode,
+        old_content=old_content,
+        page_id=page_id,
+        status=status,
+        title=title,
+        body_representation=BodyFormat.STORAGE,
+        old_version_number=old_version_number,
+    )
+    updated_page = await client.put(f"pages/{page_id}", json=payload)
+
+    return client.transform_page_response(updated_page)
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence", "write:page:confluence"],
+    )
+)
+async def rename_page(
+    context: ToolContext,
+    page_identifier: Annotated[str, "The ID or title of the page to rename"],
+    title: Annotated[str, "The title of the page"],
+) -> Annotated[dict, "The page"]:
+    """Rename a page by changing its title."""
+    # Get the page to rename
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    page_id = await client.get_page_id(page_identifier)
+
+    page = await get_page(context, page_id, content_format=BodyFormat.STORAGE)
+    status = page.get("page", {}).get("status", "current")
+    content = page.get("page", {}).get("body", {}).get(BodyFormat.STORAGE, {}).get("value", "")
+    old_version_number = page.get("page", {}).get("version", {}).get("number", 0)
+
+    # Rename the page
+    payload = client.prepare_update_page_payload(
+        page_id=page_id,
+        status=status,
+        title=title,
+        body_representation=BodyFormat.STORAGE,
+        body_value=content,
+        version_number=old_version_number + 1,
+        version_message="Rename the page",
+    )
+    updated_page = await client.put(f"pages/{page_id}", json=payload)
+
+    return client.transform_page_response(updated_page)
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence"],
+    )
+)
+async def get_page(
+    context: ToolContext,
+    page_identifier: Annotated[str, "Can be a page's ID or title."],
+) -> Annotated[dict, "The page"]:
+    """Retrieve a SINGLE page's content by its ID or title.
+
+    If a title is provided, then the first page with an exact matching title will be returned.
+
+    IMPORTANT: For retrieving MULTIPLE pages, use `get_pages_by_id` instead
+    for a massive performance and efficiency boost. If you call this function multiple times
+    instead of using `get_pages_by_id`, then the universe will explode.
+    """
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    if page_identifier.isdigit():
+        return await client.get_page_by_id(page_identifier, BodyFormat.STORAGE)
+    else:
+        return await client.get_page_by_title(page_identifier, BodyFormat.STORAGE)
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence"],
+    )
+)
+async def get_pages_by_id(
+    context: ToolContext,
+    page_ids: Annotated[
+        list[str],
+        "The IDs of the pages to get. IDs are numeric. Titles of pages are NOT supported. "
+        "Maximum of 250 page ids supported.",
+    ],
+) -> Annotated[dict, "The pages"]:
+    """Get the content of MULTIPLE pages by their ID in a single efficient request.
+
+    IMPORTANT: Always use this function when you need to retrieve content from more than one page,
+    rather than making multiple separate calls to get_page, because this function is significantly
+    more efficient than calling get_page multiple times.
+    """
+    if not page_ids:
+        raise ToolExecutionError(message="The 'page_ids' parameter must be non-empty")
+    page_ids = page_ids[:250]
+    validate_ids(page_ids)
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    pages = await client.get(
+        "pages", params={"id": page_ids, "body-format": BodyFormat.STORAGE.to_api_value()}
+    )
+    return client.transform_get_multiple_pages_response(pages)
+
+
+@tool(
+    requires_auth=Atlassian(
+        scopes=["read:page:confluence"],
+    )
+)
+async def list_pages(
+    context: ToolContext,
+    space_ids: Annotated[
+        list[str] | None,
+        "Restrict the response to only include pages in these spaces. "
+        "Only space IDs are supported. Titles of spaces are NOT supported. "
+        "If not provided, then no restriction is applied. "
+        "Maximum of 100 space ids supported.",
+    ] = None,
+    sort_by: Annotated[
+        PageSortOrder,
+        "The order of the pages to sort by. Defaults to created-date-newest-to-oldest",
+    ] = PageSortOrder.CREATED_DATE_DESCENDING,
+    limit: Annotated[int, "The maximum number of pages to return. Defaults to 25. Max is 250"] = 25,
+    pagination_token: Annotated[
+        str | None,
+        "The pagination token to use for the next page of results",
+    ] = None,
+) -> Annotated[dict, "The pages"]:
+    """Get the content of multiple pages by their ID"""
+    space_ids = space_ids[:100] if space_ids else None
+    validate_ids(space_ids)
+    limit = max(1, min(limit, 250))
+    client = ConfluenceClientV2(context.get_auth_token_or_empty())
+    params = remove_none_values({
+        "space-id": space_ids,
+        "sort": sort_by.to_api_value(),
+        "body-format": BodyFormat.STORAGE.to_api_value(),
+        "limit": limit,
+        "cursor": pagination_token,
+    })
+    pages = await client.get("pages", params=params)
+    return client.transform_list_pages_response(pages)
