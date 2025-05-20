@@ -33,7 +33,7 @@ if __name__ == "__main__":
     cloud_host = "https://api.arcade.dev"
 
     client = Arcade(
-        base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade Gateway locally, or any base_url if you're hosting elsewhere
+        base_url=cloud_host,  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
     )
 
     user_id = "you@example.com"

@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     openai_client = OpenAI(
         api_key=arcade_api_key,
-        base_url=cloud_host,  # Alternatively, use http://localhost:9099/v1 if you are running Arcade Gateway locally
+        base_url=cloud_host,  # Alternatively, use http://localhost:9099/v1 if you are running Arcade Engine locally
     )
 
     chat_result = call_tool_with_openai(openai_client)

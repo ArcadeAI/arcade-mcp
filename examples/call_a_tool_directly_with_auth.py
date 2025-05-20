@@ -44,7 +44,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 
 if __name__ == "__main__":
     client = Arcade(
-        base_url="https://api.arcade.dev",  # Alternatively, use http://localhost:9099 if you are running Arcade Gateway locally, or any base_url if you're hosting elsewhere
+        base_url="https://api.arcade.dev",  # Alternatively, use http://localhost:9099 if you are running Arcade Engine locally, or any base_url if you're hosting elsewhere
     )
 
     user_id = "you@example.com"
