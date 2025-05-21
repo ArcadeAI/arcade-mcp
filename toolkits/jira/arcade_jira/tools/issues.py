@@ -4,13 +4,15 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
-from arcade_jira.constants import IssuePriority, IssueStatus
+from arcade_jira.constants import IssueCommentOrderBy, IssuePriority, IssueStatus
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import (
     build_search_issues_jql,
+    clean_comment_dict,
     clean_issue_dict,
     clean_issue_type_dict,
     convert_date_string_to_date,
+    remove_none_values,
 )
 
 
@@ -138,3 +140,49 @@ async def get_issues_without_id(
         "count": len(response["issues"]),
         "next_page_token": response.get("nextPageToken"),
     }
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_issue_comments(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to retrieve"],
+    limit: Annotated[
+        int,
+        "The maximum number of comments to retrieve. Min 1, max 100, default 100.",
+    ] = 100,
+    offset: Annotated[
+        int,
+        "The number of comments to skip. Defaults to 0 (start from the first comment).",
+    ] = 0,
+    order_by: Annotated[
+        IssueCommentOrderBy | None,
+        "The order in which to return the comments. "
+        f"Defaults to '{IssueCommentOrderBy.CREATED_DATE_DESCENDING.value}' (most recent first).",
+    ] = IssueCommentOrderBy.CREATED_DATE_DESCENDING,
+) -> Annotated[dict[str, Any], "Information about the issue comments"]:
+    """Get the comments of a Jira issue by its ID."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.get(
+        f"issue/{issue}/comment",
+        params=remove_none_values({
+            "expand": "renderedBody",
+            "maxResults": limit,
+            "startAt": offset,
+            "orderBy": order_by.to_api_value() if order_by else None,
+        }),
+    )
+    comments = response["comments"][:limit]
+    data = {
+        "issue": issue,
+        "comments": {
+            "items": [clean_comment_dict(comment) for comment in comments],
+            "count": len(comments),
+        },
+    }
+
+    if len(response["comments"]) == limit:
+        data["pagination"] = {
+            "next_offset_value": offset + limit,
+        }
+
+    return data

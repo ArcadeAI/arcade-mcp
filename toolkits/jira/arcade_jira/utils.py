@@ -46,8 +46,8 @@ def build_search_issues_jql(
         ("priority", priority),
         ("assignee", assignee),
         ("project", project),
-        ("issue_type", issue_type),
-        ("parent_issue", parent_issue),
+        ("issuetype", issue_type),
+        ("parent", parent_issue),
     ]
 
     for field, value in standard_cases:
@@ -137,9 +137,8 @@ def clean_comment_dict(comment: dict) -> dict:
             "name": comment["author"]["displayName"],
             "email": comment["author"]["emailAddress"],
         },
-        "body": comment["body"]["content"],
+        "body": comment["renderedBody"],
         "created_at": comment["created"],
-        "updated_at": comment["updated"],
     }
 
 

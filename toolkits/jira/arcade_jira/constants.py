@@ -52,3 +52,15 @@ class IssueType(Enum):
     BUG = "Bug"
     STORY = "Story"
     EPIC = "Epic"
+
+
+class IssueCommentOrderBy(Enum):
+    CREATED_DATE_ASCENDING = "created_date_ascending"
+    CREATED_DATE_DESCENDING = "created_date_descending"
+
+    def to_api_value(self):
+        _map = {
+            IssueCommentOrderBy.CREATED_DATE_ASCENDING: "created",
+            IssueCommentOrderBy.CREATED_DATE_DESCENDING: "-created",
+        }
+        return _map[self]
