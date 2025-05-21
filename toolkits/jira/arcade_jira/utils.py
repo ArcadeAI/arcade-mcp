@@ -19,9 +19,12 @@ def build_search_issues_jql(
     due_from: date | None = None,
     due_until: date | None = None,
     status: str | None = None,
+    priority: str | None = None,
     assignee: str | None = None,
     project: str | None = None,
+    issue_type: str | None = None,
     labels: list[str] | None = None,
+    parent_issue: str | None = None,
 ) -> str:
     clauses: list[str] = []
 
@@ -30,39 +33,41 @@ def build_search_issues_jql(
         clauses.append("(" + " AND ".join(kw_clauses) + ")")
 
     if due_from:
-        clauses.append(f'duedate >= "{due_from.isoformat()}"')
+        clauses.append(f'dueDate >= "{due_from.isoformat()}"')
     if due_until:
-        clauses.append(f'duedate <= "{due_until.isoformat()}"')
-
-    if status:
-        clauses.append(f"status = {quote(status.value)}")
-
-    if assignee:
-        quotations = "" if assignee.isalnum() else quote(assignee)
-        clauses.append(f"assignee = {quotations or assignee}")
-
-    if project:
-        clauses.append(f"project = {quote(project)}")
+        clauses.append(f'dueDate <= "{due_until.isoformat()}"')
 
     if labels:
         label_list = ",".join(quote(label) for label in labels)
         clauses.append(f"labels IN ({label_list})")
+
+    standard_cases = [
+        ("status", status),
+        ("priority", priority),
+        ("assignee", assignee),
+        ("project", project),
+        ("issue_type", issue_type),
+        ("parent_issue", parent_issue),
+    ]
+
+    for field, value in standard_cases:
+        if value:
+            clauses.append(f"{field} = {quote(value)}")
 
     return " AND ".join(clauses) if clauses else ""
 
 
 def clean_issue_dict(issue: dict) -> dict:
     fields = issue["fields"]
+    rendered_fields = issue.get("renderedFields", {})
 
     fields["id"] = issue["id"]
     fields["key"] = issue["key"]
 
     fields["title"] = fields["summary"]
 
-    fields["comments"] = {
-        "items": fields["comment"]["comments"],
-        "total": len(fields["comment"]["comments"]),
-    }
+    if fields.get("parent"):
+        fields["parent"] = get_summarized_issue_dict(fields["parent"])
 
     if fields["assignee"]:
         fields["assignee"] = {
@@ -88,7 +93,6 @@ def clean_issue_dict(issue: dict) -> dict:
     }
 
     fields["type"] = fields["issuetype"]["name"]
-    fields["is_subtask"] = fields["issuetype"]["subtask"]
     fields["priority"] = fields["priority"]["name"]
 
     if fields["project"]:
@@ -98,20 +102,21 @@ def clean_issue_dict(issue: dict) -> dict:
             "key": fields["project"]["key"],
         }
 
-    if isinstance(fields.get("renderedFields"), dict):
-        rendered = fields["renderedFields"]
-
-        if rendered.get("description"):
-            fields["description"] = rendered["description"]
-
-        if rendered.get("comment", {}).get("comments"):
-            fields["comments"] = rendered["comment"]["comments"]
-
-        if rendered.get("worklog", {}).get("worklogs"):
-            fields["worklog"] = rendered["worklog"]["worklogs"]
-
-    del fields["summary"]
+    del fields["description"]
+    del fields["environment"]
     del fields["comment"]
+    del fields["worklog"]
+
+    fields["description"] = rendered_fields["description"]
+    fields["environment"] = rendered_fields["environment"]
+
+    fields["worklog"] = {
+        "items": rendered_fields["worklog"]["worklogs"],
+        "total": len(rendered_fields["worklog"]["worklogs"]),
+    }
+
+    del fields["subtasks"]
+    del fields["summary"]
     del fields["assignee"]
     del fields["creator"]
     del fields["issuetype"]
@@ -121,6 +126,43 @@ def clean_issue_dict(issue: dict) -> dict:
     del fields["statuscategorychangedate"]
     del fields["votes"]
     del fields["watches"]
-    del fields["renderedFields"]
 
     return fields
+
+
+def clean_comment_dict(comment: dict) -> dict:
+    return {
+        "id": comment["id"],
+        "author": {
+            "name": comment["author"]["displayName"],
+            "email": comment["author"]["emailAddress"],
+        },
+        "body": comment["body"]["content"],
+        "created_at": comment["created"],
+        "updated_at": comment["updated"],
+    }
+
+
+def clean_issue_type_dict(issue_type: dict) -> dict:
+    data = {
+        "id": issue_type["id"],
+        "name": issue_type["name"],
+        "description": issue_type["description"],
+    }
+
+    if "scope" in issue_type:
+        data["scope"] = issue_type["scope"]
+
+    return data
+
+
+def get_summarized_issue_dict(issue: dict) -> dict:
+    fields = issue["fields"]
+    return {
+        "id": issue["id"],
+        "key": issue["key"],
+        "title": fields.get("summary"),
+        "status": fields.get("status", {}).get("name"),
+        "type": fields.get("issuetype", {}).get("name"),
+        "priority": fields.get("priority", {}).get("name"),
+    }

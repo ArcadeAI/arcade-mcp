@@ -37,3 +37,18 @@ class IssueStatus(Enum):
     TO_DO = "To Do"
     IN_PROGRESS = "In Progress"
     DONE = "Done"
+
+
+class IssuePriority(Enum):
+    HIGHEST = "Highest"
+    HIGH = "High"
+    MEDIUM = "Medium"
+    LOW = "Low"
+    LOWEST = "Lowest"
+
+
+class IssueType(Enum):
+    TASK = "Task"
+    BUG = "Bug"
+    STORY = "Story"
+    EPIC = "Epic"
