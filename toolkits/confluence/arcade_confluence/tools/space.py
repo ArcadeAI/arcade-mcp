@@ -15,7 +15,9 @@ from arcade_confluence.utils import remove_none_values
 )
 async def get_space(
     context: ToolContext,
-    space_identifier: Annotated[str, "Can be a space's ID or key"],
+    space_identifier: Annotated[
+        str, "Can be a space's ID or key. Numerical keys are NOT supported"
+    ],
 ) -> Annotated[dict, "The space"]:
     """Get the details of a space by its ID or key."""
     client = ConfluenceClientV2(context.get_auth_token_or_empty())
@@ -58,7 +60,9 @@ async def list_spaces(
 )
 async def get_space_hierarchy(
     context: ToolContext,
-    space_identifier: Annotated[str, "Can be a space's ID or key"],
+    space_identifier: Annotated[
+        str, "Can be a space's ID or key. Numerical keys are NOT supported"
+    ],
 ) -> Annotated[dict, "The space hierarchy"]:
     """Retrieve the full hierarchical structure of a Confluence space as a tree structure
 

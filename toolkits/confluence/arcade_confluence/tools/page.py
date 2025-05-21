@@ -66,7 +66,9 @@ async def create_page(
 )
 async def update_page_content(
     context: ToolContext,
-    page_identifier: Annotated[str, "The ID or title of the page to update"],
+    page_identifier: Annotated[
+        str, "The ID or title of the page to update. Numerical titles are NOT supported."
+    ],
     content: Annotated[str, "The content of the page. Only plain text is supported"],
     update_mode: Annotated[
         PageUpdateMode,
@@ -108,7 +110,9 @@ async def update_page_content(
 )
 async def rename_page(
     context: ToolContext,
-    page_identifier: Annotated[str, "The ID or title of the page to rename"],
+    page_identifier: Annotated[
+        str, "The ID or title of the page to rename. Numerical titles are NOT supported."
+    ],
     title: Annotated[str, "The title of the page"],
 ) -> Annotated[dict, "The page"]:
     """Rename a page by changing its title."""
@@ -143,7 +147,9 @@ async def rename_page(
 )
 async def get_page(
     context: ToolContext,
-    page_identifier: Annotated[str, "Can be a page's ID or title."],
+    page_identifier: Annotated[
+        str, "Can be a page's ID or title. Numerical titles are NOT supported."
+    ],
 ) -> Annotated[dict, "The page"]:
     """Retrieve a SINGLE page's content by its ID or title.
 
