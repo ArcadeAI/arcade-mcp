@@ -12,7 +12,8 @@ from typing import Any
 import fastapi
 import uvicorn
 
-# TODO make import catch if reload is true
+# Watchfiles is used under the hood by Uvicorn's reload feature.
+# Importing watchfiles here is an explicit acknowledgement that it needs to be installed
 import watchfiles  # noqa: F401
 from loguru import logger
 from rich.console import Console
