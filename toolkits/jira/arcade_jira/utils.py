@@ -231,7 +231,7 @@ async def find_users_or_raise_error(
 
     users: list[dict[str, Any]] = []
 
-    responses = await asyncio.gather([
+    responses = await asyncio.gather(*[
         get_users_without_id(
             context=context,
             name_or_email=user_identifier,
@@ -264,7 +264,7 @@ async def find_users_or_raise_error(
             users.append(response["users"]["items"][0])
 
     if search_by_id:
-        responses = await asyncio.gather([
+        responses = await asyncio.gather(*[
             get_user_by_id(context, user_id=user_id) for user_id in search_by_id
         ])
         for response in responses:

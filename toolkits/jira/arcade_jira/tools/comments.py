@@ -93,10 +93,10 @@ async def add_comment_to_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to comment on."],
     body: Annotated[str, "The body of the comment to add to the issue."],
-    quote_comment_id: Annotated[
+    reply_to_comment: Annotated[
         str | None,
-        "A previous comment to quote in the new comment. Provide the comment's ID. "
-        "Defaults to None (no quoted comment).",
+        "Quote a previous comment as a reply to it. Provide the comment's ID. "
+        "Must be a comment from the same issue. Defaults to None (no quoted comment).",
     ] = None,
     mention_users: Annotated[
         list[str] | None,
@@ -126,18 +126,18 @@ async def add_comment_to_issue(
         users = await find_users_or_raise_error(context, mention_users, exact_match=True)
         mentions = [
             {
-                "type": "user",
+                "type": "mention",
                 "attrs": {"accessLevel": "", "id": user["id"], "text": f"@{user['name']}"},
             }
             for user in users
         ]
         adf_body["content"][0]["content"] = mentions + adf_body["content"][0]["content"]
 
-    if quote_comment_id:
-        quote_comment = await get_comment_by_id(context, issue, quote_comment_id, True)
+    if reply_to_comment:
+        quote_comment = await get_comment_by_id(context, issue, reply_to_comment, True)
         if not quote_comment["comment"]:
             raise ToolExecutionError(
-                f"Cannot quote comment. No comment found with ID '{quote_comment_id}'."
+                f"Cannot quote comment. No comment found with ID '{reply_to_comment}'."
             )
         quote = {
             "type": "blockquote",
