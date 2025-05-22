@@ -1,6 +1,6 @@
 import re
 
-from arcade.sdk.errors import ToolExecutionError
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 def remove_none_values(data: dict) -> dict:
@@ -8,23 +8,7 @@ def remove_none_values(data: dict) -> dict:
     return {k: v for k, v in data.items() if v is not None}
 
 
-def split_by_space(strings: list[str]) -> list[str]:
-    """Split a list of strings by space and return a flattened list of words.
-
-    Args:
-        strings: A list of strings to split.
-
-    Returns:
-        A flattened list of words.
-
-    Example:
-    split_by_space(["hello world", "foobar"]) -> ["hello", "world", "foobar"]
-
-    """
-    return [word for s in strings for word in s.split()]
-
-
-def validate_ids(ids: list[str] | None) -> None:
+def validate_ids(ids: list[str] | None, max_length: int) -> None:
     """Validate a list of IDs. The ids can be page ids, space ids, etc.
 
     A valid id is a string that is a number.
@@ -37,8 +21,15 @@ def validate_ids(ids: list[str] | None) -> None:
 
     Raises:
         ToolExecutionError: If any of the IDs are not valid.
+        RetryableToolError: If the number of IDs is greater than the max length.
     """
-    if ids and any(not id_.isdigit() for id_ in ids):
+    if not ids:
+        return
+    if len(ids) > max_length:
+        raise RetryableToolError(
+            message=f"The 'ids' parameter must have less than {max_length} items. Got {len(ids)}"
+        )
+    if any(not id_.isdigit() for id_ in ids):
         raise ToolExecutionError(message="Invalid ID provided. IDs are numeric")
 
 

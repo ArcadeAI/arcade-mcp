@@ -10,7 +10,6 @@ from arcade_confluence.utils import (
     build_child_url,
     build_hierarchy,
     remove_none_values,
-    split_by_space,
 )
 
 
@@ -74,46 +73,114 @@ class ConfluenceClientV1(ConfluenceClient):
     def __init__(self, token: str):
         super().__init__(token, api_version=ConfluenceAPIVersion.V1)
 
-    def construct_cql(
-        self, terms: list[str] | None, phrases: list[str] | None, enable_fuzzy: bool = False
-    ) -> str:
-        """Construct a CQL query from a list of terms and phrases.
+    def _build_query_cql(self, query: str, enable_fuzzy: bool) -> str:
+        """Build CQL for a single query (term or phrase).
 
         Args:
-            terms: list of single words to search for
-            phrases: list of multiple words to search for
-            enable_fuzzy: enable fuzzy matching to find similar terms (e.g. 'roam' will find 'foam')
+            query: The search query (single word term or multi-word phrase)
+            enable_fuzzy: Whether to enable fuzzy matching for single terms
+
+        Returns:
+            CQL string for the query
+        """
+        query = query.strip()
+        if not query:
+            return ""
+
+        # For phrases (multiple words), don't use fuzzy matching
+        if " " in query:
+            return f'(text ~ "{query}" OR title ~ "{query}" OR space.title ~ "{query}")'
+        else:
+            # For single terms, optionally use fuzzy matching
+            term_suffix = "~" if enable_fuzzy else ""
+            return f'(text ~ "{query}{term_suffix}" OR title ~ "{query}{term_suffix}" OR space.title ~ "{query}{term_suffix}")'  # noqa: E501
+
+    def _build_and_cql(self, queries: list[str], enable_fuzzy: bool) -> str:
+        """Build CQL for queries that must ALL be present (AND logic).
+
+        Args:
+            queries: List of queries that must all be present
+            enable_fuzzy: Whether to enable fuzzy matching for single terms
+
+        Returns:
+            CQL string with AND logic
+        """
+        and_parts = []
+        for query in queries:
+            query_cql = self._build_query_cql(query, enable_fuzzy)
+            if query_cql:
+                and_parts.append(query_cql)
+
+        if not and_parts:
+            return ""
+
+        return f"({' AND '.join(and_parts)})"
+
+    def _build_or_cql(self, queries: list[str], enable_fuzzy: bool) -> str:
+        """Build CQL for queries where ANY can be present (OR logic).
+
+        Args:
+            queries: List of queries where any can be present
+            enable_fuzzy: Whether to enable fuzzy matching for single terms
+
+        Returns:
+            CQL string with OR logic
+        """
+        or_parts = []
+        for query in queries:
+            query_cql = self._build_query_cql(query, enable_fuzzy)
+            if query_cql:
+                or_parts.append(query_cql)
+
+        if not or_parts:
+            return ""
+
+        return f"({' OR '.join(or_parts)})"
+
+    def construct_cql(
+        self,
+        must_contain_all: list[str] | None,
+        can_contain_any: list[str] | None,
+        enable_fuzzy: bool = False,
+    ) -> str:
+        """Construct CQL query with AND/OR logic.
 
         Learn about advanced searching using CQL here: https://developer.atlassian.com/cloud/confluence/advanced-searching-using-cql/
+
+        Args:
+            must_contain_all: Queries that must ALL be present (AND logic)
+            can_contain_any: Queries where ANY can be present (OR logic)
+            enable_fuzzy: Whether to enable fuzzy matching for single terms
+
+        Returns:
+            CQL query string
+
+        Raises:
+            ToolExecutionError: If no search parameters are provided
         """
         cql_parts = []
 
-        # Process single terms
-        if terms:
-            terms = split_by_space(terms)
-            term_queries = []
-            for term in terms:
-                term_suffix = "~" if enable_fuzzy else ""
-                term_queries.append(
-                    f'(text ~ "{term}{term_suffix}" OR title ~ "{term}{term_suffix}" OR space.title ~ "{term}{term_suffix}")'  # noqa: E501
-                )
+        # Handle must_contain_all (AND logic)
+        if must_contain_all:
+            and_cql = self._build_and_cql(must_contain_all, enable_fuzzy)
+            if and_cql:
+                cql_parts.append(and_cql)
 
-            if term_queries:
-                cql_parts.append(f"({' OR '.join(term_queries)})")
+        # Handle can_contain_any (OR logic)
+        if can_contain_any:
+            or_cql = self._build_or_cql(can_contain_any, enable_fuzzy)
+            if or_cql:
+                cql_parts.append(or_cql)
 
-        # Process phrases
-        if phrases:
-            phrase_queries = []
-            for phrase in phrases:
-                phrase_queries.append(
-                    f'(text ~ "{phrase}" OR title ~ "{phrase}" OR space.title ~ "{phrase}")'
-                )
+        # If there's only one part, return it
+        if len(cql_parts) == 1:
+            return cql_parts[0]
 
-            if phrase_queries:
-                cql_parts.append(f"({' OR '.join(phrase_queries)})")
+        # AND the must_contain_all with the can_contain_any
+        if len(cql_parts) > 1:
+            return f"({' AND '.join(cql_parts)})"
 
-        cql = " OR ".join(cql_parts)
-        return cql
+        raise ToolExecutionError(message="At least one search parameter must be provided")
 
     def transform_search_content_response(
         self, response: dict[str, Any]
@@ -358,7 +425,14 @@ class ConfluenceClientV2(ConfluenceClient):
         params = remove_none_values({
             "body-format": content_format.to_api_value(),
         })
-        page = await self.get(f"pages/{page_id}", params=params)
+        try:
+            page = await self.get(f"pages/{page_id}", params=params)
+        except httpx.HTTPStatusError as e:
+            # If the page is not found, return an empty page object
+            if e.response.status_code in [400, 404]:
+                return self.transform_page_response({})
+            raise
+
         return self.transform_page_response(page)
 
     async def get_page_by_title(
@@ -382,7 +456,8 @@ class ConfluenceClientV2(ConfluenceClient):
         response = await self.get("pages", params=params)
         pages = response.get("results", [])
         if not pages:
-            raise ToolExecutionError(message=f"No page found with title: '{page_title}'")
+            # If the page is not found, return an empty page object
+            return self.transform_page_response({})
         return self.transform_page_response(pages[0])
 
     async def get_space_by_id(self, space_id: str) -> dict[str, Any]:
@@ -445,6 +520,10 @@ class ConfluenceClientV2(ConfluenceClient):
         else:
             page = await self.get_page_by_title(page_identifier)
             page_id = page.get("page", {}).get("id")
+
+        if not page_id:
+            raise ToolExecutionError(message=f"No page found with identifier: '{page_identifier}'")
+
         return page_id
 
     async def get_space_id(self, space_identifier: str) -> str:

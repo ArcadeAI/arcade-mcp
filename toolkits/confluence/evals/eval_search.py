@@ -36,32 +36,35 @@ def confluence_search_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Search for content - easy case",
         user_message="Find all pages that contain 'Arcade.dev'",
-        expected_tool_calls=[ExpectedToolCall(func=search_content, args={"terms": ["Arcade.dev"]})],
+        expected_tool_calls=[
+            ExpectedToolCall(func=search_content, args={"can_contain_any": ["Arcade.dev"]})
+        ],
         rubric=rubric,
         critics=[
-            BinaryCritic(critic_field="terms", weight=1),
+            BinaryCritic(critic_field="can_contain_any", weight=1),
         ],
     )
 
     suite.add_case(
         name="Search for content - medium case",
-        user_message=(
-            "Find 20 pages that contain 'Arcade' or 'AI', or that talk about 'tool calls'"
-        ),
+        user_message=("Find 20 pages that contain 'Arcade' or 'AI', or 'tool calls'"),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_content,
                 args={
-                    "terms": ["Arcade", "AI"],
-                    "phrases": ["tool calls"],
+                    "can_contain_any": ["Arcade", "AI", "tool calls"],
                     "limit": 20,
                 },
             )
         ],
         rubric=rubric,
         critics=[
-            ListCritic(critic_field="terms", weight=0.45, case_sensitive=False),
-            ListCritic(critic_field="phrases", weight=0.45, case_sensitive=False),
+            ListCritic(
+                critic_field="can_contain_any",
+                weight=0.9,
+                case_sensitive=False,
+                order_matters=False,
+            ),
             BinaryCritic(critic_field="limit", weight=0.1),
         ],
     )
@@ -69,22 +72,39 @@ def confluence_search_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Search for content - hard case",
         user_message=(
-            "Look for 25 databases with titles that start with 'How to', "
-            "and also have 'carborator' in the content"
+            "Look for 25 databases that have 'How to', "
+            "and also have 'carborator' in the content and "
+            "also has one of the following: 'money', 'redbull gives you wings', "
+            "'honey hole', 'don't snap the pasta!'."
         ),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_content,
                 args={
-                    "terms": ["carborator"],
-                    "phrases": ["How to"],
+                    "must_contain_all": ["carborator", "How to"],
+                    "can_contain_any": [
+                        "money",
+                        "redbull gives you wings",
+                        "honey hole",
+                        "don't snap the pasta!",
+                    ],
                 },
             ),
         ],
         rubric=rubric,
         critics=[
-            ListCritic(critic_field="terms", weight=0.5, case_sensitive=False),
-            ListCritic(critic_field="phrases", weight=0.5, case_sensitive=False),
+            ListCritic(
+                critic_field="must_contain_all",
+                weight=0.5,
+                case_sensitive=False,
+                order_matters=False,
+            ),
+            ListCritic(
+                critic_field="can_contain_any",
+                weight=0.5,
+                case_sensitive=False,
+                order_matters=False,
+            ),
         ],
     )
 

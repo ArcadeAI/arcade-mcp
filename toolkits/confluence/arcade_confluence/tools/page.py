@@ -18,7 +18,7 @@ async def create_page(
     context: ToolContext,
     space_identifier: Annotated[str, "The ID or title of the space to create the page in"],
     title: Annotated[str, "The title of the page"],
-    content: Annotated[str, "The content of the page. Can be plain text"],
+    content: Annotated[str, "The content of the page. Only plain text is supported"],
     parent_id: Annotated[
         str | None,
         "The ID of the parent. If not provided, the page will be created at the root of the space.",
@@ -80,11 +80,13 @@ async def update_page_content(
     client = ConfluenceClientV2(context.get_auth_token_or_empty())
     page_id = await client.get_page_id(page_identifier)
 
-    page = await get_page(context, page_id, content_format=BodyFormat.STORAGE)
+    page = await get_page(context, page_id)
+    if not page.get("page"):
+        raise ToolExecutionError(message=f"No page found with identifier: '{page_identifier}'")
     status = page.get("page", {}).get("status", "current")
     title = page.get("page", {}).get("title", "Untitled page")
     body = page.get("page", {}).get("body", {})
-    old_content = body[BodyFormat.STORAGE].get("value", "")
+    old_content = body.get(BodyFormat.STORAGE, {}).get("value", "")
     old_version_number = page.get("page", {}).get("version", {}).get("number", 0)
 
     # Update the page content
@@ -120,7 +122,9 @@ async def rename_page(
     client = ConfluenceClientV2(context.get_auth_token_or_empty())
     page_id = await client.get_page_id(page_identifier)
 
-    page = await get_page(context, page_id, content_format=BodyFormat.STORAGE)
+    page = await get_page(context, page_id)
+    if not page.get("page"):
+        raise ToolExecutionError(message=f"No page found with identifier: '{page_identifier}'")
     status = page.get("page", {}).get("status", "current")
     content = page.get("page", {}).get("body", {}).get(BodyFormat.STORAGE, {}).get("value", "")
     old_version_number = page.get("page", {}).get("version", {}).get("number", 0)
@@ -185,10 +189,7 @@ async def get_pages_by_id(
     rather than making multiple separate calls to get_page, because this function is significantly
     more efficient than calling get_page multiple times.
     """
-    if not page_ids:
-        raise ToolExecutionError(message="The 'page_ids' parameter must be non-empty")
-    page_ids = page_ids[:250]
-    validate_ids(page_ids)
+    validate_ids(page_ids, max_length=250)
     client = ConfluenceClientV2(context.get_auth_token_or_empty())
     pages = await client.get(
         "pages", params={"id": page_ids, "body-format": BodyFormat.STORAGE.to_api_value()}
@@ -221,8 +222,7 @@ async def list_pages(
     ] = None,
 ) -> Annotated[dict, "The pages"]:
     """Get the content of multiple pages by their ID"""
-    space_ids = space_ids[:100] if space_ids else None
-    validate_ids(space_ids)
+    validate_ids(space_ids, max_length=100)
     limit = max(1, min(limit, 250))
     client = ConfluenceClientV2(context.get_auth_token_or_empty())
     params = remove_none_values({

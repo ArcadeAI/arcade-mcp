@@ -1,17 +1,24 @@
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_confluence.utils import build_child_url, build_hierarchy, split_by_space, validate_ids
-
-
-def test_split_by_space() -> None:
-    assert split_by_space(["hello world", "foobar"]) == ["hello", "world", "foobar"]
+from arcade_confluence.utils import build_child_url, build_hierarchy, validate_ids
 
 
-def test_validate_ids() -> None:
-    validate_ids(["123", "456"])
-    with pytest.raises(ToolExecutionError):
-        validate_ids(["123", "foo"])
+@pytest.mark.parametrize(
+    "ids, max_length, expected_error",
+    [
+        (None, 250, None),
+        (["123", "456"], 250, None),
+        (["123", "foo"], 250, ToolExecutionError),
+        (["123", "456"], 1, RetryableToolError),
+    ],
+)
+def test_validate_ids(ids: list[str], max_length: int, expected_error: Exception | None) -> None:
+    if expected_error:
+        with pytest.raises(expected_error):
+            validate_ids(ids, max_length)
+    else:
+        validate_ids(ids, max_length)
 
 
 @pytest.mark.parametrize(
