@@ -1,4 +1,10 @@
+import asyncio
+import json
 from datetime import date, datetime
+from typing import Any
+
+from arcade.sdk import ToolContext
+from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
 
 def remove_none_values(data: dict) -> dict:
@@ -70,22 +76,13 @@ def clean_issue_dict(issue: dict) -> dict:
         fields["parent"] = get_summarized_issue_dict(fields["parent"])
 
     if fields["assignee"]:
-        fields["assignee"] = {
-            "name": fields["assignee"]["displayName"],
-            "email": fields["assignee"]["emailAddress"],
-        }
+        fields["assignee"] = clean_user_dict(fields["assignee"])
 
     if fields["creator"]:
-        fields["creator"] = {
-            "name": fields["creator"]["displayName"],
-            "email": fields["creator"]["emailAddress"],
-        }
+        fields["creator"] = clean_user_dict(fields["creator"])
 
     if fields["reporter"]:
-        fields["reporter"] = {
-            "name": fields["reporter"]["displayName"],
-            "email": fields["reporter"]["emailAddress"],
-        }
+        fields["reporter"] = clean_user_dict(fields["reporter"])
 
     fields["status"] = {
         "name": fields["status"]["name"],
@@ -130,8 +127,8 @@ def clean_issue_dict(issue: dict) -> dict:
     return fields
 
 
-def clean_comment_dict(comment: dict) -> dict:
-    return {
+def clean_comment_dict(comment: dict, include_adf_content: bool = False) -> dict:
+    data = {
         "id": comment["id"],
         "author": {
             "name": comment["author"]["displayName"],
@@ -140,6 +137,11 @@ def clean_comment_dict(comment: dict) -> dict:
         "body": comment["renderedBody"],
         "created_at": comment["created"],
     }
+
+    if include_adf_content:
+        data["adf_body"] = comment["body"]
+
+    return data
 
 
 def clean_issue_type_dict(issue_type: dict) -> dict:
@@ -155,6 +157,20 @@ def clean_issue_type_dict(issue_type: dict) -> dict:
     return data
 
 
+def clean_user_dict(user: dict) -> dict:
+    data = {
+        "id": user["accountId"],
+        "name": user["displayName"],
+        "accountType": user["accountType"],
+        "active": user["active"],
+    }
+
+    if "emailAddress" in user:
+        data["email"] = user["emailAddress"]
+
+    return data
+
+
 def get_summarized_issue_dict(issue: dict) -> dict:
     fields = issue["fields"]
     return {
@@ -165,3 +181,98 @@ def get_summarized_issue_dict(issue: dict) -> dict:
         "type": fields.get("issuetype", {}).get("name"),
         "priority": fields.get("priority", {}).get("name"),
     }
+
+
+def add_pagination_to_response(
+    response: dict[str, Any],
+    items: list[dict[str, Any]],
+    limit: int,
+    offset: int,
+    max_results: int | None = None,
+) -> dict:
+    next_offset = offset + limit
+    if max_results:
+        next_offset = min(next_offset, max_results - limit)
+
+    if len(items) >= limit and next_offset > offset:
+        response["pagination"] = {
+            "limit": limit,
+            "next_offset": next_offset,
+        }
+    return response
+
+
+def simplify_user_dict(user: dict) -> dict:
+    return {
+        "id": user["id"],
+        "name": user["name"],
+        "email": user["email"],
+    }
+
+
+async def find_users_or_raise_error(
+    context: ToolContext,
+    user_identifiers: list[str],
+    exact_match: bool = False,
+) -> dict[str, Any]:
+    """
+    Find users matching either their display name, email address, or account ID.
+
+    By default, the search will match prefixes. A user_identifier of "john" will match
+    "John Doe", "Johnson", "john.doe@example.com", etc.
+
+    If `enforce_exact_match` is set to True, the search will only return users that have either
+    a display name, email address, or account ID that match the exact user_identifier.
+    """
+    from arcade_jira.tools.users import (  # Avoid circular import
+        get_user_by_id,
+        get_users_without_id,
+    )
+
+    users: list[dict[str, Any]] = []
+
+    responses = await asyncio.gather([
+        get_users_without_id(
+            context=context,
+            name_or_email=user_identifier,
+            enforce_exact_match=exact_match,
+        )
+        for user_identifier in user_identifiers
+    ])
+
+    search_by_id: list[str] = []
+
+    for response in responses:
+        user_identifier = response["query"]["name_or_email"]
+
+        if response["users"]["count"] > 1:
+            available_users = [simplify_user_dict(user) for user in response["users"]["items"]]
+            message = (
+                f"Multiple users matching '{user_identifier}'. "
+                "Please provide a unique user identifier."
+            )
+            available_users_msg = (
+                f"The following users match '{user_identifier}': {json.dumps(available_users)}"
+            )
+            developer_message = f"{message} {available_users_msg}"
+            raise RetryableToolError(message, developer_message, available_users_msg)
+
+        elif response["users"]["count"] == 0:
+            search_by_id.append(user_identifier)
+
+        else:
+            users.append(response["users"]["items"][0])
+
+    if search_by_id:
+        responses = await asyncio.gather([
+            get_user_by_id(context, user_id=user_id) for user_id in search_by_id
+        ])
+        for response in responses:
+            if response["user"]:
+                users.append(response["user"])
+            else:
+                raise ToolExecutionError(
+                    f"No user found with '{response['query']['user_id']}'.",
+                )
+
+    return users

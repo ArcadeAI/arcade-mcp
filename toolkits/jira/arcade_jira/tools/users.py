@@ -1,0 +1,129 @@
+from typing import Annotated, Any
+
+from arcade.sdk import ToolContext, tool
+from arcade.sdk.auth import Atlassian
+from arcade.sdk.errors import ToolExecutionError
+
+from arcade_jira.client import JiraClient
+from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remove_none_values
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
+async def list_all_users(
+    context: ToolContext,
+    limit: Annotated[
+        int,
+        "The maximum number of users to return. Min of 1, max of 50. Defaults to 50.",
+    ] = 50,
+    offset: Annotated[
+        int,
+        "The number of users to skip before starting to return users. "
+        "Defaults to 0 (start from the first user).",
+    ] = 0,
+) -> Annotated[dict[str, Any], "The information about all users."]:
+    """Browse all users in Jira."""
+    limit = max(min(limit, 50), 1)
+    client = JiraClient(context.get_auth_token_or_empty())
+    users = await client.get("/users/search", params={"startAt": offset, "maxResults": limit})
+    response = {
+        "users": [clean_user_dict(user) for user in users],
+        "count": len(users),
+    }
+    return add_pagination_to_response(response, users, limit, offset)
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
+async def get_user_by_id(
+    context: ToolContext,
+    user_id: Annotated[str, "The the user's ID."],
+) -> Annotated[dict[str, Any], "The user information."]:
+    """Get user information by their ID."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.get("user", params={"accountId": user_id})
+
+    if not response:
+        return {
+            "user": None,
+            "message": f"No user found with ID '{user_id}'.",
+            "query": {"user_id": user_id},
+        }
+
+    return {"user": clean_user_dict(response)}
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
+async def get_users_without_id(
+    context: ToolContext,
+    name_or_email: Annotated[
+        str,
+        "The user's display name or email address to search for. The string can match the prefix "
+        "of the user's attribute. For example, a string of 'john' will match users with the "
+        "display name or email address that starts with 'john', such as 'John Doe', 'Johnson', "
+        "'john.doe@example.com', etc.",
+    ],
+    enforce_exact_match: Annotated[
+        bool,
+        "Whether to enforce an exact match of the name_or_email against users' display name and "
+        "email attributes. Defaults to False (return all users that match the prefix). If set to "
+        "True, before returning results, the tool will filter users with a display name OR email "
+        "address that match exactly the value of the `name_or_email` argument.",
+    ] = False,
+    limit: Annotated[
+        int,
+        "The maximum number of users to return. Min of 1, max of 50. Defaults to 50.",
+    ] = 50,
+    offset: Annotated[
+        int,
+        "The number of users to skip before starting to return users. "
+        "Defaults to 0 (start from the first user).",
+    ] = 0,
+) -> Annotated[dict[str, Any], "The information about users that match the search criteria."]:
+    """Get users without their account ID, searching by display name and email address.
+
+    The Jira user search API will return up to 1,000 (one thousand) users for any given name/email
+    query. If you need to get more users, please use the `Jira.ListAllUsers` tool.
+    """
+    limit = max(min(limit, 1000), 1)
+
+    if limit + offset > 1000:
+        raise ToolExecutionError(
+            "The maximum number of users returned by the Jira search API is 1000. "
+            f"To get more users use the `Jira.{list_all_users.__tool_name__}` tool."
+        )
+
+    if not name_or_email:
+        raise ToolExecutionError(
+            "The `user_name_or_email` argument is required to search for users."
+        )
+
+    client = JiraClient(context.get_auth_token_or_empty())
+    api_response = await client.get(
+        "/user/search",
+        params=remove_none_values({
+            "query": name_or_email,
+            "startAt": offset,
+            "maxResults": limit,
+        }),
+    )
+    users = [clean_user_dict(user) for user in api_response]
+
+    if enforce_exact_match:
+        users = [
+            user
+            for user in users
+            if user["name"] == name_or_email or user["email"] == name_or_email
+        ]
+
+    response = {
+        "users": {
+            "items": users,
+            "count": len(users),
+        },
+        "query": {
+            "name_or_email": name_or_email,
+            "enforce_exact_match": enforce_exact_match,
+            "limit": limit,
+            "offset": offset,
+        },
+    }
+    return add_pagination_to_response(response, users, limit, offset, 1000)

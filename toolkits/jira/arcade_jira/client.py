@@ -66,14 +66,24 @@ class JiraClient:
             data = response.json()
             developer_message = None
 
-            if len(data["errorMessages"]) == 1:
-                error_message = data["errorMessages"][0]
+            if "errorMessages" in data:
+                if len(data["errorMessages"]) == 1:
+                    error_message = data["errorMessages"][0]
+                else:
+                    error_message = json.dumps(data["errorMessages"])
+
+            elif "message" in data:
+                error_message = data["message"]
+
             else:
-                error_message = json.dumps(data["errorMessages"])
+                error_message = json.dumps(data)
 
         except Exception as e:
             error_message = "Failed to parse Jira error response"
-            developer_message = f"Failed to parse Jira error response: {type(e).__name__}: {e!s}"
+            developer_message = (
+                f"Failed to parse Jira error response: {type(e).__name__}: {e!s}. "
+                f"API Response: {response.text}"
+            )
 
         return error_message, developer_message
 

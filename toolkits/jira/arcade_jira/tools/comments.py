@@ -1,0 +1,162 @@
+from typing import Annotated, Any
+
+from arcade.sdk import ToolContext, tool
+from arcade.sdk.auth import Atlassian
+from arcade.sdk.errors import ToolExecutionError
+
+from arcade_jira.client import JiraClient
+from arcade_jira.constants import IssueCommentOrderBy
+from arcade_jira.utils import (
+    add_pagination_to_response,
+    clean_comment_dict,
+    find_users_or_raise_error,
+    remove_none_values,
+)
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_comment_by_id(
+    context: ToolContext,
+    issue_id: Annotated[str, "The ID or key of the issue to retrieve the comment from."],
+    comment_id: Annotated[str, "The ID of the comment to retrieve"],
+    include_adf_content: Annotated[
+        bool,
+        "Whether to include the ADF (Atlassian Document Format) content of the comment in the "
+        "response. Defaults to False (return only the HTML rendered content).",
+    ] = False,
+) -> Annotated[dict[str, Any], "Information about the comment"]:
+    """Get a comment by its ID."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.get(
+        f"issue/{issue_id}/comment/{comment_id}",
+        params={"expand": "renderedBody"},
+    )
+
+    if not response:
+        return {
+            "comment": None,
+            "message": f"No comment found with ID '{comment_id}' in the issue '{issue_id}'.",
+            "query": {"issue_id": issue_id, "comment_id": comment_id},
+        }
+
+    return {"comment": clean_comment_dict(response, include_adf_content)}
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_issue_comments(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to retrieve"],
+    limit: Annotated[
+        int,
+        "The maximum number of comments to retrieve. Min 1, max 100, default 100.",
+    ] = 100,
+    offset: Annotated[
+        int,
+        "The number of comments to skip. Defaults to 0 (start from the first comment).",
+    ] = 0,
+    order_by: Annotated[
+        IssueCommentOrderBy | None,
+        "The order in which to return the comments. "
+        f"Defaults to '{IssueCommentOrderBy.CREATED_DATE_DESCENDING.value}' (most recent first).",
+    ] = IssueCommentOrderBy.CREATED_DATE_DESCENDING,
+    include_adf_content: Annotated[
+        bool,
+        "Whether to include the ADF (Atlassian Document Format) content of the comment in the "
+        "response. Defaults to False (return only the HTML rendered content).",
+    ] = False,
+) -> Annotated[dict[str, Any], "Information about the issue comments"]:
+    """Get the comments of a Jira issue by its ID."""
+    limit = max(min(limit, 100), 1)
+    client = JiraClient(context.get_auth_token_or_empty())
+    api_response = await client.get(
+        f"issue/{issue}/comment",
+        params=remove_none_values({
+            "expand": "renderedBody",
+            "maxResults": limit,
+            "startAt": offset,
+            "orderBy": order_by.to_api_value() if order_by else None,
+        }),
+    )
+    comments = api_response["comments"][:limit]
+    response = {
+        "issue": issue,
+        "comments": {
+            "items": [clean_comment_dict(comment, include_adf_content) for comment in comments],
+            "count": len(comments),
+        },
+    }
+    return add_pagination_to_response(response, comments, limit, offset)
+
+
+@tool(requires_auth=Atlassian(scopes=["write:jira-work", "read:jira-work", "read:jira-user"]))
+async def add_comment_to_issue(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to comment on."],
+    body: Annotated[str, "The body of the comment to add to the issue."],
+    quote_comment_id: Annotated[
+        str | None,
+        "A previous comment to quote in the new comment. Provide the comment's ID. "
+        "Defaults to None (no quoted comment).",
+    ] = None,
+    mention_users: Annotated[
+        list[str] | None,
+        "The users to mention in the comment. Provide the user display name, email address, or ID. "
+        "Ex: 'John Doe' or 'john.doe@example.com'. Defaults to None (no user mentions).",
+    ] = None,
+) -> Annotated[dict[str, Any], "Information about the comment created"]:
+    """Add a comment to a Jira issue."""
+    if not body:
+        raise ToolExecutionError("Comment body cannot be empty.")
+
+    client = JiraClient(context.get_auth_token_or_empty())
+
+    adf_body = {
+        "type": "doc",
+        "version": 1,
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": text}],
+            }
+            for text in body.split("\n")
+        ],
+    }
+
+    if mention_users:
+        users = await find_users_or_raise_error(context, mention_users, exact_match=True)
+        mentions = [
+            {
+                "type": "user",
+                "attrs": {"accessLevel": "", "id": user["id"], "text": f"@{user['name']}"},
+            }
+            for user in users
+        ]
+        adf_body["content"][0]["content"] = mentions + adf_body["content"][0]["content"]
+
+    if quote_comment_id:
+        quote_comment = await get_comment_by_id(context, issue, quote_comment_id, True)
+        if not quote_comment["comment"]:
+            raise ToolExecutionError(
+                f"Cannot quote comment. No comment found with ID '{quote_comment_id}'."
+            )
+        quote = {
+            "type": "blockquote",
+            "content": quote_comment["comment"]["adf_body"]["content"],
+        }
+        adf_body["content"] = [quote] + adf_body["content"]
+    import json
+
+    print("\n\n\n", json.dumps(adf_body, indent=2), "\n\n\n")
+    response = await client.post(
+        f"issue/{issue}/comment",
+        json_data={
+            "expand": "renderedBody",
+            "body": adf_body,
+        },
+    )
+
+    return {
+        "success": True,
+        "message": f"Comment successfully created for the issue '{issue}'.",
+        "comment": {"id": response["id"], "created_at": response["created"]},
+    }
