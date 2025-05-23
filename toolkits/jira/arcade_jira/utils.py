@@ -1,5 +1,8 @@
 import asyncio
+import base64
 import json
+import mimetypes
+from contextlib import suppress
 from datetime import date, datetime
 from typing import Any
 
@@ -10,6 +13,13 @@ from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 def remove_none_values(data: dict) -> dict:
     """Remove all keys with None values from the dictionary."""
     return {k: v for k, v in data.items() if v is not None}
+
+
+def safe_delete_dict_keys(data: dict, keys: list[str]) -> dict:
+    for key in keys:
+        with suppress(KeyError):
+            del data[key]
+    return data
 
 
 def convert_date_string_to_date(date_string: str) -> date:
@@ -99,30 +109,36 @@ def clean_issue_dict(issue: dict) -> dict:
             "key": fields["project"]["key"],
         }
 
-    del fields["description"]
-    del fields["environment"]
-    del fields["comment"]
-    del fields["worklog"]
-
-    fields["description"] = rendered_fields["description"]
-    fields["environment"] = rendered_fields["environment"]
+    fields["description"] = rendered_fields.get("description")
+    fields["environment"] = rendered_fields.get("environment")
 
     fields["worklog"] = {
-        "items": rendered_fields["worklog"]["worklogs"],
-        "total": len(rendered_fields["worklog"]["worklogs"]),
+        "items": rendered_fields.get("worklog", {}).get("worklogs", []),
+        "total": len(rendered_fields.get("worklog", {}).get("worklogs", [])),
     }
 
-    del fields["subtasks"]
-    del fields["summary"]
-    del fields["assignee"]
-    del fields["creator"]
-    del fields["issuetype"]
-    del fields["lastViewed"]
-    del fields["updated"]
-    del fields["statusCategory"]
-    del fields["statuscategorychangedate"]
-    del fields["votes"]
-    del fields["watches"]
+    fields["attachments"] = [
+        clean_attachment_dict(attachment) for attachment in fields.get("attachment", [])
+    ]
+
+    safe_delete_dict_keys(
+        fields,
+        [
+            "subtasks",
+            "summary",
+            "assignee",
+            "creator",
+            "issuetype",
+            "lastViewed",
+            "updated",
+            "statusCategory",
+            "statuscategorychangedate",
+            "votes",
+            "watches",
+            "attachment",
+            "comment",
+        ],
+    )
 
     return fields
 
@@ -169,6 +185,16 @@ def clean_user_dict(user: dict) -> dict:
         data["email"] = user["emailAddress"]
 
     return data
+
+
+def clean_attachment_dict(attachment: dict) -> dict:
+    return {
+        "id": attachment["id"],
+        "filename": attachment["filename"],
+        "mime_type": attachment["mimeType"],
+        "size": {"bytes": attachment["size"]},
+        "author": clean_user_dict(attachment["author"]),
+    }
 
 
 def get_summarized_issue_dict(issue: dict) -> dict:
@@ -276,3 +302,35 @@ async def find_users_or_raise_error(
                 )
 
     return users
+
+
+def build_file_data(
+    filename: str,
+    file_content_str: str | None,
+    file_content_base64: str | None,
+    file_type: str | None = None,
+    file_encoding: str = "utf-8",
+) -> dict[str, tuple]:
+    if file_content_str is not None:
+        try:
+            file_content = file_content_str.encode(file_encoding)
+        except LookupError as exc:
+            raise ToolExecutionError(f"Unknown encoding: {file_encoding}") from exc
+        except Exception as exc:
+            raise ToolExecutionError(
+                f"Failed to encode file content string with {file_encoding} encoding: {exc!s}"
+            ) from exc
+    elif file_content_base64 is not None:
+        try:
+            file_content = base64.b64decode(file_content_base64)
+        except Exception as exc:
+            raise ToolExecutionError(f"Failed to decode base64 file content: {exc!s}") from exc
+
+    if not file_type:
+        # guess_type returns None if the file type is not recognized
+        file_type = mimetypes.guess_type(filename)[0]
+
+    if file_type:
+        return {"file": (filename, file_content, file_type)}
+
+    return {"file": (filename, file_content)}  # type: ignore[dict-item]

@@ -32,7 +32,10 @@ async def get_issue_by_id(
     """Get the details of a Jira issue by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
     try:
-        issue = await client.get(f"issue/{issue}")
+        issue = await client.get(
+            f"issue/{issue}",
+            params={"expand": "renderedFields"},
+        )
     except NotFoundError:
         return {"error": f"Issue not found with ID/key '{issue}'."}
     return {"issue": clean_issue_dict(issue)}
@@ -80,7 +83,7 @@ async def get_issues_without_id(
     issue_type: Annotated[
         str | None,
         "Match issues that are of this issue type. Provide an issue type name or ID. "
-        "Ex: 'Task', 'Epic', '10000'. To get a full list of available issue types, use the "
+        "E.g. 'Task', 'Epic', '10000'. To get a full list of available issue types, use the "
         f"`Jira.{list_issue_types.__tool_name__}` tool. Defaults to None (any issue type).",
     ] = None,
     labels: Annotated[
