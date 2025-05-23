@@ -46,7 +46,7 @@ The Tool SDK makes it easy to create powerful, secure tools that your agents can
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
-**To learn more about Arcade, check out our [documentation](https://docs.arcade.dev/home).**
+**To learn more about Arcade.dev, check out our [documentation](https://docs.arcade.dev/home).**
 
 _Pst. hey, you, give us a star if you like it!_
 
