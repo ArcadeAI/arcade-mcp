@@ -70,8 +70,10 @@ class JiraClient:
             if "errorMessages" in data:
                 if len(data["errorMessages"]) == 1:
                     error_message = data["errorMessages"][0]
+                elif "errors" in data:
+                    error_message = json.dumps(data["errors"])
                 else:
-                    error_message = json.dumps(data["errorMessages"])
+                    error_message = "Unknown error"
 
             elif "message" in data:
                 error_message = data["message"]

@@ -7,10 +7,12 @@ from arcade_jira.client import JiraClient
 from arcade_jira.constants import IssuePriority, IssueStatus
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import (
+    build_adf_doc_from_plaintext,
     build_search_issues_jql,
     clean_issue_dict,
     clean_issue_type_dict,
     convert_date_string_to_date,
+    remove_none_values,
 )
 
 
@@ -22,6 +24,17 @@ async def list_issue_types(
     client = JiraClient(context.get_auth_token_or_empty())
     response = await client.get("issuetype")
     return {"issue_types": [clean_issue_type_dict(issue_type) for issue_type in response]}
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_issue_type_by_id(
+    context: ToolContext,
+    issue_type: Annotated[str, "The ID or key of the issue type to retrieve"],
+) -> Annotated[dict, "Information about the issue type"]:
+    """Get the details of a Jira issue type by its ID."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.get(f"issuetype/{issue_type}")
+    return {"issue_type": clean_issue_type_dict(response)}
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
@@ -140,4 +153,93 @@ async def get_issues_without_id(
         "issues": [clean_issue_dict(issue) for issue in response["issues"]],
         "count": len(response["issues"]),
         "next_page_token": response.get("nextPageToken"),
+    }
+
+
+@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+async def create_issue(
+    context: ToolContext,
+    title: Annotated[
+        str,
+        "The title of the issue.",
+    ],
+    project_id: Annotated[
+        str,
+        "The ID of the project to associate the issue with.",
+    ],
+    issue_type_id: Annotated[
+        str,
+        "The ID of the issue type. To get a full list of available "
+        f"issue types, use the `Jira.{list_issue_types.__tool_name__}` tool. ",
+    ],
+    due_date: Annotated[
+        str | None,
+        "The due date of the issue. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (no due date).",
+    ] = None,
+    description: Annotated[
+        str | None,
+        "The description of the issue. Defaults to None (no description).",
+    ] = None,
+    environment: Annotated[
+        str | None,
+        "The environment of the issue. Defaults to None (no environment).",
+    ] = None,
+    labels: Annotated[
+        list[str] | None,
+        "The labels of the issue. Defaults to None (no labels).",
+    ] = None,
+    parent_issue_id: Annotated[
+        str | None,
+        "The ID of the parent issue. Defaults to None (no parent issue).",
+    ] = None,
+    priority_id: Annotated[
+        str | None,
+        "The ID of the issue priority. Defaults to None "
+        "(Jira's default priority set in the user's account).",
+    ] = None,
+    assignee_id: Annotated[
+        str | None,
+        "The ID of the user to assign the issue to. Defaults to None (no assignee).",
+    ] = None,
+    reporter_id: Annotated[
+        str | None,
+        "The ID of the user who is the reporter of the issue. Defaults to None (no reporter).",
+    ] = None,
+) -> Annotated[dict, "The created issue"]:
+    """Create a new Jira issue."""
+    client = JiraClient(context.get_auth_token_or_empty())
+
+    request_body = {
+        "fields": remove_none_values({
+            "summary": title,
+            "labels": labels,
+            "duedate": due_date,
+            "issuetype": {"id": issue_type_id} if issue_type_id else None,
+            "parent": {"id": parent_issue_id} if parent_issue_id else None,
+            "project": {"id": project_id} if project_id else None,
+            "priority": {"id": priority_id} if priority_id else None,
+            "assignee": {"id": assignee_id} if assignee_id else None,
+            "reporter": {"id": reporter_id} if reporter_id else None,
+        }),
+    }
+
+    if environment:
+        request_body["fields"]["environment"] = build_adf_doc_from_plaintext(environment)
+
+    if description:
+        request_body["fields"]["description"] = build_adf_doc_from_plaintext(description)
+
+    response = await client.post("issue", json_data=request_body)
+
+    return {
+        "status": {
+            "success": True,
+            "message": "Issue successfully created.",
+        },
+        "issue": {
+            "id": response["id"],
+            "key": response["key"],
+            "url": response["self"],
+        },
     }

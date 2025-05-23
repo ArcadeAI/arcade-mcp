@@ -9,7 +9,7 @@ from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remov
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
-async def list_all_users(
+async def list_users(
     context: ToolContext,
     limit: Annotated[
         int,
@@ -21,7 +21,7 @@ async def list_all_users(
         "Defaults to 0 (start from the first user).",
     ] = 0,
 ) -> Annotated[dict[str, Any], "The information about all users."]:
-    """Browse all users in Jira."""
+    """Browse users in Jira."""
     limit = max(min(limit, 50), 1)
     client = JiraClient(context.get_auth_token_or_empty())
     users = await client.get("/users/search", params={"startAt": offset, "maxResults": limit})
@@ -88,7 +88,7 @@ async def get_users_without_id(
     if limit + offset > 1000:
         raise ToolExecutionError(
             "The maximum number of users returned by the Jira search API is 1000. "
-            f"To get more users use the `Jira.{list_all_users.__tool_name__}` tool."
+            f"To get more users use the `Jira.{list_users.__tool_name__}` tool."
         )
 
     if not name_or_email:

@@ -79,6 +79,7 @@ def clean_issue_dict(issue: dict) -> dict:
 
     fields["id"] = issue["id"]
     fields["key"] = issue["key"]
+    fields["url"] = fields["self"]
 
     fields["title"] = fields["summary"]
 
@@ -137,6 +138,7 @@ def clean_issue_dict(issue: dict) -> dict:
             "watches",
             "attachment",
             "comment",
+            "self",
         ],
     )
 
@@ -156,6 +158,27 @@ def clean_comment_dict(comment: dict, include_adf_content: bool = False) -> dict
 
     if include_adf_content:
         data["adf_body"] = comment["body"]
+
+    return data
+
+
+def clean_project_dict(project: dict) -> dict:
+    data = {
+        "id": project["id"],
+        "key": project["key"],
+        "url": project["self"],
+        "name": project["name"],
+        "description": project["description"],
+    }
+
+    if "email" in project:
+        data["email"] = project["email"]
+
+    if "projectCategory" in project:
+        data["category"] = project["projectCategory"]
+
+    if "style" in project:
+        data["style"] = project["style"]
 
     return data
 
@@ -222,7 +245,7 @@ def add_pagination_to_response(
     if max_results:
         next_offset = min(next_offset, max_results - limit)
 
-    if len(items) >= limit and next_offset > offset:
+    if response.get("isLast") is False or (len(items) >= limit and next_offset > offset):
         response["pagination"] = {
             "limit": limit,
             "next_offset": next_offset,
@@ -336,3 +359,17 @@ def build_file_data(
         return {"file": (filename, file_content, file_type)}
 
     return {"file": (filename, file_content)}  # type: ignore[dict-item]
+
+
+def build_adf_doc_from_plaintext(text: str) -> dict:
+    return {
+        "type": "doc",
+        "version": 1,
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": text}],
+            }
+            for text in text.split("\n")
+        ],
+    }
