@@ -5,6 +5,7 @@ from arcade.sdk.auth import Atlassian
 from arcade.sdk.errors import ToolExecutionError
 
 from arcade_jira.client import JiraClient
+from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import build_file_data, clean_attachment_dict
 
 
@@ -77,3 +78,69 @@ async def attach_file_to_issue(
         },
         "attachment": clean_attachment_dict(response[0]),
     }
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def list_issue_attachments_metadata(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to retrieve"],
+) -> Annotated[dict, "Information about the issue"]:
+    """Get the metadata about the files attached to an issue.
+
+    This tool does NOT return the actual file contents. To get a file content,
+    use the `Jira.DownloadAttachment` tool.
+    """
+    from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular imports
+
+    response = await get_issue_by_id(context, issue)
+    if not response.get("issue"):
+        return response
+    return {
+        "issue": {
+            "id": response["issue"]["id"],
+            "key": response["issue"]["key"],
+            "attachments": response["issue"]["attachments"],
+        }
+    }
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_attachment_metadata(
+    context: ToolContext,
+    attachment_id: Annotated[str, "The ID of the attachment to retrieve"],
+) -> Annotated[dict[str, Any], "The metadata of the attachment"]:
+    """Get the metadata of an attachment."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    try:
+        response = await client.get(f"/attachment/{attachment_id}")
+    except NotFoundError:
+        return {"error": f"Attachment not found with ID '{attachment_id}'."}
+    return {"attachment": clean_attachment_dict(response)}
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def download_attachment(
+    context: ToolContext,
+    attachment_id: Annotated[str, "The ID of the attachment to download"],
+) -> Annotated[dict[str, Any], "The content of the attachment"]:
+    """Download the contents of an attachment associated with an issue."""
+    client = JiraClient(context.get_auth_token_or_empty())
+
+    attachment = await get_attachment_metadata(context, attachment_id)
+
+    if "error" in attachment:
+        return attachment
+
+    try:
+        content = await client.get(
+            f"/attachment/content/{attachment_id}",
+            params={
+                "redirect": False,
+            },
+        )
+    except NotFoundError:
+        return {"error": f"Attachment not found with ID '{attachment_id}'."}
+
+    attachment["attachment"]["content"] = content["text"]
+
+    return attachment

@@ -177,12 +177,14 @@ def clean_user_dict(user: dict) -> dict:
     data = {
         "id": user["accountId"],
         "name": user["displayName"],
-        "accountType": user["accountType"],
         "active": user["active"],
     }
 
-    if "emailAddress" in user:
+    if user.get("emailAddress"):
         data["email"] = user["emailAddress"]
+
+    if user.get("accountType"):
+        data["account_type"] = user["accountType"]
 
     return data
 

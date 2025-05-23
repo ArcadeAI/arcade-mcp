@@ -1,5 +1,6 @@
 import asyncio
 import json
+import json.decoder
 from dataclasses import dataclass
 from typing import Optional, cast
 
@@ -110,6 +111,12 @@ class JiraClient:
 
         return kwargs
 
+    def _format_response_dict(self, response: httpx.Response) -> dict:
+        try:
+            return cast(dict, response.json())
+        except (UnicodeDecodeError, json.decoder.JSONDecodeError):
+            return {"text": response.text}
+
     async def get(
         self,
         endpoint: str,
@@ -133,7 +140,8 @@ class JiraClient:
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.get(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
-        return cast(dict, response.json())
+
+        return self._format_response_dict(response)
 
     async def post(
         self,
@@ -168,7 +176,8 @@ class JiraClient:
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
-        return cast(dict, response.json())
+
+        return self._format_response_dict(response)
 
     async def put(
         self,
@@ -192,4 +201,5 @@ class JiraClient:
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.put(**kwargs)  # type: ignore[arg-type]
             self._raise_for_status(response)
-        return cast(dict, response.json())
+
+        return self._format_response_dict(response)
