@@ -7,6 +7,7 @@ from arcade_jira.client import JiraClient
 from arcade_jira.constants import IssuePriority, IssueStatus
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import (
+    add_pagination_to_response,
     build_adf_doc_from_plaintext,
     build_search_issues_jql,
     clean_issue_dict,
@@ -19,11 +20,59 @@ from arcade_jira.utils import (
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def list_issue_types(
     context: ToolContext,
-) -> Annotated[dict[str, Any], "List of issue types"]:
-    """Get the list of issue types (e.g. 'Task', 'Epic', etc.) available to the current user."""
+    project: Annotated[
+        str | None,
+        "The project to get issue types for. Provide a project name, key, or ID. "
+        "Defaults to None (all projects).",
+    ] = None,
+    limit: Annotated[
+        int,
+        "The maximum number of issue types to retrieve. Min 1, max 200, default 200.",
+    ] = 200,
+    offset: Annotated[
+        int,
+        "The number of issue types to skip. Defaults to 0 (start from the first issue type).",
+    ] = 0,
+) -> Annotated[
+    dict[str, Any], "Information about the issue types available for the specified project."
+]:
+    """Get the list of issue types (e.g. 'Task', 'Epic', etc.) available to a given project."""
+    # Avoid circular import
+    from arcade_jira.tools.projects import get_project_by_id, search_projects
+
     client = JiraClient(context.get_auth_token_or_empty())
-    response = await client.get("issuetype")
-    return {"issue_types": [clean_issue_type_dict(issue_type) for issue_type in response]}
+
+    project_id: str = ""
+    project = await get_project_by_id(context, project)
+
+    if not project.get("project"):
+        projects = await search_projects(context, project)
+        if len(projects["total"]) == 0:
+            return {"error": f"Project not found with ID/key/name '{project}'."}
+        elif len(projects["total"]) > 1:
+            return {
+                "error": (
+                    f"Multiple projects found with ID/key/name '{project}'. "
+                    "Please provide a specific project ID."
+                ),
+                "matching_projects": projects["projects"],
+            }
+        else:
+            project_id = projects["projects"][0]["id"]
+
+    api_response = await client.get(
+        f"/issue/createmeta/{project_id}/issuetypes",
+        params={
+            "maxResults": limit,
+            "startAt": offset,
+        },
+    )
+    issue_types = [clean_issue_type_dict(issue_type) for issue_type in api_response["issueTypes"]]
+    response = {
+        "issue_types": issue_types,
+        "count": len(issue_types),
+    }
+    return add_pagination_to_response(response, issue_types, limit, offset)
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
