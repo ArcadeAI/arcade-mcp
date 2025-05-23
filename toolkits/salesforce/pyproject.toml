@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_salesforce"
-version = "0.1.0"
+version = "0.2.0"
 description = "Arcade tools designed for LLMs to interact with Salesforce"
 authors = ["Arcade <dev@arcade.dev>"]
 
