@@ -42,7 +42,11 @@ async def create_contact(
     if not last_name:
         raise ToolExecutionError("Last name is required by Salesforce to create a contact.")
 
-    client = SalesforceClient(context.get_auth_token_or_empty())
+    client = SalesforceClient(
+        auth_token=context.get_auth_token_or_empty(),
+        org_subdomain=context.get_secret("SALESFORCE_ORG_SUBDOMAIN"),
+    )
+
     contact = await client.create_contact(
         account_id=account_id,
         first_name=first_name,
