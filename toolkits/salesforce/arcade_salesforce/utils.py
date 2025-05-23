@@ -2,6 +2,8 @@ import string
 from collections.abc import Callable
 from typing import Any, cast
 
+from arcade.sdk import ToolContext
+
 from arcade_salesforce.constants import ASSOCIATION_REFERENCE_FIELDS, GLOBALLY_IGNORED_FIELDS
 from arcade_salesforce.enums import SalesforceObject
 
@@ -277,3 +279,10 @@ def remove_none_values(data: dict) -> dict:
         The cleaned dictionary.
     """
     return {k: v for k, v in data.items() if v is not None}
+
+
+def get_org_subdomain_from_secrets(context: ToolContext) -> str | None:
+    try:
+        return context.get_secret("SALESFORCE_ORG_SUBDOMAIN")
+    except ValueError:
+        return None
