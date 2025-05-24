@@ -8,10 +8,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-import httpx
 import toml
 from arcadepy import Arcade, NotFoundError
-from httpx import Client
+from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
 from packaging.requirements import Requirement
 from pydantic import BaseModel, field_serializer, field_validator, model_validator
 from rich.console import Console
@@ -130,11 +129,13 @@ class Request(BaseModel):
                     timeout=10,
                 )
                 worker_resp.raise_for_status()
-            except httpx.TimeoutException:
+            except TimeoutException:
                 time.sleep(1)
                 continue
-            except httpx.ConnectError as e:
+            except ConnectError as e:
                 raise ValueError(f"Failed to connect to cloud: {e}")
+            except HTTPStatusError as e:
+                raise ValueError(f"Failed to start worker: {e.response.json()}")
             except Exception as e:
                 raise ValueError(f"Failed to start worker: {e}")
             status = worker_resp.json()["data"]["status"]
@@ -152,11 +153,14 @@ class Request(BaseModel):
                 timeout=360,
             )
             cloud_response.raise_for_status()
-        except httpx.ConnectError as e:
+        except ConnectError as e:
             raise ValueError(f"Failed to connect to cloud: {e}")
+        except HTTPStatusError as e:
+            raise ValueError(f"Failed to start worker: {e.response.json()}")
         except Exception as e:
             # change this so it handles errors that aren't just from cloud
             raise ValueError(f"Failed to start worker: {e}")
+
         parse_deployment_response(cloud_response.json())
         worker_data = self.poll_worker_status(cloud_client, self.name)
 
