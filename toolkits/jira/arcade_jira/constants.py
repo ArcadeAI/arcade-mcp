@@ -9,6 +9,11 @@ try:
 except Exception:
     JIRA_MAX_CONCURRENT_REQUESTS = 3
 
+try:
+    JIRA_API_REQUEST_TIMEOUT = int(os.getenv("JIRA_API_REQUEST_TIMEOUT", 30))
+except Exception:
+    JIRA_API_REQUEST_TIMEOUT = 30
+
 JIRA_ISSUE_FIELDS = [
     "id",
     "key",
@@ -60,8 +65,20 @@ class IssueCommentOrderBy(Enum):
 
     def to_api_value(self):
         _map = {
-            IssueCommentOrderBy.CREATED_DATE_ASCENDING: "created",
+            IssueCommentOrderBy.CREATED_DATE_ASCENDING: "+created",
             IssueCommentOrderBy.CREATED_DATE_DESCENDING: "-created",
+        }
+        return _map[self]
+
+
+class PrioritySchemeOrderBy(Enum):
+    NAME_ASCENDING = "name ascending"
+    NAME_DESCENDING = "name descending"
+
+    def to_api_value(self):
+        _map = {
+            PrioritySchemeOrderBy.NAME_ASCENDING: "+name",
+            PrioritySchemeOrderBy.NAME_DESCENDING: "-name",
         }
         return _map[self]
 

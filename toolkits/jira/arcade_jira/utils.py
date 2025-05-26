@@ -9,6 +9,8 @@ from typing import Any
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
+from arcade_jira.exceptions import MultipleItemsFoundError, NotFoundError
+
 
 def remove_none_values(data: dict) -> dict:
     """Remove all keys with None values from the dictionary."""
@@ -168,10 +170,14 @@ def clean_project_dict(project: dict) -> dict:
     data = {
         "id": project["id"],
         "key": project["key"],
-        "url": project["self"],
         "name": project["name"],
-        "description": project["description"],
     }
+
+    if "self" in project:
+        data["url"] = project["self"]
+
+    if "description" in project:
+        data["description"] = project["description"]
 
     if "email" in project:
         data["email"] = project["email"]
@@ -224,6 +230,68 @@ def clean_attachment_dict(attachment: dict) -> dict:
     }
 
 
+def clean_priority_scheme_dict(scheme: dict) -> dict:
+    data = {
+        "id": scheme["id"],
+        "name": scheme["name"],
+        "description": scheme["description"],
+        "is_default": scheme["isDefault"],
+    }
+
+    if "self" in scheme:
+        data["url"] = scheme["self"]
+
+    if isinstance(scheme.get("priorities"), dict):
+        all_priorities = scheme["priorities"].get("isLast", True)
+
+        data["priorities"] = [
+            clean_priority_dict(priority) for priority in scheme["priorities"]["values"]
+        ]
+
+        if not all_priorities:
+            # Avoid circular import
+            from arcade_jira.tools.priorities import (
+                list_priorities_associated_with_a_priority_scheme,
+            )
+
+            data["priorities"]["message"] = (
+                "Not all priorities are listed. Paginate the "
+                f"`Jira.{list_priorities_associated_with_a_priority_scheme.__tool_name__}` tool "
+                "to get the full list of priorities in this priority scheme."
+            )
+
+    if isinstance(scheme.get("projects"), dict):
+        all_projects = scheme["projects"].get("isLast", True)
+        data["projects"] = [clean_project_dict(project) for project in scheme["projects"]["values"]]
+        if not all_projects:
+            # Avoid circular import
+            from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme
+
+            data["projects"]["message"] = (
+                "Not all projects are listed. Paginate the "
+                f"`Jira.{list_projects_associated_with_a_priority_scheme.__tool_name__}` tool "
+                "to get the full list of projects in this priority scheme."
+            )
+
+    return data
+
+
+def clean_priority_dict(priority: dict) -> dict:
+    data = {
+        "id": priority["id"],
+        "name": priority["name"],
+        "description": priority["description"],
+    }
+
+    if "self" in priority:
+        data["url"] = priority["self"]
+
+    if "statusColor" in priority:
+        data["statusColor"] = priority["statusColor"]
+
+    return data
+
+
 def get_summarized_issue_dict(issue: dict) -> dict:
     fields = issue["fields"]
     return {
@@ -247,11 +315,17 @@ def add_pagination_to_response(
     if max_results:
         next_offset = min(next_offset, max_results - limit)
 
+    response["pagination"] = {
+        "limit": limit,
+        "total_results": len(items),
+    }
+
     if response.get("isLast") is False or (len(items) >= limit and next_offset > offset):
-        response["pagination"] = {
-            "limit": limit,
-            "next_offset": next_offset,
-        }
+        response["pagination"]["next_offset"] = next_offset
+
+    with suppress(KeyError):
+        del response["isLast"]
+
     return response
 
 
@@ -331,6 +405,47 @@ async def find_users_or_raise_error(
     return users
 
 
+async def find_unique_project_or_raise_error(
+    context: ToolContext,
+    project_identifier: str,
+) -> dict[str, Any]:
+    """Find a project by its ID, key, or name or raise a NotFound error
+
+    Args:
+        project_identifier: The ID, key, or name of the project to find.
+
+    Returns:
+        The project found.
+    """
+    # Avoid circular import
+    from arcade_jira.tools.projects import get_project_by_id, search_projects
+
+    # Try to find project by ID or key
+    response = await get_project_by_id(context, project=project_identifier)
+    if response.get("project"):
+        return response["project"]
+
+    # If not found, search by name
+    response = await search_projects(context, keywords=project_identifier)
+    projects = response["projects"]
+    if len(projects) == 1:
+        return projects[0]
+    elif len(projects) > 1:
+        simplified_projects = [
+            {
+                "id": project["id"],
+                "name": project["name"],
+            }
+            for project in projects
+        ]
+        raise MultipleItemsFoundError(
+            f"Multiple projects found with name/key/ID '{project_identifier}'. "
+            f"Please provide a unique ID: {json.dumps(simplified_projects)}"
+        )
+
+    raise NotFoundError(f"Project not found with name/key/ID '{project_identifier}'")
+
+
 def build_file_data(
     filename: str,
     file_content_str: str | None,
@@ -375,3 +490,55 @@ def build_adf_doc_from_plaintext(text: str) -> dict:
             for text in text.split("\n")
         ],
     }
+
+
+async def paginate_all_items(
+    context: ToolContext,
+    tool: callable,
+    response_items_key: str,
+    limit: int | None = None,
+    offset: int | None = None,
+    **kwargs: Any,
+) -> list[dict]:
+    """Paginate all items from a tool."""
+    keep_paginating = True
+    items: list[dict] = []
+
+    if limit is not None:
+        kwargs["limit"] = limit
+
+    if offset is not None:
+        kwargs["offset"] = offset
+
+    while keep_paginating:
+        response = await tool(context, **kwargs)
+        next_offset = response["pagination"].get("next_offset")
+        kwargs["offset"] = next_offset
+        keep_paginating = isinstance(next_offset, int)
+        items.extend(response[response_items_key])
+
+    return items
+
+
+async def paginate_all_priority_schemes(context: ToolContext) -> list[dict]:
+    """Get all priority schemes."""
+    # Avoid circular import
+    from arcade_jira.tools.priorities import list_priority_schemes
+
+    return await paginate_all_items(context, list_priority_schemes, "priority_schemes")
+
+
+async def paginate_all_priorities_by_priority_scheme(
+    context: ToolContext,
+    scheme_id: str,
+) -> list[dict]:
+    """Get all priorities associated with a priority scheme."""
+    # Avoid circular import
+    from arcade_jira.tools.priorities import list_priorities_associated_with_a_priority_scheme
+
+    return await paginate_all_items(
+        context,
+        list_priorities_associated_with_a_priority_scheme,
+        "priorities",
+        scheme_id=scheme_id,
+    )

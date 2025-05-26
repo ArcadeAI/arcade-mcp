@@ -7,3 +7,7 @@ class JiraToolExecutionError(ToolExecutionError):
 
 class NotFoundError(JiraToolExecutionError):
     pass
+
+
+class MultipleItemsFoundError(JiraToolExecutionError):
+    pass

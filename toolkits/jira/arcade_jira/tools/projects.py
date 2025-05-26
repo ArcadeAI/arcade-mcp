@@ -46,7 +46,7 @@ async def search_projects(
     projects = [clean_project_dict(project) for project in api_response["values"]]
     response = {
         "projects": projects,
-        "count": len(projects),
+        "isLast": api_response.get("isLast"),
     }
     return add_pagination_to_response(response, projects, limit, offset)
 
