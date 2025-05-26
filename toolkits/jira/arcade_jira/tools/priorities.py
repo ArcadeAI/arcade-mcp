@@ -12,7 +12,7 @@ from arcade_jira.utils import (
     clean_priority_dict,
     clean_priority_scheme_dict,
     clean_project_dict,
-    find_unique_project_or_raise_error,
+    find_unique_project,
     paginate_all_priorities_by_priority_scheme,
     paginate_all_priority_schemes,
     remove_none_values,
@@ -118,7 +118,7 @@ async def list_projects_associated_with_a_priority_scheme(
     """Browse the projects associated with a priority scheme."""
     if project:
         try:
-            project = await find_unique_project_or_raise_error(context, project)
+            project = await find_unique_project(context, project)
         except (NotFoundError, MultipleItemsFoundError) as exc:
             return {"error": exc.message}
         finally:
@@ -156,7 +156,7 @@ async def list_priorities_available_to_a_project(
     the search may take too long, and the tool call will timeout.
     """
     try:
-        project = await find_unique_project_or_raise_error(context, project)
+        project = await find_unique_project(context, project)
     except (NotFoundError, MultipleItemsFoundError) as exc:
         return {"error": exc.message}
 

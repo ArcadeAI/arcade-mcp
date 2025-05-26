@@ -5,6 +5,7 @@ from arcade.sdk.auth import Atlassian
 from arcade.sdk.errors import ToolExecutionError
 
 from arcade_jira.client import JiraClient
+from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remove_none_values
 
 
@@ -39,14 +40,16 @@ async def get_user_by_id(
 ) -> Annotated[dict[str, Any], "The user information."]:
     """Get user information by their ID."""
     client = JiraClient(context.get_auth_token_or_empty())
-    response = await client.get("user", params={"accountId": user_id})
+
+    not_found = {"error": "User not found"}
+
+    try:
+        response = await client.get("user", params={"accountId": user_id})
+    except NotFoundError:
+        return not_found
 
     if not response:
-        return {
-            "user": None,
-            "message": f"No user found with ID '{user_id}'.",
-            "query": {"user_id": user_id},
-        }
+        return not_found
 
     return {"user": clean_user_dict(response)}
 
@@ -56,10 +59,10 @@ async def get_users_without_id(
     context: ToolContext,
     name_or_email: Annotated[
         str,
-        "The user's display name or email address to search for. The string can match the prefix "
-        "of the user's attribute. For example, a string of 'john' will match users with the "
-        "display name or email address that starts with 'john', such as 'John Doe', 'Johnson', "
-        "'john.doe@example.com', etc.",
+        "The user's display name or email address to search for (case-insensitive). The string can "
+        "match the prefix of the user's attribute. For example, a string of 'john' will match "
+        "users with a display name or email address that starts with 'john', such as "
+        "'John Doe', 'Johnson', 'john@example.com', etc.",
     ],
     enforce_exact_match: Annotated[
         bool,
@@ -111,14 +114,12 @@ async def get_users_without_id(
         users = [
             user
             for user in users
-            if user["name"] == name_or_email or user["email"] == name_or_email
+            if user["name"].casefold() == name_or_email.casefold()
+            or user["email"].casefold() == name_or_email.casefold()
         ]
 
     response = {
-        "users": {
-            "items": users,
-            "count": len(users),
-        },
+        "users": users,
         "query": {
             "name_or_email": name_or_email,
             "enforce_exact_match": enforce_exact_match,

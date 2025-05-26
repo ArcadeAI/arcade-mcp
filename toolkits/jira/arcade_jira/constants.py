@@ -89,3 +89,10 @@ class IssueProperty(Enum):
     REPORTER = "reporter"
     LABELS = "labels"
     DUE_DATE = "duedate"
+
+
+class UserIdentifierProperty(Enum):
+    ID = "id"
+    KEY = "key"
+    EMAIL = "email"
+    DISPLAY_NAME = "displayName"

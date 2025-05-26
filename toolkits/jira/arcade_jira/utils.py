@@ -9,7 +9,7 @@ from typing import Any
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_jira.exceptions import MultipleItemsFoundError, NotFoundError
+from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 
 
 def remove_none_values(data: dict) -> dict:
@@ -26,6 +26,15 @@ def safe_delete_dict_keys(data: dict, keys: list[str]) -> dict:
 
 def convert_date_string_to_date(date_string: str) -> date:
     return datetime.strptime(date_string, "%Y-%m-%d").date()
+
+
+def is_valid_date_string(date_string: str) -> bool:
+    try:
+        convert_date_string_to_date(date_string)
+    except ValueError:
+        return False
+
+    return True
 
 
 def quote(v: str) -> str:
@@ -411,11 +420,11 @@ async def find_users_or_raise_error(
     return users
 
 
-async def find_unique_project_or_raise_error(
+async def find_unique_project(
     context: ToolContext,
     project_identifier: str,
 ) -> dict[str, Any]:
-    """Find a project by its ID, key, or name or raise a NotFound error
+    """Find a unique project by its ID, key, or name
 
     Args:
         project_identifier: The ID, key, or name of the project to find.
@@ -450,6 +459,145 @@ async def find_unique_project_or_raise_error(
         )
 
     raise NotFoundError(f"Project not found with name/key/ID '{project_identifier}'")
+
+
+async def find_unique_priority(
+    context: ToolContext,
+    priority_identifier: str,
+    project_id: str,
+) -> dict[str, Any]:
+    """Find a unique priority by ID or name that is associated with a project
+
+    Args:
+        priority_identifier: The ID or name of the priority to find.
+        project_id: The ID of the project to find the priority for.
+
+    Returns:
+        The priority found.
+    """
+    # Avoid circular import
+    from arcade_jira.tools.priorities import (
+        get_priority_by_id,
+        list_priorities_available_to_a_project,
+    )
+
+    # Try to get the priority by ID first
+    response = await get_priority_by_id(context, priority_identifier)
+    if response.get("priority"):
+        return response["priority"]
+
+    # If not found, search by name
+    response = await list_priorities_available_to_a_project(context, project_id)
+    priorities = response["priorities_available"]
+    matches: list[dict[str, Any]] = []
+
+    for priority in priorities:
+        if priority["name"].casefold() == priority_identifier.casefold():
+            matches.append(priority)
+
+    if len(matches) == 1:
+        return matches[0]
+    elif len(matches) > 1:
+        simplified_matches = [
+            {
+                "id": match["id"],
+                "name": match["name"],
+            }
+            for match in matches
+        ]
+        raise MultipleItemsFoundError(
+            f"Multiple priorities found with name '{priority_identifier}'. "
+            f"Please provide a unique ID: {json.dumps(simplified_matches)}"
+        )
+
+    raise NotFoundError(f"Priority not found with ID or name '{priority_identifier}'")
+
+
+async def find_unique_issue_type(
+    context: ToolContext,
+    issue_type_identifier: str,
+    project_id: str,
+) -> dict[str, Any]:
+    """Find a unique issue type by its ID or name that is associated with a project
+
+    Args:
+        issue_type_identifier: The ID or name of the issue type to find.
+        project_id: The ID of the project to find the issue type for.
+
+    Returns:
+        The issue type found.
+    """
+    # Avoid circular import
+    from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types
+
+    # Try to get the issue type by ID first
+    response = await get_issue_type_by_id(context, issue_type_identifier)
+    if response.get("issue_type"):
+        return response["issue_type"]
+
+    # If not found, search by name
+    response = await list_issue_types(context, project_id)
+    issue_types = response["issue_types"]
+    matches: list[dict[str, Any]] = []
+
+    for issue_type in issue_types:
+        if issue_type["name"].casefold() == issue_type_identifier.casefold():
+            matches.append(issue_type)
+
+    if len(matches) == 1:
+        return matches[0]
+    elif len(matches) > 1:
+        simplified_matches = [
+            {
+                "id": match["id"],
+                "name": match["name"],
+            }
+            for match in matches
+        ]
+        raise MultipleItemsFoundError(
+            f"Multiple issue types found with name '{issue_type_identifier}'. "
+            f"Please provide a unique ID: {json.dumps(simplified_matches)}"
+        )
+
+    raise NotFoundError(f"Issue type not found with ID or name '{issue_type_identifier}'")
+
+
+async def find_unique_user(
+    context: ToolContext,
+    user_identifier: str,
+) -> dict[str, Any]:
+    """Find a unique user by their ID, key, email address, or display name."""
+    # Avoid circular import
+    from arcade_jira.tools.users import get_user_by_id, get_users_without_id
+
+    # Try to get the user by ID
+    response = await get_user_by_id(context, user_identifier)
+    if response.get("user"):
+        return response["user"]
+
+    # Search for the user name or email, if not found by ID
+    response = await get_users_without_id(
+        context, name_or_email=user_identifier, enforce_exact_match=True
+    )
+    users = response["users"]["items"]
+
+    if len(users) == 1:
+        return users[0]
+    elif len(users) > 1:
+        simplified_users = [
+            {
+                "id": user["id"],
+                "name": user["name"],
+                "email": user["email"],
+            }
+            for user in users
+        ]
+        raise MultipleItemsFoundError(
+            f"Multiple users found with name or email '{user_identifier}'. "
+            f"Please provide a unique ID: {json.dumps(simplified_users)}"
+        )
+
+    raise NotFoundError(f"User not found with ID, name or email '{user_identifier}'")
 
 
 def build_file_data(
@@ -518,6 +666,10 @@ async def paginate_all_items(
 
     while keep_paginating:
         response = await tool(context, **kwargs)
+
+        if response.get("error"):
+            raise JiraToolExecutionError(response["error"])
+
         next_offset = response["pagination"].get("next_offset")
         kwargs["offset"] = next_offset
         keep_paginating = isinstance(next_offset, int)
@@ -548,3 +700,80 @@ async def paginate_all_priorities_by_priority_scheme(
         "priorities",
         scheme_id=scheme_id,
     )
+
+
+async def paginate_all_issue_types(context: ToolContext, project_identifier: str) -> list[dict]:
+    """Get all issue types associated with a project."""
+    # Avoid circular import
+    from arcade_jira.tools.issues import list_issue_types
+
+    return await paginate_all_items(
+        context,
+        list_issue_types,
+        "issue_types",
+        project=project_identifier,
+    )
+
+
+async def validate_issue_args(
+    context: ToolContext,
+    due_date: str | None,
+    project: str | None,
+    issue_type: str | None,
+    priority: str | None,
+) -> tuple[dict | None, dict | None, dict | None, dict | None]:
+    error = None
+
+    if due_date and not is_valid_date_string(due_date):
+        error = {"error": f"Invalid `due_date` format: '{due_date}'. Please use YYYY-MM-DD."}
+
+    if not project:
+        error = {"error": "The `project` argument is required."}
+
+    if not issue_type:
+        error = {"error": "The `issue_type` argument is required."}
+
+    if error:
+        return error, None, None, None
+
+    try:
+        project = await find_unique_project(context, project)
+    except JiraToolExecutionError as exc:
+        return {"error": exc.message}, None, None, None
+
+    if issue_type:
+        try:
+            issue_type = await find_unique_issue_type(context, issue_type, project["id"])
+        except JiraToolExecutionError as exc:
+            return {"error": exc.message}, None, None, None
+
+    if priority:
+        try:
+            priority = await find_unique_priority(context, priority, project["id"])
+        except JiraToolExecutionError as exc:
+            return {"error": exc.message}, None, None, None
+
+    return None, project, issue_type, priority
+
+
+async def resolve_issue_users(
+    context: ToolContext,
+    assignee: str | None,
+    reporter: str | None,
+) -> tuple[dict | None, dict | None, dict | None]:
+    if not assignee and not reporter:
+        return None, None, None
+
+    if assignee:
+        try:
+            assignee = await find_unique_user(context, assignee)
+        except JiraToolExecutionError as exc:
+            return {"error": exc.message}, None, None
+
+    if reporter:
+        try:
+            reporter = await find_unique_user(context, reporter)
+        except JiraToolExecutionError as exc:
+            return {"error": exc.message}, None, None
+
+    return None, assignee, reporter
