@@ -212,3 +212,27 @@ async def list_priorities_available_to_a_project(
 
     except asyncio.TimeoutError:
         return {"error": f"The search timed out after {JIRA_API_REQUEST_TIMEOUT} seconds."}
+
+
+@tool(requires_auth=Atlassian(scopes=["manage:jira-configuration"]))
+async def list_priorities_available_to_an_issue(
+    context: ToolContext,
+    issue: Annotated[str, "The ID, key or name of the issue to retrieve priorities for."],
+) -> Annotated[dict[str, Any], "The priorities available to be used in the specified Jira issue"]:
+    """Browse the priorities available to be used in the specified Jira issue."""
+    from arcade_jira.tools.issues import get_issue_by_id
+
+    issue = await get_issue_by_id(context, issue)
+    if issue.get("error"):
+        return issue
+
+    response = await list_priorities_available_to_a_project(context, issue["project"]["id"])
+
+    return {
+        "issue": {
+            "id": issue["id"],
+            "key": issue["key"],
+            "name": issue["fields"]["summary"],
+        },
+        "priorities_available": response["priorities_available"],
+    }

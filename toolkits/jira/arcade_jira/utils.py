@@ -99,32 +99,24 @@ def clean_issue_dict(issue: dict) -> dict:
     if fields["reporter"]:
         fields["reporter"] = clean_user_dict(fields["reporter"])
 
-    fields["status"] = {
-        "name": fields["status"]["name"],
-        "id": fields["status"]["id"],
-    }
+    if fields.get("description"):
+        fields["description"] = rendered_fields.get("description")
 
-    fields["type"] = fields["issuetype"]["name"]
-    fields["priority"] = fields["priority"]["name"]
+    if fields.get("environment"):
+        fields["environment"] = rendered_fields.get("environment")
 
-    if fields["project"]:
-        fields["project"] = {
-            "name": fields["project"]["name"],
-            "id": fields["project"]["id"],
-            "key": fields["project"]["key"],
+    if fields.get("worklog"):
+        fields["worklog"] = {
+            "items": rendered_fields.get("worklog", {}).get("worklogs", []),
+            "total": len(rendered_fields.get("worklog", {}).get("worklogs", [])),
         }
 
-    fields["description"] = rendered_fields.get("description")
-    fields["environment"] = rendered_fields.get("environment")
+    if fields.get("attachment"):
+        fields["attachments"] = [
+            clean_attachment_dict(attachment) for attachment in fields.get("attachment", [])
+        ]
 
-    fields["worklog"] = {
-        "items": rendered_fields.get("worklog", {}).get("worklogs", []),
-        "total": len(rendered_fields.get("worklog", {}).get("worklogs", [])),
-    }
-
-    fields["attachments"] = [
-        clean_attachment_dict(attachment) for attachment in fields.get("attachment", [])
-    ]
+    add_identified_fields_to_issue(fields, ["status", "issuetype", "priority", "project"])
 
     safe_delete_dict_keys(
         fields,
@@ -147,6 +139,20 @@ def clean_issue_dict(issue: dict) -> dict:
     )
 
     return fields
+
+
+def add_identified_fields_to_issue(
+    fields_dict: dict[str, Any],
+    field_names: list[str],
+) -> dict[str, Any]:
+    for field_name in field_names:
+        if fields_dict.get(field_name):
+            fields_dict[field_name] = {
+                "name": fields_dict[field_name]["name"],
+                "id": fields_dict[field_name]["id"],
+            }
+
+    return fields_dict
 
 
 def clean_comment_dict(comment: dict, include_adf_content: bool = False) -> dict:
