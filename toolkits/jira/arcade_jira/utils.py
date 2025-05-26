@@ -79,9 +79,11 @@ def clean_issue_dict(issue: dict) -> dict:
 
     fields["id"] = issue["id"]
     fields["key"] = issue["key"]
-    fields["url"] = fields["self"]
 
     fields["title"] = fields["summary"]
+
+    if fields.get("self"):
+        fields["url"] = fields["self"]
 
     if fields.get("parent"):
         fields["parent"] = get_summarized_issue_dict(fields["parent"])

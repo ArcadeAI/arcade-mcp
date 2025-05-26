@@ -64,3 +64,11 @@ class IssueCommentOrderBy(Enum):
             IssueCommentOrderBy.CREATED_DATE_DESCENDING: "-created",
         }
         return _map[self]
+
+
+class IssueProperty(Enum):
+    PARENT = "parent"
+    ASSIGNEE = "assignee"
+    REPORTER = "reporter"
+    LABELS = "labels"
+    DUE_DATE = "duedate"

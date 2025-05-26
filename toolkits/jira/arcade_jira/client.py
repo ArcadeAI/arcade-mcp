@@ -186,6 +186,7 @@ class JiraClient:
         endpoint: str,
         data: Optional[dict] = None,
         json_data: Optional[dict] = None,
+        params: Optional[dict] = None,
         headers: Optional[dict] = None,
     ) -> dict:
         headers = headers or {}
@@ -199,6 +200,9 @@ class JiraClient:
         }
 
         kwargs = self._set_request_body(kwargs, data, json_data)
+
+        if params:
+            kwargs["params"] = params
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.put(**kwargs)  # type: ignore[arg-type]

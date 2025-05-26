@@ -205,6 +205,39 @@ async def get_issues_without_id(
     }
 
 
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def search_issues_with_jql(
+    context: ToolContext,
+    jql: Annotated[str, "The JQL (Jira Query Language) query to search for issues"],
+    limit: Annotated[
+        int,
+        "The maximum number of issues to retrieve. Min 1, max 100, default 50.",
+    ] = 50,
+    next_page_token: Annotated[
+        str | None,
+        "The token to use to get the next page of issues. Defaults to None (first page).",
+    ] = None,
+) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
+    """Search for Jira issues using a JQL (Jira Query Language) query."""
+    limit = max(1, min(limit, 100))
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.post(
+        "search/jql",
+        json_data={
+            "jql": jql,
+            "maxResults": limit,
+            "nextPageToken": next_page_token,
+            "fields": ["*all"],
+            "expand": "renderedFields",
+        },
+    )
+    return {
+        "issues": [clean_issue_dict(issue) for issue in response["issues"]],
+        "count": len(response["issues"]),
+        "next_page_token": response.get("nextPageToken"),
+    }
+
+
 @tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
 async def create_issue(
     context: ToolContext,
@@ -291,4 +324,165 @@ async def create_issue(
             "key": response["key"],
             "url": response["self"],
         },
+    }
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+async def add_labels_to_issue(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to update"],
+    labels: Annotated[list[str], "The labels to add to the issue"],
+    notify_watchers: Annotated[
+        bool,
+        "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
+    ] = True,
+) -> Annotated[dict, "The updated issue"]:
+    """Add labels to an existing Jira issue."""
+    issue = await get_issue_by_id(context, issue)
+    if issue.get("error"):
+        return issue
+    current_labels = issue["issue"]["labels"]
+    return await update_issue(
+        context=context,
+        issue=issue["issue"]["id"],
+        labels=current_labels + labels,
+        notify_watchers=notify_watchers,
+    )
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+async def remove_labels_from_issue(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to update"],
+    labels: Annotated[list[str], "The labels to remove from the issue (case-insensitive)"],
+    notify_watchers: Annotated[
+        bool,
+        "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
+    ] = True,
+) -> Annotated[dict, "The updated issue"]:
+    """Remove labels from an existing Jira issue."""
+    issue = await get_issue_by_id(context, issue)
+    if issue.get("error"):
+        return issue
+
+    lowercase_labels = [label.casefold() for label in labels]
+    current_labels = issue["issue"]["labels"]
+    new_labels = [label for label in current_labels if label.casefold() not in lowercase_labels]
+    return await update_issue(
+        context=context,
+        issue=issue["issue"]["id"],
+        labels=new_labels,
+        notify_watchers=notify_watchers,
+    )
+
+
+@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+async def update_issue(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue to update"],
+    title: Annotated[
+        str | None,
+        "The new issue title. Defaults to None (does not change the title).",
+    ] = None,
+    description: Annotated[
+        str | None,
+        "The new issue description. Defaults to None (does not change the description).",
+    ] = None,
+    environment: Annotated[
+        str | None,
+        "The new issue environment. Defaults to None (does not change the environment).",
+    ] = None,
+    due_date: Annotated[
+        str | None,
+        "The new issue due date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (does not change the due date).",
+    ] = None,
+    issue_type_id: Annotated[
+        str | None,
+        "The new issue type ID. Defaults to None (does not change the issue type).",
+    ] = None,
+    project_id: Annotated[
+        str | None,
+        "The new issue project ID. Defaults to None (does not change the project).",
+    ] = None,
+    priority_id: Annotated[
+        str | None,
+        "The new issue priority ID. Defaults to None (does not change the priority).",
+    ] = None,
+    assignee_id: Annotated[
+        str | None,
+        "The new issue assignee ID. Defaults to None (does not change the assignee).",
+    ] = None,
+    reporter_id: Annotated[
+        str | None,
+        "The new issue reporter ID. Defaults to None (does not change the reporter).",
+    ] = None,
+    labels: Annotated[
+        list[str] | None,
+        "The new issue labels. This argument will replace all labels with the new list. "
+        "An empty list will remove all labels. To add or remove a subset of labels, "
+        f"use the `Jira.{add_labels_to_issue.__tool_name__}` or the "
+        f"`Jira.{remove_labels_from_issue.__tool_name__}` tools. "
+        "Defaults to None (does not change the labels).",
+    ] = None,
+    notify_watchers: Annotated[
+        bool,
+        "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
+    ] = True,
+) -> Annotated[dict, "The updated issue"]:
+    """Update an existing Jira issue."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    params = remove_none_values({
+        "notifyWatchers": notify_watchers,
+        "expand": "renderedFields",
+    })
+    request_body = {
+        "fields": remove_none_values({
+            "summary": title,
+            "duedate": due_date,
+            "labels": labels,
+            "issuetype": {"id": issue_type_id} if issue_type_id else None,
+            "project": {"id": project_id} if project_id else None,
+            "priority": {"id": priority_id} if priority_id else None,
+            "assignee": {"id": assignee_id} if assignee_id else None,
+            "reporter": {"id": reporter_id} if reporter_id else None,
+        }),
+    }
+
+    if environment:
+        request_body["fields"]["environment"] = build_adf_doc_from_plaintext(environment)
+
+    if description:
+        request_body["fields"]["description"] = build_adf_doc_from_plaintext(description)
+
+    await client.put(f"/issue/{issue}", json_data=request_body, params=params)
+    return {"issue": issue, "status": "success", "message": "Issue updated successfully."}
+
+
+@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+async def clear_issue_property(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue"],
+    property_name: Annotated[
+        str,
+        "Which property to clear. Some commonly referenced properties are: "
+        "parent, assignee, duedate.",
+    ],
+    notify_watchers: Annotated[
+        bool,
+        "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
+    ] = True,
+) -> Annotated[dict, "The updated issue"]:
+    """Clear the value of a property from an existing Jira issue."""
+    client = JiraClient(context.get_auth_token_or_empty())
+    params = remove_none_values({
+        "notifyWatchers": notify_watchers,
+        "expand": "renderedFields",
+    })
+    request_body = {"update": {property_name: [{"set": None}]}}
+    await client.put(f"/issue/{issue}", json_data=request_body, params=params)
+    return {
+        "issue": issue,
+        "status": "success",
+        "message": f"Issue property '{property_name}' successfully cleared.",
     }
