@@ -35,11 +35,11 @@ class JiraClient:
         return f"{self.base_url}/{self.cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
 
     def _get_cloud_id(self) -> str:
-        with httpx.Client() as client:  # type: ignore[union-attr]
+        with httpx.Client() as client:
             response = client.get(
                 "https://api.atlassian.com/oauth/token/accessible-resources",
                 headers={"Authorization": f"Bearer {self.auth_token}"},
-            )  # type: ignore[arg-type]
+            )
 
             data = response.json()
 
@@ -60,23 +60,23 @@ class JiraClient:
                     f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
                     "Cannot resolve which one to use."
                 )
-            return data[0]["id"]
+            return cast(str, data[0]["id"])
 
-    def _build_error_messages(self, response: httpx.Response) -> tuple[str, str]:
+    def _build_error_messages(self, response: httpx.Response) -> tuple[str, str | None]:
         try:
             data = response.json()
             developer_message = None
 
             if "errorMessages" in data:
                 if len(data["errorMessages"]) == 1:
-                    error_message = data["errorMessages"][0]
+                    error_message = cast(str, data["errorMessages"][0])
                 elif "errors" in data:
                     error_message = json.dumps(data["errors"])
                 else:
                     error_message = "Unknown error"
 
             elif "message" in data:
-                error_message = data["message"]
+                error_message = cast(str, data["message"])
 
             else:
                 error_message = json.dumps(data)

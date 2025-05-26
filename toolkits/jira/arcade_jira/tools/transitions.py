@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
@@ -18,20 +18,20 @@ async def get_transitions_available_for_issue(
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
     client = JiraClient(context.get_auth_token_or_empty())
-    issue = await get_issue_by_id(context, issue)
-    if issue.get("error"):
-        return issue
+    issue_data = await get_issue_by_id(context, issue)
+    if issue_data.get("error"):
+        return cast(dict, issue_data)
     response = await client.get(
-        f"/issue/{issue['issue']['id']}/transitions",
+        f"/issue/{issue_data['issue']['id']}/transitions",
         params={
             "expand": "transitions.fields",
         },
     )
     return {
         "issue": {
-            "id": issue["issue"]["id"],
-            "key": issue["issue"]["key"],
-            "current_status": issue["issue"]["status"],
+            "id": issue_data["issue"]["id"],
+            "key": issue_data["issue"]["key"],
+            "current_status": issue_data["issue"]["status"],
         },
         "transitions_available": response["transitions"],
     }
@@ -89,7 +89,7 @@ async def perform_issue_transition(
     else:
         response = await get_transition_by_name(context, issue, transition)
         if response.get("error"):
-            return response
+            return cast(dict, response)
         transition_id = response["transition"]["id"]
         transition_name = response["transition"]["name"]
 

@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
@@ -93,8 +93,8 @@ async def list_issue_attachments_metadata(
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular imports
 
     response = await get_issue_by_id(context, issue)
-    if not response.get("issue"):
-        return response
+    if response.get("error"):
+        return cast(dict, response)
     return {
         "issue": {
             "id": response["issue"]["id"],
@@ -128,8 +128,8 @@ async def download_attachment(
 
     attachment = await get_attachment_metadata(context, attachment_id)
 
-    if "error" in attachment:
-        return attachment
+    if attachment.get("error"):
+        return cast(dict, attachment)
 
     try:
         content = await client.get(
@@ -143,4 +143,4 @@ async def download_attachment(
 
     attachment["attachment"]["content"] = content["text"]
 
-    return attachment
+    return cast(dict, attachment)

@@ -10,7 +10,7 @@ from arcade_jira.utils import (
     add_pagination_to_response,
     build_adf_doc_from_plaintext,
     clean_comment_dict,
-    find_users_or_raise_error,
+    find_multiple_unique_users,
     remove_none_values,
 )
 
@@ -114,7 +114,7 @@ async def add_comment_to_issue(
     adf_body = build_adf_doc_from_plaintext(body)
 
     if mention_users:
-        users = await find_users_or_raise_error(context, mention_users, exact_match=True)
+        users = await find_multiple_unique_users(context, mention_users, exact_match=True)
         mentions = [
             {
                 "type": "mention",

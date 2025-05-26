@@ -63,8 +63,8 @@ class IssueCommentOrderBy(Enum):
     CREATED_DATE_ASCENDING = "created_date_ascending"
     CREATED_DATE_DESCENDING = "created_date_descending"
 
-    def to_api_value(self):
-        _map = {
+    def to_api_value(self) -> str:
+        _map: dict[IssueCommentOrderBy, str] = {
             IssueCommentOrderBy.CREATED_DATE_ASCENDING: "+created",
             IssueCommentOrderBy.CREATED_DATE_DESCENDING: "-created",
         }
@@ -75,8 +75,8 @@ class PrioritySchemeOrderBy(Enum):
     NAME_ASCENDING = "name ascending"
     NAME_DESCENDING = "name descending"
 
-    def to_api_value(self):
-        _map = {
+    def to_api_value(self) -> str:
+        _map: dict[PrioritySchemeOrderBy, str] = {
             PrioritySchemeOrderBy.NAME_ASCENDING: "+name",
             PrioritySchemeOrderBy.NAME_DESCENDING: "-name",
         }

@@ -1,5 +1,5 @@
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
@@ -12,9 +12,8 @@ from arcade_jira.utils import (
     clean_priority_dict,
     clean_priority_scheme_dict,
     clean_project_dict,
+    find_priorities_by_project,
     find_unique_project,
-    paginate_all_priorities_by_priority_scheme,
-    paginate_all_priority_schemes,
     remove_none_values,
 )
 
@@ -118,11 +117,11 @@ async def list_projects_associated_with_a_priority_scheme(
     """Browse the projects associated with a priority scheme."""
     if project:
         try:
-            project = await find_unique_project(context, project)
+            project_data = await find_unique_project(context, project)
         except (NotFoundError, MultipleItemsFoundError) as exc:
             return {"error": exc.message}
         finally:
-            project = project["id"]
+            project = project_data["id"]
 
     client = JiraClient(context.get_auth_token_or_empty())
     api_response = await client.get(
@@ -156,62 +155,17 @@ async def list_priorities_available_to_a_project(
     the search may take too long, and the tool call will timeout.
     """
     try:
-        project = await find_unique_project(context, project)
+        project_data = await find_unique_project(context, project)
     except (NotFoundError, MultipleItemsFoundError) as exc:
         return {"error": exc.message}
 
-    scheme_ids: set[str] = set()
-    priority_ids: set[str] = set()
-    priorities: list[dict[str, Any]] = []
-
     try:
-        async with asyncio.timeout(JIRA_API_REQUEST_TIMEOUT):
-            import json
-
-            priority_schemes = await paginate_all_priority_schemes(context)
-            projects_by_scheme = await asyncio.gather(*[
-                list_projects_associated_with_a_priority_scheme(
-                    context=context,
-                    scheme_id=scheme["id"],
-                    project=project["id"],
-                )
-                for scheme in priority_schemes
-            ])
-            print("\n\n\nprojects_by_scheme: ", json.dumps(projects_by_scheme, indent=2), "\n\n\n")
-
-            for scheme_index, scheme_projects in enumerate(projects_by_scheme):
-                if scheme_projects.get("error"):
-                    return scheme_projects
-
-                for scheme_project in scheme_projects["projects"]:
-                    if scheme_project["id"] == project["id"]:
-                        scheme = priority_schemes[scheme_index]
-                        scheme_ids.add(scheme["id"])
-                        break
-
-            priorities_by_scheme = await asyncio.gather(*[
-                paginate_all_priorities_by_priority_scheme(context, scheme_id)
-                for scheme_id in scheme_ids
-            ])
-
-            for priorities_available in priorities_by_scheme:
-                for priority in priorities_available:
-                    if priority["id"] in priority_ids:
-                        continue
-                    priority_ids.add(priority["id"])
-                    priorities.append(priority)
-
-        return {
-            "project": {
-                "id": project["id"],
-                "key": project["key"],
-                "name": project["name"],
-            },
-            "priorities_available": priorities,
-        }
-
+        return await asyncio.wait_for(
+            find_priorities_by_project(context, project_data),
+            timeout=JIRA_API_REQUEST_TIMEOUT,
+        )
     except asyncio.TimeoutError:
-        return {"error": f"The search timed out after {JIRA_API_REQUEST_TIMEOUT} seconds."}
+        return {"error": f"The operation timed out after {JIRA_API_REQUEST_TIMEOUT} seconds."}
 
 
 @tool(requires_auth=Atlassian(scopes=["manage:jira-configuration"]))
@@ -222,17 +176,19 @@ async def list_priorities_available_to_an_issue(
     """Browse the priorities available to be used in the specified Jira issue."""
     from arcade_jira.tools.issues import get_issue_by_id
 
-    issue = await get_issue_by_id(context, issue)
-    if issue.get("error"):
-        return issue
+    issue_data = await get_issue_by_id(context, issue)
+    if issue_data.get("error"):
+        return cast(dict, issue_data)
 
-    response = await list_priorities_available_to_a_project(context, issue["project"]["id"])
+    project = issue_data["project"]["id"]
+
+    response = await list_priorities_available_to_a_project(context, project)
 
     return {
         "issue": {
-            "id": issue["id"],
-            "key": issue["key"],
-            "name": issue["fields"]["summary"],
+            "id": issue_data["id"],
+            "key": issue_data["key"],
+            "name": issue_data["fields"]["summary"],
         },
         "priorities_available": response["priorities_available"],
     }

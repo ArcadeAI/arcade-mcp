@@ -4,7 +4,7 @@ import json
 import mimetypes
 from contextlib import suppress
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Callable, cast
 
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import RetryableToolError, ToolExecutionError
@@ -85,7 +85,7 @@ def build_search_issues_jql(
 
 
 def clean_issue_dict(issue: dict) -> dict:
-    fields = issue["fields"]
+    fields = cast(dict, issue["fields"])
     rendered_fields = issue.get("renderedFields", {})
 
     fields["id"] = issue["id"]
@@ -352,11 +352,11 @@ def simplify_user_dict(user: dict) -> dict:
     }
 
 
-async def find_users_or_raise_error(
+async def find_multiple_unique_users(
     context: ToolContext,
     user_identifiers: list[str],
     exact_match: bool = False,
-) -> dict[str, Any]:
+) -> list[dict[str, Any]]:
     """
     Find users matching either their display name, email address, or account ID.
 
@@ -438,13 +438,13 @@ async def find_unique_project(
     # Try to find project by ID or key
     response = await get_project_by_id(context, project=project_identifier)
     if response.get("project"):
-        return response["project"]
+        return cast(dict, response["project"])
 
     # If not found, search by name
     response = await search_projects(context, keywords=project_identifier)
     projects = response["projects"]
     if len(projects) == 1:
-        return projects[0]
+        return cast(dict, projects[0])
     elif len(projects) > 1:
         simplified_projects = [
             {
@@ -484,7 +484,7 @@ async def find_unique_priority(
     # Try to get the priority by ID first
     response = await get_priority_by_id(context, priority_identifier)
     if response.get("priority"):
-        return response["priority"]
+        return cast(dict, response["priority"])
 
     # If not found, search by name
     response = await list_priorities_available_to_a_project(context, project_id)
@@ -496,7 +496,7 @@ async def find_unique_priority(
             matches.append(priority)
 
     if len(matches) == 1:
-        return matches[0]
+        return cast(dict, matches[0])
     elif len(matches) > 1:
         simplified_matches = [
             {
@@ -533,7 +533,7 @@ async def find_unique_issue_type(
     # Try to get the issue type by ID first
     response = await get_issue_type_by_id(context, issue_type_identifier)
     if response.get("issue_type"):
-        return response["issue_type"]
+        return cast(dict, response["issue_type"])
 
     # If not found, search by name
     response = await list_issue_types(context, project_id)
@@ -545,7 +545,7 @@ async def find_unique_issue_type(
             matches.append(issue_type)
 
     if len(matches) == 1:
-        return matches[0]
+        return cast(dict, matches[0])
     elif len(matches) > 1:
         simplified_matches = [
             {
@@ -573,7 +573,7 @@ async def find_unique_user(
     # Try to get the user by ID
     response = await get_user_by_id(context, user_identifier)
     if response.get("user"):
-        return response["user"]
+        return cast(dict, response["user"])
 
     # Search for the user name or email, if not found by ID
     response = await get_users_without_id(
@@ -582,7 +582,7 @@ async def find_unique_user(
     users = response["users"]["items"]
 
     if len(users) == 1:
-        return users[0]
+        return cast(dict, users[0])
     elif len(users) > 1:
         simplified_users = [
             {
@@ -629,7 +629,7 @@ def build_file_data(
     if file_type:
         return {"file": (filename, file_content, file_type)}
 
-    return {"file": (filename, file_content)}  # type: ignore[dict-item]
+    return {"file": (filename, file_content)}
 
 
 def build_adf_doc_from_plaintext(text: str) -> dict:
@@ -648,7 +648,7 @@ def build_adf_doc_from_plaintext(text: str) -> dict:
 
 async def paginate_all_items(
     context: ToolContext,
-    tool: callable,
+    tool: Callable,
     response_items_key: str,
     limit: int | None = None,
     offset: int | None = None,
@@ -718,7 +718,7 @@ async def paginate_all_issue_types(context: ToolContext, project_identifier: str
 async def validate_issue_args(
     context: ToolContext,
     due_date: str | None,
-    project: str | None,
+    project: str,
     issue_type: str | None,
     priority: str | None,
 ) -> tuple[dict | None, dict | None, dict | None, dict | None]:
@@ -737,23 +737,23 @@ async def validate_issue_args(
         return error, None, None, None
 
     try:
-        project = await find_unique_project(context, project)
+        project_data = await find_unique_project(context, project)
     except JiraToolExecutionError as exc:
         return {"error": exc.message}, None, None, None
 
     if issue_type:
         try:
-            issue_type = await find_unique_issue_type(context, issue_type, project["id"])
+            issue_type_data = await find_unique_issue_type(context, issue_type, project_data["id"])
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None, None, None
 
     if priority:
         try:
-            priority = await find_unique_priority(context, priority, project["id"])
+            priority_data = await find_unique_priority(context, priority, project_data["id"])
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None, None, None
 
-    return None, project, issue_type, priority
+    return None, project_data, issue_type_data, priority_data
 
 
 async def resolve_issue_users(
@@ -766,14 +766,66 @@ async def resolve_issue_users(
 
     if assignee:
         try:
-            assignee = await find_unique_user(context, assignee)
+            assignee_data = await find_unique_user(context, assignee)
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None, None
 
     if reporter:
         try:
-            reporter = await find_unique_user(context, reporter)
+            reporter_data = await find_unique_user(context, reporter)
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None, None
 
-    return None, assignee, reporter
+    return None, assignee_data, reporter_data
+
+
+async def find_priorities_by_project(
+    context: ToolContext,
+    project: dict[str, Any],
+) -> dict[str, Any]:
+    # Avoid circular import
+    from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme
+
+    scheme_ids: set[str] = set()
+    priority_ids: set[str] = set()
+    priorities: list[dict[str, Any]] = []
+
+    priority_schemes = await paginate_all_priority_schemes(context)
+    projects_by_scheme = await asyncio.gather(*[
+        list_projects_associated_with_a_priority_scheme(
+            context=context,
+            scheme_id=scheme["id"],
+            project=project["id"],
+        )
+        for scheme in priority_schemes
+    ])
+
+    for scheme_index, scheme_projects in enumerate(projects_by_scheme):
+        if scheme_projects.get("error"):
+            return cast(dict, scheme_projects)
+
+        for scheme_project in scheme_projects["projects"]:
+            if scheme_project["id"] == project["id"]:
+                scheme = priority_schemes[scheme_index]
+                scheme_ids.add(scheme["id"])
+                break
+
+    priorities_by_scheme = await asyncio.gather(*[
+        paginate_all_priorities_by_priority_scheme(context, scheme_id) for scheme_id in scheme_ids
+    ])
+
+    for priorities_available in priorities_by_scheme:
+        for priority in priorities_available:
+            if priority["id"] in priority_ids:
+                continue
+            priority_ids.add(priority["id"])
+            priorities.append(priority)
+
+    return {
+        "project": {
+            "id": project["id"],
+            "key": project["key"],
+            "name": project["name"],
+        },
+        "priorities_available": priorities,
+    }

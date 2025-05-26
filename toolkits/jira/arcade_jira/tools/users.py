@@ -25,10 +25,13 @@ async def list_users(
     """Browse users in Jira."""
     limit = max(min(limit, 50), 1)
     client = JiraClient(context.get_auth_token_or_empty())
-    users = await client.get("/users/search", params={"startAt": offset, "maxResults": limit})
+    api_response = await client.get(
+        "/users/search", params={"startAt": offset, "maxResults": limit}
+    )
+    users = [clean_user_dict(user) for user in api_response]
     response = {
-        "users": [clean_user_dict(user) for user in users],
-        "count": len(users),
+        "users": users,
+        "isLast": api_response["isLast"],
     }
     return add_pagination_to_response(response, users, limit, offset)
 
