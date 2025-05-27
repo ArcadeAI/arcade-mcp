@@ -6,6 +6,7 @@ from typing import Optional, cast
 
 import httpx
 
+import arcade_jira.cache as cache
 from arcade_jira.constants import JIRA_API_VERSION, JIRA_BASE_URL, JIRA_MAX_CONCURRENT_REQUESTS
 from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
 
@@ -27,7 +28,11 @@ class JiraClient:
     @property
     def cloud_id(self) -> str:
         if self._cloud_id is None:
-            self._cloud_id = self._get_cloud_id()
+            if (cloud_id := cache.get_cloud_id(self.auth_token)) is not None:
+                self._cloud_id = cloud_id
+            else:
+                self._cloud_id = self._get_cloud_id()
+                cache.set_cloud_id(self.auth_token, self._cloud_id)
 
         return self._cloud_id
 
