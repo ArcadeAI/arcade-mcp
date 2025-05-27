@@ -5,8 +5,8 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 from zoneinfo import ZoneInfo
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 from serpapi import Client as SerpClient
 
 from arcade_search.constants import (

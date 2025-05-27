@@ -1,33 +1,22 @@
-[tool.poetry]
-name = "arcade_slack"
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade-slack"
 version = "0.4.3"
 description = "Arcade.dev LLM tools for Slack"
-authors = ["Arcade <dev@arcade.dev>"]
+requires-python = ">=3.10"
+dependencies = [ "aiodns>=1.0,<2.0.0", "typing; python_version < '3.7'", "aiohttp>=3.7.3,<4.0.0", "arcade-tdk>=0.1.0,<1.0.0", "slack-sdk>=3.31.0,<4.0.0",]
+[[project.authors]]
+name = "Arcade"
+email = "dev@arcade.dev"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-aiodns = "^1.0"  # required by slack - not picked by poetry due to slack requirements txt quirk :/
-typing = { version = "*", markers = "python_version < '3.7'" } # prevent aiodns from installing typing package
-aiohttp = ">=3.7.3,<4"  # same as aiodns, above comment
-arcade-ai = ">=1.2.0,<2.0"
-slack-sdk = "^3.31.0"
-
-[tool.poetry.dev-dependencies]
-pytest = "^8.3.0"
-pytest-cov = "^4.0.0"
-pytest-asyncio = "^0.24.0"
-pytest-mock = "^3.11.1"
-mypy = "^1.5.1"
-pre-commit = "^3.4.0"
-tox = "^4.11.1"
-ruff = "^0.7.4"
-
-[build-system]
-requires = ["poetry-core>=1.0.0,<2.0.0"]
-build-backend = "poetry.core.masonry.api"
+[project.optional-dependencies]
+dev = [ "pytest>=8.3.0,<9.0.0", "pytest-cov>=4.0.0,<5.0.0", "pytest-asyncio>=0.24.0,<1.0.0", "pytest-mock>=3.11.1,<4.0.0", "mypy>=1.5.1,<2.0.0", "pre-commit>=3.4.0,<4.0.0", "tox>=4.11.1,<5.0.0", "ruff>=0.7.4,<1.0.0",]
 
 [tool.mypy]
-files = ["arcade_slack/**/*.py"]
+files = [ "arcade_slack/**/*.py",]
 python_version = "3.10"
 disallow_untyped_defs = "True"
 disallow_any_unimported = "True"
@@ -39,7 +28,10 @@ show_error_codes = "True"
 ignore_missing_imports = "True"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = [ "tests",]
 
 [tool.coverage.report]
 skip_empty = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "arcade_slack",]

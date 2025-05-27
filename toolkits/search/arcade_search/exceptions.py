@@ -1,6 +1,6 @@
 import json
 
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_search.google_data import COUNTRY_CODES, LANGUAGE_CODES
 

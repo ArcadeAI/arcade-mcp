@@ -1,0 +1,64 @@
+[project]
+name = "arcade-core"
+version = "0.1.0"
+description = "Arcade Core - Core library for Arcade platform"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Arcade", email = "dev@arcade.dev"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.7.0",
+    "pyyaml>=6.0",
+    "loguru>=0.7.0",
+    "pyjwt>=2.8.0",
+    "toml>=0.10.2",
+    "packaging>=24.1",
+    "types-python-dateutil==2.9.0.20241003",
+    "types-pytz==2024.2.0.20241003",
+    "types-toml==0.10.8.20240310",
+    "opentelemetry-instrumentation-fastapi==0.48b0",
+    "opentelemetry-exporter-otlp-proto-http==1.27.0",
+    "opentelemetry-exporter-otlp-proto-common==1.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.2",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.5.1",
+    "pre-commit>=3.4.0",
+    "pytest-asyncio>=0.23.7",
+    "types-pytz>=2024.1",
+    "types-python-dateutil>=2.8.2",
+    "types-PyYAML>=6.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["arcade_core"]
+
+[tool.mypy]
+files = ["arcade_core"]
+python_version = "3.10"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_missing_imports = true

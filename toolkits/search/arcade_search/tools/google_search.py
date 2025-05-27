@@ -1,7 +1,7 @@
 import json
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 
 from arcade_search.utils import call_serpapi, prepare_params
 

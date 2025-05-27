@@ -1,0 +1,121 @@
+[project]
+name = "arcade-ai"
+version = "0.1.0.dev0"
+description = "Arcade.dev - Tool Calling platform for Agents"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Arcade", email = "dev@arcade.dev"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.10"
+# Dependencies for testing - include all workspace packages
+dependencies = [
+    "arcade-core",
+    "arcade-tdk",
+    "arcade-serve",
+    "arcade-evals",
+    "arcade-cli"
+]
+
+
+[tool.uv.sources]
+# Workspace member sources
+arcade-core = { workspace = true }
+arcade-tdk = { workspace = true }
+arcade-serve = { workspace = true }
+arcade-evals = { workspace = true }
+arcade-cli = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# This is a workspace coordinator - only include essential files
+only-include = ["README.md", "LICENSE"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.1.2",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.23.7",
+    "mypy>=1.5.1",
+    "pre-commit>=3.4.0",
+    "ruff>=0.4.0",
+    "types-PyYAML>=6.0.0",
+    "types-python-dateutil>=2.8.2",
+    "types-pytz>=2024.1",
+]
+
+[tool.uv.workspace]
+members = [
+    "libs/arcade-core",
+    "libs/arcade-tdk",
+    "libs/arcade-serve",
+    "libs/arcade-evals",
+    "libs/arcade-cli",
+]
+
+[tool.mypy]
+python_version = "3.10"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["libs/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--cov=libs",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+
+[tool.coverage.run]
+source = ["libs"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
