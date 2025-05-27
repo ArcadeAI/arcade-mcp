@@ -473,7 +473,7 @@ async def update_issue(
     project = issue_data["issue"]["project"]["id"]
 
     error, project_data, issue_type_data, priority_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority
+        context, due_date, project, issue_type, priority, None
     )
     if error:
         return cast(dict, error)

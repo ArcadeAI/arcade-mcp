@@ -718,7 +718,7 @@ async def paginate_all_issue_types(context: ToolContext, project_identifier: str
 async def validate_issue_args(
     context: ToolContext,
     due_date: str | None,
-    project: str,
+    project: str | None,
     issue_type: str | None,
     priority: str | None,
     parent_issue_id: str | None,
@@ -771,19 +771,19 @@ async def get_project_data(
     context: ToolContext,
     project: str | None,
     parent_issue_id: str | None,
-) -> dict:
+) -> dict[str, Any]:
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
     if not project:
         parent_issue_data = await get_issue_by_id(context, parent_issue_id)
         if parent_issue_data.get("error"):
-            return {"error": f"Parent issue not found with ID {parent_issue_id}."}, None, None, None
-        project = parent_issue_data["project"]["id"]
+            return {"error": f"Parent issue not found with ID {parent_issue_id}."}
+        project = cast(str, parent_issue_data["project"]["id"])
 
     try:
         project_data = await find_unique_project(context, project)
     except JiraToolExecutionError as exc:
-        return {"error": exc.message}, None, None, None
+        return {"error": exc.message}
 
     return project_data
 
