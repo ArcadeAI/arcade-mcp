@@ -721,25 +721,36 @@ async def validate_issue_args(
     project: str,
     issue_type: str | None,
     priority: str | None,
+    parent_issue_id: str | None,
 ) -> tuple[dict | None, dict | None, dict | None, dict | None]:
-    error = None
-
     if due_date and not is_valid_date_string(due_date):
-        error = {"error": f"Invalid `due_date` format: '{due_date}'. Please use YYYY-MM-DD."}
+        return (
+            {"error": f"Invalid `due_date` format: '{due_date}'. Please use YYYY-MM-DD."},
+            None,
+            None,
+            None,
+        )
 
-    if not project:
-        error = {"error": "The `project` argument is required."}
+    if not project and not parent_issue_id:
+        return (
+            {"error": "Must provide either `project` or `parent_issue_id` argument."},
+            None,
+            None,
+            None,
+        )
 
     if not issue_type:
-        error = {"error": "The `issue_type` argument is required."}
+        return (
+            {"error": "The `issue_type` argument is required."},
+            None,
+            None,
+            None,
+        )
 
-    if error:
-        return error, None, None, None
+    project_data = await get_project_data(context, project, parent_issue_id)
 
-    try:
-        project_data = await find_unique_project(context, project)
-    except JiraToolExecutionError as exc:
-        return {"error": exc.message}, None, None, None
+    if project_data.get("error"):
+        return project_data, None, None, None
 
     if issue_type:
         try:
@@ -754,6 +765,27 @@ async def validate_issue_args(
             return {"error": exc.message}, None, None, None
 
     return None, project_data, issue_type_data, priority_data
+
+
+async def get_project_data(
+    context: ToolContext,
+    project: str | None,
+    parent_issue_id: str | None,
+) -> dict:
+    from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
+
+    if not project:
+        parent_issue_data = await get_issue_by_id(context, parent_issue_id)
+        if parent_issue_data.get("error"):
+            return {"error": f"Parent issue not found with ID {parent_issue_id}."}, None, None, None
+        project = parent_issue_data["project"]["id"]
+
+    try:
+        project_data = await find_unique_project(context, project)
+    except JiraToolExecutionError as exc:
+        return {"error": exc.message}, None, None, None
+
+    return project_data
 
 
 async def resolve_issue_users(

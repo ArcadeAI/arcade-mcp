@@ -76,4 +76,36 @@ def create_issue_eval_suite() -> EvalSuite:
         ],
     )
 
+    suite.add_case(
+        name="Create issue with parent and reporter",
+        user_message=(
+            "Create a task for John Doe to 'Implement message queue service' as a child of the issue ENG-321 "
+            "and reported by Jenifer Bear. It should be due on 2025-06-30. Label it with 'Project XYZ'."
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=create_issue,
+                args={
+                    "title": "Implement message queue service",
+                    "parent_issue_id": "ENG-321",
+                    "issue_type": "Task",
+                    "assignee": "John Doe",
+                    "reporter": "Jenifer Bear",
+                    "due_date": "2025-06-30",
+                    "labels": ["Project XYZ"],
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            CaseInsensitiveBinaryCritic(critic_field="title", weight=1 / 7),
+            CaseInsensitiveBinaryCritic(critic_field="parent_issue_id", weight=1 / 7),
+            CaseInsensitiveBinaryCritic(critic_field="issue_type", weight=1 / 7),
+            CaseInsensitiveBinaryCritic(critic_field="assignee", weight=1 / 7),
+            CaseInsensitiveBinaryCritic(critic_field="reporter", weight=1 / 7),
+            BinaryCritic(critic_field="due_date", weight=1 / 7),
+            CaseInsensitiveListOfStringsBinaryCritic(critic_field="labels", weight=1 / 7),
+        ],
+    )
+
     return suite

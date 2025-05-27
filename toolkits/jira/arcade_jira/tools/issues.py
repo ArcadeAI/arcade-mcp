@@ -247,15 +247,17 @@ async def create_issue(
         str,
         "The title of the issue.",
     ],
-    project: Annotated[
-        str,
-        "The ID, key or name of the project to associate the issue with.",
-    ],
     issue_type: Annotated[
         str,
         "The ID or name of the issue type. To get a full list of available "
         f"issue types, use the `Jira.{list_issue_types.__tool_name__}` tool. ",
     ],
+    project: Annotated[
+        str | None,
+        "The ID, key or name of the project to associate the issue with. "
+        "Defaults to None (no project). Must provide either a `project` or a "
+        "`parent_issue_id` argument.",
+    ] = None,
     due_date: Annotated[
         str | None,
         "The due date of the issue. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
@@ -304,7 +306,7 @@ async def create_issue(
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
     error, project_data, issue_type_data, priority_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority
+        context, due_date, project, issue_type, priority, parent_issue_id
     )
     if error:
         return error
