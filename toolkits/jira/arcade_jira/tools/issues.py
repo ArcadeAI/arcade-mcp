@@ -140,7 +140,7 @@ async def get_issues_without_id(
     issue_type: Annotated[
         str | None,
         "Match issues that are of this issue type. Provide an issue type name or ID. "
-        "E.g. 'Task', 'Epic', '10000'. To get a full list of available issue types, use the "
+        "E.g. 'Task', 'Epic', '12345'. To get a full list of available issue types, use the "
         f"`Jira.{list_issue_types.__tool_name__}` tool. Defaults to None (any issue type).",
     ] = None,
     labels: Annotated[
@@ -193,10 +193,17 @@ async def get_issues_without_id(
     }
     response = await client.post("search/jql", json_data=body)
 
+    pagination = {
+        "limit": limit,
+        "total_results": len(response["issues"]),
+    }
+
+    if response.get("nextPageToken"):
+        pagination["next_page_token"] = response["nextPageToken"]
+
     return {
         "issues": [clean_issue_dict(issue) for issue in response["issues"]],
-        "count": len(response["issues"]),
-        "next_page_token": response.get("nextPageToken"),
+        "pagination": pagination,
     }
 
 
