@@ -1,4 +1,4 @@
-CLOUD_ID_BY_AUTH_TOKEN = {}
+CLOUD_ID_BY_AUTH_TOKEN: dict[str, str] = {}
 
 
 def get_cloud_id(auth_token: str) -> str | None:
