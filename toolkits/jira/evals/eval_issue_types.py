@@ -11,6 +11,7 @@ from arcade.sdk.eval.critic import BinaryCritic
 
 import arcade_jira
 from arcade_jira.tools.issues import (
+    get_issue_type_by_id,
     list_issue_types,
 )
 
@@ -26,9 +27,9 @@ catalog.add_module(arcade_jira)
 
 
 @tool_eval()
-def issue_types_eval_suite() -> EvalSuite:
+def list_issue_types_eval_suite() -> EvalSuite:
     suite = EvalSuite(
-        name="Issue Types eval suite",
+        name="List issue types eval suite",
         system_message=(
             "You are an AI assistant with access to Jira tools. "
             "Use them to help the user with their tasks."
@@ -196,6 +197,40 @@ def issue_types_eval_suite() -> EvalSuite:
                 "role": "assistant",
                 "content": "Here are two issue types in the project 'Engineering':\n\n1. Bug\n2. Task",
             },
+        ],
+    )
+
+    return suite
+
+
+@tool_eval()
+def get_issue_type_by_id_eval_suite() -> EvalSuite:
+    suite = EvalSuite(
+        name="Get issue type by ID eval suite",
+        system_message=(
+            "You are an AI assistant with access to Jira tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="Get issue type by ID",
+        user_message="Get the issue type with ID '10001'.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_issue_type_by_id,
+                args={
+                    "issue_type": "10001",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="project", weight=0.8),
+            BinaryCritic(critic_field="limit", weight=0.1),
+            BinaryCritic(critic_field="offset", weight=0.1),
         ],
     )
 

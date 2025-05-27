@@ -72,7 +72,7 @@ async def list_issue_types(
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def get_issue_type_by_id(
     context: ToolContext,
-    issue_type: Annotated[str, "The ID or key of the issue type to retrieve"],
+    issue_type: Annotated[str, "The ID of the issue type to retrieve"],
 ) -> Annotated[dict, "Information about the issue type"]:
     """Get the details of a Jira issue type by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
