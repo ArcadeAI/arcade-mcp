@@ -579,7 +579,7 @@ async def find_unique_user(
     response = await get_users_without_id(
         context, name_or_email=user_identifier, enforce_exact_match=True
     )
-    users = response["users"]["items"]
+    users = response["users"]
 
     if len(users) == 1:
         return cast(dict, users[0])
@@ -739,30 +739,25 @@ async def validate_issue_args(
             None,
         )
 
-    if not issue_type:
-        return (
-            {"error": "The `issue_type` argument is required."},
-            None,
-            None,
-            None,
-        )
-
     project_data = await get_project_data(context, project, parent_issue_id)
+    issue_type_data = None
+    priority_data = None
 
     if project_data.get("error"):
-        return project_data, None, None, None
+        error = project_data
+        return error, None, issue_type_data, priority_data
 
     if issue_type:
         try:
             issue_type_data = await find_unique_issue_type(context, issue_type, project_data["id"])
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, None, None, None
+            return {"error": exc.message}, project_data, issue_type_data, priority_data
 
     if priority:
         try:
             priority_data = await find_unique_priority(context, priority, project_data["id"])
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, None, None, None
+            return {"error": exc.message}, project_data, issue_type_data, priority_data
 
     return None, project_data, issue_type_data, priority_data
 
@@ -793,6 +788,9 @@ async def resolve_issue_users(
     assignee: str | None,
     reporter: str | None,
 ) -> tuple[dict | None, dict | None, dict | None]:
+    assignee_data = None
+    reporter_data = None
+
     if not assignee and not reporter:
         return None, None, None
 
@@ -800,13 +798,13 @@ async def resolve_issue_users(
         try:
             assignee_data = await find_unique_user(context, assignee)
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, None, None
+            return {"error": exc.message}, assignee_data, reporter_data
 
     if reporter:
         try:
             reporter_data = await find_unique_user(context, reporter)
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, None, None
+            return {"error": exc.message}, assignee_data, reporter_data
 
     return None, assignee_data, reporter_data
 
