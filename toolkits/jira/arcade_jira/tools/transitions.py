@@ -4,16 +4,13 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
-from arcade_jira.utils import remove_none_values
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def get_transitions_available_for_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
-) -> Annotated[
-    dict, "The transitions available (including screen fields) and the issue's current status"
-]:
+) -> Annotated[dict, "The transitions available and the issue's current status"]:
     """Get the transitions available for an existing Jira issue."""
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
@@ -38,10 +35,10 @@ async def get_transitions_available_for_issue(
 
 
 @tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
-async def get_transition_by_name(
+async def get_transition_by_status_name(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
-    transition: Annotated[str, "The name of the transition"],
+    transition: Annotated[str, "The name of the transition status"],
 ) -> Annotated[dict, "The transition data, including screen fields available"]:
     """Get a transition available for an issue by the transition name.
 
@@ -58,36 +55,22 @@ async def get_transition_by_name(
 
 
 @tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
-async def perform_issue_transition(
+async def transition_issue_to_new_status(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
     transition: Annotated[
         str,
         "The transition to perform. Provide the transition ID or its name (case insensitive).",
     ],
-    fields: Annotated[
-        dict | None,
-        "List of issue screen fields to update, specifying the sub-field to update and its value "
-        "for each field. Defaults to None (no fields updated). This argument provides a "
-        "straightforward option when setting a sub-field. When multiple sub-fields or other "
-        "operations are required, use the 'update' argument. Fields included in here cannot "
-        "be included in the 'update' argument.",
-    ] = None,
-    update: Annotated[
-        dict | None,
-        "A Map containing the field field name and a list of operations to perform on the issue "
-        "screen field. Defaults to None (no fields updated). Note that fields included in here "
-        "cannot be included in the 'fields' argument.",
-    ] = None,
 ) -> Annotated[dict, "The updated issue"]:
-    """Transition an existing Jira issue."""
+    """Transition a Jira issue to a new status."""
     client = JiraClient(context.get_auth_token_or_empty())
 
     if transition.isdigit():
         transition_id = transition
         transition_name = transition
     else:
-        response = await get_transition_by_name(context, issue, transition)
+        response = await get_transition_by_status_name(context, issue, transition)
         if response.get("error"):
             return cast(dict, response)
         transition_id = response["transition"]["id"]
@@ -96,11 +79,9 @@ async def perform_issue_transition(
     # The /issue/issue_id/transitions endpoint returns a 204 No Content in case of success
     await client.post(
         f"/issue/{issue}/transitions",
-        json_data=remove_none_values({
+        json_data={
             "transition": {"id": transition_id},
-            "fields": fields,
-            "update": update,
-        }),
+        },
     )
 
     return {
