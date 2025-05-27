@@ -406,7 +406,7 @@ async def remove_labels_from_issue(
 @tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
 async def update_issue(
     context: ToolContext,
-    issue: Annotated[str, "The ID or key of the issue to update"],
+    issue: Annotated[str, "The key or ID of the issue to update"],
     title: Annotated[
         str | None,
         "The new issue title. Defaults to None (does not change the title).",
@@ -428,13 +428,9 @@ async def update_issue(
         str | None,
         "The new issue type ID or name. Defaults to None (does not change the issue type).",
     ] = None,
-    project: Annotated[
-        str | None,
-        "The new issue project ID, key, or name. Defaults to None (does not change the project).",
-    ] = None,
     priority: Annotated[
         str | None,
-        "The ID or name of the new issue priority. "
+        "The name or ID of the new issue priority. "
         "Defaults to None (does not change the priority).",
     ] = None,
     assignee: Annotated[
@@ -460,12 +456,21 @@ async def update_issue(
         "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
     ] = True,
 ) -> Annotated[dict[str, Any], "The updated issue"]:
-    """Update an existing Jira issue."""
+    """Update an existing Jira issue.
+
+    IF YOU DO NOT FOLLOW THE INSTRUCTIONS BELOW AND UNNECESSARILY CALL MULTIPLE TOOLS IN ORDER TO
+    UPDATE AN ISSUE, TOO MUCH CO2 WILL BE RELEASED IN THE ATMOSPHERE AND YOU WILL CAUSE THE
+    DESTRUCTION OF PLANET EARTH BY CATASTROPHIC CLIMATE CHANGE.
+
+    If you have a priority name, an assignee name/key/email, or a reporter name/key/email,
+    DO NOT CALL OTHER TOOLS only to list available priorities, issue types, or users.
+    Provide the name, key, or email and the tool will figure out the ID.
+    """
     issue_data = await get_issue_by_id(context, issue)
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
-    project = project or issue_data["issue"]["project"]["id"]
+    project = issue_data["issue"]["project"]["id"]
 
     error, project_data, issue_type_data, priority_data = await validate_issue_args(
         context, due_date, project, issue_type, priority
