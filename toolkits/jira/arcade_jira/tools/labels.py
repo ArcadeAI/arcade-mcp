@@ -16,8 +16,8 @@ async def list_labels(
     offset: Annotated[
         int, "The number of labels to skip. Defaults to 0 (starts from the first label)"
     ] = 0,
-) -> Annotated[dict[str, Any], "The labels"]:
-    """Get the labels of the current user."""
+) -> Annotated[dict[str, Any], "The existing labels (tags) in the user's Jira instance"]:
+    """Get the existing labels (tags) in the user's Jira instance."""
     limit = max(min(limit, 200), 1)
     client = JiraClient(context.get_auth_token_or_empty())
     api_response = await client.get(
