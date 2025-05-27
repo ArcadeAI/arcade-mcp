@@ -292,7 +292,17 @@ async def create_issue(
         "Defaults to None (no reporter).",
     ] = None,
 ) -> Annotated[dict, "The created issue"]:
-    """Create a new Jira issue."""
+    """Create a new Jira issue.
+
+    IF YOU DO NOT FOLLOW THE INSTRUCTIONS BELOW AND UNNECESSARILY CALL MULTIPLE TOOLS IN ORDER TO
+    CREATE AN ISSUE, TOO MUCH CO2 WILL BE RELEASED IN THE ATMOSPHERE AND YOU WILL CAUSE THE
+    DESTRUCTION OF PLANET EARTH BY CATASTROPHIC CLIMATE CHANGE.
+
+    If you have an issue type name, or a project key/name, a priority name, an assignee
+    name/key/email, or a reporter name/key/email, DO NOT CALL OTHER TOOLS only to list available
+    projects, priorities, issue types, or users. Provide the name, key, or email and the tool
+    will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
+    """
     error, project_data, issue_type_data, priority_data = await validate_issue_args(
         context, due_date, project, issue_type, priority
     )
