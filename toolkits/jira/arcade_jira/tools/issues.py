@@ -327,9 +327,13 @@ async def create_issue(
     projects, priorities, issue types, or users. Provide the name, key, or email and the tool
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
-    error, project_data, issue_type_data, priority_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority, parent_issue
-    )
+    (
+        error,
+        project_data,
+        issue_type_data,
+        priority_data,
+        parent_data,
+    ) = await validate_issue_args(context, due_date, project, issue_type, priority, parent_issue)
     if error:
         return error
 
@@ -344,14 +348,14 @@ async def create_issue(
             "summary": title,
             "labels": labels,
             "duedate": due_date,
+            "parent": {"id": parent_data["id"]} if isinstance(parent_data, dict) else None,
             "project": {"id": project_data["id"]} if isinstance(project_data, dict) else None,
-            "issuetype": {"id": issue_type_data["id"]}
-            if isinstance(issue_type_data, dict)
-            else None,
-            "parent": {"id": parent_issue} if parent_issue else None,
             "priority": {"id": priority_data["id"]} if isinstance(priority_data, dict) else None,
             "assignee": {"id": assignee_data["id"]} if isinstance(assignee_data, dict) else None,
             "reporter": {"id": reporter_data["id"]} if isinstance(reporter_data, dict) else None,
+            "issuetype": {"id": issue_type_data["id"]}
+            if isinstance(issue_type_data, dict)
+            else None,
         }),
     }
 
@@ -463,6 +467,12 @@ async def update_issue(
         "find a unique exact match among the available priorities. Defaults to None "
         "(does not change the priority).",
     ] = None,
+    parent_issue: Annotated[
+        str | None,
+        "The ID or key of the parent issue. A parent cannot be removed by providing an empty "
+        "string. It is possible to change the parent issue by providing a new issue ID or key, "
+        "or to leave it unchanged. Defaults to None (does not change the parent issue).",
+    ] = None,
     assignee: Annotated[
         str | None,
         "The new issue assignee name, email, or ID. If a name or email is provided, the tool will "
@@ -504,8 +514,8 @@ async def update_issue(
 
     project = issue_data["issue"]["project"]["id"]
 
-    error, _, issue_type_data, priority_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority, None
+    error, _, issue_type_data, priority_data, parent_issue_data = await validate_issue_args(
+        context, due_date, project, issue_type, priority, parent_issue
     )
     if error:
         return cast(dict, error)
@@ -521,12 +531,14 @@ async def update_issue(
         description=description,
         environment=environment,
         due_date=due_date,
+        parent_issue=parent_issue_data,
         issue_type=issue_type_data,
         priority=priority_data,
         assignee=assignee_data,
         reporter=reporter_data,
         labels=labels,
     )
+
     await client.put(f"/issue/{issue}", json_data=request_body, params=params)
 
     return {

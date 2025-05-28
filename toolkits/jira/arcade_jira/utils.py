@@ -723,49 +723,104 @@ async def validate_issue_args(
     project: str | None,
     issue_type: str | None,
     priority: str | None,
-    parent_issue_id: str | None,
-) -> tuple[dict | None, dict | None, str | dict | None, str | dict | None]:
+    parent_issue: str | None,
+) -> tuple[dict | None, dict | None, str | dict | None, str | dict | None, dict | None]:
     if due_date and not is_valid_date_string(due_date):
         return (
             {"error": f"Invalid `due_date` format: '{due_date}'. Please use YYYY-MM-DD."},
             None,
             None,
             None,
+            None,
         )
 
-    if not project and not parent_issue_id:
+    if not project and not parent_issue:
         return (
-            {"error": "Must provide either `project` or `parent_issue_id` argument."},
+            {"error": "Must provide either `project` or `parent_issue` argument."},
+            None,
             None,
             None,
             None,
         )
 
-    project_data = await get_project_data(context, project, parent_issue_id)
-    issue_type_data: str | dict | None = None
-    priority_data: str | dict | None = None
+    error: dict[str, Any] | None = None
+    project_data = await get_project_data(context, project, parent_issue)
+    issue_type_data: str | dict[str, Any] | None = None
+    priority_data: str | dict[str, Any] | None = None
+    parent_issue_data: dict[str, Any] | None = None
 
     if project_data.get("error"):
         error = project_data
-        return error, None, issue_type_data, priority_data
+        return error, None, issue_type_data, priority_data, parent_issue_data
 
+    error, issue_type_data = await resolve_issue_type(context, issue_type, project_data)
+    if error:
+        return error, project_data, issue_type_data, priority_data, parent_issue_data
+
+    error, priority_data = await resolve_issue_priority(context, priority, project_data)
+    if error:
+        return error, project_data, issue_type_data, priority_data, parent_issue_data
+
+    error, parent_issue_data = await resolve_parent_issue(context, parent_issue)
+    if error:
+        return error, project_data, issue_type_data, priority_data, parent_issue_data
+
+    return None, project_data, issue_type_data, priority_data, parent_issue_data
+
+
+async def resolve_issue_type(
+    context: ToolContext,
+    issue_type: str | None,
+    project_data: dict,
+) -> tuple[dict[str, Any] | None, str | dict[str, Any] | None]:
     if issue_type == "":
-        issue_type_data = ""
+        return None, ""
     elif issue_type:
         try:
-            issue_type_data = await find_unique_issue_type(context, issue_type, project_data["id"])
+            response = await find_unique_issue_type(context, issue_type, project_data["id"])
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, project_data, issue_type_data, priority_data
+            return {"error": exc.message}, None
+        else:
+            return None, response
 
+    return None, None
+
+
+async def resolve_issue_priority(
+    context: ToolContext,
+    priority: str | None,
+    project_data: dict,
+) -> tuple[dict[str, Any] | None, str | dict[str, Any] | None]:
     if priority == "":
-        priority_data = ""
+        return None, ""
     elif priority:
         try:
             priority_data = await find_unique_priority(context, priority, project_data["id"])
         except JiraToolExecutionError as exc:
-            return {"error": exc.message}, project_data, issue_type_data, priority_data
+            return {"error": exc.message}, None
+        else:
+            return None, priority_data
 
-    return None, project_data, issue_type_data, priority_data
+    return None, None
+
+
+async def resolve_parent_issue(
+    context: ToolContext,
+    parent_issue: str | None,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    if parent_issue == "":
+        return {"error": "Parent issue cannot be empty"}, None
+    elif parent_issue:
+        from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
+
+        try:
+            parent_issue_data = await get_issue_by_id(context, parent_issue)
+        except JiraToolExecutionError as exc:
+            return {"error": exc.message}, None
+        else:
+            return None, parent_issue_data["issue"]
+
+    return None, None
 
 
 async def get_project_data(
@@ -876,6 +931,7 @@ def build_issue_update_request_body(
     description: str | None,
     environment: str | None,
     due_date: str | None,
+    parent_issue: dict | None,
     issue_type: str | dict | None,
     priority: str | dict | None,
     assignee: str | dict | None,
@@ -887,6 +943,7 @@ def build_issue_update_request_body(
     build_issue_update_text_fields(body, title, description, environment)
     build_issue_update_classifier_fields(body, issue_type, priority)
     build_issue_update_user_fields(body, assignee, reporter)
+    build_issue_update_hierarchy_fields(body, parent_issue)
     build_issue_update_date_fields(body, due_date)
 
     if labels == []:
@@ -961,6 +1018,16 @@ def build_issue_update_classifier_fields(
         body["fields"]["priority"] = {"id": priority["id"]}
     elif priority is not None:
         raise ValueError(f"Invalid priority: '{priority}'")
+
+    return body
+
+
+def build_issue_update_hierarchy_fields(
+    body: dict,
+    parent_issue: dict | None,
+) -> dict[str, dict[str, Any]]:
+    if parent_issue:
+        body["fields"]["parent"] = {"id": parent_issue["id"]}
 
     return body
 
