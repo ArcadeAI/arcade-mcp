@@ -337,6 +337,8 @@ def add_pagination_to_response(
 
     if response.get("isLast") is False or (len(items) >= limit and next_offset > offset):
         response["pagination"]["next_offset"] = next_offset
+    else:
+        response["pagination"]["is_last_page"] = True
 
     with suppress(KeyError):
         del response["isLast"]
@@ -387,7 +389,7 @@ async def find_multiple_unique_users(
     for response in responses:
         user_identifier = response["query"]["name_or_email"]
 
-        if response["users"]["count"] > 1:
+        if response["pagination"]["total_results"] > 1:
             available_users = [simplify_user_dict(user) for user in response["users"]["items"]]
             message = (
                 f"Multiple users matching '{user_identifier}'. "
@@ -399,7 +401,7 @@ async def find_multiple_unique_users(
             developer_message = f"{message} {available_users_msg}"
             raise RetryableToolError(message, developer_message, available_users_msg)
 
-        elif response["users"]["count"] == 0:
+        elif response["pagination"]["total_results"] == 0:
             search_by_id.append(user_identifier)
 
         else:
