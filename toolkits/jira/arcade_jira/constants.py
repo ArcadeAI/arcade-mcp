@@ -5,7 +5,7 @@ JIRA_BASE_URL = "https://api.atlassian.com/ex/jira"
 JIRA_API_VERSION = "3"
 
 try:
-    JIRA_MAX_CONCURRENT_REQUESTS = int(os.getenv("JIRA_MAX_CONCURRENT_REQUESTS", 3))
+    JIRA_MAX_CONCURRENT_REQUESTS = max(1, int(os.getenv("JIRA_MAX_CONCURRENT_REQUESTS", 3)))
 except Exception:
     JIRA_MAX_CONCURRENT_REQUESTS = 3
 
@@ -13,6 +13,11 @@ try:
     JIRA_API_REQUEST_TIMEOUT = int(os.getenv("JIRA_API_REQUEST_TIMEOUT", 30))
 except Exception:
     JIRA_API_REQUEST_TIMEOUT = 30
+
+try:
+    JIRA_CACHE_MAX_ITEMS = max(1, int(os.getenv("JIRA_CACHE_MAX_ITEMS", 5000)))
+except Exception:
+    JIRA_CACHE_MAX_ITEMS = 5000
 
 JIRA_ISSUE_FIELDS = [
     "id",

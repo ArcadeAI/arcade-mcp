@@ -21,27 +21,35 @@ class JiraClient:
     _cloud_id: str | None = None
 
     def __post_init__(self) -> None:
-        self._semaphore = self._semaphore or asyncio.Semaphore(self.max_concurrent_requests)
+        if not self._semaphore:
+            cached_semaphore = cache.get_jira_client_semaphore(self.auth_token)
+
+            if cached_semaphore:
+                self._semaphore = cached_semaphore
+            else:
+                self._semaphore = asyncio.Semaphore(self.max_concurrent_requests)
+                cache.set_jira_client_semaphore(self.auth_token, self._semaphore)
+
         self.base_url = self.base_url.rstrip("/")
         self.api_version = self.api_version.strip("/")
 
-    @property
-    def cloud_id(self) -> str:
+    async def get_cloud_id(self) -> str:
         if self._cloud_id is None:
-            if (cloud_id := cache.get_cloud_id(self.auth_token)) is not None:
+            if (cloud_id := await cache.async_get_cloud_id(self.auth_token)) is not None:
                 self._cloud_id = cloud_id
             else:
-                self._cloud_id = self._get_cloud_id()
-                cache.set_cloud_id(self.auth_token, self._cloud_id)
+                self._cloud_id = await self._get_cloud_id_from_available_resources()
+                await cache.async_set_cloud_id(self.auth_token, self._cloud_id)
 
         return self._cloud_id
 
-    def _build_url(self, endpoint: str) -> str:
-        return f"{self.base_url}/{self.cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
+    async def _build_url(self, endpoint: str) -> str:
+        cloud_id = await self.get_cloud_id()
+        return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
 
-    def _get_cloud_id(self) -> str:
-        with httpx.Client() as client:
-            response = client.get(
+    async def _get_cloud_id_from_available_resources(self) -> str:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
                 "https://api.atlassian.com/oauth/token/accessible-resources",
                 headers={"Authorization": f"Bearer {self.auth_token}"},
             )
@@ -137,7 +145,7 @@ class JiraClient:
         headers = {**default_headers, **(headers or {})}
 
         kwargs = {
-            "url": self._build_url(endpoint),
+            "url": await self._build_url(endpoint),
             "headers": headers,
         }
 
@@ -169,7 +177,7 @@ class JiraClient:
         headers = {**default_headers, **(headers or {})}
 
         kwargs = {
-            "url": self._build_url(endpoint),
+            "url": await self._build_url(endpoint),
             "headers": headers,
         }
 
@@ -200,7 +208,7 @@ class JiraClient:
         headers["Accept"] = "application/json"
 
         kwargs = {
-            "url": self._build_url(endpoint),
+            "url": await self._build_url(endpoint),
             "headers": headers,
         }
 
