@@ -213,7 +213,7 @@ async def search_issues_with_jql(
     jql: Annotated[str, "The JQL (Jira Query Language) query to search for issues"],
     limit: Annotated[
         int,
-        "The maximum number of issues to retrieve. Min 1, max 100, default 50.",
+        "The maximum number of issues to retrieve. Min of 1, max of 100. Defaults to 50.",
     ] = 50,
     next_page_token: Annotated[
         str | None,
@@ -223,7 +223,7 @@ async def search_issues_with_jql(
     """Search for Jira issues using a JQL (Jira Query Language) query."""
     limit = max(1, min(limit, 100))
     client = JiraClient(context.get_auth_token_or_empty())
-    response = await client.post(
+    api_response = await client.post(
         "search/jql",
         json_data={
             "jql": jql,
@@ -233,11 +233,18 @@ async def search_issues_with_jql(
             "expand": "renderedFields",
         },
     )
-    return {
-        "issues": [clean_issue_dict(issue) for issue in response["issues"]],
-        "count": len(response["issues"]),
-        "next_page_token": response.get("nextPageToken"),
-    }
+    response = {"issues": [clean_issue_dict(issue) for issue in api_response["issues"]]}
+
+    if api_response.get("isLast") is not False and api_response.get("nextPageToken"):
+        response["pagination"] = {
+            "limit": limit,
+            "total_results": len(response["issues"]),
+            "next_page_token": api_response.get("nextPageToken"),
+        }
+    else:
+        response["pagination"] = {"is_last_page": True}
+
+    return response
 
 
 @tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
@@ -249,7 +256,8 @@ async def create_issue(
     ],
     issue_type: Annotated[
         str,
-        "The ID or name of the issue type. To get a full list of available "
+        "The name or ID of the issue type. If a name is provided, the tool will try to find a "
+        "unique exact match among the available issue types. To get a full list of available "
         f"issue types, use the `Jira.{list_issue_types.__tool_name__}` tool. ",
     ],
     project: Annotated[
@@ -426,22 +434,27 @@ async def update_issue(
     ] = None,
     issue_type: Annotated[
         str | None,
-        "The new issue type ID or name. Defaults to None (does not change the issue type).",
+        "The new issue type name or ID. If a name is provided, the tool will try to find a unique "
+        "exact match among the available issue types. Defaults to None "
+        "(does not change the issue type).",
     ] = None,
     priority: Annotated[
         str | None,
-        "The name or ID of the new issue priority. "
-        "Defaults to None (does not change the priority).",
+        "The name or ID of the new issue priority. If a name is provided, the tool will try to "
+        "find a unique exact match among the available priorities. Defaults to None "
+        "(does not change the priority).",
     ] = None,
     assignee: Annotated[
         str | None,
-        "The new issue assignee ID, name, or email. "
-        "Defaults to None (does not change the assignee).",
+        "The new issue assignee ID, name, or email. If a name or email is provided, the tool will "
+        "try to find a unique exact match among the available users. Defaults to None "
+        "(does not change the assignee).",
     ] = None,
     reporter: Annotated[
         str | None,
-        "The new issue reporter ID, name, or email. "
-        "Defaults to None (does not change the reporter).",
+        "The new issue reporter ID, name, or email. If a name or email is provided, the tool will "
+        "try to find a unique exact match among the available users. Defaults to None "
+        "(does not change the reporter).",
     ] = None,
     labels: Annotated[
         list[str] | None,
