@@ -14,7 +14,6 @@ from arcade_jira.critics import (
 )
 from arcade_jira.tools.issues import (
     add_labels_to_issue,
-    clear_issue_property,
     create_issue,
     remove_labels_from_issue,
     update_issue,
@@ -211,61 +210,6 @@ def labels_eval_suite() -> EvalSuite:
 
 
 @tool_eval()
-def clear_issue_property_eval_suite() -> EvalSuite:
-    suite = EvalSuite(
-        name="Labels eval suite",
-        system_message=(
-            "You are an AI assistant with access to Jira tools. "
-            "Use them to help the user with their tasks."
-        ),
-        catalog=catalog,
-        rubric=rubric,
-    )
-
-    suite.add_case(
-        name="Remove assignee",
-        user_message="Remove the assignee from the issue ENG-123.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=clear_issue_property,
-                args={
-                    "issue": "ENG-123",
-                    "property_name": "assignee",
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            CaseInsensitiveBinaryCritic(critic_field="issue", weight=0.5),
-            CaseInsensitiveBinaryCritic(critic_field="property_name", weight=0.5),
-        ],
-    )
-
-    suite.add_case(
-        name="Remove assignee",
-        user_message="Remove the assignee from the issue ENG-123 without notifying anyone.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=clear_issue_property,
-                args={
-                    "issue": "ENG-123",
-                    "property_name": "assignee",
-                    "notify_watchers": False,
-                },
-            ),
-        ],
-        rubric=rubric,
-        critics=[
-            CaseInsensitiveBinaryCritic(critic_field="issue", weight=1 / 3),
-            CaseInsensitiveBinaryCritic(critic_field="property_name", weight=1 / 3),
-            BinaryCritic(critic_field="notify_watchers", weight=1 / 3),
-        ],
-    )
-
-    return suite
-
-
-@tool_eval()
 def update_issue_eval_suite() -> EvalSuite:
     suite = EvalSuite(
         name="Update issue eval suite",
@@ -371,6 +315,65 @@ def update_issue_eval_suite() -> EvalSuite:
             CaseInsensitiveBinaryCritic(critic_field="issue", weight=1 / 3),
             CaseInsensitiveBinaryCritic(critic_field="title", weight=1 / 3),
             CaseInsensitiveBinaryCritic(critic_field="description", weight=1 / 3),
+        ],
+    )
+
+    suite.add_case(
+        name="Clear due date",
+        user_message="Clear the due date of the issue ENG-123.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=update_issue,
+                args={
+                    "issue": "ENG-123",
+                    "due_date": "",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            CaseInsensitiveBinaryCritic(critic_field="issue", weight=0.5),
+            CaseInsensitiveBinaryCritic(critic_field="due_date", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Remove assignee",
+        user_message="Remove the assignee from the issue ENG-123.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=update_issue,
+                args={
+                    "issue": "ENG-123",
+                    "assignee": "",
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            CaseInsensitiveBinaryCritic(critic_field="issue", weight=0.5),
+            CaseInsensitiveBinaryCritic(critic_field="assignee", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="Remove assignee",
+        user_message="Remove the assignee from the issue ENG-123 without notifying anyone.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=update_issue,
+                args={
+                    "issue": "ENG-123",
+                    "assignee": "",
+                    "notify_watchers": False,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            CaseInsensitiveBinaryCritic(critic_field="issue", weight=1 / 3),
+            CaseInsensitiveBinaryCritic(critic_field="assignee", weight=1 / 3),
+            BinaryCritic(critic_field="notify_watchers", weight=1 / 3),
         ],
     )
 

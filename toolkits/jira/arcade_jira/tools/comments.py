@@ -8,7 +8,7 @@ from arcade_jira.client import JiraClient
 from arcade_jira.constants import IssueCommentOrderBy
 from arcade_jira.utils import (
     add_pagination_to_response,
-    build_adf_doc_from_plaintext,
+    build_adf_doc,
     clean_comment_dict,
     find_multiple_unique_users,
     remove_none_values,
@@ -112,7 +112,7 @@ async def add_comment_to_issue(
 
     client = JiraClient(context.get_auth_token_or_empty())
 
-    adf_body = build_adf_doc_from_plaintext(body)
+    adf_body = build_adf_doc(body)
 
     if mention_users:
         users = await find_multiple_unique_users(context, mention_users, exact_match=True)

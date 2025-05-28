@@ -530,7 +530,7 @@ async def find_unique_issue_type(
         The issue type found.
     """
     # Avoid circular import
-    from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types_br_project
+    from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types_by_project
 
     # Try to get the issue type by ID first
     response = await get_issue_type_by_id(context, issue_type_identifier)
@@ -538,7 +538,7 @@ async def find_unique_issue_type(
         return cast(dict, response["issue_type"])
 
     # If not found, search by name
-    response = await list_issue_types_br_project(context, project_id)
+    response = await list_issue_types_by_project(context, project_id)
     issue_types = response["issue_types"]
     matches: list[dict[str, Any]] = []
 
@@ -634,7 +634,7 @@ def build_file_data(
     return {"file": (filename, file_content)}
 
 
-def build_adf_doc_from_plaintext(text: str) -> dict:
+def build_adf_doc(text: str) -> dict:
     return {
         "type": "doc",
         "version": 1,
@@ -707,11 +707,11 @@ async def paginate_all_priorities_by_priority_scheme(
 async def paginate_all_issue_types(context: ToolContext, project_identifier: str) -> list[dict]:
     """Get all issue types associated with a project."""
     # Avoid circular import
-    from arcade_jira.tools.issues import list_issue_types_br_project
+    from arcade_jira.tools.issues import list_issue_types_by_project
 
     return await paginate_all_items(
         context,
-        list_issue_types_br_project,
+        list_issue_types_by_project,
         "issue_types",
         project=project_identifier,
     )
@@ -724,7 +724,7 @@ async def validate_issue_args(
     issue_type: str | None,
     priority: str | None,
     parent_issue_id: str | None,
-) -> tuple[dict | None, dict | None, dict | None, dict | None]:
+) -> tuple[dict | None, dict | None, str | dict | None, str | dict | None]:
     if due_date and not is_valid_date_string(due_date):
         return (
             {"error": f"Invalid `due_date` format: '{due_date}'. Please use YYYY-MM-DD."},
@@ -742,20 +742,24 @@ async def validate_issue_args(
         )
 
     project_data = await get_project_data(context, project, parent_issue_id)
-    issue_type_data = None
-    priority_data = None
+    issue_type_data: str | dict | None = None
+    priority_data: str | dict | None = None
 
     if project_data.get("error"):
         error = project_data
         return error, None, issue_type_data, priority_data
 
-    if issue_type:
+    if issue_type == "":
+        issue_type_data = ""
+    elif issue_type:
         try:
             issue_type_data = await find_unique_issue_type(context, issue_type, project_data["id"])
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, project_data, issue_type_data, priority_data
 
-    if priority:
+    if priority == "":
+        priority_data = ""
+    elif priority:
         try:
             priority_data = await find_unique_priority(context, priority, project_data["id"])
         except JiraToolExecutionError as exc:
@@ -789,20 +793,24 @@ async def resolve_issue_users(
     context: ToolContext,
     assignee: str | None,
     reporter: str | None,
-) -> tuple[dict | None, dict | None, dict | None]:
-    assignee_data = None
-    reporter_data = None
+) -> tuple[dict | None, str | dict | None, str | dict | None]:
+    assignee_data: str | dict | None = None
+    reporter_data: str | dict | None = None
 
-    if not assignee and not reporter:
+    if (not assignee and assignee != "") and (not reporter and reporter != ""):
         return None, None, None
 
-    if assignee:
+    if assignee == "":
+        assignee_data = ""
+    elif assignee:
         try:
             assignee_data = await find_unique_user(context, assignee)
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, assignee_data, reporter_data
 
-    if reporter:
+    if reporter == "":
+        reporter_data = ""
+    elif reporter:
         try:
             reporter_data = await find_unique_user(context, reporter)
         except JiraToolExecutionError as exc:
@@ -861,3 +869,109 @@ async def find_priorities_by_project(
         },
         "priorities_available": priorities,
     }
+
+
+def build_issue_update_request_body(
+    title: str | None,
+    description: str | None,
+    environment: str | None,
+    due_date: str | None,
+    issue_type: str | dict | None,
+    priority: str | dict | None,
+    assignee: str | dict | None,
+    reporter: str | dict | None,
+    labels: list[str] | None,
+) -> dict[str, Any]:
+    body: dict[str, dict[str, Any]] = {"fields": {}, "update": {}}
+
+    build_issue_update_text_fields(body, title, description, environment)
+    build_issue_update_classifier_fields(body, issue_type, priority)
+    build_issue_update_user_fields(body, assignee, reporter)
+    build_issue_update_date_fields(body, due_date)
+
+    if labels == []:
+        body["update"]["labels"] = [{"set": None}]
+    elif labels:
+        body["fields"]["labels"] = labels
+
+    return body
+
+
+def build_issue_update_text_fields(
+    body: dict,
+    title: str | None,
+    description: str | None,
+    environment: str | None,
+) -> dict[str, dict[str, Any]]:
+    if title == "":
+        raise ValueError("Title cannot be empty")
+    elif title:
+        body["fields"]["summary"] = title
+
+    if description == "":
+        body["update"]["description"] = [{"set": None}]
+    elif description:
+        body["fields"]["description"] = build_adf_doc(description)
+
+    if environment == "":
+        body["update"]["environment"] = [{"set": None}]
+    elif environment:
+        body["fields"]["environment"] = build_adf_doc(environment)
+
+    return body
+
+
+def build_issue_update_user_fields(
+    body: dict,
+    assignee: str | dict | None,
+    reporter: str | dict | None,
+) -> dict[str, dict[str, Any]]:
+    if assignee == "":
+        body["update"]["assignee"] = [{"set": None}]
+    elif isinstance(assignee, dict):
+        body["fields"]["assignee"] = {"id": assignee["id"]}
+    elif assignee is not None:
+        raise ValueError(f"Invalid assignee: '{assignee}'")
+
+    if reporter == "":
+        body["update"]["reporter"] = [{"set": None}]
+    elif isinstance(reporter, dict):
+        body["fields"]["reporter"] = {"id": reporter["id"]}
+    elif reporter is not None:
+        raise ValueError(f"Invalid reporter: '{reporter}'")
+
+    return body
+
+
+def build_issue_update_classifier_fields(
+    body: dict,
+    issue_type: str | dict | None,
+    priority: str | dict | None,
+) -> dict[str, dict[str, Any]]:
+    if issue_type == "":
+        raise ValueError("Issue type cannot be empty")
+    elif isinstance(issue_type, dict):
+        body["fields"]["issuetype"] = {"id": issue_type["id"]}
+    elif issue_type is not None:
+        raise ValueError(f"Invalid issue type: '{issue_type}'")
+
+    if priority == "":
+        raise ValueError("Priority cannot be empty")
+    elif isinstance(priority, dict):
+        body["fields"]["priority"] = {"id": priority["id"]}
+    elif priority is not None:
+        raise ValueError(f"Invalid priority: '{priority}'")
+
+    return body
+
+
+def build_issue_update_date_fields(
+    body: dict,
+    due_date: str | None,
+) -> dict[str, dict[str, Any]]:
+    if due_date == "":
+        body["update"]["duedate"] = [{"set": None}]
+    elif due_date:
+        body["fields"]["duedate"] = due_date
+
+    return body

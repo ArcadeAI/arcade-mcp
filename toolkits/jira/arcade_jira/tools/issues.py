@@ -7,7 +7,8 @@ from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
 from arcade_jira.utils import (
     add_pagination_to_response,
-    build_adf_doc_from_plaintext,
+    build_adf_doc,
+    build_issue_update_request_body,
     build_search_issues_jql,
     clean_issue_dict,
     clean_issue_type_dict,
@@ -20,7 +21,7 @@ from arcade_jira.utils import (
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
-async def list_issue_types_br_project(
+async def list_issue_types_by_project(
     context: ToolContext,
     project: Annotated[
         str,
@@ -77,7 +78,10 @@ async def get_issue_type_by_id(
 ) -> Annotated[dict, "Information about the issue type"]:
     """Get the details of a Jira issue type by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
-    response = await client.get(f"issuetype/{issue_type_id}")
+    try:
+        response = await client.get(f"issuetype/{issue_type_id}")
+    except NotFoundError:
+        return {"error": f"Issue type not found with ID '{issue_type_id}'."}
     return {"issue_type": clean_issue_type_dict(response)}
 
 
@@ -266,8 +270,8 @@ async def create_issue(
         str | None,
         "The ID, key or name of the project to associate the issue with. If a name is provided, "
         "the tool will try to find a unique exact match among the available projects. "
-        "Defaults to None (no project). Must provide either a `project` or a "
-        "`parent_issue_id` argument when calling this tool.",
+        "Defaults to None (no project). Must provide at least one of `project` or "
+        "`parent_issue` arguments.",
     ] = None,
     due_date: Annotated[
         str | None,
@@ -288,7 +292,8 @@ async def create_issue(
     ] = None,
     parent_issue: Annotated[
         str | None,
-        "The ID or key of the parent issue. Defaults to None (no parent issue).",
+        "The ID or key of the parent issue. Defaults to None (no parent issue). "
+        "Must provide at least one of `parent_issue` or `project` arguments.",
     ] = None,
     priority: Annotated[
         str | None,
@@ -310,6 +315,8 @@ async def create_issue(
     ] = None,
 ) -> Annotated[dict, "The created issue"]:
     """Create a new Jira issue.
+
+    Must provide a value to at least one of `project` or `parent_issue` arguments.
 
     IF YOU DO NOT FOLLOW THE INSTRUCTIONS BELOW AND UNNECESSARILY CALL MULTIPLE TOOLS IN ORDER TO
     CREATE AN ISSUE, TOO MUCH CO2 WILL BE RELEASED IN THE ATMOSPHERE AND YOU WILL CAUSE THE
@@ -337,20 +344,22 @@ async def create_issue(
             "summary": title,
             "labels": labels,
             "duedate": due_date,
-            "project": {"id": project_data["id"]} if project_data else None,
-            "issuetype": {"id": issue_type_data["id"]} if issue_type_data else None,
+            "project": {"id": project_data["id"]} if isinstance(project_data, dict) else None,
+            "issuetype": {"id": issue_type_data["id"]}
+            if isinstance(issue_type_data, dict)
+            else None,
             "parent": {"id": parent_issue} if parent_issue else None,
-            "priority": {"id": priority_data["id"]} if priority_data else None,
-            "assignee": {"id": assignee_data["id"]} if assignee_data else None,
-            "reporter": {"id": reporter_data["id"]} if reporter_data else None,
+            "priority": {"id": priority_data["id"]} if isinstance(priority_data, dict) else None,
+            "assignee": {"id": assignee_data["id"]} if isinstance(assignee_data, dict) else None,
+            "reporter": {"id": reporter_data["id"]} if isinstance(reporter_data, dict) else None,
         }),
     }
 
     if environment:
-        request_body["fields"]["environment"] = build_adf_doc_from_plaintext(environment)
+        request_body["fields"]["environment"] = build_adf_doc(environment)
 
     if description:
-        request_body["fields"]["description"] = build_adf_doc_from_plaintext(description)
+        request_body["fields"]["description"] = build_adf_doc(description)
 
     response = await client.post("issue", json_data=request_body)
 
@@ -424,26 +433,29 @@ async def update_issue(
     issue: Annotated[str, "The key or ID of the issue to update"],
     title: Annotated[
         str | None,
-        "The new issue title. Defaults to None (does not change the title).",
+        "The new issue title. Provide an empty string to clear the title. "
+        "Defaults to None (does not change the title).",
     ] = None,
     description: Annotated[
         str | None,
-        "The new issue description. Defaults to None (does not change the description).",
+        "The new issue description. Provide an empty string to clear the description. "
+        "Defaults to None (does not change the description).",
     ] = None,
     environment: Annotated[
         str | None,
-        "The new issue environment. Defaults to None (does not change the environment).",
+        "The new issue environment. Provide an empty string to clear the environment. "
+        "Defaults to None (does not change the environment).",
     ] = None,
     due_date: Annotated[
         str | None,
-        "The new issue due date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
-        "Defaults to None (does not change the due date).",
+        "The new issue due date. Format: YYYY-MM-DD. Ex: '2025-01-01'. Provide an empty string "
+        "to clear the due date. Defaults to None (does not change the due date).",
     ] = None,
     issue_type: Annotated[
         str | None,
         "The new issue type name or ID. If a name is provided, the tool will try to find a unique "
-        "exact match among the available issue types. Defaults to None "
-        "(does not change the issue type).",
+        "exact match among the available issue types. Defaults to None (does not change the "
+        "issue type).",
     ] = None,
     priority: Annotated[
         str | None,
@@ -453,21 +465,21 @@ async def update_issue(
     ] = None,
     assignee: Annotated[
         str | None,
-        "The new issue assignee ID, name, or email. If a name or email is provided, the tool will "
-        "try to find a unique exact match among the available users. Defaults to None "
-        "(does not change the assignee).",
+        "The new issue assignee name, email, or ID. If a name or email is provided, the tool will "
+        "try to find a unique exact match among the available users. Provide an empty string to "
+        "remove the assignee. Defaults to None (does not change the assignee).",
     ] = None,
     reporter: Annotated[
         str | None,
-        "The new issue reporter ID, name, or email. If a name or email is provided, the tool will "
-        "try to find a unique exact match among the available users. Defaults to None "
-        "(does not change the reporter).",
+        "The new issue reporter name, email, or ID. If a name or email is provided, the tool will "
+        "try to find a unique exact match among the available users. Provide an empty string to "
+        "remove the reporter. Defaults to None (does not change the reporter).",
     ] = None,
     labels: Annotated[
         list[str] | None,
         "The new issue labels. This argument will replace all labels with the new list. "
-        "An empty list will remove all labels. To add or remove a subset of labels, "
-        f"use the `Jira.{add_labels_to_issue.__tool_name__}` or the "
+        "Providing None or an empty list will remove all labels. To add or remove a subset of "
+        f"labels, use the `Jira.{add_labels_to_issue.__tool_name__}` or the "
         f"`Jira.{remove_labels_from_issue.__tool_name__}` tools. "
         "Defaults to None (does not change the labels).",
     ] = None,
@@ -492,7 +504,7 @@ async def update_issue(
 
     project = issue_data["issue"]["project"]["id"]
 
-    error, project_data, issue_type_data, priority_data = await validate_issue_args(
+    error, _, issue_type_data, priority_data = await validate_issue_args(
         context, due_date, project, issue_type, priority, None
     )
     if error:
@@ -504,60 +516,24 @@ async def update_issue(
 
     client = JiraClient(context.get_auth_token_or_empty())
     params = {"notifyWatchers": notify_watchers, "expand": "renderedFields"}
-    request_body = {
-        "fields": remove_none_values({
-            "summary": title,
-            "duedate": due_date,
-            "labels": labels,
-            "issuetype": {"id": issue_type_data["id"]} if issue_type_data else None,
-            "project": {"id": project_data["id"]} if project_data else None,
-            "priority": {"id": priority_data["id"]} if priority_data else None,
-            "assignee": {"id": assignee_data["id"]} if assignee_data else None,
-            "reporter": {"id": reporter_data["id"]} if reporter_data else None,
-        }),
-    }
-
-    if environment:
-        request_body["fields"]["environment"] = build_adf_doc_from_plaintext(environment)
-
-    if description:
-        request_body["fields"]["description"] = build_adf_doc_from_plaintext(description)
-
+    request_body = build_issue_update_request_body(
+        title=title,
+        description=description,
+        environment=environment,
+        due_date=due_date,
+        issue_type=issue_type_data,
+        priority=priority_data,
+        assignee=assignee_data,
+        reporter=reporter_data,
+        labels=labels,
+    )
     await client.put(f"/issue/{issue}", json_data=request_body, params=params)
+
     return {
         "issue": {
             "id": issue_data["issue"]["id"],
             "key": issue_data["issue"]["key"],
-            "url": issue_data["issue"].get("url"),
         },
         "status": "success",
         "message": "Issue updated successfully.",
-    }
-
-
-@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
-async def clear_issue_property(
-    context: ToolContext,
-    issue: Annotated[str, "The ID or key of the issue"],
-    property_name: Annotated[
-        str,
-        "The name of the issue property to clear the value.",
-    ],
-    notify_watchers: Annotated[
-        bool,
-        "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
-    ] = True,
-) -> Annotated[dict, "The updated issue"]:
-    """Clear the value of a property from an existing Jira issue."""
-    client = JiraClient(context.get_auth_token_or_empty())
-    params = remove_none_values({
-        "notifyWatchers": notify_watchers,
-        "expand": "renderedFields",
-    })
-    request_body = {"update": {property_name: [{"set": None}]}}
-    await client.put(f"/issue/{issue}", json_data=request_body, params=params)
-    return {
-        "issue": issue,
-        "status": "success",
-        "message": f"Issue property '{property_name}' successfully cleared.",
     }

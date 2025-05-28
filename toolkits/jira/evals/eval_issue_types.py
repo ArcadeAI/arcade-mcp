@@ -12,7 +12,7 @@ from arcade.sdk.eval.critic import BinaryCritic
 import arcade_jira
 from arcade_jira.tools.issues import (
     get_issue_type_by_id,
-    list_issue_types_br_project,
+    list_issue_types_by_project,
 )
 
 # Evaluation rubric
@@ -43,7 +43,7 @@ def list_issue_types_eval_suite() -> EvalSuite:
         user_message="List the issue types in the project with ID '1234567890'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_issue_types_br_project,
+                func=list_issue_types_by_project,
                 args={
                     "project": "1234567890",
                     "limit": 200,
@@ -64,7 +64,7 @@ def list_issue_types_eval_suite() -> EvalSuite:
         user_message="List the issue types in the project PRJ-1.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_issue_types_br_project,
+                func=list_issue_types_by_project,
                 args={
                     "project": "PRJ-1",
                     "limit": 200,
@@ -85,7 +85,7 @@ def list_issue_types_eval_suite() -> EvalSuite:
         user_message="List the issue types in the project 'Engineering'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_issue_types_br_project,
+                func=list_issue_types_by_project,
                 args={
                     "project": "Engineering",
                     "limit": 200,
@@ -106,7 +106,7 @@ def list_issue_types_eval_suite() -> EvalSuite:
         user_message="List 10 issue types in the project 'Engineering'. Skip the first 30 items.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_issue_types_br_project,
+                func=list_issue_types_by_project,
                 args={
                     "project": "Engineering",
                     "limit": 10,
@@ -127,7 +127,7 @@ def list_issue_types_eval_suite() -> EvalSuite:
         user_message="Get the next items.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=list_issue_types_br_project,
+                func=list_issue_types_by_project,
                 args={
                     "project": "Engineering",
                     "limit": 2,
