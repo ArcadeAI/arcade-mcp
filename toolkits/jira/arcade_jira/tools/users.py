@@ -129,5 +129,6 @@ async def get_users_without_id(
             "limit": limit,
             "offset": offset,
         },
+        "isLast": api_response.get("isLast"),
     }
     return add_pagination_to_response(response, users, limit, offset, 1000)

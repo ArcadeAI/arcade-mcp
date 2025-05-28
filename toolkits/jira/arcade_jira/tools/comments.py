@@ -78,13 +78,14 @@ async def get_issue_comments(
             "orderBy": order_by.to_api_value() if order_by else None,
         }),
     )
-    comments = api_response["comments"][:limit]
+    comments = [
+        clean_comment_dict(comment, include_adf_content)
+        for comment in api_response["comments"][:limit]
+    ]
     response = {
         "issue": issue,
-        "comments": {
-            "items": [clean_comment_dict(comment, include_adf_content) for comment in comments],
-            "count": len(comments),
-        },
+        "comments": comments,
+        "isLast": api_response.get("isLast"),
     }
     return add_pagination_to_response(response, comments, limit, offset)
 
