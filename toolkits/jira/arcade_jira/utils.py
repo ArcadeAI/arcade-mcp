@@ -530,7 +530,7 @@ async def find_unique_issue_type(
         The issue type found.
     """
     # Avoid circular import
-    from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types
+    from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types_br_project
 
     # Try to get the issue type by ID first
     response = await get_issue_type_by_id(context, issue_type_identifier)
@@ -538,7 +538,7 @@ async def find_unique_issue_type(
         return cast(dict, response["issue_type"])
 
     # If not found, search by name
-    response = await list_issue_types(context, project_id)
+    response = await list_issue_types_br_project(context, project_id)
     issue_types = response["issue_types"]
     matches: list[dict[str, Any]] = []
 
@@ -707,11 +707,11 @@ async def paginate_all_priorities_by_priority_scheme(
 async def paginate_all_issue_types(context: ToolContext, project_identifier: str) -> list[dict]:
     """Get all issue types associated with a project."""
     # Avoid circular import
-    from arcade_jira.tools.issues import list_issue_types
+    from arcade_jira.tools.issues import list_issue_types_br_project
 
     return await paginate_all_items(
         context,
-        list_issue_types,
+        list_issue_types_br_project,
         "issue_types",
         project=project_identifier,
     )

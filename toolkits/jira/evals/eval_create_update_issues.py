@@ -91,7 +91,7 @@ def create_issue_eval_suite() -> EvalSuite:
                 func=create_issue,
                 args={
                     "title": "Implement message queue service",
-                    "parent_issue_id": "ENG-321",
+                    "parent_issue": "ENG-321",
                     "issue_type": "Task",
                     "assignee": "John Doe",
                     "reporter": "Jenifer Bear",
@@ -103,7 +103,7 @@ def create_issue_eval_suite() -> EvalSuite:
         rubric=rubric,
         critics=[
             CaseInsensitiveBinaryCritic(critic_field="title", weight=1 / 7),
-            CaseInsensitiveBinaryCritic(critic_field="parent_issue_id", weight=1 / 7),
+            CaseInsensitiveBinaryCritic(critic_field="parent_issue", weight=1 / 7),
             CaseInsensitiveBinaryCritic(critic_field="issue_type", weight=1 / 7),
             CaseInsensitiveBinaryCritic(critic_field="assignee", weight=1 / 7),
             CaseInsensitiveBinaryCritic(critic_field="reporter", weight=1 / 7),

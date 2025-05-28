@@ -20,12 +20,13 @@ from arcade_jira.utils import (
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
-async def list_issue_types(
+async def list_issue_types_br_project(
     context: ToolContext,
     project: Annotated[
         str,
-        "The project to get issue types for. Provide a project name, key, or ID. "
-        "Defaults to None (issue types associated with all projects).",
+        "The project to get issue types for. Provide a project name, key, or ID. If a "
+        "project name is provided, the tool will try to find a unique exact match among the "
+        "available projects.",
     ],
     limit: Annotated[
         int,
@@ -72,11 +73,11 @@ async def list_issue_types(
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def get_issue_type_by_id(
     context: ToolContext,
-    issue_type: Annotated[str, "The ID of the issue type to retrieve"],
+    issue_type_id: Annotated[str, "The ID of the issue type to retrieve"],
 ) -> Annotated[dict, "Information about the issue type"]:
     """Get the details of a Jira issue type by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
-    response = await client.get(f"issuetype/{issue_type}")
+    response = await client.get(f"issuetype/{issue_type_id}")
     return {"issue_type": clean_issue_type_dict(response)}
 
 
@@ -119,29 +120,29 @@ async def get_issues_without_id(
     status: Annotated[
         str | None,
         "Match issues that are in this status. Provide a status name. "
-        "Ex: 'To Do'. Defaults to None (any status).",
+        "Ex: 'To Do', 'In Progress', 'Done'. Defaults to None (any status).",
     ] = None,
     priority: Annotated[
         str | None,
-        "Match issues that have this priority. E.g. 'Highest'. Defaults to None (any priority).",
+        "Match issues that have this priority. Provide a priority name. E.g. 'Highest'. "
+        "Defaults to None (any priority).",
     ] = None,
     assignee: Annotated[
         str | None,
-        "Match issues that are assigned to this user. "
-        "Provide the user's display name or email address. "
+        "Match issues that are assigned to this user. Provide the user's name or email address. "
         "Ex: 'John Doe' or 'john.doe@example.com'. Defaults to None (any assignee).",
     ] = None,
     project: Annotated[
         str | None,
-        "Match issues that are associated with this project. "
-        "Provide the project's name, ID, or key. "
-        "Defaults to None (any project or no project).",
+        "Match issues that are associated with this project. Provide the project's name, ID, or "
+        "key. If a project name is provided, the tool will try to find a unique exact match among "
+        "the available projects. Defaults to None (search across all projects).",
     ] = None,
     issue_type: Annotated[
         str | None,
         "Match issues that are of this issue type. Provide an issue type name or ID. "
-        "E.g. 'Task', 'Epic', '12345'. To get a full list of available issue types, use the "
-        f"`Jira.{list_issue_types.__tool_name__}` tool. Defaults to None (any issue type).",
+        "E.g. 'Task', 'Epic', '12345'. If a name is provided, the tool will try to find a unique "
+        "exact match among the available issue types. Defaults to None (any issue type).",
     ] = None,
     labels: Annotated[
         list[str] | None,
@@ -233,7 +234,9 @@ async def search_issues_with_jql(
             "expand": "renderedFields",
         },
     )
-    response = {"issues": [clean_issue_dict(issue) for issue in api_response["issues"]]}
+    response: dict[str, Any] = {
+        "issues": [clean_issue_dict(issue) for issue in api_response["issues"]]
+    }
 
     if api_response.get("isLast") is not False and api_response.get("nextPageToken"):
         response["pagination"] = {
@@ -257,14 +260,14 @@ async def create_issue(
     issue_type: Annotated[
         str,
         "The name or ID of the issue type. If a name is provided, the tool will try to find a "
-        "unique exact match among the available issue types. To get a full list of available "
-        f"issue types, use the `Jira.{list_issue_types.__tool_name__}` tool. ",
+        "unique exact match among the available issue types.",
     ],
     project: Annotated[
         str | None,
-        "The ID, key or name of the project to associate the issue with. "
+        "The ID, key or name of the project to associate the issue with. If a name is provided, "
+        "the tool will try to find a unique exact match among the available projects. "
         "Defaults to None (no project). Must provide either a `project` or a "
-        "`parent_issue_id` argument.",
+        "`parent_issue_id` argument when calling this tool.",
     ] = None,
     due_date: Annotated[
         str | None,
@@ -283,22 +286,26 @@ async def create_issue(
         list[str] | None,
         "The labels of the issue. Defaults to None (no labels).",
     ] = None,
-    parent_issue_id: Annotated[
+    parent_issue: Annotated[
         str | None,
-        "The ID of the parent issue. Defaults to None (no parent issue).",
+        "The ID or key of the parent issue. Defaults to None (no parent issue).",
     ] = None,
     priority: Annotated[
         str | None,
-        "The ID or name of the priority to use for the issue. "
-        "Defaults to None (Jira's default priority for the specified project).",
+        "The ID or name of the priority to use for the issue. If a name is provided, the tool "
+        "will try to find a unique exact match among the available priorities. Defaults to None "
+        "(the issue is created with Jira's default priority for the specified project).",
     ] = None,
     assignee: Annotated[
         str | None,
-        "The ID, name or email of the user to assign the issue to. Defaults to None (no assignee).",
+        "The name, email or ID of the user to assign the issue to. If a name or email is provided, "
+        "the tool will try to find a unique exact match among the available users. "
+        "Defaults to None (no assignee).",
     ] = None,
     reporter: Annotated[
         str | None,
-        "The ID, name or email of the user who is the reporter of the issue. "
+        "The name, email or ID of the user who is the reporter of the issue. If a name or email is "
+        "provided, the tool will try to find a unique exact match among the available users. "
         "Defaults to None (no reporter).",
     ] = None,
 ) -> Annotated[dict, "The created issue"]:
@@ -314,7 +321,7 @@ async def create_issue(
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
     error, project_data, issue_type_data, priority_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority, parent_issue_id
+        context, due_date, project, issue_type, priority, parent_issue
     )
     if error:
         return error
@@ -332,7 +339,7 @@ async def create_issue(
             "duedate": due_date,
             "project": {"id": project_data["id"]} if project_data else None,
             "issuetype": {"id": issue_type_data["id"]} if issue_type_data else None,
-            "parent": {"id": parent_issue_id} if parent_issue_id else None,
+            "parent": {"id": parent_issue} if parent_issue else None,
             "priority": {"id": priority_data["id"]} if priority_data else None,
             "assignee": {"id": assignee_data["id"]} if assignee_data else None,
             "reporter": {"id": reporter_data["id"]} if reporter_data else None,
@@ -534,8 +541,7 @@ async def clear_issue_property(
     issue: Annotated[str, "The ID or key of the issue"],
     property_name: Annotated[
         str,
-        "Which property to clear. Some commonly referenced properties are: "
-        "parent, assignee, duedate.",
+        "The name of the issue property to clear the value.",
     ],
     notify_watchers: Annotated[
         bool,
