@@ -16,5 +16,5 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --dev --extra evals
       shell: bash

@@ -3,7 +3,7 @@ VERSION ?= "0.1.0.dev0"
 .PHONY: install
 install: ## Install the uv environment and all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv workspace"
-	@uv sync --dev
+	@uv sync --dev --extra evals
 	@uv run pre-commit install
 	@echo "✅ All packages and dependencies installed via uv workspace"
 
@@ -15,7 +15,7 @@ install-toolkits: ## Install dependencies for all toolkits
 	for dir in toolkits/*/ ; do \
 		if [ -d "$$dir" ] && [ -f "$$dir/pyproject.toml" ]; then \
 			echo "📦 Installing dependencies for $$dir"; \
-			if (cd $$dir && uv sync --extra dev); then \
+			if (cd $$dir && uv pip install -e ".[dev]"); then \
 				successful=$$((successful + 1)); \
 			else \
 				echo "❌ Failed to install dependencies for $$dir"; \
@@ -88,7 +88,7 @@ test-toolkits: ## Iterate over all toolkits and run pytest on each one
 	@for dir in toolkits/*/ ; do \
 		toolkit_name=$$(basename "$$dir"); \
 		echo "🧪 Testing $$toolkit_name toolkit"; \
-		(cd $$dir && uv run pytest -W ignore -v --cov=arcade_$$toolkit_name --cov-report=xml || exit 1); \
+		(cd $$dir && uv run --active pytest -W ignore -v --cov=arcade_$$toolkit_name --cov-report=xml || exit 1); \
 	done
 
 .PHONY: coverage
@@ -102,24 +102,30 @@ coverage: ## Generate coverage report
 set-version: ## Set the version in all lib pyproject.toml files
 	@echo "🚀 Setting version to $(VERSION) in all lib packages"
 	@for lib in libs/arcade*/ ; do \
-		echo "Setting version in $$lib"; \
-		(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml && rm pyproject.toml.bak); \
+		if [ -f "$$lib/pyproject.toml" ]; then \
+			echo "Setting version in $$lib"; \
+			(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml && rm pyproject.toml.bak); \
+		fi; \
 	done
 
 .PHONY: unset-version
 unset-version: ## Reset version to 0.1.0 in all lib pyproject.toml files
 	@echo "🚀 Resetting version to 0.1.0 in all lib packages"
 	@for lib in libs/arcade*/ ; do \
-		echo "Resetting version in $$lib"; \
-		(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "0.1.0"/' pyproject.toml && rm pyproject.toml.bak); \
+		if [ -f "$$lib/pyproject.toml" ]; then \
+			echo "Resetting version in $$lib"; \
+			(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "0.1.0"/' pyproject.toml && rm pyproject.toml.bak); \
+		fi; \
 	done
 
 .PHONY: build
 build: clean-build ## Build wheel files using uv
 	@echo "🚀 Creating wheel files for all lib packages"
 	@for lib in libs/arcade*/ ; do \
-		echo "🛠️ Building $$lib"; \
-		(cd $$lib && uv build); \
+		if [ -f "$$lib/pyproject.toml" ]; then \
+			echo "🛠️ Building $$lib"; \
+			(cd $$lib && uv build); \
+		fi; \
 	done
 
 .PHONY: build-toolkits
@@ -165,8 +171,10 @@ clean-build: ## clean build artifacts
 publish: ## publish a release to pypi.
 	@echo "🚀 Publishing all lib packages to PyPI"
 	@for lib in libs/arcade*/ ; do \
-		echo "📦 Publishing $$lib"; \
-		(cd $$lib && uv publish --token $(PYPI_TOKEN) || true); \
+		if [ -f "$$lib/pyproject.toml" ]; then \
+			echo "📦 Publishing $$lib"; \
+			(cd $$lib && uv publish --token $(PYPI_TOKEN) || true); \
+		fi; \
 	done
 
 .PHONY: build-and-publish
@@ -213,7 +221,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@mkdir -p dist
 
 	# Build all lib packages in dependency order
-	@for lib in arcade-core arcade-tdk arcade-serve arcade-evals arcadecli ; do \
+	@for lib in arcade-core arcade-tdk arcade-serve ; do \
 		echo "🛠️ Building libs/$$lib wheel..."; \
 		(cd libs/$$lib && uv build); \
 		cp libs/$$lib/dist/*.whl dist/; \

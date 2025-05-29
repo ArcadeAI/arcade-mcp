@@ -1,5 +1,5 @@
-from arcade_core.catalog import ToolCatalog
-from arcade_evals.eval import (
+from arcade_tdk import ToolCatalog
+from arcade_evals import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,

@@ -18,31 +18,47 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.10"
-# Dependencies for testing - include all workspace packages
+# Dependencies include workspace packages and CLI dependencies
 dependencies = [
     "arcade-core",
     "arcade-tdk",
     "arcade-serve",
-    "arcade-evals",
-    "arcadecli"
+    # CLI dependencies (from arcadecli)
+    "typer>=0.9.0",
+    "rich>=13.7.1",
+    "Jinja2>=3.1.5,<4.0.0",
+    "arcadepy>=1.3.1",
+    "tqdm>=4.1.0",
+    "openai>=1.36.0",
+    "click<8.2.0",
 ]
 
+[project.optional-dependencies]
+evals = [
+    "scipy>=1.14.0",
+    "numpy>=2.0.0",
+    "scikit-learn>=1.5.0",
+    "pytz>=2024.1",
+    "python-dateutil>=2.8.2",
+    "openai>=1.36.0",
+]
+
+# CLI entry point
+[project.scripts]
+arcade = "arcadecli.main:cli"
 
 [tool.uv.sources]
 # Workspace member sources
 arcade-core = { workspace = true }
 arcade-tdk = { workspace = true }
 arcade-serve = { workspace = true }
-arcade-evals = { workspace = true }
-arcadecli = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-# This is a workspace coordinator - only include essential files
-only-include = ["README.md", "LICENSE"]
+packages = ["libs/arcadecli/arcadecli", "libs/arcade-evals/arcade_evals"]
 
 [tool.uv]
 dev-dependencies = [
@@ -62,8 +78,6 @@ members = [
     "libs/arcade-core",
     "libs/arcade-tdk",
     "libs/arcade-serve",
-    "libs/arcade-evals",
-    "libs/arcadecli",
 ]
 
 [tool.mypy]
