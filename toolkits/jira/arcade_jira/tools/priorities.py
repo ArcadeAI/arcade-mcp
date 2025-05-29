@@ -120,7 +120,7 @@ async def list_projects_associated_with_a_priority_scheme(
             project_data = await find_unique_project(context, project)
         except (NotFoundError, MultipleItemsFoundError) as exc:
             return {"error": exc.message}
-        finally:
+        else:
             project = project_data["id"]
 
     client = JiraClient(context.get_auth_token_or_empty())

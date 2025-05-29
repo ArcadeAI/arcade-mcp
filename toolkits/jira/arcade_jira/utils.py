@@ -496,6 +496,10 @@ async def find_unique_priority(
 
     # If not found, search by name
     response = await list_priorities_available_to_a_project(context, project_id)
+
+    if response.get("error"):
+        raise JiraToolExecutionError(response["error"])
+
     priorities = response["priorities_available"]
     matches: list[dict[str, Any]] = []
 

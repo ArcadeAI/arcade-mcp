@@ -129,3 +129,21 @@ def build_project_search_response_dict() -> Callable[[list[dict], bool], dict]:
         }
 
     return project_search_response_builder
+
+
+@pytest.fixture
+def build_priority_dict(
+    generate_random_str: Callable,
+) -> Callable[[str | None, str | None, str | None], dict]:
+    def priority_dict_builder(
+        id_: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> dict:
+        return {
+            "id": id_ or generate_random_str(),
+            "name": name or generate_random_str(),
+            "description": description or generate_random_str(),
+        }
+
+    return priority_dict_builder
