@@ -7,6 +7,19 @@ import httpx
 import pytest
 from arcade.sdk import ToolAuthorizationContext, ToolContext
 
+from arcade_jira.cache import set_cloud_id
+
+
+@pytest.fixture
+def fake_auth_token(generate_random_str: Callable) -> str:
+    return generate_random_str()
+
+
+@pytest.fixture(autouse=True)
+def set_cloud_id_cache(fake_auth_token: str, generate_random_str: Callable) -> None:
+    """This fixture auto-sets cloud ID in the cache to skip the HTTP call to get it"""
+    set_cloud_id(fake_auth_token, generate_random_str())
+
 
 @pytest.fixture
 def generate_random_str() -> Callable[[int], str]:
@@ -27,8 +40,17 @@ def generate_random_email(generate_random_str: Callable) -> Callable[[str | None
 
 
 @pytest.fixture
-def mock_context():
-    mock_auth = ToolAuthorizationContext(token="fake-token")  # noqa: S106
+def generate_random_url(generate_random_str: Callable) -> Callable[[str], str]:
+    def random_url_generator(base_url: str | None = None) -> str:
+        base_url = base_url or f"https://{generate_random_str()}.com"
+        return f"{base_url}/{generate_random_str()}"
+
+    return random_url_generator
+
+
+@pytest.fixture
+def mock_context(fake_auth_token: str) -> ToolContext:
+    mock_auth = ToolAuthorizationContext(token=fake_auth_token)
     return ToolContext(authorization=mock_auth)
 
 
@@ -50,10 +72,10 @@ def mock_httpx_response() -> Callable[[int, dict], httpx.Response]:
 
 
 @pytest.fixture
-def build_sample_user_dict(
+def build_user_dict(
     generate_random_str: Callable[[int], str],
     generate_random_email: Callable[[str | None, str | None], str],
-) -> Callable[[str | None, str | None, str | None], dict]:
+) -> Callable[[str | None, str | None, str | None, bool, str], dict]:
     def user_dict_builder(
         id_: str | None = None,
         email: str | None = None,
@@ -63,7 +85,7 @@ def build_sample_user_dict(
     ) -> dict[str, Any]:
         display_name = display_name or generate_random_str()
         user = {
-            "id": id_ or generate_random_str(),
+            "accountId": id_ or generate_random_str(),
             "displayName": display_name,
             "emailAddress": email or generate_random_email(name=display_name),
             "active": active,

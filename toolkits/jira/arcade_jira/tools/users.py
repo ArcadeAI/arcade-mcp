@@ -12,6 +12,13 @@ from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remov
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
 async def list_users(
     context: ToolContext,
+    account_type: Annotated[
+        str | None,
+        "The account type of the users to return. Defaults to 'atlassian'. Provide `None` to  "
+        "disable filtering by account type. The account type filter will be applied after "
+        "retrieving users from Jira API, thus the tool may return less users than the limit and "
+        "still have more users to paginate. Check the `pagination` key in the response dictionary.",
+    ] = "atlassian",
     limit: Annotated[
         int,
         "The maximum number of users to return. Min of 1, max of 50. Defaults to 50.",
@@ -26,14 +33,20 @@ async def list_users(
     limit = max(min(limit, 50), 1)
     client = JiraClient(context.get_auth_token_or_empty())
     api_response = await client.get(
-        "/users/search", params={"startAt": offset, "maxResults": limit}
+        "/users/search",
+        params={
+            "startAt": offset,
+            "maxResults": limit,
+        },
     )
-    users = [clean_user_dict(user) for user in api_response]
-    response = {
-        "users": users,
-        "isLast": api_response["isLast"],
-    }
-    return add_pagination_to_response(response, users, limit, offset)
+    users = [
+        clean_user_dict(user)
+        for user in api_response
+        if not account_type or user["accountType"].casefold() == account_type.casefold()
+    ]
+    response = add_pagination_to_response({"users": users}, api_response, limit, offset)
+    response["pagination"]["total_results"] = len(users)
+    return response
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))

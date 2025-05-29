@@ -7,7 +7,7 @@ from datetime import date, datetime
 from typing import Any, Callable, cast
 
 from arcade.sdk import ToolContext
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade.sdk.errors import ToolExecutionError
 
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 
@@ -232,6 +232,15 @@ def clean_user_dict(user: dict) -> dict:
     if user.get("accountType"):
         data["account_type"] = user["accountType"]
 
+    if user.get("self"):
+        data["url"] = user["self"]
+
+    if user.get("timeZone"):
+        data["timezone"] = user["timeZone"]
+
+    if user.get("active"):
+        data["active"] = user["active"]
+
     return data
 
 
@@ -390,22 +399,17 @@ async def find_multiple_unique_users(
         user_identifier = response["query"]["name_or_email"]
 
         if response["pagination"]["total_results"] > 1:
-            available_users = [simplify_user_dict(user) for user in response["users"]["items"]]
-            message = (
-                f"Multiple users matching '{user_identifier}'. "
-                "Please provide a unique user identifier."
+            simplified_users = [simplify_user_dict(user) for user in response["users"]]
+            raise MultipleItemsFoundError(
+                f"Multiple users found with name or email '{user_identifier}'. "
+                f"Please provide a unique ID: {json.dumps(simplified_users)}"
             )
-            available_users_msg = (
-                f"The following users match '{user_identifier}': {json.dumps(available_users)}"
-            )
-            developer_message = f"{message} {available_users_msg}"
-            raise RetryableToolError(message, developer_message, available_users_msg)
 
         elif response["pagination"]["total_results"] == 0:
             search_by_id.append(user_identifier)
 
         else:
-            users.append(response["users"]["items"][0])
+            users.append(response["users"][0])
 
     if search_by_id:
         responses = await asyncio.gather(*[
@@ -415,7 +419,7 @@ async def find_multiple_unique_users(
             if response["user"]:
                 users.append(response["user"])
             else:
-                raise ToolExecutionError(
+                raise NotFoundError(
                     f"No user found with '{response['query']['user_id']}'.",
                 )
 

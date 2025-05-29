@@ -6,6 +6,7 @@ from arcade.sdk.errors import ToolExecutionError
 
 from arcade_jira.client import JiraClient
 from arcade_jira.constants import IssueCommentOrderBy
+from arcade_jira.exceptions import MultipleItemsFoundError, NotFoundError
 from arcade_jira.utils import (
     add_pagination_to_response,
     build_adf_doc,
@@ -115,7 +116,10 @@ async def add_comment_to_issue(
     adf_body = build_adf_doc(body)
 
     if mention_users:
-        users = await find_multiple_unique_users(context, mention_users, exact_match=True)
+        try:
+            users = await find_multiple_unique_users(context, mention_users, exact_match=True)
+        except (NotFoundError, MultipleItemsFoundError) as exc:
+            return {"error": f"Failed to mention user: {exc.message}"}
         mentions = [
             {
                 "type": "mention",
