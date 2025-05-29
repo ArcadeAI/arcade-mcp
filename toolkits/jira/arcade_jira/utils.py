@@ -344,7 +344,9 @@ def add_pagination_to_response(
         "total_results": len(items),
     }
 
-    if response.get("isLast") is False or (len(items) >= limit and next_offset > offset):
+    if response.get("isLast") is True:
+        response["pagination"]["is_last_page"] = True
+    elif response.get("isLast") is False or (len(items) >= limit and next_offset > offset):
         response["pagination"]["next_offset"] = next_offset
     else:
         response["pagination"]["is_last_page"] = True
@@ -659,10 +661,10 @@ async def paginate_all_items(
     limit: int | None = None,
     offset: int | None = None,
     **kwargs: Any,
-) -> list[dict]:
+) -> list[Any]:
     """Paginate all items from a tool."""
     keep_paginating = True
-    items: list[dict] = []
+    items: list[Any] = []
 
     if limit is not None:
         kwargs["limit"] = limit
