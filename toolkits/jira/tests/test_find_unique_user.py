@@ -1,8 +1,3 @@
-"""
-Tests functions in utils.py used for getting unique objects from Jira, like users, projects, etc.
-using a range of identifiers, such as ID, name, key, email.
-"""
-
 from typing import Callable
 
 import pytest

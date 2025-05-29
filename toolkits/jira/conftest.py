@@ -95,3 +95,37 @@ def build_user_dict(
         return user
 
     return user_dict_builder
+
+
+@pytest.fixture
+def build_project_dict(
+    generate_random_str: Callable,
+    generate_random_url: Callable,
+) -> Callable[[str | None, str | None, str | None, str | None, str | None], dict]:
+    def project_dict_builder(
+        id_: str | None = None,
+        key: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        url: str | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "id": id_ or generate_random_str(),
+            "key": key or generate_random_str(),
+            "name": name or generate_random_str(),
+            "description": description or generate_random_str(),
+            "url": url or generate_random_url(),
+        }
+
+    return project_dict_builder
+
+
+@pytest.fixture
+def build_project_search_response_dict() -> Callable[[list[dict], bool], dict]:
+    def project_search_response_builder(projects: list[dict], is_last: bool = True) -> dict:
+        return {
+            "values": projects,
+            "isLast": is_last,
+        }
+
+    return project_search_response_builder
