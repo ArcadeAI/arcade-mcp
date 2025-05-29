@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
@@ -39,12 +39,13 @@ async def list_users(
             "maxResults": limit,
         },
     )
+    items = cast(list[dict[str, Any]], api_response)
     users = [
         clean_user_dict(user)
         for user in api_response
         if not account_type or user["accountType"].casefold() == account_type.casefold()
     ]
-    response = add_pagination_to_response({"users": users}, api_response, limit, offset)
+    response = add_pagination_to_response({"users": users}, items, limit, offset)
     response["pagination"]["total_results"] = len(users)
     return response
 
