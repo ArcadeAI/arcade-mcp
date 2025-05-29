@@ -6,6 +6,7 @@ import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from importlib import metadata
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, Union, cast
@@ -19,7 +20,6 @@ from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
 from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
 from arcadepy.types import AuthorizationResponse
-from importlib import metadata
 from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
