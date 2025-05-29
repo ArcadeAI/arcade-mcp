@@ -758,7 +758,7 @@ async def validate_issue_args(
         )
 
     error: dict[str, Any] | None = None
-    project_data = await get_project_data(context, project, parent_issue)
+    project_data = await get_project_data_by_id_or_parent_issue_id(context, project, parent_issue)
     issue_type_data: str | dict[str, Any] | None = None
     priority_data: str | dict[str, Any] | None = None
     parent_issue_data: dict[str, Any] | None = None
@@ -837,12 +837,15 @@ async def resolve_parent_issue(
     return None, None
 
 
-async def get_project_data(
+async def get_project_data_by_id_or_parent_issue_id(
     context: ToolContext,
     project: str | None,
     parent_issue_id: str | None,
 ) -> dict[str, Any]:
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
+
+    if not project and not parent_issue_id:
+        raise ValueError("Must provide either `project` or `parent_issue_id` argument.")
 
     if not project:
         parent_issue_data = await get_issue_by_id(context, parent_issue_id)
