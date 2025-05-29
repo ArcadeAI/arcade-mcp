@@ -99,6 +99,7 @@ async def test_find_unique_priority_by_name_when_project_does_not_exist(
             mock_context, sample_priority["name"].lower(), sample_project["id"]
         )
 
+    mock_find_priorities_by_project.assert_not_called()
     assert f"Project not found with name/key/ID '{sample_project['id']}'" in exc.value.message
 
 
