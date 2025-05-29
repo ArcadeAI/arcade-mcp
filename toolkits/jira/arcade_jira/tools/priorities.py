@@ -6,7 +6,7 @@ from arcade.sdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
 from arcade_jira.constants import JIRA_API_REQUEST_TIMEOUT, PrioritySchemeOrderBy
-from arcade_jira.exceptions import MultipleItemsFoundError, NotFoundError
+from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 from arcade_jira.utils import (
     add_pagination_to_response,
     clean_priority_dict,
@@ -166,6 +166,8 @@ async def list_priorities_available_to_a_project(
         )
     except asyncio.TimeoutError:
         return {"error": f"The operation timed out after {JIRA_API_REQUEST_TIMEOUT} seconds."}
+    except JiraToolExecutionError as error:
+        return {"error": error.message}
 
 
 @tool(requires_auth=Atlassian(scopes=["manage:jira-configuration"]))

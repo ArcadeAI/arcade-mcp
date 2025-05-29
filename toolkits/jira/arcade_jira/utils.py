@@ -900,6 +900,10 @@ async def find_priorities_by_project(
     priorities: list[dict[str, Any]] = []
 
     priority_schemes = await paginate_all_priority_schemes(context)
+
+    if not priority_schemes:
+        raise NotFoundError("No priority schemes found")
+
     projects_by_scheme = await asyncio.gather(*[
         list_projects_associated_with_a_priority_scheme(
             context=context,
@@ -918,6 +922,9 @@ async def find_priorities_by_project(
                 scheme = priority_schemes[scheme_index]
                 scheme_ids.add(scheme["id"])
                 break
+
+    if not scheme_ids:
+        return {"error": f"No priority schemes found for the project {project['id']}"}
 
     priorities_by_scheme = await asyncio.gather(*[
         paginate_all_priorities_by_priority_scheme(context, scheme_id) for scheme_id in scheme_ids
