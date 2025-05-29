@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 
 from arcade_search.enums import GoogleFlightsMaxStops, GoogleFlightsSortBy, GoogleFlightsTravelClass
 from arcade_search.utils import call_serpapi, parse_flight_results, prepare_params

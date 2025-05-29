@@ -1,8 +1,8 @@
 from typing import Annotated, Optional
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Dropbox
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Dropbox
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_dropbox.constants import Endpoint
 from arcade_dropbox.exceptions import DropboxApiError

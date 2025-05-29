@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from typing import Annotated, Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Google
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Google
+from arcade_tdk.errors import RetryableToolError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import EventVisibility, SendUpdatesOptions

@@ -1,5 +1,5 @@
 import httpx
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_spotify.tools.constants import ENDPOINTS, SPOTIFY_BASE_URL
 from arcade_spotify.tools.models import PlaybackState

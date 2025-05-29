@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.10"
 # Dependencies for testing - include all workspace packages
@@ -23,7 +24,7 @@ dependencies = [
     "arcade-tdk",
     "arcade-serve",
     "arcade-evals",
-    "arcade-cli"
+    "arcadecli"
 ]
 
 
@@ -33,7 +34,7 @@ arcade-core = { workspace = true }
 arcade-tdk = { workspace = true }
 arcade-serve = { workspace = true }
 arcade-evals = { workspace = true }
-arcade-cli = { workspace = true }
+arcadecli = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -62,7 +63,7 @@ members = [
     "libs/arcade-tdk",
     "libs/arcade-serve",
     "libs/arcade-evals",
-    "libs/arcade-cli",
+    "libs/arcadecli",
 ]
 
 [tool.mypy]

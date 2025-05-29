@@ -2,9 +2,9 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Annotated, cast
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Slack
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Slack
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 

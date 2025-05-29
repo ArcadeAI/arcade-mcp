@@ -16,23 +16,23 @@ from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
-import arcade_cli.worker as worker
-from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
-from arcade_cli.constants import (
+import arcadecli.worker as worker
+from arcadecli.authn import LocalAuthCallbackServer, check_existing_login
+from arcadecli.constants import (
     CREDENTIALS_FILE_PATH,
     LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcade_cli.deployment import Deployment
-from arcade_cli.display import (
+from arcadecli.deployment import Deployment
+from arcadecli.display import (
     display_arcade_chat_header,
     display_eval_results,
     display_tool_messages,
 )
-from arcade_cli.launcher import start_servers
-from arcade_cli.show import show_logic
-from arcade_cli.utils import (
+from arcadecli.launcher import start_servers
+from arcadecli.show import show_logic
+from arcadecli.utils import (
     OrderCommands,
     compute_base_url,
     compute_login_url,
@@ -140,7 +140,7 @@ def new(
     """
     Creates a new toolkit with the given name, description, and result type.
     """
-    from arcade_cli.new import create_new_toolkit
+    from arcadecli.new import create_new_toolkit
 
     try:
         create_new_toolkit(directory)
@@ -481,7 +481,7 @@ def serve(
     """
     Start a local Arcade Worker server.
     """
-    from arcade_cli.serve import serve_default_worker
+    from arcadecli.serve import serve_default_worker
 
     try:
         serve_default_worker(
@@ -553,7 +553,7 @@ def workerup(
     Starts the worker with host, port, and reload options. Uses
     Uvicorn as ASGI worker. Parameters allow runtime configuration.
     """
-    from arcade_cli.serve import serve_default_worker
+    from arcadecli.serve import serve_default_worker
 
     try:
         serve_default_worker(

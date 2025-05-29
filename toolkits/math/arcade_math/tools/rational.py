@@ -1,7 +1,7 @@
 import math
 from typing import Annotated
 
-from arcade.sdk import tool
+from arcade_tdk import tool
 
 
 @tool

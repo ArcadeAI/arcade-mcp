@@ -1,7 +1,7 @@
 [project]
 name = "arcade-evals"
 version = "0.1.0"
-description = "Arcade Evals - Evaluation toolkit for testing Arcade tools"
+description = "Arcade Evals - Evaluation framework for testing Arcade tools"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -15,9 +15,11 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "arcade-core>=0.1.0",
     "scipy>=1.14.0",
     "numpy>=2.0.0",
     "scikit-learn>=1.5.0",

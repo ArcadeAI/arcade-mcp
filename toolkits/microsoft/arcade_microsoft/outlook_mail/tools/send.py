@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Microsoft
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Microsoft
 from msgraph.generated.users.item.send_mail.send_mail_post_request_body import (
     SendMailPostRequestBody,
 )

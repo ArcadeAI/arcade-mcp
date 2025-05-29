@@ -1,7 +1,7 @@
 from collections.abc import Collection
 from typing import Any
 
-from arcade.sdk.eval import DatetimeCritic
+from arcade_evals import DatetimeCritic
 
 
 class DatetimeOrNoneCritic(DatetimeCritic):

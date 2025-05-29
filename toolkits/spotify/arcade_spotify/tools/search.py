@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Spotify
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Spotify
 
 from arcade_spotify.tools.models import SearchType
 from arcade_spotify.tools.utils import (

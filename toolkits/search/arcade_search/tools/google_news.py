@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_search.constants import DEFAULT_GOOGLE_NEWS_COUNTRY, DEFAULT_GOOGLE_NEWS_LANGUAGE
 from arcade_search.exceptions import CountryNotFoundError, LanguageNotFoundError

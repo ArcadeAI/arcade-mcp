@@ -1,7 +1,6 @@
 import json
 
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
@@ -9,6 +8,7 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 import arcade_google
 from arcade_google.models import GmailReplyToWhom

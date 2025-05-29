@@ -13,8 +13,8 @@ image = Image.debian_slim().pip_install("arcade-ai").pip_install(toolkits)
 @app.function(image=image)
 @asgi_app()
 def fastapi_app():
-    from arcade_core.toolkit import Toolkit
     from arcade_serve.fastapi.worker import FastAPIWorker
+    from arcade_tdk import Toolkit
     from fastapi import FastAPI
 
     web_app = FastAPI()

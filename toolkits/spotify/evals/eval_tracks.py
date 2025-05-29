@@ -1,11 +1,11 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 from arcade_spotify.tools.tracks import get_track_from_id
 

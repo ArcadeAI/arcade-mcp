@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Asana
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Asana
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_asana.constants import TAG_OPT_FIELDS, TagColor
 from arcade_asana.models import AsanaClient

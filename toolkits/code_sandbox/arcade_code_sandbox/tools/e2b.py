@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 from e2b_code_interpreter import Sandbox
 
 from arcade_code_sandbox.tools.models import E2BSupportedLanguage

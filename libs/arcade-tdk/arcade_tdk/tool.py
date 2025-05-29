@@ -2,10 +2,9 @@ import functools
 import inspect
 from typing import Any, Callable, TypeVar, Union
 
-from arcade_core.utils import snake_to_pascal_case
-
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.utils import snake_to_pascal_case
 
 T = TypeVar("T")
 

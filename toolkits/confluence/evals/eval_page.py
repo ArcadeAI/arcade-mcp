@@ -1,11 +1,12 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
+    BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
+    SimilarityCritic,
     tool_eval,
 )
-from arcade.sdk.eval.critic import BinaryCritic, SimilarityCritic
+from arcade_tdk import ToolCatalog
 
 import arcade_confluence
 from arcade_confluence.enums import PageUpdateMode

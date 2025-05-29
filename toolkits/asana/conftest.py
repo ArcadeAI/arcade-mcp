@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from arcade.sdk import ToolAuthorizationContext, ToolContext
+from arcade_tdk import ToolAuthorizationContext, ToolContext
 
 
 @pytest.fixture

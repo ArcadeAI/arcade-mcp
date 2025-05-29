@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Asana
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Asana
 
 from arcade_asana.constants import TEAM_OPT_FIELDS
 from arcade_asana.models import AsanaClient

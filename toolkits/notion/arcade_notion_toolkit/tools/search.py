@@ -1,9 +1,9 @@
 from typing import Annotated, Any
 
 import httpx
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Notion
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Notion
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_notion_toolkit.enums import ObjectType, SortDirection
 from arcade_notion_toolkit.utils import (

@@ -15,7 +15,7 @@ install-toolkits: ## Install dependencies for all toolkits
 	for dir in toolkits/*/ ; do \
 		if [ -d "$$dir" ] && [ -f "$$dir/pyproject.toml" ]; then \
 			echo "📦 Installing dependencies for $$dir"; \
-			if (cd $$dir && uv sync --dev); then \
+			if (cd $$dir && uv sync --extra dev); then \
 				successful=$$((successful + 1)); \
 			else \
 				echo "❌ Failed to install dependencies for $$dir"; \
@@ -43,7 +43,7 @@ check: ## Run code quality tools.
 	@echo "🚀 Linting code: Running pre-commit"
 	@uv run pre-commit run -a
 	@echo "🚀 Static type checking: Running mypy on libs"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "🔍 Type checking $$lib"; \
 		(cd $$lib && uv run mypy . || true); \
 	done
@@ -51,7 +51,7 @@ check: ## Run code quality tools.
 .PHONY: check-libs
 check-libs: ## Run code quality tools for each lib package
 	@echo "🚀 Running checks on each lib package"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "🛠️ Checking lib $$lib"; \
 		(cd $$lib && uv run pre-commit run -a || true); \
 		(cd $$lib && uv run mypy . || true); \
@@ -63,7 +63,7 @@ check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
 	@for dir in toolkits/*/ ; do \
 		if [ -f "$$dir/Makefile" ]; then \
 			echo "🛠️ Checking toolkit $$dir"; \
-			(cd "$$dir" && make check); \
+			(cd "$$dir" && uv run --active pre-commit run -a && uv run --active mypy --config-file=pyproject.toml); \
 		else \
 			echo "🛠️ Skipping toolkit $$dir (no Makefile found)"; \
 		fi; \
@@ -72,12 +72,12 @@ check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing libs: Running pytest"
-	@cd libs/tests && uv run pytest -W ignore -v --cov --cov-config=../../pyproject.toml --cov-report=xml
+	@uv run pytest -W ignore -v --cov=libs/tests --cov-config=pyproject.toml --cov-report=xml
 
 .PHONY: test-libs
 test-libs: ## Test each lib package individually
 	@echo "🚀 Testing each lib package"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "🧪 Testing $$lib"; \
 		(cd $$lib && uv run pytest -W ignore -v || true); \
 	done
@@ -86,20 +86,22 @@ test-libs: ## Test each lib package individually
 test-toolkits: ## Iterate over all toolkits and run pytest on each one
 	@echo "🚀 Testing code in toolkits: Running pytest"
 	@for dir in toolkits/*/ ; do \
-		(cd $$dir && uv run pytest -W ignore -v --cov --cov-config=../../pyproject.toml --cov-report=xml || exit 1); \
+		toolkit_name=$$(basename "$$dir"); \
+		echo "🧪 Testing $$toolkit_name toolkit"; \
+		(cd $$dir && uv run pytest -W ignore -v --cov=arcade_$$toolkit_name --cov-report=xml || exit 1); \
 	done
 
 .PHONY: coverage
 coverage: ## Generate coverage report
 	@echo "coverage report"
-	@cd libs/tests && uv run coverage report
+	@uv run coverage report
 	@echo "Generating coverage report"
-	@cd libs/tests && uv run coverage html
+	@uv run coverage html
 
 .PHONY: set-version
 set-version: ## Set the version in all lib pyproject.toml files
 	@echo "🚀 Setting version to $(VERSION) in all lib packages"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "Setting version in $$lib"; \
 		(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "$(VERSION)"/' pyproject.toml && rm pyproject.toml.bak); \
 	done
@@ -107,7 +109,7 @@ set-version: ## Set the version in all lib pyproject.toml files
 .PHONY: unset-version
 unset-version: ## Reset version to 0.1.0 in all lib pyproject.toml files
 	@echo "🚀 Resetting version to 0.1.0 in all lib packages"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "Resetting version in $$lib"; \
 		(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "0.1.0"/' pyproject.toml && rm pyproject.toml.bak); \
 	done
@@ -115,7 +117,7 @@ unset-version: ## Reset version to 0.1.0 in all lib pyproject.toml files
 .PHONY: build
 build: clean-build ## Build wheel files using uv
 	@echo "🚀 Creating wheel files for all lib packages"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "🛠️ Building $$lib"; \
 		(cd $$lib && uv build); \
 	done
@@ -155,14 +157,14 @@ build-toolkits: ## Build wheel files for all toolkits
 .PHONY: clean-build
 clean-build: ## clean build artifacts
 	@echo "🗑️ Cleaning build artifacts"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		(cd $$lib && rm -rf dist); \
 	done
 
 .PHONY: publish
 publish: ## publish a release to pypi.
 	@echo "🚀 Publishing all lib packages to PyPI"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		echo "📦 Publishing $$lib"; \
 		(cd $$lib && uv publish --token $(PYPI_TOKEN) || true); \
 	done
@@ -211,7 +213,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@mkdir -p dist
 
 	# Build all lib packages in dependency order
-	@for lib in arcade-core arcade-tdk arcade-serve arcade-evals arcade-cli ; do \
+	@for lib in arcade-core arcade-tdk arcade-serve arcade-evals arcadecli ; do \
 		echo "🛠️ Building libs/$$lib wheel..."; \
 		(cd libs/$$lib && uv build); \
 		cp libs/$$lib/dist/*.whl dist/; \
@@ -235,7 +237,7 @@ clean-dist: ## Clean all built distributions
 	@echo "🗑️ Cleaning dist directory"
 	@rm -rf dist
 	@echo "🗑️ Cleaning libs/*/dist directories"
-	@for lib in libs/arcade-*/ ; do \
+	@for lib in libs/arcade*/ ; do \
 		rm -rf "$$lib"/dist; \
 	done
 	@echo "🗑️ Cleaning toolkits/*/dist directory"

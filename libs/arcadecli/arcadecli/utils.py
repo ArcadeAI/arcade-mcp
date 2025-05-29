@@ -19,6 +19,7 @@ from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
 from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
 from arcadepy.types import AuthorizationResponse
+from importlib import metadata
 from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
@@ -31,7 +32,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcade_cli.constants import LOCALHOST
+from arcadecli.constants import LOCALHOST
 
 console = Console()
 
@@ -664,8 +665,8 @@ def version_callback(value: bool) -> None:
     Prints the version of Arcade and exit.
     """
     if value:
-        version = importlib.import_module("arcade").__version__
-        console.print(f"[bold]Arcade[/bold] (version {version})")
+        version = metadata.version(__package__)
+        console.print(f"[bold]Arcade CLI[/bold] (version {version})")
         exit()
 
 

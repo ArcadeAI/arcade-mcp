@@ -84,7 +84,6 @@ suite = EvalSuite(cases=[case1], rubric=rubric)
 ## Dependencies
 
 - `arcade-core>=1.1.0` - Core Arcade functionality
-- `arcade-tdk>=1.1.0` - Tool development kit
 - `scipy>=1.14.0` - Scientific computing
 - `numpy>=2.0.0` - Numerical computing
 - `scikit-learn>=1.5.0` - Machine learning utilities

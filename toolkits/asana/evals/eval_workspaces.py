@@ -1,13 +1,13 @@
 import json
 
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
+    BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
-from arcade.sdk.eval.critic import BinaryCritic
+from arcade_tdk import ToolCatalog
 
 import arcade_asana
 from arcade_asana.tools import list_workspaces

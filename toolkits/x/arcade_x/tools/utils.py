@@ -1,7 +1,7 @@
 from typing import Any
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 
 
 def get_tweet_url(tweet_id: str) -> str:

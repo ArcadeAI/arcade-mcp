@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Atlassian
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Atlassian
 
 from arcade_confluence.client import ConfluenceClientV2
 from arcade_confluence.enums import AttachmentSortOrder

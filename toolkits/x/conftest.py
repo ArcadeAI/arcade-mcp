@@ -1,5 +1,5 @@
 import pytest
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 
 @pytest.fixture

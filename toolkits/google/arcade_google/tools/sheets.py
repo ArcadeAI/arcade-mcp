@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Google
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Google
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_google.models import (
     SheetDataInput,

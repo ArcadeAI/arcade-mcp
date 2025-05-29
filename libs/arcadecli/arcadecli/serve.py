@@ -21,8 +21,8 @@ from arcade_serve.fastapi.worker import FastAPIWorker
 from loguru import logger
 from rich.console import Console
 
-from arcade_cli.constants import ARCADE_CONFIG_PATH
-from arcade_cli.utils import (
+from arcadecli.constants import ARCADE_CONFIG_PATH
+from arcadecli.utils import (
     build_tool_catalog,
     discover_toolkits,
     load_dotenv,
@@ -45,8 +45,7 @@ def create_arcade_app() -> fastapi.FastAPI:
     setup_logging(log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False)
 
     logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
-
-    version = get_pkg_version("arcade-ai")
+    version = get_pkg_version(__package__)
     toolkits = discover_toolkits()
 
     logger.info("Registered toolkits:")
@@ -139,7 +138,7 @@ def _run_fastapi_server(
     toolkits_for_reload_dirs: list[Toolkit] | None,
     debug_flag: bool,
 ) -> None:
-    app_import_string = "arcade_cli.serve:create_arcade_app"
+    app_import_string = "arcadecli.serve:create_arcade_app"
     reload_dirs_str_list: list[str] | None = None
 
     if reload:

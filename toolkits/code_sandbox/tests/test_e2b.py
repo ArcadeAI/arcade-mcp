@@ -1,9 +1,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade.core.schema import ToolSecretItem
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, ToolSecretItem
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_code_sandbox.tools.e2b import create_static_matplotlib_chart, run_code
 from arcade_code_sandbox.tools.models import E2BSupportedLanguage

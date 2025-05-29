@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_spotify.tools.constants import RESPONSE_MSGS
 from arcade_spotify.tools.models import SearchType

@@ -1,9 +1,9 @@
 from typing import Annotated, Any
 
 import httpx
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import X
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import X
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_x.tools.constants import TWEETS_URL
 from arcade_x.tools.utils import (

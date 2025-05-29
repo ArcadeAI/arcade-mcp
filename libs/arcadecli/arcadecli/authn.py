@@ -7,7 +7,7 @@ from urllib.parse import parse_qs
 import yaml
 from rich.console import Console
 
-from arcade_cli.constants import (
+from arcadecli.constants import (
     ARCADE_CONFIG_PATH,
     CREDENTIALS_FILE_PATH,
     LOGIN_FAILED_HTML,

@@ -15,7 +15,7 @@ Arcade CLI provides a comprehensive command-line interface for the Arcade platfo
 ## Installation
 
 ```bash
-pip install arcade-cli
+pip install arcadecli
 ```
 
 ## Usage

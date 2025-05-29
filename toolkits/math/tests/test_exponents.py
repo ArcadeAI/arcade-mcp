@@ -1,5 +1,5 @@
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_math.tools.exponents import (
     log,

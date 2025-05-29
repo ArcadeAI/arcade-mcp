@@ -1,7 +1,7 @@
 from typing import Any
 
 import httpx
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_notion_toolkit.constants import ENDPOINTS, NOTION_API_URL, UNTITLED_TITLE
 

@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
-from arcade_cli.show import show_logic
+from arcadecli.show import show_logic
 
 
 def test_show_logic_local_false():
-    with patch("arcade_cli.show.get_tools_from_engine") as mock_get_tools:
+    with patch("arcadecli.show.get_tools_from_engine") as mock_get_tools:
         mock_get_tools.return_value = []
         show_logic(
             toolkit=None,
@@ -22,7 +22,7 @@ def test_show_logic_local_false():
 
 
 def test_show_logic_local_true():
-    with patch("arcade_cli.show.create_cli_catalog") as mock_create_catalog:
+    with patch("arcadecli.show.create_cli_catalog") as mock_create_catalog:
         mock_create_catalog.return_value = []
 
         show_logic(

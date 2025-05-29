@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Microsoft
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Microsoft
 
 from arcade_microsoft.client import get_client
 from arcade_microsoft.outlook_calendar._utils import (

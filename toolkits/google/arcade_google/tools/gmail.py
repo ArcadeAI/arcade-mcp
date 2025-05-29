@@ -2,9 +2,9 @@ import base64
 from email.mime.text import MIMEText
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Google
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Google
+from arcade_tdk.errors import RetryableToolError
 from googleapiclient.errors import HttpError
 
 from arcade_google.constants import GMAIL_DEFAULT_REPLY_TO

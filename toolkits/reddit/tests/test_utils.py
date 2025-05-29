@@ -1,6 +1,6 @@
 import httpx
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_reddit.client import RedditClient
 from arcade_reddit.utils import (

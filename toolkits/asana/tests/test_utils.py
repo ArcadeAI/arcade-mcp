@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_asana.utils import (
     get_project_by_name_or_raise_error,

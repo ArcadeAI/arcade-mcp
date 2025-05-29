@@ -53,7 +53,7 @@ Please note this documentation assumes you already have `uv` and `Git` installed
 
 ```bash
 cd <directory_in_which_repo_should_be_created>
-git clone git@github.com:YOUR_NAME/arcade-ai.git
+git clone git@github.com:YOUR_GITHUB_USERNAME/arcade-ai.git
 ```
 
 3. Now we need to install the environment. Navigate into the directory
@@ -62,10 +62,10 @@ git clone git@github.com:YOUR_NAME/arcade-ai.git
 cd arcade-ai
 ```
 
-If you are using `pyenv`, select a version to use locally. (See installed versions with `pyenv versions`)
+Create your virtual environment
 
 ```bash
-pyenv local <x.y.z>
+uv venv --python 3.11.6
 ```
 
 4. Install the development environment and dependencies:
@@ -139,8 +139,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 
-2. If the pull request adds functionality, the docs should be updated.
-   Put your new functionality into a function with a docstring, and add the feature to the list in `README.md`.
+2. If the pull request adds functionality, the [docs](https://github.com/ArcadeAI/docs) should be updated.
 
 3. If making contributions to multiple toolkits (i.e. Google and Slack, etc.), submit a separate pull request for each.
    This helps us segregate the changes during the review process making it more efficient.

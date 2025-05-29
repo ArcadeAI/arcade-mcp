@@ -44,11 +44,11 @@ Arcade is a developer platform that lets you build, deploy, and manage tools for
 
 This repository contains the core Arcade libraries, organized as separate packages for maximum flexibility and modularity:
 
--   **`arcade-core`** - Core platform functionality and schemas
--   **`arcade-tdk`** - Tool Development Kit with the `@tool` decorator
--   **`arcade-serve`** - Serving infrastructure for workers and MCP servers
--   **`arcade-evals`** - Evaluation framework for testing tool performance
--   **`arcade-cli`** - Command-line interface for the Arcade platform
+-   [**`arcade-core`**](libs/arcade-core) - Core platform functionality and schemas
+-   [**`arcade-tdk`**](libs/arcade-tdk) - Tool Development Kit with the `@tool` decorator
+-   [**`arcade-serve`**](libs/arcade-serve) - Serving infrastructure for workers and MCP servers
+-   [**`arcade-evals`**](libs/arcade-evals) - Evaluation framework for testing tool performance
+-   [**`arcadecli`**](libs/arcadecli) - Command-line interface for the Arcade platform
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
@@ -77,10 +77,10 @@ make install
 For production use, install individual packages as needed:
 
 ```bash
-pip install arcade-core arcade-tdk  # Core + Tool Development Kit
+pip install arcade-core arcade-tdk   # Core + Tool Development Kit
 pip install arcade-serve             # Serving infrastructure
 pip install arcade-evals             # Evaluation framework
-pip install arcade-cli               # Command-line interface
+pip install arcadecli               # Command-line interface
 ```
 
 ### Development

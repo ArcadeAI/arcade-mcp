@@ -3,8 +3,8 @@ from email.message import EmailMessage
 from unittest.mock import MagicMock, patch
 
 import pytest
-from arcade.sdk import ToolAuthorizationContext, ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolAuthorizationContext, ToolContext
+from arcade_tdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.models import GmailReplyToWhom

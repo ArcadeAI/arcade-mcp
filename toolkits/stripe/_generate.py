@@ -35,7 +35,7 @@ from typing import Annotated, Optional
 
 from stripe_agent_toolkit.api import StripeAPI
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 
 def run_stripe_tool(context: ToolContext, method_name: str, params: dict) -> str:
     \"\"\"

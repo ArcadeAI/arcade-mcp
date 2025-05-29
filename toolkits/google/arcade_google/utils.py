@@ -8,8 +8,8 @@ from enum import Enum
 from typing import Any, cast
 from zoneinfo import ZoneInfo
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from bs4 import BeautifulSoup
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build

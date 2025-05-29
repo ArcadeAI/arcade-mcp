@@ -5,18 +5,11 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
+import numpy as np
 from arcade_core.config_model import Config
 from arcade_core.schema import TOOL_NAME_SEPARATOR
-
-try:
-    import numpy as np
-    from scipy.optimize import linear_sum_assignment
-except ImportError:
-    raise ImportError(
-        "Use `pip install 'arcade-ai[evals]'` to install the required dependencies for evaluation."
-    )
-
 from openai import AsyncOpenAI
+from scipy.optimize import linear_sum_assignment
 
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError

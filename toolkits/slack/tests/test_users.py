@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 
 from arcade_slack.tools.users import get_user_info_by_id, list_users

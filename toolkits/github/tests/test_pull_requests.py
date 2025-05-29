@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from httpx import Response
 
 from arcade_github.tools.models import (

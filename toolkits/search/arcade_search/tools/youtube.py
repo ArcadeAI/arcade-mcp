@@ -1,7 +1,7 @@
 from typing import Annotated, Any, cast
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_search.constants import DEFAULT_YOUTUBE_SEARCH_COUNTRY, DEFAULT_YOUTUBE_SEARCH_LANGUAGE
 from arcade_search.utils import (

@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 from firecrawl import FirecrawlApp
 
 from arcade_web.tools.models import Formats

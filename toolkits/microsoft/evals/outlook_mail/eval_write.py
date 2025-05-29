@@ -1,12 +1,12 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
+    SimilarityCritic,
     tool_eval,
 )
-from arcade.sdk.eval.critic import SimilarityCritic
+from arcade_tdk import ToolCatalog
 
 from arcade_microsoft.outlook_mail import create_draft_email, update_draft_email
 from evals.outlook_mail.additional_messages import (

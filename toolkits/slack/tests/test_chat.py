@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from unittest.mock import Mock, call, patch
 
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
