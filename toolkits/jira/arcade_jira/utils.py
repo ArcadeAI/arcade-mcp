@@ -549,6 +549,10 @@ async def find_unique_issue_type(
 
     # If not found, search by name
     response = await list_issue_types_by_project(context, project_id)
+
+    if response.get("error"):
+        raise JiraToolExecutionError(response["error"])
+
     issue_types = response["issue_types"]
     matches: list[dict[str, Any]] = []
 

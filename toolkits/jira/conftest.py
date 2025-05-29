@@ -147,3 +147,33 @@ def build_priority_dict(
         }
 
     return priority_dict_builder
+
+
+@pytest.fixture
+def build_issue_type_dict(
+    generate_random_str: Callable,
+) -> Callable[[str | None, str | None, str | None], dict]:
+    def issue_type_dict_builder(
+        id_: str | None = None, name: str | None = None, description: str | None = None
+    ) -> dict:
+        return {
+            "id": id_ or generate_random_str(),
+            "name": name or generate_random_str(),
+            "description": description or generate_random_str(),
+        }
+
+    return issue_type_dict_builder
+
+
+@pytest.fixture
+def build_issue_types_response_dict() -> Callable[[list[dict]], dict]:
+    def issue_types_response_builder(
+        issue_types: list[dict],
+        is_last: bool = True,
+    ) -> dict:
+        return {
+            "issueTypes": issue_types,
+            "isLast": is_last,
+        }
+
+    return issue_types_response_builder
