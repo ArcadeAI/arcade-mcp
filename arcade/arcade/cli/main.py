@@ -17,6 +17,7 @@ from rich.text import Text
 from tqdm import tqdm
 
 import arcade.cli.worker as worker
+from arcade.cli import toolkit_docs
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.constants import (
     CREDENTIALS_FILE_PATH,
@@ -700,6 +701,59 @@ def dashboard(
             f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {dashboard_url}",
             style="dim",
         )
+
+
+@cli.command(help="Generate Toolkit documentation", rich_help_panel="Tool Development")
+def generate_toolkit_docs(
+    toolkit_name: str = typer.Option(
+        None, "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+    ),
+    docs_section: str = typer.Option(
+        "",
+        "--docs-section",
+        "-s",
+        help=(
+            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
+        ),
+        show_default=True,
+    ),
+    docs_root_dir: str = typer.Option(
+        "~/arcade/Team/docs",
+        "--docs-root-dir",
+        "-r",
+        help="The path to the documentation root directory.",
+        show_default=True,
+    ),
+    engine_base_url: str = typer.Option(
+        "http://127.0.0.1:9099",
+        "--engine-base-url",
+        "-u",
+        help="The base URL of the Arcade Engine to get tools information from.",
+        show_default=True,
+    ),
+    arcade_api_key: str = typer.Option(
+        None,
+        "--arcade-api-key",
+        "-k",
+        help="The API key to use for the Arcade Engine. If not provided, will get it from the `ARCADE_API_KEY` env var.",
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    toolkit_docs.generate_toolkit_docs(
+        console=console,
+        toolkit_name=toolkit_name,
+        docs_section=docs_section,
+        output_dir=docs_root_dir,
+        engine_base_url=engine_base_url,
+        arcade_api_key=arcade_api_key,
+        debug=debug,
+    )
+
+    console.print(
+        f"Generated documentation for '{toolkit_name}' in '{docs_root_dir}'",
+        style="bold green",
+    )
 
 
 @cli.callback()
