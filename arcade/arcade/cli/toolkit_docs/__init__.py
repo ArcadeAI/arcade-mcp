@@ -173,8 +173,13 @@ def build_tool_parameters(tool_input: ToolInput) -> str:
 def build_examples(tools: list[ToolDefinition]) -> list[tuple[str, str]]:
     examples = []
     for tool in tools:
-        examples.append(pascal_to_snake_case(tool.name), build_python_example(tool))
-        examples.append(pascal_to_snake_case(tool.name), build_javascript_example(tool))
+        examples.append(
+            f"{pascal_to_snake_case(tool.name)}_example_call_tool.py", build_python_example(tool)
+        )
+        examples.append(
+            f"{pascal_to_snake_case(tool.name)}_example_call_tool.js",
+            build_javascript_example(tool),
+        )
     return examples
 
 
