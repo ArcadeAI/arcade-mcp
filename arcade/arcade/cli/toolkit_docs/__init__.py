@@ -2,6 +2,7 @@ import json
 import os
 import re
 from functools import partial
+from typing import Callable
 
 import httpx
 import openai
@@ -39,16 +40,16 @@ def generate_toolkit_docs(
     openai_api_key: str | None = None,
     debug: bool = False,
 ):
-    openai.api_key = resolve_api_key("openai-api-key", openai_api_key, "OPENAI_API_KEY")
-    arcade_api_key = resolve_api_key("arcade-api-key", arcade_api_key, "ARCADE_API_KEY")
+    openai.api_key = resolve_api_key(console, "openai-api-key", openai_api_key, "OPENAI_API_KEY")
+    arcade_api_key = resolve_api_key(console, "arcade-api-key", arcade_api_key, "ARCADE_API_KEY")
 
-    print_debug = partial(print_debug_func, debug=debug, console=console)
+    print_debug = partial(print_debug_func, debug, console)
     docs_root_dir = os.path.expanduser(docs_root_dir)
 
     print_debug(f"Getting list of tools for {toolkit_name} from {engine_base_url}")
 
     client = Arcade(base_url=engine_base_url, api_key=arcade_api_key)
-    tools = client.tools.list(include_format=["arcade"], toolkit=toolkit_name)
+    tools = get_list_of_tools(client, toolkit_name)
 
     print_debug(f"Found {len(tools)} tools")
 
@@ -58,13 +59,35 @@ def generate_toolkit_docs(
     write_file(toolkit_mdx_path, toolkit_mdx)
 
     print_debug("Building tool-call examples in Python and JavaScript")
-    examples = build_examples(tools)
+    examples = build_examples(print_debug, tools)
 
     for filename, example in examples:
         example_path = build_example_path(filename, docs_root_dir, toolkit_name)
         write_file(example_path, example)
 
     print_debug(f"Done generating docs for {toolkit_name}")
+
+
+def get_list_of_tools(client: Arcade, toolkit_name: str) -> list[ToolDefinition]:
+    tools = []
+    offset = 0
+    keep_paginating = True
+
+    while keep_paginating:
+        response = client.tools.list(
+            include_format=["arcade"],
+            toolkit=toolkit_name,
+            limit=100,
+            offset=offset,
+        )
+        tools.extend(response.items)
+        next_page_info = response.next_page_info()
+        if next_page_info is None:
+            keep_paginating = False
+        else:
+            offset = next_page_info.offset
+
+    return tools
 
 
 def resolve_api_key(
@@ -197,32 +220,35 @@ def build_tool_parameters(tool_input: ToolInput, docs_section: str, toolkit_name
     return parameters
 
 
-def build_examples(tools: list[ToolDefinition]) -> list[tuple[str, str]]:
-    input_map = generate_tool_input_map(tools[0])
+def build_examples(print_debug: Callable, tools: list[ToolDefinition]) -> list[tuple[str, str]]:
     examples = []
     for tool in tools:
-        examples.append(
+        print_debug(f"Generating tool-call examples for {tool.name}")
+        input_map = generate_tool_input_map(tool)
+        examples.append((
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
             build_python_example(tool.fully_qualified_name, input_map),
-        )
-        examples.append(
+        ))
+        examples.append((
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.js",
             build_javascript_example(tool.fully_qualified_name, input_map),
-        )
+        ))
     return examples
 
 
 def build_python_example(tool_fully_qualified_name: str, input_map: dict) -> str:
+    input_map = json.dumps(input_map, indent=4, ensure_ascii=False)
+    input_map = input_map.replace(": false", ": False").replace(": true", ": True")
     return TOOL_CALL_EXAMPLE_PY.format(
         tool_name_fully_qualified=tool_fully_qualified_name,
-        input_map=json.dumps(input_map, indent=4),
+        input_map=input_map,
     )
 
 
 def build_javascript_example(tool_fully_qualified_name: str, input_map: dict) -> str:
     return TOOL_CALL_EXAMPLE_JS.format(
         tool_name_fully_qualified=tool_fully_qualified_name,
-        input_map=json.dumps(input_map, indent=2),
+        input_map=json.dumps(input_map, indent=2, ensure_ascii=False),
     )
 
 
@@ -230,7 +256,7 @@ def pascal_to_snake_case(text: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", text).lower()
 
 
-def generate_tool_input_map(tool: ToolDefinition) -> dict:
+def generate_tool_input_map(tool: ToolDefinition, retries: int = 0, max_retries: int = 3) -> dict:
     interface_description = build_tool_interface_description(tool)
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
@@ -270,7 +296,13 @@ def generate_tool_input_map(tool: ToolDefinition) -> dict:
     )
 
     text = response.choices[0].message.content.strip()
-    return json.loads(text)
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        if retries < max_retries:
+            return generate_tool_input_map(tool, retries + 1, max_retries)
+        raise ValueError(f"Failed to generate input map for tool {tool.name}: {text}")
 
 
 def build_tool_interface_description(tool: ToolDefinition) -> str:

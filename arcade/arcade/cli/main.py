@@ -751,7 +751,7 @@ def generate_toolkit_docs(
         console=console,
         toolkit_name=toolkit_name,
         docs_section=docs_section,
-        output_dir=docs_root_dir,
+        docs_root_dir=docs_root_dir,
         engine_base_url=engine_base_url,
         arcade_api_key=arcade_api_key,
         openai_api_key=openai_api_key,

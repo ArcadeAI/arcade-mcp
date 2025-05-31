@@ -78,14 +78,14 @@ TOOL_CALL_EXAMPLE_JS = """import {{ Arcade }} from "@arcadeai/arcadejs";
 
 const client = new Arcade(); // Automatically finds the `ARCADE_API_KEY` env variable
 
-const USER_ID = "user@example.com";  # Unique identifier for your user (email, UUID, etc.)
+const USER_ID = "user@example.com";  // Unique identifier for your user (email, UUID, etc.)
 const TOOL_NAME = "{tool_name_fully_qualified}";
 
 // Start the authorization process
-const authResponse = await client.tools.authorize({tool_name: TOOL_NAME});
+const authResponse = await client.tools.authorize({{tool_name: TOOL_NAME}});
 
 if (authResponse.status !== "completed") {{
-  console.log(`Click this link to authorize: ${authResponse.url}`);
+  console.log(`Click this link to authorize: ${{authResponse.url}}`);
 }}
 
 // Wait for the authorization to complete
