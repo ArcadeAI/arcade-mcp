@@ -706,7 +706,13 @@ def dashboard(
 @cli.command(help="Generate Toolkit documentation", rich_help_panel="Tool Development")
 def generate_toolkit_docs(
     toolkit_name: str = typer.Option(
-        None, "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+    ),
+    docs_root_dir: str = typer.Option(
+        ...,
+        "--docs-root-dir",
+        "-r",
+        help="The path to the documentation root directory.",
     ),
     docs_section: str = typer.Option(
         "",
@@ -716,14 +722,6 @@ def generate_toolkit_docs(
             "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
             "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
         ),
-        show_default=True,
-    ),
-    docs_root_dir: str = typer.Option(
-        "~/arcade/Team/docs",
-        "--docs-root-dir",
-        "-r",
-        help="The path to the documentation root directory.",
-        show_default=True,
     ),
     engine_base_url: str = typer.Option(
         "http://127.0.0.1:9099",
@@ -735,8 +733,17 @@ def generate_toolkit_docs(
     arcade_api_key: str = typer.Option(
         None,
         "--arcade-api-key",
-        "-k",
+        "-a",
         help="The API key to use for the Arcade Engine. If not provided, will get it from the `ARCADE_API_KEY` env var.",
+    ),
+    openai_api_key: str = typer.Option(
+        None,
+        "--openai-api-key",
+        "-o",
+        help=(
+            "The OpenAI API key. It will be used to generate sample values for the tool call example scripts. "
+            "If not provided, will get it from the `OPENAI_API_KEY` env var."
+        ),
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
@@ -747,6 +754,7 @@ def generate_toolkit_docs(
         output_dir=docs_root_dir,
         engine_base_url=engine_base_url,
         arcade_api_key=arcade_api_key,
+        openai_api_key=openai_api_key,
         debug=debug,
     )
 

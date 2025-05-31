@@ -4,6 +4,7 @@ import re
 from functools import partial
 
 import httpx
+import openai
 from arcadepy import Arcade
 from rich.console import Console
 
@@ -35,19 +36,24 @@ def generate_toolkit_docs(
     docs_root_dir: str,
     engine_base_url: str | httpx.URL,
     arcade_api_key: str | None = None,
+    openai_api_key: str | None = None,
     debug: bool = False,
 ):
+    openai.api_key = resolve_api_key("openai-api-key", openai_api_key, "OPENAI_API_KEY")
+    arcade_api_key = resolve_api_key("arcade-api-key", arcade_api_key, "ARCADE_API_KEY")
+
     print_debug = partial(print_debug_func, debug=debug, console=console)
     docs_root_dir = os.path.expanduser(docs_root_dir)
 
     print_debug(f"Getting list of tools for {toolkit_name} from {engine_base_url}")
+
     client = Arcade(base_url=engine_base_url, api_key=arcade_api_key)
     tools = client.tools.list(include_format=["arcade"], toolkit=toolkit_name)
 
     print_debug(f"Found {len(tools)} tools")
 
     print_debug(f"Building {toolkit_name.lower()}.mdx file")
-    toolkit_mdx = build_toolkit_mdx(tools)
+    toolkit_mdx = build_toolkit_mdx(tools, docs_section)
     toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_root_dir, toolkit_name)
     write_file(toolkit_mdx_path, toolkit_mdx)
 
@@ -59,6 +65,20 @@ def generate_toolkit_docs(
         write_file(example_path, example)
 
     print_debug(f"Done generating docs for {toolkit_name}")
+
+
+def resolve_api_key(
+    console: Console, cli_arg_name: str, cli_input_value: str | None, env_var_name: str
+) -> str:
+    if cli_input_value:
+        return cli_input_value
+    elif os.getenv(env_var_name):
+        return os.getenv(env_var_name)
+    else:
+        console.print(
+            f"❌ Provide --{cli_arg_name} argument or set the {env_var_name} environment variable",
+            style="red",
+        )
 
 
 def write_file(path: str, content: str):
@@ -97,7 +117,7 @@ def get_toolkit_auth_type(requirement: ToolAuthRequirement) -> str:
     return ""
 
 
-def build_toolkit_mdx(tools: list[ToolDefinition]) -> str:
+def build_toolkit_mdx(tools: list[ToolDefinition], docs_section: str) -> str:
     sample_tool = tools[0]
     toolkit_name = sample_tool.toolkit.name
     toolkit_version = sample_tool.toolkit.version
@@ -112,7 +132,7 @@ def build_toolkit_mdx(tools: list[ToolDefinition]) -> str:
     )
     table_of_contents = build_table_of_contents(tools)
     footer = TOOLKIT_FOOTER.format(toolkit_name=toolkit_name.lower())
-    tools_specs = build_tools_specs(tools)
+    tools_specs = build_tools_specs(tools, docs_section)
 
     return TOOLKIT_PAGE.format(
         header=header,
@@ -134,16 +154,16 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
     return TABLE_OF_CONTENTS.format(tool_items=tools_items)
 
 
-def build_tools_specs(tools: list[ToolDefinition]) -> str:
+def build_tools_specs(tools: list[ToolDefinition], docs_section: str) -> str:
     tools_specs = ""
 
     for tool in tools:
-        tools_specs += build_tool_spec(tool)
+        tools_specs += build_tool_spec(tool, docs_section)
 
     return tools_specs
 
 
-def build_tool_spec(tool: ToolDefinition) -> str:
+def build_tool_spec(tool: ToolDefinition, docs_section: str) -> str:
     tabbed_examples_list = TABBED_EXAMPLES_LIST.format(
         toolkit_name=tool.toolkit.name.lower(),
         tool_name=pascal_to_snake_case(tool.name),
@@ -152,16 +172,23 @@ def build_tool_spec(tool: ToolDefinition) -> str:
         tool_name=tool.name,
         tabbed_examples_list=tabbed_examples_list,
         description=tool.description,
-        parameters=build_tool_parameters(tool.input),
+        parameters=build_tool_parameters(tool.input, docs_section, tool.toolkit.name.lower()),
     )
 
 
-def build_tool_parameters(tool_input: ToolInput) -> str:
+def build_tool_parameters(tool_input: ToolInput, docs_section: str, toolkit_name: str) -> str:
     parameters = ""
     for parameter in tool_input.parameters:
-        param_definition = parameter.value_schema.val_type
+        if parameter.value_schema.enum:
+            param_definition = f"Enum [EnumName](/toolkits/{docs_section}/{toolkit_name}#EnumName)"
+        else:
+            param_definition = parameter.value_schema.val_type
+
         if parameter.required:
             param_definition += ", required"
+        else:
+            param_definition += ", optional"
+
         parameters += TOOL_PARAMETER.format(
             param_name=parameter.name,
             definition=param_definition,
@@ -171,35 +198,100 @@ def build_tool_parameters(tool_input: ToolInput) -> str:
 
 
 def build_examples(tools: list[ToolDefinition]) -> list[tuple[str, str]]:
+    input_map = generate_tool_input_map(tools[0])
     examples = []
     for tool in tools:
         examples.append(
-            f"{pascal_to_snake_case(tool.name)}_example_call_tool.py", build_python_example(tool)
+            f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
+            build_python_example(tool.fully_qualified_name, input_map),
         )
         examples.append(
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.js",
-            build_javascript_example(tool),
+            build_javascript_example(tool.fully_qualified_name, input_map),
         )
     return examples
 
 
-def build_python_example(tool: ToolDefinition) -> str:
+def build_python_example(tool_fully_qualified_name: str, input_map: dict) -> str:
     return TOOL_CALL_EXAMPLE_PY.format(
-        tool_name_fully_qualified=tool.fully_qualified_name,
-        input_map=json.dumps(build_tool_input_map(tool.input), indent=4),
+        tool_name_fully_qualified=tool_fully_qualified_name,
+        input_map=json.dumps(input_map, indent=4),
     )
 
 
-def build_javascript_example(tool: ToolDefinition) -> str:
+def build_javascript_example(tool_fully_qualified_name: str, input_map: dict) -> str:
     return TOOL_CALL_EXAMPLE_JS.format(
-        tool_name_fully_qualified=tool.fully_qualified_name,
-        input_map=json.dumps(build_tool_input_map(tool.input), indent=2),
+        tool_name_fully_qualified=tool_fully_qualified_name,
+        input_map=json.dumps(input_map, indent=2),
     )
-
-
-def build_tool_input_map(tool_input: ToolInput) -> dict:
-    return {}
 
 
 def pascal_to_snake_case(text: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", text).lower()
+
+
+def generate_tool_input_map(tool: ToolDefinition) -> dict:
+    interface_description = build_tool_interface_description(tool)
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful assistant. "
+                    "When given a function signature with typed arguments, "
+                    "you must return exactly one JSON object (no markdown, no extra text) "
+                    "where each key is an argument name, and each value is a logically valid "
+                    "sample value for that argument, based on its name and description.\n\n"
+                    "This will be used to generate example scripts in a documentation "
+                    "that shows how to call the tool.\n\n"
+                    "Not every single argument must always be present in the input map. "
+                    "In some cases, the tool may require only one of two arguments to be "
+                    "provided, for example. In such cases, an indication will be present "
+                    "either/or in the tool description or the argument description. "
+                    "Always follow such instructions when present in the tool interface.\n\n"
+                    "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
+                    "TEXT. Your response will be `json.dumps`'d, so it must be a valid JSON "
+                    "string."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Here is a tool interface:\n\n"
+                    f"{interface_description}\n\n"
+                    "Please provide a sample input map as a JSON object."
+                ),
+            },
+        ],
+        temperature=0.0,
+        max_tokens=1024,
+        stop=["\n\n"],
+    )
+
+    text = response.choices[0].message.content.strip()
+    return json.loads(text)
+
+
+def build_tool_interface_description(tool: ToolDefinition) -> str:
+    args = []
+    for arg in tool.input.parameters:
+        data = {
+            "arg_name": arg.name,
+            "arg_description": arg.description,
+            "is_arg_required": arg.required,
+            "arg_type": arg.value_schema.val_type,
+        }
+
+        if arg.value_schema.enum:
+            data["enum"] = {
+                "accepted_values": arg.value_schema.enum,
+            }
+
+        args.append(data)
+
+    return json.dumps({
+        "tool_name": tool.name,
+        "tool_description": tool.description,
+        "tool_args": args,
+    })
