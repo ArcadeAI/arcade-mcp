@@ -16,7 +16,7 @@ import TableOfContents from "@/components/TableOfContents";
 import ToolFooter from "@/components/ToolFooter";
 
 <ToolInfo
-  description="{description}"
+  description="Enable agents to interact with {toolkit_title}"
   author="Arcade"
   codeLink="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/{package_name}"
   {auth_type}
@@ -127,3 +127,17 @@ response = client.tools.execute(
 )
 print(json.dumps(response.output.value, indent=2))
 """
+
+ENUM_MDX = """# {toolkit_name} Reference
+
+Below is a reference of enumerations used by some tools in the {toolkit_name} toolkit:
+
+{enum_items}
+"""
+
+ENUM_ITEM = """## {enum_name}
+
+{enum_values}
+"""
+
+ENUM_VALUE = "- **{enum_option_name}**: `{enum_option_value}`"

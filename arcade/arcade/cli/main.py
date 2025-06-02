@@ -708,9 +708,15 @@ def generate_toolkit_docs(
     toolkit_name: str = typer.Option(
         ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
     ),
-    docs_root_dir: str = typer.Option(
+    toolkit_dir: str = typer.Option(
         ...,
-        "--docs-root-dir",
+        "--toolkit-dir",
+        "-t",
+        help="The path to the toolkit root directory.",
+    ),
+    docs_dir: str = typer.Option(
+        ...,
+        "--docs-dir",
         "-r",
         help="The path to the documentation root directory.",
     ),
@@ -745,21 +751,30 @@ def generate_toolkit_docs(
             "If not provided, will get it from the `OPENAI_API_KEY` env var."
         ),
     ),
+    tool_call_examples: bool = typer.Option(
+        False,
+        "--tool-call-examples",
+        "-e",
+        help="Whether to generate tool call examples",
+        show_default=True,
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     toolkit_docs.generate_toolkit_docs(
         console=console,
         toolkit_name=toolkit_name,
+        toolkit_dir=toolkit_dir,
+        docs_dir=docs_dir,
         docs_section=docs_section,
-        docs_root_dir=docs_root_dir,
         engine_base_url=engine_base_url,
         arcade_api_key=arcade_api_key,
         openai_api_key=openai_api_key,
+        tool_call_examples=tool_call_examples,
         debug=debug,
     )
 
     console.print(
-        f"Generated documentation for '{toolkit_name}' in '{docs_root_dir}'",
+        f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
         style="bold green",
     )
 
