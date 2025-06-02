@@ -25,6 +25,7 @@ from arcade.cli.toolkit_docs.templates import (
     TOOL_PARAMETER,
     TOOL_SPEC,
     TOOLKIT_FOOTER,
+    TOOLKIT_FOOTER_OAUTH2,
     TOOLKIT_HEADER,
     TOOLKIT_PAGE,
 )
@@ -215,7 +216,7 @@ def build_toolkit_mdx(
         version=toolkit_version,
     )
     table_of_contents = build_table_of_contents(tools)
-    footer = TOOLKIT_FOOTER.format(toolkit_name=toolkit_name.lower())
+    footer = build_footer(toolkit_name, sample_tool.requirements.authorization)
     referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
@@ -265,6 +266,17 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
         )
 
     return TABLE_OF_CONTENTS.format(tool_items=tools_items)
+
+
+def build_footer(toolkit_name: str, authorization: ToolAuthRequirement) -> str:
+    if authorization.provider_type == "oauth2":
+        return TOOLKIT_FOOTER_OAUTH2.format(
+            toolkit_name=toolkit_name,
+            toolkit_name_lower=toolkit_name.lower(),
+            provider_name=authorization.provider_id.capitalize(),
+            provider_id=authorization.provider_id,
+        )
+    return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name)
 
 
 def build_tools_specs(

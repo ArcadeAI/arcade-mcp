@@ -72,7 +72,18 @@ TABBED_EXAMPLES_LIST = """<TabbedCodeBlock
 
 TOOL_PARAMETER = "- **{param_name}** _({definition})_ {description}"
 
-TOOLKIT_FOOTER = '<ToolFooter pipPackageName="arcade_{toolkit_name}" />'
+TOOLKIT_FOOTER = """<ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />"""
+
+TOOLKIT_FOOTER_OAUTH2 = """## Auth
+
+The Arcade {toolkit_name} toolkit uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts.
+
+With the hosted Arcade Engine, there's nothing to configure. Your users will see `Arcade` as the name of the application that's requesting permission.
+
+With a self-hosted installation of Arcade, you need to [configure the {toolkit_name} auth provider](/home/auth-providers/{provider_id}) with your own {toolkit_name} app credentials.
+
+<ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />
+"""
 
 TOOL_CALL_EXAMPLE_JS = """import {{ Arcade }} from "@arcadeai/arcadejs";
 
