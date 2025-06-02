@@ -76,14 +76,14 @@ TOOLKIT_FOOTER = """<ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />"
 
 TOOLKIT_FOOTER_OAUTH2 = """## Auth
 
-The Arcade {toolkit_name} toolkit uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts.
-
-With the hosted Arcade Engine, there's nothing to configure. Your users will see `Arcade` as the name of the application that's requesting permission.
-
-With a self-hosted installation of Arcade, you need to [configure the {toolkit_name} auth provider](/home/auth-providers/{provider_id}) with your own {toolkit_name} app credentials.
+{provider_configuration}
 
 <ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />
 """
+
+WELL_KNOWN_PROVIDER_CONFIG = "The Arcade {toolkit_name} toolkit uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts. Please refer to the [{provider_name} auth provider](/home/auth-providers/{provider_id}) documentation to learn how to configure auth."
+
+GENERIC_PROVIDER_CONFIG = "The {toolkit_name} toolkit uses the Auth Provider with id `{provider_id}` to connect to users' {toolkit_name} accounts. In order to use the toolkit, you will need to configure the `{provider_id}` auth provider."
 
 TOOL_CALL_EXAMPLE_JS = """import {{ Arcade }} from "@arcadeai/arcadejs";
 

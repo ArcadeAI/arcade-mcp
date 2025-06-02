@@ -17,6 +17,7 @@ from arcade.cli.toolkit_docs.templates import (
     ENUM_ITEM,
     ENUM_MDX,
     ENUM_VALUE,
+    GENERIC_PROVIDER_CONFIG,
     TABBED_EXAMPLES_LIST,
     TABLE_OF_CONTENTS,
     TABLE_OF_CONTENTS_ITEM,
@@ -28,6 +29,7 @@ from arcade.cli.toolkit_docs.templates import (
     TOOLKIT_FOOTER_OAUTH2,
     TOOLKIT_HEADER,
     TOOLKIT_PAGE,
+    WELL_KNOWN_PROVIDER_CONFIG,
 )
 from arcade.core.schema import ToolAuthRequirement, ToolDefinition, ToolInput
 
@@ -270,11 +272,18 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
 
 def build_footer(toolkit_name: str, authorization: ToolAuthRequirement) -> str:
     if authorization.provider_type == "oauth2":
+        is_well_known = is_well_known_provider(authorization.provider_id)
+        config_template = WELL_KNOWN_PROVIDER_CONFIG if is_well_known else GENERIC_PROVIDER_CONFIG
+        provider_configuration = config_template.format(
+            toolkit_name=toolkit_name,
+            provider_id=authorization.provider_id,
+            provider_name=authorization.provider_id.capitalize(),
+        )
+
         return TOOLKIT_FOOTER_OAUTH2.format(
             toolkit_name=toolkit_name,
             toolkit_name_lower=toolkit_name.lower(),
-            provider_name=authorization.provider_id.capitalize(),
-            provider_id=authorization.provider_id,
+            provider_configuration=provider_configuration,
         )
     return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name)
 
@@ -538,3 +547,21 @@ def find_enum_by_options(enums: dict[str, Enum], options: list[str]) -> tuple[st
     print("\n\n\nenums", enums)
     print("\n\n\noptions", options, "\n\n\n")
     raise ValueError(f"No enum found for options: {options}")
+
+
+def is_well_known_provider(provider_id: str) -> bool:
+    import inspect
+
+    from arcade.core import auth
+
+    for _, obj in inspect.getmembers(auth, inspect.isclass):
+        if not issubclass(obj, auth.OAuth2) or obj is auth.OAuth2:
+            continue
+        instance = obj()
+        provider_id_matches = (
+            hasattr(instance, "provider_id") and instance.provider_id == provider_id
+        )
+        if provider_id_matches:
+            return True
+
+    return False
