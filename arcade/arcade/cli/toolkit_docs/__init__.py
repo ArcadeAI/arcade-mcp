@@ -379,14 +379,16 @@ def build_tool_parameters(
     referenced_enums = []
     parameters = ""
     for parameter in tool_input.parameters:
-        if parameter.value_schema.enum:
-            enum_name, enum_class = find_enum_by_options(enums, parameter.value_schema.enum)
+        schema = parameter.value_schema
+        if schema.enum:
+            enum_name, enum_class = find_enum_by_options(enums, schema.enum)
             referenced_enums.append((enum_name, enum_class))
-            param_definition = (
-                f"Enum [{enum_name}](/toolkits/{docs_section}/{toolkit_name}/reference#{enum_name})"
-            )
+            param_definition = f"`Enum` [{enum_name}](/toolkits/{docs_section}/{toolkit_name}/reference#{enum_name})"
         else:
-            param_definition = parameter.value_schema.val_type
+            if schema.inner_val_type:
+                param_definition = f"`{schema.val_type}[{schema.inner_val_type}]`"
+            else:
+                param_definition = f"`{schema.val_type}`"
 
         if parameter.required:
             param_definition += ", required"

@@ -75,7 +75,7 @@ TABBED_EXAMPLES_LIST = """<TabbedCodeBlock
   ]}}
 />"""
 
-TOOL_PARAMETER = "- **{param_name}** _({definition})_ {description}"
+TOOL_PARAMETER = "- **{param_name}** ({definition}) {description}"
 
 TOOLKIT_FOOTER = """<ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />"""
 
