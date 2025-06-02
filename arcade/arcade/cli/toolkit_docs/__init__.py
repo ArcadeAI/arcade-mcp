@@ -58,8 +58,8 @@ def generate_toolkit_docs(
 
     print_debug = partial(print_debug_func, debug, console)
 
-    docs_dir = os.path.expanduser(docs_dir)
-    toolkit_dir = os.path.expanduser(toolkit_dir)
+    docs_dir = standardize_dir_path(docs_dir)
+    toolkit_dir = standardize_dir_path(toolkit_dir)
 
     print_debug("Reading toolkit metadata")
     pip_package_name = read_toolkit_metadata(toolkit_dir)
@@ -101,6 +101,11 @@ def generate_toolkit_docs(
             write_file(example_path, example)
 
     print_debug(f"Done generating docs for {toolkit_name}")
+
+
+def standardize_dir_path(dir_path: str) -> str:
+    dir_path = dir_path.rstrip("/") + "/"
+    return os.path.expanduser(dir_path)
 
 
 def read_toolkit_metadata(toolkit_dir: str) -> str:
