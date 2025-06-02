@@ -332,8 +332,8 @@ def build_tool_spec(
 def build_tool_secrets(secrets: list[ToolSecretRequirement]) -> str:
     if not secrets:
         return ""
-    secret_keys_str = '"`, `"'.join([secret.key for secret in secrets])
-    return TOOL_SPEC_SECRETS.format(secrets=f'`"{secret_keys_str}"`')
+    secret_keys_str = "`, `".join([secret.key for secret in secrets])
+    return TOOL_SPEC_SECRETS.format(secrets=f"`{secret_keys_str}`")
 
 
 def build_tool_parameters(
