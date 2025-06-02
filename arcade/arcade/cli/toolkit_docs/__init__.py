@@ -57,7 +57,12 @@ def generate_toolkit_docs(
     arcade_api_key = resolve_api_key(console, "arcade-api-key", arcade_api_key, "ARCADE_API_KEY")
 
     print_debug = partial(print_debug_func, debug, console)
+
     docs_dir = os.path.expanduser(docs_dir)
+    toolkit_dir = os.path.expanduser(toolkit_dir)
+
+    print_debug("Reading toolkit metadata")
+    pip_package_name = read_toolkit_metadata(toolkit_dir)
 
     print_debug(f"Getting list of tools for {toolkit_name} from {engine_base_url}")
 
@@ -70,7 +75,7 @@ def generate_toolkit_docs(
     enums = get_all_enumerations(toolkit_dir)
 
     print_debug(f"Building /{toolkit_name.lower()}.mdx file")
-    reference_mdx, toolkit_mdx = build_toolkit_mdx(tools, docs_section, enums)
+    reference_mdx, toolkit_mdx = build_toolkit_mdx(tools, docs_section, enums, pip_package_name)
     toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_dir, toolkit_name)
     write_file(toolkit_mdx_path, toolkit_mdx)
 
@@ -90,6 +95,19 @@ def generate_toolkit_docs(
             write_file(example_path, example)
 
     print_debug(f"Done generating docs for {toolkit_name}")
+
+
+def read_toolkit_metadata(toolkit_dir: str) -> str:
+    pyproject_path = os.path.join(toolkit_dir, "pyproject.toml")
+    with open(pyproject_path) as f:
+        content = f.read()
+        pkg_name = re.search(
+            r'\[tool\.poetry\].*?name\s*=\s*["\']([^"\']+)["\']', content, re.DOTALL
+        )
+        if pkg_name:
+            return pkg_name.group(1)
+
+    raise ValueError(f"Could not find package name in '{pyproject_path}'")
 
 
 def get_list_of_tools(client: Arcade, toolkit_name: str) -> list[ToolDefinition]:
@@ -202,6 +220,7 @@ def build_toolkit_mdx(
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, Enum],
+    pip_package_name: str,
 ) -> tuple[str, str]:
     sample_tool = tools[0]
     toolkit_name = sample_tool.toolkit.name
@@ -214,12 +233,12 @@ def build_toolkit_mdx(
             toolkit_name,
             [(tool.name, tool.description) for tool in tools],
         ),
-        package_name=toolkit_name.lower(),
+        pip_package_name=pip_package_name,
         auth_type=auth_type,
         version=toolkit_version,
     )
     table_of_contents = build_table_of_contents(tools)
-    footer = build_footer(toolkit_name, sample_tool.requirements.authorization)
+    footer = build_footer(toolkit_name, pip_package_name, sample_tool.requirements.authorization)
     referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
@@ -271,7 +290,9 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
     return TABLE_OF_CONTENTS.format(tool_items=tools_items)
 
 
-def build_footer(toolkit_name: str, authorization: ToolAuthRequirement) -> str:
+def build_footer(
+    toolkit_name: str, pip_package_name: str, authorization: ToolAuthRequirement
+) -> str:
     if authorization.provider_type == "oauth2":
         is_well_known = is_well_known_provider(authorization.provider_id)
         config_template = WELL_KNOWN_PROVIDER_CONFIG if is_well_known else GENERIC_PROVIDER_CONFIG
@@ -279,6 +300,7 @@ def build_footer(toolkit_name: str, authorization: ToolAuthRequirement) -> str:
             toolkit_name=toolkit_name,
             provider_id=authorization.provider_id,
             provider_name=authorization.provider_id.capitalize(),
+            pip_package_name=pip_package_name,
         )
 
         return TOOLKIT_FOOTER_OAUTH2.format(
@@ -286,7 +308,7 @@ def build_footer(toolkit_name: str, authorization: ToolAuthRequirement) -> str:
             toolkit_name_lower=toolkit_name.lower(),
             provider_configuration=provider_configuration,
         )
-    return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name)
+    return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name, pip_package_name=pip_package_name)
 
 
 def build_tools_specs(

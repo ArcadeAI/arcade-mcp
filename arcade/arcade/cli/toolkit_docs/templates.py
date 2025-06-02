@@ -23,7 +23,7 @@ import ToolFooter from "@/components/ToolFooter";
   versions={{["{version}"]}}
 />
 
-<Badges repo="arcadeai/arcade_{package_name}" />
+<Badges repo="arcadeai/{pip_package_name}" />
 
 {description}"""
 
@@ -83,7 +83,7 @@ TOOLKIT_FOOTER_OAUTH2 = """## Auth
 
 {provider_configuration}
 
-<ToolFooter pipPackageName="arcade_{toolkit_name_lower}" />
+<ToolFooter pipPackageName="{pip_package_name}" />
 """
 
 WELL_KNOWN_PROVIDER_CONFIG = "The Arcade {toolkit_name} toolkit uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts. Please refer to the [{provider_name} auth provider](/home/auth-providers/{provider_id}) documentation to learn how to configure auth."
