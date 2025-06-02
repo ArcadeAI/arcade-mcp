@@ -309,12 +309,10 @@ def build_footer(
             toolkit_name=toolkit_name,
             provider_id=authorization.provider_id,
             provider_name=authorization.provider_id.capitalize(),
-            pip_package_name=pip_package_name,
         )
 
         return TOOLKIT_FOOTER_OAUTH2.format(
-            toolkit_name=toolkit_name,
-            toolkit_name_lower=toolkit_name.lower(),
+            pip_package_name=pip_package_name,
             provider_configuration=provider_configuration,
         )
     return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name, pip_package_name=pip_package_name)
