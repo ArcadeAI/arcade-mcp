@@ -6,7 +6,7 @@ import re
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, cast
 
 import openai
 from rich.console import Console
@@ -35,7 +35,7 @@ from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import ToolAuthRequirement, ToolDefinition, ToolInput, ToolSecretRequirement
 
 
-def print_debug_func(debug: bool, console: Console, message: str, style: str = "dim"):
+def print_debug_func(debug: bool, console: Console, message: str, style: str = "dim") -> None:
     if not debug:
         return
     console.print(message, style=style)
@@ -50,8 +50,15 @@ def generate_toolkit_docs(
     openai_api_key: str | None = None,
     tool_call_examples: bool = True,
     debug: bool = False,
-):
-    openai.api_key = resolve_api_key(console, "openai-api-key", openai_api_key, "OPENAI_API_KEY")
+) -> None:
+    openai.api_key = resolve_api_key(openai_api_key, "OPENAI_API_KEY")
+
+    if not openai.api_key:
+        console.print(
+            "❌ Provide --openai-api-key argument or set the OPENAI_API_KEY environment variable",
+            style="red",
+        )
+        return
 
     print_debug = partial(print_debug_func, debug, console)
 
@@ -137,7 +144,7 @@ def get_list_of_tools(toolkit_name: str) -> list[ToolDefinition]:
     return tools
 
 
-def get_all_enumerations(toolkit_root_dir: str) -> dict[str, Enum]:
+def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
     enums = {}
     toolkit_path = Path(toolkit_root_dir)
 
@@ -160,21 +167,16 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, Enum]:
     return enums
 
 
-def resolve_api_key(
-    console: Console, cli_arg_name: str, cli_input_value: str | None, env_var_name: str
-) -> str:
+def resolve_api_key(cli_input_value: str | None, env_var_name: str) -> str | None:
     if cli_input_value:
         return cli_input_value
     elif os.getenv(env_var_name):
         return os.getenv(env_var_name)
     else:
-        console.print(
-            f"❌ Provide --{cli_arg_name} argument or set the {env_var_name} environment variable",
-            style="red",
-        )
+        return None
 
 
-def write_file(path: str, content: str):
+def write_file(path: str, content: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         f.write(content)
@@ -213,8 +215,10 @@ def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: 
     )
 
 
-def get_toolkit_auth_type(requirement: ToolAuthRequirement) -> str:
-    if requirement.provider_type == "oauth2":
+def get_toolkit_auth_type(requirement: ToolAuthRequirement | None) -> str:
+    if requirement is None:
+        return ""
+    elif requirement.provider_type == "oauth2":
         return 'authType="OAuth2"'
     elif requirement.provider_type:
         return f'authType="{requirement.provider_type}"'
@@ -225,7 +229,7 @@ def build_toolkit_mdx(
     toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
-    enums: dict[str, Enum],
+    enums: dict[str, type[Enum]],
     pip_package_name: str,
 ) -> tuple[str, str]:
     sample_tool = tools[0]
@@ -258,7 +262,7 @@ def build_toolkit_mdx(
     )
 
 
-def build_reference_mdx(toolkit_name: str, referenced_enums: list[tuple[str, Enum]]) -> str:
+def build_reference_mdx(toolkit_name: str, referenced_enums: list[tuple[str, type[Enum]]]) -> str:
     enum_items = ""
 
     for enum_name, enum_class in referenced_enums:
@@ -273,7 +277,7 @@ def build_reference_mdx(toolkit_name: str, referenced_enums: list[tuple[str, Enu
     )
 
 
-def build_enum_values(enum_class: Enum) -> str:
+def build_enum_values(enum_class: type[Enum]) -> str:
     enum_values = ""
     for enum_member in enum_class:
         enum_values += (
@@ -299,9 +303,9 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
 
 
 def build_footer(
-    toolkit_name: str, pip_package_name: str, authorization: ToolAuthRequirement
+    toolkit_name: str, pip_package_name: str, authorization: ToolAuthRequirement | None
 ) -> str:
-    if authorization.provider_type == "oauth2":
+    if authorization and authorization.provider_type == "oauth2" and authorization.provider_id:
         is_well_known = is_well_known_provider(authorization.provider_id)
         config_template = WELL_KNOWN_PROVIDER_CONFIG if is_well_known else GENERIC_PROVIDER_CONFIG
         provider_configuration = config_template.format(
@@ -320,8 +324,8 @@ def build_footer(
 def build_tools_specs(
     tools: list[ToolDefinition],
     docs_section: str,
-    enums: dict[str, Enum],
-) -> tuple[list[tuple[str, Enum]], str]:
+    enums: dict[str, type[Enum]],
+) -> tuple[list[tuple[str, type[Enum]]], str]:
     tools_specs = ""
     referenced_enums = []
     for tool in tools:
@@ -333,8 +337,8 @@ def build_tools_specs(
 
 
 def build_tool_spec(
-    tool: ToolDefinition, docs_section: str, enums: dict[str, Enum]
-) -> tuple[list[tuple[str, Enum]], str]:
+    tool: ToolDefinition, docs_section: str, enums: dict[str, type[Enum]]
+) -> tuple[list[tuple[str, type[Enum]]], str]:
     tabbed_examples_list = TABBED_EXAMPLES_LIST.format(
         toolkit_name=tool.toolkit.name.lower(),
         tool_name=pascal_to_snake_case(tool.name),
@@ -346,7 +350,7 @@ def build_tool_spec(
         enums,
     )
 
-    secrets = build_tool_secrets(tool.requirements.secrets)
+    secrets = build_tool_secrets(tool.requirements.secrets) if tool.requirements.secrets else ""
 
     return referenced_enums, TOOL_SPEC.format(
         tool_name=tool.name,
@@ -368,8 +372,8 @@ def build_tool_parameters(
     tool_input: ToolInput,
     docs_section: str,
     toolkit_name: str,
-    enums: dict[str, Enum],
-) -> tuple[list[tuple[str, Enum]], str]:
+    enums: dict[str, type[Enum]],
+) -> tuple[list[tuple[str, type[Enum]]], str]:
     referenced_enums = []
     parameters = ""
     for parameter in tool_input.parameters:
@@ -418,12 +422,12 @@ def build_examples(print_debug: Callable, tools: list[ToolDefinition]) -> list[t
     return examples
 
 
-def build_python_example(tool_fully_qualified_name: str, input_map: dict) -> str:
-    input_map = json.dumps(input_map, indent=4, ensure_ascii=False)
-    input_map = input_map.replace(": false", ": False").replace(": true", ": True")
+def build_python_example(tool_fully_qualified_name: str, input_map: dict[str, Any]) -> str:
+    input_map_str = json.dumps(input_map, indent=4, ensure_ascii=False)
+    input_map_str = input_map_str.replace(": false", ": False").replace(": true", ": True")
     return TOOL_CALL_EXAMPLE_PY.format(
         tool_name_fully_qualified=tool_fully_qualified_name,
-        input_map=input_map,
+        input_map=input_map_str,
     )
 
 
@@ -501,10 +505,13 @@ def generate_toolkit_description(toolkit_name: str, tools: list[tuple[str, str]]
         max_tokens=2048,
     )
 
-    return response.choices[0].message.content.strip()
+    response_str = cast(str, response.choices[0].message.content)
+    return response_str.strip()
 
 
-def generate_tool_input_map(tool: ToolDefinition, retries: int = 0, max_retries: int = 3) -> dict:
+def generate_tool_input_map(
+    tool: ToolDefinition, retries: int = 0, max_retries: int = 3
+) -> dict[str, Any]:
     interface_description = build_tool_interface_description(tool)
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
@@ -546,10 +553,11 @@ def generate_tool_input_map(tool: ToolDefinition, retries: int = 0, max_retries:
         stop=["\n\n"],
     )
 
-    text = response.choices[0].message.content.strip()
+    response_str = cast(str, response.choices[0].message.content)
+    text = response_str.strip()
 
     try:
-        return json.loads(text)
+        return cast(dict[str, Any], json.loads(text))
     except json.JSONDecodeError:
         if retries < max_retries:
             return generate_tool_input_map(tool, retries + 1, max_retries)
@@ -559,7 +567,7 @@ def generate_tool_input_map(tool: ToolDefinition, retries: int = 0, max_retries:
 def build_tool_interface_description(tool: ToolDefinition) -> str:
     args = []
     for arg in tool.input.parameters:
-        data = {
+        data: dict[str, Any] = {
             "arg_name": arg.name,
             "arg_description": arg.description,
             "is_arg_required": arg.required,
@@ -580,17 +588,20 @@ def build_tool_interface_description(tool: ToolDefinition) -> str:
     })
 
 
-def find_enum_by_options(enums: dict[str, Enum], options: list[str]) -> tuple[str, Enum]:
+def find_enum_by_options(
+    enums: dict[str, type[Enum]], options: list[str]
+) -> tuple[str, type[Enum]]:
     for enum_name, enum_class in enums.items():
         enum_member_values = [member.value for member in enum_class]
         if set(enum_member_values) == set(options):
             return enum_name, enum_class
-    print("\n\n\nenums", enums)
-    print("\n\n\noptions", options, "\n\n\n")
     raise ValueError(f"No enum found for options: {options}")
 
 
-def is_well_known_provider(provider_id: str) -> bool:
+def is_well_known_provider(provider_id: str | None) -> bool:
+    if provider_id is None:
+        return False
+
     import inspect
 
     from arcade.core import auth
@@ -598,7 +609,10 @@ def is_well_known_provider(provider_id: str) -> bool:
     for _, obj in inspect.getmembers(auth, inspect.isclass):
         if not issubclass(obj, auth.OAuth2) or obj is auth.OAuth2:
             continue
-        instance = obj()
+        try:
+            instance = obj()  # type: ignore[call-arg]
+        except AttributeError:
+            continue
         provider_id_matches = (
             hasattr(instance, "provider_id") and instance.provider_id == provider_id
         )
