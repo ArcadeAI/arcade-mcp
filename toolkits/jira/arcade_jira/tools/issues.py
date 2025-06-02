@@ -488,7 +488,7 @@ async def update_issue(
     labels: Annotated[
         list[str] | None,
         "The new issue labels. This argument will replace all labels with the new list. "
-        "Providing None or an empty list will remove all labels. To add or remove a subset of "
+        "Providing an empty list will remove all labels. To add or remove a subset of "
         f"labels, use the `Jira.{add_labels_to_issue.__tool_name__}` or the "
         f"`Jira.{remove_labels_from_issue.__tool_name__}` tools. "
         "Defaults to None (does not change the labels).",
