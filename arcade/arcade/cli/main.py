@@ -729,19 +729,6 @@ def generate_toolkit_docs(
             "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
         ),
     ),
-    engine_base_url: str = typer.Option(
-        "http://127.0.0.1:9099",
-        "--engine-base-url",
-        "-u",
-        help="The base URL of the Arcade Engine to get tools information from.",
-        show_default=True,
-    ),
-    arcade_api_key: str = typer.Option(
-        None,
-        "--arcade-api-key",
-        "-a",
-        help="The API key to use for the Arcade Engine. If not provided, will get it from the `ARCADE_API_KEY` env var.",
-    ),
     openai_api_key: str = typer.Option(
         None,
         "--openai-api-key",
@@ -766,8 +753,6 @@ def generate_toolkit_docs(
         toolkit_dir=toolkit_dir,
         docs_dir=docs_dir,
         docs_section=docs_section,
-        engine_base_url=engine_base_url,
-        arcade_api_key=arcade_api_key,
         openai_api_key=openai_api_key,
         tool_call_examples=tool_call_examples,
         debug=debug,

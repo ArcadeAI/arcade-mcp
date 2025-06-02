@@ -8,9 +8,7 @@ from functools import partial
 from pathlib import Path
 from typing import Callable
 
-import httpx
 import openai
-from arcadepy import Arcade
 from rich.console import Console
 
 from arcade.cli.toolkit_docs.templates import (
@@ -32,6 +30,8 @@ from arcade.cli.toolkit_docs.templates import (
     TOOLKIT_PAGE,
     WELL_KNOWN_PROVIDER_CONFIG,
 )
+from arcade.cli.utils import discover_toolkits
+from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import ToolAuthRequirement, ToolDefinition, ToolInput, ToolSecretRequirement
 
 
@@ -47,14 +47,11 @@ def generate_toolkit_docs(
     toolkit_dir: str,
     docs_section: str,
     docs_dir: str,
-    engine_base_url: str | httpx.URL,
-    arcade_api_key: str | None = None,
     openai_api_key: str | None = None,
     tool_call_examples: bool = True,
     debug: bool = False,
 ):
     openai.api_key = resolve_api_key(console, "openai-api-key", openai_api_key, "OPENAI_API_KEY")
-    arcade_api_key = resolve_api_key(console, "arcade-api-key", arcade_api_key, "ARCADE_API_KEY")
 
     print_debug = partial(print_debug_func, debug, console)
 
@@ -64,10 +61,8 @@ def generate_toolkit_docs(
     print_debug("Reading toolkit metadata")
     pip_package_name = read_toolkit_metadata(toolkit_dir)
 
-    print_debug(f"Getting list of tools for {toolkit_name} from {engine_base_url}")
-
-    client = Arcade(base_url=engine_base_url, api_key=arcade_api_key)
-    tools = get_list_of_tools(client, toolkit_name)
+    print_debug(f"Getting list of tools for {toolkit_name} from the local Python environment")
+    tools = get_list_of_tools(toolkit_name)
 
     print_debug(f"Found {len(tools)} tools")
 
@@ -121,24 +116,23 @@ def read_toolkit_metadata(toolkit_dir: str) -> str:
     raise ValueError(f"Could not find package name in '{pyproject_path}'")
 
 
-def get_list_of_tools(client: Arcade, toolkit_name: str) -> list[ToolDefinition]:
+def get_list_of_tools(toolkit_name: str) -> list[ToolDefinition]:
     tools = []
-    offset = 0
-    keep_paginating = True
+    toolkits = discover_toolkits()
 
-    while keep_paginating:
-        response = client.tools.list(
-            include_format=["arcade"],
-            toolkit=toolkit_name,
-            limit=100,
-            offset=offset,
-        )
-        tools.extend(response.items)
-        next_page_info = response.next_page_info()
-        if next_page_info is None:
-            keep_paginating = False
-        else:
-            offset = next_page_info.offset
+    for toolkit in toolkits:
+        if toolkit.name.casefold() == toolkit_name.casefold():
+            for module_name, module_tools in toolkit.tools.items():
+                module = importlib.import_module(module_name)
+                for tool_name in module_tools:
+                    tool_func = getattr(module, tool_name)
+                    tool = ToolCatalog.create_tool_definition(
+                        tool_func, toolkit.name, toolkit.version, toolkit.description
+                    )
+                    tools.append(tool)
+
+    if not tools:
+        raise ValueError(f"Tools not found for toolkit {toolkit_name}")
 
     return tools
 
