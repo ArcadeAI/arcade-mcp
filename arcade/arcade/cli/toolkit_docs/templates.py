@@ -55,7 +55,12 @@ TOOL_SPEC = """## {tool_name}
 **Parameters**
 
 {parameters}
+{secrets}
+"""
 
+TOOL_SPEC_SECRETS = """**Secrets**
+
+This tool requires the following Secrets: {secrets} (learn how to [configure secrets](/home/build-tools/create-a-tool-with-secrets#supplying-the-secret))
 """
 
 TABBED_EXAMPLES_LIST = """<TabbedCodeBlock

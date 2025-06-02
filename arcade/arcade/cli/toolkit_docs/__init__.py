@@ -25,13 +25,14 @@ from arcade.cli.toolkit_docs.templates import (
     TOOL_CALL_EXAMPLE_PY,
     TOOL_PARAMETER,
     TOOL_SPEC,
+    TOOL_SPEC_SECRETS,
     TOOLKIT_FOOTER,
     TOOLKIT_FOOTER_OAUTH2,
     TOOLKIT_HEADER,
     TOOLKIT_PAGE,
     WELL_KNOWN_PROVIDER_CONFIG,
 )
-from arcade.core.schema import ToolAuthRequirement, ToolDefinition, ToolInput
+from arcade.core.schema import ToolAuthRequirement, ToolDefinition, ToolInput, ToolSecretRequirement
 
 
 def print_debug_func(debug: bool, console: Console, message: str, style: str = "dim"):
@@ -317,12 +318,22 @@ def build_tool_spec(
         enums,
     )
 
+    secrets = build_tool_secrets(tool.requirements.secrets)
+
     return referenced_enums, TOOL_SPEC.format(
         tool_name=tool.name,
         tabbed_examples_list=tabbed_examples_list,
         description=tool.description.split("\n")[0],
         parameters=parameters,
+        secrets=secrets,
     )
+
+
+def build_tool_secrets(secrets: list[ToolSecretRequirement]) -> str:
+    if not secrets:
+        return ""
+    secret_keys_str = '"`, `"'.join([secret.key for secret in secrets])
+    return TOOL_SPEC_SECRETS.format(secrets=f'`"{secret_keys_str}"`')
 
 
 def build_tool_parameters(
