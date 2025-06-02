@@ -75,7 +75,13 @@ def generate_toolkit_docs(
     enums = get_all_enumerations(toolkit_dir)
 
     print_debug(f"Building /{toolkit_name.lower()}.mdx file")
-    reference_mdx, toolkit_mdx = build_toolkit_mdx(tools, docs_section, enums, pip_package_name)
+    reference_mdx, toolkit_mdx = build_toolkit_mdx(
+        toolkit_dir=toolkit_dir,
+        tools=tools,
+        docs_section=docs_section,
+        enums=enums,
+        pip_package_name=pip_package_name,
+    )
     toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_dir, toolkit_name)
     write_file(toolkit_mdx_path, toolkit_mdx)
 
@@ -217,6 +223,7 @@ def get_toolkit_auth_type(requirement: ToolAuthRequirement) -> str:
 
 
 def build_toolkit_mdx(
+    toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, Enum],
@@ -226,6 +233,7 @@ def build_toolkit_mdx(
     toolkit_name = sample_tool.toolkit.name
     toolkit_version = sample_tool.toolkit.version
     auth_type = get_toolkit_auth_type(sample_tool.requirements.authorization)
+    toolkit_dirname = os.path.basename(os.path.dirname(toolkit_dir))
 
     header = TOOLKIT_HEADER.format(
         toolkit_title=toolkit_name,
@@ -234,6 +242,7 @@ def build_toolkit_mdx(
             [(tool.name, tool.description) for tool in tools],
         ),
         pip_package_name=pip_package_name,
+        toolkit_dirname=toolkit_dirname,
         auth_type=auth_type,
         version=toolkit_version,
     )
