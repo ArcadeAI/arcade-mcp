@@ -369,13 +369,15 @@ def generate_tool_input_map(
             {
                 "role": "system",
                 "content": (
-                    "You are a helpful assistant. "
-                    "When given a function signature with typed arguments, "
+                    "You are a helpful assistant expert in generating data for documenting "
+                    "sample scripts to calling tools. A tool is a function that is used in "
+                    "context of LLM tool-calling / function-calling.\n\n"
+                    "When given a tool signature with typed arguments, "
                     "you must return exactly one JSON object (no markdown, no extra text) "
-                    "where each key is an argument name, and each value is a logically valid "
-                    "sample value for that argument, based on its name and description.\n\n"
-                    "This will be used to generate example scripts in a documentation "
-                    "that shows how to call the tool.\n\n"
+                    "where each key is an argument name, and each value is a sample value "
+                    "for that argument that would make sense in a sample script to showcase "
+                    "human software engineers how the tool may be called. Generate the "
+                    "argument sample value based on its name and description\n\n"
                     "Not every single argument must always be present in the input map. "
                     "In some cases, the tool may require only one of two arguments to be "
                     "provided, for example. In such cases, an indication will be present "
@@ -383,9 +385,10 @@ def generate_tool_input_map(
                     "Always follow such instructions when present in the tool interface.\n\n"
                     "Keep argument values as short as possible. Values don't have to always "
                     "be valid. For instance, for file content base64-encoded arguments, "
-                    "you can use a short text or a placeholder like `[file_content]`.\n\n"
+                    "you can use a short text or a placeholder like `[file_content]`, it is "
+                    "not necessary that the value is a valid base64-encoded string.\n\n"
                     "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
-                    "TEXT. Your response will be `json.dumps`'d, so it must be a valid JSON "
+                    "TEXT. Your response will be json.load'ed, so it must be a valid JSON "
                     "string."
                 ),
             },
