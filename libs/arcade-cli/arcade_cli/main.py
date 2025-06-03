@@ -30,7 +30,6 @@ from arcade_cli.display import (
     display_eval_results,
     display_tool_messages,
 )
-from arcade_cli.launcher import start_servers
 from arcade_cli.show import show_logic
 from arcade_cli.utils import (
     OrderCommands,
@@ -376,7 +375,7 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     require_dependency(
-        package_name="arcade-evals",
+        package_name="arcade_evals",
         command_name="evals",
         install_command=r"pip install 'arcade-ai\[evals]'",
     )
@@ -489,7 +488,7 @@ def serve(
     Start a local Arcade Worker server.
     """
     require_dependency(
-        package_name="arcade-serve",
+        package_name="arcade_serve",
         command_name="serve",
         install_command=r"pip install 'arcade-ai\[serve]'",
     )
@@ -510,36 +509,6 @@ def serve(
         typer.Exit()
     except Exception as e:
         error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
-        console.print(error_message, style="bold red")
-        typer.Exit(code=1)
-
-
-@cli.command(help="Launch Arcade - requires 'arcade-engine'", rich_help_panel="Launch")
-def dev(
-    host: str = typer.Option("127.0.0.1", help="Host for the toolkit server.", show_default=True),
-    port: int = typer.Option(
-        8002, "-p", "--port", help="Port for the toolkit server.", show_default=True
-    ),
-    engine_config: str = typer.Option(
-        None, "-c", "--config", help="Path to the engine configuration file."
-    ),
-    env_file: str = typer.Option(
-        None, "-e", "--env-file", help="Path to the environment variables file."
-    ),
-    debug: bool = typer.Option(False, "-d", "--debug", help="Show debug information"),
-) -> None:
-    """
-    Start both the toolkit server and engine servers.
-    """
-    require_dependency(
-        package_name="arcade-serve",
-        command_name="dev",
-        install_command=r"pip install 'arcade-ai\[serve]'",
-    )
-    try:
-        start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
-    except Exception as e:
-        error_message = f"❌ Failed to start servers: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
 
@@ -572,7 +541,7 @@ def workerup(
     Uvicorn as ASGI worker. Parameters allow runtime configuration.
     """
     require_dependency(
-        package_name="arcade-serve",
+        package_name="arcade_serve",
         command_name="worker",
         install_command=r"pip install 'arcade-ai\[worker]'",
     )

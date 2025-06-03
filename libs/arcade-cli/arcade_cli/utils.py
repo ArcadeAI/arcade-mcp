@@ -768,7 +768,7 @@ def require_dependency(
         install_command: The command to install the package (e.g., "pip install 'arcade-ai[evals]'")
     """
     try:
-        __import__(package_name)
+        importlib.import_module(package_name.replace("-", "_"))
     except ImportError:
         console.print(
             f"❌ The '{package_name}' package is required to run the '{command_name}' command but is not installed.",
