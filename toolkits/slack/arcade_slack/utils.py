@@ -3,8 +3,14 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import RetryableToolError
+from arcade.sdk import HttpResponse, ToolContext
+from arcade.sdk.errors import (
+    RetryableToolError,
+    ThirdPartyApiError,
+    ThirdPartyApiRateLimitError,
+    ThirdPartyApiServerError,
+)
+from slack_sdk.errors import SlackApiError
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.custom_types import SlackPaginationNextCursor
@@ -444,3 +450,44 @@ def convert_relative_datetime_to_unix_timestamp(
     days, hours, minutes = map(int, relative_datetime.split(":"))
     seconds = days * 86400 + hours * 3600 + minutes * 60
     return int(current_unix_timestamp - seconds)
+
+
+def instantiate_api_error(slack_api_error: SlackApiError) -> ThirdPartyApiError:
+    error_message = slack_api_error.response.get("error", str(slack_api_error))
+    retry_after_ms = get_retry_after_ms(slack_api_error.response.headers)
+    http_response = HttpResponse(
+        status_code=slack_api_error.response.status_code,
+        headers=slack_api_error.response.headers,
+        body=str(slack_api_error.response.data),
+    )
+
+    if http_response.status_code >= 500:
+        error = ThirdPartyApiServerError(
+            http_response=http_response,
+            error_message=error_message,
+            retry_after_ms=retry_after_ms,
+        )
+    elif http_response.status_code == 429:
+        error = ThirdPartyApiRateLimitError(
+            http_response=http_response,
+            error_message=error_message,
+            retry_after_ms=retry_after_ms,
+        )
+    else:
+        error = ThirdPartyApiError(
+            http_response=http_response,
+            error_message=error_message,
+        )
+
+    error.__cause__ = slack_api_error
+    return error
+
+
+def get_retry_after_ms(headers: dict) -> int | None:
+    retry_after_ms = headers.get("Retry-After")
+    if retry_after_ms:
+        try:
+            return int(retry_after_ms) * 1000
+        except ValueError:
+            return None
+    return None
