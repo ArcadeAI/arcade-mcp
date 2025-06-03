@@ -8,6 +8,7 @@ from pathlib import Path
 from rich.console import Console
 
 from arcade.cli.utils import discover_toolkits
+from arcade.core import auth
 from arcade.core.catalog import ToolCatalog
 from arcade.core.schema import ToolAuthRequirement, ToolDefinition
 
@@ -122,10 +123,6 @@ def find_enum_by_options(
 def is_well_known_provider(provider_id: str | None) -> bool:
     if provider_id is None:
         return False
-
-    import inspect
-
-    from arcade.core import auth
 
     for _, obj in inspect.getmembers(auth, inspect.isclass):
         if not issubclass(obj, auth.OAuth2) or obj is auth.OAuth2:
