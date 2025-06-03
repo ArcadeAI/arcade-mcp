@@ -113,11 +113,12 @@ def get_toolkit_auth_type(requirement: ToolAuthRequirement | None) -> str:
 def find_enum_by_options(
     enums: dict[str, type[Enum]], options: list[str]
 ) -> tuple[str, type[Enum]]:
+    options_set = set(options)
     for enum_name, enum_class in enums.items():
         enum_member_values = [member.value for member in enum_class]
-        if set(enum_member_values) == set(options):
+        if set(enum_member_values) == options_set:
             return enum_name, enum_class
-    raise ValueError(f"No enum found for options: {options}")
+    raise ValueError(f"No enum found for options: {options_set}")
 
 
 def is_well_known_provider(provider_id: str | None) -> bool:
