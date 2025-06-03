@@ -1,6 +1,8 @@
 import traceback
 from typing import Optional
 
+from arcade.core.schema import HttpResponse
+
 
 class ToolkitError(Exception):
     """
@@ -38,15 +40,26 @@ class ToolDefinitionError(ToolError):
 
 
 class ToolRuntimeError(RuntimeError):
+    _can_retry: bool = False
+
     def __init__(
         self,
         message: str,
         developer_message: Optional[str] = None,
+        additional_prompt_content: Optional[str] = None,
+        retry_after_ms: Optional[int] = None,
     ):
         super().__init__(message)
         self.message = message
         self.developer_message = developer_message
+        self.additional_prompt_content = additional_prompt_content
+        self.retry_after_ms = retry_after_ms
 
+    @property
+    def can_retry(self) -> bool:
+        return self._can_retry
+
+    @property
     def traceback_info(self) -> str | None:
         # return the traceback information of the parent exception
         if self.__cause__:
@@ -62,21 +75,7 @@ class ToolExecutionError(ToolRuntimeError):
     pass
 
 
-class RetryableToolError(ToolExecutionError):
-    """
-    Raised when a tool error is retryable.
-    """
-
-    def __init__(
-        self,
-        message: str,
-        developer_message: Optional[str] = None,
-        additional_prompt_content: Optional[str] = None,
-        retry_after_ms: Optional[int] = None,
-    ):
-        super().__init__(message, developer_message)
-        self.additional_prompt_content = additional_prompt_content
-        self.retry_after_ms = retry_after_ms
+# ------  serialization errors ------
 
 
 class ToolSerializationError(ToolRuntimeError):
@@ -98,6 +97,43 @@ class ToolInputError(ToolSerializationError):
 class ToolOutputError(ToolSerializationError):
     """
     Raised when there is an error in the output of a tool.
+    """
+
+    pass
+
+
+# ------  retry-able errors ------
+
+
+class RetryableToolError(ToolExecutionError):
+    """
+    Raised when a tool error is retryable.
+    """
+
+    _can_retry: bool = True
+
+
+class ThirdPartyApiError(ToolExecutionError):
+    """
+    Raised when there is an error in a downstream request to a third-party service.
+    """
+
+    def __init__(self, http_response: HttpResponse, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.http_response = http_response.model_dump()
+
+
+class ThirdPartyApiServerError(ThirdPartyApiError, RetryableToolError):
+    """
+    Raised when there is a 500 Server Error in a downstream request to a third-party service.
+    """
+
+    pass
+
+
+class ThirdPartyApiRateLimitError(ThirdPartyApiError):
+    """
+    Raised when there is a 429 Too Many Requests in a downstream request to a third-party service.
     """
 
     pass

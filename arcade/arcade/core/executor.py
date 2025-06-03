@@ -1,17 +1,14 @@
 import asyncio
-import traceback
 from typing import Any, Callable
 
 from pydantic import BaseModel, ValidationError
 
 from arcade.core.errors import (
-    RetryableToolError,
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
-    ToolSerializationError,
 )
-from arcade.core.output import output_factory
+from arcade.core.output import ToolOutputFactory
 from arcade.core.schema import ToolCallLog, ToolCallOutput, ToolContext, ToolDefinition
 
 
@@ -59,34 +56,20 @@ class ToolExecutor:
             output = await ToolExecutor._serialize_output(output_model, results)
 
             # return the output
-            return output_factory.success(data=output, logs=tool_call_logs)
-
-        except RetryableToolError as e:
-            return output_factory.fail_retry(
-                message=e.message,
-                developer_message=e.developer_message,
-                additional_prompt_content=e.additional_prompt_content,
-                retry_after_ms=e.retry_after_ms,
-            )
-
-        except ToolSerializationError as e:
-            return output_factory.fail(message=e.message, developer_message=e.developer_message)
+            return ToolOutputFactory.success(data=output, logs=tool_call_logs)
 
         # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolRuntimeError as e:
-            return output_factory.fail(
-                message=e.message,
-                developer_message=e.developer_message,
-                traceback_info=e.traceback_info(),
-            )
+            return ToolOutputFactory.fail(error=e, logs=tool_call_logs)
 
         # if we get here we're in trouble
         except Exception as e:
-            return output_factory.fail(
-                message="Error in execution",
+            error = ToolRuntimeError(
+                message="Unexpected error occurred during tool execution",
                 developer_message=str(e),
-                traceback_info=traceback.format_exc(),
             )
+            error.__cause__ = e
+            return ToolOutputFactory.fail(error=error, logs=tool_call_logs)
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

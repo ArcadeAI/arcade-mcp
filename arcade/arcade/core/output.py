@@ -2,6 +2,7 @@ from typing import TypeVar
 
 from arcade.core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade.core.utils import coerce_empty_list_to_none
+from arcade.sdk.errors import ToolRuntimeError
 
 T = TypeVar("T")
 
@@ -11,8 +12,8 @@ class ToolOutputFactory:
     Singleton pattern for unified return method from tools.
     """
 
+    @staticmethod
     def success(
-        self,
         *,
         data: T | None = None,
         logs: list[ToolCallLog] | None = None,
@@ -21,44 +22,22 @@ class ToolOutputFactory:
         logs = coerce_empty_list_to_none(logs)
         return ToolCallOutput(value=value, logs=logs)
 
+    @staticmethod
     def fail(
-        self,
         *,
-        message: str,
-        developer_message: str | None = None,
-        traceback_info: str | None = None,
+        error: ToolRuntimeError,
         logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
-                message=message,
-                developer_message=developer_message,
-                can_retry=False,
-                traceback_info=traceback_info,
+                name=error.__class__.__name__,
+                message=error.message,
+                developer_message=error.developer_message,
+                can_retry=error.can_retry,
+                additional_prompt_content=error.additional_prompt_content,
+                retry_after_ms=error.retry_after_ms,
+                traceback_info=error.traceback_info,
+                http_response=getattr(error, "http_response", None),
             ),
             logs=coerce_empty_list_to_none(logs),
         )
-
-    def fail_retry(
-        self,
-        *,
-        message: str,
-        developer_message: str | None = None,
-        additional_prompt_content: str | None = None,
-        retry_after_ms: int | None = None,
-        traceback_info: str | None = None,
-        logs: list[ToolCallLog] | None = None,
-    ) -> ToolCallOutput:
-        return ToolCallOutput(
-            error=ToolCallError(
-                message=message,
-                developer_message=developer_message,
-                can_retry=True,
-                additional_prompt_content=additional_prompt_content,
-                retry_after_ms=retry_after_ms,
-            ),
-            logs=coerce_empty_list_to_none(logs),
-        )
-
-
-output_factory = ToolOutputFactory()

@@ -1,12 +1,62 @@
 import os
 from dataclasses import dataclass
 from enum import Enum
+from http import HTTPStatus
 from typing import Any, Literal, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
+
+
+class HttpStatus(BaseModel):
+    """The status of an HTTP response."""
+
+    code: int
+    """The status code of the HTTP response."""
+    name: str
+    """The name of the HTTP status."""
+    title: str
+    """The title of the HTTP status."""
+
+
+class HttpResponse(BaseModel):
+    """The response from a third-party HTTP API service."""
+
+    status_code: int = Field(exclude=True)
+    """The status code of the HTTP response."""
+    headers: dict[str, str] = {}
+    """The headers of the HTTP response."""
+    body: str = ""
+    """The body of the HTTP response."""
+
+    @computed_field
+    @property
+    def status(self) -> HttpStatus:
+        """Dynamically generates HttpStatus from status_code."""
+        try:
+            http_status = HTTPStatus(self.status_code)
+            return HttpStatus(
+                code=http_status.value,
+                name=http_status.name,
+                title=http_status.phrase,
+            )
+        except ValueError:
+            return HttpStatus(
+                code=self.status_code,
+                name="UNKNOWN",
+                title=f"Unknown Status {self.status_code}",
+            )
+
+    @staticmethod
+    def from_response_obj(response: Any) -> "HttpResponse":
+        """Create an HttpResponse from a response object such as requests.Response or httpx.Response."""
+        return HttpResponse(
+            status_code=response.status_code,
+            headers=response.headers,
+            body=response.text,
+        )
 
 
 class ValueSchema(BaseModel):
@@ -375,6 +425,8 @@ class ToolCallLog(BaseModel):
 class ToolCallError(BaseModel):
     """The error that occurred during the tool invocation."""
 
+    name: str | None = None
+    """The name of the error."""
     message: str
     """The user-facing error message."""
     developer_message: str | None = None
@@ -387,6 +439,8 @@ class ToolCallError(BaseModel):
     """The number of milliseconds (if any) to wait before retrying the tool call."""
     traceback_info: str | None = None
     """The traceback information for the tool call."""
+    http_response: HttpResponse | None = None
+    """The HTTP response from a downstream third-party API call that failed."""
 
 
 class ToolCallRequiresAuthorization(BaseModel):
