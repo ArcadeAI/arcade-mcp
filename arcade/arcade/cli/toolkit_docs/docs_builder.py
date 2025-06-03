@@ -72,6 +72,7 @@ def build_toolkit_mdx(
     docs_section: str,
     enums: dict[str, type[Enum]],
     pip_package_name: str,
+    openai_model: str,
 ) -> tuple[str, str]:
     sample_tool = tools[0]
     toolkit_name = sample_tool.toolkit.name
@@ -84,6 +85,7 @@ def build_toolkit_mdx(
         description=generate_toolkit_description(
             toolkit_name,
             [(tool.name, tool.description) for tool in tools],
+            openai_model,
         ),
         pip_package_name=pip_package_name,
         toolkit_dirname=toolkit_dirname,
@@ -246,11 +248,15 @@ def build_tool_parameters(
     return referenced_enums, parameters
 
 
-def build_examples(print_debug: Callable, tools: list[ToolDefinition]) -> list[tuple[str, str]]:
+def build_examples(
+    print_debug: Callable,
+    tools: list[ToolDefinition],
+    openai_model: str,
+) -> list[tuple[str, str]]:
     examples = []
     for tool in tools:
         print_debug(f"Generating tool-call examples for {tool.name}")
-        input_map = generate_tool_input_map(tool)
+        input_map = generate_tool_input_map(tool, openai_model)
         fully_qualified_name = tool.fully_qualified_name.split("@")[0]
         examples.append((
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
@@ -279,9 +285,13 @@ def build_javascript_example(tool_fully_qualified_name: str, input_map: dict) ->
     )
 
 
-def generate_toolkit_description(toolkit_name: str, tools: list[tuple[str, str]]) -> str:
+def generate_toolkit_description(
+    toolkit_name: str,
+    tools: list[tuple[str, str]],
+    openai_model: str,
+) -> str:
     response = openai.chat.completions.create(
-        model="gpt-4o-mini",
+        model=openai_model,
         messages=[
             {
                 "role": "system",
@@ -347,11 +357,14 @@ def generate_toolkit_description(toolkit_name: str, tools: list[tuple[str, str]]
 
 
 def generate_tool_input_map(
-    tool: ToolDefinition, retries: int = 0, max_retries: int = 3
+    tool: ToolDefinition,
+    openai_model: str,
+    retries: int = 0,
+    max_retries: int = 3,
 ) -> dict[str, Any]:
     interface_description = build_tool_interface_description(tool)
     response = openai.chat.completions.create(
-        model="gpt-4o-mini",
+        model=openai_model,
         messages=[
             {
                 "role": "system",

@@ -27,6 +27,7 @@ def generate_toolkit_docs(
     toolkit_dir: str,
     docs_section: str,
     docs_dir: str,
+    openai_model: str,
     openai_api_key: str | None = None,
     tool_call_examples: bool = True,
     debug: bool = False,
@@ -63,6 +64,7 @@ def generate_toolkit_docs(
         docs_section=docs_section,
         enums=enums,
         pip_package_name=pip_package_name,
+        openai_model=openai_model,
     )
     toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_dir, toolkit_name)
     write_file(toolkit_mdx_path, toolkit_mdx)
@@ -76,7 +78,7 @@ def generate_toolkit_docs(
 
     if tool_call_examples:
         print_debug("Building tool-call examples in Python and JavaScript")
-        examples = build_examples(print_debug, tools)
+        examples = build_examples(print_debug, tools, openai_model)
 
         for filename, example in examples:
             example_path = build_example_path(filename, docs_dir, toolkit_name)

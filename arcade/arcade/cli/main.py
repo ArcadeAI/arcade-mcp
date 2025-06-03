@@ -729,14 +729,22 @@ def generate_toolkit_docs(
             "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
         ),
     ),
+    openai_model: str = typer.Option(
+        "gpt-4o-mini",
+        "--openai-model",
+        "-m",
+        help=(
+            "A few parts of the documentation are generated using OpenAI API. "
+            "This argument controls which OpenAI model to use. "
+            "E.g. 'gpt-4o', 'gpt-4o-mini'."
+        ),
+        show_default=True,
+    ),
     openai_api_key: str = typer.Option(
         None,
         "--openai-api-key",
         "-o",
-        help=(
-            "The OpenAI API key. It will be used to generate sample values for the tool call example scripts. "
-            "If not provided, will get it from the `OPENAI_API_KEY` env var."
-        ),
+        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
     ),
     tool_call_examples: bool = typer.Option(
         False,
@@ -753,6 +761,7 @@ def generate_toolkit_docs(
         toolkit_dir=toolkit_dir,
         docs_dir=docs_dir,
         docs_section=docs_section,
+        openai_model=openai_model,
         openai_api_key=openai_api_key,
         tool_call_examples=tool_call_examples,
         debug=debug,
