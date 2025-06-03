@@ -7,14 +7,24 @@ name = "arcade_google"
 version = "1.2.1"
 description = "Arcade.dev LLM tools for Google Workspace"
 requires-python = ">=3.10"
-dependencies = [ "arcade-tdk>=0.1.0,<1.0.0", "google-api-core>=2.19.1,<3.0.0", "google-api-python-client>=2.137.0,<3.0.0", "google-auth>=2.32.0,<3.0.0", "google-auth-httplib2>=0.2.0,<1.0.0", "google-auth-oauthlib>=1.2.1,<2.0.0", "googleapis-common-protos>=1.63.2,<2.0.0", "beautifulsoup4>=4.10.0,<5.0.0",]
+dependencies = [
+    "arcade-tdk>=0.1.0,<1.0.0",
+    "google-api-core>=2.19.1,<3.0.0",
+    "google-api-python-client>=2.137.0,<3.0.0",
+    "google-auth>=2.32.0,<3.0.0",
+    "google-auth-httplib2>=0.2.0,<1.0.0",
+    "google-auth-oauthlib>=1.2.1,<2.0.0",
+    "googleapis-common-protos>=1.63.2,<2.0.0",
+    "beautifulsoup4>=4.10.0,<5.0.0",
+]
 [[project.authors]]
 name = "Arcade"
 email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]",
+    "arcade-ai[evals]>=2.0.0,<3.0.0",
+    "arcade-serve>=0.1.0,<1.0.0",
     "pytest>=8.3.0,<9.0.0",
     "pytest-cov>=4.0.0,<5.0.0",
     "pytest-asyncio>=0.24.0,<1.0.0",
@@ -29,6 +39,7 @@ dev = [
 [tool.uv.sources]
 arcade-ai = {path = "../../", editable = true}
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 
 [tool.mypy]
 files = [ "arcade_google/**/*.py",]

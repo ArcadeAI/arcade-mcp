@@ -1,6 +1,6 @@
 import sys
 
-from arcadecli.main import cli
+from arcade_cli.main import cli
 
 if __name__ == "__main__":
     # Supports attaching debugger to cli. Run from ../.vscode/launch.json.

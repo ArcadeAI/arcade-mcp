@@ -48,7 +48,7 @@ This repository contains the core Arcade libraries, organized as separate packag
 -   [**`arcade-tdk`**](libs/arcade-tdk) - Tool Development Kit with the `@tool` decorator
 -   [**`arcade-serve`**](libs/arcade-serve) - Serving infrastructure for workers and MCP servers
 -   [**`arcade-evals`**](libs/arcade-evals) - Evaluation framework for testing tool performance
--   [**`arcadecli`**](libs/arcadecli) - Command-line interface for the Arcade platform
+-   [**`arcade-cli`**](libs/arcade-cli) - Command-line interface for the Arcade platform
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
@@ -68,7 +68,7 @@ For development, install all packages with dependencies using uv workspace:
 
 ```bash
 # Install all packages and dev dependencies
-uv sync --dev
+uv sync --extra all --dev
 
 # Or use the Makefile (includes pre-commit hooks)
 make install
@@ -77,10 +77,12 @@ make install
 For production use, install individual packages as needed:
 
 ```bash
-pip install arcade-core arcade-tdk   # Core + Tool Development Kit
-pip install arcade-serve             # Serving infrastructure
-pip install arcade-evals             # Evaluation framework
-pip install arcadecli               # Command-line interface
+pip install arcade-ai          # Install the CLI
+pip install 'arcade-ai[serve]' # CLI + Serving infrastructure
+pip install 'arcade-ai[evals]' # CLI + Evaluation framework
+pip install 'arcade-ai[tdk]'   # CLI + Tool Development Kit
+pip install 'arcade-ai[all]'   # CLI + Serving infra + eval framework + TDK
+pip install arcade-tdk         # Tool Development Kit
 ```
 
 ### Development
@@ -99,25 +101,6 @@ make build
 
 # See all available commands
 make help
-```
-
-Or use the convenient Python dev script for more targeted tasks:
-
-```bash
-# Initial setup (alternative to make install)
-python dev.py setup
-
-# Test specific package
-python dev.py test --package arcade-core
-
-# Run tests with coverage
-python dev.py test --coverage
-
-# Build specific package
-python dev.py build --package arcade-tdk
-
-# Set version across all packages
-python dev.py version --set "1.0.0"
 ```
 
 ## Client Libraries

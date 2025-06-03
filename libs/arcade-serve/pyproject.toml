@@ -43,7 +43,7 @@ packages = ["arcade_serve"]
 
 [tool.mypy]
 files = ["arcade_serve"]
-python_version = "0.1.0"
+python_version = "3.10"
 disallow_untyped_defs = true
 disallow_any_unimported = true
 no_implicit_optional = true

@@ -7,14 +7,18 @@ name = "arcade_confluence"
 version = "0.0.1"
 description = "Arcade.dev LLM tools for Confluence"
 requires-python = ">=3.10"
-dependencies = [ "arcade-tdk>=0.1.0,<1.0.0", "httpx>=0.27.2,<1.0.0",]
+dependencies = [
+    "arcade-tdk>=0.1.0,<1.0.0",
+    "httpx>=0.27.2,<1.0.0",
+]
 [[project.authors]]
 name = "Arcade"
 email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]",
+    "arcade-ai[evals]>=2.0.0,<3.0.0",
+    "arcade-serve>=0.1.0,<1.0.0",
     "pytest>=8.3.0,<9.0.0",
     "pytest-cov>=4.0.0,<5.0.0",
     "mypy>=1.5.1,<2.0.0",
@@ -28,6 +32,7 @@ dev = [
 [tool.uv.sources]
 arcade-ai = {path = "../../", editable = true}
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 
 [tool.mypy]
 files = [ "arcade_confluence/**/*.py",]

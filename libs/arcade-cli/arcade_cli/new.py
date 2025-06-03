@@ -9,7 +9,7 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
-from arcadecli.deployment import (
+from arcade_cli.deployment import (
     create_demo_deployment,
 )
 
@@ -121,7 +121,7 @@ def create_new_toolkit(output_directory: str) -> None:
         "arcade_version": f"^{ARCADE_VERSION}",
         "creation_year": datetime.now().year,
     }
-    template_directory = Path(__file__).parent.parent / "templates" / "{{ toolkit_name }}"
+    template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
     env = Environment(
         loader=FileSystemLoader(str(template_directory)),

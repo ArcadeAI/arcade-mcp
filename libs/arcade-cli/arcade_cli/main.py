@@ -16,23 +16,23 @@ from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
-import arcadecli.worker as worker
-from arcadecli.authn import LocalAuthCallbackServer, check_existing_login
-from arcadecli.constants import (
+import arcade_cli.worker as worker
+from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
+from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
     LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcadecli.deployment import Deployment
-from arcadecli.display import (
+from arcade_cli.deployment import Deployment
+from arcade_cli.display import (
     display_arcade_chat_header,
     display_eval_results,
     display_tool_messages,
 )
-from arcadecli.launcher import start_servers
-from arcadecli.show import show_logic
-from arcadecli.utils import (
+from arcade_cli.launcher import start_servers
+from arcade_cli.show import show_logic
+from arcade_cli.utils import (
     OrderCommands,
     compute_base_url,
     compute_login_url,
@@ -45,6 +45,7 @@ from arcadecli.utils import (
     is_authorization_pending,
     load_eval_suites,
     log_engine_health,
+    require_dependency,
     validate_and_get_config,
     version_callback,
 )
@@ -140,7 +141,7 @@ def new(
     """
     Creates a new toolkit with the given name, description, and result type.
     """
-    from arcadecli.new import create_new_toolkit
+    from arcade_cli.new import create_new_toolkit
 
     try:
         create_new_toolkit(directory)
@@ -374,6 +375,12 @@ def evals(
     Find all files starting with 'eval_' in the given directory,
     execute any functions decorated with @tool_eval, and display the results.
     """
+    require_dependency(
+        package_name="arcade-evals",
+        command_name="evals",
+        install_command=r"pip install 'arcade-ai\[evals]'",
+    )
+
     config = validate_and_get_config()
 
     host = PROD_ENGINE_HOST if cloud else host
@@ -481,7 +488,13 @@ def serve(
     """
     Start a local Arcade Worker server.
     """
-    from arcadecli.serve import serve_default_worker
+    require_dependency(
+        package_name="arcade-serve",
+        command_name="serve",
+        install_command=r"pip install 'arcade-ai\[serve]'",
+    )
+
+    from arcade_cli.serve import serve_default_worker
 
     try:
         serve_default_worker(
@@ -518,6 +531,11 @@ def dev(
     """
     Start both the toolkit server and engine servers.
     """
+    require_dependency(
+        package_name="arcade-serve",
+        command_name="dev",
+        install_command=r"pip install 'arcade-ai\[serve]'",
+    )
     try:
         start_servers(host, port, engine_config, engine_env=env_file, debug=debug)
     except Exception as e:
@@ -553,7 +571,13 @@ def workerup(
     Starts the worker with host, port, and reload options. Uses
     Uvicorn as ASGI worker. Parameters allow runtime configuration.
     """
-    from arcadecli.serve import serve_default_worker
+    require_dependency(
+        package_name="arcade-serve",
+        command_name="worker",
+        install_command=r"pip install 'arcade-ai\[worker]'",
+    )
+
+    from arcade_cli.serve import serve_default_worker
 
     try:
         serve_default_worker(

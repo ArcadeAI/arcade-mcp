@@ -65,12 +65,6 @@ class MyWorker(BaseWorker):
         return await super().handle_request(request)
 ```
 
-## Dependencies
-
-- `arcade-core>=1.1.0` - Core Arcade functionality
-- `fastapi>=0.115.3` - Web framework
-- `uvicorn>=0.30.0` - ASGI server
-
 ## License
 
 MIT License - see LICENSE file for details.

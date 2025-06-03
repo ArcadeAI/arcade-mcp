@@ -14,7 +14,7 @@ Arcade Evals provides comprehensive evaluation capabilities for Arcade tools:
 ## Installation
 
 ```bash
-pip install arcade-evals
+pip install 'arcade-ai[evals]'
 ```
 
 ## Usage
@@ -80,13 +80,6 @@ rubric = EvalRubric(
 # Evaluate with rubric
 suite = EvalSuite(cases=[case1], rubric=rubric)
 ```
-
-## Dependencies
-
-- `arcade-core>=1.1.0` - Core Arcade functionality
-- `scipy>=1.14.0` - Scientific computing
-- `numpy>=2.0.0` - Numerical computing
-- `scikit-learn>=1.5.0` - Machine learning utilities
 
 ## License
 

@@ -1,5 +1,5 @@
 import pytest
-from arcadecli.utils import compute_base_url, compute_login_url
+from arcade_cli.utils import compute_base_url, compute_login_url
 
 DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
 DEFAULT_ENGINE_HOST = "api.arcade.dev"

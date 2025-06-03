@@ -2,8 +2,8 @@ import typer
 from rich.console import Console
 from rich.markup import escape
 
-from arcadecli.display import display_tool_details, display_tools_table
-from arcadecli.utils import create_cli_catalog, get_tools_from_engine
+from arcade_cli.display import display_tool_details, display_tools_table
+from arcade_cli.utils import create_cli_catalog, get_tools_from_engine
 
 
 def show_logic(

@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import pytest
-from arcadecli.deployment import (
+from arcade_cli.deployment import (
     Config,
     Deployment,
     LocalPackages,

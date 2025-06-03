@@ -34,13 +34,6 @@ toolkit = Toolkit.from_directory("path/to/toolkit")
 config = ArcadeConfig.from_file("config.yaml")
 ```
 
-## Dependencies
-
-- `pydantic>=2.7.0` - Data validation and settings management
-- `pyyaml>=6.0` - YAML configuration support
-- `loguru>=0.7.0` - Structured logging
-- `opentelemetry-*` - Observability and tracing
-
 ## License
 
 MIT License - see LICENSE file for details.

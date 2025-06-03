@@ -20,10 +20,12 @@ pip install arcade-tdk
 ## Usage
 
 ```python
+from typing import Annotated
+
 from arcade_tdk import tool
 
 @tool
-def hello_world(name: str) -> str:
+def hello_world(name: Annotated[str, "The name of the person to greet"]) -> str:
     """Say hello to someone."""
     return f"Hello, {name}!"
 
@@ -33,11 +35,13 @@ def hello_world(name: str) -> str:
 ## Advanced Usage
 
 ```python
+from typing import Annotated
+
 from arcade_tdk import tool, ToolCatalog, Toolkit
 
 # Create tools with more complex parameters
 @tool
-def calculate_sum(numbers: list[float]) -> float:
+def calculate_sum(numbers: Annotated[list[float], "The numbers to sum"]) -> float:
     """Calculate the sum of a list of numbers."""
     return sum(numbers)
 
@@ -48,11 +52,6 @@ tools = catalog.get_all_tools()
 # Work with toolkits
 toolkit = Toolkit.from_directory("my_toolkit")
 ```
-
-## Dependencies
-
-- `arcade-core>=1.1.0` - Core Arcade functionality
-- `pydantic>=2.7.0` - Data validation and settings
 
 ## License
 

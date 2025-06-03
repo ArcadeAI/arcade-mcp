@@ -21,8 +21,8 @@ from arcade_serve.fastapi.worker import FastAPIWorker
 from loguru import logger
 from rich.console import Console
 
-from arcadecli.constants import ARCADE_CONFIG_PATH
-from arcadecli.utils import (
+from arcade_cli.constants import ARCADE_CONFIG_PATH
+from arcade_cli.utils import (
     build_tool_catalog,
     discover_toolkits,
     load_dotenv,
@@ -138,7 +138,7 @@ def _run_fastapi_server(
     toolkits_for_reload_dirs: list[Toolkit] | None,
     debug_flag: bool,
 ) -> None:
-    app_import_string = "arcadecli.serve:create_arcade_app"
+    app_import_string = "arcade_cli.serve:create_arcade_app"
     reload_dirs_str_list: list[str] | None = None
 
     if reload:

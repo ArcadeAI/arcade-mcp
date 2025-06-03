@@ -4,11 +4,11 @@ from arcadepy import Arcade, NotFoundError
 from rich.console import Console
 from rich.table import Table
 
-from arcadecli.constants import (
+from arcade_cli.constants import (
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
-from arcadecli.utils import (
+from arcade_cli.utils import (
     OrderCommands,
     compute_base_url,
     validate_and_get_config,

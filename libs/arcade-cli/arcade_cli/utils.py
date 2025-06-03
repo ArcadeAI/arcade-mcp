@@ -32,7 +32,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcadecli.constants import LOCALHOST
+from arcade_cli.constants import LOCALHOST
 
 console = Console()
 
@@ -665,7 +665,7 @@ def version_callback(value: bool) -> None:
     Prints the version of Arcade and exit.
     """
     if value:
-        version = metadata.version(__package__)
+        version = metadata.version("arcade-ai")
         console.print(f"[bold]Arcade CLI[/bold] (version {version})")
         exit()
 
@@ -752,3 +752,30 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
             loaded[k] = v
 
     return loaded
+
+
+def require_dependency(
+    package_name: str,
+    command_name: str,
+    install_command: str,
+) -> None:
+    """
+    Display a helpful error message if the required dependency is missing.
+
+    Args:
+        package_name: The name of the package to import (e.g., 'arcade_serve')
+        command_name: The command that requires the package (e.g., 'serve')
+        install_command: The command to install the package (e.g., "pip install 'arcade-ai[evals]'")
+    """
+    try:
+        __import__(package_name)
+    except ImportError:
+        console.print(
+            f"❌ The '{package_name}' package is required to run the '{command_name}' command but is not installed.",
+            style="bold red",
+        )
+        console.print(
+            f"To install it, run the following command:\n* [green]{install_command}[/green]",
+            style="bold",
+        )
+        raise typer.Exit(code=1)
