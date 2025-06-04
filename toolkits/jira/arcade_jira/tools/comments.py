@@ -140,9 +140,7 @@ async def add_comment_to_issue(
             "content": quote_comment["comment"]["adf_body"]["content"],
         }
         adf_body["content"] = [quote] + adf_body["content"]
-    import json
 
-    print("\n\n\n", json.dumps(adf_body, indent=2), "\n\n\n")
     response = await client.post(
         f"issue/{issue}/comment",
         json_data={
