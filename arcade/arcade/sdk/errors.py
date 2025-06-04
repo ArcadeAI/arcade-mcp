@@ -1,4 +1,11 @@
-from arcade.core.errors import RetryableToolError, ToolExecutionError, ToolRuntimeError
+from arcade.core.errors import (
+    RetryableToolError,
+    ThirdPartyApiError,
+    ThirdPartyApiRateLimitError,
+    ThirdPartyApiServerError,
+    ToolExecutionError,
+    ToolRuntimeError,
+)
 
 __all__ = [
     "SDKError",
@@ -6,6 +13,9 @@ __all__ = [
     "ToolRuntimeError",
     "ToolExecutionError",
     "RetryableToolError",
+    "ThirdPartyApiError",
+    "ThirdPartyApiRateLimitError",
+    "ThirdPartyApiServerError",
 ]
 
 
