@@ -27,11 +27,11 @@ response = client.tools.execute(
     },
 )
 
-print(response.tool_error)
-# dict[str, Any]: {"error_message": "Too Many Requests", "can_retry": True, "retry_after_ms": 30000, ...}
+print(response.output.error)
+# ToolCallError: ToolCallError(error_message="Too Many Requests", can_retry=True, retry_after_ms=30000, ...)
 
 try:
-    response.raise_for_tool_status()
+    response.output.raise_for_status()
 except ThirdPartyApiRateLimitError as exc:
     print(exc.error_message)
     # str: Too Many Requests
