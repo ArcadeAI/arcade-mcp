@@ -136,6 +136,7 @@ class BaseWorker(Worker):
                 input_model=materialized_tool.input_model,
                 output_model=materialized_tool.output_model,
                 context=tool_request.context,
+                return_remote_api_error_response=tool_request.return_remote_api_error_response,
                 **tool_request.inputs or {},
             )
 

@@ -402,6 +402,8 @@ class ToolCallRequest(BaseModel):
     """The inputs for the tool."""
     context: ToolContext = Field(default_factory=ToolContext)
     """The context for the tool invocation."""
+    return_remote_api_error_response: bool = False
+    """Whether to include the HTTP response from the remote API in the ToolCallError."""
 
 
 class ToolCallLog(BaseModel):

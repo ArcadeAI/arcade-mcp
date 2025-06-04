@@ -20,6 +20,7 @@ class ToolExecutor:
         input_model: type[BaseModel],
         output_model: type[BaseModel],
         context: ToolContext,
+        return_remote_api_error_response: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> ToolCallOutput:
@@ -60,7 +61,11 @@ class ToolExecutor:
 
         # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolRuntimeError as e:
-            return ToolOutputFactory.fail(error=e, logs=tool_call_logs)
+            return ToolOutputFactory.fail(
+                error=e,
+                logs=tool_call_logs,
+                return_remote_api_error_response=return_remote_api_error_response,
+            )
 
         # if we get here we're in trouble
         except Exception as e:
@@ -69,7 +74,11 @@ class ToolExecutor:
                 developer_message=str(e),
             )
             error.__cause__ = e
-            return ToolOutputFactory.fail(error=error, logs=tool_call_logs)
+            return ToolOutputFactory.fail(
+                error=error,
+                logs=tool_call_logs,
+                return_remote_api_error_response=return_remote_api_error_response,
+            )
 
     @staticmethod
     async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:

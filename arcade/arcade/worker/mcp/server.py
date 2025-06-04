@@ -404,6 +404,10 @@ class MCPServer:
         if not input_params:
             input_params = message.params.get("arguments", {})
 
+        return_remote_api_error_response = message.params.get(
+            "return_remote_api_error_response", False
+        )
+
         logger.info(f"Handling tool call for {tool_name}")
 
         try:
@@ -437,6 +441,7 @@ class MCPServer:
                 input_model=tool.input_model,
                 output_model=tool.output_model,
                 context=tool_context,
+                return_remote_api_error_response=return_remote_api_error_response,
                 **input_params,
             )
             logger.debug(f"Tool result: {result}")

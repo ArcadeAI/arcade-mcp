@@ -25,9 +25,9 @@ response = client.tools.execute(
         "user_name": "renato",
         "message": "Hello, world!",
     },
-    # When set to True, the Worker will include the HTTP response from the remote API (if any)
-    # in the ToolCallError. Defaults to False.
-    debug=True,
+    # When set to True, the Worker will include the HTTP response from the
+    # remote API (if any) in the ToolCallError. Defaults to False.
+    return_remote_api_error_response=True,
 )
 
 print(response.output.error)

@@ -27,6 +27,7 @@ class ToolOutputFactory:
         *,
         error: ToolRuntimeError,
         logs: list[ToolCallLog] | None = None,
+        return_remote_api_error_response: bool = False,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -37,7 +38,11 @@ class ToolOutputFactory:
                 additional_prompt_content=error.additional_prompt_content,
                 retry_after_ms=error.retry_after_ms,
                 traceback_info=error.traceback_info,
-                http_response=getattr(error, "http_response", None),
+                http_response=(
+                    getattr(error, "http_response", None)
+                    if return_remote_api_error_response
+                    else None
+                ),
             ),
             logs=coerce_empty_list_to_none(logs),
         )
