@@ -25,6 +25,9 @@ response = client.tools.execute(
         "user_name": "renato",
         "message": "Hello, world!",
     },
+    # When set to True, the Worker will include the HTTP response from the remote API (if any)
+    # in the ToolCallError. Defaults to False.
+    debug=True,
 )
 
 print(response.output.error)
@@ -42,10 +45,11 @@ except ThirdPartyApiRateLimitError as exc:
     print(exc.retry_after_ms)
     # int: 30000
 
-    print(exc.http_response.status)
-    # HttpStatus(code=429, name="TOO_MANY_REQUESTS", title="Too Many Requests")
+    if exc.http_response:
+        print(exc.http_response.status)
+        # HttpStatus(code=429, name="TOO_MANY_REQUESTS", title="Too Many Requests")
 
-    print(exc.http_response.headers)
-    # dict[str, str]: {"Retry-After": "30"}
+        print(exc.http_response.headers)
+        # dict[str, str]: {"Retry-After": "30"}
 else:
     print(json.dumps(response.output.value, indent=2))
