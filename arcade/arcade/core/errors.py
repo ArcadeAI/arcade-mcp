@@ -50,6 +50,16 @@ class ToolRuntimeError(RuntimeError):
         retry_after_ms: Optional[int] = None,
     ):
         super().__init__(message)
+
+        if (
+            not self._can_retry
+            and retry_after_ms is not None
+            or additional_prompt_content is not None
+        ):
+            raise AttributeError(
+                "retry_after_ms and additional_prompt_content are only allowed for errors where `_can_retry` is True"
+            )
+
         self.message = message
         self.developer_message = developer_message
         self.additional_prompt_content = additional_prompt_content
