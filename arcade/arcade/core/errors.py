@@ -141,7 +141,7 @@ class ThirdPartyApiServerError(ThirdPartyApiError, RetryableToolError):
     pass
 
 
-class ThirdPartyApiRateLimitError(ThirdPartyApiError):
+class ThirdPartyApiRateLimitError(ThirdPartyApiError, RetryableToolError):
     """
     Raised when there is a 429 Too Many Requests in a downstream request to a third-party service.
     """
