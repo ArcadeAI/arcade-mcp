@@ -28,7 +28,7 @@ response = client.tools.execute(
 )
 
 print(response.output.error)
-# ToolCallError: ToolCallError(error_message="Too Many Requests", can_retry=True, retry_after_ms=30000, ...)
+# ToolCallError(name="ThirdPartyApiRateLimitError", error_message="Too Many Requests", can_retry=True, retry_after_ms=30000, ...)
 
 try:
     response.output.raise_for_status()
@@ -43,7 +43,7 @@ except ThirdPartyApiRateLimitError as exc:
     # int: 30000
 
     print(exc.http_response.status)
-    # HttpStatus: HttpStatus(code=429, name="TOO_MANY_REQUESTS", title="Too Many Requests")
+    # HttpStatus(code=429, name="TOO_MANY_REQUESTS", title="Too Many Requests")
 
     print(exc.http_response.headers)
     # dict[str, str]: {"Retry-After": "30"}
