@@ -28,9 +28,9 @@
 <br>
 
 # Arcade {{ toolkit_name }} Toolkit
-
+{% if toolkit_description -%}
 {{ toolkit_description }}
-
+{% endif -%}
 ## Features
 
 - The {{ toolkit_name }} toolkit does not have any features yet.

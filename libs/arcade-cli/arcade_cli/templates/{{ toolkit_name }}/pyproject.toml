@@ -5,7 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "{{ package_name }}"
 version = "0.1.0"
+{% if toolkit_description -%}
 description = "{{ toolkit_description }}"
+{% endif -%}
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>={{ arcade_tdk_min_version }},<{{ arcade_tdk_max_version}}",

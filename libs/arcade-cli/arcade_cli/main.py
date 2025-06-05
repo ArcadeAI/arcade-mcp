@@ -133,8 +133,15 @@ def logout() -> None:
         console.print("You're not logged in.", style="bold red")
 
 
-@cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
+@cli.command(
+    help="Create a new toolkit package directory. Example usage: arcade new my_toolkit",
+    rich_help_panel="Tool Development",
+)
 def new(
+    toolkit_name: str = typer.Argument(
+        help="The name of the toolkit to create",
+        metavar="TOOLKIT_NAME",
+    ),
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
 ) -> None:
     """
@@ -143,7 +150,7 @@ def new(
     from arcade_cli.new import create_new_toolkit
 
     try:
-        create_new_toolkit(directory)
+        create_new_toolkit(directory, toolkit_name)
     except Exception as e:
         error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
         console.print(error_message, style="bold red")

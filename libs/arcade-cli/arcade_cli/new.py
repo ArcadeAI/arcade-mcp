@@ -28,11 +28,6 @@ ARCADE_SERVE_MIN_VERSION = "0.1.0"
 ARCADE_SERVE_MAX_VERSION = "1.0.0"
 
 
-TEMPLATE_IGNORE_PATTERN = re.compile(
-    r"(__pycache__|\.DS_Store|Thumbs\.db|\.git|\.svn|\.hg|\.vscode|\.idea|build|dist|.*\.egg-info|.*\.pyc|.*\.pyo)$"
-)
-
-
 def ask_question(question: str, default: Optional[str] = None) -> str:
     """
     Ask a question via input() and return the answer.
@@ -41,6 +36,30 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     if not answer and default:
         return default
     return str(answer)
+
+
+def ask_yes_no_question(question: str, default: bool = True) -> bool:
+    """
+    Ask a yes/no question via input() and return the bool answer.
+    """
+    default_str = "Y/n" if default else "y/N"
+    answer = typer.prompt(
+        f"{question} ({default_str})", default="y" if default else "n", show_default=False
+    )
+    return answer.lower() in [
+        "y",
+        "y/",
+        "yes",
+        "true",
+        "1",
+        "ye",
+        "yes",
+        "yeah",
+        "yep",
+        "sure",
+        "ok",
+        "yup",
+    ]
 
 
 def render_template(env: Environment, template_string: str, context: dict) -> str:
@@ -54,9 +73,33 @@ def write_template(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def create_package(env: Environment, template_path: Path, output_path: Path, context: dict) -> None:
+def create_ignore_pattern(include_tests: bool, include_evals: bool) -> re.Pattern[str]:
+    """Create an ignore pattern based on user preferences."""
+    base_pattern = r"(__pycache__|\.DS_Store|Thumbs\.db|\.git|\.svn|\.hg|\.vscode|\.idea|build|dist|.*\.egg-info|.*\.pyc|.*\.pyo)"
+
+    additional_patterns = []
+    if not include_tests:
+        additional_patterns.append("tests")
+    if not include_evals:
+        additional_patterns.append("evals")
+
+    if additional_patterns:
+        full_pattern = f"({base_pattern}|{'|'.join(additional_patterns)})$"
+    else:
+        full_pattern = f"{base_pattern}$"
+
+    return re.compile(full_pattern)
+
+
+def create_package(
+    env: Environment,
+    template_path: Path,
+    output_path: Path,
+    context: dict,
+    ignore_pattern: re.Pattern[str],
+) -> None:
     """Recursively create a new toolkit directory structure from jinja2 templates."""
-    if TEMPLATE_IGNORE_PATTERN.match(template_path.name):
+    if ignore_pattern.match(template_path.name):
         return
 
     try:
@@ -66,7 +109,7 @@ def create_package(env: Environment, template_path: Path, output_path: Path, con
             new_dir_path.mkdir(parents=True, exist_ok=True)
 
             for item in template_path.iterdir():
-                create_package(env, item, new_dir_path, context)
+                create_package(env, item, new_dir_path, context, ignore_pattern)
 
         else:
             # Render the file name
@@ -89,31 +132,42 @@ def remove_toolkit(toolkit_directory: Path, toolkit_name: str) -> None:
         shutil.rmtree(toolkit_path)
 
 
-def create_new_toolkit(output_directory: str) -> None:
+def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     """Create a new toolkit from a template with user input."""
     toolkit_directory = Path(output_directory)
-    while True:
-        name = ask_question("Name of the new toolkit")
-        package_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
-        # Check for illegal characters in the toolkit name
-        if re.match(r"^[\w_]+$", package_name):
-            toolkit_name = package_name.replace("arcade_", "", 1)
+    package_name = toolkit_name if toolkit_name.startswith("arcade_") else f"arcade_{toolkit_name}"
 
-            if (toolkit_directory / toolkit_name).exists():
-                console.print(f"[red]Toolkit {toolkit_name} already exists.[/red]")
-                continue
-            break
-        else:
-            console.print(
-                "[red]Toolkit name contains illegal characters. "
-                "Only alphanumeric characters and underscores are allowed. "
-                "Please try again.[/red]"
-            )
+    # Check for illegal characters in the toolkit name
+    if re.match(r"^[\w_]+$", package_name):
+        toolkit_name = package_name.replace("arcade_", "", 1)
 
-    toolkit_description = ask_question("Describe what your toolkit will do")
+        if (toolkit_directory / toolkit_name).exists():
+            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
+            exit(1)
+    else:
+        console.print(
+            "[red]Toolkit name contains illegal characters. "
+            "Only alphanumeric characters and underscores are allowed. "
+            "Please try again.[/red]"
+        )
+        exit(1)
+
+    toolkit_description = ask_question("Describe what your toolkit will do (optional)", default="")
     toolkit_author_name = ask_question("Your GitHub username (optional)", default="")
-    toolkit_author_email = ask_question("Your email (optional)", default="")
+    while True:
+        toolkit_author_email = ask_question("Your email (optional)", default="")
+        if toolkit_author_email == "" or re.match(r"[^@ ]+@[^@ ]+\.[^@ ]+", toolkit_author_email):
+            break
+        console.print(
+            "[red]Invalid email format. Please enter a valid email address or leave it empty.[/red]"
+        )
+    include_tests = ask_yes_no_question(
+        "Do you want a tests directory created for you?", default=True
+    )
+    include_evals = ask_yes_no_question(
+        "Do you want an evals directory created for you?", default=True
+    )
 
     context = {
         "package_name": package_name,
@@ -135,8 +189,14 @@ def create_new_toolkit(output_directory: str) -> None:
         autoescape=select_autoescape(["html", "xml"]),
     )
 
+    # Create dynamic ignore pattern based on user preferences
+    ignore_pattern = create_ignore_pattern(include_tests, include_evals)
+
     try:
-        create_package(env, template_directory, toolkit_directory, context)
+        create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print(
+            f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
+        )
         create_deployment(toolkit_directory, toolkit_name)
     except Exception:
         remove_toolkit(toolkit_directory, toolkit_name)
