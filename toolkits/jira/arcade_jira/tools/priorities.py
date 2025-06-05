@@ -178,19 +178,21 @@ async def list_priorities_available_to_an_issue(
     """Browse the priorities available to be used in the specified Jira issue."""
     from arcade_jira.tools.issues import get_issue_by_id
 
-    issue_data = await get_issue_by_id(context, issue)
-    if issue_data.get("error"):
-        return cast(dict, issue_data)
+    issue_response = await get_issue_by_id(context, issue)
+    if issue_response.get("error"):
+        return cast(dict, issue_response)
 
-    project = issue_data["project"]["id"]
+    issue = issue_response["issue"]
+    project = issue["project"]["id"]
 
     response = await list_priorities_available_to_a_project(context, project)
 
     return {
         "issue": {
-            "id": issue_data["id"],
-            "key": issue_data["key"],
-            "name": issue_data["fields"]["summary"],
+            "id": issue["id"],
+            "key": issue["key"],
+            "title": issue["title"],
         },
+        "project": response["project"],
         "priorities_available": response["priorities_available"],
     }
