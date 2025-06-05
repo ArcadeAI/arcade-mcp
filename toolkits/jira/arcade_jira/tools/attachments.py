@@ -59,7 +59,6 @@ async def attach_file_to_issue(
     response = await client.post(
         f"/issue/{issue}/attachments",
         headers={
-            # "Content-Type": "multipart/form-data",
             "X-Atlassian-Token": "no-check",
         },
         files=build_file_data(
