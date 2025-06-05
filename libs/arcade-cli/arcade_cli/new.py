@@ -22,7 +22,11 @@ except Exception as e:
     console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
     ARCADE_VERSION = "0.0.0"  # Default version if unable to fetch
 
-ARCADE_TDK_VERSION = "0.1.0"
+ARCADE_TDK_MIN_VERSION = "0.1.0"
+ARCADE_TDK_MAX_VERSION = "1.0.0"
+ARCADE_SERVE_MIN_VERSION = "0.1.0"
+ARCADE_SERVE_MAX_VERSION = "1.0.0"
+
 
 TEMPLATE_IGNORE_PATTERN = re.compile(
     r"(__pycache__|\.DS_Store|Thumbs\.db|\.git|\.svn|\.hg|\.vscode|\.idea|build|dist|.*\.egg-info|.*\.pyc|.*\.pyo)$"
@@ -117,8 +121,11 @@ def create_new_toolkit(output_directory: str) -> None:
         "toolkit_description": toolkit_description,
         "toolkit_author_name": toolkit_author_name,
         "toolkit_author_email": toolkit_author_email,
-        "arcade_tdk_version": ARCADE_TDK_VERSION,
-        "arcade_version": f"^{ARCADE_VERSION}",
+        "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
+        "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
+        "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
+        "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
+        "arcade_version": ARCADE_VERSION,
         "creation_year": datetime.now().year,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
