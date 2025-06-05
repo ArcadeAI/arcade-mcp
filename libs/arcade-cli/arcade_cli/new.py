@@ -37,7 +37,7 @@ def ask_question(question: str, default: Optional[str] = None) -> str:
     """
     Ask a question via input() and return the answer.
     """
-    answer = typer.prompt(question, default=default)
+    answer = typer.prompt(question, default=default, show_default=False)
     if not answer and default:
         return default
     return str(answer)
@@ -93,7 +93,7 @@ def create_new_toolkit(output_directory: str) -> None:
     """Create a new toolkit from a template with user input."""
     toolkit_directory = Path(output_directory)
     while True:
-        name = ask_question("Name of the new toolkit?")
+        name = ask_question("Name of the new toolkit")
         package_name = name if name.startswith("arcade_") else f"arcade_{name}"
 
         # Check for illegal characters in the toolkit name
@@ -111,9 +111,9 @@ def create_new_toolkit(output_directory: str) -> None:
                 "Please try again.[/red]"
             )
 
-    toolkit_description = ask_question("Description of the toolkit?")
-    toolkit_author_name = ask_question("Github owner username?")
-    toolkit_author_email = ask_question("Author's email?")
+    toolkit_description = ask_question("Describe what your toolkit will do")
+    toolkit_author_name = ask_question("Your GitHub username (optional)", default="")
+    toolkit_author_email = ask_question("Your email (optional)", default="")
 
     context = {
         "package_name": package_name,

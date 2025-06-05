@@ -10,9 +10,15 @@ requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>={{ arcade_tdk_min_version }},<{{ arcade_tdk_max_version}}",
 ]
+{% if toolkit_author_name or toolkit_author_email -%}
 [[project.authors]]
+{% if toolkit_author_name -%}
 name = "{{ toolkit_author_name }}"
+{% endif -%}
+{% if toolkit_author_email -%}
 email = "{{ toolkit_author_email }}"
+{% endif -%}
+{% endif %}
 
 [project.optional-dependencies]
 dev = [
