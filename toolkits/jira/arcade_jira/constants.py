@@ -19,29 +19,6 @@ try:
 except Exception:
     JIRA_CACHE_MAX_ITEMS = 5000
 
-JIRA_ISSUE_FIELDS = [
-    "id",
-    "key",
-    "summary",
-    "description",
-    "labels",
-    "project",
-    "comment",
-    "issuelinks",
-    "assignee",
-    "creator",
-    "duedate",
-    "issuetype",
-    "priority",
-    "progress",
-    "project",
-    "reporter",
-    "status",
-    "subtasks",
-    "resolution",
-    "resolutiondate",
-]
-
 
 class IssueCommentOrderBy(Enum):
     CREATED_DATE_ASCENDING = "created_date_ascending"
