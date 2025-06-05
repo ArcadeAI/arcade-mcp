@@ -2,6 +2,10 @@ target-version = "py39"
 line-length = 100
 fix = true
 
+exclude = [
+    "libs/arcade-cli/arcade_cli/templates/",
+]
+
 [lint]
 select = [
     # flake8-2020
