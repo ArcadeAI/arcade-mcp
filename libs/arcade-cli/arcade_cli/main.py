@@ -379,6 +379,14 @@ def evals(
         command_name="evals",
         install_command=r"pip install 'arcade-ai\[evals]'",
     )
+    # Although Evals does not depend on the TDK, some evaluations import the
+    # ToolCatalog class from the TDK instead of from arcade_core, so we require
+    # the TDK to run the evals CLI command to avoid possible import errors.
+    require_dependency(
+        package_name="arcade_tdk",
+        command_name="evals",
+        install_command=r"pip install arcade-tdk",
+    )
 
     config = validate_and_get_config()
 
