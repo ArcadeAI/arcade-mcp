@@ -43,21 +43,6 @@ JIRA_ISSUE_FIELDS = [
 ]
 
 
-class IssuePriority(Enum):
-    HIGHEST = "Highest"
-    HIGH = "High"
-    MEDIUM = "Medium"
-    LOW = "Low"
-    LOWEST = "Lowest"
-
-
-class IssueType(Enum):
-    TASK = "Task"
-    BUG = "Bug"
-    STORY = "Story"
-    EPIC = "Epic"
-
-
 class IssueCommentOrderBy(Enum):
     CREATED_DATE_ASCENDING = "created_date_ascending"
     CREATED_DATE_DESCENDING = "created_date_descending"
@@ -80,18 +65,3 @@ class PrioritySchemeOrderBy(Enum):
             PrioritySchemeOrderBy.NAME_DESCENDING: "-name",
         }
         return _map[self]
-
-
-class IssueProperty(Enum):
-    PARENT = "parent"
-    ASSIGNEE = "assignee"
-    REPORTER = "reporter"
-    LABELS = "labels"
-    DUE_DATE = "duedate"
-
-
-class UserIdentifierProperty(Enum):
-    ID = "id"
-    KEY = "key"
-    EMAIL = "email"
-    DISPLAY_NAME = "displayName"
