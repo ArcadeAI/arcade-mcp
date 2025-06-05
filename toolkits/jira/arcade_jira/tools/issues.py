@@ -383,7 +383,11 @@ async def create_issue(
 async def add_labels_to_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to update"],
-    labels: Annotated[list[str], "The labels to add to the issue"],
+    labels: Annotated[
+        list[str],
+        "The labels to add to the issue. Cannot contain spaces. "
+        "If a label is provided with spaces, they will be replaced by underscores.",
+    ],
     notify_watchers: Annotated[
         bool,
         "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
@@ -393,6 +397,8 @@ async def add_labels_to_issue(
     issue_data = await get_issue_by_id(context, issue)
     if issue_data.get("error"):
         return cast(dict, issue_data)
+
+    labels = [label.replace(" ", "_") for label in labels]
     current_labels = issue_data["issue"]["labels"]
     response = await update_issue(
         context=context,
