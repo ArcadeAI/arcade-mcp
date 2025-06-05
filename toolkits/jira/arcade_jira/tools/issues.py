@@ -13,6 +13,7 @@ from arcade_jira.utils import (
     clean_issue_dict,
     clean_issue_type_dict,
     convert_date_string_to_date,
+    extract_id,
     find_unique_project,
     remove_none_values,
     resolve_issue_users,
@@ -89,7 +90,7 @@ async def get_issue_type_by_id(
 async def get_issue_by_id(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to retrieve"],
-) -> Annotated[dict, "Information about the issue"]:
+) -> Annotated[dict[str, dict[str, Any]], "Information about the issue"]:
     """Get the details of a Jira issue by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
     try:
@@ -254,7 +255,7 @@ async def search_issues_with_jql(
     return response
 
 
-@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
 async def create_issue(
     context: ToolContext,
     title: Annotated[
@@ -348,14 +349,12 @@ async def create_issue(
             "summary": title,
             "labels": labels,
             "duedate": due_date,
-            "parent": {"id": parent_data["id"]} if isinstance(parent_data, dict) else None,
-            "project": {"id": project_data["id"]} if isinstance(project_data, dict) else None,
-            "priority": {"id": priority_data["id"]} if isinstance(priority_data, dict) else None,
-            "assignee": {"id": assignee_data["id"]} if isinstance(assignee_data, dict) else None,
-            "reporter": {"id": reporter_data["id"]} if isinstance(reporter_data, dict) else None,
-            "issuetype": {"id": issue_type_data["id"]}
-            if isinstance(issue_type_data, dict)
-            else None,
+            "parent": extract_id(parent_data),
+            "project": extract_id(project_data),
+            "priority": extract_id(priority_data),
+            "assignee": extract_id(assignee_data),
+            "reporter": extract_id(reporter_data),
+            "issuetype": extract_id(issue_type_data),
         }),
     }
 
@@ -431,7 +430,7 @@ async def remove_labels_from_issue(
     return cast(dict, response)
 
 
-@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
 async def update_issue(
     context: ToolContext,
     issue: Annotated[str, "The key or ID of the issue to update"],

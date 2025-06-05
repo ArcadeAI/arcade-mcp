@@ -1068,3 +1068,7 @@ def build_issue_update_date_fields(
         body["fields"]["duedate"] = due_date
 
     return body
+
+
+def extract_id(field: Any) -> dict[str, str] | None:
+    return {"id": field["id"]} if isinstance(field, dict) else None
