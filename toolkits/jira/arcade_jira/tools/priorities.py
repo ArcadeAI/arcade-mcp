@@ -173,7 +173,7 @@ async def list_priorities_available_to_a_project(
 @tool(requires_auth=Atlassian(scopes=["manage:jira-configuration"]))
 async def list_priorities_available_to_an_issue(
     context: ToolContext,
-    issue: Annotated[str, "The ID, key or name of the issue to retrieve priorities for."],
+    issue: Annotated[str, "The ID or key of the issue to retrieve priorities for."],
 ) -> Annotated[dict[str, Any], "The priorities available to be used in the specified Jira issue"]:
     """Browse the priorities available to be used in the specified Jira issue."""
     from arcade_jira.tools.issues import get_issue_by_id
