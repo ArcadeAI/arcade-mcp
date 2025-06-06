@@ -5,7 +5,7 @@ from arcade.sdk.auth import Atlassian
 
 import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
-from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
+from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 from arcade_jira.utils import (
     add_pagination_to_response,
     build_adf_doc,
@@ -318,7 +318,7 @@ async def create_issue(
         "the tool will try to find a unique exact match among the available projects. "
         "Defaults to None (no project). If `project` and `parent_issue` are not provided, "
         "the tool will select the single project available. If the user has multiple, an "
-        "error will be raised with the available projects to choose from.",
+        "error will be returned with the available projects to choose from.",
     ] = None,
     due_date: Annotated[
         str | None,
@@ -363,7 +363,9 @@ async def create_issue(
 ) -> Annotated[dict, "The created issue"]:
     """Create a new Jira issue.
 
-    Must provide a value to at least one of `project` or `parent_issue` arguments.
+    Provide a value to one of `project` or `parent_issue` arguments. If `project` and
+    `parent_issue` are not provided, the tool will select the single project available.
+    If the user has multiple, an error will be returned with the available projects to choose from.
 
     IF YOU DO NOT FOLLOW THE INSTRUCTIONS BELOW AND UNNECESSARILY CALL MULTIPLE TOOLS IN ORDER TO
     CREATE AN ISSUE, TOO MUCH CO2 WILL BE RELEASED IN THE ATMOSPHERE AND YOU WILL CAUSE THE
@@ -374,6 +376,14 @@ async def create_issue(
     projects, priorities, issue types, or users. Provide the name, key, or email and the tool
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
+    if project is None and parent_issue is None:
+        try:
+            project_data = await get_single_project(context)
+        except (NotFoundError, MultipleItemsFoundError) as exc:
+            return {"error": str(exc)}
+        else:
+            project = project_data["id"]
+
     (
         error,
         project_data,
