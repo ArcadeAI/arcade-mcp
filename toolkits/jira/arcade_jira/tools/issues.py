@@ -190,6 +190,12 @@ async def get_issues_without_id(
         labels=labels,
         parent_issue=parent_issue,
     )
+
+    if not jql:
+        raise JiraToolExecutionError(
+            "No search criteria provided. Please provide at least one argument."
+        )
+
     body = {
         "jql": jql,
         "maxResults": limit,
@@ -543,6 +549,11 @@ async def update_issue(
         reporter=reporter_data,
         labels=labels,
     )
+
+    if not request_body["fields"] and not request_body["update"]:
+        raise JiraToolExecutionError(
+            "No changes provided. Please provide at least one argument to update the issue."
+        )
 
     await client.put(f"/issue/{issue}", json_data=request_body, params=params)
 
