@@ -1,3 +1,4 @@
+import json
 from typing import Callable
 
 import pytest
@@ -130,8 +131,20 @@ async def test_find_unique_issue_type_by_name_with_multiple_priorities_but_zero_
             mock_context, sample_issue_type["name"].lower(), sample_project["id"]
         )
 
+    available_issue_types = json.dumps([
+        {
+            "id": other_issue_type1["id"],
+            "name": other_issue_type1["name"],
+        },
+        {
+            "id": other_issue_type2["id"],
+            "name": other_issue_type2["name"],
+        },
+    ])
+
     assert (
-        f"Issue type not found with ID or name '{sample_issue_type['name'].lower()}'"
+        f"Issue type not found with ID or name '{sample_issue_type['name'].lower()}'. "
+        f"These are the issue types available for the project: {available_issue_types}"
         == exc.value.message
     )
 

@@ -2,7 +2,7 @@ import asyncio
 import json
 import json.decoder
 from dataclasses import dataclass
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import httpx
 
@@ -38,8 +38,10 @@ class JiraClient:
             if (cloud_id := await cache.async_get_cloud_id(self.auth_token)) is not None:
                 self._cloud_id = cloud_id
             else:
-                self._cloud_id = await self._get_cloud_id_from_available_resources()
-                await cache.async_set_cloud_id(self.auth_token, self._cloud_id)
+                cloud = await self._get_cloud_id_from_available_resources()
+                self._cloud_id = cloud["id"]
+                await cache.async_set_cloud_id(self.auth_token, cloud["id"])
+                await cache.async_set_cloud_name(self.auth_token, cloud["name"])
 
         return self._cloud_id
 
@@ -47,7 +49,7 @@ class JiraClient:
         cloud_id = await self.get_cloud_id()
         return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
 
-    async def _get_cloud_id_from_available_resources(self) -> str:
+    async def _get_cloud_id_from_available_resources(self) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 "https://api.atlassian.com/oauth/token/accessible-resources",
@@ -73,7 +75,7 @@ class JiraClient:
                     f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
                     "Cannot resolve which one to use."
                 )
-            return cast(str, data[0]["id"])
+            return cast(dict[str, Any], data[0])
 
     def _build_error_messages(self, response: httpx.Response) -> tuple[str, str | None]:
         try:

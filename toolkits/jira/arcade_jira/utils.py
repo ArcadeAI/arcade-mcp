@@ -84,29 +84,25 @@ def build_search_issues_jql(
     return " AND ".join(clauses) if clauses else ""
 
 
-def clean_issue_dict(issue: dict) -> dict:
+def clean_issue_dict(issue: dict, cloud_name: str | None = None) -> dict:
     fields = cast(dict, issue["fields"])
     rendered_fields = issue.get("renderedFields", {})
 
     fields["id"] = issue["id"]
     fields["key"] = issue["key"]
-
     fields["title"] = fields["summary"]
-
-    if fields.get("self"):
-        fields["url"] = fields["self"]
 
     if fields.get("parent"):
         fields["parent"] = get_summarized_issue_dict(fields["parent"])
 
     if fields["assignee"]:
-        fields["assignee"] = clean_user_dict(fields["assignee"])
+        fields["assignee"] = clean_user_dict(fields["assignee"], cloud_name)
 
     if fields["creator"]:
-        fields["creator"] = clean_user_dict(fields["creator"])
+        fields["creator"] = clean_user_dict(fields["creator"], cloud_name)
 
     if fields["reporter"]:
-        fields["reporter"] = clean_user_dict(fields["reporter"])
+        fields["reporter"] = clean_user_dict(fields["reporter"], cloud_name)
 
     if fields.get("description"):
         fields["description"] = rendered_fields.get("description")
@@ -122,7 +118,8 @@ def clean_issue_dict(issue: dict) -> dict:
 
     if fields.get("attachment"):
         fields["attachments"] = [
-            clean_attachment_dict(attachment) for attachment in fields.get("attachment", [])
+            clean_attachment_dict(attachment, cloud_name)
+            for attachment in fields.get("attachment", [])
         ]
 
     add_identified_fields_to_issue(fields, ["status", "issuetype", "priority", "project"])
@@ -147,6 +144,8 @@ def clean_issue_dict(issue: dict) -> dict:
         ],
     )
 
+    fields["url"] = build_issue_url(cloud_name, fields["project"]["key"], fields["key"])
+
     return fields
 
 
@@ -156,10 +155,13 @@ def add_identified_fields_to_issue(
 ) -> dict[str, Any]:
     for field_name in field_names:
         if fields_dict.get(field_name):
-            fields_dict[field_name] = {
+            data = {
                 "name": fields_dict[field_name]["name"],
                 "id": fields_dict[field_name]["id"],
             }
+            if "key" in fields_dict[field_name]:
+                data["key"] = fields_dict[field_name]["key"]
+            fields_dict[field_name] = data
 
     return fields_dict
 
@@ -181,15 +183,14 @@ def clean_comment_dict(comment: dict, include_adf_content: bool = False) -> dict
     return data
 
 
-def clean_project_dict(project: dict) -> dict:
+def clean_project_dict(project: dict, cloud_name: str | None = None) -> dict:
     data = {
         "id": project["id"],
         "key": project["key"],
         "name": project["name"],
     }
 
-    if "self" in project:
-        data["url"] = project["self"]
+    data["url"] = build_project_url(cloud_name, project["key"])
 
     if "description" in project:
         data["description"] = project["description"]
@@ -219,21 +220,20 @@ def clean_issue_type_dict(issue_type: dict) -> dict:
     return data
 
 
-def clean_user_dict(user: dict) -> dict:
+def clean_user_dict(user: dict, cloud_name: str | None = None) -> dict:
     data = {
         "id": user["accountId"],
         "name": user["displayName"],
         "active": user["active"],
     }
 
+    data["url"] = build_user_url(cloud_name, user["accountId"])
+
     if user.get("emailAddress"):
         data["email"] = user["emailAddress"]
 
     if user.get("accountType"):
         data["account_type"] = user["accountType"]
-
-    if user.get("self"):
-        data["url"] = user["self"]
 
     if user.get("timeZone"):
         data["timezone"] = user["timeZone"]
@@ -244,26 +244,23 @@ def clean_user_dict(user: dict) -> dict:
     return data
 
 
-def clean_attachment_dict(attachment: dict) -> dict:
+def clean_attachment_dict(attachment: dict, cloud_name: str | None = None) -> dict:
     return {
         "id": attachment["id"],
         "filename": attachment["filename"],
         "mime_type": attachment["mimeType"],
         "size": {"bytes": attachment["size"]},
-        "author": clean_user_dict(attachment["author"]),
+        "author": clean_user_dict(attachment["author"], cloud_name),
     }
 
 
-def clean_priority_scheme_dict(scheme: dict) -> dict:
+def clean_priority_scheme_dict(scheme: dict, cloud_name: str | None = None) -> dict:
     data = {
         "id": scheme["id"],
         "name": scheme["name"],
         "description": scheme["description"],
         "is_default": scheme["isDefault"],
     }
-
-    if "self" in scheme:
-        data["url"] = scheme["self"]
 
     if isinstance(scheme.get("priorities"), dict):
         all_priorities = scheme["priorities"].get("isLast", True)
@@ -286,7 +283,9 @@ def clean_priority_scheme_dict(scheme: dict) -> dict:
 
     if isinstance(scheme.get("projects"), dict):
         all_projects = scheme["projects"].get("isLast", True)
-        data["projects"] = [clean_project_dict(project) for project in scheme["projects"]["values"]]
+        data["projects"] = [
+            clean_project_dict(project, cloud_name) for project in scheme["projects"]["values"]
+        ]
         if not all_projects:
             # Avoid circular import
             from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme
@@ -306,9 +305,6 @@ def clean_priority_dict(priority: dict) -> dict:
         "name": priority["name"],
         "description": priority["description"],
     }
-
-    if "self" in priority:
-        data["url"] = priority["self"]
 
     if "statusColor" in priority:
         data["statusColor"] = priority["statusColor"]
@@ -1083,3 +1079,24 @@ def build_issue_update_date_fields(
 
 def extract_id(field: Any) -> dict[str, str] | None:
     return {"id": field["id"]} if isinstance(field, dict) else None
+
+
+def build_issue_url(cloud_name: str | None, issue_id: str, issue_key: str) -> str:
+    if not cloud_name:
+        return None
+
+    return f"https://{cloud_name}.atlassian.net/jira/software/projects/{issue_id}/list?selectedIssue={issue_key}"
+
+
+def build_project_url(cloud_name: str | None, project_key: str) -> str:
+    if not cloud_name:
+        return None
+
+    return f"https://{cloud_name}.atlassian.net/jira/software/projects/{project_key}/summary"
+
+
+def build_user_url(cloud_name: str | None, user_id: str) -> str:
+    if not cloud_name:
+        return None
+
+    return f"https://{cloud_name}.atlassian.net/jira/people/{user_id}"

@@ -4,6 +4,7 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 from arcade.sdk.errors import ToolExecutionError
 
+import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import build_file_data, clean_attachment_dict
@@ -69,13 +70,13 @@ async def attach_file_to_issue(
             file_encoding=file_encoding,
         ),
     )
-
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
     return {
         "status": {
             "success": True,
             "message": f"Attachment '{filename}' successfully added to the issue '{issue}'",
         },
-        "attachment": clean_attachment_dict(response[0]),
+        "attachment": clean_attachment_dict(response[0], cloud_name),
     }
 
 
@@ -114,7 +115,8 @@ async def get_attachment_metadata(
         response = await client.get(f"/attachment/{attachment_id}")
     except NotFoundError:
         return {"error": f"Attachment not found with ID '{attachment_id}'."}
-    return {"attachment": clean_attachment_dict(response)}
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    return {"attachment": clean_attachment_dict(response, cloud_name)}
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))

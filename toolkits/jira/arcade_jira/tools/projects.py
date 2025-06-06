@@ -3,6 +3,7 @@ from typing import Annotated, Any
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
+import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import (
@@ -42,8 +43,8 @@ async def search_projects(
             "query": keywords,
         }),
     )
-
-    projects = [clean_project_dict(project) for project in api_response["values"]]
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    projects = [clean_project_dict(project, cloud_name) for project in api_response["values"]]
     response = {
         "projects": projects,
         "isLast": api_response.get("isLast"),
@@ -64,4 +65,5 @@ async def get_project_by_id(
     except NotFoundError:
         return {"error": f"Project not found: {project}"}
 
-    return {"project": clean_project_dict(response)}
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    return {"project": clean_project_dict(response, cloud_name)}

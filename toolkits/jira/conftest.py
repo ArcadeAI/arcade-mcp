@@ -7,7 +7,7 @@ import httpx
 import pytest
 from arcade.sdk import ToolAuthorizationContext, ToolContext
 
-from arcade_jira.cache import set_cloud_id
+from arcade_jira.cache import set_cloud_id, set_cloud_name
 
 
 @pytest.fixture
@@ -15,10 +15,21 @@ def fake_auth_token(generate_random_str: Callable) -> str:
     return generate_random_str()
 
 
+@pytest.fixture
+def fake_cloud_id(generate_random_str: Callable) -> str:
+    return generate_random_str()
+
+
+@pytest.fixture
+def fake_cloud_name(generate_random_str: Callable) -> str:
+    return generate_random_str()
+
+
 @pytest.fixture(autouse=True)
-def set_cloud_id_cache(fake_auth_token: str, generate_random_str: Callable) -> None:
+def set_cloud_id_cache(fake_auth_token: str, fake_cloud_id: str, fake_cloud_name: str) -> None:
     """This fixture auto-sets cloud ID in the cache to skip the HTTP call to get it"""
-    set_cloud_id(fake_auth_token, generate_random_str())
+    set_cloud_id(fake_auth_token, fake_cloud_id)
+    set_cloud_name(fake_auth_token, fake_cloud_name)
 
 
 @pytest.fixture

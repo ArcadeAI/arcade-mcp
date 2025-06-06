@@ -3,6 +3,7 @@ from typing import Annotated, Any, cast
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
+import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
 from arcade_jira.utils import (
@@ -100,7 +101,9 @@ async def get_issue_by_id(
         )
     except NotFoundError:
         return {"error": f"Issue not found with ID/key '{issue}'."}
-    return {"issue": clean_issue_dict(response)}
+
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    return {"issue": clean_issue_dict(response, cloud_name)}
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
@@ -213,8 +216,10 @@ async def get_issues_without_id(
     if response.get("nextPageToken"):
         pagination["next_page_token"] = response["nextPageToken"]
 
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+
     return {
-        "issues": [clean_issue_dict(issue) for issue in response["issues"]],
+        "issues": [clean_issue_dict(issue, cloud_name) for issue in response["issues"]],
         "pagination": pagination,
     }
 
@@ -245,8 +250,9 @@ async def search_issues_with_jql(
             "expand": "renderedFields",
         },
     )
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
     response: dict[str, Any] = {
-        "issues": [clean_issue_dict(issue) for issue in api_response["issues"]]
+        "issues": [clean_issue_dict(issue, cloud_name) for issue in api_response["issues"]]
     }
 
     if api_response.get("isLast") is not False and api_response.get("nextPageToken"):

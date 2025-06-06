@@ -4,6 +4,7 @@ from typing import Annotated, Any, cast
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 
+import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.constants import JIRA_API_REQUEST_TIMEOUT, PrioritySchemeOrderBy
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
@@ -62,7 +63,8 @@ async def list_priority_schemes(
             "orderBy": order_by.to_api_value(),
         }),
     )
-    schemes = [clean_priority_scheme_dict(scheme) for scheme in api_response["values"]]
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    schemes = [clean_priority_scheme_dict(scheme, cloud_name) for scheme in api_response["values"]]
     response = {
         "priority_schemes": schemes,
         "isLast": api_response.get("isLast"),
@@ -132,7 +134,8 @@ async def list_projects_associated_with_a_priority_scheme(
             "projectId": project,
         }),
     )
-    projects = [clean_project_dict(project) for project in api_response["values"]]
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    projects = [clean_project_dict(project, cloud_name) for project in api_response["values"]]
     response = {
         "projects": projects,
         "isLast": api_response.get("isLast"),

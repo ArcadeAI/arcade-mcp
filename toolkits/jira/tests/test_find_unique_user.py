@@ -17,13 +17,14 @@ async def test_find_unique_user_by_id_success(
     mock_httpx_client,
     mock_httpx_response: Callable,
     build_user_dict: Callable,
+    fake_cloud_name: str,
 ):
     sample_user = build_user_dict()
     user_response = mock_httpx_response(200, sample_user)
     mock_httpx_client.get.return_value = user_response
 
     response = await find_unique_user(mock_context, sample_user["accountId"])
-    assert response == clean_user_dict(sample_user)
+    assert response == clean_user_dict(sample_user, fake_cloud_name)
 
 
 @pytest.mark.asyncio
@@ -32,6 +33,7 @@ async def test_find_unique_user_by_name_with_a_single_match(
     mock_httpx_client,
     mock_httpx_response: Callable,
     build_user_dict: Callable,
+    fake_cloud_name: str,
 ):
     sample_user = build_user_dict()
     get_user_by_id_response = mock_httpx_response(404, {})
@@ -39,7 +41,7 @@ async def test_find_unique_user_by_name_with_a_single_match(
     mock_httpx_client.get.side_effect = [get_user_by_id_response, get_users_without_id_response]
 
     response = await find_unique_user(mock_context, sample_user["displayName"].lower())
-    assert response == clean_user_dict(sample_user)
+    assert response == clean_user_dict(sample_user, fake_cloud_name)
 
 
 @pytest.mark.asyncio
@@ -87,6 +89,7 @@ async def test_find_multiple_users_when_all_names_match_one_result(
     mock_httpx_client,
     mock_httpx_response: Callable,
     build_user_dict: Callable,
+    fake_cloud_name: str,
 ):
     user1 = build_user_dict()
     user2 = build_user_dict()
@@ -100,7 +103,10 @@ async def test_find_multiple_users_when_all_names_match_one_result(
         mock_context, [user1["displayName"], user2["displayName"]]
     )
 
-    assert response == [clean_user_dict(user1), clean_user_dict(user2)]
+    assert response == [
+        clean_user_dict(user1, fake_cloud_name),
+        clean_user_dict(user2, fake_cloud_name),
+    ]
 
 
 @pytest.mark.asyncio
@@ -132,6 +138,7 @@ async def test_find_multiple_users_when_user_is_not_found_by_name_but_found_by_i
     mock_httpx_client,
     mock_httpx_response: Callable,
     build_user_dict: Callable,
+    fake_cloud_name: str,
 ):
     user1 = build_user_dict()
     user2 = build_user_dict()
@@ -146,7 +153,10 @@ async def test_find_multiple_users_when_user_is_not_found_by_name_but_found_by_i
         mock_context, [user1["displayName"], user2["accountId"]]
     )
 
-    assert response == [clean_user_dict(user1), clean_user_dict(user2)]
+    assert response == [
+        clean_user_dict(user1, fake_cloud_name),
+        clean_user_dict(user2, fake_cloud_name),
+    ]
 
 
 @pytest.mark.asyncio
@@ -155,6 +165,7 @@ async def test_find_multiple_users_when_various_users_are_not_found_by_name_but_
     mock_httpx_client,
     mock_httpx_response: Callable,
     build_user_dict: Callable,
+    fake_cloud_name: str,
 ):
     user1 = build_user_dict()
     user2 = build_user_dict()
@@ -173,7 +184,7 @@ async def test_find_multiple_users_when_various_users_are_not_found_by_name_but_
     )
 
     assert response == [
-        clean_user_dict(user1),
-        clean_user_dict(user2),
-        clean_user_dict(user3),
+        clean_user_dict(user1, fake_cloud_name),
+        clean_user_dict(user2, fake_cloud_name),
+        clean_user_dict(user3, fake_cloud_name),
     ]

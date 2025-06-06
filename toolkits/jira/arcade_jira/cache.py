@@ -53,6 +53,7 @@ class LRUCache(Generic[T]):
 
 
 CLOUD_ID_CACHE = LRUCache[str](max_size=JIRA_CACHE_MAX_ITEMS)
+CLOUD_NAME_CACHE = LRUCache[str](max_size=JIRA_CACHE_MAX_ITEMS)
 CLIENT_SEMAPHORE_CACHE = LRUCache[asyncio.Semaphore](max_size=JIRA_CACHE_MAX_ITEMS)
 
 
@@ -60,8 +61,16 @@ def get_cloud_id(auth_token: str) -> str | None:
     return CLOUD_ID_CACHE.get(auth_token)
 
 
+def get_cloud_name(auth_token: str) -> str | None:
+    return CLOUD_NAME_CACHE.get(auth_token)
+
+
 def set_cloud_id(auth_token: str, cloud_id: str) -> None:
     CLOUD_ID_CACHE.set(auth_token, cloud_id)
+
+
+def set_cloud_name(auth_token: str, cloud_name: str) -> None:
+    CLOUD_NAME_CACHE.set(auth_token, cloud_name)
 
 
 def get_jira_client_semaphore(auth_token: str) -> asyncio.Semaphore | None:
@@ -76,8 +85,16 @@ async def async_get_cloud_id(auth_token: str) -> str | None:
     return await CLOUD_ID_CACHE.async_get(auth_token)
 
 
+async def async_get_cloud_name(auth_token: str) -> str | None:
+    return await CLOUD_NAME_CACHE.async_get(auth_token)
+
+
 async def async_set_cloud_id(auth_token: str, cloud_id: str) -> None:
     await CLOUD_ID_CACHE.async_set(auth_token, cloud_id)
+
+
+async def async_set_cloud_name(auth_token: str, cloud_name: str) -> None:
+    await CLOUD_NAME_CACHE.async_set(auth_token, cloud_name)
 
 
 async def async_get_jira_client_semaphore(auth_token: str) -> asyncio.Semaphore | None:

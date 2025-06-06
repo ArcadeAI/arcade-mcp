@@ -4,6 +4,7 @@ from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
 from arcade.sdk.errors import ToolExecutionError
 
+import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remove_none_values
@@ -40,8 +41,9 @@ async def list_users(
         },
     )
     items = cast(list[dict[str, Any]], api_response)
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
     users = [
-        clean_user_dict(user)
+        clean_user_dict(user, cloud_name)
         for user in api_response
         if not account_type or user["accountType"].casefold() == account_type.casefold()
     ]
@@ -68,7 +70,8 @@ async def get_user_by_id(
     if not response:
         return not_found
 
-    return {"user": clean_user_dict(response)}
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    return {"user": clean_user_dict(response, cloud_name)}
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
@@ -125,7 +128,8 @@ async def get_users_without_id(
             "maxResults": limit,
         }),
     )
-    users = [clean_user_dict(user) for user in api_response]
+    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+    users = [clean_user_dict(user, cloud_name) for user in api_response]
 
     if enforce_exact_match:
         users = [
