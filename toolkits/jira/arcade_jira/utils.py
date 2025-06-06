@@ -575,7 +575,18 @@ async def find_unique_issue_type(
             f"Please provide a unique ID: {json.dumps(simplified_matches)}"
         )
 
-    raise NotFoundError(f"Issue type not found with ID or name '{issue_type_identifier}'")
+    available_issue_types = json.dumps([
+        {
+            "id": issue_type["id"],
+            "name": issue_type["name"],
+        }
+        for issue_type in issue_types
+    ])
+
+    raise NotFoundError(
+        f"Issue type not found with ID or name '{issue_type_identifier}'. "
+        f"These are the issue types available for the project: {available_issue_types}"
+    )
 
 
 async def find_unique_user(
