@@ -16,6 +16,7 @@ from arcade_jira.utils import (
     convert_date_string_to_date,
     extract_id,
     find_unique_project,
+    get_single_project,
     remove_none_values,
     resolve_issue_users,
     validate_issue_args,
@@ -225,6 +226,38 @@ async def get_issues_without_id(
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def list_issues(
+    context: ToolContext,
+    project: Annotated[
+        str | None,
+        "The project to get issues for. Provide a project ID, key or name. If a project "
+        "is not provided and 1) the user has only one project, the tool will use that; 2) the "
+        "user has multiple projects, the tool will raise an error listing the available "
+        "projects to choose from.",
+    ] = None,
+    limit: Annotated[
+        int,
+        "The maximum number of issues to retrieve. Min 1, max 100, default 50.",
+    ] = 50,
+    next_page_token: Annotated[
+        str | None,
+        "The token to use to get the next page of issues. Defaults to None (first page).",
+    ] = None,
+) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
+    """Get the issues for a given project."""
+    if not project:
+        project_data = await get_single_project(context)
+        project = project_data["id"]
+
+    return await get_issues_without_id(
+        context=context,
+        project=project,
+        limit=limit,
+        next_page_token=next_page_token,
+    )
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def search_issues_with_jql(
     context: ToolContext,
     jql: Annotated[str, "The JQL (Jira Query Language) query to search for issues"],
@@ -283,8 +316,9 @@ async def create_issue(
         str | None,
         "The ID, key or name of the project to associate the issue with. If a name is provided, "
         "the tool will try to find a unique exact match among the available projects. "
-        "Defaults to None (no project). Must provide at least one of `project` or "
-        "`parent_issue` arguments.",
+        "Defaults to None (no project). If `project` and `parent_issue` are not provided, "
+        "the tool will select the single project available. If the user has multiple, an "
+        "error will be raised with the available projects to choose from.",
     ] = None,
     due_date: Annotated[
         str | None,

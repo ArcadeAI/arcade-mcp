@@ -14,6 +14,20 @@ from arcade_jira.utils import (
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def list_projects(
+    context: ToolContext,
+    limit: Annotated[
+        int, "The maximum number of projects to return. Min of 1, Max of 50. Defaults to 50."
+    ] = 50,
+    offset: Annotated[
+        int, "The number of projects to skip. Defaults to 0 (starts from the first project)"
+    ] = 0,
+) -> Annotated[dict[str, Any], "Information about the projects"]:
+    """Browse projects available in Jira."""
+    return await search_projects(context, keywords=None, limit=limit, offset=offset)
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def search_projects(
     context: ToolContext,
     keywords: Annotated[

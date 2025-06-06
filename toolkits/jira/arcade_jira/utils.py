@@ -623,6 +623,32 @@ async def find_unique_user(
     raise NotFoundError(f"User not found with ID, name or email '{user_identifier}'")
 
 
+async def get_single_project(context: ToolContext) -> dict[str, Any]:
+    from arcade_jira.tools.projects import list_projects
+
+    projects = await paginate_all_items(
+        context=context,
+        tool=list_projects,
+        response_items_key="projects",
+    )
+
+    if len(projects) == 0:
+        raise NotFoundError("No projects found in this account.")
+
+    if len(projects) == 1:
+        return projects[0]
+
+    available_projects_str = json.dumps([
+        {
+            "id": project["id"],
+            "name": project["name"],
+        }
+        for project in projects
+    ])
+
+    raise MultipleItemsFoundError(f"Multiple projects found: {available_projects_str}")
+
+
 def build_file_data(
     filename: str,
     file_content_str: str | None,

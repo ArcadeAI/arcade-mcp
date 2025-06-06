@@ -14,6 +14,7 @@ from arcade_jira.critics import CaseInsensitiveBinaryCritic, HasSubstringCritic
 from arcade_jira.tools.issues import (
     get_issue_by_id,
     get_issues_without_id,
+    list_issues,
     search_issues_with_jql,
 )
 
@@ -356,6 +357,80 @@ def search_issues_with_jql_eval_suite() -> EvalSuite:
             HasSubstringCritic(critic_field="jql", weight=1 / 3),
             BinaryCritic(critic_field="limit", weight=1 / 3),
             BinaryCritic(critic_field="offset", weight=1 / 3),
+        ],
+    )
+
+    return suite
+
+
+@tool_eval()
+def list_issues_eval_suite() -> EvalSuite:
+    suite = EvalSuite(
+        name="List issues eval suite",
+        system_message=(
+            "You are an AI assistant with access to Jira tools. "
+            "Use them to help the user with their tasks."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="Get me any one issue in Jira",
+        user_message="Get me one issue in Jira.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_issues,
+                args={
+                    "limit": 1,
+                    "next_page_token": None,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="limit", weight=0.5),
+            BinaryCritic(critic_field="next_page_token", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="List 10 issues in Jira",
+        user_message="List 10 issues in Jira.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_issues,
+                args={
+                    "limit": 10,
+                    "next_page_token": None,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="limit", weight=0.5),
+            BinaryCritic(critic_field="next_page_token", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="List 10 issues in the Arcade project",
+        user_message="List 10 issues in the Arcade project.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_issues,
+                args={
+                    "project": "Arcade",
+                    "limit": 50,
+                    "next_page_token": None,
+                },
+            ),
+        ],
+        rubric=rubric,
+        critics=[
+            CaseInsensitiveBinaryCritic(critic_field="project", weight=1 / 3),
+            BinaryCritic(critic_field="limit", weight=1 / 3),
+            BinaryCritic(critic_field="next_page_token", weight=1 / 3),
         ],
     )
 
