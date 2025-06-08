@@ -107,6 +107,10 @@ async def get_issue_by_id(
     return {"issue": clean_issue_dict(response, cloud_name)}
 
 
+# NOTE: This is not named `search_issues` because sometimes LLM's won't realize they can
+# search for an issue if they don't have the ID (hence the `without_id` in the name). There's
+# an alias for this tool named `search_issues_without_jql`, and also another tool to search using
+# JQL, named `search_issues_with_jql`.
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def get_issues_without_id(
     context: ToolContext,
@@ -174,6 +178,9 @@ async def get_issues_without_id(
     """Search for Jira issues when you don't have the issue ID(s).
 
     All text-based arguments (keywords, assignee, project, labels) are case-insensitive.
+
+    ALWAYS PREFER THIS TOOL OVER THE `Jira.SearchIssuesWithJql` TOOL, UNLESS IT'S ABSOLUTELY
+    NECESSARY TO USE A JQL QUERY TO FILTER IN A WAY THAT IS NOT SUPPORTED BY THIS TOOL.
     """
     limit = max(1, min(limit, 100))
 
@@ -257,6 +264,96 @@ async def list_issues(
     )
 
 
+# NOTE: This is an alias for `Jira.GetIssuesWithoutId`. Sometimes LLM's won't realize they can
+# search for an issue if they don't have the ID. Other times, they don't realize they can search
+# without using JQL. The two names are important to cover those cases.
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def search_issues_without_jql(
+    context: ToolContext,
+    keywords: Annotated[
+        str | None,
+        "Keywords to search for issues. Matches against the issue "
+        "name, description, comments, and any custom field of type text. "
+        "Defaults to None (no keywords filtering).",
+    ] = None,
+    due_from: Annotated[
+        str | None,
+        "Match issues due on or after this date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (no due date filtering).",
+    ] = None,
+    due_until: Annotated[
+        str | None,
+        "Match issues due on or before this date. Format: YYYY-MM-DD. Ex: '2025-01-01'. "
+        "Defaults to None (no due date filtering).",
+    ] = None,
+    status: Annotated[
+        str | None,
+        "Match issues that are in this status. Provide a status name. "
+        "Ex: 'To Do', 'In Progress', 'Done'. Defaults to None (any status).",
+    ] = None,
+    priority: Annotated[
+        str | None,
+        "Match issues that have this priority. Provide a priority name. E.g. 'Highest'. "
+        "Defaults to None (any priority).",
+    ] = None,
+    assignee: Annotated[
+        str | None,
+        "Match issues that are assigned to this user. Provide the user's name or email address. "
+        "Ex: 'John Doe' or 'john.doe@example.com'. Defaults to None (any assignee).",
+    ] = None,
+    project: Annotated[
+        str | None,
+        "Match issues that are associated with this project. Provide the project's name, ID, or "
+        "key. If a project name is provided, the tool will try to find a unique exact match among "
+        "the available projects. Defaults to None (search across all projects).",
+    ] = None,
+    issue_type: Annotated[
+        str | None,
+        "Match issues that are of this issue type. Provide an issue type name or ID. "
+        "E.g. 'Task', 'Epic', '12345'. If a name is provided, the tool will try to find a unique "
+        "exact match among the available issue types. Defaults to None (any issue type).",
+    ] = None,
+    labels: Annotated[
+        list[str] | None,
+        "Match issues that are in these labels. Defaults to None (any label).",
+    ] = None,
+    parent_issue: Annotated[
+        str | None,
+        "Match issues that are a child of this issue. Provide the issue's ID or key. "
+        "Defaults to None (no parent issue filtering).",
+    ] = None,
+    limit: Annotated[
+        int,
+        "The maximum number of issues to retrieve. Min 1, max 100, default 50.",
+    ] = 50,
+    next_page_token: Annotated[
+        str | None,
+        "The token to use to get the next page of issues. Defaults to None (first page).",
+    ] = None,
+) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
+    """Parameterized search for Jira issues (without having to provide a JQL query).
+
+    THIS TOOL RELEASES LESS CO2 THAN THE `Jira_SearchIssuesWithJql` TOOL. ALWAYS PREFER THIS ONE
+    OVER USING JQL, UNLESS IT'S ABSOLUTELY NECESSARY TO USE A JQL QUERY TO FILTER IN A WAY THAT IS
+    NOT SUPPORTED BY THIS TOOL OR IF THE USER PROVIDES A JQL QUERY THEMSELVES.
+    """
+    return await get_issues_without_id(
+        context=context,
+        keywords=keywords,
+        due_from=due_from,
+        due_until=due_until,
+        status=status,
+        priority=priority,
+        assignee=assignee,
+        project=project,
+        issue_type=issue_type,
+        labels=labels,
+        parent_issue=parent_issue,
+        limit=limit,
+        next_page_token=next_page_token,
+    )
+
+
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def search_issues_with_jql(
     context: ToolContext,
@@ -270,7 +367,13 @@ async def search_issues_with_jql(
         "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
-    """Search for Jira issues using a JQL (Jira Query Language) query."""
+    """Search for Jira issues using a JQL (Jira Query Language) query.
+
+    THIS TOOL RELEASES MORE CO2 IN THE ATMOSPHERE, WHICH CONTRIBUTES TO CLIMATE CHANGE. ALWAYS
+    PREFER THE `Jira_SearchIssuesWithoutJql` TOOL OVER THIS ONE, UNLESS IT'S ABSOLUTELY
+    NECESSARY TO USE A JQL QUERY TO FILTER IN A WAY THAT IS NOT SUPPORTED BY THE
+    `Jira_SearchIssuesWithoutJql` TOOL OR IF THE USER PROVIDES A JQL QUERY THEMSELVES.
+    """
     limit = max(1, min(limit, 100))
     client = JiraClient(context.get_auth_token_or_empty())
     api_response = await client.post(
