@@ -9,6 +9,7 @@ from typing import Any, Callable, cast
 from arcade.sdk import ToolContext
 from arcade.sdk.errors import ToolExecutionError
 
+from arcade_jira.constants import STOP_WORDS
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 
 
@@ -56,7 +57,11 @@ def build_search_issues_jql(
     clauses: list[str] = []
 
     if keywords:
-        kw_clauses = [f"text ~ {quote(k)}" for k in keywords.split()]
+        kw_clauses = [
+            f"text ~ {quote(k.casefold())}"
+            for k in keywords.split()
+            if k.casefold() not in STOP_WORDS
+        ]
         clauses.append("(" + " AND ".join(kw_clauses) + ")")
 
     if due_from:
