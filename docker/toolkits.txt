@@ -3,6 +3,7 @@ arcade-code-sandbox
 arcade-confluence
 arcade-dropbox
 arcade-github
+arcade-gitlab
 arcade-google
 arcade-hubspot
 arcade-linkedin
