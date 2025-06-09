@@ -7,6 +7,45 @@ from arcade_jira.client import JiraClient
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+async def get_transition_by_id(
+    context: ToolContext,
+    issue: Annotated[str, "The ID or key of the issue"],
+    transition_id: Annotated[str, "The ID of the transition"],
+) -> Annotated[dict, "The transition data"]:
+    """Get a transition by its ID."""
+    if not transition_id:
+        return {"error": "The transition ID is required."}
+    if not transition_id.isdigit():
+        return {"error": "The transition ID must be a numeric string."}
+
+    client = JiraClient(context.get_auth_token_or_empty())
+    response = await client.get(
+        f"/issue/{issue}/transitions",
+        params={
+            "transitionId": transition_id,
+        },
+    )
+    transitions = response["transitions"]
+
+    if len(transitions) == 0:
+        return {
+            "error": (
+                f"No transition found for the issue '{issue}' with ID '{transition_id}'. "
+                "To get all transitions available for the issue, use the "
+                f"`Jira.{get_transitions_available_for_issue.__tool_name__}` tool."
+            ),
+        }
+
+    if len(transitions) == 1:
+        return {"transition": transitions[0]}
+
+    return {
+        "error": f"Multiple transitions found for the issue '{issue}' with ID '{transition_id}'.",
+        "transitions": transitions,
+    }
+
+
+@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
 async def get_transitions_available_for_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
@@ -34,7 +73,14 @@ async def get_transitions_available_for_issue(
     }
 
 
-@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the transitions available for the issue
+            "write:jira-work",  # Needed to transition the issue
+        ],
+    ),
+)
 async def get_transition_by_status_name(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
@@ -54,7 +100,14 @@ async def get_transition_by_status_name(
     }
 
 
-@tool(requires_auth=Atlassian(scopes=["write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the transition ID by name
+            "write:jira-work",  # Needed to transition the issue
+        ],
+    ),
+)
 async def transition_issue_to_new_status(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
@@ -66,15 +119,17 @@ async def transition_issue_to_new_status(
     """Transition a Jira issue to a new status."""
     client = JiraClient(context.get_auth_token_or_empty())
 
-    if transition.isdigit():
-        transition_id = transition
-        transition_name = transition
-    else:
+    # Try to get the transition by ID first
+    response = await get_transition_by_id(context, issue, transition)
+
+    # If the transition is not found by ID, try to get it by name
+    if response.get("error"):
         response = await get_transition_by_status_name(context, issue, transition)
         if response.get("error"):
             return cast(dict, response)
-        transition_id = response["transition"]["id"]
-        transition_name = response["transition"]["name"]
+
+    transition_id = response["transition"]["id"]
+    transition_name = response["transition"]["name"]
 
     # The /issue/issue_id/transitions endpoint returns a 204 No Content in case of success
     await client.post(

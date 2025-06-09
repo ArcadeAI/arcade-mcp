@@ -91,7 +91,15 @@ async def get_issue_comments(
     return add_pagination_to_response(response, comments, limit, offset)
 
 
-@tool(requires_auth=Atlassian(scopes=["write:jira-work", "read:jira-work", "read:jira-user"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "write:jira-work",  # Needed to add the comment
+            "read:jira-work",  # Needed to get the issue data
+            "read:jira-user",  # Needed to resolve user ID from name or email (mention_users)
+        ],
+    ),
+)
 async def add_comment_to_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to comment on."],

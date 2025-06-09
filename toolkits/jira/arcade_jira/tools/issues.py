@@ -111,7 +111,15 @@ async def get_issue_by_id(
 # search for an issue if they don't have the ID (hence the `without_id` in the name). There's
 # an alias for this tool named `search_issues_without_jql`, and also another tool to search using
 # JQL, named `search_issues_with_jql`.
-@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to search for issues
+            "read:jira-user",  # Needed to resolve user ID from name or email (assignee, reporter)
+            "manage:jira-configuration",  # Needed to resolve priority ID from name
+        ]
+    )
+)
 async def get_issues_without_id(
     context: ToolContext,
     keywords: Annotated[
@@ -232,7 +240,15 @@ async def get_issues_without_id(
     }
 
 
-@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to list issues
+            "read:jira-user",  # Required by the `get_issues_without_id` tool
+            "manage:jira-configuration",  # Required by the `get_issues_without_id` tool
+        ],
+    ),
+)
 async def list_issues(
     context: ToolContext,
     project: Annotated[
@@ -267,7 +283,15 @@ async def list_issues(
 # NOTE: This is an alias for `Jira.GetIssuesWithoutId`. Sometimes LLM's won't realize they can
 # search for an issue if they don't have the ID. Other times, they don't realize they can search
 # without using JQL. The two names are important to cover those cases.
-@tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to search for issues
+            "read:jira-user",  # Needed to resolve user ID from name or email (assignee, reporter)
+            "manage:jira-configuration",  # Needed to resolve priority ID from name
+        ],
+    ),
+)
 async def search_issues_without_jql(
     context: ToolContext,
     keywords: Annotated[
@@ -403,7 +427,16 @@ async def search_issues_with_jql(
     return response
 
 
-@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the current issue data
+            "write:jira-work",  # Needed to create the issue
+            "read:jira-user",  # Needed to resolve user ID from name or email (assignee, reporter)
+            "manage:jira-configuration",  # Needed to resolve priority ID from name
+        ],
+    ),
+)
 async def create_issue(
     context: ToolContext,
     title: Annotated[
@@ -538,7 +571,16 @@ async def create_issue(
     }
 
 
-@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the current issue labels
+            "write:jira-work",  # Needed to update the issue
+            "read:jira-user",  # Required by the `update_issue` tool
+            "manage:jira-configuration",  # Required by the `update_issue` tool
+        ],
+    ),
+)
 async def add_labels_to_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to update"],
@@ -568,7 +610,16 @@ async def add_labels_to_issue(
     return cast(dict, response)
 
 
-@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the current issue labels
+            "write:jira-work",  # Needed to update the issue
+            "read:jira-user",  # Required by the `update_issue` tool
+            "manage:jira-configuration",  # Required by the `update_issue` tool
+        ],
+    ),
+)
 async def remove_labels_from_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to update"],
@@ -595,7 +646,16 @@ async def remove_labels_from_issue(
     return cast(dict, response)
 
 
-@tool(requires_auth=Atlassian(scopes=["read:jira-work", "write:jira-work"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:jira-work",  # Needed to get the current issue data
+            "write:jira-work",  # Needed to update the issue
+            "read:jira-user",  # Needed to resolve user ID from name or email (assignee, reporter)
+            "manage:jira-configuration",  # Needed to resolve priority ID from name
+        ],
+    ),
+)
 async def update_issue(
     context: ToolContext,
     issue: Annotated[str, "The key or ID of the issue to update"],
