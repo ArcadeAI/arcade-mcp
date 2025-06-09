@@ -641,7 +641,7 @@ async def get_single_project(context: ToolContext) -> dict[str, Any]:
         raise NotFoundError("No projects found in this account.")
 
     if len(projects) == 1:
-        return projects[0]
+        return cast(dict[str, Any], projects[0])
 
     available_projects_str = json.dumps([
         {
@@ -1112,21 +1112,21 @@ def extract_id(field: Any) -> dict[str, str] | None:
     return {"id": field["id"]} if isinstance(field, dict) else None
 
 
-def build_issue_url(cloud_name: str | None, issue_id: str, issue_key: str) -> str:
+def build_issue_url(cloud_name: str | None, issue_id: str, issue_key: str) -> str | None:
     if not cloud_name:
         return None
 
     return f"https://{cloud_name}.atlassian.net/jira/software/projects/{issue_id}/list?selectedIssue={issue_key}"
 
 
-def build_project_url(cloud_name: str | None, project_key: str) -> str:
+def build_project_url(cloud_name: str | None, project_key: str) -> str | None:
     if not cloud_name:
         return None
 
     return f"https://{cloud_name}.atlassian.net/jira/software/projects/{project_key}/summary"
 
 
-def build_user_url(cloud_name: str | None, user_id: str) -> str:
+def build_user_url(cloud_name: str | None, user_id: str) -> str | None:
     if not cloud_name:
         return None
 

@@ -185,7 +185,7 @@ async def list_priorities_available_to_an_issue(
     if issue_response.get("error"):
         return cast(dict, issue_response)
 
-    issue = issue_response["issue"]
+    issue = cast(dict, issue_response["issue"])
     project = issue["project"]["id"]
 
     response = await list_priorities_available_to_a_project(context, project)

@@ -92,7 +92,7 @@ async def get_issue_type_by_id(
 async def get_issue_by_id(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to retrieve"],
-) -> Annotated[dict[str, dict[str, Any]], "Information about the issue"]:
+) -> Annotated[dict[str, dict[str, dict[str, Any]]], "Information about the issue"]:
     """Get the details of a Jira issue by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
     try:
