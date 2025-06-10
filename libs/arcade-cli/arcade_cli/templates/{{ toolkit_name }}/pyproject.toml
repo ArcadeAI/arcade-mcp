@@ -24,7 +24,7 @@ email = "{{ toolkit_author_email }}"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>={{ arcade_version }}",
+    "arcade-ai[evals]>={{ arcade_ai_min_version }},<{{ arcade_ai_max_version }}",
     "arcade-serve>={{ arcade_serve_min_version }},<{{ arcade_serve_max_version }}",
     "pytest>=8.3.0,<9.0.0",
     "pytest-cov>=4.0.0,<5.0.0",

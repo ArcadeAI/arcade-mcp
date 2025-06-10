@@ -17,10 +17,12 @@ console = Console()
 
 # Retrieve the installed version of arcade-ai
 try:
-    ARCADE_VERSION = get_version("arcade-ai")
+    ARCADE_AI_MIN_VERSION = get_version("arcade-ai")
+    ARCADE_AI_MAX_VERSION = str(int(ARCADE_AI_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
-    ARCADE_VERSION = "0.0.0"  # Default version if unable to fetch
+    ARCADE_AI_MIN_VERSION = "2.0.0"  # Default version if unable to fetch
+    ARCADE_AI_MAX_VERSION = "3.0.0"
 
 ARCADE_TDK_MIN_VERSION = "0.1.0"
 ARCADE_TDK_MAX_VERSION = "1.0.0"
@@ -179,7 +181,8 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
         "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
         "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
-        "arcade_version": ARCADE_VERSION,
+        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
+        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
