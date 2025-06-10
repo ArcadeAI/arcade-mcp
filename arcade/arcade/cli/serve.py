@@ -36,7 +36,7 @@ def create_arcade_app() -> fastapi.FastAPI:
     # TODO: Find a better way to pass these configs to factory used for reload
     debug_mode = os.environ.get("ARCADE_WORKER_SECRET", "dev") == "dev"
     otel_enabled = os.environ.get("ARCADE_OTEL_ENABLE", "False").lower() == "true"
-    auth_for_reload = not debug_mode
+    auth_enabled = not debug_mode
 
     # Call setup_logging here to ensure Uvicorn worker processes also get Loguru formatting
     # for all standard library loggers.
@@ -44,7 +44,7 @@ def create_arcade_app() -> fastapi.FastAPI:
     # this call primarily aims to capture third-party library logs into Loguru.
     setup_logging(log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False)
 
-    logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
+    logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Enabled: {auth_enabled}")
 
     version = get_pkg_version("arcade-ai")
     toolkits = discover_toolkits()
