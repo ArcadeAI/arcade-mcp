@@ -1,7 +1,7 @@
 "on":
     push:
         branches:
-            - main
+            - production
 
 name: Deploy to prod
 jobs:
