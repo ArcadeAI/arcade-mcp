@@ -32,7 +32,7 @@ jobs:
 
             - name: Deploy stack
               timeout-minutes: 30
-              run: exec porter apply
+              run: exec porter apply -f porter/staging.yaml
               env:
                 PORTER_APP_NAME: worker
                 PORTER_CLUSTER: "4828"
