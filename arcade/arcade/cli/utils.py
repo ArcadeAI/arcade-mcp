@@ -175,11 +175,11 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
-def compute_login_url(host: str, state: str, port: int | None) -> str:
+def compute_login_url(host: str, state: str, port: int | None, profile: str = "default") -> str:
     """
     Compute the full URL for the CLI login endpoint.
     """
-    callback_uri = f"http://{LOCALHOST}:9905/callback"
+    callback_uri = f"http://{LOCALHOST}:9905/callback?profile={profile}"
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
     port = port if port else 8000
@@ -751,3 +751,12 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
             loaded[k] = v
 
     return loaded
+
+
+def resolve_arcade_api_key(config: Config, profile_name: str = "default") -> str:
+    """
+    Resolve the API key from the environment or configuration.
+    """
+    if os.getenv("ARCADE_API_KEY"):
+        return os.getenv("ARCADE_API_KEY")
+    return config.profile(profile_name).api.key

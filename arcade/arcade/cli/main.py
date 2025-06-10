@@ -19,7 +19,6 @@ from tqdm import tqdm
 import arcade.cli.worker as worker
 from arcade.cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade.cli.constants import (
-    CREDENTIALS_FILE_PATH,
     LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
@@ -31,6 +30,7 @@ from arcade.cli.display import (
     display_tool_messages,
 )
 from arcade.cli.launcher import start_servers
+from arcade.cli.model import Config
 from arcade.cli.show import show_logic
 from arcade.cli.utils import (
     OrderCommands,
@@ -45,6 +45,7 @@ from arcade.cli.utils import (
     is_authorization_pending,
     load_eval_suites,
     log_engine_health,
+    resolve_arcade_api_key,
     validate_and_get_config,
     version_callback,
 )
@@ -83,14 +84,20 @@ def login(
         "--port",
         help="The port of the Arcade Cloud host (if running locally).",
     ),
+    profile: str = typer.Option(
+        "default",
+        "--profile",
+        "-p",
+        help="The login profile to use for the deployment.",
+        show_default=True,
+    ),
 ) -> None:
     """
     Logs the user into Arcade Cloud.
     """
-
-    if check_existing_login():
+    if check_existing_login(profile_name=profile):
         console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
-        console.print("arcade logout", style="bold green", end="")
+        console.print(f"arcade logout --profile {profile}", style="bold green", end="")
         console.print(".\n")
         return
 
@@ -102,7 +109,7 @@ def login(
 
     try:
         # Open the browser for user login
-        login_url = compute_login_url(host, state, port)
+        login_url = compute_login_url(host, state, port, profile)
 
         console.print("Opening a browser to log you in...")
         if not webbrowser.open(login_url):
@@ -121,16 +128,35 @@ def login(
 
 
 @cli.command(help="Log out of Arcade Cloud", rich_help_panel="User")
-def logout() -> None:
+def logout(
+    profile: str = typer.Option(
+        "default",
+        "--profile",
+        "-p",
+        help="The profile to logout from.",
+        show_default=True,
+    ),
+    all_profiles: bool = typer.Option(
+        False,
+        "--all",
+        "-a",
+        help="Logout from all profiles.",
+        show_default=True,
+    ),
+) -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    # If the credentials file exists, delete it
-    if os.path.exists(CREDENTIALS_FILE_PATH):
-        os.remove(CREDENTIALS_FILE_PATH)
-        console.print("You're now logged out.", style="bold")
+    if all_profiles:
+        # If the credentials file exists, delete it
+        if os.path.exists(Config.get_config_file_path()):
+            os.remove(Config.get_config_file_path())
+            console.print("You're now logged out from all logged in profiles.", style="bold")
+        else:
+            console.print("You're not logged in.", style="bold red")
     else:
-        console.print("You're not logged in.", style="bold red")
+        Config.remove_profile(profile_name=profile, auto_save=True)
+        console.print(f"You're now logged out of the profile '{profile}'.", style="bold")
 
 
 @cli.command(help="Create a new toolkit package directory", rich_help_panel="Tool Development")
@@ -612,18 +638,23 @@ def deploy(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    profile: str = typer.Option(
+        "default",
+        "--profile",
+        "-p",
+        help="The login profile to use for the deployment.",
+        show_default=True,
+    ),
 ) -> None:
     """
     Deploy a worker to Arcade Cloud.
     """
-
     config = validate_and_get_config()
+    api_key = resolve_arcade_api_key(config, profile)
     engine_url = compute_base_url(force_tls, force_no_tls, host, port)
-    engine_client = Arcade(api_key=config.api.key, base_url=engine_url)
+    engine_client = Arcade(api_key=api_key, base_url=engine_url)
     cloud_url = compute_base_url(force_tls, force_no_tls, cloud_host, cloud_port)
-    cloud_client = httpx.Client(
-        base_url=cloud_url, headers={"Authorization": f"Bearer {config.api.key}"}
-    )
+    cloud_client = httpx.Client(base_url=cloud_url, headers={"Authorization": f"Bearer {api_key}"})
 
     # Fetch deployment configuration
     try:

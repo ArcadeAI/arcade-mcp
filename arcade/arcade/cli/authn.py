@@ -8,11 +8,11 @@ import yaml
 from rich.console import Console
 
 from arcade.cli.constants import (
-    ARCADE_CONFIG_PATH,
     CREDENTIALS_FILE_PATH,
     LOGIN_FAILED_HTML,
     LOGIN_SUCCESS_HTML,
 )
+from arcade.cli.model import Config
 
 console = Console()
 
@@ -26,7 +26,7 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
         # Override to suppress logging to stdout
         pass
 
-    def _parse_login_response(self) -> tuple[str, str, str] | None:
+    def _parse_login_response(self) -> tuple[str, str, str, str] | None:
         # Parse the query string from the URL
         query_string = self.path.split("?", 1)[-1]
         params = parse_qs(query_string)
@@ -41,14 +41,15 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
         api_key = params.get("api_key", [None])[0] or ""
         email = params.get("email", [None])[0] or ""
         warning = params.get("warning", [None])[0] or ""
+        profile = params.get("profile", ["default"])[0] or "default"
 
-        return api_key, email, warning
+        return api_key, email, warning, profile
 
     def _handle_login_response(self) -> bool:
         result = self._parse_login_response()
         if result is None:
             return False
-        api_key, email, warning = result
+        api_key, email, warning, profile = result
 
         if warning:
             console.print(warning, style="bold yellow")
@@ -60,21 +61,14 @@ class LoginCallbackHandler(BaseHTTPRequestHandler):
             )
             return False
 
-        # ensure the ARCADE_CONFIG_PATH directory exists
-        if not os.path.exists(ARCADE_CONFIG_PATH):
-            os.makedirs(ARCADE_CONFIG_PATH, exist_ok=True)
-
-        # TODO don't overwrite existing config
-        new_config = {"cloud": {"api": {"key": api_key}, "user": {"email": email}}}
-        with open(CREDENTIALS_FILE_PATH, "w") as f:
-            yaml.dump(new_config, f)
+        Config.add_profile(profile_name=profile, api_key=api_key, email=email, auto_save=True)
 
         # Send a success response to the browser
         console.print(
-            f"""✅ Hi there, {email}!
-
-Your Arcade API key is: {api_key}
-Stored in: {CREDENTIALS_FILE_PATH}""",
+            f"✅ Hi there, {email}!",
+            f"Your Arcade API key is: {api_key}\n",
+            f"Stored in: {Config.get_config_file_path()} under the profile: {profile}\n",
+            f"To log out, run: arcade logout --profile {profile}\n",
             style="bold green",
         )
         return True
@@ -113,11 +107,12 @@ class LocalAuthCallbackServer:
             self.httpd.shutdown()
 
 
-def check_existing_login(suppress_message: bool = False) -> bool:
+def check_existing_login(profile_name: str, suppress_message: bool = False) -> bool:
     """
     Check if the user is already logged in by verifying the config file.
 
     Args:
+        profile_name (str): The name of the profile to check.
         suppress_message (bool): If True, suppress the logged in message.
 
     Returns:
@@ -130,9 +125,15 @@ def check_existing_login(suppress_message: bool = False) -> bool:
         try:
             with open(CREDENTIALS_FILE_PATH) as f:
                 config: dict[str, Any] = yaml.safe_load(f)
-            cloud_config = config.get("cloud", {})
-            api_key = cloud_config.get("api", {}).get("key")
-            email = cloud_config.get("user", {}).get("email")
+
+            api_key: str | None = None
+            email: str | None = None
+
+            for profile in config.get("profiles", []):
+                if profile.get("name") == profile_name:
+                    api_key = profile.get("api", {}).get("key")
+                    email = profile.get("user", {}).get("email")
+                    break
 
             if api_key and email:
                 if not suppress_message:
