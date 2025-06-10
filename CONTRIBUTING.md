@@ -72,7 +72,7 @@ uv venv --python 3.11.6
 
 ```bash
 # Install all packages and development dependencies via uv workspace
-uv sync --dev
+uv sync --extra all --dev
 
 # Install pre-commit hooks for code quality
 uv run pre-commit install
@@ -111,14 +111,8 @@ make test
 8. You can also run tests for specific components:
 
 ```bash
-# Test all lib packages individually
-make test-libs
-
-# Test specific package
-cd libs/arcade-core && uv run pytest
-
-# Test toolkits
-make test-toolkits
+# Test all lib packages
+make test
 ```
 
 9. The CI/CD pipeline will run additional checks across different Python versions, so local testing with a single version is usually sufficient.

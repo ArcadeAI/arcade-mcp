@@ -77,11 +77,10 @@ make install
 For production use, install individual packages as needed:
 
 ```bash
-pip install arcade-ai          # Install the CLI
-pip install 'arcade-ai[serve]' # CLI + Serving infrastructure
+pip install arcade-ai          # CLI
 pip install 'arcade-ai[evals]' # CLI + Evaluation framework
-pip install 'arcade-ai[tdk]'   # CLI + Tool Development Kit
 pip install 'arcade-ai[all]'   # CLI + Serving infra + eval framework + TDK
+pip install arcade_serve       # Serving infrastructure
 pip install arcade-tdk         # Tool Development Kit
 ```
 

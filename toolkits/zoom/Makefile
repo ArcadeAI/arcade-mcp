@@ -7,14 +7,14 @@ help:
 .PHONY: install
 install: ## Install the uv environment and install all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
-	@uv sync --all-extras --no-sources
+	@uv sync --active --all-extras --no-sources
 	@uv run pre-commit install
 	@echo "✅ All packages and dependencies installed via uv"
 
 .PHONY: install-local
 install-local: ## Install the uv environment and install all packages with dependencies with local Arcade sources
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
-	@uv sync --all-extras
+	@uv sync --active --all-extras
 	@uv run pre-commit install
 	@echo "✅ All packages and dependencies installed via uv"
 

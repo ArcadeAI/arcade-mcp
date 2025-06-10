@@ -24,17 +24,6 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Debug `arcade dev`",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/libs/arcade-cli/run_cli.py",
-      "args": ["dev"],
-      "console": "integratedTerminal",
-      "jinja": true,
-      "justMyCode": true,
-      "cwd": "${workspaceFolder}"
-    },
-    {
       "name": "Debug `arcade evals -d` on current file",
       "type": "debugpy",
       "request": "launch",
@@ -46,11 +35,11 @@
       "cwd": ""
     },
     {
-      "name": "Debug `arcade serve --reload`",
+      "name": "Debug `arcade serve`",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/libs/arcade-cli/run_cli.py",
-      "args": ["serve", "--reload"],
+      "args": ["serve"],
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,

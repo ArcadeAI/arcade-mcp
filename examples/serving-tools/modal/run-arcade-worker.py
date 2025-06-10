@@ -7,7 +7,9 @@ app = App("arcade-worker")
 
 toolkits = ["arcade_google", "arcade_slack"]
 
-image = Image.debian_slim().pip_install("arcade-ai").pip_install(toolkits)
+image = (
+    Image.debian_slim().pip_install("arcade_tdk").pip_install("arcade_serve").pip_install(toolkits)
+)
 
 
 @app.function(image=image)
