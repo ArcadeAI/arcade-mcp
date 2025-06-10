@@ -1,0 +1,163 @@
+name: Promote to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Specific commit SHA to cherry-pick (leave empty to promote everything in main)'
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PROMOTE_PAT_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup branches
+        run: |
+          # Ensure we have latest changes
+          git fetch origin
+
+          # Create production branch if it doesn't exist
+          if ! git show-ref --verify --quiet refs/remotes/origin/production; then
+            echo "Creating production branch from main"
+            git checkout -b production origin/main
+            git push origin production
+          else
+            echo "Production branch already exists"
+            git checkout production
+            git pull origin production
+          fi
+
+          # Ensure main is up to date
+          git checkout main
+          git pull origin main
+
+      - name: Cherry-pick specific commit
+        if: ${{ inputs.commit_sha != '' }}
+        run: |
+          echo "Cherry-picking specific commit: ${{ inputs.commit_sha }}"
+
+          # Validate commit exists in main
+          if ! git cat-file -e "${{ inputs.commit_sha }}^{commit}"; then
+            echo "Error: Commit ${{ inputs.commit_sha }} does not exist"
+            exit 1
+          fi
+
+          # Check if commit is in main branch
+          if ! git merge-base --is-ancestor "${{ inputs.commit_sha }}" main; then
+            echo "Error: Commit ${{ inputs.commit_sha }} is not in main branch"
+            exit 1
+          fi
+
+          # Switch to production and cherry-pick
+          git checkout production
+
+          # Check if commit is already in production
+          if git merge-base --is-ancestor "${{ inputs.commit_sha }}" production; then
+            echo "Commit ${{ inputs.commit_sha }} is already in production branch"
+            exit 0
+          fi
+
+          # Cherry-pick the commit
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" "${{ inputs.commit_sha }}")
+          echo "Cherry-picking: $COMMIT_MSG"
+
+          if git cherry-pick "${{ inputs.commit_sha }}"; then
+            echo "✅ Successfully cherry-picked commit"
+            git push origin production
+            echo "commit_promoted=true" >> $GITHUB_ENV
+          else
+            echo "❌ Cherry-pick failed - conflicts may need resolution"
+            git cherry-pick --abort
+            exit 1
+          fi
+
+      - name: Recreate production from main
+        if: ${{ inputs.commit_sha == '' }}
+        run: |
+          echo "Recreating production branch from main"
+
+          # Get current commit on main for summary
+          MAIN_COMMIT=$(git rev-parse main)
+          MAIN_COMMIT_MSG=$(git log -1 --pretty=format:"%s" main)
+          echo "Main branch is at: $MAIN_COMMIT ($MAIN_COMMIT_MSG)"
+
+          # Check if production branch exists remotely
+          if git show-ref --verify --quiet refs/remotes/origin/production; then
+            PROD_COMMIT=$(git rev-parse origin/production)
+            PROD_COMMIT_MSG=$(git log -1 --pretty=format:"%s" origin/production)
+            echo "Current production is at: $PROD_COMMIT ($PROD_COMMIT_MSG)"
+
+            # Check if they're already the same
+            if [ "$MAIN_COMMIT" = "$PROD_COMMIT" ]; then
+              echo "Production is already up to date with main"
+              echo "production_updated=false" >> $GITHUB_ENV
+              exit 0
+            fi
+
+            echo "Deleting existing production branch"
+            git push origin --delete production
+
+            # Also delete local production branch if it exists
+            if git show-ref --verify --quiet refs/heads/production; then
+              echo "Deleting local production branch"
+              git branch -D production
+            fi
+          else
+            echo "Production branch doesn't exist, will create new one"
+          fi
+
+          # Create new production branch from main
+          echo "Creating new production branch from main"
+          git checkout main
+          git checkout -b production
+          git push origin production
+
+          echo "✅ Successfully recreated production branch from main"
+          echo "production_updated=true" >> $GITHUB_ENV
+          echo "main_commit=$MAIN_COMMIT" >> $GITHUB_ENV
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## Promotion Summary" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.commit_sha }}" != "" ]; then
+            echo "### Single Commit Promotion" >> $GITHUB_STEP_SUMMARY
+            echo "**Target Commit:** \`${{ inputs.commit_sha }}\`" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${commit_promoted:-false}" = "true" ]; then
+              echo "✅ **Status:** Successfully promoted to production" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Status:** Promotion failed or commit already existed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### Bulk Promotion" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${production_updated:-false}" = "true" ]; then
+              echo "✅ **Status:** Successfully updated production branch" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "ℹ️ **Status:** No new commits to promote or production already up to date" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Branches" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source:** main" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target:** production" >> $GITHUB_STEP_SUMMARY
