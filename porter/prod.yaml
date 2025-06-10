@@ -1,0 +1,37 @@
+version: v2
+name: worker
+services:
+- name: worker
+  type: web
+  instances: 1
+  cpuCores: 0.5
+  ramMegabytes: 1024
+  terminationGracePeriodSeconds: 30
+  port: 8002
+  autoscaling:
+    enabled: true
+    minInstances: 3
+    maxInstances: 15
+    gpu: false
+    cpuThresholdPercent: 50
+    memoryThresholdPercent: 50
+    gpuThresholdPercent: 100
+    vramThresholdPercent: 100
+  healthCheck:
+    enabled: true
+    httpPath: /worker/health
+    timeoutSeconds: 1
+    initialDelaySeconds: 15
+  private: true
+  sleep: false
+  serviceMeshEnabled: false
+build:
+  context: ./
+  method: docker
+  dockerfile: ./docker/Dockerfile
+envGroups:
+- otel-configs
+- worker
+autoRollback:
+  enabled: true
+deploymentStrategy: {}
