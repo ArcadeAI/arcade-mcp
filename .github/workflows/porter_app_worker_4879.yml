@@ -2,7 +2,8 @@
     push:
         branches:
             - main
-name: Deploy to worker
+
+name: Deploy to prod
 jobs:
     porter-deploy:
         runs-on: ubuntu-latest
