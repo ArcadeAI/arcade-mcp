@@ -39,7 +39,7 @@ def is_valid_date_string(date_string: str) -> bool:
 
 
 def quote(v: str) -> str:
-    quoted = v.replace('"', '\\"')
+    quoted = v.replace('"', r"\"")
     return f'"{quoted}"'
 
 
