@@ -197,7 +197,7 @@ async def associate_members_of_multiple_conversations(
     context: ToolContext,
 ) -> list[dict]:
     """Associate members to each conversation, returning the updated list."""
-    return await asyncio.gather(*[
+    return await asyncio.gather(*[  # type: ignore[no-any-return]
         associate_members_of_conversation(get_members_in_conversation_func, context, conv)
         for conv in conversations
     ])
