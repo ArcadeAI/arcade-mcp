@@ -117,7 +117,7 @@ async def add_comment_to_issue(
 ) -> Annotated[dict[str, Any], "Information about the comment created"]:
     """Add a comment to a Jira issue."""
     if not body:
-        raise ToolExecutionError("Comment body cannot be empty.")
+        raise ToolExecutionError(message="Comment body cannot be empty.")
 
     client = JiraClient(context.get_auth_token_or_empty())
 
@@ -141,7 +141,7 @@ async def add_comment_to_issue(
         quote_comment = await get_comment_by_id(context, issue, reply_to_comment, True)
         if not quote_comment["comment"]:
             raise ToolExecutionError(
-                f"Cannot quote comment. No comment found with ID '{reply_to_comment}'."
+                message=f"Cannot quote comment. No comment found with ID '{reply_to_comment}'."
             )
         quote = {
             "type": "blockquote",

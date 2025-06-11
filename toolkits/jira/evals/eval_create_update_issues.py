@@ -82,8 +82,10 @@ def create_issue_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Create issue with parent and reporter",
         user_message=(
-            "Create a task for John Doe to 'Implement message queue service' as a child of the issue ENG-321 "
-            "and reported by Jenifer Bear. It should be due on 2025-06-30. Label it with 'Project XYZ'."
+            "Create a task for John Doe to 'Implement message queue service' "
+            "as a child of the issue ENG-321 and reported by Jenifer Bear. "
+            "It should be due on 2025-06-30. "
+            "Label it with 'Project XYZ'."
         ),
         expected_tool_calls=[
             ExpectedToolCall(
@@ -147,7 +149,9 @@ def labels_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Add labels without notifying watchers",
-        user_message="Add the labels 'Hello' and 'World' to the issue ENG-123. Do not notify watchers.",
+        user_message=(
+            "Add the labels 'Hello' and 'World' to the issue ENG-123. Do not notify watchers."
+        ),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=add_labels_to_issue,
@@ -187,7 +191,9 @@ def labels_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Remove labels without notifying watchers",
-        user_message="Remove the labels 'Hello' and 'World' from the issue ENG-123. Do not notify watchers.",
+        user_message=(
+            "Remove the labels 'Hello' and 'World' from the issue ENG-123. Do not notify watchers."
+        ),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=remove_labels_from_issue,
@@ -299,7 +305,10 @@ def update_issue_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Update issue with new title and description",
-        user_message="Change the title and description of the ENG-123 issue to 'Test issue' and 'This is a test issue'.",
+        user_message=(
+            "Change the title and description of the ENG-123 issue to 'Test issue' "
+            "and 'This is a test issue'."
+        ),
         expected_tool_calls=[
             ExpectedToolCall(
                 func=update_issue,

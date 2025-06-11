@@ -110,13 +110,13 @@ async def get_users_without_id(
 
     if limit + offset > 1000:
         raise ToolExecutionError(
-            "The maximum number of users returned by the Jira search API is 1000. "
+            message="The maximum number of users returned by the Jira search API is 1000. "
             f"To get more users use the `Jira.{list_users.__tool_name__}` tool."
         )
 
     if not name_or_email:
         raise ToolExecutionError(
-            "The `user_name_or_email` argument is required to search for users."
+            message="The `user_name_or_email` argument is required to search for users."
         )
 
     client = JiraClient(context.get_auth_token_or_empty())

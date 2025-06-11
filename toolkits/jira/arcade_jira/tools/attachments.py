@@ -49,11 +49,11 @@ async def attach_file_to_issue(
 
     if not any(file_contents) or all(file_contents):
         raise ToolExecutionError(
-            "Must provide exactly one of file_content_str or file_content_base64."
+            message="Must provide exactly one of file_content_str or file_content_base64."
         )
 
     if not filename:
-        raise ToolExecutionError("Must provide a filename.")
+        raise ToolExecutionError(message="Must provide a filename.")
 
     client = JiraClient(context.get_auth_token_or_empty())
 

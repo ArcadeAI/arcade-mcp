@@ -412,7 +412,7 @@ async def find_multiple_unique_users(
         if response["pagination"]["total_results"] > 1:
             simplified_users = [simplify_user_dict(user) for user in response["users"]]
             raise MultipleItemsFoundError(
-                f"Multiple users found with name or email '{user_identifier}'. "
+                message=f"Multiple users found with name or email '{user_identifier}'. "
                 f"Please provide a unique ID: {json.dumps(simplified_users)}"
             )
 
@@ -431,7 +431,7 @@ async def find_multiple_unique_users(
                 users.append(response["user"])
             else:
                 raise NotFoundError(
-                    f"No user found with '{response['query']['user_id']}'.",
+                    message=f"No user found with '{response['query']['user_id']}'.",
                 )
 
     return users
@@ -471,11 +471,11 @@ async def find_unique_project(
             for project in projects
         ]
         raise MultipleItemsFoundError(
-            f"Multiple projects found with name/key/ID '{project_identifier}'. "
+            message=f"Multiple projects found with name/key/ID '{project_identifier}'. "
             f"Please provide a unique ID: {json.dumps(simplified_projects)}"
         )
 
-    raise NotFoundError(f"Project not found with name/key/ID '{project_identifier}'")
+    raise NotFoundError(message=f"Project not found with name/key/ID '{project_identifier}'")
 
 
 async def find_unique_priority(
@@ -527,11 +527,11 @@ async def find_unique_priority(
             for match in matches
         ]
         raise MultipleItemsFoundError(
-            f"Multiple priorities found with name '{priority_identifier}'. "
+            message=f"Multiple priorities found with name '{priority_identifier}'. "
             f"Please provide a unique ID: {json.dumps(simplified_matches)}"
         )
 
-    raise NotFoundError(f"Priority not found with ID or name '{priority_identifier}'")
+    raise NotFoundError(message=f"Priority not found with ID or name '{priority_identifier}'")
 
 
 async def find_unique_issue_type(
@@ -580,7 +580,7 @@ async def find_unique_issue_type(
             for match in matches
         ]
         raise MultipleItemsFoundError(
-            f"Multiple issue types found with name '{issue_type_identifier}'. "
+            message=f"Multiple issue types found with name '{issue_type_identifier}'. "
             f"Please provide a unique ID: {json.dumps(simplified_matches)}"
         )
 
@@ -593,7 +593,7 @@ async def find_unique_issue_type(
     ])
 
     raise NotFoundError(
-        f"Issue type not found with ID or name '{issue_type_identifier}'. "
+        message=f"Issue type not found with ID or name '{issue_type_identifier}'. "
         f"These are the issue types available for the project: {available_issue_types}"
     )
 
@@ -629,11 +629,11 @@ async def find_unique_user(
             for user in users
         ]
         raise MultipleItemsFoundError(
-            f"Multiple users found with name or email '{user_identifier}'. "
+            message=f"Multiple users found with name or email '{user_identifier}'. "
             f"Please provide a unique ID: {json.dumps(simplified_users)}"
         )
 
-    raise NotFoundError(f"User not found with ID, name or email '{user_identifier}'")
+    raise NotFoundError(message=f"User not found with ID, name or email '{user_identifier}'")
 
 
 async def get_single_project(context: ToolContext) -> dict[str, Any]:
@@ -646,7 +646,7 @@ async def get_single_project(context: ToolContext) -> dict[str, Any]:
     )
 
     if len(projects) == 0:
-        raise NotFoundError("No projects found in this account.")
+        raise NotFoundError(message="No projects found in this account.")
 
     if len(projects) == 1:
         return cast(dict[str, Any], projects[0])
@@ -659,7 +659,7 @@ async def get_single_project(context: ToolContext) -> dict[str, Any]:
         for project in projects
     ])
 
-    raise MultipleItemsFoundError(f"Multiple projects found: {available_projects_str}")
+    raise MultipleItemsFoundError(message=f"Multiple projects found: {available_projects_str}")
 
 
 def build_file_data(
@@ -673,16 +673,19 @@ def build_file_data(
         try:
             file_content = file_content_str.encode(file_encoding)
         except LookupError as exc:
-            raise ToolExecutionError(f"Unknown encoding: {file_encoding}") from exc
+            raise ToolExecutionError(message=f"Unknown encoding: {file_encoding}") from exc
         except Exception as exc:
             raise ToolExecutionError(
-                f"Failed to encode file content string with {file_encoding} encoding: {exc!s}"
+                message=f"Failed to encode file content string with {file_encoding} "
+                f"encoding: {exc!s}"
             ) from exc
     elif file_content_base64 is not None:
         try:
             file_content = base64.b64decode(file_content_base64)
         except Exception as exc:
-            raise ToolExecutionError(f"Failed to decode base64 file content: {exc!s}") from exc
+            raise ToolExecutionError(
+                message=f"Failed to decode base64 file content: {exc!s}"
+            ) from exc
 
     if not file_type:
         # guess_type returns None if the file type is not recognized
@@ -953,7 +956,7 @@ async def find_priorities_by_project(
     priority_schemes = await paginate_all_priority_schemes(context)
 
     if not priority_schemes:
-        raise NotFoundError("No priority schemes found")
+        raise NotFoundError("No priority schemes found")  # noqa: TRY003
 
     projects_by_scheme = await asyncio.gather(*[
         list_projects_associated_with_a_priority_scheme(
@@ -1033,7 +1036,7 @@ def build_issue_update_text_fields(
     environment: str | None,
 ) -> dict[str, dict[str, Any]]:
     if title == "":
-        raise ValueError("Title cannot be empty")
+        raise ValueError("Title cannot be empty")  # noqa: TRY003
     elif title:
         body["fields"]["summary"] = title
 
@@ -1060,14 +1063,14 @@ def build_issue_update_user_fields(
     elif isinstance(assignee, dict):
         body["fields"]["assignee"] = {"id": assignee["id"]}
     elif assignee is not None:
-        raise ValueError(f"Invalid assignee: '{assignee}'")
+        raise ValueError(f"Invalid assignee: '{assignee}'")  # noqa: TRY003
 
     if reporter == "":
         body["update"]["reporter"] = [{"set": None}]
     elif isinstance(reporter, dict):
         body["fields"]["reporter"] = {"id": reporter["id"]}
     elif reporter is not None:
-        raise ValueError(f"Invalid reporter: '{reporter}'")
+        raise ValueError(f"Invalid reporter: '{reporter}'")  # noqa: TRY003
 
     return body
 
@@ -1078,18 +1081,18 @@ def build_issue_update_classifier_fields(
     priority: str | dict | None,
 ) -> dict[str, dict[str, Any]]:
     if issue_type == "":
-        raise ValueError("Issue type cannot be empty")
+        raise ValueError("Issue type cannot be empty")  # noqa: TRY003
     elif isinstance(issue_type, dict):
         body["fields"]["issuetype"] = {"id": issue_type["id"]}
     elif issue_type is not None:
-        raise ValueError(f"Invalid issue type: '{issue_type}'")
+        raise ValueError(f"Invalid issue type: '{issue_type}'")  # noqa: TRY003
 
     if priority == "":
-        raise ValueError("Priority cannot be empty")
+        raise ValueError("Priority cannot be empty")  # noqa: TRY003
     elif isinstance(priority, dict):
         body["fields"]["priority"] = {"id": priority["id"]}
     elif priority is not None:
-        raise ValueError(f"Invalid priority: '{priority}'")
+        raise ValueError(f"Invalid priority: '{priority}'")  # noqa: TRY003
 
     return body
 

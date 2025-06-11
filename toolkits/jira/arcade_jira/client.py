@@ -60,7 +60,7 @@ class JiraClient:
 
             if len(data) == 0:
                 raise JiraToolExecutionError(
-                    "No cloud ID returned by Atlassian, cannot make API calls"
+                    message="No cloud ID returned by Atlassian, cannot make API calls"
                 )
             if len(data) > 1:
                 cloud_ids_found = json.dumps([
@@ -72,7 +72,7 @@ class JiraClient:
                     for item in data
                 ])
                 raise JiraToolExecutionError(
-                    f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
+                    message=f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
                     "Cannot resolve which one to use."
                 )
             return cast(dict[str, Any], data[0])
@@ -118,7 +118,7 @@ class JiraClient:
 
     def _set_request_body(self, kwargs: dict, data: dict | None, json_data: dict | None) -> dict:
         if data and json_data:
-            raise ValueError("Cannot provide both data and json_data")
+            raise ValueError("Cannot provide both data and json_data")  # noqa: TRY003
 
         if data:
             kwargs["data"] = data
