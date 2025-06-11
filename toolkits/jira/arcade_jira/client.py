@@ -2,7 +2,7 @@ import asyncio
 import json
 import json.decoder
 from dataclasses import dataclass
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import httpx
 
@@ -137,8 +137,8 @@ class JiraClient:
     async def get(
         self,
         endpoint: str,
-        params: Optional[dict] = None,
-        headers: Optional[dict] = None,
+        params: dict | None = None,
+        headers: dict | None = None,
     ) -> dict:
         default_headers = {
             "Authorization": f"Bearer {self.auth_token}",
@@ -163,10 +163,10 @@ class JiraClient:
     async def post(
         self,
         endpoint: str,
-        data: Optional[dict] = None,
-        json_data: Optional[dict] = None,
-        files: Optional[dict] = None,
-        headers: Optional[dict] = None,
+        data: dict | None = None,
+        json_data: dict | None = None,
+        files: dict | None = None,
+        headers: dict | None = None,
     ) -> dict:
         default_headers = {
             "Authorization": f"Bearer {self.auth_token}",
@@ -199,10 +199,10 @@ class JiraClient:
     async def put(
         self,
         endpoint: str,
-        data: Optional[dict] = None,
-        json_data: Optional[dict] = None,
-        params: Optional[dict] = None,
-        headers: Optional[dict] = None,
+        data: dict | None = None,
+        json_data: dict | None = None,
+        params: dict | None = None,
+        headers: dict | None = None,
     ) -> dict:
         headers = headers or {}
         headers["Authorization"] = f"Bearer {self.auth_token}"

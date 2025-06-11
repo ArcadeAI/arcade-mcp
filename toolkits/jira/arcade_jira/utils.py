@@ -2,9 +2,10 @@ import asyncio
 import base64
 import json
 import mimetypes
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import date, datetime
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import ToolExecutionError

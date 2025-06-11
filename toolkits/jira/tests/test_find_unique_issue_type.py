@@ -1,5 +1,5 @@
 import json
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 from arcade_tdk import ToolContext
