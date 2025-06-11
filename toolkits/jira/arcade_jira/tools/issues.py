@@ -92,7 +92,7 @@ async def get_issue_type_by_id(
 async def get_issue_by_id(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to retrieve"],
-) -> Annotated[dict[str, dict[str, dict[str, Any]]], "Information about the issue"]:
+) -> Annotated[dict[str, Any], "Information about the issue"]:
     """Get the details of a Jira issue by its ID."""
     client = JiraClient(context.get_auth_token_or_empty())
     try:
@@ -272,11 +272,14 @@ async def list_issues(
         project_data = await get_single_project(context)
         project = project_data["id"]
 
-    return await get_issues_without_id(
-        context=context,
-        project=project,
-        limit=limit,
-        next_page_token=next_page_token,
+    return cast(
+        dict[str, Any],
+        await get_issues_without_id(
+            context=context,
+            project=project,
+            limit=limit,
+            next_page_token=next_page_token,
+        ),
     )
 
 
@@ -361,20 +364,23 @@ async def search_issues_without_jql(
     OVER USING JQL, UNLESS IT'S ABSOLUTELY NECESSARY TO USE A JQL QUERY TO FILTER IN A WAY THAT IS
     NOT SUPPORTED BY THIS TOOL OR IF THE USER PROVIDES A JQL QUERY THEMSELVES.
     """
-    return await get_issues_without_id(
-        context=context,
-        keywords=keywords,
-        due_from=due_from,
-        due_until=due_until,
-        status=status,
-        priority=priority,
-        assignee=assignee,
-        project=project,
-        issue_type=issue_type,
-        labels=labels,
-        parent_issue=parent_issue,
-        limit=limit,
-        next_page_token=next_page_token,
+    return cast(
+        dict[str, Any],
+        await get_issues_without_id(
+            context=context,
+            keywords=keywords,
+            due_from=due_from,
+            due_until=due_until,
+            status=status,
+            priority=priority,
+            assignee=assignee,
+            project=project,
+            issue_type=issue_type,
+            labels=labels,
+            parent_issue=parent_issue,
+            limit=limit,
+            next_page_token=next_page_token,
+        ),
     )
 
 
@@ -512,6 +518,8 @@ async def create_issue(
     projects, priorities, issue types, or users. Provide the name, key, or email and the tool
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
+    project_data: dict[str, Any] | None = None
+
     if project is None and parent_issue is None:
         try:
             project_data = await get_single_project(context)

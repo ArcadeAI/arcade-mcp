@@ -335,7 +335,7 @@ def add_pagination_to_response(
     limit: int,
     offset: int,
     max_results: int | None = None,
-) -> dict:
+) -> dict[str, Any]:
     next_offset = offset + limit
     if max_results:
         next_offset = min(next_offset, max_results - limit)

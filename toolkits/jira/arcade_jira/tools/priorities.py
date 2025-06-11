@@ -183,18 +183,18 @@ async def list_priorities_available_to_an_issue(
 
     issue_response = await get_issue_by_id(context, issue)
     if issue_response.get("error"):
-        return cast(dict, issue_response)
+        return cast(dict[str, Any], issue_response)
 
-    issue = cast(dict, issue_response["issue"])
-    project = issue["project"]["id"]
+    issue_data = issue_response["issue"]
+    project = issue_data["project"]["id"]
 
     response = await list_priorities_available_to_a_project(context, project)
 
     return {
         "issue": {
-            "id": issue["id"],
-            "key": issue["key"],
-            "title": issue["title"],
+            "id": issue_data["id"],
+            "key": issue_data["key"],
+            "title": issue_data["title"],
         },
         "project": response["project"],
         "priorities_available": response["priorities_available"],

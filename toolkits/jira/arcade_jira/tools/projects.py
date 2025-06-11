@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from arcade.sdk import ToolContext, tool
 from arcade.sdk.auth import Atlassian
@@ -24,7 +24,9 @@ async def list_projects(
     ] = 0,
 ) -> Annotated[dict[str, Any], "Information about the projects"]:
     """Browse projects available in Jira."""
-    return await search_projects(context, keywords=None, limit=limit, offset=offset)
+    return cast(
+        dict[str, Any], await search_projects(context, keywords=None, limit=limit, offset=offset)
+    )
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
