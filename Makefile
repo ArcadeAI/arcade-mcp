@@ -269,11 +269,6 @@ lint: check ## Alias for check command
 .PHONY: clean
 clean: clean-build clean-dist ## Clean all build and distribution artifacts
 
-.PHONY: dev-help
-dev-help: ## Show development script help
-	@echo "🛠️ Arcade Development Helper Script:\n"
-	@python dev.py --help
-
 .PHONY: help
 help:
 	@echo "🛠️ Arcade Dev Commands:\n"
