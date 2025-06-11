@@ -3,7 +3,7 @@ FROM python:3.11-slim
 # Define build arguments with default values
 ARG PORT=8001
 ARG HOST=0.0.0.0
-ARG VERSION=${VERSION:-1.0.1}
+ARG VERSION=${VERSION:-0.1.0.dev0}
 ARG INSTALL_TOOLKITS=true
 
 # Set environment variables using the build arguments
