@@ -40,7 +40,7 @@ jobs:
 
       - name: Install toolkit dependencies
         working-directory: toolkits/${{ matrix.toolkit }}
-        run: uv sync --extra dev
+        run: uv sync --active --extra dev
 
       - name: Check toolkit
         working-directory: toolkits/${{ matrix.toolkit }}
