@@ -13,6 +13,7 @@ from arcade_jira.utils import (
     build_search_issues_jql,
     clean_issue_dict,
     clean_issue_type_dict,
+    clean_labels,
     convert_date_string_to_date,
     extract_id,
     find_unique_project,
@@ -477,7 +478,8 @@ async def create_issue(
     ] = None,
     labels: Annotated[
         list[str] | None,
-        "The labels of the issue. Defaults to None (no labels).",
+        "The labels of the issue. Defaults to None (no labels). A label cannot contain spaces. "
+        "If a label is provided with spaces, they will be trimmed and replaced by underscores.",
     ] = None,
     parent_issue: Annotated[
         str | None,
@@ -547,7 +549,7 @@ async def create_issue(
     request_body = {
         "fields": remove_none_values({
             "summary": title,
-            "labels": labels,
+            "labels": clean_labels(labels),
             "duedate": due_date,
             "parent": extract_id(parent_data),
             "project": extract_id(project_data),
@@ -594,8 +596,8 @@ async def add_labels_to_issue(
     issue: Annotated[str, "The ID or key of the issue to update"],
     labels: Annotated[
         list[str],
-        "The labels to add to the issue. Cannot contain spaces. "
-        "If a label is provided with spaces, they will be replaced by underscores.",
+        "The labels to add to the issue. A label cannot contain spaces. "
+        "If a label is provided with spaces, they will be trimmed and replaced by underscores.",
     ],
     notify_watchers: Annotated[
         bool,
@@ -607,7 +609,7 @@ async def add_labels_to_issue(
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
-    labels = [label.replace(" ", "_") for label in labels]
+    labels = clean_labels(labels)
     current_labels = issue_data["issue"]["labels"]
     response = await update_issue(
         context=context,
@@ -723,7 +725,8 @@ async def update_issue(
         "Providing an empty list will remove all labels. To add or remove a subset of "
         f"labels, use the `Jira.{add_labels_to_issue.__tool_name__}` or the "
         f"`Jira.{remove_labels_from_issue.__tool_name__}` tools. "
-        "Defaults to None (does not change the labels).",
+        "Defaults to None (does not change the labels). A label cannot contain spaces. "
+        "If a label is provided with spaces, they will be trimmed and replaced by underscores.",
     ] = None,
     notify_watchers: Annotated[
         bool,
@@ -768,7 +771,7 @@ async def update_issue(
         priority=priority_data,
         assignee=assignee_data,
         reporter=reporter_data,
-        labels=labels,
+        labels=clean_labels(labels),
     )
 
     if not request_body["fields"] and not request_body["update"]:

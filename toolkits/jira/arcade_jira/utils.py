@@ -317,6 +317,12 @@ def clean_priority_dict(priority: dict) -> dict:
     return data
 
 
+def clean_labels(labels: list[str] | None) -> list[str] | None:
+    if not labels:
+        return None
+    return [label.strip().replace(" ", "_") for label in labels]
+
+
 def get_summarized_issue_dict(issue: dict) -> dict:
     fields = issue["fields"]
     return {
