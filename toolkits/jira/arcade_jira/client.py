@@ -38,7 +38,7 @@ class JiraClient:
             if (cloud_id := await cache.async_get_cloud_id(self.auth_token)) is not None:
                 self._cloud_id = cloud_id
             else:
-                cloud = await self._get_cloud_id_from_available_resources()
+                cloud = await self._get_cloud_data_from_available_resources()
                 self._cloud_id = cloud["id"]
                 await cache.async_set_cloud_id(self.auth_token, cloud["id"])
                 await cache.async_set_cloud_name(self.auth_token, cloud["name"])
@@ -49,7 +49,7 @@ class JiraClient:
         cloud_id = await self.get_cloud_id()
         return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
 
-    async def _get_cloud_id_from_available_resources(self) -> dict[str, Any]:
+    async def _get_cloud_data_from_available_resources(self) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 "https://api.atlassian.com/oauth/token/accessible-resources",
