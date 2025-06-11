@@ -1,7 +1,7 @@
 from typing import Annotated, cast
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Atlassian
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
 

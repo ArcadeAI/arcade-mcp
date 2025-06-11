@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from arcade.sdk import ToolAuthorizationContext, ToolContext
+from arcade_tdk import ToolAuthorizationContext, ToolContext
 
 from arcade_jira.cache import set_cloud_id, set_cloud_name
 

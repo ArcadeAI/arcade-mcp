@@ -6,8 +6,8 @@ from contextlib import suppress
 from datetime import date, datetime
 from typing import Any, Callable, cast
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_jira.constants import STOP_WORDS
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError

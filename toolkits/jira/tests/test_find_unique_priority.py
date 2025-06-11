@@ -2,7 +2,7 @@ from typing import Callable
 from unittest.mock import patch
 
 import pytest
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 from arcade_jira.utils import clean_priority_dict, find_unique_priority

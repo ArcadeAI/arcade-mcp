@@ -1,7 +1,7 @@
 from typing import Callable
 
 import pytest
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_jira.exceptions import JiraToolExecutionError
 from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme

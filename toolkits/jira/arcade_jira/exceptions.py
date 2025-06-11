@@ -1,4 +1,4 @@
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 
 class JiraToolExecutionError(ToolExecutionError):

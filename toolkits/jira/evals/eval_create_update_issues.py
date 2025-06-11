@@ -1,11 +1,11 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
-from arcade.sdk.eval.critic import BinaryCritic
+from arcade_evals.critic import BinaryCritic
+from arcade_tdk import ToolCatalog
 
 import arcade_jira
 from arcade_jira.critics import (

@@ -2,7 +2,7 @@ from typing import Callable
 
 import httpx
 import pytest
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_jira.exceptions import NotFoundError
 from arcade_jira.utils import clean_priority_dict, find_priorities_by_project
