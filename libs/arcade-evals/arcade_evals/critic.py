@@ -228,7 +228,6 @@ class SimilarityCritic(Critic):
 
 
 @dataclass
-@dataclass
 class DatetimeCritic(Critic):
     """
     A critic that evaluates the closeness of datetime values within a specified tolerance.

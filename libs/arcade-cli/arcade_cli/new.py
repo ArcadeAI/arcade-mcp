@@ -75,22 +75,28 @@ def write_template(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def create_ignore_pattern(include_tests: bool, include_evals: bool) -> re.Pattern[str]:
+def create_ignore_pattern(include_evals: bool) -> re.Pattern[str]:
     """Create an ignore pattern based on user preferences."""
-    base_pattern = r"(__pycache__|\.DS_Store|Thumbs\.db|\.git|\.svn|\.hg|\.vscode|\.idea|build|dist|.*\.egg-info|.*\.pyc|.*\.pyo)"
+    patterns = [
+        "__pycache__",
+        r"\.DS_Store",
+        r"Thumbs\.db",
+        r"\.git",
+        r"\.svn",
+        r"\.hg",
+        r"\.vscode",
+        r"\.idea",
+        "build",
+        "dist",
+        r".*\.egg-info",
+        r".*\.pyc",
+        r".*\.pyo",
+    ]
 
-    additional_patterns = []
-    if not include_tests:
-        additional_patterns.append("tests")
     if not include_evals:
-        additional_patterns.append("evals")
+        patterns.append("evals")
 
-    if additional_patterns:
-        full_pattern = f"({base_pattern}|{'|'.join(additional_patterns)})$"
-    else:
-        full_pattern = f"{base_pattern}$"
-
-    return re.compile(full_pattern)
+    return re.compile(f"({'|'.join(patterns)})$")
 
 
 def create_package(
@@ -141,7 +147,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     package_name = toolkit_name if toolkit_name.startswith("arcade_") else f"arcade_{toolkit_name}"
 
     # Check for illegal characters in the toolkit name
-    if re.match(r"^[\w_]+$", package_name):
+    if re.match(r"^[a-z0-9_]+$", package_name):
         toolkit_name = package_name.replace("arcade_", "", 1)
 
         if (toolkit_directory / toolkit_name).exists():
@@ -150,7 +156,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     else:
         console.print(
             "[red]Toolkit name contains illegal characters. "
-            "Only alphanumeric characters and underscores are allowed. "
+            "Only lowercase alphanumeric characters and underscores are allowed. "
             "Please try again.[/red]"
         )
         exit(1)
@@ -164,9 +170,6 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         console.print(
             "[red]Invalid email format. Please enter a valid email address or leave it empty.[/red]"
         )
-    include_tests = ask_yes_no_question(
-        "Do you want a tests directory created for you?", default=True
-    )
     include_evals = ask_yes_no_question(
         "Do you want an evals directory created for you?", default=True
     )
@@ -193,7 +196,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     )
 
     # Create dynamic ignore pattern based on user preferences
-    ignore_pattern = create_ignore_pattern(include_tests, include_evals)
+    ignore_pattern = create_ignore_pattern(include_evals)
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
