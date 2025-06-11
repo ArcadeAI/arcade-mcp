@@ -39,7 +39,8 @@ def is_valid_date_string(date_string: str) -> bool:
 
 
 def quote(v: str) -> str:
-    return f'"{v.replace('"', '\\"')}"'
+    quoted = v.replace('"', '\\"')
+    return f'"{quoted}"'
 
 
 def build_search_issues_jql(

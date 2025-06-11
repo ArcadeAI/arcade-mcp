@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arcade_jira"
-version = "0.1.0"
+version = "0.1.1"
 description = "Arcade tools designed for LLMs to interact with Atlassian Jira"
 authors = ["Arcade <dev@arcade.dev>"]
 
