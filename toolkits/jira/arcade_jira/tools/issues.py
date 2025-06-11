@@ -609,7 +609,7 @@ async def add_labels_to_issue(
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
-    labels = clean_labels(labels)
+    labels = cast(list[str], clean_labels(labels))
     current_labels = issue_data["issue"]["labels"]
     response = await update_issue(
         context=context,
