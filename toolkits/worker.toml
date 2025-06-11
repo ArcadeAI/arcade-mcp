@@ -1,0 +1,10 @@
+[[worker]]
+[worker.config]
+id = "jira-tk"
+enabled = true
+timeout = 30
+retries = 3
+secret = "b013b0ff316b"
+
+[worker.local_source]
+packages = [ "./jira",]

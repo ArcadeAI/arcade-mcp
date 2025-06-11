@@ -7,7 +7,7 @@ name = "arcade_stripe"
 version = "0.0.1"
 description = "Arcade.dev LLM tools for Stripe"
 requires-python = ">=3.10"
-dependencies = [ "arcade-tdk>=0.1.0,<1.0.0", "stripe-agent-toolkit>=0.6.1,<1.0.0", "stripe>=11.0.0,<12.0.0",]
+dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "stripe-agent-toolkit>=0.6.1,<1.0.0", "stripe>=11.0.0,<12.0.0",]
 [[project.authors]]
 name = "Arcade"
 email = "dev@arcade.dev"
@@ -15,14 +15,14 @@ email = "dev@arcade.dev"
 [project.optional-dependencies]
 dev = [
     "arcade-ai[evals]>=2.0.0,<3.0.0",
-    "arcade-serve>=0.1.0,<1.0.0",
-    "pytest>=8.3.0,<9.0.0",
-    "pytest-cov>=4.0.0,<5.0.0",
-    "pytest-asyncio>=0.24.0,<1.0.0",
-    "mypy>=1.5.1,<2.0.0",
-    "pre-commit>=3.4.0,<4.0.0",
-    "tox>=4.11.1,<5.0.0",
-    "ruff>=0.7.4,<1.0.0",
+    "arcade-serve>=2.0.0,<3.0.0",
+    "pytest>=8.3.0,<8.4.0",
+    "pytest-cov>=4.0.0,<4.1.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "mypy>=1.5.1,<1.6.0",
+    "pre-commit>=3.4.0,<3.5.0",
+    "tox>=4.11.1,<4.12.0",
+    "ruff>=0.7.4,<0.8.0",
 ]
 
 # Use local path sources for arcade libs when working locally

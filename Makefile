@@ -1,7 +1,7 @@
 CLI_VERSION ?= "2.0.0"
-TDK_VERSION ?= "0.1.0"
-SERVE_VERSION ?= "0.1.0"
-CORE_VERSION ?= "0.1.0"
+TDK_VERSION ?= "2.0.0"
+SERVE_VERSION ?= "2.0.0"
+CORE_VERSION ?= "2.0.0"
 
 .PHONY: install
 install: ## Install the uv environment and all packages with dependencies

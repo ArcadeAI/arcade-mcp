@@ -26,13 +26,14 @@ email = "{{ toolkit_author_email }}"
 dev = [
     "arcade-ai[evals]>={{ arcade_ai_min_version }},<{{ arcade_ai_max_version }}",
     "arcade-serve>={{ arcade_serve_min_version }},<{{ arcade_serve_max_version }}",
-    "pytest>=8.3.0,<9.0.0",
-    "pytest-cov>=4.0.0,<5.0.0",
-    "pytest-mock>=3.11.1,<4.0.0",
-    "mypy>=1.5.1,<2.0.0",
-    "pre-commit>=3.4.0,<4.0.0",
-    "tox>=4.11.1,<5.0.0",
-    "ruff>=0.7.4,<1.0.0",
+    "pytest>=8.3.0,<8.4.0",
+    "pytest-cov>=4.0.0,<4.1.0",
+    "pytest-mock>=3.11.1,<3.12.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "mypy>=1.5.1,<1.6.0",
+    "pre-commit>=3.4.0,<3.5.0",
+    "tox>=4.11.1,<4.12.0",
+    "ruff>=0.7.4,<0.8.0",
 ]
 
 # Use local path sources for arcade libs when working locally
