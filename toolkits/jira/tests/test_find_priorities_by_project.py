@@ -59,7 +59,7 @@ async def test_find_priorities_by_project_when_project_does_not_exist(
 
 
 @pytest.mark.asyncio
-async def test_find_priorities_by_project_when_project_is_found_bit_does_not_match_id(
+async def test_find_priorities_by_project_when_project_is_found_but_does_not_match_id(
     mock_context: ToolContext,
     mock_httpx_client,
     mock_httpx_response: Callable,
