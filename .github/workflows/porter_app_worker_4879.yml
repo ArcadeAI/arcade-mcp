@@ -18,17 +18,8 @@ jobs:
             - name: Setup porter
               uses: porter-dev/setup-porter@v0.1.0
 
-            - name: Install Poetry
-              uses: snok/install-poetry@v1
-              with:
-                version: 1.8.5
-
             - name: Build Dist
               run: make full-dist
-
-            - name: Export Requirements
-              run: |
-                cd arcade && poetry export --output ../dist/requirements.txt
 
             - name: Deploy stack
               timeout-minutes: 30

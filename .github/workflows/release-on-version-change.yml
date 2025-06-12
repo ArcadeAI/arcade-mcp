@@ -1,0 +1,173 @@
+name: Release on Version Change
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect-version-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has-changes: ${{ steps.set-matrix.outputs.has-changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history to compare commits
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
+        with:
+          files: |
+            **/pyproject.toml
+
+      - name: Check for version changes or new packages
+        id: check-versions
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Changed pyproject.toml files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+          # Initialize array to store packages to release
+          packages_to_release=()
+
+          # Check each changed pyproject.toml
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Checking $file..."
+
+            # Get the full directory path (relative to repo root)
+            package_dir=$(dirname "$file")
+
+            # Check if this is a new file (added in this commit)
+            if git diff HEAD^ HEAD --name-status -- "$file" | grep -E "^A\s+$file$" > /dev/null; then
+              echo "New package detected: $file"
+              packages_to_release+=("$package_dir")
+            # Otherwise check for version changes
+            elif git diff HEAD^ HEAD -- "$file" | grep -E '^\+version = ".*"$' > /dev/null; then
+              echo "Version changed in $file"
+              packages_to_release+=("$package_dir")
+            else
+              echo "No version change in $file"
+            fi
+          done
+
+          # Output the packages to release
+          if [ ${#packages_to_release[@]} -eq 0 ]; then
+            echo "No packages to release found."
+            echo "packages=" >> $GITHUB_OUTPUT
+          else
+            echo "Packages to release: ${packages_to_release[@]}"
+            # Convert array to JSON format for matrix
+            packages_json=$(printf '%s\n' "${packages_to_release[@]}" | jq -R . | jq -s -c .)
+            echo "packages=$packages_json" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          packages="${{ steps.check-versions.outputs.packages }}"
+          if [ -z "$packages" ] || [ "$packages" = "[]" ]; then
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+          else
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            # Create matrix with package directories
+            matrix=$(echo "$packages" | jq -c '{include: [.[] | {package: .}]}')
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            echo "Matrix: $matrix"
+          fi
+
+  build-and-test:
+    needs: detect-version-changes
+    if: needs.detect-version-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-version-changes.outputs.matrix) }}
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+        with:
+          python-version: "3.10"
+
+      - name: Extract package name and version
+        working-directory: ${{ matrix.package }}
+        run: |
+          # Extract package name
+          PACKAGE_NAME=$(grep -m1 '^name = ' pyproject.toml | cut -d'"' -f2)
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+
+          # Extract version
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "Building $PACKAGE_NAME version $VERSION"
+
+      - name: Run tests
+        working-directory: ${{ matrix.package }}
+        run: |
+          # Run tests if they exist
+          if [ -f "Makefile" ] && grep -q "^test:" Makefile; then
+            make test
+          elif [ -f "../Makefile" ] && grep -q "^test:" ../Makefile; then
+            cd .. && make test
+          else
+            echo "No tests found, skipping test step"
+          fi
+
+      - name: Build release distributions
+        working-directory: ${{ matrix.package }}
+        run: |
+          uv build | tee build.log
+
+          # Verify build artifacts
+          ls -la dist/
+          echo "Built artifacts for ${{ env.PACKAGE_NAME }} v${{ env.VERSION }}"
+
+      - name: Upload release distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}
+          path: ${{ matrix.package }}/dist/
+
+  pypi-publish:
+    needs: [detect-version-changes, build-and-test]
+    if: needs.detect-version-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-version-changes.outputs.matrix) }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract package name and version
+        working-directory: ${{ matrix.package }}
+        run: |
+          PACKAGE_NAME=$(grep -m1 '^name = ' pyproject.toml | cut -d'"' -f2)
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,7 +1,3 @@
-CLI_VERSION ?= "2.0.0"
-TDK_VERSION ?= "2.0.0"
-SERVE_VERSION ?= "2.0.0"
-CORE_VERSION ?= "2.0.0"
 
 .PHONY: install
 install: ## Install the uv environment and all packages with dependencies
@@ -101,28 +97,6 @@ coverage: ## Generate coverage report
 	@echo "Generating coverage report"
 	@uv run coverage html
 
-.PHONY: set-version
-set-version: ## Set the version in all lib pyproject.toml files
-	@echo "🚀 Setting versions in all lib packages"
-	@echo "Setting arcade-ai version to $(CLI_VERSION)"
-	@sed -i.bak '/^\[project\]/,/^\[/ s/^version = .*/version = $(CLI_VERSION)/' pyproject.toml && rm pyproject.toml.bak
-	@echo "Setting libs/arcade-tdk version to $(TDK_VERSION)"
-	@cd libs/arcade-tdk && sed -i.bak '/^\[project\]/,/^\[/ s/^version = .*/version = $(TDK_VERSION)/' pyproject.toml && rm pyproject.toml.bak
-	@echo "Setting libs/arcade-serve version to $(SERVE_VERSION)"
-	@cd libs/arcade-serve && sed -i.bak '/^\[project\]/,/^\[/ s/^version = .*/version = $(SERVE_VERSION)/' pyproject.toml && rm pyproject.toml.bak
-	@echo "Setting libs/arcade-core version to $(CORE_VERSION)"
-	@cd libs/arcade-core && sed -i.bak '/^\[project\]/,/^\[/ s/^version = .*/version = $(CORE_VERSION)/' pyproject.toml && rm pyproject.toml.bak
-
-.PHONY: unset-version
-unset-version: ## Reset version to 0.1.0 in all lib pyproject.toml files
-	@echo "🚀 Resetting version to 0.1.0 in all lib packages"
-	@for lib in libs/arcade*/ ; do \
-		if [ -f "$$lib/pyproject.toml" ]; then \
-			echo "Resetting version in $$lib"; \
-			(cd $$lib && sed -i.bak 's/version = "[^"]*"/version = "0.1.0"/' pyproject.toml && rm pyproject.toml.bak); \
-		fi; \
-	done
-
 .PHONY: build
 build: clean-build ## Build wheel files using uv
 	@echo "🚀 Creating wheel files for all lib packages"
@@ -219,18 +193,17 @@ publish-ghcr: ## Publish to the GHCR
 full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 	@echo "🛠️ Building a full distribution with lib packages and toolkits"
 
-	@echo "Setting version to $(CLI_VERSION)"
-	@make set-version
-
 	@echo "🛠️ Building all lib packages and copying wheels to ./dist"
 	@mkdir -p dist
 
-	# Build all lib packages in dependency order
 	@for lib in arcade-core arcade-tdk arcade-serve ; do \
 		echo "🛠️ Building libs/$$lib wheel..."; \
 		(cd libs/$$lib && uv build); \
-		cp libs/$$lib/dist/*.whl dist/; \
 	done
+
+	@echo "🛠️ Building arcade-ai package and copying wheel to ./dist"
+	@uv build
+	@rm -f dist/*.tar.gz
 
 	@echo "🛠️ Building all toolkit packages and copying wheels to ./dist"
 	@for dir in toolkits/*/ ; do \
@@ -241,9 +214,6 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 			cp $$dir/dist/*.whl dist/; \
 		fi; \
 	done
-
-	@echo "Reset version to default (0.1.0)"
-	@make unset-version
 
 .PHONY: clean-dist
 clean-dist: ## Clean all built distributions
