@@ -131,7 +131,7 @@ jobs:
       - name: Build release distributions
         working-directory: ${{ matrix.package }}
         run: |
-          uv build --out-dir . | tee build.log
+          uv build --out-dir dist | tee build.log
 
           # Verify build artifacts
           ls -la dist/
