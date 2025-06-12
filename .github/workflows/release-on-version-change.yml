@@ -71,7 +71,7 @@ jobs:
       - name: Set matrix
         id: set-matrix
         run: |
-          packages="${{ steps.check-versions.outputs.packages }}"
+          packages='${{ steps.check-versions.outputs.packages }}'
           if [ -z "$packages" ] || [ "$packages" = "[]" ]; then
             echo "has-changes=false" >> $GITHUB_OUTPUT
             echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
