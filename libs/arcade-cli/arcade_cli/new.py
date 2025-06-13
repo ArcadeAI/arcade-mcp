@@ -24,10 +24,10 @@ except Exception as e:
     ARCADE_AI_MIN_VERSION = "2.0.0"  # Default version if unable to fetch
     ARCADE_AI_MAX_VERSION = "3.0.0"
 
-ARCADE_TDK_MIN_VERSION = "0.1.0"
-ARCADE_TDK_MAX_VERSION = "1.0.0"
-ARCADE_SERVE_MIN_VERSION = "0.1.0"
-ARCADE_SERVE_MAX_VERSION = "1.0.0"
+ARCADE_TDK_MIN_VERSION = "2.0.0"
+ARCADE_TDK_MAX_VERSION = "3.0.0"
+ARCADE_SERVE_MIN_VERSION = "2.0.0"
+ARCADE_SERVE_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
