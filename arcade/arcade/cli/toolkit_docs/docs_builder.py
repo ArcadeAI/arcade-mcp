@@ -413,7 +413,7 @@ def generate_tool_input_map(
         return cast(dict[str, Any], json.loads(text))
     except json.JSONDecodeError:
         if retries < max_retries:
-            return generate_tool_input_map(tool, retries + 1, max_retries)
+            return generate_tool_input_map(tool, openai_model, retries + 1, max_retries)
         raise ValueError(f"Failed to generate input map for tool {tool.name}: {text}")
 
 
