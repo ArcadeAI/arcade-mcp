@@ -74,7 +74,7 @@ curl http://localhost:9099/v1/health
 You should receive a response indicating that the engine is healthy:
 
 ```json
-{ "status": "healthy" }
+{ "healthy": "true" }
 ```
 
 Open a browser and navigate to http://localhost:9099/dashboard to view the Arcade dashboard.

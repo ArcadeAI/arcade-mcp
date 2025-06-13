@@ -18,6 +18,9 @@ jobs:
             - name: Setup porter
               uses: porter-dev/setup-porter@v0.1.0
 
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+
             - name: Build Dist
               run: make full-dist
 
