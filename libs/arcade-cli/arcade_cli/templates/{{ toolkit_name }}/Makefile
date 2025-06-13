@@ -33,6 +33,13 @@ test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@uv run pytest -W ignore -v --cov --cov-config=pyproject.toml --cov-report=xml
 
+.PHONY: coverage
+coverage: ## Generate coverage report
+	@echo "coverage report"
+	coverage report
+	@echo "Generating coverage report"
+	coverage html
+
 .PHONY: bump-version
 bump-version: ## Bump the version in the pyproject.toml file by a patch version
 	@echo "🚀 Bumping version in pyproject.toml"
