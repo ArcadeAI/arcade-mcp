@@ -1,3 +1,6 @@
+# This workflow is used to release packages to PyPI when its
+# pyproject.toml version is changed or a new package is added.
+
 name: Release on Version Change
 
 on:

@@ -8,6 +8,15 @@ on:
         type: string
         required: false
         default: ''
+      worker_container_increment:
+        description: 'Worker container version increment. Defaults to patch.'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        required: false
+        default: 'patch'
 
 jobs:
   promote:
