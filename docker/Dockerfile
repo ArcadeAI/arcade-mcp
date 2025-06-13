@@ -24,6 +24,9 @@ WORKDIR /app
 # Copy the dist directory contents into the container
 COPY ./dist /app/dist/
 
+# Copy the toolkits.txt file into the container
+COPY ./docker/toolkits.txt /app/
+
 # Expose the port
 EXPOSE $PORT
 
@@ -36,18 +39,30 @@ RUN python -m pip install \
     /app/dist/arcade_serve-*.whl \
     /app/dist/arcade_ai-*.whl
 
-# Conditionally install all toolkit wheels from dist directory
+# Conditionally install toolkit wheels from dist directory if INSTALL_TOOLKITS is true and the toolkit is in toolkits.txt
 RUN if [ "$INSTALL_TOOLKITS" = "true" ] ; then \
-    for wheel in /app/dist/arcade_*.whl; do \
-        # Skip the core packages we already installed
-        if [[ "$wheel" != *"arcade_core-"* ]] && \
-           [[ "$wheel" != *"arcade_serve-"* ]] && \
-           [[ "$wheel" != *"arcade_ai-"* ]] && \
-           [[ "$wheel" != *"arcade_tdk-"* ]]; then \
-            echo "Installing toolkit wheel: $wheel"; \
-            python -m pip install "$wheel"; \
+    while IFS= read -r toolkit; do \
+        # Skip empty lines and comments (lines starting with #)
+        if [ -n "$toolkit" ] && [ "${toolkit#\#}" = "$toolkit" ]; then \
+            # Convert toolkit name to match wheel filename format (replace - with _)
+            wheel_name=$(echo "$toolkit" | sed 's/-/_/g'); \
+            wheel_file="/app/dist/${wheel_name}-"*.whl; \
+            # Check if this is not a core package and if the wheel file exists
+            if [ "$wheel_name" != "arcade_core" ] && \
+               [ "$wheel_name" != "arcade_serve" ] && \
+               [ "$wheel_name" != "arcade_ai" ] && \
+               [ "$wheel_name" != "arcade_tdk" ]; then \
+                if ls $wheel_file 1> /dev/null 2>&1; then \
+                    echo "Installing $toolkit from $wheel_file"; \
+                    python -m pip install $wheel_file; \
+                else \
+                    echo "Warning: Wheel file not found for $toolkit (looked for $wheel_file)"; \
+                fi; \
+            else \
+                echo "Skipping core package: $toolkit"; \
+            fi; \
         fi; \
-    done ; \
+    done < /app/toolkits.txt ; \
     fi
 
 # Run the arcade worker
