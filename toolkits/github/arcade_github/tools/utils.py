@@ -1,7 +1,7 @@
 from typing import Any
 
 import httpx
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_github.tools.constants import ENDPOINTS, GITHUB_API_BASE_URL
 

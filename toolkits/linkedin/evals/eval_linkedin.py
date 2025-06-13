@@ -1,11 +1,11 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     SimilarityCritic,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 import arcade_linkedin
 from arcade_linkedin.tools.share import create_text_post

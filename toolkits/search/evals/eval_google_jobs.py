@@ -1,5 +1,4 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
@@ -8,6 +7,7 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 import arcade_search
 from arcade_search.constants import DEFAULT_GOOGLE_JOBS_LANGUAGE

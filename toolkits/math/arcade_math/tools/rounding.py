@@ -3,7 +3,7 @@ import math
 from decimal import Decimal
 from typing import Annotated
 
-from arcade.sdk import tool
+from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 

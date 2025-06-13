@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Zoom
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Zoom
 
 from arcade_zoom.tools.utils import _handle_zoom_api_error, _send_zoom_request
 

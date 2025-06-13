@@ -2,9 +2,9 @@ import base64
 import json
 from typing import Annotated
 
-from arcade.sdk import ToolContext, ToolMetadataKey, tool
-from arcade.sdk.auth import Google
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, ToolMetadataKey, tool
+from arcade_tdk.auth import Google
+from arcade_tdk.errors import ToolExecutionError
 
 
 @tool(

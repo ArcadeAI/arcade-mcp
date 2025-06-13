@@ -3,8 +3,8 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.custom_types import SlackPaginationNextCursor
@@ -197,7 +197,7 @@ async def associate_members_of_multiple_conversations(
     context: ToolContext,
 ) -> list[dict]:
     """Associate members to each conversation, returning the updated list."""
-    return await asyncio.gather(*[
+    return await asyncio.gather(*[  # type: ignore[no-any-return]
         associate_members_of_conversation(get_members_in_conversation_func, context, conv)
         for conv in conversations
     ])

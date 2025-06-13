@@ -11,46 +11,43 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      tool_matrix: ${{ steps.dataStep.outputs.tools }}
+      tool_matrix: ${{ steps.get-toolkits.outputs.toolkits }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Check out
+        uses: actions/checkout@v4
 
-      - name: Get Toolkits
-        id: dataStep
+      - name: Get toolkits
+        id: get-toolkits
         run: |
-          TARGETS=$(./.github/scripts/get_toolkits.sh)
-          echo "tools=$(jq -cn --argjson environments "$TARGETS" '{target: $environments}')" >> $GITHUB_OUTPUT
+          # Find all directories in toolkits/ that have a pyproject.toml
+          TOOLKITS=$(find toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          echo "Found toolkits: $TOOLKITS"
+          echo "toolkits=$TOOLKITS" >> $GITHUB_OUTPUT
 
   test-toolkits:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.tool_matrix) }}
+      matrix:
+        toolkit: ${{ fromJson(needs.setup.outputs.tool_matrix) }}
+      fail-fast: true
     steps:
-    - run: echo ${{ matrix.target }}
+      - name: Check out
+        uses: actions/checkout@v4
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.8.5
+      - name: Install toolkit dependencies
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: uv pip install -e ".[dev]"
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-        cache: 'pip'
+      - name: Check toolkit
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: |
+          uv run --active pre-commit run -a
+          uv run --active mypy --config-file=pyproject.toml
 
-    - name: Test Toolkit
-      id: Test_Toolkit
-      working-directory: toolkits/${{ matrix.target }}
-      run: |
-        make install
-        make check
-        make test
+      - name: Test toolkit
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml

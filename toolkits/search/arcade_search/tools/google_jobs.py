@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
+from arcade_tdk import ToolContext, tool
 
 from arcade_search.constants import DEFAULT_GOOGLE_JOBS_LANGUAGE
 from arcade_search.exceptions import LanguageNotFoundError

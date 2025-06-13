@@ -1,13 +1,13 @@
 import json
 
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 import arcade_slack
 from arcade_slack.tools.users import get_user_info_by_id, list_users

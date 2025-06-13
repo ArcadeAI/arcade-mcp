@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 from httpx import Response
 
 from arcade_github.tools.activity import list_stargazers, set_starred

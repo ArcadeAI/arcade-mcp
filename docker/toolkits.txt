@@ -5,6 +5,7 @@ arcade-dropbox
 arcade-github
 arcade-google
 arcade-hubspot
+arcade-jira
 arcade-linkedin
 arcade-math
 arcade-microsoft

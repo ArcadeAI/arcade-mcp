@@ -1,11 +1,11 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 from arcade_microsoft.outlook_calendar import get_event
 from evals.outlook_calendar.additional_messages import get_event_additional_messages

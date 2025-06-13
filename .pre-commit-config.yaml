@@ -5,6 +5,7 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-toml
+        exclude: ".*/templates/.*"
       - id: check-yaml
         exclude: ".*/templates/.*"
       - id: end-of-file-fixer

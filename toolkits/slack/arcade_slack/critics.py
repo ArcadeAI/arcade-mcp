@@ -1,6 +1,6 @@
 from typing import Any
 
-from arcade.sdk.eval import BinaryCritic
+from arcade_evals import BinaryCritic
 
 
 class RelativeTimeBinaryCritic(BinaryCritic):

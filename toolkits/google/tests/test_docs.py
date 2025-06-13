@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google.tools import (

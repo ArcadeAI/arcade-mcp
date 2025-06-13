@@ -1,4 +1,4 @@
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 from msgraph.generated.models.message_collection_response import MessageCollectionResponse
 from msgraph.generated.users.item.mail_folders.item.messages.messages_request_builder import (
     MessagesRequestBuilder as MailFolderMessagesRequestBuilder,

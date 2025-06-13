@@ -38,11 +38,17 @@
     <a href="https://docs.arcade.dev/home/quickstart" target="_blank">Quickstart</a> •
     <a href="https://docs.arcade.dev/home/contact-us" target="_blank">Contact Us</a>
 
-# Arcade Tool SDK
+# Arcade AI Platform
 
 Arcade is a developer platform that lets you build, deploy, and manage tools for AI agents.
 
-The Tool SDK makes it easy to create powerful, secure tools that your agents can use to interact with the world.
+This repository contains the core Arcade libraries, organized as separate packages for maximum flexibility and modularity:
+
+-   [**`arcade-core`**](libs/arcade-core) - Core platform functionality and schemas
+-   [**`arcade-tdk`**](libs/arcade-tdk) - Tool Development Kit with the `@tool` decorator
+-   [**`arcade-serve`**](libs/arcade-serve) - Serving infrastructure for workers and MCP servers
+-   [**`arcade-evals`**](libs/arcade-evals) - Evaluation framework for testing tool performance
+-   [**`arcade-cli`**](libs/arcade-cli) - Command-line interface for the Arcade platform
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
@@ -53,6 +59,48 @@ _Pst. hey, you, give us a star if you like it!_
 <a href="https://github.com/ArcadeAI/arcade-ai">
   <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-ai.svg" alt="GitHub stars">
 </a>
+
+## Quick Start
+
+### Installation
+
+For development, install all packages with dependencies using uv workspace:
+
+```bash
+# Install all packages and dev dependencies
+uv sync --extra all --dev
+
+# Or use the Makefile (includes pre-commit hooks)
+make install
+```
+
+For production use, install individual packages as needed:
+
+```bash
+pip install arcade-ai          # CLI
+pip install 'arcade-ai[evals]' # CLI + Evaluation framework
+pip install 'arcade-ai[all]'   # CLI + Serving infra + eval framework + TDK
+pip install arcade_serve       # Serving infrastructure
+pip install arcade-tdk         # Tool Development Kit
+```
+
+### Development
+
+Use the Makefile for standard tasks:
+
+```bash
+# Run tests
+make test
+
+# Run linting and type checking
+make check
+
+# Build all packages
+make build
+
+# See all available commands
+make help
+```
 
 ## Client Libraries
 

@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import LinkedIn
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import LinkedIn
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_linkedin.tools.utils import _handle_linkedin_api_error, _send_linkedin_request
 

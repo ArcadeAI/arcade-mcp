@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_x.tools.tweets import (
     delete_tweet_by_id,

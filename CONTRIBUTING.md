@@ -45,7 +45,7 @@ If you are proposing a new feature:
 # Get Started!
 
 Ready to contribute? Here's how to set up `arcade-ai` for local development.
-Please note this documentation assumes you already have `poetry` and `Git` installed and ready to go.
+Please note this documentation assumes you already have `uv` and `Git` installed and ready to go.
 
 1. Fork the `arcade-ai` repo on GitHub.
 
@@ -53,7 +53,7 @@ Please note this documentation assumes you already have `poetry` and `Git` insta
 
 ```bash
 cd <directory_in_which_repo_should_be_created>
-git clone git@github.com:YOUR_NAME/arcade-ai.git
+git clone git@github.com:YOUR_GITHUB_USERNAME/arcade-ai.git
 ```
 
 3. Now we need to install the environment. Navigate into the directory
@@ -62,24 +62,29 @@ git clone git@github.com:YOUR_NAME/arcade-ai.git
 cd arcade-ai
 ```
 
-If you are using `pyenv`, select a version to use locally. (See installed versions with `pyenv versions`)
+Create your virtual environment
 
 ```bash
-pyenv local <x.y.z>
+uv venv --python 3.11.6
 ```
 
-Then, install and activate the environment with:
+4. Install the development environment and dependencies:
 
 ```bash
-poetry install
-poetry shell
+# Install all packages and development dependencies via uv workspace
+uv sync --extra all --dev
+
+# Install pre-commit hooks for code quality
+uv run pre-commit install
 ```
 
-4. Install pre-commit to run linters/formatters at commit time:
+Or use the convenient Makefile command that does both:
 
 ```bash
-poetry run pre-commit install
+make install
 ```
+
+The uv workspace will automatically handle installing all lib packages in the correct dependency order.
 
 5. Create a branch for local development:
 
@@ -89,7 +94,7 @@ git checkout -b name-of-your-bugfix-or-feature
 
 Now you can make your changes locally.
 
-6. Don't forget to add test cases for your added functionality to the `tests` directory.
+6. Don't forget to add test cases for your added functionality to the `libs/tests` directory.
 
 7. When you're done making changes, check that your changes pass the formatting tests.
 
@@ -103,15 +108,14 @@ Now, validate that all unit tests are passing:
 make test
 ```
 
-9. Before raising a pull request you should also run tox.
-   This will run the tests across different versions of Python:
+8. You can also run tests for specific components:
 
 ```bash
-tox
+# Test all lib packages
+make test
 ```
 
-This requires you to have multiple versions of python installed.
-This step is also triggered in the CI/CD pipeline, so you could also choose to skip this step locally.
+9. The CI/CD pipeline will run additional checks across different Python versions, so local testing with a single version is usually sufficient.
 
 10. Commit your changes and push your branch to GitHub:
 
@@ -129,8 +133,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 
-2. If the pull request adds functionality, the docs should be updated.
-   Put your new functionality into a function with a docstring, and add the feature to the list in `README.md`.
+2. If the pull request adds functionality, the [docs](https://github.com/ArcadeAI/docs) should be updated.
 
 3. If making contributions to multiple toolkits (i.e. Google and Slack, etc.), submit a separate pull request for each.
    This helps us segregate the changes during the review process making it more efficient.

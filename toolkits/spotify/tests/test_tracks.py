@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_spotify.tools.tracks import get_track_from_id
 from arcade_spotify.tools.utils import get_url

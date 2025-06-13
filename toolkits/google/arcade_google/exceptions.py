@@ -1,6 +1,6 @@
 from zoneinfo import available_timezones
 
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk.errors import RetryableToolError
 
 
 class GoogleToolError(Exception):

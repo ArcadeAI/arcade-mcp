@@ -1,12 +1,12 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
+    DatetimeCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
     tool_eval,
 )
-from arcade.sdk.eval.critic import DatetimeCritic
+from arcade_tdk import ToolCatalog
 
 from arcade_microsoft.outlook_calendar import list_events_in_time_range
 

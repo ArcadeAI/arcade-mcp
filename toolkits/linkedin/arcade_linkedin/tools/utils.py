@@ -1,6 +1,6 @@
 import httpx
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_linkedin.tools.constants import LINKEDIN_BASE_URL
 

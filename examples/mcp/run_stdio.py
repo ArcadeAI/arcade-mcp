@@ -1,8 +1,7 @@
 import arcade_google  # pip install arcade_google
 import arcade_search  # pip install arcade_search
-
-from arcade.core.catalog import ToolCatalog
-from arcade.worker.mcp.stdio import StdioServer
+from arcade_core.catalog import ToolCatalog
+from arcade_serve.mcp.stdio import StdioServer
 
 # 2. Create and populate the tool catalog
 catalog = ToolCatalog()

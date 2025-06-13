@@ -1,5 +1,5 @@
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_zoom.tools.meetings import _handle_zoom_api_error
 

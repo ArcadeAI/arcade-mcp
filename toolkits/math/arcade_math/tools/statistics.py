@@ -3,7 +3,7 @@ from decimal import Decimal
 from statistics import median as stats_median
 from typing import Annotated
 
-from arcade.sdk import tool
+from arcade_tdk import tool
 
 decimal.getcontext().prec = 100
 

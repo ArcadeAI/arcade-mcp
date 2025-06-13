@@ -1,5 +1,5 @@
 import pytest
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_confluence.utils import build_child_url, build_hierarchy, validate_ids
 

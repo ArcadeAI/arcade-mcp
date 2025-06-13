@@ -3,7 +3,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 import httpx
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_confluence.enums import BodyFormat, PageUpdateMode
 from arcade_confluence.utils import (
@@ -239,7 +239,8 @@ class ConfluenceClientV2(ConfluenceClient):
         to absolute URLs using the base URL from the response.
         """
         pagination_token = parse_qs(urlparse(response.get("_links", {}).get("next", "")).query).get(
-            "cursor", [None]
+            "cursor",
+            [None],  # type: ignore[list-item]
         )[0]
 
         base_url = response.get("_links", {}).get("base", "")
@@ -260,7 +261,8 @@ class ConfluenceClientV2(ConfluenceClient):
     def transform_list_pages_response(self, response: dict[str, Any]) -> dict[str, Any]:
         """Transform the response from the GET /pages endpoint."""
         pagination_token = parse_qs(urlparse(response.get("_links", {}).get("next", "")).query).get(
-            "cursor", [None]
+            "cursor",
+            [None],  # type: ignore[list-item]
         )[0]
 
         base_url = response.get("_links", {}).get("base", "")
@@ -289,7 +291,8 @@ class ConfluenceClientV2(ConfluenceClient):
     def transform_get_attachments_response(self, response: dict[str, Any]) -> dict[str, Any]:
         """Transform the response from the GET /pages/{id}/attachments endpoint."""
         pagination_token = parse_qs(urlparse(response.get("_links", {}).get("next", "")).query).get(
-            "cursor", [None]
+            "cursor",
+            [None],  # type: ignore[list-item]
         )[0]
 
         base_url = response.get("_links", {}).get("base", "")

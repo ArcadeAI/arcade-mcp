@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
 
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext
 
 from arcade_notion_toolkit.enums import BlockType
 from arcade_notion_toolkit.utils import get_page_url

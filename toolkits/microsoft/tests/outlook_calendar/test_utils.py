@@ -1,5 +1,5 @@
 import pytest
-from arcade.core.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_microsoft.outlook_calendar._utils import (
     convert_timezone_to_offset,

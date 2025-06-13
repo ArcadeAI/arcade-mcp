@@ -1,6 +1,6 @@
 import pytest
 import serpapi
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_search.utils import call_serpapi, prepare_params
 

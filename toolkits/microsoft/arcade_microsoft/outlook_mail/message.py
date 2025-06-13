@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 from bs4 import BeautifulSoup
 from msgraph.generated.models.body_type import BodyType
@@ -96,7 +96,7 @@ class Message:
 
     @staticmethod
     def _parse_importance(value: Any) -> str:
-        return value.value if getattr(value, "value", None) else ""
+        return cast(str, value.value) if getattr(value, "value", None) else ""
 
     @staticmethod
     def _parse_flag(flag: Any) -> dict[str, str]:

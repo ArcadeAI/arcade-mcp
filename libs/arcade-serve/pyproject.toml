@@ -1,0 +1,54 @@
+[project]
+name = "arcade-serve"
+version = "1.0.0"
+description = "Arcade Serve - Serving infrastructure for Arcade tools and workers"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Arcade", email = "dev@arcade.dev"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-core>=0.1.0",
+    "fastapi>=0.115.3",
+    "uvicorn>=0.30.0",
+    "watchfiles>=1.0.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.2",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.5.1",
+    "pre-commit>=3.4.0",
+    "pytest-asyncio>=0.23.7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["arcade_serve"]
+
+[tool.mypy]
+files = ["arcade_serve"]
+python_version = "3.10"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_missing_imports = true

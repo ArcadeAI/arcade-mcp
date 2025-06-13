@@ -1,6 +1,12 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import BinaryCritic, EvalRubric, EvalSuite, ExpectedToolCall, tool_eval
-from arcade.sdk.eval.critic import SimilarityCritic
+from arcade_evals import (
+    BinaryCritic,
+    EvalRubric,
+    EvalSuite,
+    ExpectedToolCall,
+    SimilarityCritic,
+    tool_eval,
+)
+from arcade_tdk import ToolCatalog
 
 import arcade_stripe
 from arcade_stripe.tools.stripe import (

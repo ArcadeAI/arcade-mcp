@@ -1,8 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from arcade.core.schema import ToolSecretItem
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext, ToolSecretItem
 
 from arcade_search.exceptions import CountryNotFoundError, LanguageNotFoundError
 from arcade_search.tools.google_maps import (

@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Reddit
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Reddit
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_reddit.client import RedditClient
 from arcade_reddit.enums import (

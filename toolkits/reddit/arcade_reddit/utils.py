@@ -2,8 +2,8 @@ import re
 from urllib.parse import urlparse
 
 import httpx
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_reddit.client import RedditClient
 from arcade_reddit.enums import RedditThingType

@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import ToolExecutionError
-from arcade.sdk.tool import tool
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.tool import tool
 
 from arcade_search.enums import WalmartSortBy
 from arcade_search.utils import (

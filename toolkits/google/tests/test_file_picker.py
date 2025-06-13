@@ -3,8 +3,7 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from arcade.core.schema import ToolMetadataItem
-from arcade.sdk import ToolContext, ToolMetadataKey
+from arcade_tdk import ToolContext, ToolMetadataItem, ToolMetadataKey
 
 from arcade_google.tools import generate_google_file_picker_url
 

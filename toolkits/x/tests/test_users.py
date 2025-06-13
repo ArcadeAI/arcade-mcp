@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_x.tools.users import lookup_single_user_by_username
 

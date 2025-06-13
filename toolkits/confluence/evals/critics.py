@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from arcade.sdk.eval.critic import Critic
+from arcade_evals.critic import Critic
 
 
 @dataclass

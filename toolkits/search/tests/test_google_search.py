@@ -2,8 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
-from arcade.core.schema import ToolSecretItem
-from arcade.sdk import ToolContext
+from arcade_tdk import ToolContext, ToolSecretItem
 
 from arcade_search.tools import search_google
 

@@ -4,8 +4,8 @@ from collections.abc import Awaitable
 from datetime import datetime
 from typing import Any, Callable, TypeVar, cast
 
-from arcade.sdk import ToolContext
-from arcade.sdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_asana.constants import (
     ASANA_MAX_TIMEOUT_SECONDS,

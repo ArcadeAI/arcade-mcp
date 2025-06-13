@@ -1,8 +1,8 @@
 import asyncio
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Google
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Google
 
 from arcade_google.constants import DEFAULT_SEARCH_CONTACTS_LIMIT
 from arcade_google.utils import build_people_service, search_contacts

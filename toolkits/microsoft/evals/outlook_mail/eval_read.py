@@ -1,7 +1,6 @@
 from datetime import timedelta
 
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     BinaryCritic,
     DatetimeCritic,
     EvalRubric,
@@ -9,6 +8,7 @@ from arcade.sdk.eval import (
     ExpectedToolCall,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 from arcade_microsoft.outlook_mail import (
     list_emails,

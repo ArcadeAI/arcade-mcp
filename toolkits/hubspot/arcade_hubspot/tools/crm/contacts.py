@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Optional
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Hubspot
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Hubspot
 
 from arcade_hubspot.enums import HubspotObject
 from arcade_hubspot.models import HubspotCrmClient

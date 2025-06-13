@@ -1,9 +1,9 @@
 import asyncio
 from typing import Annotated
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import OAuth2
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_salesforce.enums import SalesforceObject
 from arcade_salesforce.models import SalesforceClient

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import pytz
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from kiota_abstractions.headers_collection import HeadersCollection
 from msgraph import GraphServiceClient

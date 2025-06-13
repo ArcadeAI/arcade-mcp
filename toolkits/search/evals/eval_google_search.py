@@ -1,5 +1,4 @@
-from arcade.sdk import ToolCatalog
-from arcade.sdk.eval import (
+from arcade_evals import (
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
@@ -7,6 +6,7 @@ from arcade.sdk.eval import (
     SimilarityCritic,
     tool_eval,
 )
+from arcade_tdk import ToolCatalog
 
 import arcade_search
 from arcade_search.tools import search_google

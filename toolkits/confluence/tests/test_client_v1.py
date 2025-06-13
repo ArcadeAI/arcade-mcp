@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from arcade.sdk.errors import ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_confluence.client import ConfluenceClientV1
 

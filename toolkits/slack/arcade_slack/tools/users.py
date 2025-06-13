@@ -1,8 +1,8 @@
 from typing import Annotated, Any, cast
 
-from arcade.sdk import ToolContext, tool
-from arcade.sdk.auth import Slack
-from arcade.sdk.errors import RetryableToolError
+from arcade_tdk import ToolContext, tool
+from arcade_tdk.auth import Slack
+from arcade_tdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
