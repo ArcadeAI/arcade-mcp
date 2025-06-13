@@ -17,13 +17,21 @@ Begin by cloning the Arcade repository:
 git clone https://github.com/ArcadeAI/arcade-ai.git
 ```
 
+### 2. Build package wheels
+
+From the root of the arcade-ai repository:
+
+```bash
+make full-dist
+```
+
+### 3. Copy and Configure Environment Variables
+
 Change to the `docker` directory:
 
 ```bash
 cd arcade-ai/docker
 ```
-
-### 2. Copy and Configure Environment Variables
 
 Copy the example environment file to `.env`:
 
@@ -45,7 +53,7 @@ If you plan to use other Large Language Model (LLM) providers, add their API key
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-### 3. Run Docker Compose
+### 4. Run Docker Compose
 
 Start the Arcade services using Docker Compose:
 
@@ -55,7 +63,7 @@ docker compose up
 
 This command will build and start all the services defined in the `docker-compose.yml` file and make their ports available to your host machine.
 
-### 4. Verify the Engine is Running
+### 5. Verify the Engine is Running
 
 In a separate terminal window, check if the engine is running:
 
