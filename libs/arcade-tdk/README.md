@@ -38,19 +38,17 @@ def hello_world(name: Annotated[str, "The name of the person to greet"]) -> str:
 from typing import Annotated
 
 from arcade_tdk import tool, ToolCatalog, Toolkit
+from arcade_tdk.auth import Reddit
 
-# Create tools with more complex parameters
-@tool
-def calculate_sum(numbers: Annotated[list[float], "The numbers to sum"]) -> float:
-    """Calculate the sum of a list of numbers."""
-    return sum(numbers)
-
-# Access the tool catalog
-catalog = ToolCatalog()
-tools = catalog.get_all_tools()
-
-# Work with toolkits
-toolkit = Toolkit.from_directory("my_toolkit")
+# Create tools with auth requirement
+@tool(requires_auth=Reddit(scopes=["read"]))
+def get_posts_in_subreddit(
+    subreddit: Annotated[str, "The name of the subreddit"],
+    limit: Annotated[int, "The number of posts to return]
+) -> dict:
+    """Get posts from a specific subreddit"""
+    # TODO: Implement your Reddit tool
+    return {}
 ```
 
 ## License

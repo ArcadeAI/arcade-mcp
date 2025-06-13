@@ -21,17 +21,21 @@ pip install arcade-core
 
 ## Usage
 
+1. Install an arcade toolkit
+```bash
+pip install arcade-math
+```
+
+2. Load the toolkit
 ```python
-from arcade_core import ToolCatalog, Toolkit, ArcadeConfig
+import arcade_math
+from arcade_core import ToolCatalog, Toolkit
 
 # Create a tool catalog
 catalog = ToolCatalog()
 
 # Load a toolkit
-toolkit = Toolkit.from_directory("path/to/toolkit")
-
-# Configure Arcade
-config = ArcadeConfig.from_file("config.yaml")
+toolkit = Toolkit.from_module(arcade_math)
 ```
 
 ## License
