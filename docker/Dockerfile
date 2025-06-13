@@ -3,7 +3,6 @@ FROM python:3.11-slim
 # Define build arguments with default values
 ARG PORT=8001
 ARG HOST=0.0.0.0
-ARG VERSION=${VERSION:-0.1.0.dev0}
 ARG INSTALL_TOOLKITS=true
 
 # Set environment variables using the build arguments
@@ -20,41 +19,38 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app/arcade
+WORKDIR /app
 
-# Copy the parent directory contents into the container
-COPY ./dist ./arcade /app/arcade/
-
-# Copy the toolkits.txt file into the container
-COPY ./docker/toolkits.txt /app/arcade/
+# Copy the dist directory contents into the container
+COPY ./dist /app/dist/
 
 # Expose the port
 EXPOSE $PORT
 
-# List files for debugging purposes
-RUN ls -la /app/arcade/
+# List wheel files for debugging purposes
+RUN ls -la /app/dist/
 
-# Conditional installation based on version
-RUN if [ ! "$(echo ${VERSION} | grep -E '\.dev0$')" ]; then \
-    echo "Installing wheel file" && \
-    python -m pip install ./arcade_ai-${VERSION}-py3-none-any.whl && \
-    python -m pip install -r ./requirements.txt; \
-    else \
-    echo "Installing from source" && \
-    cd /app/arcade && \
-    pip install poetry && \
-    poetry lock && \
-    poetry version 0.1.0 && \
-    pip install -r requirements.txt && \
-    pip install .; \
-    fi
+# Install the core Arcade packages (each has its own version)
+RUN python -m pip install \
+    /app/dist/arcade_core-*.whl \
+    /app/dist/arcade_serve-*.whl \
+    /app/dist/arcade_ai-*.whl
 
-# Conditionally install toolkits.txt dependencies
+# Conditionally install all toolkit wheels from dist directory
 RUN if [ "$INSTALL_TOOLKITS" = "true" ] ; then \
-    python -m pip install -r ./toolkits.txt ; \
+    for wheel in /app/dist/arcade_*.whl; do \
+        # Skip the core packages we already installed
+        if [[ "$wheel" != *"arcade_core-"* ]] && \
+           [[ "$wheel" != *"arcade_serve-"* ]] && \
+           [[ "$wheel" != *"arcade_ai-"* ]] && \
+           [[ "$wheel" != *"arcade_tdk-"* ]]; then \
+            echo "Installing toolkit wheel: $wheel"; \
+            python -m pip install "$wheel"; \
+        fi; \
+    done ; \
     fi
 
-# Run the arcade workerup (hidden cli command)
+# Run the arcade worker
 COPY docker/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 CMD ["/app/start.sh"]
