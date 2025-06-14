@@ -266,7 +266,7 @@ jobs:
     - name: Build distributions
       run: |
         echo "Building full distribution for production release..."
-        make full-dist VERSION=${{ env.VERSION }}
+        make full-dist
 
     - name: Build and push Worker images
       run: |
