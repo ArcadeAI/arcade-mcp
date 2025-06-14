@@ -33,9 +33,8 @@ EXPOSE $PORT
 # List wheel files for debugging purposes
 RUN ls -la /app/dist/
 
-# Install the core Arcade packages (each has its own version)
+# Install the CLI and worker package
 RUN python -m pip install \
-    /app/dist/arcade_core-*.whl \
     /app/dist/arcade_serve-*.whl \
     /app/dist/arcade_ai-*.whl
 
