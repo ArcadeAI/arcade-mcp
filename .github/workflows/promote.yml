@@ -170,3 +170,202 @@ jobs:
           echo "### Branches" >> $GITHUB_STEP_SUMMARY
           echo "- **Source:** main" >> $GITHUB_STEP_SUMMARY
           echo "- **Target:** production" >> $GITHUB_STEP_SUMMARY
+
+  calculate-version:
+    runs-on: ubuntu-latest
+    needs: promote
+    outputs:
+      version: ${{ steps.calculate_version.outputs.version }}
+      previous_version: ${{ steps.calculate_version.outputs.previous_version }}
+    steps:
+      - name: Checkout production branch
+        uses: actions/checkout@v4
+        with:
+          ref: production
+          fetch-depth: 0
+
+      - name: Get latest release and calculate next version
+        id: calculate_version
+        run: |
+          # Get the latest release version from GitHub
+          LATEST_RELEASE=$(gh release view --json tagName --jq .tagName 2>/dev/null || echo "")
+
+          if [ -z "$LATEST_RELEASE" ]; then
+            echo "No previous releases found, starting at 0.0.0"
+            CURRENT_VERSION="0.0.0"
+          else
+            # Remove 'v' prefix if present
+            CURRENT_VERSION=${LATEST_RELEASE#v}
+            echo "Latest release: $LATEST_RELEASE (version: $CURRENT_VERSION)"
+          fi
+
+          # Split version into components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          # Increment based on input
+          case "${{ inputs.worker_container_increment }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-push:
+    needs: calculate-version
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            os: ubuntu-latest
+          - arch: arm64
+            os: linux-arm64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      packages: write
+    env:
+      VERSION: ${{ needs.calculate-version.outputs.version }}
+      REGISTRY: ghcr.io
+
+    steps:
+    - name: Checkout production branch
+      uses: actions/checkout@v4
+      with:
+        ref: production
+        fetch-depth: 0
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build distributions
+      run: |
+        echo "Building full distribution for production release..."
+        make full-dist VERSION=${{ env.VERSION }}
+
+    - name: Build and push Worker images
+      run: |
+        # Build both worker and worker-base images
+        make docker VERSION=${{ env.VERSION }} ARCH=${{ matrix.arch }}
+        make docker-base VERSION=${{ env.VERSION }} ARCH=${{ matrix.arch }}
+
+        # Push to GHCR only
+        make publish-ghcr VERSION=${{ env.VERSION }} ARCH=${{ matrix.arch }}
+
+  push-manifest:
+    runs-on: ubuntu-latest
+    needs: [calculate-version, build-and-push]
+    permissions:
+      contents: write
+      packages: write
+    env:
+      VERSION: ${{ needs.calculate-version.outputs.version }}
+      REGISTRY: ghcr.io
+    steps:
+      - name: Checkout production branch
+        uses: actions/checkout@v4
+        with:
+          ref: production
+          fetch-depth: 0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push manifest to GHCR
+        working-directory: ./docker
+        run: |
+          make ghcr-manifest VERSION=${{ env.VERSION }}
+          make ghcr-manifest INSTALL_TOOLKITS=false VERSION=${{ env.VERSION }}
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [calculate-version, push-manifest]
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.calculate-version.outputs.version }}
+      PREVIOUS_VERSION: ${{ needs.calculate-version.outputs.previous_version }}
+    steps:
+      - name: Checkout production branch
+        uses: actions/checkout@v4
+        with:
+          ref: production
+          fetch-depth: 0
+          token: ${{ secrets.PROMOTE_PAT_TOKEN }}
+
+      - name: Generate release notes
+        id: generate_release_notes
+        run: |
+          echo "# Release v${{ env.VERSION }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "## Container Images" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### GitHub Container Registry (GHCR)" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "docker pull ghcr.io/arcadeai/worker:${{ env.VERSION }}" >> release_notes.md
+          echo "docker pull ghcr.io/arcadeai/worker-base:${{ env.VERSION }}" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## What's Changed" >> release_notes.md
+          echo "" >> release_notes.md
+
+          # Get all commits in production branch since it was created
+          echo "This release includes all changes promoted to the production branch." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Recent commits:" >> release_notes.md
+          # Show last 20 commits in production branch
+          git log --oneline -20 --pretty=format:"- %s" >> release_notes.md
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+
+      - name: Update workflow summary
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Container Release" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Version Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Previous Version:** v${{ env.PREVIOUS_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version:** v${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Increment Type:** ${{ inputs.worker_container_increment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Container Images Published to GHCR" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ghcr.io/arcadeai/worker:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ghcr.io/arcadeai/worker-base:${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
