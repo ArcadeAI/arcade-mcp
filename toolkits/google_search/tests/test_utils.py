@@ -1,7 +1,8 @@
 import pytest
 import serpapi
-from arcade_google_search.utils import call_serpapi, prepare_params
 from arcade_tdk.errors import ToolExecutionError
+
+from arcade_google_search.utils import call_serpapi, prepare_params
 
 
 @pytest.mark.asyncio

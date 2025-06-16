@@ -1,4 +1,3 @@
-import arcade_google_search
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
@@ -7,8 +6,10 @@ from arcade_evals import (
     SimilarityCritic,
     tool_eval,
 )
-from arcade_google_search.tools import search_google
 from arcade_tdk import ToolCatalog
+
+import arcade_google_search
+from arcade_google_search.tools import search_google
 
 # Evaluation rubric
 rubric = EvalRubric(

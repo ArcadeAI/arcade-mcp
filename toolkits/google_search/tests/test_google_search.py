@@ -2,8 +2,9 @@ import json
 from unittest.mock import patch
 
 import pytest
-from arcade_google_search.tools import search_google
 from arcade_tdk import ToolContext, ToolSecretItem
+
+from arcade_google_search.tools import search_google
 
 
 @pytest.fixture
