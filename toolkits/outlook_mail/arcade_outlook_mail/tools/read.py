@@ -78,7 +78,7 @@ async def list_emails_in_folder(
     folder_name = well_known_folder_name.value if well_known_folder_name else folder_id
     client = get_client(context.get_auth_token_or_empty())
     request_config = prepare_list_emails_request_config(limit)
-    message_builder = client.me.mail_folders.by_mail_folder_id(folder_name).messages
+    message_builder = client.me.mail_folders.by_mail_folder_id(folder_name).messages  # type: ignore [arg-type]
 
     response = await fetch_emails(message_builder, pagination_token, request_config)
     messages = [Message.from_sdk(msg).to_dict() for msg in response.value or []]

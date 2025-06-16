@@ -38,7 +38,7 @@ async def create_draft_email(
     ).to_sdk()
 
     response = await client.me.messages.post(message)
-    draft_message = Message.from_sdk(response).to_dict()
+    draft_message = Message.from_sdk(response).to_dict()  # type: ignore [arg-type]
 
     return draft_message
 
@@ -112,4 +112,4 @@ async def update_draft_email(
         draft_email.to_sdk()
     )
 
-    return Message.from_sdk(updated_draft_email).to_dict()
+    return Message.from_sdk(updated_draft_email).to_dict()  # type: ignore [arg-type]
