@@ -7,7 +7,7 @@ from arcade_google_search.utils import call_serpapi, prepare_params
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def search_google(
+async def search(
     context: ToolContext,
     query: Annotated[str, "Search query"],
     n_results: Annotated[int, "Number of results to retrieve"] = 5,

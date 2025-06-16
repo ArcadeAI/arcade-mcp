@@ -17,7 +17,7 @@ from arcade_youtube.utils import (
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def search_youtube_videos(
+async def search_for_videos(
     context: ToolContext,
     keywords: Annotated[
         str,

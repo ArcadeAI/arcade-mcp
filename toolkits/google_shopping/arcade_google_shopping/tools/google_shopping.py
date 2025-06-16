@@ -18,7 +18,7 @@ from arcade_google_shopping.utils import (
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def search_shopping_products(
+async def search_products(
     context: ToolContext,
     keywords: Annotated[
         str,

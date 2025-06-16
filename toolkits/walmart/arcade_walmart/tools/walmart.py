@@ -15,7 +15,7 @@ from arcade_walmart.utils import (
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def search_walmart_products(
+async def search_products(
     context: ToolContext,
     keywords: Annotated[str, "Keywords to search for. E.g. 'apple iphone' or 'samsung galaxy'"],
     sort_by: Annotated[
@@ -72,12 +72,12 @@ async def search_walmart_products(
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
-async def get_walmart_product_details(
+async def get_product_details(
     context: ToolContext,
     item_id: Annotated[
         str,
         "Item ID. E.g. '414600577'. This can be retrieved from the search results of the "
-        f"{search_walmart_products.__tool_name__} tool.",
+        f"{search_products.__tool_name__} tool.",
     ],
 ) -> Annotated[dict[str, Any], "Product details"]:
     """Get product details from Walmart."""

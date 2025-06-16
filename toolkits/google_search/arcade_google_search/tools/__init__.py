@@ -1,3 +1,3 @@
-from arcade_google_search.tools.google_search import search_google
+from arcade_google_search.tools.google_search import search
 
-__all__ = ["search_google"]
+__all__ = ["search"]

@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from arcade_tdk import ToolContext, ToolSecretItem
 
-from arcade_google_search.tools import search_google
+from arcade_google_search.tools import search
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ async def test_search_google_success(mock_context):
             ]
         }
 
-        result = await search_google(mock_context, "test query", 2)
+        result = await search(mock_context, "test query", 2)
 
         expected_result = json.dumps([
             {"title": "Result 1", "link": "http://example.com/1"},
@@ -43,7 +43,7 @@ async def test_search_google_no_results(mock_context):
         mock_client_instance = MockClient.return_value
         mock_client_instance.search.return_value.as_dict.return_value = {"organic_results": []}
 
-        result = await search_google(mock_context, "test query", 2)
+        result = await search(mock_context, "test query", 2)
 
         expected_result = json.dumps([])
         assert result == expected_result
