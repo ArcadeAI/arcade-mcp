@@ -338,12 +338,45 @@ jobs:
           echo "## What's Changed" >> release_notes.md
           echo "" >> release_notes.md
 
-          # Get all commits in production branch since it was created
-          echo "This release includes all changes promoted to the production branch." >> release_notes.md
-          echo "" >> release_notes.md
-          echo "### Recent commits:" >> release_notes.md
-          # Show last 20 commits in production branch
-          git log --oneline -20 --pretty=format:"- %s" >> release_notes.md
+          if [ "${{ inputs.commit_sha }}" != "" ]; then
+            # Case 1: Specific commit SHA to cherry-pick was provided
+            echo "### Cherry-picked commit:" >> release_notes.md
+            echo "" >> release_notes.md
+            git log -1 --pretty=format:"- **%h** %s (%an)" "${{ inputs.commit_sha }}" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "_This release contains a single cherry-picked commit from main._" >> release_notes.md
+          else
+            # Case 2: Bulk promotion (production == main)
+            echo "### Commits in this release:" >> release_notes.md
+            echo "" >> release_notes.md
+
+            # Get the list of previous releases to find the last release
+            PREV_RELEASE_DATE=$(gh release list --limit 5 --json publishedAt,tagName --jq '.[1].publishedAt // empty' 2>/dev/null || echo "")
+
+            if [ -z "$PREV_RELEASE_DATE" ]; then
+              # First promotion ever
+              echo "**Initial release** - Recent commits from main branch:" >> release_notes.md
+              echo "" >> release_notes.md
+              git log -20 --pretty=format:"- **%h** %s (%an)" --reverse >> release_notes.md
+            else
+              # Show commits since the previous promotion
+              echo "Changes since previous release ($(echo $PREV_RELEASE_DATE | cut -d'T' -f1)):" >> release_notes.md
+              echo "" >> release_notes.md
+              git log --since="$PREV_RELEASE_DATE" --pretty=format:"- **%h** %s (%an)" --reverse >> release_notes.md
+              echo "" >> release_notes.md
+
+              # Fallback if no commits since last release (shouldn't happen, but just in case)
+              if [ $(git log --since="$PREV_RELEASE_DATE" --oneline | wc -l) -eq 0 ]; then
+                echo "_No commits found since previous release. Showing recent commits:_" >> release_notes.md
+                echo "" >> release_notes.md
+                git log -10 --pretty=format:"- **%h** %s (%an)" --reverse >> release_notes.md
+              fi
+            fi
+            echo "" >> release_notes.md
+            echo "_This release includes all changes from the main branch._" >> release_notes.md
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
