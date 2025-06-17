@@ -43,11 +43,11 @@ Arcade is a developer platform that lets you build, deploy, and manage tools for
 
 This repository contains the core Arcade libraries, organized as separate packages for maximum flexibility and modularity:
 
--   [**`arcade-core`**](libs/arcade-core) - Core platform functionality and schemas
--   [**`arcade-tdk`**](libs/arcade-tdk) - Tool Development Kit with the `@tool` decorator
--   [**`arcade-serve`**](libs/arcade-serve) - Serving infrastructure for workers and MCP servers
--   [**`arcade-evals`**](libs/arcade-evals) - Evaluation framework for testing tool performance
--   [**`arcade-cli`**](libs/arcade-cli) - Command-line interface for the Arcade platform
+-   **arcade-core** - Core platform functionality and schemas | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-core) | `pip install arcade-core` |
+-   **arcade-tdk** - Tool Development Kit with the `@tool` decorator | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-tdk) | `pip install arcade-tdk` |
+-   **arcade-serve** - Serving infrastructure for workers and MCP servers | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-serve) | `pip install arcade-serve` |
+-   **arcade-evals** - Evaluation framework for testing tool performance | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-evals) | `pip install 'arcade-ai[evals]` |
+-   **arcade-cli** - Command-line interface for the Arcade platform | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-cli) | `pip install arcade-ai` |
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
