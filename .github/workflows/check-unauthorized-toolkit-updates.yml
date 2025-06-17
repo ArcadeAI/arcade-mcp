@@ -61,7 +61,7 @@ jobs:
         run: |
           git fetch origin main
           git checkout origin/main
-          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > target_versions.txt
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | grep "arcade_" | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > target_versions.txt
           echo "Package versions in target branch:"
           cat target_versions.txt
 
