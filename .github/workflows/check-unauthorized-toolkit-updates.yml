@@ -50,7 +50,7 @@ jobs:
         id: current_versions
         # Get all toolkits in the format of "package_name=version" for the PR's current commit and save to current_versions.txt
         run: |
-          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > current_versions.txt
+          paste <(cat toolkits/*/pyproject.toml | grep "^name = " | grep "arcade_" | cut -d'"' -f2) <(cat toolkits/*/pyproject.toml | grep  "^version = " | cut -d'"' -f2) | awk '{print $1"="$2}' > current_versions.txt
           echo "Package versions in current commit:"
           cat current_versions.txt
 
