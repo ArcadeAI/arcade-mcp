@@ -505,7 +505,7 @@ def serve(
     require_dependency(
         package_name="arcade_serve",
         command_name="serve",
-        install_command=r"pip install 'arcade-ai\[serve]'",
+        install_command=r"pip install 'arcade-serve'",
     )
 
     from arcade_cli.serve import serve_default_worker
@@ -558,7 +558,7 @@ def workerup(
     require_dependency(
         package_name="arcade_serve",
         command_name="worker",
-        install_command=r"pip install 'arcade-ai\[worker]'",
+        install_command=r"pip install 'arcade-serve'",
     )
 
     from arcade_cli.serve import serve_default_worker
