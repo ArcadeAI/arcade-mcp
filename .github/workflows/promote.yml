@@ -325,7 +325,7 @@ jobs:
       - name: Generate release notes
         id: generate_release_notes
         run: |
-          echo "# Release v${{ env.VERSION }}" > release_notes.md
+          echo "# Release ${{ env.VERSION }}" > release_notes.md
           echo "" >> release_notes.md
           echo "## Container Images" >> release_notes.md
           echo "" >> release_notes.md
