@@ -14,7 +14,7 @@ async function main() {
     userId: "<YOUR_SYSTEM_USER_ID_2>", // Replace this with your application's user ID (e.g. email address, UUID, etc.)
   }).map(tool);
 
-  // 4) Create a new agent with the Google toolkit
+  // 3) Create a new agent with the Google toolkit
   const googleAgent = new Agent({
     name: "Google agent",
     instructions: "You are a helpful assistant that can assist with Google API calls.",
@@ -22,7 +22,7 @@ async function main() {
     tools
   });
 
-  // 5) Run the agent, if authorization is required, wait for it to complete and retry
+  // 4) Run the agent, if authorization is required, wait for it to complete and retry
   while (true) {
     try {
       const result = await run(googleAgent, "What are my latest emails?");

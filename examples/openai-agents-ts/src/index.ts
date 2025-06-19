@@ -14,7 +14,7 @@ const tools = toZod({
   executeFactory: executeOrAuthorizeZodTool,
 }).map(tool);
 
-// 4) Create a new agent with the Google toolkit
+// 3) Create a new agent with the Google toolkit
 const googleAgent = new Agent({
   name: "Google agent",
   instructions: "You are a helpful assistant that can assist with Google API calls.",
@@ -22,8 +22,8 @@ const googleAgent = new Agent({
   tools
 });
 
-// 5) Run the agent
+// 4) Run the agent
 const result = await run(googleAgent, "What are my latest emails?");
 
-// 6) Print the result
+// 5) Print the result
 console.log(result.finalOutput);
