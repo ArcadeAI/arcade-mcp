@@ -7,23 +7,12 @@ const client = new Arcade();
 
 // 2) Fetch Google toolkit from Arcade and prepare tools for OpenAI Agents
 const googleToolkit = await client.tools.list({ toolkit: "google", limit: 30 });
-const arcadeTools = toZod({
+const tools = toZod({
   tools: googleToolkit.items,
   client,
   userId: "<YOUR_SYSTEM_USER_ID>", // Replace this with your application's user ID (e.g. email address, UUID, etc.)
   executeFactory: executeOrAuthorizeZodTool,
-})
-
-// 3) Convert the tools to a format that OpenAI Agents can use
-const tools =  arcadeTools.map(({ name, description, execute, parameters }) =>
-  tool({
-    name,
-    description: description ?? "",
-    parameters: parameters as any,
-    execute,
-    strict: true,
-  }),
-);
+}).map(tool);
 
 // 4) Create a new agent with the Google toolkit
 const googleAgent = new Agent({

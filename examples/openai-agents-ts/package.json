@@ -11,7 +11,7 @@
     "dev:waitForCompletion": "npx tsx --env-file=.env src/waitForCompletion.ts"
   },
   "dependencies": {
-    "@arcadeai/arcadejs": "1.7.0",
+    "@arcadeai/arcadejs": "1.8.1",
     "@openai/agents": "^0.0.8"
   }
 }
