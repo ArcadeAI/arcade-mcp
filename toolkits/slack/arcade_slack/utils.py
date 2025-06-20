@@ -442,7 +442,7 @@ def convert_relative_datetime_to_unix_timestamp(
     return int(current_unix_timestamp - seconds)
 
 
-def short_user_info(user: SlackUser) -> str:
+def short_user_info(user: dict) -> dict[str, str | None]:
     data = {"id": user.get("id")}
     if user.get("name"):
         data["name"] = user["name"]
@@ -451,5 +451,5 @@ def short_user_info(user: SlackUser) -> str:
     return data
 
 
-def short_human_users_info(users: list[SlackUser]) -> list[str]:
+def short_human_users_info(users: list[dict]) -> list[dict[str, str | None]]:
     return [short_user_info(user) for user in users if not user.get("is_bot")]

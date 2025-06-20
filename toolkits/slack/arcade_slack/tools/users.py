@@ -151,7 +151,7 @@ async def get_multiple_users_by_username(
         elif not is_user_a_bot(user):
             available_users.append(short_user_info(user))
 
-    response = {"users": users_found}
+    response: dict[str, Any] = {"users": users_found}
 
     if usernames_pending:
         response["usernames_not_found"] = list(usernames_pending)
@@ -185,5 +185,4 @@ async def get_user_by_email(
                 additional_prompt_content=f"Available users: {available_users}",
                 retry_after_ms=500,
             )
-    user = response.get("user")
-    return {"user": extract_basic_user_info(user)}
+    return {"user": cast(dict, extract_basic_user_info(SlackUser(**response["user"])))}
