@@ -453,3 +453,10 @@ def short_user_info(user: dict) -> dict[str, str | None]:
 
 def short_human_users_info(users: list[dict]) -> list[dict[str, str | None]]:
     return [short_user_info(user) for user in users if not user.get("is_bot")]
+
+
+def is_valid_email(email: str) -> bool:
+    if "@" not in email:
+        return False
+    left, right = email.split("@", 1)
+    return len(left) > 0 and len(right) > 0 and "." in right
