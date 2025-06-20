@@ -7,20 +7,23 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.models import SlackPaginationNextCursor, SlackUser
+from arcade_slack.exceptions import UsernameNotFoundError
+from arcade_slack.models import (
+    FindMultipleUsersByUsernameSentinel,
+    FindUserByUsernameSentinel,
+    SlackPaginationNextCursor,
+    SlackUser,
+)
 from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
     is_user_a_bot,
     is_user_deleted,
+    short_user_info,
 )
 
 
-@tool(
-    requires_auth=Slack(
-        scopes=["users:read", "users:read.email"],
-    )
-)
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def get_user_info_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The ID of the user to get"],
@@ -52,23 +55,19 @@ async def get_user_info_by_id(
     return dict(**extract_basic_user_info(user))
 
 
-@tool(
-    requires_auth=Slack(
-        scopes=["users:read", "users:read.email"],
-    )
-)
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def list_users(
     context: ToolContext,
     exclude_bots: Annotated[bool | None, "Whether to exclude bots from the results"] = True,
-    limit: Annotated[int | None, "The maximum number of users to return."] = None,
+    limit: Annotated[
+        int | None,
+        "The maximum number of users to return. If a limit is not provided, the tool "
+        "will paginate until it gets all users or a timeout threshold is reached.",
+    ] = None,
     next_cursor: Annotated[str | None, "The next cursor token to use for pagination."] = None,
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
-
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
-    slackClient = AsyncWebClient(token=token)
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
 
     users, next_cursor = await async_paginate(
         func=slackClient.users_list,
@@ -85,3 +84,105 @@ async def list_users(
     ]
 
     return {"users": users, "next_cursor": next_cursor}
+
+
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_user_by_username(
+    context: ToolContext,
+    username: Annotated[str, "The username of the user (case-insensitive match)."],
+) -> Annotated[dict, "The user's info"]:
+    """Get a single user by their username.
+
+    This tool will paginate the list of all users until it finds the user or a timeout threshold
+    is reached. If you have a user email, use the `Slack.GetUserByEmail` tool instead, which is
+    more efficient.
+    """
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+
+    users, _ = await async_paginate(
+        slackClient.users_list,
+        "members",
+        max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
+        sentinel=FindUserByUsernameSentinel(username=username),
+    )
+
+    for user in users:
+        if user["name"].casefold() == username.casefold():
+            return {"user": extract_basic_user_info(user)}
+
+    raise UsernameNotFoundError(
+        username=username,
+        available_users=[short_user_info(user) for user in users],
+    )
+
+
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_multiple_users_by_username(
+    context: ToolContext,
+    usernames: Annotated[list[str], "The usernames of the users (case-insensitive match)."],
+) -> Annotated[dict, "The users' info"]:
+    """Get multiple users by their usernames.
+
+    This tool will paginate the list of all users until it finds the users or a timeout threshold
+    is reached. If you have the users' email addresses, use the `Slack.GetMultipleUsersByEmail` tool
+    instead, which is more efficient.
+    """
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+
+    users, _ = await async_paginate(
+        slackClient.users_list,
+        "members",
+        max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
+        sentinel=FindMultipleUsersByUsernameSentinel(usernames=usernames),
+    )
+
+    users_found = []
+    usernames_pending = set(usernames)
+    usernames_lower = {username.casefold() for username in usernames}
+    available_users = []
+
+    for user in users:
+        if not isinstance(user.get("name"), str):
+            continue
+        if user["name"].casefold() in usernames_lower:
+            users_found.append(extract_basic_user_info(user))
+            usernames_pending.remove(user["name"])
+        else:
+            available_users.append(short_user_info(user))
+
+    response = {"users": users_found}
+
+    if usernames_pending:
+        response["usernames_not_found"] = list(usernames_pending)
+        response["other_available_users"] = available_users
+
+    return response
+
+
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_user_by_email(
+    context: ToolContext,
+    email: Annotated[str, "The email of the user to get"],
+) -> Annotated[dict, "The user's info"]:
+    """Get a user by their email address."""
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+
+    try:
+        response = await slackClient.users_lookupByEmail(email=email)
+    except SlackApiError as e:
+        if e.response.get("error") == "user_not_found":
+            users = await list_users(context)
+            available_users = [
+                {"name": user["name"], "id": user["id"], "email": user.get("email")}
+                for user in users["users"]
+                if user.get("name")
+            ]
+            err_msg = f"User with email '{email}' not found."
+            raise RetryableToolError(
+                err_msg,
+                developer_message=err_msg,
+                additional_prompt_content=f"Available users: {available_users}",
+                retry_after_ms=500,
+            )
+    user = response.get("user")
+    return {"user": extract_basic_user_info(user)}

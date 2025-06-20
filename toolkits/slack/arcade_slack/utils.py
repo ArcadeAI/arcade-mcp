@@ -8,10 +8,7 @@ from arcade_tdk.errors import RetryableToolError
 
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.custom_types import SlackPaginationNextCursor
-from arcade_slack.exceptions import (
-    PaginationTimeoutError,
-    UsernameNotFoundError,
-)
+from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
     BasicUserInfo,
     ConversationMetadata,
@@ -94,18 +91,6 @@ def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
     if channel.get("is_mpim"):
         return ConversationTypeSlackName.MPIM.value
     raise ValueError(f"Invalid conversation type in channel {channel.get('name')}")
-
-
-def get_user_by_username(username: str, users_list: list[dict]) -> SlackUser:
-    usernames_found = []
-    for user in users_list:
-        if isinstance(user.get("name"), str):
-            usernames_found.append(user["name"])
-        username_found = user.get("name") or ""
-        if username.lower() == username_found.lower():
-            return SlackUser(**user)
-
-    raise UsernameNotFoundError(usernames_found=usernames_found, username_not_found=username)
 
 
 def convert_conversation_type_to_slack_name(
@@ -198,7 +183,7 @@ async def associate_members_of_multiple_conversations(
     context: ToolContext,
 ) -> list[dict]:
     """Associate members to each conversation, returning the updated list."""
-    return await asyncio.gather(*[  # type: ignore[no-any-return]
+    return await asyncio.gather(*[
         associate_members_of_conversation(get_members_in_conversation_func, context, conv)
         for conv in conversations
     ])
@@ -455,3 +440,12 @@ def convert_relative_datetime_to_unix_timestamp(
     days, hours, minutes = map(int, relative_datetime.split(":"))
     seconds = days * 86400 + hours * 3600 + minutes * 60
     return int(current_unix_timestamp - seconds)
+
+
+def short_user_info(user: SlackUser) -> str:
+    data = {"id": user.get("id")}
+    if user.get("name"):
+        data["name"] = user["name"]
+    if isinstance(user.get("profile"), dict) and user["profile"].get("email"):
+        data["email"] = user["profile"]["email"]
+    return data

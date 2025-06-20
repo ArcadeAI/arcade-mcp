@@ -4,8 +4,14 @@ import pytest
 from arcade_tdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 
-from arcade_slack.tools.users import get_user_info_by_id, list_users
-from arcade_slack.utils import extract_basic_user_info
+from arcade_slack.exceptions import UsernameNotFoundError
+from arcade_slack.tools.users import (
+    get_multiple_users_by_username,
+    get_user_by_username,
+    get_user_info_by_id,
+    list_users,
+)
+from arcade_slack.utils import extract_basic_user_info, short_user_info
 
 
 @pytest.fixture
@@ -90,3 +96,124 @@ async def test_list_users_with_pagination_success(mock_context, mock_slack_clien
         ],
         "next_cursor": None,
     }
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_username_success(mock_context, mock_slack_client, dummy_user_factory):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
+
+    response = await get_user_by_username(mock_context, username=user1["name"])
+
+    assert response == {"user": extract_basic_user_info(user1)}
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_username_with_pagination_success(
+    mock_context, mock_slack_client, dummy_user_factory
+):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+    user3 = dummy_user_factory()
+    user4 = dummy_user_factory()
+    user5 = dummy_user_factory()
+
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [user1, user2],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [user3, user4],
+            "response_metadata": {"next_cursor": "cursor2"},
+        },
+        {
+            "ok": True,
+            "members": [user5],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    response = await get_user_by_username(mock_context, username=user3["name"])
+
+    assert response == {"user": extract_basic_user_info(user3)}
+
+    assert mock_slack_client.users_list.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_username_not_found(mock_context, mock_slack_client, dummy_user_factory):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
+
+    with pytest.raises(UsernameNotFoundError) as e:
+        await get_user_by_username(mock_context, username=user1["name"] + "not_found")
+
+    # Check that the error message contains the available users
+    assert str(short_user_info(user1)) in e.value.additional_prompt_content
+    assert str(short_user_info(user2)) in e.value.additional_prompt_content
+
+
+@pytest.mark.asyncio
+async def test_get_multiple_users_by_username_success(
+    mock_context, mock_slack_client, dummy_user_factory
+):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+    user3 = dummy_user_factory()
+
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2, user3]}
+
+    response = await get_multiple_users_by_username(
+        mock_context, usernames=[user1["name"], user2["name"]]
+    )
+
+    assert response == {"users": [extract_basic_user_info(user1), extract_basic_user_info(user2)]}
+
+
+@pytest.mark.asyncio
+async def test_get_multiple_users_by_username_with_pagination_success(
+    mock_context, mock_slack_client, dummy_user_factory
+):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+    user3 = dummy_user_factory()
+    user4 = dummy_user_factory()
+    user5 = dummy_user_factory()
+
+    mock_slack_client.users_list.side_effect = [
+        {"ok": True, "members": [user1, user2], "response_metadata": {"next_cursor": "cursor1"}},
+        {"ok": True, "members": [user3, user4], "response_metadata": {"next_cursor": "cursor2"}},
+        {"ok": True, "members": [user5], "response_metadata": {"next_cursor": None}},
+    ]
+
+    response = await get_multiple_users_by_username(
+        mock_context, usernames=[user1["name"], user3["name"]]
+    )
+
+    assert response == {"users": [extract_basic_user_info(user1), extract_basic_user_info(user3)]}
+    assert mock_slack_client.users_list.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_multiple_users_by_username_not_found(
+    mock_context, mock_slack_client, dummy_user_factory
+):
+    user1 = dummy_user_factory()
+    user2 = dummy_user_factory()
+
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
+
+    response = await get_multiple_users_by_username(
+        mock_context, usernames=[user1["name"], user2["name"] + "not_found"]
+    )
+
+    assert response["users"] == [extract_basic_user_info(user1)]
+    assert response["usernames_not_found"] == [user2["name"] + "not_found"]
+    assert response["other_available_users"] == [short_user_info(user2)]
