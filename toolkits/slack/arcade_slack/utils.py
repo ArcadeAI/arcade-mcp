@@ -18,6 +18,7 @@ from arcade_slack.models import (
     ConversationType,
     ConversationTypeSlackName,
     Message,
+    PaginationSentinel,
     SlackConversation,
     SlackConversationPurpose,
     SlackMessage,
@@ -317,6 +318,7 @@ async def async_paginate(
     limit: int | None = None,
     next_cursor: SlackPaginationNextCursor | None = None,
     max_pagination_timeout_seconds: int = MAX_PAGINATION_TIMEOUT_SECONDS,
+    sentinel: PaginationSentinel | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> tuple[list, SlackPaginationNextCursor | None]:
@@ -332,6 +334,10 @@ async def async_paginate(
             not provided, the entire response dictionary is used.
         limit: The maximum number of items to retrieve (defaults to Slack's suggested limit).
         next_cursor: The cursor to use for pagination (optional).
+        max_pagination_timeout_seconds: The maximum timeout for the pagination loop (defaults to
+            MAX_PAGINATION_TIMEOUT_SECONDS).
+        sentinel: Control whether the pagination should continue after each iteration (optional).
+            If provided, the pagination will stop when the sentinel function returns True.
         *args: Positional arguments to pass to the Slack method.
         **kwargs: Keyword arguments to pass to the Slack method.
 
@@ -358,13 +364,18 @@ async def async_paginate(
             response = await func(*args, **iteration_kwargs)
 
             try:
-                results.extend(dict(response.data) if not response_key else response[response_key])
+                result = dict(response.data) if not response_key else response[response_key]
+                results.extend(result)
             except KeyError:
                 raise ValueError(f"Response key {response_key} not found in Slack response")
 
             next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-            if (limit and len(results) >= limit) or not next_cursor:
+            if (
+                (sentinel and sentinel(last_result=result))
+                or (limit and len(results) >= limit)
+                or not next_cursor
+            ):
                 should_continue = False
 
         return results

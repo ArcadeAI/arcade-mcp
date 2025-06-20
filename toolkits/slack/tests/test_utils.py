@@ -10,6 +10,8 @@ from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
     ConversationType,
     ConversationTypeSlackName,
+    FindMultipleUsersByUsernameSentinel,
+    FindUserByUsernameSentinel,
 )
 from arcade_slack.tools.chat import (
     get_members_in_conversation_by_id,
@@ -38,6 +40,170 @@ async def test_async_paginate():
     )
 
     assert results == [{"id": "123"}]
+    assert next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_async_paginate_with_find_user_sentinel():
+    mock_slack_client = AsyncMock()
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [
+                {"id": "123", "name": "Jack"},
+                {"id": "456", "name": "John"},
+            ],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "789", "name": "Jenifer"}],
+            "response_metadata": {"next_cursor": "cursor2"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "007", "name": "James"}],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    results, next_cursor = await async_paginate(
+        func=mock_slack_client.users_list,
+        response_key="members",
+        sentinel=FindUserByUsernameSentinel(username="jenifer"),
+    )
+
+    assert results == [
+        {"id": "123", "name": "Jack"},
+        {"id": "456", "name": "John"},
+        {"id": "789", "name": "Jenifer"},
+    ]
+    assert next_cursor == "cursor2"
+
+
+@pytest.mark.asyncio
+async def test_async_paginate_with_find_user_sentinel_not_found():
+    mock_slack_client = AsyncMock()
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [
+                {"id": "123", "name": "Jack"},
+                {"id": "456", "name": "John"},
+            ],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "789", "name": "Jenifer"}],
+            "response_metadata": {"next_cursor": "cursor2"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "007", "name": "James"}],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    results, next_cursor = await async_paginate(
+        func=mock_slack_client.users_list,
+        response_key="members",
+        sentinel=FindUserByUsernameSentinel(username="Do not find me"),
+    )
+
+    assert results == [
+        {"id": "123", "name": "Jack"},
+        {"id": "456", "name": "John"},
+        {"id": "789", "name": "Jenifer"},
+        {"id": "007", "name": "James"},
+    ]
+    assert next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_async_paginate_with_find_multiple_users_sentinel():
+    mock_slack_client = AsyncMock()
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [
+                {"id": "123", "name": "Jack"},
+                {"id": "456", "name": "John"},
+            ],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [
+                {"id": "789", "name": "Jenifer"},
+                {"id": "101", "name": "Janis"},
+            ],
+            "response_metadata": {"next_cursor": "cursor2"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "007", "name": "James"}],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    results, next_cursor = await async_paginate(
+        func=mock_slack_client.users_list,
+        response_key="members",
+        sentinel=FindMultipleUsersByUsernameSentinel(usernames=["jenifer", "jack"]),
+    )
+
+    assert results == [
+        {"id": "123", "name": "Jack"},
+        {"id": "456", "name": "John"},
+        {"id": "789", "name": "Jenifer"},
+        {"id": "101", "name": "Janis"},
+    ]
+    assert next_cursor == "cursor2"
+
+
+@pytest.mark.asyncio
+async def test_async_paginate_with_find_multiple_users_sentinel_not_found():
+    mock_slack_client = AsyncMock()
+    mock_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [
+                {"id": "123", "name": "Jack"},
+                {"id": "456", "name": "John"},
+            ],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [
+                {"id": "789", "name": "Jenifer"},
+                {"id": "101", "name": "Janis"},
+            ],
+            "response_metadata": {"next_cursor": "cursor2"},
+        },
+        {
+            "ok": True,
+            "members": [{"id": "007", "name": "James"}],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    results, next_cursor = await async_paginate(
+        func=mock_slack_client.users_list,
+        response_key="members",
+        sentinel=FindMultipleUsersByUsernameSentinel(
+            usernames=["jenifer", "jack", "do not find me"]
+        ),
+    )
+
+    assert results == [
+        {"id": "123", "name": "Jack"},
+        {"id": "456", "name": "John"},
+        {"id": "789", "name": "Jenifer"},
+        {"id": "101", "name": "Janis"},
+        {"id": "007", "name": "James"},
+    ]
     assert next_cursor is None
 
 

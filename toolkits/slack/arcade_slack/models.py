@@ -1,5 +1,7 @@
+from abc import ABC, abstractmethod
+from contextlib import suppress
 from enum import Enum
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
 
 from arcade_slack.custom_types import (
     SlackOffsetSecondsFromUTC,
@@ -204,3 +206,57 @@ class SlackConversationsToolResponse(TypedDict, total=True):
 
     conversations: list[ConversationMetadata]
     next_cursor: SlackPaginationNextCursor | None
+
+
+class PaginationSentinel(ABC):
+    """Base class for pagination sentinel classes."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def __call__(self, last_result: Any) -> bool:
+        """Determine if the pagination should stop."""
+        raise NotImplementedError
+
+
+class FindUserByUsernameSentinel(PaginationSentinel):
+    """Sentinel class for finding a user by username."""
+
+    def __call__(self, last_result: Any) -> bool:
+        for user in last_result:
+            if not isinstance(user.get("name"), str):
+                continue
+            if user.get("name").casefold() == self.kwargs["username"].casefold():
+                return True
+        return False
+
+
+class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
+    """Sentinel class for finding multiple users by username."""
+
+    def __init__(self, usernames: list[str]) -> None:
+        if not usernames:
+            raise ValueError("usernames must be a non-empty list of strings")
+        super().__init__(usernames=usernames)
+        self.usernames_pending = {username.casefold() for username in usernames}
+
+    def flag_username_found(self, username: str) -> None:
+        with suppress(KeyError):
+            self.usernames_pending.remove(username.casefold())
+
+    def all_usernames_found(self) -> bool:
+        return not self.usernames_pending
+
+    def __call__(self, last_result: Any) -> bool:
+        if not self.usernames_pending:
+            return True
+        for user in last_result:
+            username = user.get("name")
+            if not isinstance(username, str):
+                continue
+            if username.casefold() in self.usernames_pending:
+                self.flag_username_found(username)
+                if self.all_usernames_found():
+                    return True
+        return False
