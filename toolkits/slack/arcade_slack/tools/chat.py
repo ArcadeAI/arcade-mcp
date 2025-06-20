@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
-from typing import Annotated, cast
+from typing import Annotated, Any, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Slack
@@ -9,15 +9,12 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.exceptions import (
-    ItemNotFoundError,
-    UsernameNotFoundError,
-)
+from arcade_slack.exceptions import ItemNotFoundError
 from arcade_slack.models import (
     ConversationType,
     SlackUserList,
 )
-from arcade_slack.tools.users import get_user_info_by_id, list_users
+from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.utils import (
     async_paginate,
     convert_conversation_type_to_slack_name,
@@ -26,7 +23,6 @@ from arcade_slack.utils import (
     enrich_message_datetime,
     extract_conversation_metadata,
     format_users,
-    get_user_by_username,
     retrieve_conversations_by_user_ids,
 )
 
@@ -324,7 +320,7 @@ async def get_messages_in_conversation_by_id(
     )
     slackClient = AsyncWebClient(token=token)
 
-    datetime_args = {}
+    datetime_args: dict[str, Any] = {}
     if oldest_timestamp:
         datetime_args["oldest"] = oldest_timestamp
     if latest_timestamp:
@@ -709,40 +705,29 @@ async def get_direct_message_conversation_metadata_by_username(
 
     This tool does not return the messages in a conversation. To get the messages, use the
     `get_messages_in_direct_message_conversation_by_username` tool."""
-    try:
-        token = (
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        )
-        slack_client = AsyncWebClient(token=token)
+    from arcade_slack.tools.users import get_user_by_username  # Avoid circular import
 
-        current_user, list_users_response = await asyncio.gather(
-            slack_client.auth_test(), list_users(context)
-        )
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slack_client = AsyncWebClient(token=token)
 
-        other_user = get_user_by_username(username, list_users_response["users"])
+    current_user, other_user = await asyncio.gather(
+        slack_client.auth_test(), get_user_by_username(context, username)
+    )
 
-        conversations_found = await retrieve_conversations_by_user_ids(
-            list_conversations_func=list_conversations_metadata,
-            get_members_in_conversation_func=get_members_in_conversation_by_id,
-            context=context,
-            conversation_types=[ConversationType.DIRECT_MESSAGE],
-            user_ids=[current_user["user_id"], other_user["id"]],
-            exact_match=True,
-            limit=1,
-            next_cursor=next_cursor,
-        )
+    conversations_found = await retrieve_conversations_by_user_ids(
+        list_conversations_func=list_conversations_metadata,
+        get_members_in_conversation_func=get_members_in_conversation_by_id,
+        context=context,
+        conversation_types=[ConversationType.DIRECT_MESSAGE],
+        user_ids=[current_user["user_id"], other_user["user"]["id"]],
+        exact_match=True,
+        limit=1,
+        next_cursor=next_cursor,
+    )
 
-        return None if not conversations_found else conversations_found[0]
-
-    except UsernameNotFoundError as e:
-        raise RetryableToolError(
-            f"Username '{e.username_not_found}' not found",
-            developer_message=f"User with username '{e.username_not_found}' not found.",
-            additional_prompt_content=f"Available users: {e.usernames_found}",
-            retry_after_ms=500,
-        )
+    return None if not conversations_found else conversations_found[0]
 
 
 @tool(requires_auth=Slack(scopes=["im:read"]))
@@ -762,52 +747,48 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
     This tool does not return the messages in a conversation. To get the messages, use the
     `get_messages_in_multi_person_dm_conversation_by_usernames` tool.
     """
-    try:
-        token = (
-            context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        )
-        slack_client = AsyncWebClient(token=token)
+    from arcade_slack.tools.users import get_multiple_users_by_username  # Avoid circular import
 
-        current_user, list_users_response = await asyncio.gather(
-            slack_client.auth_test(), list_users(context)
-        )
+    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
 
-        other_users = [
-            get_user_by_username(username, list_users_response["users"]) for username in usernames
-        ]
+    current_user, other_users_response = await asyncio.gather(
+        slack_client.auth_test(), get_multiple_users_by_username(context, usernames)
+    )
 
-        conversations_found = await retrieve_conversations_by_user_ids(
-            list_conversations_func=list_conversations_metadata,
-            get_members_in_conversation_func=get_members_in_conversation_by_id,
-            context=context,
-            conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-            user_ids=[
-                current_user["user_id"],
-                *[user["id"] for user in other_users if user["id"] != current_user["user_id"]],
-            ],
-            exact_match=True,
-            limit=1,
-            next_cursor=next_cursor,
-        )
-
-        if not conversations_found:
-            raise RetryableToolError(
-                "Conversation not found with the usernames provided",
-                developer_message="Conversation not found with the usernames provided",
-                retry_after_ms=500,
-            )
-
-        return conversations_found[0]
-
-    except UsernameNotFoundError as e:
+    if not_found := other_users_response.get("usernames_not_found"):
         raise RetryableToolError(
-            f"Username '{e.username_not_found}' not found",
-            developer_message=f"User with username '{e.username_not_found}' not found.",
-            additional_prompt_content=f"Available users: {e.usernames_found}",
-            retry_after_ms=500,
+            "Usernames not found",
+            developer_message=f"Usernames not found: {not_found}",
+            additional_prompt_content=(
+                f"Available users: {other_users_response.get('other_available_users')}"
+            ),
+            retry_after_ms=100,
         )
+
+    other_users = other_users_response["users"]
+
+    conversations_found = await retrieve_conversations_by_user_ids(
+        list_conversations_func=list_conversations_metadata,
+        get_members_in_conversation_func=get_members_in_conversation_by_id,
+        context=context,
+        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
+        user_ids=[
+            current_user["user_id"],
+            *[user["id"] for user in other_users if user["id"] != current_user["user_id"]],
+        ],
+        exact_match=True,
+        limit=1,
+        next_cursor=next_cursor,
+    )
+
+    if not conversations_found:
+        raise RetryableToolError(
+            "Conversation not found with the usernames provided",
+            developer_message="Conversation not found with the usernames provided",
+            retry_after_ms=100,
+        )
+
+    return conversations_found[0]
 
 
 @tool(

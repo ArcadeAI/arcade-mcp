@@ -449,3 +449,7 @@ def short_user_info(user: SlackUser) -> str:
     if isinstance(user.get("profile"), dict) and user["profile"].get("email"):
         data["email"] = user["profile"]["email"]
     return data
+
+
+def short_human_users_info(users: list[SlackUser]) -> list[str]:
+    return [short_user_info(user) for user in users if not user.get("is_bot")]

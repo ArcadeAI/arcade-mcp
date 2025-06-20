@@ -149,8 +149,9 @@ async def test_get_user_by_username_with_pagination_success(
 async def test_get_user_by_username_not_found(mock_context, mock_slack_client, dummy_user_factory):
     user1 = dummy_user_factory()
     user2 = dummy_user_factory()
+    user3 = dummy_user_factory(is_bot=True)
 
-    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2, user3]}
 
     with pytest.raises(UsernameNotFoundError) as e:
         await get_user_by_username(mock_context, username=user1["name"] + "not_found")
@@ -158,6 +159,7 @@ async def test_get_user_by_username_not_found(mock_context, mock_slack_client, d
     # Check that the error message contains the available users
     assert str(short_user_info(user1)) in e.value.additional_prompt_content
     assert str(short_user_info(user2)) in e.value.additional_prompt_content
+    assert str(short_user_info(user3)) not in e.value.additional_prompt_content
 
 
 @pytest.mark.asyncio
@@ -207,8 +209,9 @@ async def test_get_multiple_users_by_username_not_found(
 ):
     user1 = dummy_user_factory()
     user2 = dummy_user_factory()
+    user3 = dummy_user_factory(is_bot=True)
 
-    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
+    mock_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2, user3]}
 
     response = await get_multiple_users_by_username(
         mock_context, usernames=[user1["name"], user2["name"] + "not_found"]

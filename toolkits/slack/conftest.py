@@ -38,6 +38,7 @@ def dummy_user_factory(random_str_factory: Callable[[int], str]):
         id_: str | None = None,
         name: str | None = None,
         email: str | None = None,
+        is_bot: bool = False,
     ):
         return {
             "id": id_ or random_str_factory(),
@@ -45,6 +46,7 @@ def dummy_user_factory(random_str_factory: Callable[[int], str]):
             "profile": {
                 "email": email or f"{random_str_factory()}@{random_str_factory()}.com",
             },
+            "is_bot": is_bot,
         }
 
     return dummy_user_factory

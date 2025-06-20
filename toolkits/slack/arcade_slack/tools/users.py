@@ -19,6 +19,7 @@ from arcade_slack.utils import (
     extract_basic_user_info,
     is_user_a_bot,
     is_user_deleted,
+    short_human_users_info,
     short_user_info,
 )
 
@@ -112,7 +113,7 @@ async def get_user_by_username(
 
     raise UsernameNotFoundError(
         username=username,
-        available_users=[short_user_info(user) for user in users],
+        available_users=short_human_users_info(users),
     )
 
 
@@ -147,7 +148,7 @@ async def get_multiple_users_by_username(
         if user["name"].casefold() in usernames_lower:
             users_found.append(extract_basic_user_info(user))
             usernames_pending.remove(user["name"])
-        else:
+        elif not is_user_a_bot(user):
             available_users.append(short_user_info(user))
 
     response = {"users": users_found}
