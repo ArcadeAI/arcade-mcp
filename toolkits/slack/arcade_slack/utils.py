@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError
@@ -183,10 +183,13 @@ async def associate_members_of_multiple_conversations(
     context: ToolContext,
 ) -> list[dict]:
     """Associate members to each conversation, returning the updated list."""
-    return await asyncio.gather(*[
-        associate_members_of_conversation(get_members_in_conversation_func, context, conv)
-        for conv in conversations
-    ])
+    return cast(
+        list[dict],
+        await asyncio.gather(*[
+            associate_members_of_conversation(get_members_in_conversation_func, context, conv)
+            for conv in conversations
+        ]),
+    )
 
 
 async def associate_members_of_conversation(
