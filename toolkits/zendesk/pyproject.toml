@@ -53,7 +53,7 @@ testpaths = [ "tests",]
 skip_empty = true
 
 [tool.ruff.lint]
-ignore = ["C901", "TRY300", "TRY400"]
+ignore = ["C901"]
 
 [tool.hatch.build.targets.wheel]
 packages = [ "arcade_zendesk",]

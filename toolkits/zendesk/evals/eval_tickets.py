@@ -363,7 +363,7 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
                 func=add_ticket_comment,
                 args={
                     "ticket_id": 1,
-                    "comment_body": "We're working on it",
+                    "comment_body": "We're currently working on resolving your login issue.",
                     "public": True,
                 },
             )

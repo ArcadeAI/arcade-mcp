@@ -60,7 +60,7 @@ serve: ## Run arcade serve with local development setup
 .PHONY: eval
 eval: ## Run tool evaluations
 	@echo "🧪 Running evaluations for Zendesk toolkit"
-	@uv run arcade evals ./evals --max-concurrent 5 --details 2>&1 | tee evals_log.txt
+	@uv run arcade evals ./evals --max-concurrent 5 --models gpt-4o --details 2>&1 | tee evals_log.txt
 
 .PHONY: eval-cloud
 eval-cloud: ## Run evaluations against Arcade Cloud

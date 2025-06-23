@@ -24,12 +24,12 @@ catalog.add_module(arcade_zendesk)
 
 
 @tool_eval()
-def zendesk_eval_suite() -> EvalSuite:
+def zendesk_search_articles_eval_suite() -> EvalSuite:
     suite = EvalSuite(
-        name="Zendesk Help Center Tools Evaluation",
+        name="Zendesk Search Articles Evaluation",
         system_message=(
-            "You are an AI assistant with access to Zendesk Help Center tools. "
-            "Use them to help users search for knowledge base articles and documentation."
+            "You are an AI assistant with access to Zendesk Search Articles tool. "
+            "Use it to help users search for knowledge base articles and documentation."
         ),
         catalog=catalog,
         rubric=rubric,
@@ -317,7 +317,7 @@ def zendesk_eval_suite() -> EvalSuite:
 
 
 @tool_eval()
-def zendesk_pagination_eval_suite() -> EvalSuite:
+def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
     """Separate suite for pagination scenarios with context."""
     suite = EvalSuite(
         name="Zendesk Pagination Evaluation",
