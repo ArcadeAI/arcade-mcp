@@ -70,6 +70,14 @@ cli.add_typer(
 console = Console()
 
 
+def handle_error_with_debug(error: Exception, message: str, debug: bool) -> None:
+    """Handle error reporting with optional debug traceback."""
+    if debug:
+        console.print(f"❌ {message}: {traceback.format_exc()}", style="bold red")
+    else:
+        console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
+
+
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
 def login(
     host: str = typer.Option(
@@ -118,10 +126,7 @@ def login(
     except KeyboardInterrupt:
         auth_server.shutdown_server()
     except Exception as e:
-        if debug:
-            console.print(f"❌ Login failed with error: {traceback.format_exc()}", style="bold red")
-        else:
-            console.print(f"❌ Login failed with error: {escape(str(e))}", style="bold red")
+        handle_error_with_debug(e, "Login failed", debug)
         raise typer.Exit(code=1)
     finally:
         if server_thread.is_alive():
@@ -143,12 +148,7 @@ def logout(
         else:
             console.print("You're not logged in.", style="bold red")
     except Exception as e:
-        if debug:
-            console.print(
-                f"❌ Logout failed with error: {traceback.format_exc()}", style="bold red"
-            )
-        else:
-            console.print(f"❌ Logout failed with error: {escape(str(e))}", style="bold red")
+        handle_error_with_debug(e, "Logout failed", debug)
         raise typer.Exit(code=1)
 
 
@@ -172,11 +172,7 @@ def new(
     try:
         create_new_toolkit(directory, toolkit_name)
     except Exception as e:
-        if debug:
-            error_message = f"❌ Failed to create new Toolkit: {traceback.format_exc()}"
-        else:
-            error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+        handle_error_with_debug(e, "Failed to create new Toolkit", debug)
         raise typer.Exit(code=1)
 
 
@@ -231,7 +227,7 @@ def show(
     help="Start a chat with a model in the terminal to test tools",
     rich_help_panel="Tool Development",
 )
-def chat(  # noqa: C901
+def chat(
     model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
@@ -342,13 +338,7 @@ def chat(  # noqa: C901
                     tool_messages = chat_result.tool_messages
 
             except OpenAIError as e:
-                if debug:
-                    console.print(
-                        f"❌ Arcade Chat failed with error: {traceback.format_exc()}",
-                        style="bold red",
-                    )
-                else:
-                    console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
+                handle_error_with_debug(e, "Arcade Chat failed", debug)
                 continue
             if debug:
                 display_tool_messages(tool_messages)
@@ -358,11 +348,7 @@ def chat(  # noqa: C901
         typer.Exit()
 
     except RuntimeError as e:
-        if debug:
-            error_message = f"❌ Failed to run tool: {traceback.format_exc()}"
-        else:
-            error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
-        console.print(error_message, style="bold red")
+        handle_error_with_debug(e, "Failed to run tool", debug)
         raise typer.Exit()
 
 
@@ -500,12 +486,7 @@ def evals(
     try:
         asyncio.run(run_evaluations())
     except Exception as e:
-        if debug:
-            console.print(
-                f"❌ Failed to run evaluations: {traceback.format_exc()}", style="bold red"
-            )
-        else:
-            console.print(f"❌ Failed to run evaluations: {escape(str(e))}", style="bold red")
+        handle_error_with_debug(e, "Failed to run evaluations", debug)
         raise typer.Exit(code=1)
 
 
@@ -566,11 +547,7 @@ def serve(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        if debug:
-            error_message = f"❌ Failed to start Arcade Worker: {traceback.format_exc()}"
-        else:
-            error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+        handle_error_with_debug(e, "Failed to start Arcade Worker", debug)
         typer.Exit(code=1)
 
 
@@ -620,11 +597,7 @@ def workerup(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        if debug:
-            error_message = f"❌ Failed to start Arcade Toolkit Server: {traceback.format_exc()}"
-        else:
-            error_message = f"❌ Failed to start Arcade Toolkit Server: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+        handle_error_with_debug(e, "Failed to start Arcade Toolkit Server", debug)
         typer.Exit(code=1)
 
 
@@ -687,12 +660,7 @@ def deploy(
     try:
         deployment = Deployment.from_toml(Path(deployment_file))
     except Exception as e:
-        if debug:
-            console.print(
-                f"❌ Failed to parse deployment file: {traceback.format_exc()}", style="bold red"
-            )
-        else:
-            console.print(f"❌ Failed to parse deployment file: {e}", style="bold red")
+        handle_error_with_debug(e, "Failed to parse deployment file", debug)
         raise typer.Exit(code=1)
 
     with console.status(f"Deploying {len(deployment.worker)} workers"):
@@ -703,15 +671,7 @@ def deploy(
                 worker.request().execute(cloud_client, engine_client)
                 console.log(f"✅ Worker '{worker.config.id}' deployed successfully.", style="dim")
             except Exception as e:
-                if debug:
-                    console.log(
-                        f"❌ Failed to deploy worker '{worker.config.id}': {traceback.format_exc()}",
-                        style="bold red",
-                    )
-                else:
-                    console.log(
-                        f"❌ Failed to deploy worker '{worker.config.id}': {e}", style="bold red"
-                    )
+                handle_error_with_debug(e, f"Failed to deploy worker '{worker.config.id}'", debug)
                 raise typer.Exit(code=1)
 
 
@@ -772,12 +732,7 @@ def dashboard(
                 style="dim",
             )
     except Exception as e:
-        if debug:
-            console.print(
-                f"❌ Failed to open dashboard: {traceback.format_exc()}", style="bold red"
-            )
-        else:
-            console.print(f"❌ Failed to open dashboard: {escape(str(e))}", style="bold red")
+        handle_error_with_debug(e, "Failed to open dashboard", debug)
         raise typer.Exit(code=1)
 
 
