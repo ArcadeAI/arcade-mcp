@@ -15,9 +15,6 @@ from arcade_tdk import ToolCatalog
 import arcade_slack
 from arcade_slack.critics import RelativeTimeBinaryCritic
 from arcade_slack.tools.chat import (
-    get_channel_metadata_by_name,
-    get_conversation_metadata_by_id,
-    get_direct_message_conversation_metadata_by_user,
     get_members_in_channel_by_name,
     get_members_in_conversation_by_id,
     get_messages_in_channel_by_name,
@@ -423,71 +420,6 @@ def list_conversations_eval_suite() -> EvalSuite:
                     args={},
                 )
                 for tool_function in expect_called_tool_functions
-            ],
-        )
-
-    return suite
-
-
-@tool_eval()
-def get_conversations_metadata_eval_suite() -> EvalSuite:
-    """Create an evaluation suite for tools getting conversations metadata."""
-    suite = EvalSuite(
-        name="Slack Tools Evaluation",
-        system_message="You are an AI assistant that can interact with Slack to get information from conversations, users, etc.",
-        catalog=catalog,
-        rubric=rubric,
-    )
-
-    suite.add_case(
-        name="Get channel metadata by name",
-        user_message="Get the metadata of the #general channel",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=get_channel_metadata_by_name,
-                args={
-                    "channel_name": "general",
-                },
-            ),
-        ],
-        critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1.0),
-        ],
-    )
-
-    suite.add_case(
-        name="Get conversation metadata by id",
-        user_message="Get the metadata of the conversation with id '1234567890'",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=get_conversation_metadata_by_id,
-                args={
-                    "conversation_id": "1234567890",
-                },
-            ),
-        ],
-        critics=[
-            BinaryCritic(critic_field="conversation_id", weight=1.0),
-        ],
-    )
-
-    get_metadata_by_username_user_messages = [
-        "get the metadata of the direct message conversation with the user 'jane.doe'"
-        "get data about my private conversation with the user 'jane.doe'",
-        "get data about my IM conversation with the 'jane.doe'",
-    ]
-
-    for i, user_message in enumerate(get_metadata_by_username_user_messages):
-        suite.add_case(
-            name=f"Get direct message conversation metadata by username {i}",
-            user_message=user_message,
-            expected_tool_calls=[
-                ExpectedToolCall(
-                    func=get_direct_message_conversation_metadata_by_user,
-                    args={
-                        "username_or_email": "jane.doe",
-                    },
-                ),
             ],
         )
 
