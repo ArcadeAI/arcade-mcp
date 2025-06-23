@@ -533,4 +533,4 @@ def build_multiple_users_retrieval_response(
             retry_after_ms=500,
         )
 
-    return users_by_email["users"] + users_by_username["users"]
+    return cast(list[dict[str, Any]], users_by_email["users"] + users_by_username["users"])
