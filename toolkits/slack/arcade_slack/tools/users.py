@@ -99,6 +99,10 @@ async def get_user_by_username(
     This tool will paginate the list of all users until it finds the user or a timeout threshold
     is reached. If you have a user email, use the `Slack.GetUserByEmail` tool instead, which is
     more efficient.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE USERNAME DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
+    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
     """
     if not username:
         raise ToolExecutionError("No username provided")
@@ -132,6 +136,10 @@ async def get_multiple_users_by_username(
     This tool will paginate the list of all users until it finds the users or a timeout threshold
     is reached. If you have the users' email addresses, use the `Slack.GetMultipleUsersByEmail` tool
     instead, which is more efficient.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH CERTAIN USERS, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE USERNAMES DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
+    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
     """
     if not usernames:
         raise ToolExecutionError("No usernames provided")
@@ -154,7 +162,7 @@ async def get_multiple_users_by_username(
         if not isinstance(user.get("name"), str):
             continue
         if user["name"].casefold() in usernames_lower:
-            users_found.append(extract_basic_user_info(user))
+            users_found.append(cast(dict, extract_basic_user_info(SlackUser(**user))))
             usernames_pending.remove(user["name"])
         elif not is_user_a_bot(user):
             available_users.append(short_user_info(user))
@@ -173,7 +181,12 @@ async def get_user_by_email(
     context: ToolContext,
     email: Annotated[str, "The email of the user to get"],
 ) -> Annotated[dict, "The user's info"]:
-    """Get a user by their email address."""
+    """Get a user by their email address.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE EMAIL ADDRESS DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
+    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+    """
     if not is_valid_email(email):
         raise ToolExecutionError(f"Invalid email address: {email}")
 
@@ -184,16 +197,13 @@ async def get_user_by_email(
     except SlackApiError as e:
         if e.response.get("error") in ["user_not_found", "users_not_found"]:
             users = await list_users(context)
-            available_users = [
-                {"name": user["name"], "id": user["id"], "email": user.get("email")}
-                for user in users["users"]
-                if user.get("name")
-            ]
             err_msg = f"User with email '{email}' not found."
             raise RetryableToolError(
                 err_msg,
                 developer_message=err_msg,
-                additional_prompt_content=f"Available users: {available_users}",
+                additional_prompt_content=(
+                    f"Available users: {short_human_users_info(users['users'])}"
+                ),
                 retry_after_ms=500,
             )
         else:
@@ -207,7 +217,12 @@ async def get_multiple_users_by_email(
     context: ToolContext,
     emails: Annotated[list[str], "The emails of the users to get"],
 ) -> Annotated[dict, "The users' info"]:
-    """Get multiple users by their email addresses."""
+    """Get multiple users by their email addresses.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH CERTAIN USERS, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE EMAIL ADDRESSES DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL
+    FIRST, YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+    """
     if not emails:
         raise ToolExecutionError("No emails provided")
 

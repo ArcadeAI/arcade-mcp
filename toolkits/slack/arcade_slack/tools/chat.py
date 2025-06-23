@@ -23,6 +23,8 @@ from arcade_slack.utils import (
     enrich_message_datetime,
     extract_conversation_metadata,
     format_users,
+    get_multiple_users_by_usernames_or_emails,
+    is_valid_email,
     retrieve_conversations_by_user_ids,
 )
 
@@ -430,9 +432,13 @@ async def get_messages_in_channel_by_name(
 
 
 @tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
-async def get_messages_in_direct_message_conversation_by_username(
+async def get_messages_in_direct_message_conversation_by_user(
     context: ToolContext,
-    username: Annotated[str, "The username of the user to get messages from"],
+    username_or_email: Annotated[
+        str | None,
+        "The username or email address of the user to get messages from. "
+        "Prefer providing an email address, when available, since the performance is better.",
+    ] = None,
     oldest_relative: Annotated[
         str | None,
         (
@@ -472,6 +478,11 @@ async def get_messages_in_direct_message_conversation_by_username(
 ]:
     """Get the messages in a direct conversation by the user's name.
 
+    IF YOU HAVE A USERNAME OR EMAIL ADDRESS, DO NOT CALL THE `Slack.GetUserByUsername`
+    AND/OR `Slack.GetUserByEmail` TOOLS FIRST. PASS THE USERNAME OR EMAIL ADDRESS DIRECTLY TO THIS
+    TOOL. IF YOU CALL ANOTHER TOOL FIRST UNNECESSARILY, YOU WILL GENERATE TOO MUCH CO2 AND
+    CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+
     To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
     only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
     current time. If only 'latest_datetime' is provided, it will return messages since the
@@ -486,8 +497,9 @@ async def get_messages_in_direct_message_conversation_by_username(
     'latest_relative'.
 
     Leave all arguments with the default None to get messages without date/time filtering"""
-    direct_conversation = await get_direct_message_conversation_metadata_by_username(
-        context=context, username=username
+
+    direct_conversation = await get_direct_message_conversation_metadata_by_user(
+        context=context, username_or_email=username_or_email
     )
 
     return await get_messages_in_conversation_by_id(  # type: ignore[no-any-return]
@@ -503,9 +515,14 @@ async def get_messages_in_direct_message_conversation_by_username(
 
 
 @tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
-async def get_messages_in_multi_person_dm_conversation_by_usernames(
+async def get_messages_in_multi_person_dm_conversation_by_users(
     context: ToolContext,
-    usernames: Annotated[list[str], "The usernames of the users to get messages from"],
+    usernames_or_emails: Annotated[
+        list[str],
+        "The usernames or email addresses of the users to get messages from. "
+        "Usernames and emails can be mixed in the list. Prefer providing email addresses, "
+        "when available, since the performance is better.",
+    ],
     oldest_relative: Annotated[
         str | None,
         (
@@ -545,6 +562,11 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
 ]:
     """Get the messages in a multi-person direct message conversation by the usernames.
 
+    IF YOU HAVE USERNAMES AND/OR EMAIL ADDRESSES, DO NOT CALL THE `Slack.GetMultipleUsersByUsername`
+    AND/OR `Slack.GetMultipleUsersByEmail` TOOLS FIRST. PASS THE USERNAMES AND/OR EMAIL ADDRESSES
+    DIRECTLY TO THIS TOOL. IF YOU CALL ANOTHER TOOL FIRST UNNECESSARILY, YOU WILL GENERATE TOO MUCH
+    CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+
     To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
     only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
     current time. If only 'latest_datetime' is provided, it will return messages since the
@@ -559,8 +581,8 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
     'latest_relative'.
 
     Leave all arguments with the default None to get messages without date/time filtering"""
-    direct_conversation = await get_multi_person_dm_conversation_metadata_by_usernames(
-        context=context, usernames=usernames
+    direct_conversation = await get_multi_person_dm_conversation_metadata_by_users(
+        context=context, usernames_or_emails=usernames_or_emails
     )
 
     return await get_messages_in_conversation_by_id(  # type: ignore[no-any-return]
@@ -690,9 +712,13 @@ async def get_channel_metadata_by_name(
 
 
 @tool(requires_auth=Slack(scopes=["im:read"]))
-async def get_direct_message_conversation_metadata_by_username(
+async def get_direct_message_conversation_metadata_by_user(
     context: ToolContext,
-    username: Annotated[str, "The username of the user/person to get messages with"],
+    username_or_email: Annotated[
+        str,
+        "The username or email address of the user/person to get messages with. "
+        "Prefer providing an email address, when available, since the performance is better.",
+    ],
     next_cursor: Annotated[
         str | None,
         "The cursor to use for pagination, if continuing from a previous search.",
@@ -704,16 +730,30 @@ async def get_direct_message_conversation_metadata_by_username(
     """Get the metadata of a direct message conversation in Slack by the username.
 
     This tool does not return the messages in a conversation. To get the messages, use the
-    `get_messages_in_direct_message_conversation_by_username` tool."""
-    from arcade_slack.tools.users import get_user_by_username  # Avoid circular import
+    `get_messages_in_direct_message_conversation_by_username` tool.
+
+    IF YOU HAVE A USERNAME OR EMAIL ADDRESS, DO NOT CALL THE `Slack.GetUserByUsername`
+    AND/OR `Slack.GetUserByEmail` TOOLS FIRST. PASS THE USERNAME OR EMAIL ADDRESS DIRECTLY TO THIS
+    TOOL. IF YOU CALL ANOTHER TOOL FIRST UNNECESSARILY, YOU WILL GENERATE TOO MUCH CO2 AND
+    CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+    """
+    if not username_or_email:
+        raise ToolExecutionError("No username or email provided")
+
+    from arcade_slack.tools.users import (  # Avoid circular import
+        get_user_by_email,
+        get_user_by_username,
+    )
 
     token = (
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
     slack_client = AsyncWebClient(token=token)
 
+    get_user = get_user_by_email if is_valid_email(username_or_email) else get_user_by_username
+
     current_user, other_user = await asyncio.gather(
-        slack_client.auth_test(), get_user_by_username(context, username)
+        slack_client.auth_test(), get_user(context, username_or_email)
     )
 
     conversations_found = await retrieve_conversations_by_user_ids(
@@ -731,9 +771,14 @@ async def get_direct_message_conversation_metadata_by_username(
 
 
 @tool(requires_auth=Slack(scopes=["im:read"]))
-async def get_multi_person_dm_conversation_metadata_by_usernames(
+async def get_multi_person_dm_conversation_metadata_by_users(
     context: ToolContext,
-    usernames: Annotated[list[str], "The usernames of the users/people to get messages with"],
+    usernames_or_emails: Annotated[
+        list[str],
+        "The usernames or email addresses of the users/people to get messages with. "
+        "Usernames and emails can be mixed in the list. Prefer providing email addresses, "
+        "when available, since the performance is better.",
+    ],
     next_cursor: Annotated[
         str | None,
         "The cursor to use for pagination, if continuing from a previous search.",
@@ -746,26 +791,21 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
 
     This tool does not return the messages in a conversation. To get the messages, use the
     `get_messages_in_multi_person_dm_conversation_by_usernames` tool.
+
+    IF YOU HAVE USERNAMES AND/OR EMAIL ADDRESSES, DO NOT CALL THE `Slack.GetMultipleUsersByUsername`
+    AND/OR `Slack.GetMultipleUsersByEmail` TOOLS FIRST. PASS THE USERNAMES AND/OR EMAIL ADDRESSES
+    DIRECTLY TO THIS TOOL. IF YOU CALL ANOTHER TOOL FIRST UNNECESSARILY, YOU WILL GENERATE TOO MUCH
+    CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
     """
-    from arcade_slack.tools.users import get_multiple_users_by_username  # Avoid circular import
+    if not usernames_or_emails:
+        raise ToolExecutionError("No usernames or emails provided")
 
     slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
 
-    current_user, other_users_response = await asyncio.gather(
-        slack_client.auth_test(), get_multiple_users_by_username(context, usernames)
+    current_user, other_users = await asyncio.gather(
+        slack_client.auth_test(),
+        get_multiple_users_by_usernames_or_emails(context, usernames_or_emails),
     )
-
-    if not_found := other_users_response.get("usernames_not_found"):
-        raise RetryableToolError(
-            "Usernames not found",
-            developer_message=f"Usernames not found: {not_found}",
-            additional_prompt_content=(
-                f"Available users: {other_users_response.get('other_available_users')}"
-            ),
-            retry_after_ms=100,
-        )
-
-    other_users = other_users_response["users"]
 
     conversations_found = await retrieve_conversations_by_user_ids(
         list_conversations_func=list_conversations_metadata,

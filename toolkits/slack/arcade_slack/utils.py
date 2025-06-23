@@ -451,6 +451,8 @@ def short_user_info(user: dict) -> dict[str, str | None]:
         data["name"] = user["name"]
     if isinstance(user.get("profile"), dict) and user["profile"].get("email"):
         data["email"] = user["profile"]["email"]
+    elif user.get("email"):
+        data["email"] = user["email"]
     return data
 
 
@@ -463,3 +465,72 @@ def is_valid_email(email: str) -> bool:
         return False
     left, right = email.split("@", 1)
     return len(left) > 0 and len(right) > 0 and "." in right
+
+
+async def get_multiple_users_by_usernames_or_emails(
+    context: ToolContext,
+    usernames_or_emails: list[str],
+) -> list[dict]:
+    from arcade_slack.tools.users import (  # Avoid circular import
+        get_multiple_users_by_email,
+        get_multiple_users_by_username,
+    )
+
+    emails: list[str] = []
+    usernames: list[str] = []
+
+    for item in usernames_or_emails:
+        if is_valid_email(item):
+            emails.append(item)
+        else:
+            usernames.append(item)
+
+    if emails and usernames:
+        users_by_email, users_by_username = await asyncio.gather(
+            get_multiple_users_by_email(context, emails),
+            get_multiple_users_by_username(context, usernames),
+        )
+    elif emails:
+        users_by_email = await get_multiple_users_by_email(context=context, emails=emails)
+        users_by_username = {"users": [], "usernames_not_found": [], "other_available_users": []}
+    elif usernames:
+        users_by_email = {"users": [], "emails_not_found": []}
+        users_by_username = await get_multiple_users_by_username(
+            context=context, usernames=usernames
+        )
+
+    return build_multiple_users_retrieval_response(users_by_email, users_by_username)
+
+
+def build_multiple_users_retrieval_response(
+    users_by_email: dict[str, Any],
+    users_by_username: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Builds response list for the get_multiple_users_by_usernames_or_emails function."""
+    emails_not_found = users_by_email.get("emails_not_found")
+    usernames_not_found = users_by_username.get("usernames_not_found")
+
+    if emails_not_found or usernames_not_found:
+        msg = ["The following users were not found:"]
+        if emails_not_found:
+            msg.append(f"Emails: {emails_not_found}")
+        if usernames_not_found:
+            msg.append(f"Usernames: {usernames_not_found}")
+
+        if users_by_username.get("other_available_users"):
+            additional_prompt = (
+                f"Other available users: {users_by_username['other_available_users']}"
+            )
+        else:
+            additional_prompt = None
+
+        msg_str = "\n".join(msg)
+
+        raise RetryableToolError(
+            msg_str,
+            developer_message=msg_str,
+            additional_prompt_content=additional_prompt,
+            retry_after_ms=500,
+        )
+
+    return users_by_email["users"] + users_by_username["users"]
