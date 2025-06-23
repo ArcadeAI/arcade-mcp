@@ -90,43 +90,6 @@ async def list_users(
 
 
 @tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
-async def get_user_by_username(
-    context: ToolContext,
-    username: Annotated[str, "The username of the user (case-insensitive match)."],
-) -> Annotated[dict, "The user's info"]:
-    """Get a single user by their username.
-
-    This tool will paginate the list of all users until it finds the user or a timeout threshold
-    is reached. If you have a user email, use the `Slack.GetUserByEmail` tool instead, which is
-    more efficient.
-
-    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
-    PROVIDE THE USERNAME DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
-    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
-    """
-    if not username:
-        raise ToolExecutionError("No username provided")
-
-    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
-
-    users, _ = await async_paginate(
-        slackClient.users_list,
-        "members",
-        max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
-        sentinel=FindUserByUsernameSentinel(username=username),
-    )
-
-    for user in users:
-        if user["name"].casefold() == username.casefold():
-            return {"user": extract_basic_user_info(user)}
-
-    raise UsernameNotFoundError(
-        username=username,
-        available_users=short_human_users_info(users),
-    )
-
-
-@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def get_multiple_users_by_username(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users (case-insensitive match)."],
@@ -177,42 +140,6 @@ async def get_multiple_users_by_username(
 
 
 @tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
-async def get_user_by_email(
-    context: ToolContext,
-    email: Annotated[str, "The email of the user to get"],
-) -> Annotated[dict, "The user's info"]:
-    """Get a user by their email address.
-
-    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
-    PROVIDE THE EMAIL ADDRESS DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
-    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
-    """
-    if not is_valid_email(email):
-        raise ToolExecutionError(f"Invalid email address: {email}")
-
-    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
-
-    try:
-        response = await slackClient.users_lookupByEmail(email=email)
-    except SlackApiError as e:
-        if e.response.get("error") in ["user_not_found", "users_not_found"]:
-            users = await list_users(context)
-            err_msg = f"User with email '{email}' not found."
-            raise RetryableToolError(
-                err_msg,
-                developer_message=err_msg,
-                additional_prompt_content=(
-                    f"Available users: {short_human_users_info(users['users'])}"
-                ),
-                retry_after_ms=500,
-            )
-        else:
-            raise
-    else:
-        return {"user": cast(dict, extract_basic_user_info(SlackUser(**response["user"])))}
-
-
-@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def get_multiple_users_by_email(
     context: ToolContext,
     emails: Annotated[list[str], "The emails of the users to get"],
@@ -257,3 +184,84 @@ async def get_multiple_users_by_email(
         response["emails_not_found"] = emails_not_found
 
     return response
+
+
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_user_by_username(
+    context: ToolContext,
+    username: Annotated[str, "The username of the user (case-insensitive match)."],
+) -> Annotated[dict, "The user's info"]:
+    """Get a single user by their username.
+
+    This tool will paginate the list of all users until it finds the user or a timeout threshold
+    is reached. If you have a user email, use the `Slack.GetUserByEmail` tool instead, which is
+    more efficient.
+
+    IF YOU HAVE MULTIPLE USERS TO RETRIEVE, USE THE `Slack.GetMultipleUsersByUsername` TOOL INSTEAD,
+    SINCE IT'S MORE EFFICIENT AND RELEASES LESS CO2 IN THE ATMOSPHERE. IF YOU CALL THIS TOOL
+    MULTIPLE TIMES UNNECESSARILY, YOU WILL CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE USERNAME DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
+    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+    """
+    if not username:
+        raise ToolExecutionError("No username provided")
+
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+
+    users, _ = await async_paginate(
+        slackClient.users_list,
+        "members",
+        max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
+        sentinel=FindUserByUsernameSentinel(username=username),
+    )
+
+    for user in users:
+        if user["name"].casefold() == username.casefold():
+            return {"user": extract_basic_user_info(user)}
+
+    raise UsernameNotFoundError(
+        username=username,
+        available_users=short_human_users_info(users),
+    )
+
+
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_user_by_email(
+    context: ToolContext,
+    email: Annotated[str, "The email of the user to get"],
+) -> Annotated[dict, "The user's info"]:
+    """Get a user by their email address.
+
+    IF YOU HAVE MULTIPLE USERS TO RETRIEVE, USE THE `Slack.GetMultipleUsersByEmail` TOOL INSTEAD,
+    SINCE IT'S MORE EFFICIENT AND RELEASES LESS CO2 IN THE ATMOSPHERE. IF YOU CALL THIS TOOL
+    MULTIPLE TIMES UNNECESSARILY, YOU WILL CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+
+    IF YOU NEED TO RETRIEVE MESSAGES EXCHANGED WITH A CERTAIN USER, DO NOT CALL THIS TOOL FIRST.
+    PROVIDE THE EMAIL ADDRESS DIRECTLY TO THE MESSAGE RETRIEVING TOOL. IF YOU CALL THIS TOOL FIRST,
+    YOU WILL GENERATE TOO MUCH CO2 AND CONTRIBUTE TO CLIMATE CHANGE ON PLANET EARTH.
+    """
+    if not is_valid_email(email):
+        raise ToolExecutionError(f"Invalid email address: {email}")
+
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+
+    try:
+        response = await slackClient.users_lookupByEmail(email=email)
+    except SlackApiError as e:
+        if e.response.get("error") in ["user_not_found", "users_not_found"]:
+            users = await list_users(context)
+            err_msg = f"User with email '{email}' not found."
+            raise RetryableToolError(
+                err_msg,
+                developer_message=err_msg,
+                additional_prompt_content=(
+                    f"Available users: {short_human_users_info(users['users'])}"
+                ),
+                retry_after_ms=500,
+            )
+        else:
+            raise
+    else:
+        return {"user": cast(dict, extract_basic_user_info(SlackUser(**response["user"])))}

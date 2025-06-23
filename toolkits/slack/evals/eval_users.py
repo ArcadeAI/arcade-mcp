@@ -10,7 +10,14 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_slack
-from arcade_slack.tools.users import get_user_info_by_id, list_users
+from arcade_slack.tools.users import (
+    get_multiple_users_by_email,
+    get_multiple_users_by_username,
+    get_user_by_email,
+    get_user_by_username,
+    get_user_info_by_id,
+    list_users,
+)
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -162,6 +169,68 @@ def list_users_eval_suite() -> EvalSuite:
                 "role": "assistant",
                 "content": "Here are two users from your Slack workspace:\n\n1. **John Doe**\n   - Display Name: John Doe\n   - Email: john.doe@acme.com\n   - Timezone: America/Los_Angeles\n\n2. **Jane Doe**\n   - Display Name: Jane Doe\n   - Email: jane.doe@acme.com\n   - Timezone: America/Los_Angeles\n\nIf you need more information or additional users, feel free to ask!",
             },
+        ],
+    )
+
+    return suite
+
+
+@tool_eval()
+def get_user_by_username_eval_suite() -> EvalSuite:
+    """Create an evaluation suite for tools listing users."""
+    suite = EvalSuite(
+        name="Slack Users Tools Evaluation",
+        system_message="You are an AI assistant that can interact with Slack to get information about users.",
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="get user by username",
+        user_message="get the user 'john.doe'",
+        expected_tool_calls=[
+            ExpectedToolCall(func=get_user_by_username, args={"username": "john.doe"}),
+        ],
+        critics=[
+            BinaryCritic(critic_field="username", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="get user by email",
+        user_message="get the user 'john.doe@acme.com'",
+        expected_tool_calls=[
+            ExpectedToolCall(func=get_user_by_email, args={"email": "john.doe@acme.com"}),
+        ],
+        critics=[
+            BinaryCritic(critic_field="email", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="get multiple users by username",
+        user_message="get the users with the usernames 'john.doe' and 'jane.doe'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_multiple_users_by_username, args={"usernames": ["john.doe", "jane.doe"]}
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="usernames", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="get multiple users by email",
+        user_message="get the users with the emails 'john.doe@acme.com' and 'jane.doe@acme.com'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_multiple_users_by_email,
+                args={"emails": ["john.doe@acme.com", "jane.doe@acme.com"]},
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="emails", weight=1.0),
         ],
     )
 
