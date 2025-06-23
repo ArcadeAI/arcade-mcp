@@ -1,6 +1,7 @@
 import asyncio
 import os
 import threading
+import traceback
 import uuid
 import webbrowser
 from pathlib import Path
@@ -83,6 +84,7 @@ def login(
         "--port",
         help="The port of the Arcade Cloud host (if running locally).",
     ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Logs the user into Arcade Cloud.
@@ -115,22 +117,39 @@ def login(
         server_thread.join()
     except KeyboardInterrupt:
         auth_server.shutdown_server()
+    except Exception as e:
+        if debug:
+            console.print(f"❌ Login failed with error: {traceback.format_exc()}", style="bold red")
+        else:
+            console.print(f"❌ Login failed with error: {escape(str(e))}", style="bold red")
+        raise typer.Exit(code=1)
     finally:
         if server_thread.is_alive():
             server_thread.join()  # Ensure the server thread completes and cleans up
 
 
 @cli.command(help="Log out of Arcade Cloud", rich_help_panel="User")
-def logout() -> None:
+def logout(
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
     """
     Logs the user out of Arcade Cloud.
     """
-    # If the credentials file exists, delete it
-    if os.path.exists(CREDENTIALS_FILE_PATH):
-        os.remove(CREDENTIALS_FILE_PATH)
-        console.print("You're now logged out.", style="bold")
-    else:
-        console.print("You're not logged in.", style="bold red")
+    try:
+        # If the credentials file exists, delete it
+        if os.path.exists(CREDENTIALS_FILE_PATH):
+            os.remove(CREDENTIALS_FILE_PATH)
+            console.print("You're now logged out.", style="bold")
+        else:
+            console.print("You're not logged in.", style="bold red")
+    except Exception as e:
+        if debug:
+            console.print(
+                f"❌ Logout failed with error: {traceback.format_exc()}", style="bold red"
+            )
+        else:
+            console.print(f"❌ Logout failed with error: {escape(str(e))}", style="bold red")
+        raise typer.Exit(code=1)
 
 
 @cli.command(
@@ -143,6 +162,7 @@ def new(
         metavar="TOOLKIT_NAME",
     ),
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Creates a new toolkit with the given name, description, and result type.
@@ -152,8 +172,12 @@ def new(
     try:
         create_new_toolkit(directory, toolkit_name)
     except Exception as e:
-        error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
+        if debug:
+            error_message = f"❌ Failed to create new Toolkit: {traceback.format_exc()}"
+        else:
+            error_message = f"❌ Failed to create new Toolkit: {escape(str(e))}"
         console.print(error_message, style="bold red")
+        raise typer.Exit(code=1)
 
 
 @cli.command(
@@ -207,7 +231,7 @@ def show(
     help="Start a chat with a model in the terminal to test tools",
     rich_help_panel="Tool Development",
 )
-def chat(
+def chat(  # noqa: C901
     model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
@@ -318,7 +342,13 @@ def chat(
                     tool_messages = chat_result.tool_messages
 
             except OpenAIError as e:
-                console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
+                if debug:
+                    console.print(
+                        f"❌ Arcade Chat failed with error: {traceback.format_exc()}",
+                        style="bold red",
+                    )
+                else:
+                    console.print(f"❌ Arcade Chat failed with error: {e!s}", style="bold red")
                 continue
             if debug:
                 display_tool_messages(tool_messages)
@@ -328,7 +358,10 @@ def chat(
         typer.Exit()
 
     except RuntimeError as e:
-        error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
+        if debug:
+            error_message = f"❌ Failed to run tool: {traceback.format_exc()}"
+        else:
+            error_message = f"❌ Failed to run tool{': ' + escape(str(e)) if str(e) else ''}"
         console.print(error_message, style="bold red")
         raise typer.Exit()
 
@@ -376,6 +409,7 @@ def evals(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
     Find all files starting with 'eval_' in the given directory,
@@ -463,7 +497,16 @@ def evals(
         all_evaluations.extend(results)
         display_eval_results(all_evaluations, show_details=show_details)
 
-    asyncio.run(run_evaluations())
+    try:
+        asyncio.run(run_evaluations())
+    except Exception as e:
+        if debug:
+            console.print(
+                f"❌ Failed to run evaluations: {traceback.format_exc()}", style="bold red"
+            )
+        else:
+            console.print(f"❌ Failed to run evaluations: {escape(str(e))}", style="bold red")
+        raise typer.Exit(code=1)
 
 
 @cli.command(
@@ -523,7 +566,10 @@ def serve(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
+        if debug:
+            error_message = f"❌ Failed to start Arcade Worker: {traceback.format_exc()}"
+        else:
+            error_message = f"❌ Failed to start Arcade Worker: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
 
@@ -574,7 +620,10 @@ def workerup(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        error_message = f"❌ Failed to start Arcade Toolkit Server: {escape(str(e))}"
+        if debug:
+            error_message = f"❌ Failed to start Arcade Toolkit Server: {traceback.format_exc()}"
+        else:
+            error_message = f"❌ Failed to start Arcade Toolkit Server: {escape(str(e))}"
         console.print(error_message, style="bold red")
         typer.Exit(code=1)
 
@@ -620,6 +669,7 @@ def deploy(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
     """
     Deploy a worker to Arcade Cloud.
@@ -637,7 +687,12 @@ def deploy(
     try:
         deployment = Deployment.from_toml(Path(deployment_file))
     except Exception as e:
-        console.print(f"❌ Failed to parse deployment file: {e}", style="bold red")
+        if debug:
+            console.print(
+                f"❌ Failed to parse deployment file: {traceback.format_exc()}", style="bold red"
+            )
+        else:
+            console.print(f"❌ Failed to parse deployment file: {e}", style="bold red")
         raise typer.Exit(code=1)
 
     with console.status(f"Deploying {len(deployment.worker)} workers"):
@@ -648,9 +703,15 @@ def deploy(
                 worker.request().execute(cloud_client, engine_client)
                 console.log(f"✅ Worker '{worker.config.id}' deployed successfully.", style="dim")
             except Exception as e:
-                console.log(
-                    f"❌ Failed to deploy worker '{worker.config.id}': {e}", style="bold red"
-                )
+                if debug:
+                    console.log(
+                        f"❌ Failed to deploy worker '{worker.config.id}': {traceback.format_exc()}",
+                        style="bold red",
+                    )
+                else:
+                    console.log(
+                        f"❌ Failed to deploy worker '{worker.config.id}': {e}", style="bold red"
+                    )
                 raise typer.Exit(code=1)
 
 
@@ -684,30 +745,40 @@ def dashboard(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """Opens the Arcade Dashboard in a web browser.
 
     The Dashboard is a web-based Arcade user interface that is served by the Arcade Engine.
     """
-    if local:
-        host = "localhost"
+    try:
+        if local:
+            host = "localhost"
 
-    # Construct base URL (for both health check and dashboard)
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
-    dashboard_url = f"{base_url}/dashboard"
+        # Construct base URL (for both health check and dashboard)
+        base_url = compute_base_url(force_tls, force_no_tls, host, port)
+        dashboard_url = f"{base_url}/dashboard"
 
-    # Try to hit /health endpoint on engine and warn if it is down
-    config = validate_and_get_config()
-    with Arcade(api_key=config.api.key, base_url=base_url) as client:
-        log_engine_health(client)
+        # Try to hit /health endpoint on engine and warn if it is down
+        config = validate_and_get_config()
+        with Arcade(api_key=config.api.key, base_url=base_url) as client:
+            log_engine_health(client)
 
-    # Open the dashboard in a browser
-    console.print(f"Opening Arcade Dashboard at {dashboard_url}")
-    if not webbrowser.open(dashboard_url):
-        console.print(
-            f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {dashboard_url}",
-            style="dim",
-        )
+        # Open the dashboard in a browser
+        console.print(f"Opening Arcade Dashboard at {dashboard_url}")
+        if not webbrowser.open(dashboard_url):
+            console.print(
+                f"If a browser doesn't open automatically, copy this URL and paste it into your browser: {dashboard_url}",
+                style="dim",
+            )
+    except Exception as e:
+        if debug:
+            console.print(
+                f"❌ Failed to open dashboard: {traceback.format_exc()}", style="bold red"
+            )
+        else:
+            console.print(f"❌ Failed to open dashboard: {escape(str(e))}", style="bold red")
+        raise typer.Exit(code=1)
 
 
 @cli.callback()
