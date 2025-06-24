@@ -74,7 +74,8 @@ class JiraClient:
                 raise JiraToolExecutionError(
                     message=(
                         "Multiple cloud IDs returned by Atlassian, cannot resolve which one "
-                        f"to use: {cloud_ids_found}. "
+                        "to use. Please revoke your authorization access and authorize a single "
+                        f"Atlassian Cloud. Available cloud IDs: {cloud_ids_found}. "
                     )
                 )
             return cast(dict[str, Any], available_resources[0])
