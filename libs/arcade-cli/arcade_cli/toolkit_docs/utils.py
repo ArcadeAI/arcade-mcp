@@ -139,3 +139,7 @@ def is_well_known_provider(provider_id: str | None) -> bool:
             return True
 
     return False
+
+
+def clean_fully_qualified_name(fully_qualified_name: str) -> str:
+    return fully_qualified_name.split("@")[0]

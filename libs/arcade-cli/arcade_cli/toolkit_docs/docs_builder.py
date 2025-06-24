@@ -31,6 +31,7 @@ from arcade_cli.toolkit_docs.templates import (
     WELL_KNOWN_PROVIDER_CONFIG,
 )
 from arcade_cli.toolkit_docs.utils import (
+    clean_fully_qualified_name,
     find_enum_by_options,
     get_toolkit_auth_type,
     is_well_known_provider,
@@ -78,6 +79,8 @@ def build_toolkit_mdx(
     enums: dict[str, type[Enum]],
     pip_package_name: str,
     openai_model: str,
+    toolkit_header_template: str = TOOLKIT_HEADER,
+    toolkit_page_template: str = TOOLKIT_PAGE,
 ) -> tuple[str, str]:
     sample_tool = tools[0]
     toolkit_name = sample_tool.toolkit.name
@@ -85,7 +88,7 @@ def build_toolkit_mdx(
     auth_type = get_toolkit_auth_type(sample_tool.requirements.authorization)
     toolkit_dirname = os.path.basename(os.path.dirname(toolkit_dir))
 
-    header = TOOLKIT_HEADER.format(
+    header = toolkit_header_template.format(
         toolkit_title=toolkit_name,
         description=generate_toolkit_description(
             toolkit_name,
@@ -102,7 +105,7 @@ def build_toolkit_mdx(
     referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
-    return reference_mdx, TOOLKIT_PAGE.format(
+    return reference_mdx, toolkit_page_template.format(
         header=header,
         table_of_contents=table_of_contents,
         tools_specs=tools_specs,
@@ -110,26 +113,38 @@ def build_toolkit_mdx(
     )
 
 
-def build_reference_mdx(toolkit_name: str, referenced_enums: list[tuple[str, type[Enum]]]) -> str:
+def build_reference_mdx(
+    toolkit_name: str,
+    referenced_enums: list[tuple[str, type[Enum]]],
+    enum_item_template: str = ENUM_ITEM,
+    enum_value_template: str = ENUM_VALUE,
+    enum_mdx_template: str = ENUM_MDX,
+) -> str:
     enum_items = ""
 
     for enum_name, enum_class in referenced_enums:
-        enum_items += ENUM_ITEM.format(
+        enum_items += enum_item_template.format(
             enum_name=enum_name,
-            enum_values=build_enum_values(enum_class),
+            enum_values=build_enum_values(
+                enum_class=enum_class,
+                enum_value_template=enum_value_template,
+            ),
         )
 
-    return ENUM_MDX.format(
+    return enum_mdx_template.format(
         toolkit_name=toolkit_name,
         enum_items=enum_items,
     )
 
 
-def build_enum_values(enum_class: type[Enum]) -> str:
+def build_enum_values(
+    enum_class: type[Enum],
+    enum_value_template: str = ENUM_VALUE,
+) -> str:
     enum_values = ""
     for enum_member in enum_class:
         enum_values += (
-            ENUM_VALUE.format(
+            enum_value_template.format(
                 enum_option_name=enum_member.name,
                 enum_option_value=enum_member.value,
             )
@@ -138,46 +153,70 @@ def build_enum_values(enum_class: type[Enum]) -> str:
     return enum_values
 
 
-def build_table_of_contents(tools: list[ToolDefinition]) -> str:
+def build_table_of_contents(
+    tools: list[ToolDefinition],
+    table_of_contents_item_template: str = TABLE_OF_CONTENTS_ITEM,
+    table_of_contents_template: str = TABLE_OF_CONTENTS,
+) -> str:
     tools_items = ""
 
     for tool in tools:
-        tools_items += TABLE_OF_CONTENTS_ITEM.format(
-            tool_fully_qualified_name=tool.fully_qualified_name,
+        tools_items += table_of_contents_item_template.format(
+            tool_fully_qualified_name=clean_fully_qualified_name(tool),
             description=tool.description.split("\n")[0],
         )
 
-    return TABLE_OF_CONTENTS.format(tool_items=tools_items)
+    return table_of_contents_template.format(tool_items=tools_items)
 
 
 def build_footer(
-    toolkit_name: str, pip_package_name: str, authorization: ToolAuthRequirement | None
+    toolkit_name: str,
+    pip_package_name: str,
+    authorization: ToolAuthRequirement | None,
+    footer_template: str = TOOLKIT_FOOTER,
+    oauth2_footer_template: str = TOOLKIT_FOOTER_OAUTH2,
+    well_known_provider_config_template: str = WELL_KNOWN_PROVIDER_CONFIG,
+    generic_provider_config_template: str = GENERIC_PROVIDER_CONFIG,
 ) -> str:
     if authorization and authorization.provider_type == "oauth2" and authorization.provider_id:
         is_well_known = is_well_known_provider(authorization.provider_id)
-        config_template = WELL_KNOWN_PROVIDER_CONFIG if is_well_known else GENERIC_PROVIDER_CONFIG
+        config_template = (
+            well_known_provider_config_template
+            if is_well_known
+            else generic_provider_config_template
+        )
         provider_configuration = config_template.format(
             toolkit_name=toolkit_name,
             provider_id=authorization.provider_id,
             provider_name=authorization.provider_id.capitalize(),
         )
 
-        return TOOLKIT_FOOTER_OAUTH2.format(
+        return oauth2_footer_template.format(
             pip_package_name=pip_package_name,
             provider_configuration=provider_configuration,
         )
-    return TOOLKIT_FOOTER.format(toolkit_name=toolkit_name, pip_package_name=pip_package_name)
+    return footer_template.format(toolkit_name=toolkit_name, pip_package_name=pip_package_name)
 
 
 def build_tools_specs(
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
+    tool_spec_template: str = TOOL_SPEC,
+    tool_parameter_template: str = TOOL_PARAMETER,
+    tool_spec_secrets_template: str = TOOL_SPEC_SECRETS,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
     tools_specs = ""
     referenced_enums = []
     for tool in tools:
-        tool_referenced_enums, tool_spec = build_tool_spec(tool, docs_section, enums)
+        tool_referenced_enums, tool_spec = build_tool_spec(
+            tool=tool,
+            docs_section=docs_section,
+            enums=enums,
+            tool_spec_template=tool_spec_template,
+            tool_parameter_template=tool_parameter_template,
+            tool_spec_secrets_template=tool_spec_secrets_template,
+        )
         tools_specs += tool_spec
         referenced_enums.extend(tool_referenced_enums)
 
@@ -185,23 +224,36 @@ def build_tools_specs(
 
 
 def build_tool_spec(
-    tool: ToolDefinition, docs_section: str, enums: dict[str, type[Enum]]
+    tool: ToolDefinition,
+    docs_section: str,
+    enums: dict[str, type[Enum]],
+    tool_spec_template: str = TOOL_SPEC,
+    tool_parameter_template: str = TOOL_PARAMETER,
+    tool_spec_secrets_template: str = TOOL_SPEC_SECRETS,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
     tabbed_examples_list = TABBED_EXAMPLES_LIST.format(
         toolkit_name=tool.toolkit.name.lower(),
         tool_name=pascal_to_snake_case(tool.name),
     )
     referenced_enums, parameters = build_tool_parameters(
-        tool.input,
-        docs_section,
-        tool.toolkit.name.lower(),
-        enums,
+        tool_input=tool.input,
+        docs_section=docs_section,
+        toolkit_name=tool.toolkit.name.lower(),
+        enums=enums,
+        parameter_template=tool_parameter_template,
     )
 
-    secrets = build_tool_secrets(tool.requirements.secrets) if tool.requirements.secrets else ""
+    secrets = (
+        build_tool_secrets(
+            secrets=tool.requirements.secrets,
+            template=tool_spec_secrets_template,
+        )
+        if tool.requirements.secrets
+        else ""
+    )
 
-    return referenced_enums, TOOL_SPEC.format(
-        tool_fully_qualified_name=tool.fully_qualified_name,
+    return referenced_enums, tool_spec_template.format(
+        tool_fully_qualified_name=clean_fully_qualified_name(tool),
         tabbed_examples_list=tabbed_examples_list,
         description=tool.description.split("\n")[0],
         parameters=parameters,
@@ -209,11 +261,14 @@ def build_tool_spec(
     )
 
 
-def build_tool_secrets(secrets: list[ToolSecretRequirement]) -> str:
+def build_tool_secrets(
+    secrets: list[ToolSecretRequirement],
+    template: str = TOOL_SPEC_SECRETS,
+) -> str:
     if not secrets:
         return ""
     secret_keys_str = "`, `".join([secret.key for secret in secrets])
-    return TOOL_SPEC_SECRETS.format(secrets=f"`{secret_keys_str}`")
+    return template.format(secrets=f"`{secret_keys_str}`")
 
 
 def build_tool_parameters(
@@ -221,6 +276,7 @@ def build_tool_parameters(
     docs_section: str,
     toolkit_name: str,
     enums: dict[str, type[Enum]],
+    tool_parameter_template: str = TOOL_PARAMETER,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
     referenced_enums = []
     parameters = ""
@@ -242,7 +298,7 @@ def build_tool_parameters(
             param_definition += ", optional"
 
         parameters += (
-            TOOL_PARAMETER.format(
+            tool_parameter_template.format(
                 param_name=parameter.name,
                 definition=param_definition,
                 description=parameter.description,
@@ -274,17 +330,25 @@ def build_examples(
     return examples
 
 
-def build_python_example(tool_fully_qualified_name: str, input_map: dict[str, Any]) -> str:
+def build_python_example(
+    tool_fully_qualified_name: str,
+    input_map: dict[str, Any],
+    template: str = TOOL_CALL_EXAMPLE_PY,
+) -> str:
     input_map_str = json.dumps(input_map, indent=4, ensure_ascii=False)
     input_map_str = input_map_str.replace(": false", ": False").replace(": true", ": True")
-    return TOOL_CALL_EXAMPLE_PY.format(
+    return template.format(
         tool_name_fully_qualified=tool_fully_qualified_name,
         input_map=input_map_str,
     )
 
 
-def build_javascript_example(tool_fully_qualified_name: str, input_map: dict) -> str:
-    return TOOL_CALL_EXAMPLE_JS.format(
+def build_javascript_example(
+    tool_fully_qualified_name: str,
+    input_map: dict,
+    template: str = TOOL_CALL_EXAMPLE_JS,
+) -> str:
+    return template.format(
         tool_name_fully_qualified=tool_fully_qualified_name,
         input_map=json.dumps(input_map, indent=2, ensure_ascii=False),
     )
