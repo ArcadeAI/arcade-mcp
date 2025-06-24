@@ -139,3 +139,15 @@ jobs:
 
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Send status to Slack
+        if: always()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            status: "${{ (steps.pypi-publish.outcome == 'failure' || steps.pypi-publish.outcome == 'failure') && 'Failed' || 'Success' }}"
+            toolkit: ${{ env.PACKAGE_NAME }}
+            version: ${{ env.VERSION }}
+            url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
