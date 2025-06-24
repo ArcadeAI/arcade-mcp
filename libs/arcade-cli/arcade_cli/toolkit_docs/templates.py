@@ -43,9 +43,9 @@ TABLE_OF_CONTENTS = """## Available Tools
   own tools](/home/build-tools/create-a-toolkit).
 </Tip>"""
 
-TABLE_OF_CONTENTS_ITEM = '\n      ["{tool_name}", "{description}"],'
+TABLE_OF_CONTENTS_ITEM = '\n      ["{toolkit_name}.{tool_name}", "{description}"],'
 
-TOOL_SPEC = """## {tool_name}
+TOOL_SPEC = """## {toolkit_name}.{tool_name}
 
 <br />
 {tabbed_examples_list}
