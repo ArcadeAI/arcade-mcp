@@ -431,7 +431,7 @@ async def get_messages_in_channel_by_name(
     )
 
 
-@tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
+@tool(requires_auth=Slack(scopes=["im:history", "im:read", "users:read", "users:read.email"]))
 async def get_messages_in_direct_message_conversation_by_user(
     context: ToolContext,
     username_or_email: Annotated[
@@ -514,7 +514,7 @@ async def get_messages_in_direct_message_conversation_by_user(
     )
 
 
-@tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
+@tool(requires_auth=Slack(scopes=["mpim:history", "mpim:read", "users:read", "users:read.email"]))
 async def get_messages_in_multi_person_dm_conversation_by_users(
     context: ToolContext,
     usernames_or_emails: Annotated[
@@ -711,7 +711,7 @@ async def get_channel_metadata_by_name(
         )
 
 
-@tool(requires_auth=Slack(scopes=["im:read"]))
+@tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
 async def get_direct_message_conversation_metadata_by_user(
     context: ToolContext,
     username_or_email: Annotated[
@@ -770,7 +770,7 @@ async def get_direct_message_conversation_metadata_by_user(
     return None if not conversations_found else conversations_found[0]
 
 
-@tool(requires_auth=Slack(scopes=["im:read"]))
+@tool(requires_auth=Slack(scopes=["mpim:read", "users:read", "users:read.email"]))
 async def get_multi_person_dm_conversation_metadata_by_users(
     context: ToolContext,
     usernames_or_emails: Annotated[
@@ -963,7 +963,7 @@ async def list_direct_message_conversations_metadata(
     return response  # type: ignore[no-any-return]
 
 
-@tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
+@tool(requires_auth=Slack(scopes=["im:history", "im:read", "users:read", "users:read.email"]))
 async def get_messages_in_direct_message_conversation_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the user to get messages from"],
@@ -1039,7 +1039,7 @@ async def get_messages_in_direct_message_conversation_by_username(
     )
 
 
-@tool(requires_auth=Slack(scopes=["im:history", "im:read"]))
+@tool(requires_auth=Slack(scopes=["im:history", "im:read", "users:read", "users:read.email"]))
 async def get_messages_in_multi_person_dm_conversation_by_usernames(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users to get messages from"],
@@ -1115,7 +1115,7 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
     )
 
 
-@tool(requires_auth=Slack(scopes=["im:read"]))
+@tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
 async def get_direct_message_conversation_metadata_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the user/person to get messages with"],
@@ -1158,7 +1158,7 @@ async def get_direct_message_conversation_metadata_by_username(
     return None if not conversations_found else conversations_found[0]
 
 
-@tool(requires_auth=Slack(scopes=["im:read"]))
+@tool(requires_auth=Slack(scopes=["mpim:read", "users:read", "users:read.email"]))
 async def get_multi_person_dm_conversation_metadata_by_usernames(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users/people to get messages with"],
