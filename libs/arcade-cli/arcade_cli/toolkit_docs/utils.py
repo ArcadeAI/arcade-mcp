@@ -4,8 +4,9 @@ import os
 import re
 from enum import Enum
 from pathlib import Path
+from types import ModuleType
 
-from arcade_core import auth
+from arcade_core.auth import AuthProviderType
 from arcade_core.catalog import ToolCatalog
 from arcade_core.schema import ToolAuthRequirement, ToolDefinition
 from rich.console import Console
@@ -103,7 +104,7 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
 def get_toolkit_auth_type(requirement: ToolAuthRequirement | None) -> str:
     if requirement is None:
         return ""
-    elif requirement.provider_type == "oauth2":
+    elif requirement.provider_type == AuthProviderType.oauth2.value:
         return 'authType="OAuth2"'
     elif requirement.provider_type:
         return f'authType="{requirement.provider_type}"'
@@ -121,12 +122,15 @@ def find_enum_by_options(
     raise ValueError(f"No enum found for options: {options_set}")
 
 
-def is_well_known_provider(provider_id: str | None) -> bool:
+def is_well_known_provider(
+    provider_id: str | None,
+    auth_module: ModuleType,
+) -> bool:
     if provider_id is None:
         return False
 
-    for _, obj in inspect.getmembers(auth, inspect.isclass):
-        if not issubclass(obj, auth.OAuth2) or obj is auth.OAuth2:
+    for _, obj in inspect.getmembers(auth_module, inspect.isclass):
+        if not issubclass(obj, auth_module.OAuth2) or obj is auth_module.OAuth2:
             continue
         try:
             instance = obj()  # type: ignore[call-arg]

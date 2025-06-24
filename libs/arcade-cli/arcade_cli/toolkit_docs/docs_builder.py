@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any, Callable, cast
 
 import openai
+from arcade_core import auth as auth_module
 from arcade_core.schema import (
     ToolAuthRequirement,
     ToolDefinition,
@@ -179,7 +180,10 @@ def build_footer(
     generic_provider_config_template: str = GENERIC_PROVIDER_CONFIG,
 ) -> str:
     if authorization and authorization.provider_type == "oauth2" and authorization.provider_id:
-        is_well_known = is_well_known_provider(authorization.provider_id)
+        is_well_known = is_well_known_provider(
+            provider_id=authorization.provider_id,
+            auth_module=auth_module,
+        )
         config_template = (
             well_known_provider_config_template
             if is_well_known
