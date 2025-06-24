@@ -143,8 +143,7 @@ def build_table_of_contents(tools: list[ToolDefinition]) -> str:
 
     for tool in tools:
         tools_items += TABLE_OF_CONTENTS_ITEM.format(
-            toolkit_name=tool.toolkit.name,
-            tool_name=tool.name,
+            tool_fully_qualified_name=tool.fully_qualified_name,
             description=tool.description.split("\n")[0],
         )
 
@@ -202,8 +201,7 @@ def build_tool_spec(
     secrets = build_tool_secrets(tool.requirements.secrets) if tool.requirements.secrets else ""
 
     return referenced_enums, TOOL_SPEC.format(
-        toolkit_name=tool.toolkit.name,
-        tool_name=tool.name,
+        tool_fully_qualified_name=tool.fully_qualified_name,
         tabbed_examples_list=tabbed_examples_list,
         description=tool.description.split("\n")[0],
         parameters=parameters,
