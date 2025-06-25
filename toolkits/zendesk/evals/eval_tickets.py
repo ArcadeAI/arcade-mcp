@@ -10,6 +10,7 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
+    get_ticket_comments,
     list_tickets,
     mark_ticket_solved,
 )
@@ -75,6 +76,68 @@ def zendesk_tickets_read_eval_suite() -> EvalSuite:
         ],
         rubric=rubric,
         critics=[],
+    )
+
+    return suite
+
+
+@tool_eval()
+def zendesk_get_ticket_comments_eval_suite() -> EvalSuite:
+    """Evaluation suite for getting ticket comments."""
+    suite = EvalSuite(
+        name="Zendesk Get Ticket Comments",
+        system_message=(
+            "You are an AI assistant with access to Zendesk ticket tools. "
+            "Use them to help users view ticket comments and conversation history."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    # Get comments for a ticket
+    suite.add_case(
+        name="Get comments for specific ticket",
+        user_message="Show me the comments for ticket 123",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_ticket_comments,
+                args={"ticket_id": 123},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="ticket_id", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="View ticket conversation",
+        user_message="Can you show me the conversation history for ticket #456?",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_ticket_comments,
+                args={"ticket_id": 456},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="ticket_id", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="Get ticket description",
+        user_message="What is the original description of ticket 789?",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_ticket_comments,
+                args={"ticket_id": 789},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="ticket_id", weight=1.0),
+        ],
     )
 
     return suite
@@ -314,6 +377,27 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
             BinaryCritic(critic_field="ticket_id", weight=0.3),
             SimilarityCritic(critic_field="comment_body", weight=0.5),
             BinaryCritic(critic_field="comment_public", weight=0.2),
+        ],
+    )
+
+    # Default internal comment behavior
+    suite.add_case(
+        name="Solve ticket with comment defaults to internal",
+        user_message="Mark ticket 550 as solved with comment: 'Fixed by applying patch #2345'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=mark_ticket_solved,
+                args={
+                    "ticket_id": 550,
+                    "comment_body": "Fixed by applying patch #2345",
+                    # comment_public should default to False if not specified
+                },
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="ticket_id", weight=0.4),
+            SimilarityCritic(critic_field="comment_body", weight=0.6),
         ],
     )
 

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from arcade_zendesk.tools.tickets import (
     list_tickets,
+    get_ticket_comments,
     add_ticket_comment,
     mark_ticket_solved,
 )
@@ -81,6 +82,109 @@ class TestListTickets:
         # Should raise an error when trying to format the URL
         with pytest.raises(Exception):
             await list_tickets(mock_context)
+
+
+class TestGetTicketComments:
+    """Test get_ticket_comments functionality."""
+
+    @pytest.mark.asyncio
+    async def test_get_ticket_comments_success(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test successfully getting ticket comments."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        # Mock response data
+        comments_response = {
+            "comments": [
+                {
+                    "id": 1,
+                    "body": "I cannot access my account. Please help!",
+                    "author_id": 12345,
+                    "created_at": "2024-01-15T10:00:00Z",
+                    "public": True,
+                },
+                {
+                    "id": 2,
+                    "body": "I'll help you reset your password.",
+                    "author_id": 67890,
+                    "created_at": "2024-01-15T10:30:00Z",
+                    "public": True,
+                },
+                {
+                    "id": 3,
+                    "body": "Internal note: User verified via security questions",
+                    "author_id": 67890,
+                    "created_at": "2024-01-15T10:35:00Z",
+                    "public": False,
+                },
+            ]
+        }
+
+        mock_httpx_client.get.return_value = mock_http_response(comments_response)
+
+        result = await get_ticket_comments(mock_context, ticket_id=123)
+
+        # Verify the result
+        assert "Comments for Ticket #123:" in result
+        assert "=== Original Description ===" in result
+        assert "I cannot access my account. Please help!" in result
+        assert "=== Comment #1 (Public) ===" in result
+        assert "=== Comment #2 (Internal) ===" in result
+        assert "Author ID: 12345" in result
+        assert "Created: 2024-01-15T10:00:00Z" in result
+
+        # Verify the API call
+        mock_httpx_client.get.assert_called_once_with(
+            "https://test-subdomain.zendesk.com/api/v2/tickets/123/comments.json",
+            headers={
+                "Authorization": "Bearer fake-token",
+                "Content-Type": "application/json",
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_get_ticket_comments_no_comments(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test when no comments are found."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        mock_httpx_client.get.return_value = mock_http_response({"comments": []})
+
+        result = await get_ticket_comments(mock_context, ticket_id=123)
+
+        assert result == "No comments found for ticket #123."
+
+    @pytest.mark.asyncio
+    async def test_get_ticket_comments_not_found(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test when ticket is not found."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        mock_httpx_client.get.return_value = mock_http_response({}, status_code=404)
+
+        result = await get_ticket_comments(mock_context, ticket_id=999)
+
+        assert result == "Ticket #999 not found."
+
+    @pytest.mark.asyncio
+    async def test_get_ticket_comments_error(
+        self, mock_context, mock_httpx_client
+    ):
+        """Test error handling when API fails."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        error_response = MagicMock()
+        error_response.status_code = 500
+        error_response.text = "Internal Server Error"
+
+        mock_httpx_client.get.return_value = error_response
+
+        result = await get_ticket_comments(mock_context, ticket_id=123)
+
+        assert result == "Error fetching comments: 500 - Internal Server Error"
 
 
 class TestAddTicketComment:
@@ -250,6 +354,32 @@ class TestMarkTicketSolved:
             result
             == "Successfully marked ticket #456 as solved with internal resolution comment"
         )
+
+    @pytest.mark.asyncio
+    async def test_mark_solved_with_comment_default_internal(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test marking ticket as solved with comment defaults to internal."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        mock_httpx_client.put.return_value = mock_http_response({}, status_code=200)
+
+        result = await mark_ticket_solved(
+            mock_context,
+            ticket_id=555,
+            comment_body="Internal resolution note",
+            # Not specifying comment_public, should default to False
+        )
+
+        assert (
+            result
+            == "Successfully marked ticket #555 as solved with internal resolution comment"
+        )
+
+        # Verify the comment is internal by default
+        call_args = mock_httpx_client.put.call_args
+        request_body = call_args[1]["json"]
+        assert request_body["ticket"]["comment"]["public"] is False
 
     @pytest.mark.asyncio
     async def test_mark_solved_error(self, mock_context, mock_httpx_client):
