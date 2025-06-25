@@ -70,12 +70,19 @@ cli.add_typer(
 console = Console()
 
 
-def handle_error_with_debug(error: Exception, message: str, debug: bool) -> None:
-    """Handle error reporting with optional debug traceback."""
-    if debug:
+def handle_cli_error(
+    message: str, error: Exception | None = None, debug: bool = True, should_exit: bool = True
+) -> None:
+    """Handle CLI error reporting with optional debug traceback and exit."""
+    if error and debug:
         console.print(f"❌ {message}: {traceback.format_exc()}", style="bold red")
-    else:
+    elif error:
         console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
+    else:
+        console.print(f"❌ {message}", style="bold red")
+
+    if should_exit:
+        raise typer.Exit(code=1)
 
 
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")
@@ -126,8 +133,7 @@ def login(
     except KeyboardInterrupt:
         auth_server.shutdown_server()
     except Exception as e:
-        handle_error_with_debug(e, "Login failed", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Login failed", e, debug)
     finally:
         if server_thread.is_alive():
             server_thread.join()  # Ensure the server thread completes and cleans up
@@ -148,8 +154,7 @@ def logout(
         else:
             console.print("You're not logged in.", style="bold red")
     except Exception as e:
-        handle_error_with_debug(e, "Logout failed", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Logout failed", e, debug)
 
 
 @cli.command(
@@ -172,8 +177,7 @@ def new(
     try:
         create_new_toolkit(directory, toolkit_name)
     except Exception as e:
-        handle_error_with_debug(e, "Failed to create new Toolkit", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Failed to create new Toolkit", e, debug)
 
 
 @cli.command(
@@ -338,7 +342,7 @@ def chat(
                     tool_messages = chat_result.tool_messages
 
             except OpenAIError as e:
-                handle_error_with_debug(e, "Arcade Chat failed", debug)
+                handle_cli_error("Arcade Chat failed", e, debug, should_exit=False)
                 continue
             if debug:
                 display_tool_messages(tool_messages)
@@ -348,8 +352,7 @@ def chat(
         typer.Exit()
 
     except RuntimeError as e:
-        handle_error_with_debug(e, "Failed to run tool", debug)
-        raise typer.Exit()
+        handle_cli_error("Failed to run tool", e, debug)
 
 
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
@@ -486,8 +489,7 @@ def evals(
     try:
         asyncio.run(run_evaluations())
     except Exception as e:
-        handle_error_with_debug(e, "Failed to run evaluations", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Failed to run evaluations", e, debug)
 
 
 @cli.command(
@@ -547,8 +549,7 @@ def serve(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        handle_error_with_debug(e, "Failed to start Arcade Worker", debug)
-        typer.Exit(code=1)
+        handle_cli_error("Failed to start Arcade Worker", e, debug)
 
 
 @cli.command(
@@ -597,8 +598,7 @@ def workerup(
     except KeyboardInterrupt:
         typer.Exit()
     except Exception as e:
-        handle_error_with_debug(e, "Failed to start Arcade Toolkit Server", debug)
-        typer.Exit(code=1)
+        handle_cli_error("Failed to start Arcade Toolkit Server", e, debug)
 
 
 @cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Deployment")
@@ -660,8 +660,7 @@ def deploy(
     try:
         deployment = Deployment.from_toml(Path(deployment_file))
     except Exception as e:
-        handle_error_with_debug(e, "Failed to parse deployment file", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Failed to parse deployment file", e, debug)
 
     with console.status(f"Deploying {len(deployment.worker)} workers"):
         for worker in deployment.worker:
@@ -671,8 +670,7 @@ def deploy(
                 worker.request().execute(cloud_client, engine_client)
                 console.log(f"✅ Worker '{worker.config.id}' deployed successfully.", style="dim")
             except Exception as e:
-                handle_error_with_debug(e, f"Failed to deploy worker '{worker.config.id}'", debug)
-                raise typer.Exit(code=1)
+                handle_cli_error(f"Failed to deploy worker '{worker.config.id}'", e, debug)
 
 
 @cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
@@ -732,8 +730,7 @@ def dashboard(
                 style="dim",
             )
     except Exception as e:
-        handle_error_with_debug(e, "Failed to open dashboard", debug)
-        raise typer.Exit(code=1)
+        handle_cli_error("Failed to open dashboard", e, debug)
 
 
 @cli.callback()
