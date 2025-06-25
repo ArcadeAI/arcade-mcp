@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
@@ -17,9 +17,8 @@ async def list_tickets(context: ToolContext) -> Annotated[str, "The tickets"]:
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
 
     if not subdomain:
-        raise ValueError(
-            "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        )
+        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
+        raise ValueError(msg)
 
     # Zendesk API endpoint for tickets
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json?status=open"
@@ -72,9 +71,8 @@ async def get_ticket_comments(
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
 
     if not subdomain:
-        raise ValueError(
-            "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        )
+        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
+        raise ValueError(msg)
 
     # Zendesk API endpoint for ticket comments
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}/comments.json"
@@ -146,9 +144,8 @@ async def add_ticket_comment(
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
 
     if not subdomain:
-        raise ValueError(
-            "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        )
+        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
+        raise ValueError(msg)
 
     # Zendesk API endpoint for updating ticket
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}.json"
@@ -186,7 +183,7 @@ async def mark_ticket_solved(
     context: ToolContext,
     ticket_id: Annotated[int, "The ID of the ticket to mark as solved"],
     comment_body: Annotated[
-        Optional[str],
+        str | None,
         "Optional final comment to add when solving (e.g., resolution summary)",
     ] = None,
     comment_public: Annotated[bool, "Whether the comment is visible to the requester"] = False,
@@ -204,9 +201,8 @@ async def mark_ticket_solved(
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
 
     if not subdomain:
-        raise ValueError(
-            "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        )
+        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
+        raise ValueError(msg)
 
     # Zendesk API endpoint for updating ticket
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}.json"

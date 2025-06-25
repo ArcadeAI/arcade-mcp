@@ -1,5 +1,6 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
 from arcade_tdk import ToolContext
 
 
@@ -29,7 +30,8 @@ def sample_article_response():
     return {
         "id": 123456,
         "title": "How to reset your password",
-        "body": "<p>To reset your password, follow these steps:</p><ol><li>Click forgot password</li><li>Enter your email</li></ol>",
+        "body": "<p>To reset your password, follow these steps:</p>"
+        "<ol><li>Click forgot password</li><li>Enter your email</li></ol>",
         "url": "https://support.example.com/hc/en-us/articles/123456",
         "created_at": "2024-01-15T10:00:00Z",
         "updated_at": "2024-06-01T15:30:00Z",

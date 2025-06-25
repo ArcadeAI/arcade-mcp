@@ -1,4 +1,3 @@
-import arcade_zendesk
 from arcade_evals import (
     BinaryCritic,
     EvalRubric,
@@ -8,6 +7,8 @@ from arcade_evals import (
     tool_eval,
 )
 from arcade_tdk import ToolCatalog
+
+import arcade_zendesk
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
     get_ticket_comments,
@@ -180,7 +181,8 @@ def zendesk_ticket_comments_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Add public comment without specifying visibility",
-        user_message="Please comment on ticket #456: The issue has been escalated to our engineering team",
+        user_message="Please comment on ticket #456: "
+        "The issue has been escalated to our engineering team",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=add_ticket_comment,
@@ -223,7 +225,8 @@ def zendesk_ticket_comments_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Add private comment to ticket",
-        user_message="Add a private comment to ticket 321 for agents only: Check with backend team about API limits",
+        user_message="Add a private comment to ticket 321 for agents only: "
+        "Check with backend team about API limits",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=add_ticket_comment,
@@ -245,13 +248,15 @@ def zendesk_ticket_comments_eval_suite() -> EvalSuite:
     # Complex comment scenarios
     suite.add_case(
         name="Add detailed public update",
-        user_message="Update ticket 555 with: 'We've identified the root cause. A fix will be deployed within 24 hours. We apologize for the inconvenience.'",
+        user_message="Update ticket 555 with: 'We've identified the root cause. "
+        "A fix will be deployed within 24 hours. We apologize for the inconvenience.'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=add_ticket_comment,
                 args={
                     "ticket_id": 555,
-                    "comment_body": "We've identified the root cause. A fix will be deployed within 24 hours. We apologize for the inconvenience.",
+                    "comment_body": "We've identified the root cause. "
+                    "A fix will be deployed within 24 hours. We apologize for the inconvenience.",
                     "public": True,
                 },
             )
@@ -319,7 +324,8 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
     # Resolution with public comment
     suite.add_case(
         name="Solve ticket with public resolution comment",
-        user_message="Resolve ticket 300 with comment: 'Issue resolved by updating your account settings'",
+        user_message="Resolve ticket 300 with comment: "
+        "'Issue resolved by updating your account settings'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=mark_ticket_solved,
@@ -340,7 +346,8 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Close ticket with customer-facing message",
-        user_message="Close ticket 400 and tell the customer: Your refund has been processed successfully",
+        user_message="Close ticket 400 and tell the customer: "
+        "Your refund has been processed successfully",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=mark_ticket_solved,
@@ -362,7 +369,8 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
     # Resolution with internal comment
     suite.add_case(
         name="Solve ticket with internal note",
-        user_message="Mark ticket 500 as solved with internal note: 'Resolved via backend database fix'",
+        user_message="Mark ticket 500 as solved with internal note: "
+        "'Resolved via backend database fix'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=mark_ticket_solved,
@@ -404,7 +412,8 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
 
     suite.add_case(
         name="Close ticket with private resolution details",
-        user_message="Close ticket 600 with a private note for agents: 'Customer account had duplicate entries, merged successfully'",
+        user_message="Close ticket 600 with a private note for agents: "
+        "'Customer account had duplicate entries, merged successfully'",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=mark_ticket_solved,
@@ -480,13 +489,15 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
             },
             {
                 "role": "tool",
-                "content": "Ticket #1: Login issue (Status: open)\nTicket #2: Password reset request (Status: open)",
+                "content": "Ticket #1: Login issue (Status: open)\n"
+                "Ticket #2: Password reset request (Status: open)",
                 "tool_call_id": "call_1",
                 "name": "list_tickets",
             },
             {
                 "role": "assistant",
-                "content": "I found 2 open tickets:\n1. Ticket #1: Login issue\n2. Ticket #2: Password reset request",
+                "content": "I found 2 open tickets:\n"
+                "1. Ticket #1: Login issue\n2. Ticket #2: Password reset request",
             },
         ],
     )
@@ -510,7 +521,8 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
         additional_messages=[
             {
                 "role": "user",
-                "content": "Add a comment to ticket 789: 'Reset your password using the forgot password link on the login page'",
+                "content": "Add a comment to ticket 789: "
+                "'Reset your password using the forgot password link on the login page'",
             },
             {
                 "role": "assistant",
@@ -521,7 +533,9 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
                         "type": "function",
                         "function": {
                             "name": "add_ticket_comment",
-                            "arguments": '{"ticket_id": 789, "comment_body": "Reset your password using the forgot password link on the login page", "public": true}',
+                            "arguments": '{"ticket_id": 789, "comment_body": '
+                            '"Reset your password using the forgot password link on the login '
+                            'page", "public": true}',
                         },
                     }
                 ],
@@ -534,7 +548,8 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
             },
             {
                 "role": "assistant",
-                "content": "I've added the comment with password reset instructions to ticket #789.",
+                "content": "I've added the comment with password reset instructions "
+                "to ticket #789.",
             },
         ],
     )

@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
@@ -14,10 +14,10 @@ DEFAULT_MAX_BODY_LENGTH = 500  # Default max length for article body content
 async def fetch_all_pages(
     client: httpx.AsyncClient,
     url: str,
-    headers: Dict[str, str],
-    params: Dict[str, Any],
-    max_pages: Optional[int] = None,
-) -> Dict[str, Any]:
+    headers: dict[str, str],
+    params: dict[str, Any],
+    max_pages: int | None = None,
+) -> dict[str, Any]:
     """
     Internal helper to fetch all pages of results.
 
@@ -61,28 +61,30 @@ async def fetch_all_pages(
         current_page += 1
 
     # Create simplified response with just results
-    response: Dict[str, Any] = {"results": all_results}
+    response: dict[str, Any] = {"results": all_results}
 
     # Add warnings if we hit limits
     if len(all_results) >= MAX_TOTAL_RESULTS:
         response["warnings"] = [
             {
                 "type": "ResultLimitReached",
-                "message": f"Result limit of {MAX_TOTAL_RESULTS} reached. Use more specific filters to narrow your search.",
-                "suggestion": "Try adding filters like category, section, or date ranges to get more targeted results.",
+                "message": f"Result limit of {MAX_TOTAL_RESULTS} reached. "
+                "Use more specific filters to narrow your search.",
+                "suggestion": "Try adding filters like category, section, or date ranges "
+                "to get more targeted results.",
             }
         ]
 
     return response
 
 
-def clean_html_text(text: Optional[str]) -> str:
+def clean_html_text(text: str | None) -> str:
     """Remove HTML tags and clean up text."""
     if not text:
         return ""
 
     soup = BeautifulSoup(text, "html.parser")
-    clean_text = soup.get_text(separator=" ")
+    clean_text: str = soup.get_text(separator=" ")
 
     clean_text = re.sub(r"\n+", "\n", clean_text)
 
@@ -94,8 +96,8 @@ def clean_html_text(text: Optional[str]) -> str:
 
 
 def truncate_text(
-    text: Optional[str], max_length: int, suffix: str = " ... [truncated]"
-) -> Optional[str]:
+    text: str | None, max_length: int, suffix: str = " ... [truncated]"
+) -> str | None:
     """Truncate text to a maximum length with a suffix."""
     if not text or len(text) <= max_length:
         return text
@@ -107,7 +109,7 @@ def truncate_text(
     return text[:truncate_at] + suffix
 
 
-def process_article_body(body: Optional[str], max_length: Optional[int] = None) -> Optional[str]:
+def process_article_body(body: str | None, max_length: int | None = None) -> str | None:
     """Process article body by cleaning HTML and optionally truncating."""
     if not body:
         return None
@@ -122,10 +124,10 @@ def process_article_body(body: Optional[str], max_length: Optional[int] = None) 
 
 
 def process_search_results(
-    results: List[Dict[str, Any]],
+    results: list[dict[str, Any]],
     include_body: bool = False,
-    max_body_length: Optional[int] = DEFAULT_MAX_BODY_LENGTH,
-) -> List[Dict[str, Any]]:
+    max_body_length: int | None = DEFAULT_MAX_BODY_LENGTH,
+) -> list[dict[str, Any]]:
     """Process search results to clean up data and restructure with content and metadata."""
     processed_results = []
 
@@ -136,7 +138,7 @@ def process_search_results(
         if include_body and body_content:
             cleaned_content = process_article_body(body_content, max_body_length)
 
-        processed_result: Dict[str, Any] = {"content": cleaned_content, "metadata": {}}
+        processed_result: dict[str, Any] = {"content": cleaned_content, "metadata": {}}
 
         for key, value in result.items():
             if key != "body":

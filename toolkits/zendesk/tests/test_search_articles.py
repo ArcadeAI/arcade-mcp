@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import MagicMock
+
 import httpx
+import pytest
+
 from arcade_zendesk.tools.search_articles import search_articles
 
 
@@ -361,7 +363,8 @@ class TestSearchArticlesContentProcessing:
         article_with_html = {
             "id": 1,
             "title": "Test Article",
-            "body": "<h1>Header</h1><p>Paragraph with <strong>bold</strong> and <em>italic</em>.</p><br/><div>Div content</div>",
+            "body": "<h1>Header</h1><p>Paragraph with <strong>bold</strong> and "
+            "<em>italic</em>.</p><br/><div>Div content</div>",
             "url": "https://example.com/article/1",
         }
 

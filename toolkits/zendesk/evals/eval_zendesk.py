@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import arcade_zendesk
 from arcade_evals import (
     DatetimeCritic,
     EvalRubric,
@@ -10,6 +9,8 @@ from arcade_evals import (
 )
 from arcade_evals.critic import BinaryCritic, SimilarityCritic
 from arcade_tdk import ToolCatalog
+
+import arcade_zendesk
 from arcade_zendesk.tools.search_articles import search_articles
 
 # Evaluation rubric
@@ -244,7 +245,8 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
     # Complex search scenarios
     suite.add_case(
         name="Complex search with multiple filters",
-        user_message="Find recent troubleshooting articles about login issues in category 150, created after March 2024, sorted by newest first",
+        user_message="Find recent troubleshooting articles about login issues in category 150, "
+        "created after March 2024, sorted by newest first",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
@@ -319,7 +321,8 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
     # Pagination with context
     suite.add_case(
         name="Initial search with pagination context",
-        user_message="I need to find all troubleshooting articles. Start by showing me the first 20.",
+        user_message="I need to find all troubleshooting articles. "
+        "Start by showing me the first 20.",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles, args={"query": "troubleshooting", "per_page": 20}
@@ -349,11 +352,13 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
         additional_messages=[
             {
                 "role": "user",
-                "content": "I need to find all troubleshooting articles. Start by showing me the first 20.",
+                "content": "I need to find all troubleshooting articles. "
+                "Start by showing me the first 20.",
             },
             {
                 "role": "assistant",
-                "content": "I'll search for troubleshooting articles and show you the first 20 results.",
+                "content": "I'll search for troubleshooting articles and "
+                "show you the first 20 results.",
                 "tool_calls": [
                     {
                         "id": "call_1",
@@ -367,13 +372,17 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
             },
             {
                 "role": "tool",
-                "content": '{"results": [{"content": "Troubleshooting guide 1", "metadata": {"id": 1, "title": "How to troubleshoot login issues"}}], "count": 150}',
+                "content": '{"results": [{"content": "Troubleshooting guide 1", '
+                '"metadata": {"id": 1, "title": "How to troubleshoot login issues"}}], '
+                '"count": 150}',
                 "tool_call_id": "call_1",
                 "name": "search_articles",
             },
             {
                 "role": "assistant",
-                "content": "I found 150 troubleshooting articles total. Here are the first 20 results. The first one is 'How to troubleshoot login issues'.",
+                "content": "I found 150 troubleshooting articles total. "
+                "Here are the first 20 results. "
+                "The first one is 'How to troubleshoot login issues'.",
             },
         ],
     )

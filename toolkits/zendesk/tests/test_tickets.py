@@ -1,9 +1,12 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+from arcade_tdk.errors import ToolExecutionError
+
 from arcade_zendesk.tools.tickets import (
-    list_tickets,
-    get_ticket_comments,
     add_ticket_comment,
+    get_ticket_comments,
+    list_tickets,
     mark_ticket_solved,
 )
 
@@ -78,7 +81,7 @@ class TestListTickets:
         mock_context.get_secret.return_value = None
 
         # Should raise an error when trying to format the URL
-        with pytest.raises(Exception):
+        with pytest.raises(ToolExecutionError):
             await list_tickets(mock_context)
 
 

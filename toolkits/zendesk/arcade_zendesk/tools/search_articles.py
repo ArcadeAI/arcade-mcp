@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
@@ -21,55 +21,59 @@ logger = logging.getLogger(__name__)
 async def search_articles(
     context: ToolContext,
     query: Annotated[
-        Optional[str],
-        "Search text to match against articles. Can use quoted phrases for exact matches (e.g., 'exact phrase') or multiple terms (e.g., 'carrot potato')",
+        str | None,
+        "Search text to match against articles. Can use quoted phrases for exact matches "
+        "(e.g., 'exact phrase') or multiple terms (e.g., 'carrot potato')",
     ] = None,
     label_names: Annotated[
-        Optional[str],
-        "Comma-separated list of label names (case-insensitive). Article must have at least one matching label. Available on Professional/Enterprise plans only",
+        str | None,
+        "Comma-separated list of label names (case-insensitive). Article must have at least "
+        "one matching label. Available on Professional/Enterprise plans only",
     ] = None,
     category: Annotated[
-        Optional[int],
+        int | None,
         "Filter by category ID. Can specify multiple by comma-separating values (e.g., '123,456')",
     ] = None,
     section: Annotated[
-        Optional[int],
+        int | None,
         "Filter by section ID. Can specify multiple by comma-separating values (e.g., '789,101')",
     ] = None,
     created_after: Annotated[
-        Optional[str],
+        str | None,
         "Filter articles created after this date (format: YYYY-MM-DD, e.g., '2024-01-15')",
     ] = None,
     created_before: Annotated[
-        Optional[str],
+        str | None,
         "Filter articles created before this date (format: YYYY-MM-DD, e.g., '2024-01-15')",
     ] = None,
     created_at: Annotated[
-        Optional[str],
+        str | None,
         "Filter articles created on this exact date (format: YYYY-MM-DD, e.g., '2024-01-15')",
     ] = None,
     sort_by: Annotated[
-        Optional[str],
+        str | None,
         "Sort results by 'created_at'. Defaults to relevance when omitted",
     ] = None,
     sort_order: Annotated[
-        Optional[str],
+        str | None,
         "Sort order: 'asc' (ascending) or 'desc' (descending). Defaults to 'desc'",
     ] = None,
     per_page: Annotated[int, "Number of results per page (maximum 100)"] = 10,
     all_pages: Annotated[
         bool,
-        "Automatically fetch all available pages of results when True. Takes precedence over max_pages",
+        "Automatically fetch all available pages of results when True. "
+        "Takes precedence over max_pages",
     ] = False,
     max_pages: Annotated[
-        Optional[int],
-        "Maximum number of pages to fetch (ignored if all_pages=True). If neither all_pages nor max_pages is specified, only the first page is returned",
+        int | None,
+        "Maximum number of pages to fetch (ignored if all_pages=True). If neither all_pages "
+        "nor max_pages is specified, only the first page is returned",
     ] = None,
     include_body: Annotated[
         bool,
         "Include article body content in results. Bodies will be cleaned of HTML and truncated",
     ] = True,
-) -> Annotated[Dict[str, Any], "Article search results with pagination metadata"]:
+) -> Annotated[dict[str, Any], "Article search results with pagination metadata"]:
     """
     Search for Help Center articles in your Zendesk knowledge base.
 
@@ -90,7 +94,8 @@ async def search_articles(
     - Category search: category=123, query="troubleshooting"
     - Label search: label_names="windows,setup", query="installation"
     - Date range: query="API", created_after="2024-01-01", created_before="2024-12-31"
-    - Combined filters: query="troubleshooting", category=100, section=200, label_names="windows,setup"
+    - Combined filters: query="troubleshooting", category=100, section=200,
+      label_names="windows,setup"
     - All results: query="API documentation", all_pages=True
     - Limited pages: query="troubleshooting", max_pages=3, per_page=50
     """
@@ -106,7 +111,8 @@ async def search_articles(
         if param_value and not validate_date_format(param_value):
             return {
                 "error": "InvalidDateFormat",
-                "message": f"Invalid date format for {param_name}: '{param_value}'. Please use YYYY-MM-DD format.",
+                "message": f"Invalid date format for {param_name}: '{param_value}'. "
+                "Please use YYYY-MM-DD format.",
                 "example": "2024-01-15",
             }
 
@@ -149,12 +155,13 @@ async def search_articles(
     if not subdomain:
         return {
             "error": "ConfigurationError",
-            "message": "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN.",
+            "message": "Zendesk subdomain not found in secrets. "
+            "Please configure ZENDESK_SUBDOMAIN.",
         }
 
     url = f"https://{subdomain}.zendesk.com/api/v2/help_center/articles/search"
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "per_page": min(per_page, 100),
         "page": 1,
     }
@@ -206,7 +213,6 @@ async def search_articles(
             if "results" in data:
                 data["results"] = process_search_results(data["results"], include_body=include_body)
             logger.info(f"Article search results: {data}")
-            return data
 
         except httpx.HTTPStatusError as e:
             logger.exception(f"HTTP error during article search: {e.response.status_code}")
@@ -220,15 +226,18 @@ async def search_articles(
             logger.exception("Timeout during article search")
             return {
                 "error": "TimeoutError",
-                "message": "Request timed out while searching articles. Try reducing per_page or using more specific filters.",
+                "message": "Request timed out while searching articles. "
+                "Try reducing per_page or using more specific filters.",
                 "url": url,
                 "params": params,
             }
         except Exception as e:
-            logger.exception(f"Unexpected error during article search: {e!s}")
+            logger.exception("Unexpected error during article search")
             return {
                 "error": "SearchError",
                 "message": f"Failed to search articles: {e!s}",
                 "url": url,
                 "params": params,
             }
+        else:
+            return data

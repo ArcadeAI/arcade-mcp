@@ -1,14 +1,16 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
 import httpx
+import pytest
+
 from arcade_zendesk.utils import (
+    MAX_TOTAL_RESULTS,
     clean_html_text,
-    truncate_text,
+    fetch_all_pages,
     process_article_body,
     process_search_results,
+    truncate_text,
     validate_date_format,
-    fetch_all_pages,
-    MAX_TOTAL_RESULTS,
 )
 
 

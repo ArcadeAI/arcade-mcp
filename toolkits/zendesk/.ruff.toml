@@ -36,6 +36,8 @@ select = [
     "TRY",
 ]
 
+ignore = ["C901"]
+
 [lint.per-file-ignores]
 "**/tests/*" = ["S101"]
 
