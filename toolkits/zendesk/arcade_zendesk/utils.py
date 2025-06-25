@@ -38,9 +38,7 @@ async def fetch_all_pages(
     while True:
         params["page"] = current_page
 
-        http_response = await client.get(
-            url, headers=headers, params=params, timeout=30.0
-        )
+        http_response = await client.get(url, headers=headers, params=params, timeout=30.0)
         http_response.raise_for_status()
         page_data = http_response.json()
 
@@ -109,9 +107,7 @@ def truncate_text(
     return text[:truncate_at] + suffix
 
 
-def process_article_body(
-    body: Optional[str], max_length: Optional[int] = None
-) -> Optional[str]:
+def process_article_body(body: Optional[str], max_length: Optional[int] = None) -> Optional[str]:
     """Process article body by cleaning HTML and optionally truncating."""
     if not body:
         return None

@@ -82,9 +82,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.6),
-            DatetimeCritic(
-                critic_field="created_after", weight=0.4, tolerance=timedelta(days=1)
-            ),
+            DatetimeCritic(critic_field="created_after", weight=0.4, tolerance=timedelta(days=1)),
         ],
     )
 
@@ -104,12 +102,8 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.4),
-            DatetimeCritic(
-                critic_field="created_after", weight=0.3, tolerance=timedelta(days=1)
-            ),
-            DatetimeCritic(
-                critic_field="created_before", weight=0.3, tolerance=timedelta(days=1)
-            ),
+            DatetimeCritic(critic_field="created_after", weight=0.3, tolerance=timedelta(days=1)),
+            DatetimeCritic(critic_field="created_before", weight=0.3, tolerance=timedelta(days=1)),
         ],
     )
 
@@ -117,9 +111,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Search by category ID only",
         user_message="Show me all articles in category 123",
-        expected_tool_calls=[
-            ExpectedToolCall(func=search_articles, args={"category": 123})
-        ],
+        expected_tool_calls=[ExpectedToolCall(func=search_articles, args={"category": 123})],
         rubric=rubric,
         critics=[
             BinaryCritic(critic_field="category", weight=1.0),
@@ -148,9 +140,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         name="Search by labels only",
         user_message="Show me articles tagged with windows and setup labels",
         expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_articles, args={"label_names": "windows,setup"}
-            )
+            ExpectedToolCall(func=search_articles, args={"label_names": "windows,setup"})
         ],
         rubric=rubric,
         critics=[
@@ -271,9 +261,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         critics=[
             SimilarityCritic(critic_field="query", weight=0.3),
             BinaryCritic(critic_field="category", weight=0.2),
-            DatetimeCritic(
-                critic_field="created_after", weight=0.2, tolerance=timedelta(days=1)
-            ),
+            DatetimeCritic(critic_field="created_after", weight=0.2, tolerance=timedelta(days=1)),
             BinaryCritic(critic_field="sort_by", weight=0.15),
             BinaryCritic(critic_field="sort_order", weight=0.15),
         ],
@@ -284,9 +272,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         name="Search without article body content",
         user_message="List article titles about billing without the full content",
         expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_articles, args={"query": "billing", "include_body": False}
-            )
+            ExpectedToolCall(func=search_articles, args={"query": "billing", "include_body": False})
         ],
         rubric=rubric,
         critics=[

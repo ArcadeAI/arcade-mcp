@@ -57,9 +57,7 @@ class TestSearchArticlesValidation:
         """Test validation of sort_by parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        result = await search_articles(
-            context=mock_context, query="test", sort_by=sort_by
-        )
+        result = await search_articles(context=mock_context, query="test", sort_by=sort_by)
 
         assert result["error"] == "InvalidSortParameter"
         assert "created_at" in result["message"]
@@ -71,9 +69,7 @@ class TestSearchArticlesValidation:
         """Test validation of sort_order parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        result = await search_articles(
-            context=mock_context, query="test", sort_order=sort_order
-        )
+        result = await search_articles(context=mock_context, query="test", sort_order=sort_order)
 
         assert result["error"] == "InvalidSortOrder"
         assert "asc" in result["message"]
@@ -85,9 +81,7 @@ class TestSearchArticlesValidation:
         """Test validation of max_pages parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        result = await search_articles(
-            context=mock_context, query="test", max_pages=max_pages
-        )
+        result = await search_articles(context=mock_context, query="test", max_pages=max_pages)
 
         assert result["error"] == "InvalidPaginationParameter"
         assert "at least 1" in result["message"]
@@ -169,15 +163,10 @@ class TestSearchArticlesSuccess:
         search_response = {"results": [sample_article_response], "next_page": None}
         mock_httpx_client.get.return_value = mock_http_response(search_response)
 
-        result = await search_articles(
-            context=mock_context, query="test", include_body=False
-        )
+        result = await search_articles(context=mock_context, query="test", include_body=False)
 
         assert result["results"][0]["content"] is None
-        assert (
-            result["results"][0]["metadata"]["title"]
-            == sample_article_response["title"]
-        )
+        assert result["results"][0]["metadata"]["title"] == sample_article_response["title"]
 
     @pytest.mark.asyncio
     async def test_search_by_labels(
@@ -189,15 +178,10 @@ class TestSearchArticlesSuccess:
         search_response = build_search_response()
         mock_httpx_client.get.return_value = mock_http_response(search_response)
 
-        result = await search_articles(
-            context=mock_context, label_names="password,security"
-        )
+        result = await search_articles(context=mock_context, label_names="password,security")
 
         assert "results" in result
-        assert (
-            mock_httpx_client.get.call_args[1]["params"]["label_names"]
-            == "password,security"
-        )
+        assert mock_httpx_client.get.call_args[1]["params"]["label_names"] == "password,security"
 
 
 class TestSearchArticlesPagination:
@@ -245,9 +229,7 @@ class TestSearchArticlesPagination:
             mock_http_response(page3),
         ]
 
-        result = await search_articles(
-            context=mock_context, query="test", all_pages=True
-        )
+        result = await search_articles(context=mock_context, query="test", all_pages=True)
 
         assert len(result["results"]) == 3
         assert mock_httpx_client.get.call_count == 3
@@ -262,11 +244,9 @@ class TestSearchArticlesPagination:
         # Setup 5 pages but limit to 2
         responses = []
         for i in range(5):
-            next_page = f"page{i+2}" if i < 4 else None
+            next_page = f"page{i + 2}" if i < 4 else None
             page = build_search_response(
-                articles=[
-                    {"id": i + 1, "title": f"Article {i+1}", "body": f"Content {i+1}"}
-                ],
+                articles=[{"id": i + 1, "title": f"Article {i + 1}", "body": f"Content {i + 1}"}],
                 next_page=next_page,
             )
             responses.append(mock_http_response(page))
@@ -288,11 +268,9 @@ class TestSearchArticlesPagination:
         # Setup 3 pages
         responses = []
         for i in range(3):
-            next_page = f"page{i+2}" if i < 2 else None
+            next_page = f"page{i + 2}" if i < 2 else None
             page = build_search_response(
-                articles=[
-                    {"id": i + 1, "title": f"Article {i+1}", "body": f"Content {i+1}"}
-                ],
+                articles=[{"id": i + 1, "title": f"Article {i + 1}", "body": f"Content {i + 1}"}],
                 next_page=next_page,
             )
             responses.append(mock_http_response(page))
@@ -324,9 +302,7 @@ class TestSearchArticlesErrors:
         ],
     )
     @pytest.mark.asyncio
-    async def test_http_errors(
-        self, mock_context, mock_httpx_client, status_code, error_key
-    ):
+    async def test_http_errors(self, mock_context, mock_httpx_client, status_code, error_key):
         """Test handling of HTTP errors."""
         mock_context.get_secret.return_value = "test-subdomain"
 
@@ -345,8 +321,7 @@ class TestSearchArticlesErrors:
         assert result["error"] == error_key
         assert "Failed to search articles" in result["message"]
         assert (
-            result["url"]
-            == "https://test-subdomain.zendesk.com/api/v2/help_center/articles/search"
+            result["url"] == "https://test-subdomain.zendesk.com/api/v2/help_center/articles/search"
         )
 
     @pytest.mark.asyncio
@@ -379,9 +354,7 @@ class TestSearchArticlesContentProcessing:
     """Test content processing and formatting."""
 
     @pytest.mark.asyncio
-    async def test_html_cleaning(
-        self, mock_context, mock_httpx_client, mock_http_response
-    ):
+    async def test_html_cleaning(self, mock_context, mock_httpx_client, mock_http_response):
         """Test HTML content is properly cleaned."""
         mock_context.get_secret.return_value = "test-subdomain"
 
@@ -395,9 +368,7 @@ class TestSearchArticlesContentProcessing:
         search_response = {"results": [article_with_html], "next_page": None}
         mock_httpx_client.get.return_value = mock_http_response(search_response)
 
-        result = await search_articles(
-            context=mock_context, query="test", include_body=True
-        )
+        result = await search_articles(context=mock_context, query="test", include_body=True)
 
         content = result["results"][0]["content"]
         assert content == "Header Paragraph with bold and italic . Div content"

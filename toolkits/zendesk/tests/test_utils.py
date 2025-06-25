@@ -216,9 +216,7 @@ class TestProcessSearchResults:
             }
         ]
 
-        processed = process_search_results(
-            results, include_body=True, max_body_length=50
-        )
+        processed = process_search_results(results, include_body=True, max_body_length=50)
 
         content = processed[0]["content"]
         assert len(content) <= 50 + len(" ... [truncated]")
@@ -303,9 +301,10 @@ class TestFetchAllPages:
     async def test_fetch_single_page(self, mock_http_response):
         """Test fetching a single page of results."""
         mock_client = AsyncMock()
-        mock_client.get.return_value = mock_http_response(
-            {"results": [{"id": 1}, {"id": 2}], "next_page": None}
-        )
+        mock_client.get.return_value = mock_http_response({
+            "results": [{"id": 1}, {"id": 2}],
+            "next_page": None,
+        })
 
         result = await fetch_all_pages(
             client=mock_client,
@@ -346,7 +345,7 @@ class TestFetchAllPages:
         """Test fetching with max_pages limit."""
         mock_client = AsyncMock()
         mock_client.get.side_effect = [
-            mock_http_response({"results": [{"id": i}], "next_page": f"page{i+1}"})
+            mock_http_response({"results": [{"id": i}], "next_page": f"page{i + 1}"})
             for i in range(1, 6)
         ]
 
@@ -373,16 +372,13 @@ class TestFetchAllPages:
         responses = []
         for i in range(num_pages):
             page_results = [
-                {"id": j}
-                for j in range(i * results_per_page, (i + 1) * results_per_page)
+                {"id": j} for j in range(i * results_per_page, (i + 1) * results_per_page)
             ]
             responses.append(
-                mock_http_response(
-                    {
-                        "results": page_results,
-                        "next_page": f"page{i+2}" if i < num_pages - 1 else None,
-                    }
-                )
+                mock_http_response({
+                    "results": page_results,
+                    "next_page": f"page{i + 2}" if i < num_pages - 1 else None,
+                })
             )
 
         mock_client.get.side_effect = responses

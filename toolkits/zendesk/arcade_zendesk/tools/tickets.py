@@ -43,7 +43,9 @@ async def list_tickets(context: ToolContext) -> Annotated[str, "The tickets"]:
 
             result = []
             for ticket in tickets:
-                ticket_info = f"Ticket #{ticket['id']}: {ticket['subject']} (Status: {ticket['status']})"
+                ticket_info = (
+                    f"Ticket #{ticket['id']}: {ticket['subject']} (Status: {ticket['status']})"
+                )
                 result.append(ticket_info)
 
             return "\n".join(result)
@@ -60,58 +62,58 @@ async def get_ticket_comments(
     ticket_id: Annotated[int, "The ID of the ticket to get comments for"],
 ) -> Annotated[str, "The ticket comments including the original description"]:
     """Get all comments for a specific Zendesk ticket, including the original description.
-    
+
     The first comment is always the ticket's original description/content.
     Subsequent comments show the conversation history.
     """
-    
+
     # Get the authorization token
     token = context.get_auth_token_or_empty()
     subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-    
+
     if not subdomain:
         raise ValueError(
             "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
         )
-    
+
     # Zendesk API endpoint for ticket comments
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}/comments.json"
-    
+
     # Make the API request
     async with httpx.AsyncClient() as client:
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        
+
         response = await client.get(url, headers=headers)
-        
+
         if response.status_code == 200:
             data = response.json()
             comments = data.get("comments", [])
-            
+
             if not comments:
                 return f"No comments found for ticket #{ticket_id}."
-            
+
             result = [f"Comments for Ticket #{ticket_id}:\n"]
-            
+
             for i, comment in enumerate(comments):
                 author_id = comment.get("author_id", "Unknown")
                 created_at = comment.get("created_at", "Unknown time")
                 body = comment.get("body", "No content")
                 public = comment.get("public", True)
-                
+
                 # Format the comment
                 if i == 0:
                     result.append("=== Original Description ===")
                 else:
                     comment_type = "Public" if public else "Internal"
                     result.append(f"\n=== Comment #{i} ({comment_type}) ===")
-                
+
                 result.append(f"Author ID: {author_id}")
                 result.append(f"Created: {created_at}")
                 result.append(f"Content: {body}")
-            
+
             return "\n".join(result)
         elif response.status_code == 404:
             return f"Ticket #{ticket_id} not found."
@@ -187,9 +189,7 @@ async def mark_ticket_solved(
         Optional[str],
         "Optional final comment to add when solving (e.g., resolution summary)",
     ] = None,
-    comment_public: Annotated[
-        bool, "Whether the comment is visible to the requester"
-    ] = False,
+    comment_public: Annotated[bool, "Whether the comment is visible to the requester"] = False,
 ) -> Annotated[str, "Result of marking ticket as solved"]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 

@@ -12,9 +12,7 @@ class TestListTickets:
     """Test list_tickets functionality."""
 
     @pytest.mark.asyncio
-    async def test_list_tickets_success(
-        self, mock_context, mock_httpx_client, mock_http_response
-    ):
+    async def test_list_tickets_success(self, mock_context, mock_httpx_client, mock_http_response):
         """Test successful listing of open tickets."""
         mock_context.get_secret.return_value = "test-subdomain"
 
@@ -170,9 +168,7 @@ class TestGetTicketComments:
         assert result == "Ticket #999 not found."
 
     @pytest.mark.asyncio
-    async def test_get_ticket_comments_error(
-        self, mock_context, mock_httpx_client
-    ):
+    async def test_get_ticket_comments_error(self, mock_context, mock_httpx_client):
         """Test error handling when API fails."""
         mock_context.get_secret.return_value = "test-subdomain"
 
@@ -215,11 +211,7 @@ class TestAddTicketComment:
                 "Authorization": "Bearer fake-token",
                 "Content-Type": "application/json",
             },
-            json={
-                "ticket": {
-                    "comment": {"body": "This is a test comment", "public": True}
-                }
-            },
+            json={"ticket": {"comment": {"body": "This is a test comment", "public": True}}},
         )
 
     @pytest.mark.asyncio
@@ -252,9 +244,7 @@ class TestAddTicketComment:
         error_response.headers.get.return_value = "text/plain"
         mock_httpx_client.put.return_value = error_response
 
-        result = await add_ticket_comment(
-            mock_context, ticket_id=999, comment_body="Test comment"
-        )
+        result = await add_ticket_comment(mock_context, ticket_id=999, comment_body="Test comment")
 
         assert result == "Error adding comment to ticket: 404 - Ticket not found"
 
@@ -270,9 +260,7 @@ class TestAddTicketComment:
         error_response.json.return_value = {"error": "Invalid request format"}
         mock_httpx_client.put.return_value = error_response
 
-        result = await add_ticket_comment(
-            mock_context, ticket_id=123, comment_body="Test"
-        )
+        result = await add_ticket_comment(mock_context, ticket_id=123, comment_body="Test")
 
         assert result == "Error adding comment to ticket: 422 - Invalid request format"
 
@@ -319,19 +307,13 @@ class TestMarkTicketSolved:
             comment_public=True,
         )
 
-        assert (
-            result
-            == "Successfully marked ticket #123 as solved with public resolution comment"
-        )
+        assert result == "Successfully marked ticket #123 as solved with public resolution comment"
 
         # Verify the request body includes the comment
         call_args = mock_httpx_client.put.call_args
         request_body = call_args[1]["json"]
         assert request_body["ticket"]["status"] == "solved"
-        assert (
-            request_body["ticket"]["comment"]["body"]
-            == "Issue resolved by resetting password"
-        )
+        assert request_body["ticket"]["comment"]["body"] == "Issue resolved by resetting password"
         assert request_body["ticket"]["comment"]["public"] is True
 
     @pytest.mark.asyncio
@@ -351,8 +333,7 @@ class TestMarkTicketSolved:
         )
 
         assert (
-            result
-            == "Successfully marked ticket #456 as solved with internal resolution comment"
+            result == "Successfully marked ticket #456 as solved with internal resolution comment"
         )
 
     @pytest.mark.asyncio
@@ -372,8 +353,7 @@ class TestMarkTicketSolved:
         )
 
         assert (
-            result
-            == "Successfully marked ticket #555 as solved with internal resolution comment"
+            result == "Successfully marked ticket #555 as solved with internal resolution comment"
         )
 
         # Verify the comment is internal by default
@@ -424,9 +404,7 @@ class TestAuthenticationAndSecrets:
         mock_context.get_secret.return_value = "test-subdomain"
 
         # The tools should still attempt the API call with empty token
-        mock_httpx_client.get.return_value = MagicMock(
-            status_code=401, text="Unauthorized"
-        )
+        mock_httpx_client.get.return_value = MagicMock(status_code=401, text="Unauthorized")
 
         result = await list_tickets(mock_context)
 
@@ -436,9 +414,7 @@ class TestAuthenticationAndSecrets:
         assert "Error fetching tickets: 401" in result
 
     @pytest.mark.asyncio
-    async def test_subdomain_from_secret(
-        self, mock_context, mock_httpx_client, mock_http_response
-    ):
+    async def test_subdomain_from_secret(self, mock_context, mock_httpx_client, mock_http_response):
         """Test that subdomain is correctly retrieved from secrets."""
         mock_context.get_secret.return_value = "my-company"
 

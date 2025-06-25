@@ -202,20 +202,14 @@ async def search_articles(
             else:
                 pages_to_fetch = 1  # Single page (default behavior)
 
-            data = await fetch_all_pages(
-                client, url, headers, params, max_pages=pages_to_fetch
-            )
+            data = await fetch_all_pages(client, url, headers, params, max_pages=pages_to_fetch)
             if "results" in data:
-                data["results"] = process_search_results(
-                    data["results"], include_body=include_body
-                )
+                data["results"] = process_search_results(data["results"], include_body=include_body)
             logger.info(f"Article search results: {data}")
             return data
 
         except httpx.HTTPStatusError as e:
-            logger.exception(
-                f"HTTP error during article search: {e.response.status_code}"
-            )
+            logger.exception(f"HTTP error during article search: {e.response.status_code}")
             return {
                 "error": f"HTTP {e.response.status_code}",
                 "message": f"Failed to search articles: {e.response.text}",
