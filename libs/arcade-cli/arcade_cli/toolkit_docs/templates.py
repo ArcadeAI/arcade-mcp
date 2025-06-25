@@ -95,7 +95,7 @@ TOOL_CALL_EXAMPLE_JS = """import {{ Arcade }} from "@arcadeai/arcadejs";
 const client = new Arcade(); // Automatically finds the `ARCADE_API_KEY` env variable
 
 const USER_ID = "user@example.com";  // Unique identifier for your user (email, UUID, etc.)
-const TOOL_NAME = "{tool_name_fully_qualified}";
+const TOOL_NAME = "{tool_fully_qualified_name}";
 
 // Start the authorization process
 const authResponse = await client.tools.authorize({{tool_name: TOOL_NAME}});
@@ -124,7 +124,7 @@ from arcadepy import Arcade
 client = Arcade()  # Automatically finds the `ARCADE_API_KEY` env variable
 
 USER_ID = "user@example.com"  # Unique identifier for your user (email, UUID, etc.)
-TOOL_NAME = "{tool_name_fully_qualified}"
+TOOL_NAME = "{tool_fully_qualified_name}"
 
 auth_response = client.tools.authorize(tool_name=TOOL_NAME)
 

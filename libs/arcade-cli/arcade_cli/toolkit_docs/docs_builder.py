@@ -1,5 +1,6 @@
 import json
 import os
+import pprint
 from enum import Enum
 from typing import Any, Callable, cast
 
@@ -339,10 +340,16 @@ def build_python_example(
     input_map: dict[str, Any],
     template: str = TOOL_CALL_EXAMPLE_PY,
 ) -> str:
-    input_map_str = json.dumps(input_map, indent=4, ensure_ascii=False)
-    input_map_str = input_map_str.replace(": false", ": False").replace(": true", ": True")
+    input_map_str = pprint.pformat(
+        input_map,
+        indent=4,
+        width=100,
+        compact=False,
+        sort_dicts=False,
+    )
+    input_map_str = "{\n    " + input_map_str.lstrip("{   ").rstrip("}") + "\n}"  # noqa: B005
     return template.format(
-        tool_name_fully_qualified=tool_fully_qualified_name,
+        tool_fully_qualified_name=tool_fully_qualified_name,
         input_map=input_map_str,
     )
 
@@ -353,7 +360,7 @@ def build_javascript_example(
     template: str = TOOL_CALL_EXAMPLE_JS,
 ) -> str:
     return template.format(
-        tool_name_fully_qualified=tool_fully_qualified_name,
+        tool_fully_qualified_name=tool_fully_qualified_name,
         input_map=json.dumps(input_map, indent=2, ensure_ascii=False),
     )
 
@@ -435,7 +442,7 @@ def generate_tool_input_map(
     retries: int = 0,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    interface_description = build_tool_interface_description(tool)
+    interface_signature = build_tool_interface_signature(tool)
     response = openai.chat.completions.create(
         model=openai_model,
         messages=[
@@ -469,7 +476,7 @@ def generate_tool_input_map(
                 "role": "user",
                 "content": (
                     "Here is a tool interface:\n\n"
-                    f"{interface_description}\n\n"
+                    f"{interface_signature}\n\n"
                     "Please provide a sample input map as a JSON object."
                 ),
             },
@@ -490,7 +497,7 @@ def generate_tool_input_map(
         raise ValueError(f"Failed to generate input map for tool {tool.name}: {text}")
 
 
-def build_tool_interface_description(tool: ToolDefinition) -> str:
+def build_tool_interface_signature(tool: ToolDefinition) -> str:
     args = []
     for arg in tool.input.parameters:
         data: dict[str, Any] = {

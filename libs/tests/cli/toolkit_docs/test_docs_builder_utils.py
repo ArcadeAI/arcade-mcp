@@ -1,13 +1,111 @@
 from types import ModuleType
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from arcade_cli.toolkit_docs.utils import (
     clean_fully_qualified_name,
     get_toolkit_auth_type,
     is_well_known_provider,
+    pascal_to_snake_case,
+    read_toolkit_metadata,
 )
 from arcade_core.auth import Asana, AuthProviderType, Google, OAuth2, Slack
 from arcade_core.schema import ToolAuthRequirement
+
+
+@patch("arcade_cli.toolkit_docs.utils.open")
+def test_read_toolkit_metadata(mock_open):
+    sample_pyproject_toml = """
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade_jira"
+version = "0.1.2"
+description = "Arcade.dev LLM tools for interacting with Atlassian Jira"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=2.0.0,<3.0.0",
+    "httpx>=0.27.2,<1.0.0",
+]
+[[project.authors]]
+name = "Arcade"
+email = "dev@arcade.dev"
+
+[project.optional-dependencies]
+dev = [
+    "arcade-ai[evals]>=2.0.0,<3.0.0",
+    "arcade-serve>=2.0.0,<3.0.0",
+    "pytest>=8.3.0,<8.4.0",
+    "pytest-cov>=4.0.0,<4.1.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "pytest-mock>=3.11.1,<3.12.0",
+    "mypy>=1.5.1,<1.6.0",
+    "pre-commit>=3.4.0,<3.5.0",
+    "tox>=4.11.1,<4.12.0",
+    "ruff>=0.7.4,<0.8.0",
+]
+
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-ai = {path = "../../", editable = true}
+arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
+
+[tool.mypy]
+files = [ "arcade_jira/**/*.py",]
+python_version = "3.10"
+disallow_untyped_defs = "True"
+disallow_any_unimported = "True"
+no_implicit_optional = "True"
+check_untyped_defs = "True"
+warn_return_any = "True"
+warn_unused_ignores = "True"
+show_error_codes = "True"
+ignore_missing_imports = "True"
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "arcade_jira",]
+    """
+    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml
+    assert read_toolkit_metadata("path/to/toolkits/jira") == "arcade_jira"
+    mock_open.assert_called_once_with("path/to/toolkits/jira/pyproject.toml")
+
+
+@patch("arcade_cli.toolkit_docs.utils.open")
+def test_read_toolkit_metadata_missing_project_name(mock_open):
+    sample_pyproject_toml = """
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+version = "0.1.2"
+description = "Arcade.dev LLM tools for interacting with Atlassian Jira"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=2.0.0,<3.0.0",
+    "httpx>=0.27.2,<1.0.0",
+]
+[[project.authors]]
+name = "Arcade"
+email = "dev@arcade.dev"
+    """
+    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml
+    with pytest.raises(ValueError):
+        print("\n\n\n", read_toolkit_metadata("path/to/toolkits/jira"))
+
+
+def test_pascal_to_snake_case():
+    assert pascal_to_snake_case("PascalCase") == "pascal_case"
+    assert pascal_to_snake_case("PascalCase_abc") == "pascal_case_abc"
 
 
 def test_get_toolkit_auth_type_none():

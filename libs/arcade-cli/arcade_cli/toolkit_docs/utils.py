@@ -44,11 +44,12 @@ def read_toolkit_metadata(toolkit_dir: str) -> str:
     pyproject_path = os.path.join(toolkit_dir, "pyproject.toml")
     with open(pyproject_path) as f:
         content = f.read()
-        pkg_name = re.search(
-            r'\[tool\.poetry\].*?name\s*=\s*["\']([^"\']+)["\']', content, re.DOTALL
-        )
-        if pkg_name:
-            return pkg_name.group(1)
+        project_section_match = re.search(r"\[project\](.*?)(?=\n\[|$)", content, re.DOTALL)
+        if project_section_match:
+            project_content = project_section_match.group(1)
+            name_match = re.search(r'name\s*=\s*["\']([^"\']+)["\']', project_content)
+            if name_match:
+                return name_match.group(1).strip()
 
     raise ValueError(f"Could not find package name in '{pyproject_path}'")
 
