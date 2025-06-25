@@ -274,7 +274,8 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
         name="Zendesk Ticket Resolution",
         system_message=(
             "You are an AI assistant with access to Zendesk ticket tools. "
-            "Use them to help users resolve and close support tickets."
+            "Use them to help users resolve support tickets."
+            "Consider that closing a ticket is the same as marking it as solved."
         ),
         catalog=catalog,
         rubric=rubric,
@@ -299,7 +300,7 @@ def zendesk_ticket_resolution_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
-        name="Close ticket without comment",
+        name="Close ticket",
         user_message="Please close ticket #200",
         expected_tool_calls=[
             ExpectedToolCall(
