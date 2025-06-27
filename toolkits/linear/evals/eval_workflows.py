@@ -14,8 +14,8 @@ from arcade_tdk import ToolCatalog
 
 import arcade_linear
 from arcade_linear.tools.workflows import (
-    get_workflow_states,
     create_workflow_state,
+    get_workflow_states,
 )
 
 # Evaluation rubric
@@ -162,7 +162,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Create a new "In Review" status for the Frontend team
     suite.add_case(
         name="Create In Review status for Frontend",
-        user_message="Create a new workflow state called \"In Review\" for the Frontend team as a started type",
+        user_message='Create a new workflow state called "In Review" for the Frontend team as a started type',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -183,7 +183,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Add a "Ready for QA" state to the Backend team workflow
     suite.add_case(
         name="Add Ready for QA state to Backend",
-        user_message="Create a new workflow state \"Ready for QA\" for the Backend team as started type",
+        user_message='Create a new workflow state "Ready for QA" for the Backend team as started type',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -204,7 +204,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Create a "Blocked" status for the test team that shows when work is halted
     suite.add_case(
         name="Create Blocked status with description",
-        user_message="Create a workflow state called \"Blocked\" for the test team with type started and description \"when work is halted\"",
+        user_message='Create a workflow state called "Blocked" for the test team with type started and description "when work is halted"',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -227,7 +227,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Add a "Needs Approval" backlog state to the Product team
     suite.add_case(
         name="Create Needs Approval backlog state",
-        user_message="Add a \"Needs Approval\" backlog state to the Product team",
+        user_message='Add a "Needs Approval" backlog state to the Product team',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -248,7 +248,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Create a "Design Complete" completed status for the Design team with blue color
     suite.add_case(
         name="Create Design Complete status with color",
-        user_message="Create a \"Design Complete\" completed status for the Design team with blue color",
+        user_message='Create a "Design Complete" completed status for the Design team with blue color',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -271,7 +271,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Add a "Won't Fix" canceled state to the QA team
     suite.add_case(
         name="Create Won't Fix canceled state",
-        user_message="Add a \"Won't Fix\" canceled state to the QA team",
+        user_message='Add a "Won\'t Fix" canceled state to the QA team',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -292,7 +292,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Create a "Pending Review" started state for the Backend team at position 3
     suite.add_case(
         name="Create Pending Review state with position",
-        user_message="Create a \"Pending Review\" started state for the Backend team at position 3",
+        user_message='Create a "Pending Review" started state for the Backend team at position 3',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -315,7 +315,7 @@ def create_workflow_state_eval_suite() -> EvalSuite:
     # Eval Prompt: Add a "Needs Refinement" unstarted state to the Product team for issues that need more planning
     suite.add_case(
         name="Create Needs Refinement unstarted state with description",
-        user_message="Add a \"Needs Refinement\" unstarted state to the Product team for issues that need more planning",
+        user_message='Add a "Needs Refinement" unstarted state to the Product team for issues that need more planning',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=create_workflow_state,
@@ -335,4 +335,4 @@ def create_workflow_state_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

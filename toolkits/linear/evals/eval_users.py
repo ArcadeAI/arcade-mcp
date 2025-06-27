@@ -13,8 +13,8 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_linear
-from arcade_linear.tools.users import get_users
 from arcade_linear.tools.issues import search_issues
+from arcade_linear.tools.users import get_users
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -190,4 +190,4 @@ def users_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

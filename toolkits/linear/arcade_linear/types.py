@@ -1,44 +1,46 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+from typing import Any
 
-from arcade_linear.constants import IssuePriority, WorkflowStateType, ProjectState
+from arcade_linear.constants import IssuePriority, ProjectState, WorkflowStateType
 
 
 @dataclass
 class LinearUser:
     """Represents a Linear user"""
+
     id: str
     name: str
     email: str
-    display_name: Optional[str] = None
-    avatar_url: Optional[str] = None
+    display_name: str | None = None
+    avatar_url: str | None = None
     active: bool = True
     admin: bool = False
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    timezone: Optional[str] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    timezone: str | None = None
 
 
 @dataclass
 class LinearTeam:
     """Represents a Linear team"""
+
     id: str
     key: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     private: bool = False
-    archived_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
+    archived_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    icon: str | None = None
+    color: str | None = None
     cycles_enabled: bool = False
-    members: List[LinearUser] = None
-    organization_id: Optional[str] = None
+    members: list[LinearUser] | None = None
+    organization_id: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.members is None:
             self.members = []
 
@@ -46,47 +48,50 @@ class LinearTeam:
 @dataclass
 class WorkflowState:
     """Represents a Linear workflow state"""
+
     id: str
     name: str
     type: WorkflowStateType
-    color: Optional[str] = None
-    description: Optional[str] = None
+    color: str | None = None
+    description: str | None = None
     position: float = 0.0
-    team_id: Optional[str] = None
+    team_id: str | None = None
 
 
 @dataclass
 class LinearLabel:
     """Represents a Linear label"""
+
     id: str
     name: str
-    color: Optional[str] = None
-    description: Optional[str] = None
+    color: str | None = None
+    description: str | None = None
 
 
 @dataclass
 class LinearProject:
     """Represents a Linear project"""
+
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     state: ProjectState = ProjectState.PLANNED
     progress: float = 0.0
-    start_date: Optional[datetime] = None
-    target_date: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    canceled_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    url: Optional[str] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
-    creator: Optional[LinearUser] = None
-    lead: Optional[LinearUser] = None
-    teams: List[LinearTeam] = None
-    members: List[LinearUser] = None
+    start_date: datetime | None = None
+    target_date: datetime | None = None
+    completed_at: datetime | None = None
+    canceled_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    url: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    creator: LinearUser | None = None
+    lead: LinearUser | None = None
+    teams: list[LinearTeam] | None = None
+    members: list[LinearUser] | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.teams is None:
             self.teams = []
         if self.members is None:
@@ -96,82 +101,91 @@ class LinearProject:
 @dataclass
 class LinearCycle:
     """Represents a Linear cycle"""
+
     id: str
     number: int
-    name: Optional[str] = None
-    description: Optional[str] = None
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    name: str | None = None
+    description: str | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    completed_at: datetime | None = None
     progress: float = 0.0
-    url: Optional[str] = None
+    url: str | None = None
 
 
 @dataclass
 class LinearAttachment:
     """Represents a Linear attachment"""
+
     id: str
     title: str
-    subtitle: Optional[str] = None
-    url: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    created_at: Optional[datetime] = None
+    subtitle: str | None = None
+    url: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: datetime | None = None
 
 
 @dataclass
 class LinearComment:
     """Represents a Linear comment"""
+
     id: str
     body: str
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    user: Optional[LinearUser] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    user: LinearUser | None = None
 
 
 @dataclass
 class IssueRelation:
     """Represents a relation between issues"""
+
     id: str
     type: str
     related_issue_id: str
-    related_issue_identifier: Optional[str] = None
-    related_issue_title: Optional[str] = None
+    related_issue_identifier: str | None = None
+    related_issue_title: str | None = None
+
+
+LinearIssueType = type["LinearIssue"]
+LinearIssueList = list[LinearIssueType]
 
 
 @dataclass
 class LinearIssue:
     """Represents a Linear issue"""
+
     id: str
     identifier: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     priority: IssuePriority = IssuePriority.NO_PRIORITY
     priority_label: str = "No priority"
-    estimate: Optional[float] = None
+    estimate: float | None = None
     sort_order: float = 0.0
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    canceled_at: Optional[datetime] = None
-    due_date: Optional[datetime] = None
-    url: Optional[str] = None
-    branch_name: Optional[str] = None
-    
-    # Related entities
-    creator: Optional[LinearUser] = None
-    assignee: Optional[LinearUser] = None
-    state: Optional[WorkflowState] = None
-    team: Optional[LinearTeam] = None
-    project: Optional[LinearProject] = None
-    cycle: Optional[LinearCycle] = None
-    parent: Optional['LinearIssue'] = None
-    labels: List[LinearLabel] = None
-    attachments: List[LinearAttachment] = None
-    comments: List[LinearComment] = None
-    relations: List[IssueRelation] = None
-    children: List['LinearIssue'] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    completed_at: datetime | None = None
+    canceled_at: datetime | None = None
+    due_date: datetime | None = None
+    url: str | None = None
+    branch_name: str | None = None
 
-    def __post_init__(self):
+    # Related entities
+    creator: LinearUser | None = None
+    assignee: LinearUser | None = None
+    state: WorkflowState | None = None
+    team: LinearTeam | None = None
+    project: LinearProject | None = None
+    cycle: LinearCycle | None = None
+    parent: LinearIssueType | None = None
+    labels: list[LinearLabel] | None = None
+    attachments: list[LinearAttachment] | None = None
+    comments: list[LinearComment] | None = None
+    relations: list[IssueRelation] | None = None
+    children: LinearIssueList | None = None
+
+    def __post_init__(self) -> None:
         if self.labels is None:
             self.labels = []
         if self.attachments is None:
@@ -187,34 +201,36 @@ class LinearIssue:
 @dataclass
 class GraphQLFilter:
     """Represents a GraphQL filter condition"""
+
     field: str
     operator: str
-    value: Any
+    value: Any | None = None
 
 
 @dataclass
 class IssueFilter:
     """Filter conditions for issue searches"""
-    team_id: Optional[str] = None
-    assignee_id: Optional[str] = None
-    creator_id: Optional[str] = None
-    state_id: Optional[str] = None
-    priority: Optional[IssuePriority] = None
-    label_ids: List[str] = None
-    project_id: Optional[str] = None
-    cycle_id: Optional[str] = None
-    parent_id: Optional[str] = None
-    created_at_gte: Optional[datetime] = None
-    created_at_lte: Optional[datetime] = None
-    updated_at_gte: Optional[datetime] = None
-    updated_at_lte: Optional[datetime] = None
-    completed_at_gte: Optional[datetime] = None
-    completed_at_lte: Optional[datetime] = None
-    due_date_gte: Optional[datetime] = None
-    due_date_lte: Optional[datetime] = None
-    search_query: Optional[str] = None
 
-    def __post_init__(self):
+    team_id: str | None = None
+    assignee_id: str | None = None
+    creator_id: str | None = None
+    state_id: str | None = None
+    priority: IssuePriority | None = None
+    label_ids: list[str] | None = None
+    project_id: str | None = None
+    cycle_id: str | None = None
+    parent_id: str | None = None
+    created_at_gte: datetime | None = None
+    created_at_lte: datetime | None = None
+    updated_at_gte: datetime | None = None
+    updated_at_lte: datetime | None = None
+    completed_at_gte: datetime | None = None
+    completed_at_lte: datetime | None = None
+    due_date_gte: datetime | None = None
+    due_date_lte: datetime | None = None
+    search_query: str | None = None
+
+    def __post_init__(self) -> None:
         if self.label_ids is None:
             self.label_ids = []
 
@@ -222,20 +238,22 @@ class IssueFilter:
 @dataclass
 class TeamFilter:
     """Filter conditions for team searches"""
-    archived: Optional[bool] = None
-    created_at_gte: Optional[datetime] = None
-    created_at_lte: Optional[datetime] = None
-    name_contains: Optional[str] = None
+
+    archived: bool | None = None
+    created_at_gte: datetime | None = None
+    created_at_lte: datetime | None = None
+    name_contains: str | None = None
 
 
 @dataclass
 class LinearResponse:
     """Represents a response from Linear API"""
-    data: Dict[str, Any]
-    errors: List[Dict[str, Any]] = None
-    extensions: Dict[str, Any] = None
 
-    def __post_init__(self):
+    data: dict[str, Any]
+    errors: list[dict[str, Any]] | None = None
+    extensions: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
         if self.errors is None:
             self.errors = []
         if self.extensions is None:
@@ -245,30 +263,34 @@ class LinearResponse:
 @dataclass
 class PaginationInfo:
     """Represents pagination information"""
+
     has_next_page: bool = False
     has_previous_page: bool = False
-    start_cursor: Optional[str] = None
-    end_cursor: Optional[str] = None
+    start_cursor: str | None = None
+    end_cursor: str | None = None
 
 
 @dataclass
 class PageInfo:
     """Represents page info with count"""
+
     total_count: int = 0
     page_size: int = 50
     has_next_page: bool = False
-    start_cursor: Optional[str] = None
-    end_cursor: Optional[str] = None
+    start_cursor: str | None = None
+    end_cursor: str | None = None
 
 
 class SortDirection(Enum):
     """Sort direction for queries"""
+
     ASC = "ASC"
     DESC = "DESC"
 
 
 class IssueSortField(Enum):
     """Available fields for sorting issues"""
+
     CREATED_AT = "createdAt"
     UPDATED_AT = "updatedAt"
     PRIORITY = "priority"
@@ -280,6 +302,7 @@ class IssueSortField(Enum):
 @dataclass
 class IssueSort:
     """Sort configuration for issues"""
+
     field: IssueSortField = IssueSortField.UPDATED_AT
     direction: SortDirection = SortDirection.DESC
 
@@ -287,20 +310,21 @@ class IssueSort:
 @dataclass
 class CreateIssueInput:
     """Input data for creating an issue"""
+
     title: str
     team_id: str
-    description: Optional[str] = None
-    assignee_id: Optional[str] = None
-    priority: Optional[IssuePriority] = None
-    state_id: Optional[str] = None
-    label_ids: List[str] = None
-    project_id: Optional[str] = None
-    cycle_id: Optional[str] = None
-    parent_id: Optional[str] = None
-    due_date: Optional[datetime] = None
-    estimate: Optional[float] = None
+    description: str | None = None
+    assignee_id: str | None = None
+    priority: IssuePriority | None = None
+    state_id: str | None = None
+    label_ids: list[str] | None = None
+    project_id: str | None = None
+    cycle_id: str | None = None
+    parent_id: str | None = None
+    due_date: datetime | None = None
+    estimate: float | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.label_ids is None:
             self.label_ids = []
 
@@ -308,18 +332,19 @@ class CreateIssueInput:
 @dataclass
 class UpdateIssueInput:
     """Input data for updating an issue"""
-    title: Optional[str] = None
-    description: Optional[str] = None
-    assignee_id: Optional[str] = None
-    priority: Optional[IssuePriority] = None
-    state_id: Optional[str] = None
-    label_ids: List[str] = None
-    project_id: Optional[str] = None
-    cycle_id: Optional[str] = None
-    parent_id: Optional[str] = None
-    due_date: Optional[datetime] = None
-    estimate: Optional[float] = None
 
-    def __post_init__(self):
+    title: str | None = None
+    description: str | None = None
+    assignee_id: str | None = None
+    priority: IssuePriority | None = None
+    state_id: str | None = None
+    label_ids: list[str] | None = None
+    project_id: str | None = None
+    cycle_id: str | None = None
+    parent_id: str | None = None
+    due_date: datetime | None = None
+    estimate: float | None = None
+
+    def __post_init__(self) -> None:
         if self.label_ids is None:
-            self.label_ids = [] 
+            self.label_ids = []

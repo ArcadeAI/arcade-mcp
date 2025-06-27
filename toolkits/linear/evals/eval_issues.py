@@ -69,7 +69,7 @@ def search_issues_eval_suite() -> EvalSuite:
     # Eval Prompt: Show me all "In Progress" issues in the Arcade team from the last 2 weeks
     suite.add_case(
         name="Find in-progress Arcade issues from last 2 weeks",
-        user_message="Show me all \"In Progress\" issues in the Arcade team from the last 2 weeks",
+        user_message='Show me all "In Progress" issues in the Arcade team from the last 2 weeks',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_issues,
@@ -90,7 +90,7 @@ def search_issues_eval_suite() -> EvalSuite:
     # Eval Prompt: Show me all issues in the "arcade testing" project
     suite.add_case(
         name="Find issues in arcade testing project",
-        user_message="Show me all issues in the \"arcade testing\" project",
+        user_message='Show me all issues in the "arcade testing" project',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_issues,
@@ -149,7 +149,7 @@ def search_issues_eval_suite() -> EvalSuite:
     # Eval Prompt: Find issues containing "authentication" that are unassigned
     suite.add_case(
         name="Find unassigned authentication issues",
-        user_message="Find issues containing \"authentication\" that are unassigned",
+        user_message='Find issues containing "authentication" that are unassigned',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_issues,
@@ -168,7 +168,7 @@ def search_issues_eval_suite() -> EvalSuite:
     # Eval Prompt: Find all bugs marked as "critical" in the test team
     suite.add_case(
         name="Search for critical bugs in test team",
-        user_message="Find all bugs marked as \"critical\" in the test team",
+        user_message='Find all bugs marked as "critical" in the test team',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_issues,
@@ -307,7 +307,7 @@ def update_issue_eval_suite() -> EvalSuite:
     # Eval Prompt: Move issue TES-8 to "Done" status
     suite.add_case(
         name="Update issue status to Done",
-        user_message="Move issue TES-8 to \"Done\" status",
+        user_message='Move issue TES-8 to "Done" status',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=update_issue,
@@ -326,7 +326,7 @@ def update_issue_eval_suite() -> EvalSuite:
     # Eval Prompt: Update issue description with latest findings and change status to "In Review"
     suite.add_case(
         name="Update description and status",
-        user_message="Update issue TES-8 description with latest findings and change status to \"In Review\"",
+        user_message='Update issue TES-8 description with latest findings and change status to "In Review"',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=update_issue,
@@ -347,7 +347,7 @@ def update_issue_eval_suite() -> EvalSuite:
     # Eval Prompt: Update issue API-789 to add the "customer request" label
     suite.add_case(
         name="Add customer request label to issue",
-        user_message="Update issue API-789 to add the \"customer request\" label to it",
+        user_message='Update issue API-789 to add the "customer request" label to it',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=update_issue,
@@ -840,4 +840,4 @@ def get_templates_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

@@ -1,0 +1,35 @@
+Linear Tools,Example Hero Query,Priority,Source
+Get Teams,Show me all teams in our workspace,P1,None
+Get Teams,Which teams were created in the last month?,P1,None
+Get Teams,Find teams that aren't archived,P1,None
+Get Teams,"Who is in the ""Product Web"" team?",P1,None
+Search Issues,Find all high-priority bugs assigned to me,P0,None
+Search Issues,"Show me all ""In Progress"" issues in the Frontend team from the last 2 weeks",P0,None
+Search Issues,"Find issues containing ""authentication"" that are unassigned",P0,None
+Search Issues,"Show me all issues in the ""Website Redesign"" project",P0,None
+Search Issues,Find urgent issues created by John in the last month,P0,None
+Search Issues,"Find all bugs marked as ""critical"" in the Backend team",P0,None
+Search Issues,Show all issues resolved in the last week by the Enterprise team,P0,None
+Search Issues,List unassigned tasks in the Mobile team created in the past 2 weeks,P0,None
+Update Issue,"Move issue FE-123 to ""Done"" status",P0,None
+Update Issue,Assign the login bug to Sarah and set priority to urgent,P0,None
+Update Issue,"Update issue description with latest findings and change status to ""In Review""",P0,None
+Update Issue,Set issue BE-456 to high priority and add it to the current sprint,P0,None
+Update Issue,"Add the ""customer request"" label to issue API-789",P0,None
+Update Issue,Scan Perplexity's changelog and close out related tickets.,P1,Files
+Get Issue,Show me complete details for issue API-789,P0,None
+Get Issue,Find all dependencies for issue PROJ-100,P0,None
+Get Issue,Get issue FE-123 with all related sub-issues and dependencies,P0,None
+Get Issue,How do other companies tend to address the issues described in ticket WEB-456,P1,Web
+Get Issue,Find recent public incidents similar to bug FE-101 and summarize how they were resolved.,P1,Web
+Get Issue,Find and summarize best practices for triaging issues like the one described in PROJ-200 from leading tech blogs.,P1,Web
+Create Issue,Create a critical bug report for the checkout process in the E-commerce team,P0,None
+Create Issue,Add a feature request for dark mode to the UI team backlog,P0,None
+Create Issue,Create a sub-issue under PROJ-100 for database migration testing,P0,None
+Create Issue,Log a security vulnerability with high priority and assign to the Security team,P0,None
+Create Issue,Create an issue from template for user onboarding improvements,P0,None
+Create Issue,Turn the attached PRD into Linear tickets.,P1,Files
+Create Issue,Extract action items from the meeting notes file and create issues in Linear.,P1,Files
+Create Issue,Scan the attached user feedback document and create tickets for each key pain point identified.,P1,Files
+Create Issue,"From the QA test report file, generate bugs for all failed test cases.",P1,Files
+Create Issue,Parse the current sprint retrospective notes and turn all action items into follow-up Linear issues.,P1,Files

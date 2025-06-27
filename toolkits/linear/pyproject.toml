@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_linear"
-version = "0.1.0"
+version = "0.0.1"
 description = "Arcade tools designed for LLMs to interact with Linear"
 requires-python = ">=3.10"
 dependencies = [
@@ -13,7 +13,7 @@ dependencies = [
     "dateparser>=1.1.8,<2.0.0",
 ]
 [[project.authors]]
-name = "Arcade"
+name = "Arcade.dev"
 email = "dev@arcade.dev"
 
 [project.optional-dependencies]

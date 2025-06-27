@@ -1,11 +1,11 @@
 [[worker]]
 
 [worker.config]
-id = "linear-worker-v1-458pm"
+id = "linear-toolkit-worker"
 enabled = true
-timeout = 30
-retries = 3
-secret = "linear-toolkit-secret-key-2024"
+timeout = 45
+retries = 2
+secret = "linear-toolkit-secret-key-2025"
 
 [worker.local_source]
-packages = ["./"] 
+packages = ["."]

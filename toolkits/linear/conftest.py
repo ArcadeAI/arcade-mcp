@@ -45,20 +45,21 @@ def mock_httpx_client():
     with patch("arcade_linear.client.httpx.AsyncClient") as mock_client_class:
         # Create an async mock for the client instance
         mock_client_instance = MagicMock()
-        
+
         # Mock the async context manager methods
         mock_client_class.return_value.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_class.return_value.__aexit__ = AsyncMock(return_value=None)
-        
+
         # Make the post method async
         mock_client_instance.post = AsyncMock()
-        
+
         yield mock_client_instance
 
 
 @pytest.fixture
 def mock_httpx_response() -> Callable[[int, dict], httpx.Response]:
     """Create mock httpx.Response objects"""
+
     def generate_mock_httpx_response(status_code: int, json_data: dict) -> httpx.Response:
         response = MagicMock(spec=httpx.Response)
         response.status_code = status_code
@@ -118,20 +119,17 @@ def build_team_dict(generate_random_str: Callable) -> Callable:
             "color": "#FF6B6B",
             "cyclesEnabled": True,
             "issueEstimationType": "exponential",
-            "organization": {
-                "id": generate_random_str(),
-                "name": "Test Organization"
-            },
-            "members": {
-                "nodes": []
-            }
+            "organization": {"id": generate_random_str(), "name": "Test Organization"},
+            "members": {"nodes": []},
         }
 
     return team_dict_builder
 
 
 @pytest.fixture
-def build_issue_dict(generate_random_str: Callable, build_user_dict: Callable, build_team_dict: Callable) -> Callable:
+def build_issue_dict(
+    generate_random_str: Callable, build_user_dict: Callable, build_team_dict: Callable
+) -> Callable:
     def issue_dict_builder(
         id_: str | None = None,
         identifier: str | None = None,
@@ -165,7 +163,7 @@ def build_issue_dict(generate_random_str: Callable, build_user_dict: Callable, b
                 "name": "Todo",
                 "type": "unstarted",
                 "color": "#e2e2e2",
-                "position": 1
+                "position": 1,
             },
             "team": team,
             "project": None,
@@ -173,7 +171,7 @@ def build_issue_dict(generate_random_str: Callable, build_user_dict: Callable, b
             "parent": None,
             "labels": {"nodes": []},
             "children": {"nodes": []},
-            "relations": {"nodes": []}
+            "relations": {"nodes": []},
         }
 
     return issue_dict_builder
@@ -196,7 +194,7 @@ def build_workflow_state_dict(generate_random_str: Callable, build_team_dict: Ca
             "type": type_,
             "color": color,
             "position": position,
-            "team": team
+            "team": team,
         }
 
     return workflow_state_dict_builder
@@ -225,7 +223,7 @@ def build_cycle_dict(generate_random_str: Callable, build_team_dict: Callable) -
             "createdAt": "2023-01-01T00:00:00.000Z",
             "updatedAt": "2023-01-01T00:00:00.000Z",
             "team": team,
-            "issues": {"nodes": []}
+            "issues": {"nodes": []},
         }
 
     return cycle_dict_builder
@@ -243,7 +241,7 @@ def build_project_dict(generate_random_str: Callable, build_user_dict: Callable)
         return {
             "id": id_ or generate_random_str(),
             "name": name or f"Project {generate_random_str()}",
-            "description": description or f"Description for test project",
+            "description": description or "Description for test project",
             "state": state,
             "progress": 0.3,
             "startDate": "2023-01-01",
@@ -258,7 +256,7 @@ def build_project_dict(generate_random_str: Callable, build_user_dict: Callable)
             "creator": user,
             "lead": user,
             "teams": {"nodes": []},
-            "members": {"nodes": []}
+            "members": {"nodes": []},
         }
 
     return project_dict_builder
@@ -279,10 +277,10 @@ def build_graphql_response() -> Callable[[dict], dict]:
 @pytest.fixture
 def build_paginated_response() -> Callable[[list, bool, str | None, str | None], dict]:
     def paginated_response_builder(
-        nodes: list, 
-        has_next_page: bool = False, 
+        nodes: list,
+        has_next_page: bool = False,
         start_cursor: str | None = None,
-        end_cursor: str | None = None
+        end_cursor: str | None = None,
     ) -> dict:
         return {
             "nodes": nodes,
@@ -290,8 +288,8 @@ def build_paginated_response() -> Callable[[list, bool, str | None, str | None],
                 "hasNextPage": has_next_page,
                 "hasPreviousPage": False,
                 "startCursor": start_cursor,
-                "endCursor": end_cursor
-            }
+                "endCursor": end_cursor,
+            },
         }
 
-    return paginated_response_builder 
+    return paginated_response_builder

@@ -89,7 +89,7 @@ def teams_eval_suite() -> EvalSuite:
     # Eval Prompt: Who is in the "test" team?
     suite.add_case(
         name="Get test team members",
-        user_message="Who is in the \"test\" team?",
+        user_message='Who is in the "test" team?',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=get_users,
@@ -106,7 +106,7 @@ def teams_eval_suite() -> EvalSuite:
     # Eval Prompt: Find teams that have "Engineering" in their name
     suite.add_case(
         name="Search teams by name",
-        user_message="Find teams that have \"Engineering\" in their name",
+        user_message='Find teams that have "Engineering" in their name',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=get_teams,
@@ -137,4 +137,4 @@ def teams_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

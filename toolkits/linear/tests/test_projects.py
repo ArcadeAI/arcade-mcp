@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from arcade_linear.tools.projects import (
     get_projects,
@@ -158,13 +159,9 @@ class TestGetProjects:
         }
 
         # Call function
-        result = await get_projects(
-            mock_context,
-            limit=25,
-            after_cursor="prev_cursor"
-        )
+        result = await get_projects(mock_context, limit=25, after_cursor="prev_cursor")
 
         # Assertions
         assert result["pagination"]["has_next_page"] is True
         assert result["pagination"]["end_cursor"] == "cursor1"
-        mock_client.get_projects.assert_called_once() 
+        mock_client.get_projects.assert_called_once()
