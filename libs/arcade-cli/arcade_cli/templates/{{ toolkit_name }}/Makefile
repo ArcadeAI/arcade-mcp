@@ -49,7 +49,7 @@ bump-version: ## Bump the version in the pyproject.toml file by a patch version
 check: ## Run code quality tools.
 	@if [ -f .pre-commit-config.yaml ]; then\
 		echo "🚀 Linting code: Running pre-commit";\
-		uv run pre-commit run -a;\
+		uv run --no-sources pre-commit run -a;\
 	fi
 	@echo "🚀 Static type checking: Running mypy"
 	@uv run mypy --config-file=pyproject.toml
