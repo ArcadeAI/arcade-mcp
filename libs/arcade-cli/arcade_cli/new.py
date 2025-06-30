@@ -173,6 +173,14 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     include_evals = ask_yes_no_question(
         "Do you want an evals directory created for you?", default=True
     )
+    cwd = Path.cwd()
+    # TODO: this detection mechanism works only for people that didn't change the
+    # name of the repo, a better detection method is required here
+    community_toolkit = False
+    if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
+        community_toolkit = ask_yes_no_question(
+            "Is your toolkit a community contribution?", default=False
+        )
 
     context = {
         "package_name": package_name,
@@ -187,6 +195,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
+        "community_toolkit": community_toolkit,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
