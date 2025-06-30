@@ -27,6 +27,7 @@ from arcade_slack.utils import (
     extract_basic_user_info,
     filter_conversations_by_user_ids,
     get_multiple_users_by_usernames_or_emails,
+    is_valid_email,
     retrieve_conversations_by_user_ids,
     short_user_info,
 )
@@ -1085,3 +1086,21 @@ async def test_get_multiple_users_by_mixed_usernames_and_emails_success(
             ],
         },
     )
+
+
+def test_is_valid_email():
+    assert is_valid_email("test@example.com")
+    assert is_valid_email("test+123@example.com")
+    assert is_valid_email("test-123@example.com")
+    assert is_valid_email("test_123@example.com")
+    assert is_valid_email("test.123@example.com")
+    assert is_valid_email("test123@example.com")
+    assert is_valid_email("test@example.co")
+    assert is_valid_email("test@example.com.co")
+    assert not is_valid_email("test123@example")
+    assert not is_valid_email("test@example")
+    assert not is_valid_email("test@example.")
+    assert not is_valid_email("test@.com")
+    assert not is_valid_email("test@example.c")
+    assert not is_valid_email("test@example.com.")
+    assert not is_valid_email("test@example.com.c")

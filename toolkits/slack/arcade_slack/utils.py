@@ -1,4 +1,5 @@
 import asyncio
+import re
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, cast
@@ -461,10 +462,16 @@ def short_human_users_info(users: list[dict]) -> list[dict[str, str | None]]:
 
 
 def is_valid_email(email: str) -> bool:
-    if "@" not in email:
-        return False
-    left, right = email.split("@", 1)
-    return len(left) > 0 and len(right) > 0 and "." in right
+    """Validate an email address using regex.
+
+    Args:
+        email: The email address to validate.
+
+    Returns:
+        True if the email is valid, False otherwise.
+    """
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(email_pattern, email))
 
 
 async def get_multiple_users_by_usernames_or_emails(

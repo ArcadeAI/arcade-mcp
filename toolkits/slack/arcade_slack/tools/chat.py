@@ -730,7 +730,7 @@ async def get_direct_message_conversation_metadata_by_user(
     """Get the metadata of a direct message conversation in Slack by the username or email.
 
     This tool does not return the messages in a conversation. To get the messages, use the
-    `get_messages_in_direct_message_conversation_by_username` tool.
+    `get_messages_in_direct_message_conversation_by_user` tool.
 
     IF YOU HAVE A USERNAME OR EMAIL ADDRESS, DO NOT CALL THE `Slack.GetUserByUsername`
     AND/OR `Slack.GetUserByEmail` TOOLS FIRST. PASS THE USERNAME OR EMAIL ADDRESS DIRECTLY TO THIS

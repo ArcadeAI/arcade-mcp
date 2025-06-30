@@ -241,11 +241,11 @@ class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
         super().__init__(usernames=usernames)
         self.usernames_pending = {username.casefold() for username in usernames}
 
-    def flag_username_found(self, username: str) -> None:
+    def _flag_username_found(self, username: str) -> None:
         with suppress(KeyError):
             self.usernames_pending.remove(username.casefold())
 
-    def all_usernames_found(self) -> bool:
+    def _all_usernames_found(self) -> bool:
         return not self.usernames_pending
 
     def __call__(self, last_result: Any) -> bool:
@@ -256,7 +256,7 @@ class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
             if not isinstance(username, str):
                 continue
             if username.casefold() in self.usernames_pending:
-                self.flag_username_found(username)
-                if self.all_usernames_found():
+                self._flag_username_found(username)
+                if self._all_usernames_found():
                     return True
         return False
