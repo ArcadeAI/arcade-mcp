@@ -822,11 +822,8 @@ async def get_multi_person_dm_conversation_metadata_by_users(
     )
 
     if not conversations_found:
-        raise RetryableToolError(
-            "Conversation not found with the usernames provided",
-            developer_message="Conversation not found with the usernames provided",
-            retry_after_ms=100,
-        )
+        message = "Conversation not found with the usernames provided"
+        raise ToolExecutionError(message=message, developer_message=message)
 
     return conversations_found[0]
 
@@ -1202,10 +1199,7 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
     )
 
     if not conversations_found:
-        raise RetryableToolError(
-            "Conversation not found with the usernames provided",
-            developer_message="Conversation not found with the usernames provided",
-            retry_after_ms=500,
-        )
+        message = "Conversation not found with the usernames provided"
+        raise ToolExecutionError(message=message, developer_message=message)
 
     return conversations_found[0]
