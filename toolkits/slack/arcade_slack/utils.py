@@ -1,4 +1,5 @@
 import asyncio
+import json
 import re
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -541,3 +542,25 @@ def build_multiple_users_retrieval_response(
         )
 
     return cast(list[dict[str, Any]], users_by_email["users"] + users_by_username["users"])
+
+
+async def get_available_users_prompt(context: ToolContext, limit: int = 100) -> str:
+    try:
+        from arcade_slack.tools.users import list_users  # Avoid circular import
+
+        users = await list_users(context, limit=limit)
+        available_users = json.dumps(short_human_users_info(users["users"]))
+        if not users["next_cursor"]:
+            return f"Available users: {available_users}"
+        else:
+            return (
+                f"Some of the available users are: {available_users}. "
+                f"Get more users with the '{list_users.__tool_name__}' tool "
+                f"using the next cursor: '{users['next_cursor']}'"
+            )
+    except Exception as e:
+        return (
+            "The tool tried to retrieve a list of available users, but failed "
+            f"with error: {type(e).__name__}: {e}. Use the '{list_users.__tool_name__}' tool "
+            "to get a list of users."
+        )

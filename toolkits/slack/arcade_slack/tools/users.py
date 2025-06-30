@@ -18,6 +18,7 @@ from arcade_slack.models import (
 from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
+    get_available_users_prompt,
     is_user_a_bot,
     is_user_deleted,
     is_valid_email,
@@ -42,13 +43,12 @@ async def get_user_info_by_id(
         response = await slackClient.users_info(user=user_id)
     except SlackApiError as e:
         if e.response.get("error") == "user_not_found":
-            users = await list_users(context)
-            available_users = ", ".join(f"{user['id']} ({user['name']})" for user in users["users"])
+            additional_prompt_content = await get_available_users_prompt(context)
 
             raise RetryableToolError(
                 "User not found",
                 developer_message=f"User with ID '{user_id}' not found.",
-                additional_prompt_content=f"Available users: {available_users}",
+                additional_prompt_content=additional_prompt_content,
                 retry_after_ms=500,
             )
 
@@ -61,15 +61,17 @@ async def get_user_info_by_id(
 @tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def list_users(
     context: ToolContext,
-    exclude_bots: Annotated[bool | None, "Whether to exclude bots from the results"] = True,
+    exclude_bots: Annotated[
+        bool | None, "Whether to exclude bots from the results. Defaults to True."
+    ] = True,
     limit: Annotated[
         int | None,
-        "The maximum number of users to return. If a limit is not provided, the tool "
-        "will paginate until it gets all users or a timeout threshold is reached.",
-    ] = None,
+        "The maximum number of users to return. Defaults to 200. Maximum is 500.",
+    ] = 200,
     next_cursor: Annotated[str | None, "The next cursor token to use for pagination."] = None,
 ) -> Annotated[dict, "The users' info"]:
     """List all users in the authenticated user's Slack team."""
+    limit = max(1, min(limit, 500))
     slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
 
     users, next_cursor = await async_paginate(
@@ -251,17 +253,18 @@ async def get_user_by_email(
         response = await slackClient.users_lookupByEmail(email=email)
     except SlackApiError as e:
         if e.response.get("error") in ["user_not_found", "users_not_found"]:
-            users = await list_users(context)
             err_msg = f"User with email '{email}' not found."
+            additional_prompt_content = await get_available_users_prompt(context)
             raise RetryableToolError(
-                err_msg,
+                message=err_msg,
                 developer_message=err_msg,
-                additional_prompt_content=(
-                    f"Available users: {short_human_users_info(users['users'])}"
-                ),
+                additional_prompt_content=additional_prompt_content,
                 retry_after_ms=500,
             )
         else:
-            raise
+            raise ToolExecutionError(
+                message="Error getting user by email",
+                developer_message=f"Error getting user by email: {e.response.get('error')}",
+            )
     else:
         return {"user": cast(dict, extract_basic_user_info(SlackUser(**response["user"])))}

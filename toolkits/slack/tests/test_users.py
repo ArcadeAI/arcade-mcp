@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -51,15 +52,15 @@ async def test_get_user_info_by_id_user_not_found(
 
     existing_user = {"id": "U12345", "name": "testuser"}
     mock_list_users.return_value = {"users": [existing_user]}
+    mock_list_users.__tool_name__ = list_users.__tool_name__
 
     with pytest.raises(RetryableToolError) as e:
         await get_user_info_by_id(mock_context, user_id="U99999")
 
-        assert existing_user["id"] in e.value.additional_prompt_content
-        assert existing_user["name"] in e.value.additional_prompt_content
+        assert json.dumps(short_user_info(existing_user)) in e.value.additional_prompt_content
 
     mock_users_slack_client.users_info.assert_called_once_with(user="U99999")
-    mock_list_users.assert_called_once_with(mock_context)
+    mock_list_users.assert_called_once_with(mock_context, limit=100)
 
 
 @pytest.mark.asyncio
@@ -253,7 +254,7 @@ async def test_get_user_by_email_not_found(
         await get_user_by_email(mock_context, email="not_found@example.com")
 
     assert "not_found@example.com" in e.value.message
-    assert str(short_user_info(additional_user)) in e.value.additional_prompt_content
+    assert json.dumps(short_user_info(additional_user)) in e.value.additional_prompt_content
 
 
 @pytest.mark.asyncio
