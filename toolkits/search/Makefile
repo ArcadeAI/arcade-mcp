@@ -8,7 +8,7 @@ help:
 install: ## Install the uv environment and install all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
 	@uv sync --active --all-extras --no-sources
-	@if [ -f .pre-commit-config.yaml ]; then uv run pre-commit install; fi
+	@if [ -f .pre-commit-config.yaml ]; then uv run --no-sources pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
 
 .PHONY: install-local
