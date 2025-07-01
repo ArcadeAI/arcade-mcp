@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, patch
-from arcade_tdk.errors import ToolExecutionError
+
+import pytest
 
 from arcade_linear.tools.users import (
     get_users,
@@ -52,7 +52,9 @@ class TestGetUsers:
     @pytest.mark.asyncio
     @patch("arcade_linear.tools.users.resolve_team_by_name")
     @patch("arcade_linear.tools.users.LinearClient")
-    async def test_get_users_with_team_filter(self, mock_client_class, mock_resolve_team, mock_context):
+    async def test_get_users_with_team_filter(
+        self, mock_client_class, mock_resolve_team, mock_context
+    ):
         """Test users retrieval filtered by team"""
         # Setup mocks
         mock_client = AsyncMock()
@@ -131,11 +133,7 @@ class TestGetUsers:
         }
 
         # Call function
-        result = await get_users(
-            mock_context,
-            limit=25,
-            after_cursor="prev_cursor"
-        )
+        result = await get_users(mock_context, limit=25, after_cursor="prev_cursor")
 
         # Assertions
         assert result["pagination"]["has_next_page"] is True
@@ -145,4 +143,4 @@ class TestGetUsers:
             after="prev_cursor",
             team_id=None,
             include_guests=False,
-        ) 
+        )

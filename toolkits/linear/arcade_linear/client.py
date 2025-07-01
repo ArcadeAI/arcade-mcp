@@ -1,18 +1,23 @@
 import asyncio
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, cast
 from datetime import datetime
+from typing import Any, cast
 
 import httpx
 from arcade_tdk.errors import ToolExecutionError
 
-from arcade_linear.constants import LINEAR_API_URL, LINEAR_MAX_CONCURRENT_REQUESTS, LINEAR_MAX_TIMEOUT_SECONDS
+from arcade_linear.constants import (
+    LINEAR_API_URL,
+    LINEAR_MAX_CONCURRENT_REQUESTS,
+    LINEAR_MAX_TIMEOUT_SECONDS,
+)
 
 
 @dataclass
 class LinearClient:
     """Client for interacting with Linear's GraphQL API"""
+
     auth_token: str
     api_url: str = LINEAR_API_URL
     max_concurrent_requests: int = LINEAR_MAX_CONCURRENT_REQUESTS
@@ -22,7 +27,7 @@ class LinearClient:
     def __post_init__(self) -> None:
         self._semaphore = self._semaphore or asyncio.Semaphore(self.max_concurrent_requests)
 
-    def _build_headers(self, additional_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def _build_headers(self, additional_headers: dict[str, str] | None = None) -> dict[str, str]:
         """Build headers for GraphQL requests"""
         headers = {
             "Authorization": f"Bearer {self.auth_token}",
@@ -37,8 +42,8 @@ class LinearClient:
         """Build user-friendly and developer error messages from response"""
         try:
             data = response.json()
-            
-            if "errors" in data and data["errors"]:
+
+            if data.get("errors"):
                 errors = data["errors"]
                 if len(errors) == 1:
                     error = errors[0]
@@ -51,7 +56,7 @@ class LinearClient:
             else:
                 user_message = f"HTTP {response.status_code}: {response.reason_phrase}"
                 dev_message = f"HTTP {response.status_code}: {response.text}"
-                
+
         except Exception as e:
             user_message = "Failed to parse Linear API error response"
             dev_message = f"Failed to parse error response: {type(e).__name__}: {e!s} | Raw response: {response.text}"
@@ -64,7 +69,7 @@ class LinearClient:
             # Check for GraphQL errors in successful HTTP responses
             try:
                 data = response.json()
-                if "errors" in data and data["errors"]:
+                if data.get("errors"):
                     user_message, dev_message = self._build_error_message(response)
                     raise ToolExecutionError(user_message, developer_message=dev_message)
             except (ValueError, KeyError):
@@ -76,19 +81,16 @@ class LinearClient:
         raise ToolExecutionError(user_message, developer_message=dev_message)
 
     async def execute_query(
-        self, 
-        query: str, 
-        variables: Optional[Dict[str, Any]] = None,
-        operation_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, query: str, variables: dict[str, Any] | None = None, operation_name: str | None = None
+    ) -> dict[str, Any]:
         """Execute a GraphQL query"""
         payload = {
             "query": query.strip(),
         }
-        
+
         if variables:
             payload["variables"] = variables
-            
+
         if operation_name:
             payload["operationName"] = operation_name
 
@@ -101,18 +103,18 @@ class LinearClient:
                 headers=headers,
             )
             self._raise_for_status(response)
-            return cast(Dict[str, Any], response.json())
+            return cast(dict[str, Any], response.json())
 
     async def execute_mutation(
-        self, 
-        mutation: str, 
-        variables: Optional[Dict[str, Any]] = None,
-        operation_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self,
+        mutation: str,
+        variables: dict[str, Any] | None = None,
+        operation_name: str | None = None,
+    ) -> dict[str, Any]:
         """Execute a GraphQL mutation"""
         return await self.execute_query(mutation, variables, operation_name)
 
-    async def get_viewer(self) -> Dict[str, Any]:
+    async def get_viewer(self) -> dict[str, Any]:
         """Get current authenticated user information"""
         query = """
         query Viewer {
@@ -130,17 +132,17 @@ class LinearClient:
             }
         }
         """
-        
+
         result = await self.execute_query(query)
         return result["data"]["viewer"]
 
     async def get_teams(
-        self, 
+        self,
         first: int = 50,
-        after: Optional[str] = None,
+        after: str | None = None,
         include_archived: bool = False,
-        name_filter: Optional[str] = None
-    ) -> Dict[str, Any]:
+        name_filter: str | None = None,
+    ) -> dict[str, Any]:
         """Get teams with optional filtering"""
         query = """
         query GetTeams($first: Int!, $after: String, $filter: TeamFilter) {
@@ -181,7 +183,7 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter - removed isArchived as it doesn't exist in TeamFilter
         team_filter = {}
         # Note: Linear's TeamFilter doesn't have isArchived field based on API error
@@ -190,22 +192,18 @@ class LinearClient:
         if name_filter:
             team_filter["name"] = {"containsIgnoreCase": name_filter}
 
-        variables = {
-            "first": first,
-            "after": after,
-            "filter": team_filter if team_filter else None
-        }
-        
+        variables = {"first": first, "after": after, "filter": team_filter if team_filter else None}
+
         result = await self.execute_query(query, variables)
         return result["data"]["teams"]
 
     async def get_issues(
         self,
         first: int = 50,
-        after: Optional[str] = None,
-        filter_conditions: Optional[Dict[str, Any]] = None,
-        order_by: Optional[str] = None
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        filter_conditions: dict[str, Any] | None = None,
+        order_by: str | None = None,
+    ) -> dict[str, Any]:
         """Get issues with filtering and sorting"""
         query = """
         query GetIssues($first: Int!, $after: String, $filter: IssueFilter, $orderBy: PaginationOrderBy) {
@@ -226,7 +224,7 @@ class LinearClient:
                     dueDate
                     url
                     branchName
-                    
+
                     creator {
                         id
                         name
@@ -234,7 +232,7 @@ class LinearClient:
                         displayName
                         avatarUrl
                     }
-                    
+
                     assignee {
                         id
                         name
@@ -242,7 +240,7 @@ class LinearClient:
                         displayName
                         avatarUrl
                     }
-                    
+
                     state {
                         id
                         name
@@ -250,13 +248,13 @@ class LinearClient:
                         color
                         position
                     }
-                    
+
                     team {
                         id
                         key
                         name
                     }
-                    
+
                     project {
                         id
                         name
@@ -266,7 +264,7 @@ class LinearClient:
                         startDate
                         targetDate
                     }
-                    
+
                     cycle {
                         id
                         number
@@ -277,13 +275,13 @@ class LinearClient:
                         completedAt
                         progress
                     }
-                    
+
                     parent {
                         id
                         identifier
                         title
                     }
-                    
+
                     labels {
                         nodes {
                             id
@@ -292,7 +290,7 @@ class LinearClient:
                             description
                         }
                     }
-                    
+
                     children {
                         nodes {
                             id
@@ -305,7 +303,7 @@ class LinearClient:
                             }
                         }
                     }
-                    
+
                     relations {
                         nodes {
                             id
@@ -327,18 +325,18 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {
             "first": first,
             "after": after,
             "filter": filter_conditions,
-            "orderBy": order_by
+            "orderBy": order_by,
         }
-        
+
         result = await self.execute_query(query, variables)
         return result["data"]["issues"]
 
-    async def get_issue_by_id(self, issue_id: str) -> Dict[str, Any]:
+    async def get_issue_by_id(self, issue_id: str) -> dict[str, Any]:
         """Get a single issue by ID"""
         query = """
         query GetIssue($id: String!) {
@@ -358,7 +356,7 @@ class LinearClient:
                 dueDate
                 url
                 branchName
-                
+
                 creator {
                     id
                     name
@@ -366,15 +364,15 @@ class LinearClient:
                     displayName
                     avatarUrl
                 }
-                
+
                 assignee {
                     id
                     name
                     email
-                    displayName  
+                    displayName
                     avatarUrl
                 }
-                
+
                 state {
                     id
                     name
@@ -382,13 +380,13 @@ class LinearClient:
                     color
                     position
                 }
-                
+
                 team {
                     id
                     key
                     name
                 }
-                
+
                 project {
                     id
                     name
@@ -398,7 +396,7 @@ class LinearClient:
                     startDate
                     targetDate
                 }
-                
+
                 cycle {
                     id
                     number
@@ -409,13 +407,13 @@ class LinearClient:
                     completedAt
                     progress
                 }
-                
+
                 parent {
                     id
                     identifier
                     title
                 }
-                
+
                 labels {
                     nodes {
                         id
@@ -424,7 +422,7 @@ class LinearClient:
                         description
                     }
                 }
-                
+
                 attachments {
                     nodes {
                         id
@@ -435,7 +433,7 @@ class LinearClient:
                         createdAt
                     }
                 }
-                
+
                 comments {
                     nodes {
                         id
@@ -450,7 +448,7 @@ class LinearClient:
                         }
                     }
                 }
-                
+
                 children {
                     nodes {
                         id
@@ -463,7 +461,7 @@ class LinearClient:
                         }
                     }
                 }
-                
+
                 relations {
                     nodes {
                         id
@@ -478,12 +476,12 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"id": issue_id}
         result = await self.execute_query(query, variables)
         return result["data"]["issue"]
 
-    async def create_issue(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_issue(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new issue, optionally from a template"""
         mutation = """
         mutation CreateIssue($input: IssueCreateInput!) {
@@ -499,50 +497,50 @@ class LinearClient:
                     estimate
                     createdAt
                     url
-                    
+
                     creator {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     assignee {
                         id
                         name
-                        email  
+                        email
                         displayName
                     }
-                    
+
                     state {
                         id
                         name
                         type
                     }
-                    
+
                     team {
                         id
                         key
                         name
                     }
-                    
+
                     project {
                         id
                         name
                     }
-                    
+
                     cycle {
                         id
                         number
                         name
                     }
-                    
+
                     parent {
                         id
                         identifier
                         title
                     }
-                    
+
                     labels {
                         nodes {
                             id
@@ -550,7 +548,7 @@ class LinearClient:
                             color
                         }
                     }
-                    
+
                     children {
                         nodes {
                             id
@@ -567,12 +565,12 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"input": input_data}
         result = await self.execute_mutation(mutation, variables)
         return result["data"]["issueCreate"]
 
-    async def update_issue(self, issue_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_issue(self, issue_id: str, input_data: dict[str, Any]) -> dict[str, Any]:
         """Update an existing issue"""
         mutation = """
         mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
@@ -587,31 +585,31 @@ class LinearClient:
                     priorityLabel
                     updatedAt
                     url
-                    
+
                     assignee {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     state {
                         id
                         name
                         type
                     }
-                    
+
                     team {
                         id
                         key
                         name
                     }
-                    
+
                     project {
                         id
                         name
                     }
-                    
+
                     labels {
                         nodes {
                             id
@@ -623,7 +621,7 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"id": issue_id, "input": input_data}
         result = await self.execute_mutation(mutation, variables)
         return result["data"]["issueUpdate"]
@@ -632,10 +630,10 @@ class LinearClient:
     async def get_users(
         self,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        include_guests: bool = False
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        team_id: str | None = None,
+        include_guests: bool = False,
+    ) -> dict[str, Any]:
         """Get workspace users"""
         query = """
         query GetUsers($first: Int!, $after: String, $filter: UserFilter) {
@@ -662,7 +660,7 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter
         user_filter = {}
         if not include_guests:
@@ -670,16 +668,12 @@ class LinearClient:
         if team_id:
             user_filter["assignedIssues"] = {"some": {"team": {"id": {"eq": team_id}}}}
 
-        variables = {
-            "first": first,
-            "after": after,
-            "filter": user_filter if user_filter else None
-        }
-        
+        variables = {"first": first, "after": after, "filter": user_filter if user_filter else None}
+
         result = await self.execute_query(query, variables)
         return result["data"]["users"]
 
-    async def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    async def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         """Get user by email address"""
         query = """
         query GetUserByEmail($filter: UserFilter) {
@@ -695,7 +689,7 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"filter": {"email": {"eq": email}}}
         result = await self.execute_query(query, variables)
         users = result["data"]["users"]["nodes"]
@@ -705,17 +699,17 @@ class LinearClient:
         self,
         user_id: str,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        state_id: Optional[str] = None,
-        priority: Optional[int] = None,
-        sort_by: Optional[str] = None,
-        sort_direction: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        team_id: str | None = None,
+        state_id: str | None = None,
+        priority: int | None = None,
+        sort_by: str | None = None,
+        sort_direction: str | None = None,
+    ) -> dict[str, Any]:
         """Get issues assigned to a specific user"""
         # Build filter
         issue_filter = {"assignee": {"id": {"eq": user_id}}}
-        
+
         if team_id:
             issue_filter["team"] = {"id": {"eq": team_id}}
         if state_id:
@@ -729,21 +723,18 @@ class LinearClient:
             order_by = sort_by
 
         return await self.get_issues(
-            first=first,
-            after=after,
-            filter_conditions=issue_filter,
-            order_by=order_by
+            first=first, after=after, filter_conditions=issue_filter, order_by=order_by
         )
 
     # Cycle-related methods
     async def get_cycles(
         self,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
+        after: str | None = None,
+        team_id: str | None = None,
         active_only: bool = True,
-        include_completed: bool = False
-    ) -> Dict[str, Any]:
+        include_completed: bool = False,
+    ) -> dict[str, Any]:
         """Get cycles (sprints)"""
         query = """
         query GetCycles($first: Int!, $after: String, $filter: CycleFilter) {
@@ -760,13 +751,13 @@ class LinearClient:
                     progress
                     createdAt
                     updatedAt
-                    
+
                     team {
                         id
                         key
                         name
                     }
-                    
+
                     issues {
                         nodes {
                             id
@@ -789,7 +780,7 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter
         cycle_filter = {}
         if team_id:
@@ -800,23 +791,22 @@ class LinearClient:
         variables = {
             "first": first,
             "after": after,
-            "filter": cycle_filter if cycle_filter else None
+            "filter": cycle_filter if cycle_filter else None,
         }
-        
+
         result = await self.execute_query(query, variables)
         cycles_data = result["data"]["cycles"]
-        
+
         # Filter out completed cycles if active_only is True (client-side filtering)
         if active_only and not include_completed:
             filtered_nodes = [
-                cycle for cycle in cycles_data.get("nodes", [])
-                if cycle.get("completedAt") is None
+                cycle for cycle in cycles_data.get("nodes", []) if cycle.get("completedAt") is None
             ]
             cycles_data["nodes"] = filtered_nodes
-        
+
         return cycles_data
 
-    async def get_cycle_by_id(self, cycle_id: str) -> Optional[Dict[str, Any]]:
+    async def get_cycle_by_id(self, cycle_id: str) -> dict[str, Any] | None:
         """Get cycle by ID"""
         query = """
         query GetCycle($id: String!) {
@@ -837,12 +827,12 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"id": cycle_id}
         result = await self.execute_query(query, variables)
         return result["data"]["cycle"]
 
-    async def get_current_cycle(self, team_id: str) -> Optional[Dict[str, Any]]:
+    async def get_current_cycle(self, team_id: str) -> dict[str, Any] | None:
         """Get current active cycle for a team"""
         query = """
         query GetCurrentCycle($filter: CycleFilter) {
@@ -864,15 +854,15 @@ class LinearClient:
             }
         }
         """
-        
+
         # Get current datetime in ISO format
         current_time = datetime.utcnow().isoformat() + "Z"
-        
+
         # Filter for active cycles for the team
         cycle_filter = {
             "team": {"id": {"eq": team_id}},
             "startsAt": {"lte": current_time},
-            "endsAt": {"gte": current_time}
+            "endsAt": {"gte": current_time},
         }
 
         variables = {"filter": cycle_filter}
@@ -880,16 +870,13 @@ class LinearClient:
         cycles = result["data"]["cycles"]["nodes"]
         return cycles[0] if cycles else None
 
-    async def get_cycle_issues(self, cycle_id: str) -> Dict[str, Any]:
+    async def get_cycle_issues(self, cycle_id: str) -> dict[str, Any]:
         """Get issues in a specific cycle"""
         issue_filter = {"cycle": {"id": {"eq": cycle_id}}}
         return await self.get_issues(filter_conditions=issue_filter)
 
     # Workflow state methods
-    async def get_workflow_states(
-        self,
-        team_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def get_workflow_states(self, team_id: str | None = None) -> dict[str, Any]:
         """Get workflow states"""
         query = """
         query GetWorkflowStates($filter: WorkflowStateFilter) {
@@ -901,7 +888,7 @@ class LinearClient:
                     type
                     color
                     position
-                    
+
                     team {
                         id
                         key
@@ -911,7 +898,7 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter
         state_filter = {}
         if team_id:
@@ -921,7 +908,7 @@ class LinearClient:
         result = await self.execute_query(query, variables)
         return result["data"]["workflowStates"]
 
-    async def create_workflow_state(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_workflow_state(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new workflow state"""
         mutation = """
         mutation CreateWorkflowState($input: WorkflowStateCreateInput!) {
@@ -934,7 +921,7 @@ class LinearClient:
                     type
                     color
                     position
-                    
+
                     team {
                         id
                         key
@@ -944,7 +931,7 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"input": input_data}
         result = await self.execute_mutation(mutation, variables)
         return result["data"]["workflowStateCreate"]
@@ -953,17 +940,17 @@ class LinearClient:
         self,
         state_id: str,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        assignee_id: Optional[str] = None,
-        priority: Optional[int] = None,
-        sort_by: Optional[str] = None,
-        sort_direction: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        team_id: str | None = None,
+        assignee_id: str | None = None,
+        priority: int | None = None,
+        sort_by: str | None = None,
+        sort_direction: str | None = None,
+    ) -> dict[str, Any]:
         """Get issues in a specific workflow state"""
         # Build filter
         issue_filter = {"state": {"id": {"eq": state_id}}}
-        
+
         if team_id:
             issue_filter["team"] = {"id": {"eq": team_id}}
         if assignee_id:
@@ -977,25 +964,22 @@ class LinearClient:
             order_by = sort_by
 
         return await self.get_issues(
-            first=first,
-            after=after,
-            filter_conditions=issue_filter,
-            order_by=order_by
+            first=first, after=after, filter_conditions=issue_filter, order_by=order_by
         )
 
     async def get_completed_issues(
         self,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        assignee_id: Optional[str] = None,
-        completed_after: Optional[str] = None,
-        completed_before: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        team_id: str | None = None,
+        assignee_id: str | None = None,
+        completed_after: str | None = None,
+        completed_before: str | None = None,
+    ) -> dict[str, Any]:
         """Get completed issues"""
         # Build filter for completed states
         issue_filter = {"state": {"type": {"eq": "completed"}}}
-        
+
         if team_id:
             issue_filter["team"] = {"id": {"eq": team_id}}
         if assignee_id:
@@ -1005,22 +989,18 @@ class LinearClient:
         if completed_before:
             issue_filter.setdefault("completedAt", {})["lte"] = completed_before
 
-        return await self.get_issues(
-            first=first,
-            after=after,
-            filter_conditions=issue_filter
-        )
+        return await self.get_issues(first=first, after=after, filter_conditions=issue_filter)
 
     # Project-related methods
     async def get_projects(
         self,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        status: Optional[str] = None,
+        after: str | None = None,
+        team_id: str | None = None,
+        status: str | None = None,
         include_archived: bool = False,
-        created_after: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        created_after: str | None = None,
+    ) -> dict[str, Any]:
         """Get projects"""
         query = """
         query GetProjects($first: Int!, $after: String, $filter: ProjectFilter) {
@@ -1040,21 +1020,21 @@ class LinearClient:
                     updatedAt
                     icon
                     color
-                    
+
                     creator {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     lead {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     teams {
                         nodes {
                             id
@@ -1062,7 +1042,7 @@ class LinearClient:
                             name
                         }
                     }
-                    
+
                     members {
                         nodes {
                             id
@@ -1081,7 +1061,7 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter
         project_filter = {}
         if team_id:
@@ -1097,13 +1077,13 @@ class LinearClient:
         variables = {
             "first": first,
             "after": after,
-            "filter": project_filter if project_filter else None
+            "filter": project_filter if project_filter else None,
         }
-        
+
         result = await self.execute_query(query, variables)
         return result["data"]["projects"]
 
-    async def get_project_by_id(self, project_id: str) -> Optional[Dict[str, Any]]:
+    async def get_project_by_id(self, project_id: str) -> dict[str, Any] | None:
         """Get project by ID"""
         query = """
         query GetProject($id: String!) {
@@ -1125,7 +1105,7 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"id": project_id}
         result = await self.execute_query(query, variables)
         return result["data"]["project"]
@@ -1134,15 +1114,15 @@ class LinearClient:
         self,
         project_id: str,
         first: int = 50,
-        after: Optional[str] = None,
-        team_id: Optional[str] = None,
-        state_id: Optional[str] = None,
-        assignee_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        after: str | None = None,
+        team_id: str | None = None,
+        state_id: str | None = None,
+        assignee_id: str | None = None,
+    ) -> dict[str, Any]:
         """Get issues in a specific project"""
         # Build filter
         issue_filter = {"project": {"id": {"eq": project_id}}}
-        
+
         if team_id:
             issue_filter["team"] = {"id": {"eq": team_id}}
         if state_id:
@@ -1150,18 +1130,10 @@ class LinearClient:
         if assignee_id:
             issue_filter["assignee"] = {"id": {"eq": assignee_id}}
 
-        return await self.get_issues(
-            first=first,
-            after=after,
-            filter_conditions=issue_filter
-        )
+        return await self.get_issues(first=first, after=after, filter_conditions=issue_filter)
 
     # Label management methods
-    async def get_labels(
-        self,
-        team_id: Optional[str] = None,
-        first: int = 100
-    ) -> Dict[str, Any]:
+    async def get_labels(self, team_id: str | None = None, first: int = 100) -> dict[str, Any]:
         """Get all labels, optionally filtered by team"""
         query = """
         query GetLabels($first: Int!, $filter: IssueLabelFilter) {
@@ -1190,27 +1162,24 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build filter
         label_filter = {}
         if team_id:
             label_filter["team"] = {"id": {"eq": team_id}}
 
-        variables = {
-            "first": first,
-            "filter": label_filter if label_filter else None
-        }
-        
+        variables = {"first": first, "filter": label_filter if label_filter else None}
+
         result = await self.execute_query(query, variables)
         return result["data"]["issueLabels"]
 
     async def create_label(
         self,
         name: str,
-        team_id: Optional[str] = None,
-        color: Optional[str] = None,
-        description: Optional[str] = None
-    ) -> Dict[str, Any]:
+        team_id: str | None = None,
+        color: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any]:
         """Create a new label"""
         mutation = """
         mutation CreateLabel($input: IssueLabelCreateInput!) {
@@ -1230,17 +1199,17 @@ class LinearClient:
             }
         }
         """
-        
+
         # Build input
         label_input = {"name": name}
-        
+
         if team_id:
             label_input["teamId"] = team_id
         if color:
             label_input["color"] = color
         if description:
             label_input["description"] = description
-        
+
         variables = {"input": label_input}
         result = await self.execute_mutation(mutation, variables)
         response = result["data"]["issueLabelCreate"]
@@ -1250,11 +1219,7 @@ class LinearClient:
         return response
 
     # Template-related methods
-    async def get_templates(
-        self,
-        team_id: Optional[str] = None,
-        first: int = 50
-    ) -> Dict[str, Any]:
+    async def get_templates(self, team_id: str | None = None, first: int = 50) -> dict[str, Any]:
         """Get issue templates for a specific team"""
         if team_id:
             # Get templates for a specific team
@@ -1270,27 +1235,27 @@ class LinearClient:
                             description
                             createdAt
                             updatedAt
-                            
+
                             creator {
                                 id
                                 name
                                 email
                                 displayName
                             }
-                            
+
                             team {
                                 id
                                 key
                                 name
                             }
-                            
+
                             templateData
                         }
                     }
                 }
             }
             """
-            
+
             variables = {"teamId": team_id}
             result = await self.execute_query(query, variables)
             team_data = result["data"]["team"]
@@ -1303,14 +1268,14 @@ class LinearClient:
             # First get all teams, then get templates for each team
             teams_response = await self.get_teams(first=100)
             all_templates = []
-            
+
             for team in teams_response.get("nodes", []):
                 team_templates_response = await self.get_templates(team_id=team["id"])
                 all_templates.extend(team_templates_response.get("nodes", []))
-            
+
             return {"nodes": all_templates}
 
-    async def get_template_by_id(self, template_id: str) -> Optional[Dict[str, Any]]:
+    async def get_template_by_id(self, template_id: str) -> dict[str, Any] | None:
         """Get template by ID"""
         query = """
         query GetTemplate($id: String!) {
@@ -1320,30 +1285,30 @@ class LinearClient:
                 description
                 createdAt
                 updatedAt
-                
+
                 creator {
                     id
                     name
                     email
                     displayName
                 }
-                
+
                 team {
                     id
                     key
                     name
                 }
-                
+
                 templateData
             }
         }
         """
-        
+
         variables = {"id": template_id}
         result = await self.execute_query(query, variables)
         return result["data"]["template"]
 
-    async def create_project(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_project(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new project"""
         mutation = """
         mutation CreateProject($input: ProjectCreateInput!) {
@@ -1359,21 +1324,21 @@ class LinearClient:
                     targetDate
                     createdAt
                     url
-                    
+
                     creator {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     lead {
                         id
                         name
                         email
                         displayName
                     }
-                    
+
                     teams {
                         nodes {
                             id
@@ -1385,12 +1350,12 @@ class LinearClient:
             }
         }
         """
-        
+
         variables = {"input": input_data}
         result = await self.execute_query(mutation, variables)
         return result["data"]["projectCreate"]
 
-    async def create_comment(self, issue_id: str, comment_body: str) -> Dict[str, Any]:
+    async def create_comment(self, issue_id: str, comment_body: str) -> dict[str, Any]:
         """Create a comment on an issue"""
         mutation = """
         mutation CreateComment($input: CommentCreateInput!) {
@@ -1416,12 +1381,7 @@ class LinearClient:
             }
         }
         """
-        
-        variables = {
-            "input": {
-                "issueId": issue_id,
-                "body": comment_body
-            }
-        }
+
+        variables = {"input": {"issueId": issue_id, "body": comment_body}}
         result = await self.execute_query(mutation, variables)
-        return result["data"]["commentCreate"] 
+        return result["data"]["commentCreate"]

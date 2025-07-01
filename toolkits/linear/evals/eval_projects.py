@@ -13,8 +13,8 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_linear
-from arcade_linear.tools.projects import get_projects
 from arcade_linear.tools.issues import search_issues
+from arcade_linear.tools.projects import get_projects
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -55,7 +55,7 @@ def projects_eval_suite() -> EvalSuite:
     # Eval Prompt: Show me all issues in the "arcade testing" project
     suite.add_case(
         name="Find issues in arcade testing project",
-        user_message="Show me all issues in the \"arcade testing\" project",
+        user_message='Show me all issues in the "arcade testing" project',
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_issues,
@@ -171,4 +171,4 @@ def projects_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

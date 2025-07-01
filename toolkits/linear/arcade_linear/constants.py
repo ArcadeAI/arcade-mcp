@@ -13,6 +13,7 @@ try:
 except ValueError:
     LINEAR_MAX_TIMEOUT_SECONDS = 30
 
+
 # Sort options for issues - Linear API expects camelCase enum values
 class IssueSortField(Enum):
     CREATED_AT = "createdAt"
@@ -22,9 +23,11 @@ class IssueSortField(Enum):
     DUE_DATE = "dueDate"
     ESTIMATE = "estimate"
 
+
 class SortDirection(Enum):
     ASC = "ASC"
     DESC = "DESC"
+
 
 # GraphQL field selections for different entity types
 TEAM_FIELDS = """
@@ -81,7 +84,7 @@ ISSUE_FIELDS = """
     url
     branchName
     customerTicketCount
-    
+
     creator {
         id
         name
@@ -89,7 +92,7 @@ ISSUE_FIELDS = """
         displayName
         avatarUrl
     }
-    
+
     assignee {
         id
         name
@@ -97,7 +100,7 @@ ISSUE_FIELDS = """
         displayName
         avatarUrl
     }
-    
+
     state {
         id
         name
@@ -105,13 +108,13 @@ ISSUE_FIELDS = """
         color
         position
     }
-    
+
     team {
         id
         key
         name
     }
-    
+
     project {
         id
         name
@@ -121,7 +124,7 @@ ISSUE_FIELDS = """
         startDate
         targetDate
     }
-    
+
     cycle {
         id
         number
@@ -133,13 +136,13 @@ ISSUE_FIELDS = """
         autoArchivedAt
         progress
     }
-    
+
     parent {
         id
         identifier
         title
     }
-    
+
     labels {
         nodes {
             id
@@ -148,7 +151,7 @@ ISSUE_FIELDS = """
             description
         }
     }
-    
+
     attachments {
         nodes {
             id
@@ -159,7 +162,7 @@ ISSUE_FIELDS = """
             createdAt
         }
     }
-    
+
     comments {
         nodes {
             id
@@ -174,7 +177,7 @@ ISSUE_FIELDS = """
             }
         }
     }
-    
+
     relations {
         nodes {
             id
@@ -186,7 +189,7 @@ ISSUE_FIELDS = """
             }
         }
     }
-    
+
     children {
         nodes {
             id
@@ -230,21 +233,21 @@ PROJECT_FIELDS = """
     updatedAt
     icon
     color
-    
+
     creator {
         id
         name
         email
         displayName
     }
-    
+
     lead {
         id
         name
         email
         displayName
     }
-    
+
     teams {
         nodes {
             id
@@ -252,7 +255,7 @@ PROJECT_FIELDS = """
             name
         }
     }
-    
+
     members {
         nodes {
             id
@@ -270,7 +273,7 @@ WORKFLOW_STATE_FIELDS = """
     type
     color
     position
-    
+
     team {
         id
         key
@@ -290,13 +293,13 @@ CYCLE_FIELDS = """
     progress
     createdAt
     updatedAt
-    
+
     team {
         id
         key
         name
     }
-    
+
     issues {
         nodes {
             id
@@ -311,6 +314,7 @@ CYCLE_FIELDS = """
     }
 """
 
+
 # Priority mappings
 class IssuePriority(Enum):
     NO_PRIORITY = 0
@@ -319,13 +323,8 @@ class IssuePriority(Enum):
     MEDIUM = 3
     LOW = 4
 
-PRIORITY_LABELS = {
-    0: "No priority",
-    1: "Urgent",
-    2: "High", 
-    3: "Medium",
-    4: "Low"
-}
+
+PRIORITY_LABELS = {0: "No priority", 1: "Urgent", 2: "High", 3: "Medium", 4: "Low"}
 
 PRIORITY_NAME_TO_VALUE = {
     "no priority": 0,
@@ -333,16 +332,18 @@ PRIORITY_NAME_TO_VALUE = {
     "urgent": 1,
     "high": 2,
     "medium": 3,
-    "low": 4
+    "low": 4,
 }
+
 
 # Workflow state types
 class WorkflowStateType(Enum):
     BACKLOG = "backlog"
-    UNSTARTED = "unstarted" 
+    UNSTARTED = "unstarted"
     STARTED = "started"
     COMPLETED = "completed"
     CANCELED = "canceled"
+
 
 # Issue relation types
 class IssueRelationType(Enum):
@@ -352,6 +353,7 @@ class IssueRelationType(Enum):
     DUPLICATED_BY = "duplicatedBy"
     RELATES = "relates"
 
+
 # Project states
 class ProjectState(Enum):
     PLANNED = "planned"
@@ -360,6 +362,7 @@ class ProjectState(Enum):
     CANCELED = "canceled"
     PAUSED = "paused"
 
+
 # Project status (alias for consistency with API)
 class ProjectStatus(Enum):
     PLANNED = "planned"
@@ -367,6 +370,7 @@ class ProjectStatus(Enum):
     COMPLETED = "completed"
     CANCELED = "canceled"
     PAUSED = "paused"
+
 
 # Common filter operators for search
 class FilterOperator(Enum):
@@ -385,16 +389,17 @@ class FilterOperator(Enum):
     ENDS_WITH = "endsWith"
     NOT_ENDS_WITH = "notEndsWith"
 
+
 # Time range mappings for date parsing
 TIME_RANGE_MAPPINGS = {
     "today": "today",
-    "yesterday": "yesterday", 
+    "yesterday": "yesterday",
     "this week": "this week",
     "last week": "last week",
     "this month": "this month",
     "last month": "last month",
     "this year": "this year",
-    "last year": "last year"
+    "last year": "last year",
 }
 
 # Common GraphQL queries
@@ -412,4 +417,4 @@ query Viewer {
         }
     }
 }
-""" 
+"""

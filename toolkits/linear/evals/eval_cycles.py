@@ -15,8 +15,8 @@ from arcade_tdk import ToolCatalog
 import arcade_linear
 from arcade_linear.tools.cycles import (
     get_current_cycle,
-    list_cycles,
     get_cycle_issues,
+    list_cycles,
 )
 
 # Evaluation rubric
@@ -465,4 +465,4 @@ def get_cycle_issues_eval_suite() -> EvalSuite:
         ],
     )
 
-    return suite 
+    return suite

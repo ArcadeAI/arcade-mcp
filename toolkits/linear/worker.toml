@@ -8,4 +8,4 @@ retries = 3
 secret = "linear-toolkit-secret-key-2024"
 
 [worker.local_source]
-packages = ["./"] 
+packages = ["./"]
