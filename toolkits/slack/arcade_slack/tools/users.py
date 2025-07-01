@@ -19,6 +19,9 @@ from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
     get_available_users_prompt,
+    get_users_by_email,
+    get_users_by_id,
+    get_users_by_username,
     is_user_a_bot,
     is_user_deleted,
     is_valid_email,
@@ -28,16 +31,41 @@ from arcade_slack.utils import (
 
 
 @tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
+async def get_users_info(
+    context: ToolContext,
+    user_ids: Annotated[list[str], "The IDs of the users to get"],
+    usernames: Annotated[list[str], "The usernames of the users to get"],
+    emails: Annotated[list[str], "The emails of the users to get"],
+) -> Annotated[dict[str, Any], "The users' information"]:
+    """Get the information of one or more users in Slack by ID, username, or email.
+
+    Provide one of user_ids, usernames, or emails, not multiple.
+    """
+    set_args = sum(bool(arg) for arg in [user_ids, usernames, emails])
+
+    if set_args == 0:
+        raise ToolExecutionError("At least one of user_ids, usernames, or emails must be provided")
+    if set_args > 1:
+        raise ToolExecutionError("Only one of user_ids, usernames, or emails can be provided")
+
+    if user_ids:
+        return await get_users_by_id(context, user_ids=user_ids)
+
+    if usernames:
+        return await get_users_by_username(context, usernames=usernames)
+
+    return await get_users_by_email(context, emails=emails)
+
+
+# NOTE: This tool is kept here for backwards compatibility.
+# Use the `Slack.GetUsersInfo` tool instead.
+@tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
 async def get_user_info_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The ID of the user to get"],
 ) -> Annotated[dict[str, Any], "The user's information"]:
     """Get the information of a user in Slack."""
-
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
-    slackClient = AsyncWebClient(token=token)
+    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
 
     try:
         response = await slackClient.users_info(user=user_id)

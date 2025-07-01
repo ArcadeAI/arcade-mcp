@@ -1,7 +1,13 @@
+import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from enum import Enum
 from typing import Any, Literal, TypedDict
+
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
+from slack_sdk.errors import SlackApiError
 
 from arcade_slack.custom_types import (
     SlackOffsetSecondsFromUTC,
@@ -260,3 +266,52 @@ class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
                 if self._all_usernames_found():
                     return True
         return False
+
+
+class AbstractConcurrencySafeCoroutineCaller(ABC):
+    """Abstract base class for concurrency-safe coroutine callers."""
+
+    def __init__(self, func: Callable[..., Awaitable[Any]], *args: Any, **kwargs: Any) -> None:
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    @abstractmethod
+    async def __call__(self, semaphore: asyncio.Semaphore) -> Any:
+        """Call a coroutine with a semaphore."""
+        raise NotImplementedError
+
+
+class ConcurrencySafeCoroutineCaller(AbstractConcurrencySafeCoroutineCaller):
+    """Calls a coroutine with an asyncio semaphore."""
+
+    async def __call__(self, semaphore: asyncio.Semaphore) -> Any:
+        async with semaphore:
+            return await self.func(*self.args, **self.kwargs)
+
+
+class GetUserByEmailCaller(AbstractConcurrencySafeCoroutineCaller):
+    """Call Slack's lookupByEmail method with an asyncio semaphore while handling API errors."""
+
+    def __init__(
+        self,
+        func: Callable[..., Awaitable[Any]],
+        email: str,
+        context: ToolContext,
+    ) -> None:
+        super().__init__(func)
+        self.email = email
+        self.context = context
+
+    async def __call__(self, semaphore: asyncio.Semaphore) -> dict[str, Any]:
+        async with semaphore:
+            try:
+                return {"user": await self.func(email=self.email), "email": self.email}
+            except SlackApiError as e:
+                if e.response.get("error") in ["user_not_found", "users_not_found"]:
+                    return {"user": None, "email": self.email}
+                else:
+                    raise ToolExecutionError(
+                        message="Error getting user by email",
+                        developer_message=f"Error getting user by email: {e.response.get('error')}",
+                    )
