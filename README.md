@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/arcadeai-arcade-ai-badge.png)](https://mseep.ai/app/arcadeai-arcade-ai)
+
 <h3 align="center">
   <a name="readme-top"></a>
   <img
