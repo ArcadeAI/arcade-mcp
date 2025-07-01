@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
+from arcade_core.errors import ToolExecutionError
 
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
@@ -144,7 +145,7 @@ class TestListTickets:
         )
         mock_httpx_client.get.return_value = error_response
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(ToolExecutionError):
             await list_tickets(mock_context)
 
     @pytest.mark.asyncio
@@ -152,7 +153,7 @@ class TestListTickets:
         """Test when subdomain is not configured."""
         mock_context.get_secret.return_value = None
 
-        with pytest.raises(ValueError, match="Zendesk subdomain not found"):
+        with pytest.raises(ToolExecutionError):
             await list_tickets(mock_context)
 
 
@@ -239,7 +240,7 @@ class TestGetTicketComments:
 
         mock_httpx_client.get.return_value = mock_http_response({}, status_code=404)
 
-        with pytest.raises(ValueError, match="Ticket #999 not found"):
+        with pytest.raises(ToolExecutionError):
             await get_ticket_comments(mock_context, ticket_id=999)
 
     @pytest.mark.asyncio
@@ -255,7 +256,7 @@ class TestGetTicketComments:
 
         mock_httpx_client.get.return_value = error_response
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(ToolExecutionError):
             await get_ticket_comments(mock_context, ticket_id=123)
 
 
@@ -358,7 +359,7 @@ class TestAddTicketComment:
         )
         mock_httpx_client.put.return_value = error_response
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(ToolExecutionError):
             await add_ticket_comment(mock_context, ticket_id=999, comment_body="Test comment")
 
 
@@ -466,7 +467,7 @@ class TestMarkTicketSolved:
         )
         mock_httpx_client.put.return_value = error_response
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(ToolExecutionError):
             await mark_ticket_solved(mock_context, ticket_id=999)
 
 
@@ -486,7 +487,7 @@ class TestAuthenticationAndSecrets:
         )
         mock_httpx_client.get.return_value = error_response
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(ToolExecutionError):
             await list_tickets(mock_context)
 
         # Should be called with empty Bearer token
