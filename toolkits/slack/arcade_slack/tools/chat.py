@@ -1136,6 +1136,12 @@ async def get_direct_message_conversation_metadata_by_username(
         slack_client.auth_test(), get_user_by_username(context, username)
     )
 
+    if not current_user["ok"]:
+        raise ToolExecutionError(
+            message="Error getting current user",
+            developer_message=f"Error getting current user info: {current_user['error']}",
+        )
+
     conversations_found = await retrieve_conversations_by_user_ids(
         list_conversations_func=list_conversations_metadata,
         get_members_in_conversation_func=get_members_in_conversation_by_id,
