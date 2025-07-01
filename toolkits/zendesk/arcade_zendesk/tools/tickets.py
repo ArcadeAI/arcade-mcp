@@ -34,16 +34,14 @@ async def list_tickets(
     ] = "desc",
 ) -> Annotated[
     dict[str, Any],
-    "A dictionary containing tickets list (each with url and html_url fields), count, "
-    "and pagination metadata",
+    "A dictionary containing tickets list (each with html_url), count, and pagination metadata",
 ]:
     """List tickets from your Zendesk account with pagination support.
 
     By default, returns tickets sorted by ID with newest tickets first (desc).
 
-    Each ticket in the response includes:
-    - url: The API endpoint URL for the ticket
-    - html_url: The web interface URL to view the ticket in Zendesk
+    Each ticket in the response includes an 'html_url' field with the direct link
+    to view the ticket in Zendesk.
 
     Supports both cursor-based pagination (recommended) and offset-based pagination.
     For cursor pagination, omit 'page' parameter and use 'cursor' for subsequent requests.
@@ -90,6 +88,14 @@ async def list_tickets(
         tickets = data.get("tickets", [])
 
         # Build response with pagination metadata
+        # Replace API url with web interface url
+        for ticket in tickets:
+            if "id" in ticket:
+                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+            # Remove API url to avoid confusion
+            if "url" in ticket:
+                del ticket["url"]
+
         result = {
             "tickets": tickets,
             "count": len(tickets),
@@ -185,9 +191,8 @@ async def add_ticket_comment(
 ]:
     """Add a comment to an existing Zendesk ticket.
 
-    The returned ticket object includes:
-    - url: The API endpoint URL for the ticket
-    - html_url: The web interface URL to view the ticket in Zendesk
+    The returned ticket object includes an 'html_url' field with the direct link
+    to view the ticket in Zendesk.
     """
 
     # Get the authorization token
@@ -216,6 +221,14 @@ async def add_ticket_comment(
 
         data = response.json()
         ticket = data.get("ticket", {})
+
+        # Add web interface URL if not present
+        if "id" in ticket and "html_url" not in ticket:
+            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+        # Remove API url to avoid confusion
+        if "url" in ticket:
+            del ticket["url"]
+
         return {
             "success": True,
             "ticket_id": ticket_id,
@@ -241,9 +254,8 @@ async def mark_ticket_solved(
 ) -> Annotated[dict[str, Any], "A dictionary containing the result of the solve operation"]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 
-    The returned ticket object includes:
-    - url: The API endpoint URL for the ticket
-    - html_url: The web interface URL to view the ticket in Zendesk
+    The returned ticket object includes an 'html_url' field with the direct link
+    to view the ticket in Zendesk.
     """
 
     # Get the authorization token
@@ -279,6 +291,14 @@ async def mark_ticket_solved(
 
         data = response.json()
         ticket = data.get("ticket", {})
+
+        # Add web interface URL if not present
+        if "id" in ticket and "html_url" not in ticket:
+            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+        # Remove API url to avoid confusion
+        if "url" in ticket:
+            del ticket["url"]
+
         result = {
             "success": True,
             "ticket_id": ticket_id,
