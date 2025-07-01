@@ -63,12 +63,12 @@ async def list_tickets(
     # Determine pagination type
     if page is not None:
         # Offset-based pagination
-        params["page"] = page
-        params["per_page"] = min(per_page, 100)
+        params["page"] = str(page)
+        params["per_page"] = str(min(per_page, 100))
         params["sort_order"] = sort_order
     else:
         # Cursor-based pagination (recommended)
-        params["page[size]"] = min(per_page, 100)
+        params["page[size]"] = str(min(per_page, 100))
         if cursor:
             params["page[after]"] = cursor
         # For cursor pagination, use minus sign for descending order
