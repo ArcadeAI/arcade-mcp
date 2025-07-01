@@ -79,6 +79,54 @@ def zendesk_tickets_read_eval_suite() -> EvalSuite:
         critics=[],
     )
 
+    # Test pagination
+    suite.add_case(
+        name="List tickets with limit",
+        user_message="Show me the first 5 open tickets",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_tickets,
+                args={"per_page": 5},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="per_page", weight=1.0),
+        ],
+    )
+
+    # Test status filter
+    suite.add_case(
+        name="List tickets with specific status",
+        user_message="Show me all pending tickets",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_tickets,
+                args={"status": "pending"},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="status", weight=1.0),
+        ],
+    )
+
+    # Test sort order
+    suite.add_case(
+        name="List tickets oldest first",
+        user_message="Show me tickets sorted from oldest to newest",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_tickets,
+                args={"sort_order": "asc"},
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            BinaryCritic(critic_field="sort_order", weight=1.0),
+        ],
+    )
+
     return suite
 
 
@@ -489,8 +537,10 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
             },
             {
                 "role": "tool",
-                "content": "Ticket #1: Login issue (Status: open)\n"
-                "Ticket #2: Password reset request (Status: open)",
+                "content": '{"tickets": [{"id": 1, "subject": "Login issue", "status": "open", '
+                '"html_url": "https://example.zendesk.com/agent/tickets/1"}, '
+                '{"id": 2, "subject": "Password reset request", "status": "open", '
+                '"html_url": "https://example.zendesk.com/agent/tickets/2"}], "count": 2}',
                 "tool_call_id": "call_1",
                 "name": "list_tickets",
             },
@@ -542,7 +592,8 @@ def zendesk_ticket_workflow_eval_suite() -> EvalSuite:
             },
             {
                 "role": "tool",
-                "content": "Successfully added public comment to ticket #789",
+                "content": '{"success": true, "ticket_id": 789, "comment_type": "public", '
+                '"ticket": {"id": 789, "html_url": "https://example.zendesk.com/agent/tickets/789"}}',
                 "tool_call_id": "call_1",
                 "name": "add_ticket_comment",
             },
