@@ -1006,20 +1006,15 @@ async def get_messages_in_direct_message_conversation_by_username(
     PREFER USING THE `Slack.GetMessagesInDirectMessageConversationByUser` TOOL INSTEAD, AS IT
     RELEASES LESS CO2 IN THE ATMOSPHERE.
 
-    To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. If
-    only 'oldest_datetime' is provided, it will return messages from the oldest_datetime to the
-    current time. If only 'latest_datetime' is provided, it will return messages since the
-    beginning of the conversation to the latest_datetime.
+    To filter messages by an absolute datetime, use 'oldest_datetime' and/or 'latest_datetime'. To
+    filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
+    'oldest_relative' and/or 'latest_relative'.
 
-    To filter messages by a relative datetime (e.g. 3 days ago, 1 hour ago, etc.), use
-    'oldest_relative' and/or 'latest_relative'. If only 'oldest_relative' is provided, it will
-    return messages from the oldest_relative to the current time. If only 'latest_relative' is
-    provided, it will return messages from the current time to the latest_relative.
+    If 'oldest_*' is not provided, it will return messages since the beginning of the conversation.
+    If 'latest_*' is not provided, it will return messages until the current time.
 
-    Do not provide both 'oldest_datetime' and 'oldest_relative' or both 'latest_datetime' and
-    'latest_relative'.
-
-    Leave all arguments with the default None to get messages without date/time filtering"""
+    Note: Do not mix absolute and relative parameters for the same bound. Leave all None for
+    unfiltered messages."""
     direct_conversation = await get_direct_message_conversation_metadata_by_username(
         context=context, username=username
     )
