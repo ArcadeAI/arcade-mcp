@@ -34,11 +34,16 @@ async def list_tickets(
     ] = "desc",
 ) -> Annotated[
     dict[str, Any],
-    "A dictionary containing tickets list, count, and pagination metadata",
+    "A dictionary containing tickets list (each with url and html_url fields), count, "
+    "and pagination metadata",
 ]:
     """List tickets from your Zendesk account with pagination support.
 
     By default, returns tickets sorted by ID with newest tickets first (desc).
+
+    Each ticket in the response includes:
+    - url: The API endpoint URL for the ticket
+    - html_url: The web interface URL to view the ticket in Zendesk
 
     Supports both cursor-based pagination (recommended) and offset-based pagination.
     For cursor pagination, omit 'page' parameter and use 'cursor' for subsequent requests.
@@ -112,7 +117,9 @@ async def list_tickets(
 async def get_ticket_comments(
     context: ToolContext,
     ticket_id: Annotated[int, "The ID of the ticket to get comments for"],
-) -> Annotated[dict[str, Any], "A dictionary containing the ticket comments and metadata"]:
+) -> Annotated[
+    dict[str, Any], "A dictionary containing the ticket comments, metadata, and ticket URL"
+]:
     """Get all comments for a specific Zendesk ticket, including the original description.
 
     The first comment is always the ticket's original description/content.
@@ -155,7 +162,11 @@ async def get_ticket_comments(
         data = response.json()
         comments = data.get("comments", [])
 
-        return {"ticket_id": ticket_id, "comments": comments, "count": len(comments)}
+        return {
+            "ticket_id": ticket_id,
+            "comments": comments,
+            "count": len(comments),
+        }
 
 
 @tool(
@@ -169,8 +180,14 @@ async def add_ticket_comment(
     public: Annotated[
         bool, "Whether the comment is public (visible to requester) or internal. Defaults to True"
     ] = True,
-) -> Annotated[dict[str, Any], "A dictionary containing the result of the comment operation"]:
+) -> Annotated[
+    dict[str, Any], "A dictionary containing the result of the comment operation and ticket URL"
+]:
     """Add a comment to an existing Zendesk ticket.
+
+    The returned ticket object includes:
+    - url: The API endpoint URL for the ticket
+    - html_url: The web interface URL to view the ticket in Zendesk
 
     Args:
         ticket_id: The ID of the ticket to comment on
@@ -229,6 +246,10 @@ async def mark_ticket_solved(
 ) -> Annotated[dict[str, Any], "A dictionary containing the result of the solve operation"]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 
+    The returned ticket object includes:
+    - url: The API endpoint URL for the ticket
+    - html_url: The web interface URL to view the ticket in Zendesk
+
     Args:
         ticket_id: The ID of the ticket to mark as solved
         comment_body: Optional final comment to add when solving (e.g., resolution summary)
@@ -268,7 +289,12 @@ async def mark_ticket_solved(
 
         data = response.json()
         ticket = data.get("ticket", {})
-        result = {"success": True, "ticket_id": ticket_id, "status": "solved", "ticket": ticket}
+        result = {
+            "success": True,
+            "ticket_id": ticket_id,
+            "status": "solved",
+            "ticket": ticket,
+        }
         if comment_body:
             result["comment_added"] = True
             result["comment_type"] = "public" if comment_public else "internal"
