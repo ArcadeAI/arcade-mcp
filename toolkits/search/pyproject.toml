@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_search"
-version = "1.4.2"
+version = "1.4.3"
 description = "Arcade.dev LLM tools for searching the web"
 requires-python = ">=3.10"
 dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "serpapi>=0.1.5,<1.0.0",]

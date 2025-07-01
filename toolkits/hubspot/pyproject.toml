@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_hubspot"
-version = "0.2.2"
+version = "0.2.3"
 description = "Arcade tools designed for LLMs to interact with Hubspot"
 requires-python = ">=3.10"
 dependencies = [

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_github"
-version = "0.1.12"
+version = "0.1.13"
 description = "Arcade.dev LLM tools for Github"
 requires-python = ">=3.10"
 dependencies = [

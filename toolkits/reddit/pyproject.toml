@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_reddit"
-version = "0.1.2"
+version = "0.1.3"
 description = "Arcade.dev LLM tools Reddit"
 requires-python = ">=3.10"
 dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "httpx>=0.27.2,<1.0.0",]
