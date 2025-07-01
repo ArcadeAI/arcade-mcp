@@ -508,12 +508,12 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
                 ExpectedToolCall(
                     func=get_messages_in_channel_by_name,
                     args={
-                        "conversation_name": "general",
+                        "channel_name": "general",
                     },
                 ),
             ],
             critics=[
-                BinaryCritic(critic_field="conversation_name", weight=1.0),
+                BinaryCritic(critic_field="channel_name", weight=1.0),
             ],
         )
 
@@ -548,13 +548,13 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "limit": 10,
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1.0),
+            BinaryCritic(critic_field="channel_name", weight=1.0),
         ],
     )
 
@@ -660,13 +660,13 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_relative": "02:00:00",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=0.5),
+            BinaryCritic(critic_field="channel_name", weight=0.5),
             RelativeTimeBinaryCritic(critic_field="oldest_relative", weight=0.5),
         ],
     )
@@ -678,14 +678,14 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_relative": "02:00:00",
                     "latest_relative": "00:03:00",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1 / 3),
+            BinaryCritic(critic_field="channel_name", weight=1 / 3),
             RelativeTimeBinaryCritic(critic_field="oldest_relative", weight=1 / 3),
             RelativeTimeBinaryCritic(critic_field="latest_relative", weight=1 / 3),
         ],
@@ -698,13 +698,13 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_relative": "01:00:00",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=0.5),
+            BinaryCritic(critic_field="channel_name", weight=0.5),
             RelativeTimeBinaryCritic(critic_field="oldest_relative", weight=0.5),
         ],
     )
@@ -716,13 +716,13 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_relative": "07:00:00",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=0.5),
+            BinaryCritic(critic_field="channel_name", weight=0.5),
             RelativeTimeBinaryCritic(critic_field="oldest_relative", weight=0.5),
         ],
     )
@@ -784,14 +784,14 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_datetime": "2025-01-20 00:00:00",
                     "latest_datetime": "2025-01-20 23:59:59",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1 / 3),
+            BinaryCritic(critic_field="channel_name", weight=1 / 3),
             # We use a timedelta of 10 seconds because sometimes the LLM will select the limit
             # date at 23:59:59, other times it'll select the next day at 00:00:00.
             DatetimeCritic(
@@ -810,14 +810,14 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "oldest_datetime": "2025-01-20 00:00:00",
                     "latest_datetime": "2025-01-25 23:59:59",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1 / 3),
+            BinaryCritic(critic_field="channel_name", weight=1 / 3),
             # We use a timedelta of 10 seconds because sometimes the LLM will select the limit
             # date at 23:59:59, other times it'll select the next day at 00:00:00.
             DatetimeCritic(
@@ -838,14 +838,14 @@ def get_messages_in_channel_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_messages_in_channel_by_name,
                 args={
-                    "conversation_name": "general",
+                    "channel_name": "general",
                     "limit": 5,
                     "cursor": "dXNlcjpVsDjzOTZGVDlQRA==",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_name", weight=1 / 3),
+            BinaryCritic(critic_field="channel_name", weight=1 / 3),
             BinaryCritic(critic_field="cursor", weight=1 / 3),
             BinaryCritic(critic_field="limit", weight=1 / 3),
         ],
