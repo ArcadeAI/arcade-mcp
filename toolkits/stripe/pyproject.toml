@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_stripe"
-version = "0.0.1"
+version = "0.0.2"
 description = "Arcade.dev LLM tools for Stripe"
 requires-python = ">=3.10"
 dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "stripe-agent-toolkit>=0.6.1,<1.0.0", "stripe>=11.0.0,<12.0.0",]
