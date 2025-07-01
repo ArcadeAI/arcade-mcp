@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_math"
-version = "1.0.2"
+version = "1.0.3"
 description = "Arcade.dev LLM tools for doing math"
 requires-python = ">=3.10"
 dependencies = [

@@ -6,6 +6,14 @@ inputs:
     required: false
     description: "The python version to use"
     default: "3.11"
+  is-toolkit:
+    required: false
+    description: "Whether this is a toolkit package"
+    default: "false"
+  working-directory:
+    required: false
+    description: "Working directory for the installation (used for toolkits)"
+    default: "."
 
 runs:
   using: "composite"
@@ -15,6 +23,15 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install dependencies
+    - name: Install toolkit dependencies
+      if: inputs.is-toolkit == 'true'
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Installing toolkit dependencies for ${{ inputs.working-directory }}"
+        make install
+      shell: bash
+
+    - name: Install libs dependencies
+      if: inputs.is-toolkit != 'true'
       run: uv sync --dev --extra all
       shell: bash

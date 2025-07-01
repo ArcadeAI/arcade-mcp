@@ -63,11 +63,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-uv-env
-        with:
-          python-version: "3.10"
-
       - name: Extract package name and version
         working-directory: ${{ matrix.package }}
         run: |
@@ -80,6 +75,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
           echo "Building $PACKAGE_NAME version $VERSION"
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+        with:
+          python-version: "3.10"
+          is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          working-directory: ${{ matrix.package }}
 
       - name: Run tests
         working-directory: ${{ matrix.package }}
