@@ -188,11 +188,6 @@ async def add_ticket_comment(
     The returned ticket object includes:
     - url: The API endpoint URL for the ticket
     - html_url: The web interface URL to view the ticket in Zendesk
-
-    Args:
-        ticket_id: The ID of the ticket to comment on
-        comment_body: The text of the comment
-        public: Whether the comment is public (visible to requester) or internal
     """
 
     # Get the authorization token
@@ -249,11 +244,6 @@ async def mark_ticket_solved(
     The returned ticket object includes:
     - url: The API endpoint URL for the ticket
     - html_url: The web interface URL to view the ticket in Zendesk
-
-    Args:
-        ticket_id: The ID of the ticket to mark as solved
-        comment_body: Optional final comment to add when solving (e.g., resolution summary)
-        comment_public: Whether the comment is visible to the requester (default False - internal)
     """
 
     # Get the authorization token
