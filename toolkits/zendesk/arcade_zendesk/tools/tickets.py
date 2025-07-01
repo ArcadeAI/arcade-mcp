@@ -111,6 +111,13 @@ async def get_ticket_comments(
 
     The first comment is always the ticket's original description/content.
     Subsequent comments show the conversation history.
+
+    Each comment includes:
+    - author_id: ID of the comment author
+    - body: The comment text
+    - created_at: Timestamp when comment was created
+    - public: Whether the comment is public or internal
+    - attachments: List of file attachments (if any) with file_name, content_url, size, etc.
     """
 
     # Get the authorization token
