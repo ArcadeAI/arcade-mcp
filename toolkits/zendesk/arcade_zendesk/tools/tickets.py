@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 import httpx
 from arcade_tdk import ToolContext, tool
@@ -15,9 +15,7 @@ async def list_tickets(
         str,
         "The status of tickets to filter by (e.g., 'new', 'open', 'pending', 'solved', 'closed')",
     ] = "open",
-    per_page: Annotated[
-        int, "The number of tickets to return per page (max 100)"
-    ] = 100,
+    per_page: Annotated[int, "The number of tickets to return per page (max 100)"] = 100,
     page: Annotated[
         int | None,
         "The page number for offset pagination. If not provided, cursor pagination is used.",
@@ -26,11 +24,17 @@ async def list_tickets(
         str | None,
         "The cursor for pagination. Use 'after_cursor' from previous response to get next page.",
     ] = None,
+    sort_order: Annotated[
+        Literal["asc", "desc"],
+        "Sort order for tickets by ID. 'asc' returns oldest first, 'desc' returns newest first.",
+    ] = "desc",
 ) -> Annotated[
     dict[str, Any],
     "A dictionary containing tickets list, count, and pagination metadata",
 ]:
     """List tickets from your Zendesk account with pagination support.
+
+    By default, returns tickets sorted by ID with newest tickets first (desc).
 
     Supports both cursor-based pagination (recommended) and offset-based pagination.
     For cursor pagination, omit 'page' parameter and use 'cursor' for subsequent requests.
@@ -54,11 +58,14 @@ async def list_tickets(
         # Offset-based pagination
         params["page"] = page
         params["per_page"] = min(per_page, 100)
+        params["sort_order"] = sort_order
     else:
         # Cursor-based pagination (recommended)
         params["page[size]"] = min(per_page, 100)
         if cursor:
             params["page[after]"] = cursor
+        # For cursor pagination, use minus sign for descending order
+        params["sort"] = "-id" if sort_order == "desc" else "id"
 
     # Make the API request
     async with httpx.AsyncClient() as client:
@@ -68,33 +75,30 @@ async def list_tickets(
         }
 
         response = await client.get(base_url, headers=headers, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        tickets = data.get("tickets", [])
 
-        if response.status_code == 200:
-            data = response.json()
-            tickets = data.get("tickets", [])
+        # Build response with pagination metadata
+        result = {
+            "tickets": tickets,
+            "count": len(tickets),
+        }
 
-            # Build response with pagination metadata
-            result = {
-                "tickets": tickets,
-                "count": len(tickets),
-            }
-
-            # Add pagination metadata based on response type
-            if "meta" in data:
-                # Cursor-based pagination response
-                result["has_more"] = data["meta"].get("has_more", False)
-                result["after_cursor"] = data["meta"].get("after_cursor")
-                result["before_cursor"] = data["meta"].get("before_cursor")
-            else:
-                # Offset-based pagination response
-                result["next_page"] = data.get("next_page")
-                result["previous_page"] = data.get("previous_page")
-                result["total_count"] = data.get("count")
-
-            return result
+        # Add pagination metadata based on response type
+        if "meta" in data:
+            # Cursor-based pagination response
+            result["has_more"] = data["meta"].get("has_more", False)
+            result["after_cursor"] = data["meta"].get("after_cursor")
+            result["before_cursor"] = data["meta"].get("before_cursor")
         else:
-            msg = f"Error fetching tickets: {response.status_code} - {response.text}"
-            raise ValueError(msg)
+            # Offset-based pagination response
+            result["next_page"] = data.get("next_page")
+            result["previous_page"] = data.get("previous_page")
+            result["total_count"] = data.get("count")
+
+        return result
 
 
 @tool(
@@ -104,9 +108,7 @@ async def list_tickets(
 async def get_ticket_comments(
     context: ToolContext,
     ticket_id: Annotated[int, "The ID of the ticket to get comments for"],
-) -> Annotated[
-    dict[str, Any], "A dictionary containing the ticket comments and metadata"
-]:
+) -> Annotated[dict[str, Any], "A dictionary containing the ticket comments and metadata"]:
     """Get all comments for a specific Zendesk ticket, including the original description.
 
     The first comment is always the ticket's original description/content.
@@ -139,22 +141,17 @@ async def get_ticket_comments(
         }
 
         response = await client.get(url, headers=headers)
-
-        if response.status_code == 200:
-            data = response.json()
-            comments = data.get("comments", [])
-
-            return {
-                "ticket_id": ticket_id,
-                "comments": comments,
-                "count": len(comments)
-            }
-        elif response.status_code == 404:
+        
+        if response.status_code == 404:
             msg = f"Ticket #{ticket_id} not found."
             raise ValueError(msg)
-        else:
-            msg = f"Error fetching comments: {response.status_code} - {response.text}"
-            raise ValueError(msg)
+            
+        response.raise_for_status()
+        
+        data = response.json()
+        comments = data.get("comments", [])
+
+        return {"ticket_id": ticket_id, "comments": comments, "count": len(comments)}
 
 
 @tool(
@@ -168,9 +165,7 @@ async def add_ticket_comment(
     public: Annotated[
         bool, "Whether the comment is public (visible to requester) or internal"
     ] = True,
-) -> Annotated[
-    dict[str, Any], "A dictionary containing the result of the comment operation"
-]:
+) -> Annotated[dict[str, Any], "A dictionary containing the result of the comment operation"]:
     """Add a comment to an existing Zendesk ticket.
 
     Args:
@@ -201,25 +196,16 @@ async def add_ticket_comment(
         }
 
         response = await client.put(url, headers=headers, json=request_body)
-
-        if response.status_code == 200:
-            data = response.json()
-            ticket = data.get("ticket", {})
-            return {
-                "success": True,
-                "ticket_id": ticket_id,
-                "comment_type": "public" if public else "internal",
-                "ticket": ticket
-            }
-        else:
-            error_data = (
-                response.json()
-                if response.headers.get("content-type") == "application/json"
-                else {}
-            )
-            error_message = error_data.get("error", response.text)
-            msg = f"Error adding comment to ticket: {response.status_code} - {error_message}"
-            raise ValueError(msg)
+        response.raise_for_status()
+        
+        data = response.json()
+        ticket = data.get("ticket", {})
+        return {
+            "success": True,
+            "ticket_id": ticket_id,
+            "comment_type": "public" if public else "internal",
+            "ticket": ticket,
+        }
 
 
 @tool(
@@ -234,9 +220,7 @@ async def mark_ticket_solved(
         "Optional final comment to add when solving (e.g., resolution summary)",
     ] = None,
     comment_public: Annotated[bool, "Whether the comment is visible to the requester"] = False,
-) -> Annotated[
-    dict[str, Any], "A dictionary containing the result of the solve operation"
-]:
+) -> Annotated[dict[str, Any], "A dictionary containing the result of the solve operation"]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 
     Args:
@@ -274,26 +258,12 @@ async def mark_ticket_solved(
         }
 
         response = await client.put(url, headers=headers, json=request_body)
-
-        if response.status_code == 200:
-            data = response.json()
-            ticket = data.get("ticket", {})
-            result = {
-                "success": True,
-                "ticket_id": ticket_id,
-                "status": "solved",
-                "ticket": ticket
-            }
-            if comment_body:
-                result["comment_added"] = True
-                result["comment_type"] = "public" if comment_public else "internal"
-            return result
-        else:
-            error_data = (
-                response.json()
-                if response.headers.get("content-type") == "application/json"
-                else {}
-            )
-            error_message = error_data.get("error", response.text)
-            msg = f"Error marking ticket as solved: {response.status_code} - {error_message}"
-            raise ValueError(msg)
+        response.raise_for_status()
+        
+        data = response.json()
+        ticket = data.get("ticket", {})
+        result = {"success": True, "ticket_id": ticket_id, "status": "solved", "ticket": ticket}
+        if comment_body:
+            result["comment_added"] = True
+            result["comment_type"] = "public" if comment_public else "internal"
+        return result
