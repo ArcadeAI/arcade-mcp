@@ -226,6 +226,24 @@ class Worker(BaseModel):
         if self.local_source is None:
             return None
 
+        def exclude_filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
+            """Filter for files/directories to exclude from the compressed package"""
+            basename = os.path.basename(tarinfo.name)
+
+            # Exclude all hidden directories/files
+            if basename.startswith("."):
+                return None
+
+            # Exclude specific directories/files
+            if basename in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
+                return None
+
+            # Exclude lock files
+            if basename.endswith(".lock"):
+                return None
+
+            return tarinfo
+
         # Compress local packages into a list of LocalPackage objects
         def process_package(package_path_str: str) -> LocalPackage:
             package_path = self.toml_path.parent / package_path_str
@@ -247,7 +265,7 @@ class Worker(BaseModel):
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()
             with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
-                tar.add(package_path, arcname=package_path.name)
+                tar.add(package_path, arcname=package_path.name, filter=exclude_filter)
 
             byte_stream.seek(0)
             package_bytes = byte_stream.read()
