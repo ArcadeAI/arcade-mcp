@@ -9,7 +9,9 @@ from arcade_tdk.auth import OAuth2
     requires_auth=OAuth2(id="zendesk", scopes=["read"]),
     requires_secrets=["ZENDESK_SUBDOMAIN"],
 )
-async def list_tickets(context: ToolContext) -> Annotated[str, "The tickets"]:
+async def list_tickets(
+    context: ToolContext,
+) -> Annotated[dict[str, Any], "A dictionary containing the list of tickets and count"]:
     """List open tickets from your Zendesk account."""
 
     # Get the authorization token
@@ -36,20 +38,14 @@ async def list_tickets(context: ToolContext) -> Annotated[str, "The tickets"]:
             data = response.json()
             tickets = data.get("tickets", [])
 
-            # Format the tickets for display
-            if not tickets:
-                return "No open tickets found."
-
-            result = []
-            for ticket in tickets:
-                ticket_info = (
-                    f"Ticket #{ticket['id']}: {ticket['subject']} (Status: {ticket['status']})"
-                )
-                result.append(ticket_info)
-
-            return "\n".join(result)
+            # Return structured data
+            return {
+                "tickets": tickets,
+                "count": len(tickets)
+            }
         else:
-            return f"Error fetching tickets: {response.status_code} - {response.text}"
+            msg = f"Error fetching tickets: {response.status_code} - {response.text}"
+            raise ValueError(msg)
 
 
 @tool(
@@ -59,7 +55,9 @@ async def list_tickets(context: ToolContext) -> Annotated[str, "The tickets"]:
 async def get_ticket_comments(
     context: ToolContext,
     ticket_id: Annotated[int, "The ID of the ticket to get comments for"],
-) -> Annotated[str, "The ticket comments including the original description"]:
+) -> Annotated[
+    dict[str, Any], "A dictionary containing the ticket comments and metadata"
+]:
     """Get all comments for a specific Zendesk ticket, including the original description.
 
     The first comment is always the ticket's original description/content.
@@ -90,33 +88,17 @@ async def get_ticket_comments(
             data = response.json()
             comments = data.get("comments", [])
 
-            if not comments:
-                return f"No comments found for ticket #{ticket_id}."
-
-            result = [f"Comments for Ticket #{ticket_id}:\n"]
-
-            for i, comment in enumerate(comments):
-                author_id = comment.get("author_id", "Unknown")
-                created_at = comment.get("created_at", "Unknown time")
-                body = comment.get("body", "No content")
-                public = comment.get("public", True)
-
-                # Format the comment
-                if i == 0:
-                    result.append("=== Original Description ===")
-                else:
-                    comment_type = "Public" if public else "Internal"
-                    result.append(f"\n=== Comment #{i} ({comment_type}) ===")
-
-                result.append(f"Author ID: {author_id}")
-                result.append(f"Created: {created_at}")
-                result.append(f"Content: {body}")
-
-            return "\n".join(result)
+            return {
+                "ticket_id": ticket_id,
+                "comments": comments,
+                "count": len(comments)
+            }
         elif response.status_code == 404:
-            return f"Ticket #{ticket_id} not found."
+            msg = f"Ticket #{ticket_id} not found."
+            raise ValueError(msg)
         else:
-            return f"Error fetching comments: {response.status_code} - {response.text}"
+            msg = f"Error fetching comments: {response.status_code} - {response.text}"
+            raise ValueError(msg)
 
 
 @tool(
@@ -130,7 +112,9 @@ async def add_ticket_comment(
     public: Annotated[
         bool, "Whether the comment is public (visible to requester) or internal"
     ] = True,
-) -> Annotated[str, "Result of adding comment to ticket"]:
+) -> Annotated[
+    dict[str, Any], "A dictionary containing the result of the comment operation"
+]:
     """Add a comment to an existing Zendesk ticket.
 
     Args:
@@ -163,8 +147,14 @@ async def add_ticket_comment(
         response = await client.put(url, headers=headers, json=request_body)
 
         if response.status_code == 200:
-            comment_type = "public" if public else "internal"
-            return f"Successfully added {comment_type} comment to ticket #{ticket_id}"
+            data = response.json()
+            ticket = data.get("ticket", {})
+            return {
+                "success": True,
+                "ticket_id": ticket_id,
+                "comment_type": "public" if public else "internal",
+                "ticket": ticket
+            }
         else:
             error_data = (
                 response.json()
@@ -172,7 +162,8 @@ async def add_ticket_comment(
                 else {}
             )
             error_message = error_data.get("error", response.text)
-            return f"Error adding comment to ticket: {response.status_code} - {error_message}"
+            msg = f"Error adding comment to ticket: {response.status_code} - {error_message}"
+            raise ValueError(msg)
 
 
 @tool(
@@ -187,7 +178,9 @@ async def mark_ticket_solved(
         "Optional final comment to add when solving (e.g., resolution summary)",
     ] = None,
     comment_public: Annotated[bool, "Whether the comment is visible to the requester"] = False,
-) -> Annotated[str, "Result of marking ticket as solved"]:
+) -> Annotated[
+    dict[str, Any], "A dictionary containing the result of the solve operation"
+]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 
     Args:
@@ -227,12 +220,18 @@ async def mark_ticket_solved(
         response = await client.put(url, headers=headers, json=request_body)
 
         if response.status_code == 200:
-            message = f"Successfully marked ticket #{ticket_id} as solved"
+            data = response.json()
+            ticket = data.get("ticket", {})
+            result = {
+                "success": True,
+                "ticket_id": ticket_id,
+                "status": "solved",
+                "ticket": ticket
+            }
             if comment_body:
-                comment_type = "public" if comment_public else "internal"
-                message += f" with {comment_type} resolution comment"
-
-            return message
+                result["comment_added"] = True
+                result["comment_type"] = "public" if comment_public else "internal"
+            return result
         else:
             error_data = (
                 response.json()
@@ -240,4 +239,5 @@ async def mark_ticket_solved(
                 else {}
             )
             error_message = error_data.get("error", response.text)
-            return f"Error marking ticket as solved: {response.status_code} - {error_message}"
+            msg = f"Error marking ticket as solved: {response.status_code} - {error_message}"
+            raise ValueError(msg)
