@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_slack"
-version = "0.4.4"
+version = "0.4.5"
 description = "Arcade.dev LLM tools for Slack"
 requires-python = ">=3.10"
 dependencies = [ "aiodns>=1.0,<2.0.0", "typing; python_version < '3.7'", "aiohttp>=3.7.3,<4.0.0", "arcade-tdk>=2.0.0,<3.0.0", "slack-sdk>=3.31.0,<4.0.0",]
