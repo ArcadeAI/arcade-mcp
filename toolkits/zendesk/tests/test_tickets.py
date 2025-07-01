@@ -52,7 +52,9 @@ class TestListTickets:
         for ticket in result["tickets"]:
             assert "url" not in ticket
             assert "html_url" in ticket
-            assert ticket["html_url"].startswith("https://test-subdomain.zendesk.com/agent/tickets/")
+            assert ticket["html_url"].startswith(
+                "https://test-subdomain.zendesk.com/agent/tickets/"
+            )
 
         # Verify the API call with default parameters
         mock_httpx_client.get.assert_called_once()
@@ -76,9 +78,7 @@ class TestListTickets:
 
         mock_httpx_client.get.return_value = mock_http_response(tickets_response)
 
-        result = await list_tickets(
-            mock_context, per_page=5, cursor="prev123", sort_order="asc"
-        )
+        result = await list_tickets(mock_context, per_page=5, cursor="prev123", sort_order="asc")
 
         # Verify pagination metadata is included
         assert result["has_more"] is True
@@ -105,9 +105,7 @@ class TestListTickets:
 
         mock_httpx_client.get.return_value = mock_http_response(tickets_response)
 
-        result = await list_tickets(
-            mock_context, status="pending", page=2, per_page=10
-        )
+        result = await list_tickets(mock_context, status="pending", page=2, per_page=10)
 
         # Verify offset pagination metadata
         assert "next_page" in result
