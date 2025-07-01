@@ -13,9 +13,12 @@ async def list_tickets(
     context: ToolContext,
     status: Annotated[
         str,
-        "The status of tickets to filter by (e.g., 'new', 'open', 'pending', 'solved', 'closed')",
+        "The status of tickets to filter by (e.g., 'new', 'open', 'pending', 'solved', 'closed'). "
+        "Defaults to 'open'",
     ] = "open",
-    per_page: Annotated[int, "The number of tickets to return per page (max 100)"] = 100,
+    per_page: Annotated[
+        int, "The number of tickets to return per page (max 100). Defaults to 100"
+    ] = 100,
     page: Annotated[
         int | None,
         "The page number for offset pagination. If not provided, cursor pagination is used.",
@@ -26,7 +29,8 @@ async def list_tickets(
     ] = None,
     sort_order: Annotated[
         Literal["asc", "desc"],
-        "Sort order for tickets by ID. 'asc' returns oldest first, 'desc' returns newest first.",
+        "Sort order for tickets by ID. 'asc' returns oldest first, 'desc' returns newest first. "
+        "Defaults to 'desc'",
     ] = "desc",
 ) -> Annotated[
     dict[str, Any],
@@ -76,7 +80,7 @@ async def list_tickets(
 
         response = await client.get(base_url, headers=headers, params=params)
         response.raise_for_status()
-        
+
         data = response.json()
         tickets = data.get("tickets", [])
 
@@ -141,13 +145,13 @@ async def get_ticket_comments(
         }
 
         response = await client.get(url, headers=headers)
-        
+
         if response.status_code == 404:
             msg = f"Ticket #{ticket_id} not found."
             raise ValueError(msg)
-            
+
         response.raise_for_status()
-        
+
         data = response.json()
         comments = data.get("comments", [])
 
@@ -163,7 +167,7 @@ async def add_ticket_comment(
     ticket_id: Annotated[int, "The ID of the ticket to comment on"],
     comment_body: Annotated[str, "The text of the comment"],
     public: Annotated[
-        bool, "Whether the comment is public (visible to requester) or internal"
+        bool, "Whether the comment is public (visible to requester) or internal. Defaults to True"
     ] = True,
 ) -> Annotated[dict[str, Any], "A dictionary containing the result of the comment operation"]:
     """Add a comment to an existing Zendesk ticket.
@@ -197,7 +201,7 @@ async def add_ticket_comment(
 
         response = await client.put(url, headers=headers, json=request_body)
         response.raise_for_status()
-        
+
         data = response.json()
         ticket = data.get("ticket", {})
         return {
@@ -219,7 +223,9 @@ async def mark_ticket_solved(
         str | None,
         "Optional final comment to add when solving (e.g., resolution summary)",
     ] = None,
-    comment_public: Annotated[bool, "Whether the comment is visible to the requester"] = False,
+    comment_public: Annotated[
+        bool, "Whether the comment is visible to the requester. Defaults to False"
+    ] = False,
 ) -> Annotated[dict[str, Any], "A dictionary containing the result of the solve operation"]:
     """Mark a Zendesk ticket as solved, optionally with a final comment.
 
@@ -259,7 +265,7 @@ async def mark_ticket_solved(
 
         response = await client.put(url, headers=headers, json=request_body)
         response.raise_for_status()
-        
+
         data = response.json()
         ticket = data.get("ticket", {})
         result = {"success": True, "ticket_id": ticket_id, "status": "solved", "ticket": ticket}
