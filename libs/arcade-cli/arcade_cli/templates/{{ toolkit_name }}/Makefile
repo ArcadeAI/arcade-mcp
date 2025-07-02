@@ -44,7 +44,6 @@ coverage: ## Generate coverage report
 bump-version: ## Bump the version in the pyproject.toml file by a patch version
 	@echo "🚀 Bumping version in pyproject.toml"
 	uv version --no-sources --bump patch
-	uv version --no-sources --bump patch
 
 .PHONY: check
 check: ## Run code quality tools.
