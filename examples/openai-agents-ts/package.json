@@ -1,0 +1,17 @@
+{
+  "name": "openai-ts",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tsx --env-file=.env src/index.ts",
+    "dev:waitForCompletion": "npx tsx --env-file=.env src/waitForCompletion.ts"
+  },
+  "dependencies": {
+    "@arcadeai/arcadejs": "1.8.1",
+    "@openai/agents": "^0.0.8"
+  }
+}

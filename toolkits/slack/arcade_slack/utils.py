@@ -371,7 +371,8 @@ async def async_paginate(
 
     try:
         results = await asyncio.wait_for(paginate_loop(), timeout=max_pagination_timeout_seconds)
-    except TimeoutError:
+    # asyncio.TimeoutError for Python <= 3.10, TimeoutError for Python >= 3.11
+    except (TimeoutError, asyncio.TimeoutError):
         raise PaginationTimeoutError(max_pagination_timeout_seconds)
     else:
         return results, next_cursor

@@ -56,26 +56,29 @@ class JiraClient:
                 headers={"Authorization": f"Bearer {self.auth_token}"},
             )
 
-            data = response.json()
+            available_resources = deduplicate_available_resources(response.json())
 
-            if len(data) == 0:
+            if len(available_resources) == 0:
                 raise JiraToolExecutionError(
                     message="No cloud ID returned by Atlassian, cannot make API calls"
                 )
-            if len(data) > 1:
+            if len(available_resources) > 1:
                 cloud_ids_found = json.dumps([
                     {
-                        "id": item["id"],
-                        "name": item["name"],
-                        "url": item["url"],
+                        "id": resource["id"],
+                        "name": resource["name"],
+                        "url": resource["url"],
                     }
-                    for item in data
+                    for resource in available_resources
                 ])
                 raise JiraToolExecutionError(
-                    message=f"Multiple cloud IDs returned by Atlassian: {cloud_ids_found}. "
-                    "Cannot resolve which one to use."
+                    message=(
+                        "Multiple cloud IDs returned by Atlassian, cannot resolve which one "
+                        "to use. Please revoke your authorization access and authorize a single "
+                        f"Atlassian Cloud. Available cloud IDs: {cloud_ids_found}. "
+                    )
                 )
-            return cast(dict[str, Any], data[0])
+            return cast(dict[str, Any], available_resources[0])
 
     def _build_error_messages(self, response: httpx.Response) -> tuple[str, str | None]:
         try:
@@ -224,3 +227,15 @@ class JiraClient:
             self._raise_for_status(response)
 
         return self._format_response_dict(response)
+
+
+def deduplicate_available_resources(available_resources: list[dict]) -> list[dict]:
+    account_ids_seen = set()
+    deduplicated = []
+
+    for item in available_resources:
+        if item["id"] not in account_ids_seen:
+            deduplicated.append(item)
+            account_ids_seen.add(item["id"])
+
+    return deduplicated
