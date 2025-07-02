@@ -5,7 +5,6 @@ from contextlib import suppress
 from enum import Enum
 from typing import Any, Literal, TypedDict
 
-from arcade_tdk import ToolContext
 from arcade_tdk.errors import ToolExecutionError
 from slack_sdk.errors import SlackApiError
 
@@ -297,11 +296,9 @@ class GetUserByEmailCaller(AbstractConcurrencySafeCoroutineCaller):
         self,
         func: Callable[..., Awaitable[Any]],
         email: str,
-        context: ToolContext,
     ) -> None:
         super().__init__(func)
         self.email = email
-        self.context = context
 
     async def __call__(self, semaphore: asyncio.Semaphore) -> dict[str, Any]:
         async with semaphore:
