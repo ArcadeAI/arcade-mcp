@@ -1,17 +1,34 @@
 import logging
+from enum import Enum
 from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from ..utils import (
+from arcade_zendesk.utils import (
     fetch_all_pages,
+    get_zendesk_subdomain,
     process_search_results,
     validate_date_format,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class ArticleSortBy(Enum):
+    """Sort fields for article search results."""
+
+    CREATED_AT = "created_at"
+    RELEVANCE = "relevance"
+
+
+class SortOrder(Enum):
+    """Sort order direction."""
+
+    ASC = "asc"
+    DESC = "desc"
 
 
 @tool(
@@ -22,41 +39,32 @@ async def search_articles(
     context: ToolContext,
     query: Annotated[
         str | None,
-        "Search text to match against articles. Can use quoted phrases for exact matches "
-        "(e.g., 'exact phrase') or multiple terms (e.g., 'carrot potato')",
+        "Search text to match against articles. Supports quoted expressions for exact matching",
     ] = None,
     label_names: Annotated[
-        str | None,
-        "Comma-separated list of label names (case-insensitive). Article must have at least "
+        list[str] | None,
+        "List of label names to filter by (case-insensitive). Article must have at least "
         "one matching label. Available on Professional/Enterprise plans only",
-    ] = None,
-    category: Annotated[
-        int | None,
-        "Filter by category ID. Can specify multiple by comma-separating values (e.g., '123,456')",
-    ] = None,
-    section: Annotated[
-        int | None,
-        "Filter by section ID. Can specify multiple by comma-separating values (e.g., '789,101')",
     ] = None,
     created_after: Annotated[
         str | None,
-        "Filter articles created after this date (format: YYYY-MM-DD, e.g., '2024-01-15')",
+        "Filter articles created after this date (format: YYYY-MM-DD)",
     ] = None,
     created_before: Annotated[
         str | None,
-        "Filter articles created before this date (format: YYYY-MM-DD, e.g., '2024-01-15')",
+        "Filter articles created before this date (format: YYYY-MM-DD)",
     ] = None,
     created_at: Annotated[
         str | None,
-        "Filter articles created on this exact date (format: YYYY-MM-DD, e.g., '2024-01-15')",
+        "Filter articles created on this exact date (format: YYYY-MM-DD)",
     ] = None,
     sort_by: Annotated[
-        str | None,
-        "Sort results by 'created_at'. Defaults to relevance when omitted",
+        ArticleSortBy | None,
+        "Field to sort articles by. Defaults to relevance according to the search query",
     ] = None,
     sort_order: Annotated[
-        str | None,
-        "Sort order: 'asc' (ascending) or 'desc' (descending). Defaults to 'desc'",
+        SortOrder | None,
+        "Sort order direction. Defaults to descending",
     ] = None,
     per_page: Annotated[int, "Number of results per page (maximum 100)"] = 10,
     all_pages: Annotated[
@@ -73,31 +81,22 @@ async def search_articles(
         bool,
         "Include article body content in results. Bodies will be cleaned of HTML and truncated",
     ] = True,
+    max_article_length: Annotated[
+        int | None,
+        "Maximum length for article body content in characters. "
+        "Set to None for no limit. Defaults to 500",
+    ] = 500,
 ) -> Annotated[dict[str, Any], "Article search results with pagination metadata"]:
     """
     Search for Help Center articles in your Zendesk knowledge base.
 
     This tool searches specifically for published knowledge base articles that provide
-    solutions and guidance to users. At least one search parameter (query, category,
-    section, or label_names) must be provided.
+    solutions and guidance to users. At least one search parameter (query or label_names)
+    must be provided.
 
     IMPORTANT: ALL FILTERS CAN BE COMBINED IN A SINGLE CALL
-    You can combine multiple filters (query, category, section, labels, dates) in one
-    search request. Do NOT make separate tool calls - combine all relevant filters together.
-
-    Search Tips:
-    - Use quoted phrases for exact matches: "password reset"
-    - Combine with filters for precise results: query="API" + category=123
-
-    Examples:
-    - Basic search: query="installation guide"
-    - Category search: category=123, query="troubleshooting"
-    - Label search: label_names="windows,setup", query="installation"
-    - Date range: query="API", created_after="2024-01-01", created_before="2024-12-31"
-    - Combined filters: query="troubleshooting", category=100, section=200,
-      label_names="windows,setup"
-    - All results: query="API documentation", all_pages=True
-    - Limited pages: query="troubleshooting", max_pages=3, per_page=50
+    You can combine multiple filters (query, labels, dates) in one search request.
+    Do NOT make separate tool calls - combine all relevant filters together.
     """
 
     # Validate date parameters
@@ -109,55 +108,41 @@ async def search_articles(
 
     for param_name, param_value in date_params.items():
         if param_value and not validate_date_format(param_value):
-            return {
-                "error": "InvalidDateFormat",
-                "message": f"Invalid date format for {param_name}: '{param_value}'. "
-                "Please use YYYY-MM-DD format.",
-                "example": "2024-01-15",
-            }
-
-    # Validate sort parameters
-    if sort_by and sort_by not in ["created_at"]:
-        return {
-            "error": "InvalidSortParameter",
-            "message": f"Invalid sort_by value: '{sort_by}'. Must be 'created_at'.",
-        }
-
-    if sort_order and sort_order not in ["asc", "desc"]:
-        return {
-            "error": "InvalidSortOrder",
-            "message": f"Invalid sort_order value: '{sort_order}'. Must be 'asc' or 'desc'.",
-        }
+            raise RetryableToolError(
+                message=(
+                    f"Invalid date format for {param_name}: '{param_value}'. "
+                    "Please use YYYY-MM-DD format."
+                ),
+                developer_message=(
+                    f"Date validation failed for parameter '{param_name}' "
+                    f"with value '{param_value}'"
+                ),
+                retry_after_ms=500,
+                additional_prompt_content="Use format YYYY-MM-DD.",
+            )
 
     # Validate pagination parameters
     if max_pages is not None and max_pages < 1:
-        return {
-            "error": "InvalidPaginationParameter",
-            "message": "max_pages must be at least 1 if specified.",
-        }
+        raise RetryableToolError(
+            message="max_pages must be at least 1 if specified.",
+            developer_message=f"Invalid max_pages value: {max_pages}",
+            retry_after_ms=100,
+            additional_prompt_content="Provide a positive integer for max_pages",
+        )
 
     # Validate that at least one search parameter is provided
-    if not any([query, category, section, label_names]):
-        return {
-            "error": "MissingSearchParameter",
-            "message": "At least one of query, category, section, or label_names must be provided.",
-        }
+    if not any([query, label_names]):
+        raise RetryableToolError(
+            message="At least one search parameter must be provided.",
+            developer_message="No search parameters were provided",
+            retry_after_ms=100,
+            additional_prompt_content=(
+                "Provide at least one of: query text or a list of label names"
+            ),
+        )
 
     auth_token = context.get_auth_token_or_empty()
-
-    if not auth_token:
-        return {
-            "error": "AuthenticationError",
-            "message": "No authentication token found. Please authenticate with Zendesk first.",
-        }
-
-    subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-    if not subdomain:
-        return {
-            "error": "ConfigurationError",
-            "message": "Zendesk subdomain not found in secrets. "
-            "Please configure ZENDESK_SUBDOMAIN.",
-        }
+    subdomain = get_zendesk_subdomain(context)
 
     url = f"https://{subdomain}.zendesk.com/api/v2/help_center/articles/search"
 
@@ -170,13 +155,7 @@ async def search_articles(
         params["query"] = query
 
     if label_names:
-        params["label_names"] = label_names
-
-    if category:
-        params["category"] = category
-
-    if section:
-        params["section"] = section
+        params["label_names"] = ",".join(label_names)
 
     if created_after:
         params["created_after"] = created_after
@@ -188,10 +167,10 @@ async def search_articles(
         params["created_at"] = created_at
 
     if sort_by:
-        params["sort_by"] = sort_by
+        params["sort_by"] = sort_by.value
 
     if sort_order:
-        params["sort_order"] = sort_order
+        params["sort_order"] = sort_order.value
 
     async with httpx.AsyncClient() as client:
         try:
@@ -211,33 +190,34 @@ async def search_articles(
 
             data = await fetch_all_pages(client, url, headers, params, max_pages=pages_to_fetch)
             if "results" in data:
-                data["results"] = process_search_results(data["results"], include_body=include_body)
+                data["results"] = process_search_results(
+                    data["results"], include_body=include_body, max_body_length=max_article_length
+                )
             logger.info(f"Article search results: {data}")
 
         except httpx.HTTPStatusError as e:
             logger.exception(f"HTTP error during article search: {e.response.status_code}")
-            return {
-                "error": f"HTTP {e.response.status_code}",
-                "message": f"Failed to search articles: {e.response.text}",
-                "url": url,
-                "params": params,
-            }
-        except httpx.TimeoutException:
+            raise ToolExecutionError(
+                message=f"Failed to search articles: HTTP {e.response.status_code}",
+                developer_message=(
+                    f"HTTP {e.response.status_code} error: {e.response.text}. "
+                    f"URL: {url}, params: {params}"
+                ),
+            ) from e
+        except httpx.TimeoutException as e:
             logger.exception("Timeout during article search")
-            return {
-                "error": "TimeoutError",
-                "message": "Request timed out while searching articles. "
-                "Try reducing per_page or using more specific filters.",
-                "url": url,
-                "params": params,
-            }
+            raise RetryableToolError(
+                message="Request timed out while searching articles.",
+                developer_message=f"Timeout occurred. URL: {url}, params: {params}",
+                retry_after_ms=5000,
+            ) from e
         except Exception as e:
             logger.exception("Unexpected error during article search")
-            return {
-                "error": "SearchError",
-                "message": f"Failed to search articles: {e!s}",
-                "url": url,
-                "params": params,
-            }
+            raise ToolExecutionError(
+                message=f"Failed to search articles: {e!s}",
+                developer_message=(
+                    f"Unexpected error: {type(e).__name__}: {e!s}. " f"URL: {url}, params: {params}"
+                ),
+            ) from e
         else:
             return data

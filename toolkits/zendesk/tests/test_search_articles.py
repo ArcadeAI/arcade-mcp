@@ -2,32 +2,33 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_zendesk.tools.search_articles import search_articles
+from arcade_zendesk.tools.search_articles import ArticleSortBy, SortOrder, search_articles
 
 
 class TestSearchArticlesValidation:
     """Test input validation for search_articles."""
 
     @pytest.mark.asyncio
-    async def test_missing_auth_token(self, mock_context):
-        """Test error when auth token is missing."""
-        mock_context.get_auth_token_or_empty.return_value = ""
-
-        result = await search_articles(context=mock_context, query="test")
-
-        assert result["error"] == "AuthenticationError"
-        assert "authentication token" in result["message"]
-
-    @pytest.mark.asyncio
     async def test_missing_subdomain(self, mock_context):
         """Test error when subdomain is not configured."""
-        mock_context.get_secret.return_value = None
+        mock_context.get_secret.side_effect = ValueError("Secret not found")
 
-        result = await search_articles(context=mock_context, query="test")
+        with pytest.raises(ToolExecutionError) as exc_info:
+            await search_articles(context=mock_context, query="test")
 
-        assert result["error"] == "ConfigurationError"
-        assert "ZENDESK_SUBDOMAIN" in result["message"]
+        assert "subdomain is not set" in str(exc_info.value.message)
+
+    @pytest.mark.asyncio
+    async def test_missing_search_params(self, mock_context):
+        """Test error when no search parameters provided."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        with pytest.raises(RetryableToolError) as exc_info:
+            await search_articles(context=mock_context)
+
+        assert "At least one search parameter" in str(exc_info.value.message)
 
     @pytest.mark.parametrize(
         "date_param,date_value",
@@ -45,37 +46,12 @@ class TestSearchArticlesValidation:
         """Test validation of date format parameters."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        result = await search_articles(
-            context=mock_context, query="test", **{date_param: date_value}
-        )
+        with pytest.raises(RetryableToolError) as exc_info:
+            await search_articles(context=mock_context, query="test", **{date_param: date_value})
 
-        assert result["error"] == "InvalidDateFormat"
-        assert "YYYY-MM-DD" in result["message"]
-        assert date_param in result["message"]
-
-    @pytest.mark.parametrize("sort_by", ["relevance", "invalid_sort", "random"])
-    @pytest.mark.asyncio
-    async def test_invalid_sort_parameter(self, mock_context, sort_by):
-        """Test validation of sort_by parameter."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        result = await search_articles(context=mock_context, query="test", sort_by=sort_by)
-
-        assert result["error"] == "InvalidSortParameter"
-        assert "created_at" in result["message"]
-        assert "created_at" in result["message"]
-
-    @pytest.mark.parametrize("sort_order", ["ascending", "newest", "oldest"])
-    @pytest.mark.asyncio
-    async def test_invalid_sort_order(self, mock_context, sort_order):
-        """Test validation of sort_order parameter."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        result = await search_articles(context=mock_context, query="test", sort_order=sort_order)
-
-        assert result["error"] == "InvalidSortOrder"
-        assert "asc" in result["message"]
-        assert "desc" in result["message"]
+        assert "Invalid date format" in str(exc_info.value.message)
+        assert "YYYY-MM-DD" in str(exc_info.value.message)
+        assert date_param in str(exc_info.value.message)
 
     @pytest.mark.parametrize("max_pages", [0, -1, -10])
     @pytest.mark.asyncio
@@ -83,10 +59,10 @@ class TestSearchArticlesValidation:
         """Test validation of max_pages parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        result = await search_articles(context=mock_context, query="test", max_pages=max_pages)
+        with pytest.raises(RetryableToolError) as exc_info:
+            await search_articles(context=mock_context, query="test", max_pages=max_pages)
 
-        assert result["error"] == "InvalidPaginationParameter"
-        assert "at least 1" in result["message"]
+        assert "at least 1" in str(exc_info.value.message)
 
 
 class TestSearchArticlesSuccess:
@@ -131,11 +107,9 @@ class TestSearchArticlesSuccess:
         result = await search_articles(
             context=mock_context,
             query="API",
-            category=123,
-            section=456,
             created_after="2024-01-01",
-            sort_by="created_at",
-            sort_order="desc",
+            sort_by=ArticleSortBy.CREATED_AT,
+            sort_order=SortOrder.DESC,
             per_page=25,
         )
 
@@ -144,8 +118,6 @@ class TestSearchArticlesSuccess:
         # Verify all parameters were passed
         call_params = mock_httpx_client.get.call_args[1]["params"]
         assert call_params["query"] == "API"
-        assert call_params["category"] == 123
-        assert call_params["section"] == 456
         assert call_params["created_after"] == "2024-01-01"
         assert call_params["sort_by"] == "created_at"
         assert call_params["sort_order"] == "desc"
@@ -180,7 +152,7 @@ class TestSearchArticlesSuccess:
         search_response = build_search_response()
         mock_httpx_client.get.return_value = mock_http_response(search_response)
 
-        result = await search_articles(context=mock_context, label_names="password,security")
+        result = await search_articles(context=mock_context, label_names=["password", "security"])
 
         assert "results" in result
         assert mock_httpx_client.get.call_args[1]["params"]["label_names"] == "password,security"
@@ -318,13 +290,11 @@ class TestSearchArticlesErrors:
 
         mock_httpx_client.get.return_value = error_response
 
-        result = await search_articles(context=mock_context, query="test")
+        with pytest.raises(ToolExecutionError) as exc_info:
+            await search_articles(context=mock_context, query="test")
 
-        assert result["error"] == error_key
-        assert "Failed to search articles" in result["message"]
-        assert (
-            result["url"] == "https://test-subdomain.zendesk.com/api/v2/help_center/articles/search"
-        )
+        assert "Failed to search articles" in str(exc_info.value.message)
+        assert f"HTTP {status_code}" in str(exc_info.value.message)
 
     @pytest.mark.asyncio
     async def test_timeout_error(self, mock_context, mock_httpx_client):
@@ -333,11 +303,11 @@ class TestSearchArticlesErrors:
 
         mock_httpx_client.get.side_effect = httpx.TimeoutException("Request timed out")
 
-        result = await search_articles(context=mock_context, query="test")
+        with pytest.raises(RetryableToolError) as exc_info:
+            await search_articles(context=mock_context, query="test")
 
-        assert result["error"] == "TimeoutError"
-        assert "timed out" in result["message"]
-        assert "Try reducing per_page" in result["message"]
+        assert "timed out" in str(exc_info.value.message)
+        assert exc_info.value.retry_after_ms == 5000
 
     @pytest.mark.asyncio
     async def test_unexpected_error(self, mock_context, mock_httpx_client):
@@ -346,10 +316,10 @@ class TestSearchArticlesErrors:
 
         mock_httpx_client.get.side_effect = Exception("Unexpected error occurred")
 
-        result = await search_articles(context=mock_context, query="test")
+        with pytest.raises(ToolExecutionError) as exc_info:
+            await search_articles(context=mock_context, query="test")
 
-        assert result["error"] == "SearchError"
-        assert "Unexpected error occurred" in result["message"]
+        assert "Unexpected error occurred" in str(exc_info.value.message)
 
 
 class TestSearchArticlesContentProcessing:
@@ -375,3 +345,29 @@ class TestSearchArticlesContentProcessing:
 
         content = result["results"][0]["content"]
         assert content == "Header Paragraph with bold and italic . Div content"
+
+    @pytest.mark.asyncio
+    async def test_max_article_length(self, mock_context, mock_httpx_client, mock_http_response):
+        """Test article length limiting."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        long_article = {
+            "id": 1,
+            "title": "Long Article",
+            "body": "A" * 1000,  # 1000 character body
+        }
+
+        search_response = {"results": [long_article], "next_page": None}
+        mock_httpx_client.get.return_value = mock_http_response(search_response)
+
+        # Test with default 500 char limit
+        result = await search_articles(context=mock_context, query="test")
+        assert len(result["results"][0]["content"]) < 520  # 500 + truncation suffix
+
+        # Test with custom limit
+        result = await search_articles(context=mock_context, query="test", max_article_length=100)
+        assert len(result["results"][0]["content"]) < 120  # 100 + truncation suffix
+
+        # Test with no limit
+        result = await search_articles(context=mock_context, query="test", max_article_length=None)
+        assert len(result["results"][0]["content"]) == 1000

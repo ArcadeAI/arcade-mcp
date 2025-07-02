@@ -11,7 +11,7 @@ from arcade_evals.critic import BinaryCritic, SimilarityCritic
 from arcade_tdk import ToolCatalog
 
 import arcade_zendesk
-from arcade_zendesk.tools.search_articles import search_articles
+from arcade_zendesk.tools.search_articles import ArticleSortBy, SortOrder, search_articles
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -108,40 +108,12 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Category and section filtering
-    suite.add_case(
-        name="Search by category ID only",
-        user_message="Show me all articles in category 123",
-        expected_tool_calls=[ExpectedToolCall(func=search_articles, args={"category": 123})],
-        rubric=rubric,
-        critics=[
-            BinaryCritic(critic_field="category", weight=1.0),
-        ],
-    )
-
-    suite.add_case(
-        name="Search with category and section filters",
-        user_message="Find troubleshooting articles in category 100, section 200",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_articles,
-                args={"query": "troubleshooting", "category": 100, "section": 200},
-            )
-        ],
-        rubric=rubric,
-        critics=[
-            SimilarityCritic(critic_field="query", weight=0.4),
-            BinaryCritic(critic_field="category", weight=0.3),
-            BinaryCritic(critic_field="section", weight=0.3),
-        ],
-    )
-
     # Label filtering (Professional/Enterprise)
     suite.add_case(
         name="Search by labels only",
         user_message="Show me articles tagged with windows and setup labels",
         expected_tool_calls=[
-            ExpectedToolCall(func=search_articles, args={"label_names": "windows,setup"})
+            ExpectedToolCall(func=search_articles, args={"label_names": ["windows", "setup"]})
         ],
         rubric=rubric,
         critics=[
@@ -155,7 +127,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
-                args={"query": "installation guide", "label_names": "macos,quickstart"},
+                args={"query": "installation guide", "label_names": ["macos", "quickstart"]},
             )
         ],
         rubric=rubric,
@@ -174,8 +146,8 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
                 func=search_articles,
                 args={
                     "query": "onboarding",
-                    "sort_by": "created_at",
-                    "sort_order": "asc",
+                    "sort_by": ArticleSortBy.CREATED_AT,
+                    "sort_order": SortOrder.ASC,
                 },
             )
         ],
@@ -195,8 +167,8 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
                 func=search_articles,
                 args={
                     "query": "troubleshooting guide",
-                    "sort_by": "created_at",
-                    "sort_order": "desc",
+                    "sort_by": ArticleSortBy.CREATED_AT,
+                    "sort_order": SortOrder.DESC,
                 },
             )
         ],
@@ -245,25 +217,23 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
     # Complex search scenarios
     suite.add_case(
         name="Complex search with multiple filters",
-        user_message="Find recent troubleshooting articles about login issues in category 150, "
+        user_message="Find recent troubleshooting articles about login issues "
         "created after March 2024, sorted by newest first",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
                 args={
                     "query": "login issues troubleshooting",
-                    "category": 150,
                     "created_after": "2024-03-01",
-                    "sort_by": "created_at",
-                    "sort_order": "desc",
+                    "sort_by": ArticleSortBy.CREATED_AT,
+                    "sort_order": SortOrder.DESC,
                 },
             )
         ],
         rubric=rubric,
         critics=[
-            SimilarityCritic(critic_field="query", weight=0.3),
-            BinaryCritic(critic_field="category", weight=0.2),
-            DatetimeCritic(critic_field="created_after", weight=0.2, tolerance=timedelta(days=1)),
+            SimilarityCritic(critic_field="query", weight=0.4),
+            DatetimeCritic(critic_field="created_after", weight=0.3, tolerance=timedelta(days=1)),
             BinaryCritic(critic_field="sort_by", weight=0.15),
             BinaryCritic(critic_field="sort_order", weight=0.15),
         ],

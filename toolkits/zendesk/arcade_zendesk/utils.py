@@ -3,6 +3,8 @@ import re
 from typing import Any
 
 import httpx
+from arcade_tdk import ToolContext
+from arcade_tdk.errors import ToolExecutionError
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -150,8 +152,39 @@ def process_search_results(
 
 
 def validate_date_format(date_string: str) -> bool:
-    """Validate that a date string matches YYYY-MM-DD format."""
-    import re
+    """Validate that a date string matches YYYY-MM-DD format and is a valid date."""
+    from datetime import datetime
 
-    pattern = r"^\d{4}-\d{2}-\d{2}$"
-    return bool(re.match(pattern, date_string))
+    try:
+        parsed_date = datetime.strptime(date_string, "%Y-%m-%d")
+        # Ensure the input matches the expected format exactly
+        return parsed_date.strftime("%Y-%m-%d") == date_string
+    except ValueError:
+        return False
+
+
+def get_zendesk_subdomain(context: ToolContext) -> str:
+    """
+    Get the Zendesk subdomain from secrets with proper error handling.
+
+    Args:
+        context: The tool context containing secrets
+
+    Returns:
+        The Zendesk subdomain
+
+    Raises:
+        ToolExecutionError: If the subdomain secret is not configured
+    """
+    try:
+        subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
+    except ValueError:
+        raise ToolExecutionError(
+            message="Zendesk subdomain is not set.",
+            developer_message=(
+                "Zendesk subdomain is not set. Make sure to set the "
+                "'ZENDESK_SUBDOMAIN' secret in the Arcade Dashboard."
+            ),
+        ) from None
+    else:
+        return subdomain

@@ -3,6 +3,20 @@ from typing import Annotated, Any, Literal
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+
+from arcade_zendesk.utils import get_zendesk_subdomain
+
+
+def _handle_ticket_not_found(response: httpx.Response, ticket_id: int) -> None:
+    """Handle 404 responses for ticket operations."""
+    if response.status_code == 404:
+        raise RetryableToolError(
+            message=f"Ticket #{ticket_id} not found.",
+            developer_message=f"Ticket with ID {ticket_id} does not exist",
+            retry_after_ms=500,
+            additional_prompt_content="Please verify the ticket ID and try again",
+        )
 
 
 @tool(
@@ -13,7 +27,8 @@ async def list_tickets(
     context: ToolContext,
     status: Annotated[
         str,
-        "The status of tickets to filter by (e.g., 'new', 'open', 'pending', 'solved', 'closed'). "
+        "The status of tickets to filter by. "
+        "Valid values: 'new', 'open', 'pending', 'solved', 'closed'. "
         "Defaults to 'open'",
     ] = "open",
     per_page: Annotated[
@@ -50,11 +65,7 @@ async def list_tickets(
 
     # Get the authorization token
     token = context.get_auth_token_or_empty()
-    subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-
-    if not subdomain:
-        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        raise ValueError(msg)
+    subdomain = get_zendesk_subdomain(context)
 
     # Build the API URL with query parameters
     base_url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json"
@@ -76,44 +87,71 @@ async def list_tickets(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        try:
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
 
-        response = await client.get(base_url, headers=headers, params=params)
-        response.raise_for_status()
+            response = await client.get(base_url, headers=headers, params=params)
+            response.raise_for_status()
 
-        data = response.json()
-        tickets = data.get("tickets", [])
+            data = response.json()
+            tickets = data.get("tickets", [])
 
-        # Build response with pagination metadata
-        # Replace API url with web interface url
-        for ticket in tickets:
-            if "id" in ticket:
-                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-            # Remove API url to avoid confusion
-            if "url" in ticket:
-                del ticket["url"]
+            # Build response with pagination metadata
+            # Replace API url with web interface url
+            for ticket in tickets:
+                if "id" in ticket:
+                    ticket["html_url"] = (
+                        f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+                    )
+                # Remove API url to avoid confusion
+                if "url" in ticket:
+                    del ticket["url"]
 
-        result = {
-            "tickets": tickets,
-            "count": len(tickets),
-        }
+            result = {
+                "tickets": tickets,
+                "count": len(tickets),
+            }
 
-        # Add pagination metadata based on response type
-        if "meta" in data:
-            # Cursor-based pagination response
-            result["has_more"] = data["meta"].get("has_more", False)
-            result["after_cursor"] = data["meta"].get("after_cursor")
-            result["before_cursor"] = data["meta"].get("before_cursor")
+            # Add pagination metadata based on response type
+            if "meta" in data:
+                # Cursor-based pagination response
+                result["has_more"] = data["meta"].get("has_more", False)
+                result["after_cursor"] = data["meta"].get("after_cursor")
+                result["before_cursor"] = data["meta"].get("before_cursor")
+            else:
+                # Offset-based pagination response
+                result["next_page"] = data.get("next_page")
+                result["previous_page"] = data.get("previous_page")
+                result["total_count"] = data.get("count")
+
+        except httpx.HTTPStatusError as e:
+            raise ToolExecutionError(
+                message=f"Failed to list tickets: HTTP {e.response.status_code}",
+                developer_message=(
+                    f"HTTP {e.response.status_code} error: {e.response.text}. "
+                    f"URL: {base_url}, params: {params}"
+                ),
+            ) from e
+        except httpx.TimeoutException as e:
+            raise RetryableToolError(
+                message="Request timed out while listing tickets.",
+                developer_message=f"Timeout occurred. URL: {base_url}, params: {params}",
+                retry_after_ms=5000,
+                additional_prompt_content="Try reducing per_page or using more specific filters.",
+            ) from e
+        except Exception as e:
+            raise ToolExecutionError(
+                message=f"Failed to list tickets: {e!s}",
+                developer_message=(
+                    f"Unexpected error: {type(e).__name__}: {e!s}. "
+                    f"URL: {base_url}, params: {params}"
+                ),
+            ) from e
         else:
-            # Offset-based pagination response
-            result["next_page"] = data.get("next_page")
-            result["previous_page"] = data.get("previous_page")
-            result["total_count"] = data.get("count")
-
-        return result
+            return result
 
 
 @tool(
@@ -141,38 +179,54 @@ async def get_ticket_comments(
 
     # Get the authorization token
     token = context.get_auth_token_or_empty()
-    subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-
-    if not subdomain:
-        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        raise ValueError(msg)
+    subdomain = get_zendesk_subdomain(context)
 
     # Zendesk API endpoint for ticket comments
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}/comments.json"
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        try:
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
 
-        response = await client.get(url, headers=headers)
+            response = await client.get(url, headers=headers)
+            _handle_ticket_not_found(response, ticket_id)
+            response.raise_for_status()
 
-        if response.status_code == 404:
-            msg = f"Ticket #{ticket_id} not found."
-            raise ValueError(msg)
+            data = response.json()
+            comments = data.get("comments", [])
 
-        response.raise_for_status()
+            return {
+                "ticket_id": ticket_id,
+                "comments": comments,
+                "count": len(comments),
+            }
 
-        data = response.json()
-        comments = data.get("comments", [])
-
-        return {
-            "ticket_id": ticket_id,
-            "comments": comments,
-            "count": len(comments),
-        }
+        except RetryableToolError:
+            # Re-raise our custom errors
+            raise
+        except httpx.HTTPStatusError as e:
+            raise ToolExecutionError(
+                message=f"Failed to get ticket comments: HTTP {e.response.status_code}",
+                developer_message=(
+                    f"HTTP {e.response.status_code} error: {e.response.text}. URL: {url}"
+                ),
+            ) from e
+        except httpx.TimeoutException as e:
+            raise RetryableToolError(
+                message="Request timed out while getting ticket comments.",
+                developer_message=f"Timeout occurred. URL: {url}",
+                retry_after_ms=5000,
+                additional_prompt_content="Try again in a few moments.",
+            ) from e
+        except Exception as e:
+            raise ToolExecutionError(
+                message=f"Failed to get ticket comments: {e!s}",
+                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
+            ) from e
 
 
 @tool(
@@ -197,11 +251,7 @@ async def add_ticket_comment(
 
     # Get the authorization token
     token = context.get_auth_token_or_empty()
-    subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-
-    if not subdomain:
-        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        raise ValueError(msg)
+    subdomain = get_zendesk_subdomain(context)
 
     # Zendesk API endpoint for updating ticket
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}.json"
@@ -211,30 +261,56 @@ async def add_ticket_comment(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        try:
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
 
-        response = await client.put(url, headers=headers, json=request_body)
-        response.raise_for_status()
+            response = await client.put(url, headers=headers, json=request_body)
+            _handle_ticket_not_found(response, ticket_id)
+            response.raise_for_status()
 
-        data = response.json()
-        ticket = data.get("ticket", {})
+            data = response.json()
+            ticket = data.get("ticket", {})
 
-        # Add web interface URL if not present
-        if "id" in ticket and "html_url" not in ticket:
-            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-        # Remove API url to avoid confusion
-        if "url" in ticket:
-            del ticket["url"]
+            # Add web interface URL if not present
+            if "id" in ticket and "html_url" not in ticket:
+                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+            # Remove API url to avoid confusion
+            if "url" in ticket:
+                del ticket["url"]
 
-        return {
-            "success": True,
-            "ticket_id": ticket_id,
-            "comment_type": "public" if public else "internal",
-            "ticket": ticket,
-        }
+        except RetryableToolError:
+            # Re-raise our custom errors
+            raise
+        except httpx.HTTPStatusError as e:
+            raise ToolExecutionError(
+                message=f"Failed to add ticket comment: HTTP {e.response.status_code}",
+                developer_message=(
+                    f"HTTP {e.response.status_code} error: {e.response.text}. "
+                    f"URL: {url}, body: {request_body}"
+                ),
+            ) from e
+        except httpx.TimeoutException as e:
+            raise RetryableToolError(
+                message="Request timed out while adding ticket comment.",
+                developer_message=f"Timeout occurred. URL: {url}",
+                retry_after_ms=5000,
+                additional_prompt_content="Try again in a few moments.",
+            ) from e
+        except Exception as e:
+            raise ToolExecutionError(
+                message=f"Failed to add ticket comment: {e!s}",
+                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
+            ) from e
+        else:
+            return {
+                "success": True,
+                "ticket_id": ticket_id,
+                "comment_type": "public" if public else "internal",
+                "ticket": ticket,
+            }
 
 
 @tool(
@@ -246,7 +322,7 @@ async def mark_ticket_solved(
     ticket_id: Annotated[int, "The ID of the ticket to mark as solved"],
     comment_body: Annotated[
         str | None,
-        "Optional final comment to add when solving (e.g., resolution summary)",
+        "Optional final comment to add when solving the ticket",
     ] = None,
     comment_public: Annotated[
         bool, "Whether the comment is visible to the requester. Defaults to False"
@@ -260,11 +336,7 @@ async def mark_ticket_solved(
 
     # Get the authorization token
     token = context.get_auth_token_or_empty()
-    subdomain = context.get_secret("ZENDESK_SUBDOMAIN")
-
-    if not subdomain:
-        msg = "Zendesk subdomain not found in secrets. Please configure ZENDESK_SUBDOMAIN."
-        raise ValueError(msg)
+    subdomain = get_zendesk_subdomain(context)
 
     # Zendesk API endpoint for updating ticket
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets/{ticket_id}.json"
@@ -281,31 +353,58 @@ async def mark_ticket_solved(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        try:
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
 
-        response = await client.put(url, headers=headers, json=request_body)
-        response.raise_for_status()
+            response = await client.put(url, headers=headers, json=request_body)
+            _handle_ticket_not_found(response, ticket_id)
+            response.raise_for_status()
 
-        data = response.json()
-        ticket = data.get("ticket", {})
+            data = response.json()
+            ticket = data.get("ticket", {})
 
-        # Add web interface URL if not present
-        if "id" in ticket and "html_url" not in ticket:
-            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-        # Remove API url to avoid confusion
-        if "url" in ticket:
-            del ticket["url"]
+            # Add web interface URL if not present
+            if "id" in ticket and "html_url" not in ticket:
+                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+            # Remove API url to avoid confusion
+            if "url" in ticket:
+                del ticket["url"]
 
-        result = {
-            "success": True,
-            "ticket_id": ticket_id,
-            "status": "solved",
-            "ticket": ticket,
-        }
-        if comment_body:
-            result["comment_added"] = True
-            result["comment_type"] = "public" if comment_public else "internal"
-        return result
+            result = {
+                "success": True,
+                "ticket_id": ticket_id,
+                "status": "solved",
+                "ticket": ticket,
+            }
+            if comment_body:
+                result["comment_added"] = True
+                result["comment_type"] = "public" if comment_public else "internal"
+
+        except RetryableToolError:
+            # Re-raise our custom errors
+            raise
+        except httpx.HTTPStatusError as e:
+            raise ToolExecutionError(
+                message=f"Failed to mark ticket as solved: HTTP {e.response.status_code}",
+                developer_message=(
+                    f"HTTP {e.response.status_code} error: {e.response.text}. "
+                    f"URL: {url}, body: {request_body}"
+                ),
+            ) from e
+        except httpx.TimeoutException as e:
+            raise RetryableToolError(
+                message="Request timed out while marking ticket as solved.",
+                developer_message=f"Timeout occurred. URL: {url}",
+                retry_after_ms=5000,
+                additional_prompt_content="Try again in a few moments.",
+            ) from e
+        except Exception as e:
+            raise ToolExecutionError(
+                message=f"Failed to mark ticket as solved: {e!s}",
+                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
+            ) from e
+        else:
+            return result
