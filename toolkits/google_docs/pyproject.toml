@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "arcade_google_docs"
 version = "0.1.0"
-description = "Arcade.dev LLM tools for Google Calendar"
+description = "Arcade.dev LLM tools for Google Docs"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=2.0.0,<3.0.0",
