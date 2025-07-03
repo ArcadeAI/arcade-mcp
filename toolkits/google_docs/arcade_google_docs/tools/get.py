@@ -26,9 +26,7 @@ async def get_document_by_id(
     """
     Get the latest version of the specified Google Docs document.
     """
-    service = build_docs_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_docs_service(context.get_auth_token_or_empty())
 
     # Execute the documents().get() method. Returns a Document object
     # https://developers.google.com/docs/api/reference/rest/v1/documents#Document

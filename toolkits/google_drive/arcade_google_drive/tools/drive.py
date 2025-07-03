@@ -7,7 +7,7 @@ from arcade_tdk.auth import Google
 from arcade_tdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
-from arcade_google_drive.models import OrderBy
+from arcade_google_drive.enums import OrderBy
 from arcade_google_drive.templates import optional_file_picker_instructions_template
 from arcade_google_drive.utils import (
     build_drive_service,
@@ -54,9 +54,7 @@ async def get_file_tree_structure(
     """
     Get the file/folder tree structure of the user's Google Drive.
     """
-    service = build_drive_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_drive_service(context.get_auth_token_or_empty())
 
     keep_paginating = True
     page_token = None

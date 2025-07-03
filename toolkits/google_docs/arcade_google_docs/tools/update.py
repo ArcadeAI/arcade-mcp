@@ -31,15 +31,13 @@ async def insert_text_at_end_of_document(
 
     # If the document was not found, return the file picker response
     if "body" not in document_or_file_picker_response:
-        return document_or_file_picker_response
+        return document_or_file_picker_response  # type: ignore[no-any-return]
 
     document = document_or_file_picker_response
 
     end_index = document["body"]["content"][-1]["endIndex"]
 
-    service = build_docs_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_docs_service(context.get_auth_token_or_empty())
 
     requests = [
         {

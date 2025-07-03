@@ -21,9 +21,7 @@ async def create_blank_document(
     """
     Create a blank Google Docs document with the specified title.
     """
-    service = build_docs_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_docs_service(context.get_auth_token_or_empty())
 
     body = {"title": title}
 
@@ -59,9 +57,7 @@ async def create_document_from_text(
     # First, create a blank document
     document = await create_blank_document(context, title)
 
-    service = build_docs_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_docs_service(context.get_auth_token_or_empty())
 
     requests = [
         {

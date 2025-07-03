@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from arcade_google_drive.templates import optional_file_picker_instructions_template
 from arcade_google_drive.tools import (
     get_file_tree_structure,
 )
@@ -12,6 +13,10 @@ from arcade_google_drive.utils import build_drive_service
 def mock_context():
     context = AsyncMock()
     context.authorization.token = "mock_token"  # noqa: S105
+    context.get_metadata.side_effect = lambda key: {
+        "client_id": "123456789-abcdefg.apps.googleusercontent.com",
+        "coordinator_url": "https://coordinator.example.com",
+    }.get(key.value if hasattr(key, "value") else key)
     return context
 
 
@@ -32,7 +37,18 @@ async def test_get_file_tree_structure(
     mock_service.files.return_value.list.return_value.execute.side_effect = [files_list_sample]
     mock_service.drives.return_value.get.return_value.execute.side_effect = drives_get_sample
 
-    result = await get_file_tree_structure(mock_context, include_shared_drives=True)
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_drive.tools.drive.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await get_file_tree_structure(mock_context, include_shared_drives=True)
 
     expected_file_tree = {
         "drives": [
@@ -210,7 +226,13 @@ async def test_get_file_tree_structure(
                     },
                 ],
             },
-        ]
+        ],
+        "file_picker": {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        },
     }
 
     assert result == expected_file_tree

@@ -4,7 +4,7 @@ from typing import Any
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import Resource, build
 
-from arcade_google_drive.models import Corpora, OrderBy
+from arcade_google_drive.enums import Corpora, OrderBy
 
 ## Set up basic configuration for logging to the console with DEBUG level and a specific format.
 logging.basicConfig(

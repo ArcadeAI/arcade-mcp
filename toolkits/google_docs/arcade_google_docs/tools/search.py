@@ -77,9 +77,7 @@ async def search_documents(
     page_size = min(10, limit)
     files: list[dict[str, Any]] = []
 
-    service = build_drive_service(
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
+    service = build_drive_service(context.get_auth_token_or_empty())
 
     params = build_files_list_params(
         mime_type="application/vnd.google-apps.document",
