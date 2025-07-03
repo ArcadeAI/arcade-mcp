@@ -5,6 +5,7 @@ from arcade_tdk.errors import ToolExecutionError
 from googleapiclient.errors import HttpError
 
 from arcade_google_docs.enum import Corpora, DocumentFormat, OrderBy
+from arcade_google_docs.templates import optional_file_picker_instructions_template
 from arcade_google_docs.tools import (
     search_and_retrieve_documents,
     search_documents,
@@ -16,6 +17,10 @@ from arcade_google_docs.utils import build_drive_service
 def mock_context():
     context = AsyncMock()
     context.authorization.token = "mock_token"  # noqa: S105
+    context.get_metadata.side_effect = lambda key: {
+        "client_id": "123456789-abcdefg.apps.googleusercontent.com",
+        "coordinator_url": "https://coordinator.example.com",
+    }.get(key.value if hasattr(key, "value") else key)
     return context
 
 
@@ -40,7 +45,18 @@ async def test_search_documents_success(mock_context, mock_service):
         }
     ]
 
-    result = await search_documents(mock_context, limit=2)
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_documents(mock_context, limit=2)
 
     assert result["documents_count"] == 2
     assert len(result["documents"]) == 2
@@ -62,7 +78,18 @@ async def test_search_documents_pagination(mock_context, mock_service):
         },
     ]
 
-    result = await search_documents(mock_context, limit=15)
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_documents(mock_context, limit=15)
 
     assert result["documents_count"] == 15
     assert len(result["documents"]) == 15
@@ -108,13 +135,24 @@ async def test_search_documents_in_organization_domains(mock_context, mock_servi
         }
     ]
 
-    result = await search_documents(
-        mock_context,
-        order_by=OrderBy.MODIFIED_TIME_DESC,
-        include_shared_drives=False,
-        include_organization_domain_documents=True,
-        limit=1,
-    )
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_documents(
+            mock_context,
+            order_by=OrderBy.MODIFIED_TIME_DESC,
+            include_shared_drives=False,
+            include_organization_domain_documents=True,
+            limit=1,
+        )
 
     assert result["documents_count"] == 1
     mock_service.files.return_value.list.assert_called_with(
@@ -142,11 +180,24 @@ async def test_search_and_retrieve_documents_in_markdown_format(
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }
     mock_get_document_by_id.return_value = sample_document
-    result = await search_and_retrieve_documents(
-        mock_context,
-        document_contains=[sample_document["title"]],
-        return_format=DocumentFormat.MARKDOWN,
-    )
+
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_and_retrieve_documents(
+            mock_context,
+            document_contains=[sample_document["title"]],
+            return_format=DocumentFormat.MARKDOWN,
+        )
+
     assert result["documents_count"] == 1
     assert result["documents"][0] == expected_markdown
 
@@ -166,11 +217,24 @@ async def test_search_and_retrieve_documents_in_html_format(
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }
     mock_get_document_by_id.return_value = sample_document
-    result = await search_and_retrieve_documents(
-        mock_context,
-        document_contains=[sample_document["title"]],
-        return_format=DocumentFormat.HTML,
-    )
+
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_and_retrieve_documents(
+            mock_context,
+            document_contains=[sample_document["title"]],
+            return_format=DocumentFormat.HTML,
+        )
+
     assert result["documents_count"] == 1
     assert result["documents"][0] == expected_html
 
@@ -190,10 +254,23 @@ async def test_search_and_retrieve_documents_in_google_json_format(
         "documents": [{"id": sample_document["documentId"], "title": sample_document["title"]}],
     }
     mock_get_document_by_id.return_value = sample_document
-    result = await search_and_retrieve_documents(
-        mock_context,
-        document_contains=[sample_document["title"]],
-        return_format=DocumentFormat.GOOGLE_API_JSON,
-    )
+
+    # Mock the generate_google_file_picker_url function
+    with patch(
+        "arcade_google_docs.tools.search.generate_google_file_picker_url"
+    ) as mock_file_picker:
+        mock_file_picker.return_value = {
+            "url": "https://coordinator.example.com/google/drive_picker?config=test_config",
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url="https://coordinator.example.com/google/drive_picker?config=test_config"
+            ),
+        }
+
+        result = await search_and_retrieve_documents(
+            mock_context,
+            document_contains=[sample_document["title"]],
+            return_format=DocumentFormat.GOOGLE_API_JSON,
+        )
+
     assert result["documents_count"] == 1
     assert result["documents"][0] == sample_document
