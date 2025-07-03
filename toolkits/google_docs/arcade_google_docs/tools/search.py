@@ -1,11 +1,13 @@
 from typing import Annotated, Any
 
-from arcade_tdk import ToolContext, tool
+from arcade_tdk import ToolContext, ToolMetadataKey, tool
 from arcade_tdk.auth import Google
 
 from arcade_google_docs.doc_to_html import convert_document_to_html
 from arcade_google_docs.doc_to_markdown import convert_document_to_markdown
 from arcade_google_docs.enum import DocumentFormat, OrderBy
+from arcade_google_docs.file_picker import generate_google_file_picker_url
+from arcade_google_docs.templates import optional_file_picker_instructions_template
 from arcade_google_docs.tools import get_document_by_id
 from arcade_google_docs.utils import (
     build_drive_service,
@@ -20,7 +22,8 @@ from arcade_google_docs.utils import (
 @tool(
     requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/drive.file"],
-    )
+    ),
+    requires_metadata=[ToolMetadataKey.CLIENT_ID, ToolMetadataKey.COORDINATOR_URL],
 )
 async def search_documents(
     context: ToolContext,
@@ -104,13 +107,27 @@ async def search_documents(
         if not pagination_token or len(batch) < page_size:
             break
 
-    return {"documents_count": len(files), "documents": files}
+    file_picker_response = generate_google_file_picker_url(
+        context,
+    )
+
+    return {
+        "documents_count": len(files),
+        "documents": files,
+        "file_picker": {
+            "url": file_picker_response["url"],
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url=file_picker_response["url"]
+            ),
+        },
+    }
 
 
 @tool(
     requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/drive.file"],
-    )
+    ),
+    requires_metadata=[ToolMetadataKey.CLIENT_ID, ToolMetadataKey.COORDINATOR_URL],
 )
 async def search_and_retrieve_documents(
     context: ToolContext,
@@ -188,4 +205,17 @@ async def search_and_retrieve_documents(
 
         documents.append(document)
 
-    return {"documents_count": len(documents), "documents": documents}
+    file_picker_response = generate_google_file_picker_url(
+        context,
+    )
+
+    return {
+        "documents_count": len(documents),
+        "documents": documents,
+        "file_picker": {
+            "url": file_picker_response["url"],
+            "llm_instructions": optional_file_picker_instructions_template.format(
+                url=file_picker_response["url"]
+            ),
+        },
+    }

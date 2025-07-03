@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from arcade_tdk import ToolContext, tool
+from arcade_tdk import ToolContext, ToolMetadataKey, tool
 from arcade_tdk.auth import Google
 
+from arcade_google_sheets.decorators import with_filepicker_fallback
 from arcade_google_sheets.utils import (
     build_sheets_service,
     parse_get_spreadsheet_response,
@@ -12,8 +13,10 @@ from arcade_google_sheets.utils import (
 @tool(
     requires_auth=Google(
         scopes=["https://www.googleapis.com/auth/drive.file"],
-    )
+    ),
+    requires_metadata=[ToolMetadataKey.CLIENT_ID, ToolMetadataKey.COORDINATOR_URL],
 )
+@with_filepicker_fallback
 async def get_spreadsheet(
     context: ToolContext,
     spreadsheet_id: Annotated[str, "The id of the spreadsheet to get"],
@@ -26,6 +29,7 @@ async def get_spreadsheet(
     along with the spreadsheet's properties
     """
     service = build_sheets_service(context.get_auth_token_or_empty())
+
     response = (
         service.spreadsheets()
         .get(

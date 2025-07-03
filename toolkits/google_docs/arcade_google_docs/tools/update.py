@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from arcade_tdk import ToolContext, tool
+from arcade_tdk import ToolContext, ToolMetadataKey, tool
 from arcade_tdk.auth import Google
 
+from arcade_google_docs.decorators import with_filepicker_fallback
 from arcade_google_docs.tools.get import get_document_by_id
 from arcade_google_docs.utils import build_docs_service
 
@@ -14,8 +15,10 @@ from arcade_google_docs.utils import build_docs_service
         scopes=[
             "https://www.googleapis.com/auth/drive.file",
         ],
-    )
+    ),
+    requires_metadata=[ToolMetadataKey.CLIENT_ID, ToolMetadataKey.COORDINATOR_URL],
 )
+@with_filepicker_fallback
 async def insert_text_at_end_of_document(
     context: ToolContext,
     document_id: Annotated[str, "The ID of the document to update."],
@@ -24,7 +27,13 @@ async def insert_text_at_end_of_document(
     """
     Updates an existing Google Docs document using the batchUpdate API endpoint.
     """
-    document = await get_document_by_id(context, document_id)
+    document_or_file_picker_response = await get_document_by_id(context, document_id)
+
+    # If the document was not found, return the file picker response
+    if "body" not in document_or_file_picker_response:
+        return document_or_file_picker_response
+
+    document = document_or_file_picker_response
 
     end_index = document["body"]["content"][-1]["endIndex"]
 
