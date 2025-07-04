@@ -1,35 +1,23 @@
 import asyncio
-from typing import cast
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, call, patch
 
 import pytest
-from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
-    ConversationType,
-    ConversationTypeSlackName,
+    ConcurrencySafeCoroutineCaller,
     FindMultipleUsersByUsernameSentinel,
     FindUserByUsernameSentinel,
-    SlackUser,
-)
-from arcade_slack.tools.chat import (
-    get_members_in_conversation_by_id,
-    list_conversations_metadata,
 )
 from arcade_slack.utils import (
     async_paginate,
     build_multiple_users_retrieval_response,
-    convert_conversation_type_to_slack_name,
-    extract_basic_user_info,
     filter_conversations_by_user_ids,
-    get_multiple_users_by_usernames_or_emails,
+    gather_with_concurrency_limit,
     is_valid_email,
-    retrieve_conversations_by_user_ids,
-    short_user_info,
 )
 
 
@@ -452,412 +440,6 @@ def test_filter_conversations_by_user_ids_exact_match_empty_response():
     assert response == []
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "search_user_ids, conversation_types, exact_match, limit, expected_conversation_ids",
-    [
-        (["U1", "U2"], [ConversationType.DIRECT_MESSAGE], False, 1, ["C1"]),
-        (["U1", "U2"], [ConversationType.DIRECT_MESSAGE], True, 1, ["C1"]),
-        (["U1", "U2", "U3"], [ConversationType.DIRECT_MESSAGE], False, 1, []),
-        (
-            ["U1", "U2"],
-            [ConversationType.DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            False,
-            10,
-            ["C1", "C3", "C4"],
-        ),
-        (
-            ["U1", "U2"],
-            [ConversationType.DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            True,
-            10,
-            ["C1", "C3"],
-        ),
-    ],
-)
-async def test_retrieve_conversations_by_user_ids(
-    mock_chat_slack_client,
-    mock_users_slack_client,
-    search_user_ids,
-    conversation_types,
-    exact_match,
-    limit,
-    expected_conversation_ids,
-):
-    context = MagicMock(spec=ToolContext)
-    context.authorization = MagicMock()
-    context.authorization.token = MagicMock()
-
-    conversation_types_slack_name_str = [
-        convert_conversation_type_to_slack_name(conv_type).value
-        for conv_type in conversation_types or ConversationType
-    ]
-
-    conversations = [
-        {
-            "conversation": {
-                "id": "C1",
-                "type": ConversationTypeSlackName.IM.value,
-                "name": "im-1",
-                "is_channel": False,
-                "is_im": True,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C2",
-                "type": ConversationTypeSlackName.IM.value,
-                "name": "im-2",
-                "is_channel": False,
-                "is_im": True,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U2", "U3"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C3",
-                "type": ConversationTypeSlackName.PUBLIC_CHANNEL.value,
-                "name": "general",
-                "is_channel": True,
-                "is_im": False,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C4",
-                "type": ConversationTypeSlackName.PUBLIC_CHANNEL.value,
-                "name": "random",
-                "is_channel": True,
-                "is_im": False,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2", "U3", "U4"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-                {"ok": True, "user": {"id": "U4", "team_id": "T123", "name": "user4"}},
-            ],
-        },
-    ]
-
-    conversations_listed = [
-        conversation
-        for conversation in conversations
-        if conversation["conversation"]["type"] in conversation_types_slack_name_str
-    ]
-
-    mock_chat_slack_client.conversations_list.return_value = {
-        "ok": True,
-        "channels": [conversation["conversation"] for conversation in conversations_listed],
-        "response_metadata": {"next_cursor": None},
-    }
-
-    mock_chat_slack_client.conversations_members.side_effect = [
-        conversation["members"] for conversation in conversations_listed
-    ]
-
-    mock_users_slack_client.users_info.side_effect = [
-        user for conversation in conversations_listed for user in conversation["users"]
-    ]
-
-    conversations_found = await retrieve_conversations_by_user_ids(
-        list_conversations_func=list_conversations_metadata,
-        get_members_in_conversation_func=get_members_in_conversation_by_id,
-        context=context,
-        conversation_types=conversation_types,
-        user_ids=search_user_ids,
-        exact_match=exact_match,
-        limit=limit,
-        next_cursor=None,
-    )
-
-    assert [conversation["id"] for conversation in conversations_found] == expected_conversation_ids
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    (
-        "search_user_ids, conversation_types, exact_match, limit, "
-        "expected_conversation_ids, expected_conversations_list_calls"
-    ),
-    [
-        (
-            ["U1", "U2", "U3"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-            False,
-            None,
-            ["C1", "C3"],
-            2,
-        ),
-        (
-            ["U1", "U2", "U3"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-            True,
-            None,
-            ["C1"],
-            2,
-        ),
-        (["U1", "U2", "U99"], [ConversationType.MULTI_PERSON_DIRECT_MESSAGE], False, None, [], 2),
-        (
-            ["U1", "U2"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            False,
-            None,
-            ["C1", "C3", "C4", "C6"],
-            2,
-        ),
-        (
-            ["U1", "U2"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            False,
-            1,
-            ["C1"],
-            2,
-        ),
-        (
-            ["U1", "U2"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            False,
-            3,
-            ["C1", "C3", "C4"],
-            2,
-        ),
-        (
-            ["U1", "U2"],
-            [ConversationType.MULTI_PERSON_DIRECT_MESSAGE, ConversationType.PUBLIC_CHANNEL],
-            True,
-            None,
-            ["C4"],
-            2,
-        ),
-    ],
-)
-async def test_retrieve_conversations_by_user_ids_with_pagination(
-    mock_chat_slack_client,
-    mock_users_slack_client,
-    search_user_ids,
-    conversation_types,
-    exact_match,
-    limit,
-    expected_conversation_ids,
-    expected_conversations_list_calls,
-):
-    context = MagicMock(spec=ToolContext)
-    context.authorization = MagicMock()
-    context.authorization.token = MagicMock()
-
-    conversation_types_slack_name_str = [
-        convert_conversation_type_to_slack_name(conv_type).value
-        for conv_type in conversation_types or ConversationType
-    ]
-
-    conversations = [
-        {
-            "conversation": {
-                "id": "C1",
-                "type": ConversationTypeSlackName.MPIM.value,
-                "name": "mpim-1",
-                "is_channel": False,
-                "is_im": False,
-                "is_mpim": True,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2", "U3"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C2",
-                "type": ConversationTypeSlackName.MPIM.value,
-                "name": "mpim-2",
-                "is_channel": False,
-                "is_im": False,
-                "is_mpim": True,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U2", "U3"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C3",
-                "type": ConversationTypeSlackName.MPIM.value,
-                "name": "mpim-3",
-                "is_channel": False,
-                "is_im": False,
-                "is_mpim": True,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2", "U3", "U4"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-                {"ok": True, "user": {"id": "U4", "team_id": "T123", "name": "user4"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C4",
-                "type": ConversationTypeSlackName.PUBLIC_CHANNEL.value,
-                "name": "channel-4",
-                "is_channel": True,
-                "is_im": False,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C5",
-                "type": ConversationTypeSlackName.PUBLIC_CHANNEL.value,
-                "name": "channel-5",
-                "is_channel": True,
-                "is_im": False,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U2", "U3", "U4"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-                {"ok": True, "user": {"id": "U4", "team_id": "T123", "name": "user4"}},
-            ],
-        },
-        {
-            "conversation": {
-                "id": "C6",
-                "type": ConversationTypeSlackName.PUBLIC_CHANNEL.value,
-                "name": "channel-6",
-                "is_channel": True,
-                "is_im": False,
-                "is_member": True,
-            },
-            "members": {
-                "ok": True,
-                "members": ["U1", "U2", "U3", "U4"],
-                "response_metadata": {"next_cursor": None},
-            },
-            "users": [
-                {"ok": True, "user": {"id": "U1", "team_id": "T123", "name": "user1"}},
-                {"ok": True, "user": {"id": "U2", "team_id": "T123", "name": "user2"}},
-                {"ok": True, "user": {"id": "U3", "team_id": "T123", "name": "user3"}},
-                {"ok": True, "user": {"id": "U4", "team_id": "T123", "name": "user4"}},
-            ],
-        },
-    ]
-
-    conversations_listed = [
-        conversation
-        for conversation in conversations
-        if conversation["conversation"]["type"] in conversation_types_slack_name_str
-    ]
-
-    split_size = len(conversations_listed) // 2
-
-    conversations_listed_1 = conversations_listed[:split_size]
-    conversations_listed_2 = conversations_listed[split_size:]
-
-    mock_chat_slack_client.conversations_list.side_effect = [
-        {
-            "ok": True,
-            "channels": [conversation["conversation"] for conversation in conversations_listed_1],
-            "response_metadata": {"next_cursor": "cursor_1"},
-        },
-        {
-            "ok": True,
-            "channels": [conversation["conversation"] for conversation in conversations_listed_2],
-            "response_metadata": {"next_cursor": None},
-        },
-    ]
-
-    mock_chat_slack_client.conversations_members.side_effect = [
-        conversation["members"] for conversation in conversations_listed
-    ]
-
-    mock_users_slack_client.users_info.side_effect = [
-        user for conversation in conversations_listed for user in conversation["users"]
-    ]
-
-    conversations_found = await retrieve_conversations_by_user_ids(
-        list_conversations_func=list_conversations_metadata,
-        get_members_in_conversation_func=get_members_in_conversation_by_id,
-        context=context,
-        conversation_types=conversation_types,
-        user_ids=search_user_ids,
-        exact_match=exact_match,
-        limit=limit,
-        next_cursor=None,
-    )
-
-    assert [conversation["id"] for conversation in conversations_found] == expected_conversation_ids
-    assert mock_chat_slack_client.conversations_list.call_count == expected_conversations_list_calls
-
-
 @pytest.mark.parametrize(
     "users_by_email, users_by_username, expected_response",
     [
@@ -889,8 +471,7 @@ def test_build_multiple_users_retrieval_response_success(
     expected_response,
 ):
     response = build_multiple_users_retrieval_response(
-        users_by_email=users_by_email,
-        users_by_username=users_by_username,
+        users_responses=[users_by_email, users_by_username],
     )
     assert response == expected_response
 
@@ -926,8 +507,7 @@ def test_build_multiple_users_retrieval_response_not_found(
 ):
     with pytest.raises(RetryableToolError) as error:
         build_multiple_users_retrieval_response(
-            users_by_email=users_by_email,
-            users_by_username=users_by_username,
+            users_responses=[users_by_email, users_by_username],
         )
 
         emails_not_found = users_by_email.get("emails_not_found", [])
@@ -940,152 +520,6 @@ def test_build_multiple_users_retrieval_response_not_found(
             assert username in error.value.message
         for user in other_available_users:
             assert str(user) in error.value.additional_prompt_content
-
-
-@pytest.mark.asyncio
-async def test_get_multiple_users_by_usernames_or_emails_with_emails_success(
-    mock_context, mock_users_slack_client, dummy_user_factory
-):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-
-    emails = [user1["profile"]["email"], user2["profile"]["email"]]
-
-    mock_users_slack_client.users_lookupByEmail.side_effect = [
-        {"ok": True, "user": user1},
-        {"ok": True, "user": user2},
-    ]
-
-    response = await get_multiple_users_by_usernames_or_emails(
-        context=mock_context, usernames_or_emails=emails
-    )
-
-    assert response == build_multiple_users_retrieval_response(
-        users_by_email={
-            "users": [
-                cast(dict, extract_basic_user_info(SlackUser(**user1))),
-                cast(dict, extract_basic_user_info(SlackUser(**user2))),
-            ]
-        },
-        users_by_username={"users": []},
-    )
-
-
-@pytest.mark.asyncio
-async def test_get_multiple_users_by_usernames_or_emails_with_emails_not_found(
-    mock_context, mock_users_slack_client, dummy_user_factory
-):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-
-    emails = [user1["profile"]["email"], "not_found@example.com"]
-
-    mock_users_slack_client.users_lookupByEmail.side_effect = [
-        {"ok": True, "user": user1},
-        SlackApiError(
-            message="User not found",
-            response={"error": "user_not_found"},
-        ),
-    ]
-    mock_users_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
-
-    with pytest.raises(RetryableToolError) as error:
-        await get_multiple_users_by_usernames_or_emails(
-            context=mock_context, usernames_or_emails=emails
-        )
-
-    assert "not_found@example.com" in error.value.message
-
-
-@pytest.mark.asyncio
-async def test_get_multiple_users_by_usernames_or_emails_with_usernames_success(
-    mock_context, mock_users_slack_client, dummy_user_factory
-):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-
-    usernames = [user1["name"], user2["name"]]
-
-    mock_users_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
-
-    response = await get_multiple_users_by_usernames_or_emails(
-        context=mock_context, usernames_or_emails=usernames
-    )
-
-    assert response == build_multiple_users_retrieval_response(
-        users_by_email={"users": []},
-        users_by_username={
-            "users": [
-                cast(dict, extract_basic_user_info(SlackUser(**user1))),
-                cast(dict, extract_basic_user_info(SlackUser(**user2))),
-            ]
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_get_multiple_users_by_usernames_or_emails_with_usernames_not_found(
-    mock_context, mock_users_slack_client, dummy_user_factory
-):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-    user3 = dummy_user_factory()
-
-    usernames = [user1["name"], "username_not_found"]
-
-    mock_users_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2, user3]}
-
-    with pytest.raises(RetryableToolError) as error:
-        await get_multiple_users_by_usernames_or_emails(
-            context=mock_context, usernames_or_emails=usernames
-        )
-
-    assert "username_not_found" in error.value.message
-    assert str(short_user_info(user1)) not in error.value.additional_prompt_content
-    assert str(short_user_info(user2)) in error.value.additional_prompt_content
-    assert str(short_user_info(user3)) in error.value.additional_prompt_content
-
-
-@pytest.mark.asyncio
-async def test_get_multiple_users_by_mixed_usernames_and_emails_success(
-    mock_context, mock_users_slack_client, dummy_user_factory
-):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-    user3 = dummy_user_factory()
-    user4 = dummy_user_factory()
-
-    usernames_and_emails = [
-        user1["name"],
-        user2["name"],
-        user3["profile"]["email"],
-        user4["profile"]["email"],
-    ]
-
-    mock_users_slack_client.users_list.return_value = {"ok": True, "members": [user1, user2]}
-    mock_users_slack_client.users_lookupByEmail.side_effect = [
-        {"ok": True, "user": user3},
-        {"ok": True, "user": user4},
-    ]
-
-    response = await get_multiple_users_by_usernames_or_emails(
-        context=mock_context, usernames_or_emails=usernames_and_emails
-    )
-
-    assert response == build_multiple_users_retrieval_response(
-        users_by_username={
-            "users": [
-                cast(dict, extract_basic_user_info(SlackUser(**user1))),
-                cast(dict, extract_basic_user_info(SlackUser(**user2))),
-            ],
-        },
-        users_by_email={
-            "users": [
-                cast(dict, extract_basic_user_info(SlackUser(**user3))),
-                cast(dict, extract_basic_user_info(SlackUser(**user4))),
-            ],
-        },
-    )
 
 
 def test_is_valid_email():
@@ -1104,3 +538,31 @@ def test_is_valid_email():
     assert not is_valid_email("test@example.c")
     assert not is_valid_email("test@example.com.")
     assert not is_valid_email("test@example.com.c")
+
+
+@pytest.mark.asyncio
+async def test_gather_with_concurrency_limit():
+    mock_func1 = AsyncMock()
+    mock_func2 = AsyncMock()
+
+    caller1 = ConcurrencySafeCoroutineCaller(mock_func1, "arg1", "arg2", kwarg1="kwarg1")
+    caller2 = ConcurrencySafeCoroutineCaller(mock_func2, "arg1", "arg2", kwarg1="kwarg1")
+
+    mock_semaphore = AsyncMock(spec=asyncio.Semaphore)
+
+    response = await gather_with_concurrency_limit(
+        coroutine_callers=[caller1, caller2],
+        semaphore=mock_semaphore,
+    )
+
+    response = tuple(response)
+
+    assert len(response) == 2
+    assert response[0] == mock_func1.return_value
+    assert response[1] == mock_func2.return_value
+
+    mock_func1.assert_awaited_once_with("arg1", "arg2", kwarg1="kwarg1")
+    mock_func2.assert_awaited_once_with("arg1", "arg2", kwarg1="kwarg1")
+
+    assert mock_semaphore.__aenter__.await_count == 2
+    assert mock_semaphore.__aexit__.await_count == 2

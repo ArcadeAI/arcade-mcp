@@ -267,6 +267,23 @@ class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
         return False
 
 
+class FindChannelByNameSentinel(PaginationSentinel):
+    """Sentinel class for finding a channel by name."""
+
+    def __init__(self, channel_name: str) -> None:
+        super().__init__(channel_name=channel_name)
+        self.channel_name_casefold = channel_name.casefold()
+
+    def __call__(self, last_result: Any) -> bool:
+        for channel in last_result:
+            channel_name = channel.get("name")
+            if not isinstance(channel_name, str):
+                continue
+            if channel_name.casefold() == self.channel_name_casefold:
+                return True
+        return False
+
+
 class AbstractConcurrencySafeCoroutineCaller(ABC):
     """Abstract base class for concurrency-safe coroutine callers."""
 
@@ -303,7 +320,8 @@ class GetUserByEmailCaller(AbstractConcurrencySafeCoroutineCaller):
     async def __call__(self, semaphore: asyncio.Semaphore) -> dict[str, Any]:
         async with semaphore:
             try:
-                return {"user": await self.func(email=self.email), "email": self.email}
+                user = await self.func(email=self.email)
+                return {"user": user["user"], "email": self.email}
             except SlackApiError as e:
                 if e.response.get("error") in ["user_not_found", "users_not_found"]:
                     return {"user": None, "email": self.email}

@@ -6,8 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, cast
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
-from slack_sdk.web.async_client import AsyncWebClient
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_slack.constants import (
     MAX_CONCURRENT_REQUESTS,
@@ -17,13 +16,11 @@ from arcade_slack.constants import (
 from arcade_slack.custom_types import SlackPaginationNextCursor
 from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
+    AbstractConcurrencySafeCoroutineCaller,
     BasicUserInfo,
-    ConcurrencySafeCoroutineCaller,
     ConversationMetadata,
     ConversationType,
     ConversationTypeSlackName,
-    FindMultipleUsersByUsernameSentinel,
-    GetUserByEmailCaller,
     Message,
     PaginationSentinel,
     SlackConversation,
@@ -185,65 +182,6 @@ def extract_basic_user_info(user_info: SlackUser) -> BasicUserInfo:
         real_name=user_info.get("real_name"),
         timezone=user_info.get("tz"),
     )
-
-
-async def associate_members_of_multiple_conversations(
-    get_members_in_conversation_func: Callable,
-    conversations: list[dict],
-    context: ToolContext,
-) -> list[dict]:
-    """Associate members to each conversation, returning the updated list."""
-    return cast(
-        list[dict],
-        await asyncio.gather(*[
-            associate_members_of_conversation(get_members_in_conversation_func, context, conv)
-            for conv in conversations
-        ]),
-    )
-
-
-async def associate_members_of_conversation(
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation: dict,
-) -> dict:
-    response = await get_members_in_conversation_func(context, conversation["id"])
-    conversation["members"] = response["members"]
-    return conversation
-
-
-async def retrieve_conversations_by_user_ids(
-    list_conversations_func: Callable,
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation_types: list[ConversationType],
-    user_ids: list[str],
-    exact_match: bool = False,
-    limit: int | None = None,
-    next_cursor: str | None = None,
-) -> list[dict]:
-    """
-    Retrieve conversations filtered by the given user IDs. Includes pagination support
-    and optionally limits the number of returned conversations.
-    """
-    conversations_found: list[dict] = []
-
-    response = await list_conversations_func(
-        context=context,
-        conversation_types=conversation_types,
-        next_cursor=next_cursor,
-    )
-
-    # Associate members to each conversation
-    conversations_with_members = await associate_members_of_multiple_conversations(
-        get_members_in_conversation_func, response["conversations"], context
-    )
-
-    conversations_found.extend(
-        filter_conversations_by_user_ids(conversations_with_members, user_ids, exact_match)
-    )
-
-    return conversations_found[:limit]
 
 
 def filter_conversations_by_user_ids(
@@ -483,48 +421,25 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(email_pattern, email))
 
 
-async def get_multiple_users_by_usernames_or_emails(
-    context: ToolContext,
-    usernames_or_emails: list[str],
-) -> list[dict]:
-    from arcade_slack.tools.users import (  # Avoid circular import
-        get_multiple_users_by_email,
-        get_multiple_users_by_username,
-    )
-
-    emails: list[str] = []
-    usernames: list[str] = []
-
-    for item in usernames_or_emails:
-        if is_valid_email(item):
-            emails.append(item)
-        else:
-            usernames.append(item)
-
-    if emails and usernames:
-        users_by_email, users_by_username = await asyncio.gather(
-            get_multiple_users_by_email(context, emails),
-            get_multiple_users_by_username(context, usernames),
-        )
-    elif emails:
-        users_by_email = await get_multiple_users_by_email(context=context, emails=emails)
-        users_by_username = {"users": [], "usernames_not_found": [], "other_available_users": []}
-    elif usernames:
-        users_by_email = {"users": [], "emails_not_found": []}
-        users_by_username = await get_multiple_users_by_username(
-            context=context, usernames=usernames
-        )
-
-    return build_multiple_users_retrieval_response(users_by_email, users_by_username)
-
-
 def build_multiple_users_retrieval_response(
-    users_by_email: dict[str, Any],
-    users_by_username: dict[str, Any],
+    users_responses: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Builds response list for the get_multiple_users_by_usernames_or_emails function."""
-    emails_not_found = users_by_email.get("emails_not_found")
-    usernames_not_found = users_by_username.get("usernames_not_found")
+    raise_for_users_not_found(users_responses=users_responses)
+
+    users = []
+
+    for users_response in users_responses:
+        users.extend(users_response["users"])
+
+    return cast(list[dict[str, Any]], users)
+
+
+def raise_for_users_not_found(users_responses: list[dict[str, Any]]) -> None:
+    """Raise an error if any of the users were not found."""
+    emails_not_found, usernames_not_found, other_available_users = (
+        get_multiple_user_retrieval_responses_metadata(users_responses)
+    )
 
     if emails_not_found or usernames_not_found:
         msg = ["The following users were not found:"]
@@ -533,10 +448,8 @@ def build_multiple_users_retrieval_response(
         if usernames_not_found:
             msg.append(f"Usernames: {usernames_not_found}")
 
-        if users_by_username.get("other_available_users"):
-            additional_prompt = (
-                f"Other available users: {users_by_username['other_available_users']}"
-            )
+        if other_available_users:
+            additional_prompt = f"Other available users: {other_available_users}"
         else:
             additional_prompt = None
 
@@ -549,7 +462,29 @@ def build_multiple_users_retrieval_response(
             retry_after_ms=500,
         )
 
-    return cast(list[dict[str, Any]], users_by_email["users"] + users_by_username["users"])
+
+def get_multiple_user_retrieval_responses_metadata(
+    responses: list[dict[str, Any]],
+) -> tuple[list[str] | None, list[str] | None, list[dict[str, Any]] | None]:
+    emails_not_found = None
+    usernames_not_found = None
+    other_available_users = None
+
+    for response in responses:
+        if response.get("emails_not_found"):
+            if not emails_not_found:
+                emails_not_found = response["emails_not_found"]
+            else:
+                emails_not_found.extend(response["emails_not_found"])
+        if response.get("usernames_not_found"):
+            if not usernames_not_found:
+                usernames_not_found = response["usernames_not_found"]
+            else:
+                usernames_not_found.extend(response["usernames_not_found"])
+        if response.get("other_available_users"):
+            other_available_users = response["other_available_users"]
+
+    return emails_not_found, usernames_not_found, other_available_users
 
 
 async def get_available_users_prompt(context: ToolContext, limit: int = 100) -> str:
@@ -569,103 +504,21 @@ async def get_available_users_prompt(context: ToolContext, limit: int = 100) -> 
     except Exception as e:
         return (
             "The tool tried to retrieve a list of available users, but failed "
-            f"with error: {type(e).__name__}: {e}. Use the '{list_users.__tool_name__}' tool "
+            f"with error: {type(e).__name__}: {e}. Use the 'Slack.{list_users.__tool_name__}' tool "
             "to get a list of users."
         )
 
 
 async def gather_with_concurrency_limit(
-    coroutines: list[ConcurrencySafeCoroutineCaller],
+    coroutine_callers: list[AbstractConcurrencySafeCoroutineCaller],
     semaphore: asyncio.Semaphore | None = None,
     max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
 ):
     if not semaphore:
         semaphore = asyncio.Semaphore(max_concurrent_requests)
 
-    return asyncio.gather(*[coroutine(semaphore) for coroutine in coroutines])
+    return await asyncio.gather(*[caller(semaphore) for caller in coroutine_callers])
 
 
-async def get_users_by_id(
-    context: ToolContext,
-    user_ids: list[str],
-) -> dict[str, list[dict]]:
-    if len(user_ids) == 0:
-        from arcade_slack.tools.users import get_user_info_by_id  # Avoid circular import
-
-        user = await get_user_info_by_id(context, user_id=user_ids[0])
-        return {"users": [user]}
-
-    responses = await gather_with_concurrency_limit([
-        ConcurrencySafeCoroutineCaller(get_user_info_by_id, context, user_id)
-        for user_id in user_ids
-    ])
-
-    return {"users": [response["user"] for response in responses]}
-
-
-async def get_users_by_username(
-    context: ToolContext,
-    usernames: list[str],
-) -> dict[str, list[dict]]:
-    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
-
-    users, _ = await async_paginate(
-        slackClient.users_list,
-        "members",
-        max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
-        sentinel=FindMultipleUsersByUsernameSentinel(usernames=usernames),
-    )
-
-    users_found = []
-    usernames_pending = set(usernames)
-    usernames_lower = {username.casefold() for username in usernames}
-    available_users = []
-
-    for user in users:
-        if not isinstance(user.get("name"), str):
-            continue
-        if user["name"].casefold() in usernames_lower:
-            users_found.append(cast(dict, extract_basic_user_info(SlackUser(**user))))
-            usernames_pending.remove(user["name"])
-        elif not is_user_a_bot(user):
-            available_users.append(short_user_info(user))
-
-    response: dict[str, Any] = {"users": users_found}
-
-    if usernames_pending:
-        response["usernames_not_found"] = list(usernames_pending)
-        response["other_available_users"] = available_users
-
-    return response
-
-
-async def get_users_by_email(
-    context: ToolContext,
-    emails: list[str],
-) -> dict[str, list[dict]]:
-    for email in emails:
-        if not is_valid_email(email):
-            raise ToolExecutionError(f"Invalid email address: {email}")
-
-    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
-    lookup_by_email = slack_client.users_lookupByEmail
-
-    results = await gather_with_concurrency_limit([
-        GetUserByEmailCaller(lookup_by_email, email, context) for email in emails
-    ])
-
-    users = []
-    emails_not_found = []
-
-    for result in results:
-        if result["user"]:
-            users.append(result["user"])
-        else:
-            emails_not_found.append(result["email"])
-
-    response: dict[str, Any] = {"users": users}
-
-    if emails_not_found:
-        response["emails_not_found"] = emails_not_found
-
-    return response
+def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
+    return cast(dict, extract_basic_user_info(SlackUser(**user)))

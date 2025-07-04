@@ -46,13 +46,14 @@ async def test_concurrency_safe_coroutine_caller():
 @pytest.mark.asyncio
 async def test_get_user_by_email_caller_success():
     mock_func = AsyncMock()
+    mock_func.return_value = {"user": {"id": "U1234567890", "name": "John Doe"}}
     mock_semaphore = AsyncMock(spec=asyncio.Semaphore)
 
     caller = GetUserByEmailCaller(mock_func, "test@example.com")
     response = await caller(semaphore=mock_semaphore)
 
     assert response == {
-        "user": mock_func.return_value,
+        "user": {"id": "U1234567890", "name": "John Doe"},
         "email": "test@example.com",
     }
     mock_func.assert_awaited_once_with(email="test@example.com")
