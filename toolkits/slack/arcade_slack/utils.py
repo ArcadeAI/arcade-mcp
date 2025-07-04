@@ -421,11 +421,12 @@ def is_valid_email(email: str) -> bool:
     return bool(re.match(email_pattern, email))
 
 
-def build_multiple_users_retrieval_response(
+async def build_multiple_users_retrieval_response(
+    context: ToolContext,
     users_responses: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Builds response list for the get_multiple_users_by_usernames_or_emails function."""
-    raise_for_users_not_found(users_responses=users_responses)
+    await raise_for_users_not_found(context, users_responses)
 
     users = []
 
@@ -435,76 +436,71 @@ def build_multiple_users_retrieval_response(
     return cast(list[dict[str, Any]], users)
 
 
-def raise_for_users_not_found(users_responses: list[dict[str, Any]]) -> None:
-    """Raise an error if any of the users were not found."""
-    emails_not_found, usernames_not_found, other_available_users = (
-        get_multiple_user_retrieval_responses_metadata(users_responses)
-    )
+async def raise_for_users_not_found(
+    context: ToolContext, users_responses: list[dict[str, Any]]
+) -> None:
+    """Raise an error if any user was not found in the responses."""
+    users_not_found, available_users = collect_users_not_found_in_responses(users_responses)
+    available_users_prompt = await get_available_users_prompt(context, available_users)
 
-    if emails_not_found or usernames_not_found:
-        msg = ["The following users were not found:"]
-        if emails_not_found:
-            msg.append(f"Emails: {emails_not_found}")
-        if usernames_not_found:
-            msg.append(f"Usernames: {usernames_not_found}")
-
-        if other_available_users:
-            additional_prompt = f"Other available users: {other_available_users}"
-        else:
-            additional_prompt = None
-
-        msg_str = "\n".join(msg)
+    if users_not_found:
+        message = "One or more users were not found."
 
         raise RetryableToolError(
-            msg_str,
-            developer_message=msg_str,
-            additional_prompt_content=additional_prompt,
+            message=message,
+            developer_message=f"{message}: {json.dumps(users_not_found)}",
+            additional_prompt_content=available_users_prompt,
             retry_after_ms=500,
         )
 
 
-def get_multiple_user_retrieval_responses_metadata(
+def collect_users_not_found_in_responses(
     responses: list[dict[str, Any]],
-) -> tuple[list[str] | None, list[str] | None, list[dict[str, Any]] | None]:
-    emails_not_found = None
-    usernames_not_found = None
-    other_available_users = None
+) -> tuple[list[str], list[dict[str, Any]]]:
+    users_not_found = []
+    available_users = []
 
     for response in responses:
-        if response.get("emails_not_found"):
-            if not emails_not_found:
-                emails_not_found = response["emails_not_found"]
-            else:
-                emails_not_found.extend(response["emails_not_found"])
-        if response.get("usernames_not_found"):
-            if not usernames_not_found:
-                usernames_not_found = response["usernames_not_found"]
-            else:
-                usernames_not_found.extend(response["usernames_not_found"])
-        if response.get("other_available_users"):
-            other_available_users = response["other_available_users"]
+        if response.get("not_found"):
+            users_not_found.extend(response["not_found"])
+        if response.get("available_users"):
+            available_users = response["available_users"]
 
-    return emails_not_found, usernames_not_found, other_available_users
+    return users_not_found, available_users
 
 
-async def get_available_users_prompt(context: ToolContext, limit: int = 100) -> str:
+async def get_available_users_prompt(
+    context: ToolContext,
+    available_users: list[dict] | None = None,
+    limit: int = 100,
+) -> str:
     try:
         from arcade_slack.tools.users import list_users  # Avoid circular import
 
-        users = await list_users(context, limit=limit)
-        available_users = json.dumps(short_human_users_info(users["users"]))
-        if not users["next_cursor"]:
-            return f"Available users: {available_users}"
+        if isinstance(available_users, list) and available_users:
+            available_users = json.dumps(short_human_users_info(available_users))
+            next_cursor = None
+            potentially_more_users = True
         else:
-            return (
-                f"Some of the available users are: {available_users}. "
-                f"Get more users with the '{list_users.__tool_name__}' tool "
-                f"using the next cursor: '{users['next_cursor']}'"
+            users = await list_users(context, limit=limit)
+            next_cursor = users["next_cursor"]
+            available_users = json.dumps(short_human_users_info(users["users"]))
+            potentially_more_users = bool(next_cursor)
+
+        if not potentially_more_users:
+            return f"The users available are: {available_users}"
+        else:
+            msg = (
+                f"Some of the available users are: {available_users}. Potentially more users can "
+                f"be retrieved by calling the '{list_users.__tool_name__}' tool"
             )
+            if next_cursor:
+                msg += f" using the next cursor: '{next_cursor}' to continue pagination."
+            return msg
     except Exception as e:
         return (
-            "The tool tried to retrieve a list of available users, but failed "
-            f"with error: {type(e).__name__}: {e}. Use the 'Slack.{list_users.__tool_name__}' tool "
+            "The tool tried to retrieve a list of available users, but failed with error: "
+            f"{type(e).__name__}: {e!s}. Use the 'Slack.{list_users.__tool_name__}' tool "
             "to get a list of users."
         )
 

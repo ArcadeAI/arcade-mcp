@@ -3,6 +3,7 @@ from typing import Any
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import ToolExecutionError
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_CONCURRENT_REQUESTS, MAX_PAGINATION_TIMEOUT_SECONDS
@@ -49,85 +50,127 @@ async def get_users_by_id_username_or_email(
 
     user_retrieval_calls = []
 
+    auth_token = context.get_auth_token_or_empty()
+
     if user_ids:
-        user_retrieval_calls.append(get_users_by_id(context, user_ids, semaphore))
+        user_retrieval_calls.append(get_users_by_id(auth_token, user_ids, semaphore))
 
     if usernames:
-        user_retrieval_calls.append(get_users_by_username(context, usernames, semaphore))
+        user_retrieval_calls.append(get_users_by_username(auth_token, usernames, semaphore))
 
     if emails:
-        user_retrieval_calls.append(get_users_by_email(context, emails, semaphore))
+        user_retrieval_calls.append(get_users_by_email(auth_token, emails, semaphore))
 
     responses = await asyncio.gather(*user_retrieval_calls)
 
-    return build_multiple_users_retrieval_response(users_responses=responses)
+    return await build_multiple_users_retrieval_response(context, responses)
 
 
 async def get_users_by_id(
-    context: ToolContext,
+    auth_token: str,
     user_ids: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict]]:
-    if len(user_ids) == 0:
-        from arcade_slack.tools.users import get_user_info_by_id  # Avoid circular import
+    slack_client = AsyncWebClient(token=auth_token)
 
-        user = await get_user_info_by_id(context, user_id=user_ids[0])
-        return {"users": [user]}
+    if len(user_ids) == 0:
+        user = await slack_client.users_info(user=user_ids[0])
+        return {"users": [user["user"]]}
 
     responses = await gather_with_concurrency_limit(
         coroutine_callers=[
-            ConcurrencySafeCoroutineCaller(get_user_info_by_id, context, user_id)
+            ConcurrencySafeCoroutineCaller(
+                get_user_by_id,
+                auth_token=auth_token,
+                user_id=user_id,
+            )
             for user_id in user_ids
         ],
         semaphore=semaphore,
     )
 
-    return {"users": [response["user"] for response in responses]}
+    users = []
+    not_found = []
+
+    for response in responses:
+        if response["user"] is None:
+            not_found.append(response["user_id"])
+        else:
+            users.append(response["user"])
+
+    final_response: dict[str, Any] = {"users": users}
+
+    if not_found:
+        final_response["not_found"] = not_found
+
+    return final_response
+
+
+async def get_user_by_id(auth_token: str, user_id: str) -> dict:
+    slack_client = AsyncWebClient(token=auth_token)
+    try:
+        return await slack_client.users_info(user_id=user_id)
+    except SlackApiError as e:
+        if "not_found" in e.response.get("error", ""):
+            return {"user_id": user_id, "user": None}
+        else:
+            message = f"There was an error getting the user with ID {user_id}."
+            slack_error_message = e.response.get("error", "Unknown Slack API error")
+            raise ToolExecutionError(
+                message=message,
+                developer_message=f"{message}: {slack_error_message}",
+            ) from e
 
 
 async def get_users_by_username(
-    context: ToolContext,
+    auth_token: str,
     usernames: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict]]:
     if not semaphore:
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
-    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    slack_client = AsyncWebClient(token=auth_token)
 
     async with semaphore:
         users, _ = await async_paginate(
-            slack_client.users_list,
-            "members",
+            func=slack_client.users_list,
+            response_key="members",
             max_pagination_timeout_seconds=MAX_PAGINATION_TIMEOUT_SECONDS,
             sentinel=FindMultipleUsersByUsernameSentinel(usernames=usernames),
         )
 
     users_found = []
-    usernames_pending = set(usernames)
     usernames_lower = {username.casefold() for username in usernames}
     available_users = []
 
     for user in users:
+        if is_user_a_bot(user):
+            continue
+
+        available_users.append(short_user_info(user))
+
         if not isinstance(user.get("name"), str):
             continue
-        if user["name"].casefold() in usernames_lower:
+
+        username_lower = user["name"].casefold()
+
+        if username_lower in usernames_lower:
             users_found.append(cast_user_dict(user))
-            usernames_pending.remove(user["name"])
-        elif not is_user_a_bot(user):
-            available_users.append(short_user_info(user))
+            # Username/handle is unique in Slack, we can ignore it after finding a match
+            usernames_lower.remove(username_lower)
 
     response: dict[str, Any] = {"users": users_found}
 
-    if usernames_pending:
-        response["usernames_not_found"] = list(usernames_pending)
-        response["other_available_users"] = available_users
+    if usernames_lower:
+        response["not_found"] = list(usernames_lower)
+        response["available_users"] = available_users
 
     return response
 
 
 async def get_users_by_email(
-    context: ToolContext,
+    auth_token: str,
     emails: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict]]:
@@ -135,7 +178,7 @@ async def get_users_by_email(
         if not is_valid_email(email):
             raise ToolExecutionError(f"Invalid email address: {email}")
 
-    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    slack_client = AsyncWebClient(token=auth_token)
     callers = [GetUserByEmailCaller(slack_client.users_lookupByEmail, email) for email in emails]
 
     results = await gather_with_concurrency_limit(
@@ -155,6 +198,6 @@ async def get_users_by_email(
     response: dict[str, Any] = {"users": users}
 
     if emails_not_found:
-        response["emails_not_found"] = emails_not_found
+        response["not_found"] = emails_not_found
 
     return response

@@ -2,8 +2,6 @@ from typing import Annotated, Any, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Slack
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
-from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_PAGINATION_TIMEOUT_SECONDS
@@ -15,7 +13,6 @@ from arcade_slack.user_retrieval import get_users_by_id_username_or_email
 from arcade_slack.utils import (
     async_paginate,
     extract_basic_user_info,
-    get_available_users_prompt,
     is_user_a_bot,
     is_user_deleted,
 )
@@ -36,11 +33,17 @@ async def get_users_info(
     UNNECESSARILY, YOU WILL RELEASE MORE CO2 IN THE ATMOSPHERE AND CONTRIBUTE TO GLOBAL WARMING.
 
     If you need to get metadata or messages of a conversation, use the
-    `Slack.GetConversationMetadata` tool or `Slack.GetMessages` tool instead. These
-    tools accept a user_id, username, and/or email. Do not retrieve users' info first,
-    as it is inefficient and releases more CO2 in the atmosphere, contributing to climate change.
+    `Slack.GetConversationMetadata` or `Slack.GetMessages` tool instead. These
+    tools accept user_ids, usernames, and/or emails. Do not retrieve users' info first,
+    as it is inefficient, releases more CO2 in the atmosphere, and contributes to climate change.
     """
-    return {"users": await get_users_by_id_username_or_email(context, user_ids, usernames, emails)}
+    response = await get_users_by_id_username_or_email(context, user_ids, usernames, emails)
+    users = []
+    for user in response:
+        user_dict = cast(SlackUser, user)
+        user = SlackUser(**user_dict)
+        users.append(dict(**extract_basic_user_info(user)))
+    return {"users": users}
 
 
 # NOTE: This tool is kept here for backwards compatibility.
@@ -54,33 +57,34 @@ async def get_user_info_by_id(
 
     This tool is deprecated. Use the `Slack.GetUsersInfo` tool instead.
     """
-    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+    return get_users_info(context, user_ids=[user_id])
+    # slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
 
-    try:
-        response = await slackClient.users_info(user=user_id)
-    except SlackApiError as e:
-        if e.response.get("error") == "user_not_found":
-            additional_prompt_content = await get_available_users_prompt(context)
+    # try:
+    #     response = await slackClient.users_info(user=user_id)
+    # except SlackApiError as e:
+    #     if e.response.get("error") == "user_not_found":
+    #         additional_prompt_content = await get_available_users_prompt(context)
 
-            raise RetryableToolError(
-                "User not found",
-                developer_message=f"User with ID '{user_id}' not found.",
-                additional_prompt_content=additional_prompt_content,
-                retry_after_ms=500,
-            )
-        else:
-            raise ToolExecutionError(
-                message="There was an error getting the user info.",
-                developer_message=(
-                    "Error getting the user info: "
-                    f"{e.response.get('error', 'Unknown Slack API error')}"
-                ),
-            ) from e
+    #         raise RetryableToolError(
+    #             "User not found",
+    #             developer_message=f"User with ID '{user_id}' not found.",
+    #             additional_prompt_content=additional_prompt_content,
+    #             retry_after_ms=500,
+    #         )
+    #     else:
+    #         raise ToolExecutionError(
+    #             message="There was an error getting the user info.",
+    #             developer_message=(
+    #                 "Error getting the user info: "
+    #                 f"{e.response.get('error', 'Unknown Slack API error')}"
+    #             ),
+    #         ) from e
 
-    user_dict_raw: dict[str, Any] = response.get("user", {}) or {}
-    user_dict = cast(SlackUser, user_dict_raw)
-    user = SlackUser(**user_dict)
-    return dict(**extract_basic_user_info(user))
+    # user_dict_raw: dict[str, Any] = response.get("user", {}) or {}
+    # user_dict = cast(SlackUser, user_dict_raw)
+    # user = SlackUser(**user_dict)
+    # return dict(**extract_basic_user_info(user))
 
 
 @tool(requires_auth=Slack(scopes=["users:read", "users:read.email"]))
@@ -103,10 +107,10 @@ async def list_users(
     as it is inefficient and releases more CO2 in the atmosphere, contributing to climate change.
     """
     limit = max(1, min(limit, 500))
-    slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
+    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
 
     users, next_cursor = await async_paginate(
-        func=slackClient.users_list,
+        func=slack_client.users_list,
         response_key="members",
         limit=limit,
         next_cursor=cast(SlackPaginationNextCursor, next_cursor),
