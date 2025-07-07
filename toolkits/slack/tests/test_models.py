@@ -7,6 +7,7 @@ from slack_sdk.errors import SlackApiError
 
 from arcade_slack.models import (
     ConcurrencySafeCoroutineCaller,
+    FindChannelByNameSentinel,
     FindMultipleUsersByUsernameSentinel,
     FindUserByUsernameSentinel,
     GetUserByEmailCaller,
@@ -27,6 +28,14 @@ def test_find_multiple_users_by_username_sentinel():
     assert sentinel(last_result=[{"name": "john"}, {"name": "jack"}]) is False
     assert sentinel(last_result=[{"name": "hello"}, {"name": "JENIFER"}]) is True
     assert sentinel(last_result=[{"name": "world"}]) is True
+
+
+def test_find_channel_by_name_sentinel():
+    sentinel = FindChannelByNameSentinel(channel_name="foobar")
+    assert sentinel(last_result=[{"name": "foo"}]) is False
+    assert sentinel(last_result=[{"name": "foo"}, {"name": "bar"}]) is False
+    assert sentinel(last_result=[{"name": "foo"}, {"name": "foobar"}]) is True
+    assert sentinel(last_result=[{"name": "FOObar"}]) is True
 
 
 @pytest.mark.asyncio
