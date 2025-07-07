@@ -19,6 +19,7 @@ from arcade_slack.models import (
 )
 from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.user_retrieval import (
+    get_users_by_id,
     get_users_by_id_username_or_email,
 )
 from arcade_slack.utils import (
@@ -26,6 +27,7 @@ from arcade_slack.utils import (
     convert_conversation_type_to_slack_name,
     extract_conversation_metadata,
     format_users,
+    raise_for_users_not_found,
 )
 
 
@@ -144,60 +146,42 @@ async def send_message_to_channel(
         ],
     )
 )
-async def get_members_of_conversation(
+async def get_users_in_conversation(
     context: ToolContext,
-    conversation_id: Annotated[str, "The ID of the conversation to get members for"],
-    channel_name: Annotated[str | None, "The name of the channel to get members for"] = None,
-    user_ids: Annotated[list[str] | None, "The IDs of the users to get members for"] = None,
-    usernames: Annotated[list[str] | None, "The usernames of the users to get members for"] = None,
-    emails: Annotated[list[str] | None, "The emails of the users to get members for"] = None,
-    limit: Annotated[int | None, "The maximum number of members to return. Defaults to 200."] = 200,
+    conversation_id: Annotated[str | None, "The ID of the conversation to get users in."] = None,
+    channel_name: Annotated[str | None, "The name of the channel to get users in."] = None,
+    limit: Annotated[int | None, "The maximum number of users to return. Defaults to 200."] = 200,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
-) -> Annotated[dict, "Information about each member in the conversation"]:
-    """Get the members of a conversation in Slack by the conversation's ID."""
+) -> Annotated[dict, "Information about each user in the conversation"]:
+    """Get the users in a Slack conversation (channel, DM, or MPIM) by its ID or by channel name.
+
+    Provide exactly one of conversation_id or channel_name.
+    """
+    if conversation_id and channel_name:
+        raise ToolExecutionError("Provide exactly one of conversation_id OR channel_name.")
+
     if not conversation_id:
-        conversation = await get_conversation_metadata(
+        channel = await get_conversation_metadata(
             context=context,
             channel_name=channel_name,
-            user_ids=user_ids,
-            usernames=usernames,
-            emails=emails,
         )
-        conversation_id = conversation["id"]
+        conversation_id = channel["id"]
 
-    try:
-        slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
-        member_ids, next_cursor = await async_paginate(
-            slack_client.conversations_members,
-            "members",
-            limit=limit,
-            next_cursor=next_cursor,
-            channel=conversation_id,
-        )
-    except SlackApiError as e:
-        if "not_found" in e.response.get("error", ""):
-            conversations = await list_conversations_metadata(context)
-            available_conversations = ", ".join(
-                f"{conversation['id']} ({conversation['name']})"
-                for conversation in conversations["conversations"]
-            )
+    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    user_ids, next_cursor = await async_paginate(
+        func=slack_client.conversations_members,
+        response_key="members",
+        limit=limit,
+        next_cursor=next_cursor,
+        channel=conversation_id,
+    )
 
-            raise RetryableToolError(
-                "Conversation not found",
-                developer_message=f"Conversation with ID '{conversation_id}' not found.",
-                additional_prompt_content=f"Available conversations: {available_conversations}",
-                retry_after_ms=500,
-            )
+    users = await get_users_by_id(context, user_ids)
 
-    # Get the members' info
-    # TODO: This will probably hit rate limits. We should probably call list_users() and
-    # then filter the results instead.
-    members = await asyncio.gather(*[
-        get_user_info_by_id(context, member_id) for member_id in member_ids
-    ])
+    raise_for_users_not_found(context, [users])
 
     return {
-        "members": [member for member in members if not member.get("is_bot")],
+        "users": [user for user in users["users"] if not user.get("is_bot")],
         "next_cursor": next_cursor,
     }
 
@@ -539,10 +523,13 @@ async def list_direct_message_conversations_metadata(
     return response  # type: ignore[no-any-return]
 
 
-###########################################################################
-# NOTE: The tools below are kept here for backwards compatibility. Prefer #
-# using Slack.GetConversationMetadata and Slack.GetMessages, instead      #
-###########################################################################
+##################################################################################
+# NOTE: The tools below are kept here for backwards compatibility. Prefer using: #
+# - send_message
+# - get_messages
+# - get_conversation_metadata
+# - get_users_in_conversation
+##################################################################################
 
 
 @tool(
@@ -563,7 +550,10 @@ async def get_members_in_conversation_by_id(
     limit: Annotated[int | None, "The maximum number of members to return."] = None,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each member in the conversation"]:
-    """Get the members of a conversation in Slack by the conversation's ID."""
+    """Get the members of a conversation in Slack by the conversation's ID.
+
+    This tool is deprecated. Use the `Slack.GetMembersOfConversation` tool instead.
+    """
     token = (
         context.authorization.token if context.authorization and context.authorization.token else ""
     )
@@ -623,7 +613,10 @@ async def get_members_in_channel_by_name(
     limit: Annotated[int | None, "The maximum number of members to return."] = None,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The channel members' IDs and Names"]:
-    """Get the members of a conversation in Slack by the conversation's name."""
+    """Get the members of a conversation in Slack by the conversation's name.
+
+    This tool is deprecated. Use the `Slack.GetMembersOfConversation` tool instead.
+    """
     channel = await get_conversation_metadata(context=context, channel_name=channel_name)
 
     return await get_members_in_conversation_by_id(  # type: ignore[no-any-return]

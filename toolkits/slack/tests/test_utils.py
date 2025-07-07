@@ -1,4 +1,5 @@
 import asyncio
+import json
 from unittest.mock import AsyncMock, call, patch
 
 import pytest
@@ -465,12 +466,15 @@ def test_filter_conversations_by_user_ids_exact_match_empty_response():
         ),
     ],
 )
-def test_build_multiple_users_retrieval_response_success(
+@pytest.mark.asyncio
+async def test_build_multiple_users_retrieval_response_success(
     users_by_email,
     users_by_username,
     expected_response,
+    mock_context,
 ):
-    response = build_multiple_users_retrieval_response(
+    response = await build_multiple_users_retrieval_response(
+        context=mock_context,
         users_responses=[users_by_email, users_by_username],
     )
     assert response == expected_response
@@ -479,47 +483,65 @@ def test_build_multiple_users_retrieval_response_success(
 @pytest.mark.parametrize(
     "users_by_email, users_by_username",
     [
+        # Both emails and usernames not found
         (
-            {"users": [{"id": "U1", "name": "user1"}], "emails_not_found": ["email_not_found"]},
+            {
+                "users": [{"id": "U1", "name": "user1"}],
+                "not_found": ["email_not_found"],
+            },
             {
                 "users": [{"id": "U2", "name": "user2"}],
-                "usernames_not_found": ["username_not_found"],
-                "other_available_users": [{"id": "U3", "name": "user3"}],
+                "not_found": ["username_not_found"],
+                "available_users": [{"id": "U3", "name": "user3"}],
             },
         ),
+        # Email not found, usernames found
         (
-            {"users": [{"id": "U1", "name": "user1"}], "emails_not_found": ["email_not_found"]},
-            {"users": [{"id": "U2", "name": "user2"}]},
-        ),
-        (
-            {"users": [{"id": "U1", "name": "user1"}]},
+            {
+                "users": [{"id": "U1", "name": "user1"}],
+                "not_found": ["email_not_found"],
+            },
             {
                 "users": [{"id": "U2", "name": "user2"}],
-                "usernames_not_found": ["username_not_found"],
-                "other_available_users": [{"id": "U3", "name": "user3"}],
+                "not_found": [],
+            },
+        ),
+        # Email found, username not found
+        (
+            {
+                "users": [{"id": "U1", "name": "user1"}],
+                "not_found": [],
+            },
+            {
+                "users": [{"id": "U2", "name": "user2"}],
+                "not_found": ["username_not_found"],
+                "available_users": [{"id": "U3", "name": "user3"}],
             },
         ),
     ],
 )
-def test_build_multiple_users_retrieval_response_not_found(
+@pytest.mark.asyncio
+async def test_build_multiple_users_retrieval_response_not_found(
     users_by_email,
     users_by_username,
+    mock_context,
 ):
     with pytest.raises(RetryableToolError) as error:
-        build_multiple_users_retrieval_response(
+        await build_multiple_users_retrieval_response(
+            context=mock_context,
             users_responses=[users_by_email, users_by_username],
         )
 
-        emails_not_found = users_by_email.get("emails_not_found", [])
-        usernames_not_found = users_by_username.get("usernames_not_found", [])
-        other_available_users = users_by_username.get("other_available_users", [])
+    emails_not_found = users_by_email.get("not_found", [])
+    usernames_not_found = users_by_username.get("not_found", [])
+    available_users = users_by_username.get("available_users", [])
 
-        for email in emails_not_found:
-            assert email in error.value.message
-        for username in usernames_not_found:
-            assert username in error.value.message
-        for user in other_available_users:
-            assert str(user) in error.value.additional_prompt_content
+    for email in emails_not_found:
+        assert email in error.value.message
+    for username in usernames_not_found:
+        assert username in error.value.message
+    for user in available_users:
+        assert json.dumps(user) in error.value.additional_prompt_content
 
 
 def test_is_valid_email():

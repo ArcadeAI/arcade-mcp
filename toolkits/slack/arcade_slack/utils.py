@@ -444,11 +444,13 @@ async def raise_for_users_not_found(
     available_users_prompt = await get_available_users_prompt(context, available_users)
 
     if users_not_found:
-        message = "One or more users were not found."
+        not_found_message = ", ".join(users_not_found)
+        s = "" if len(users_not_found) == 1 else "s"
+        message = f"User{s} not found: {not_found_message}"
 
         raise RetryableToolError(
             message=message,
-            developer_message=f"{message}: {json.dumps(users_not_found)}",
+            developer_message=message,
             additional_prompt_content=available_users_prompt,
             retry_after_ms=500,
         )

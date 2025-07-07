@@ -8,10 +8,7 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_slack
-from arcade_slack.tools.chat import (
-    get_members_in_channel_by_name,
-    get_members_in_conversation_by_id,
-)
+from arcade_slack.tools.chat import get_users_in_conversation
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -26,7 +23,7 @@ catalog.add_module(arcade_slack)
 
 
 @tool_eval()
-def get_conversations_members_eval_suite() -> EvalSuite:
+def get_users_in_conversation_eval_suite() -> EvalSuite:
     """Create an evaluation suite for tools getting conversations members."""
     suite = EvalSuite(
         name="Slack Tools Evaluation",
@@ -37,45 +34,47 @@ def get_conversations_members_eval_suite() -> EvalSuite:
 
     user_messages = [
         "Get the members of the #general channel",
-        "Get the members of the general channel",
+        "Get the users in the #general channel",
         "Get a list of people in the #general channel",
         "Get a list of people in the general channel",
         "Show me who's in the #general channel",
-        "Show me who's in the general channel",
-        "Who is in the #general channel?",
         "Who is in the general channel?",
     ]
 
     for user_message in user_messages:
         suite.add_case(
-            name=f"Get channel members by name: {user_message}",
+            name=f"Get users in channel by channel name: {user_message}",
             user_message=user_message,
             expected_tool_calls=[
                 ExpectedToolCall(
-                    func=get_members_in_channel_by_name,
+                    func=get_users_in_conversation,
                     args={
+                        "conversation_id": None,
                         "channel_name": "general",
                     },
                 ),
             ],
             critics=[
-                BinaryCritic(critic_field="conversation_name", weight=1.0),
+                BinaryCritic(critic_field="conversation_id", weight=0.4),
+                BinaryCritic(critic_field="channel_name", weight=0.6),
             ],
         )
 
     suite.add_case(
-        name="Get conversation members by id",
-        user_message="Get the members of the conversation with id '1234567890'",
+        name="Get users in conversation by conversation id",
+        user_message="Get the users in the conversation with id '1234567890'",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=get_members_in_conversation_by_id,
+                func=get_users_in_conversation,
                 args={
                     "conversation_id": "1234567890",
+                    "channel_name": None,
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="conversation_id", weight=1.0),
+            BinaryCritic(critic_field="conversation_id", weight=0.6),
+            BinaryCritic(critic_field="channel_name", weight=0.4),
         ],
     )
 

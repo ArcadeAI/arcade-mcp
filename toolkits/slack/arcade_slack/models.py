@@ -267,6 +267,34 @@ class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
         return False
 
 
+class FindMultipleUsersByIdSentinel(PaginationSentinel):
+    """Sentinel class for finding multiple users by ID."""
+
+    def __init__(self, user_ids: list[str]) -> None:
+        if not user_ids:
+            raise ValueError("user_ids must be a non-empty list of strings")
+        super().__init__(user_ids=user_ids)
+        self.user_ids_pending = set(user_ids)
+
+    def _flag_user_id_found(self, user_id: str) -> None:
+        with suppress(KeyError):
+            self.user_ids_pending.remove(user_id.casefold())
+
+    def _all_user_ids_found(self) -> bool:
+        return not self.user_ids_pending
+
+    def __call__(self, last_result: Any) -> bool:
+        if not self.user_ids_pending:
+            return True
+        for user in last_result:
+            user_id = user.get("id")
+            if user_id in self.user_ids_pending:
+                self._flag_user_id_found(user_id)
+                if self._all_user_ids_found():
+                    return True
+        return False
+
+
 class FindChannelByNameSentinel(PaginationSentinel):
     """Sentinel class for finding a channel by name."""
 

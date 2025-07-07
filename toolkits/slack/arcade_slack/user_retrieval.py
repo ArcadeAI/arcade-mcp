@@ -8,7 +8,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.constants import MAX_CONCURRENT_REQUESTS, MAX_PAGINATION_TIMEOUT_SECONDS
 from arcade_slack.models import (
-    ConcurrencySafeCoroutineCaller,
+    FindMultipleUsersByIdSentinel,
     FindMultipleUsersByUsernameSentinel,
     GetUserByEmailCaller,
 )
@@ -70,49 +70,46 @@ async def get_users_by_id(
     auth_token: str,
     user_ids: list[str],
     semaphore: asyncio.Semaphore | None = None,
-) -> dict[str, list[dict]]:
-    slack_client = AsyncWebClient(token=auth_token)
-
-    if len(user_ids) == 0:
-        user = await slack_client.users_info(user=user_ids[0])
-        return {"users": [user["user"]]}
-
-    responses = await gather_with_concurrency_limit(
-        coroutine_callers=[
-            ConcurrencySafeCoroutineCaller(
-                get_user_by_id,
-                auth_token=auth_token,
-                user_id=user_id,
-            )
-            for user_id in user_ids
-        ],
-        semaphore=semaphore,
-    )
-
-    users = []
-    not_found = []
-
-    for response in responses:
-        if response["user"] is None:
-            not_found.append(response["user_id"])
+) -> dict[str, list[dict | str]]:
+    if len(user_ids) == 1:
+        user = await get_single_user_by_id(auth_token, user_ids[0])
+        if not user:
+            return {"users": [], "not_found": user_ids}
         else:
-            users.append(response["user"])
+            return {"users": [user], "not_found": []}
 
-    final_response: dict[str, Any] = {"users": users}
+    if not semaphore:
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
-    if not_found:
-        final_response["not_found"] = not_found
+    async with semaphore:
+        slack_client = AsyncWebClient(token=auth_token)
+        response, _ = await async_paginate(
+            func=slack_client.users_list,
+            response_key="members",
+            sentinel=FindMultipleUsersByIdSentinel(user_ids=user_ids),
+        )
 
-    return final_response
+    user_ids_pending = set(user_ids)
+    users = []
+
+    for user in response:
+        if user["id"] in user_ids_pending:
+            users.append(user)
+            user_ids_pending.remove(user["id"])
+
+    return {"users": users, "not_found": list(user_ids_pending)}
 
 
-async def get_user_by_id(auth_token: str, user_id: str) -> dict:
+async def get_single_user_by_id(auth_token: str, user_id: str) -> dict | None:
     slack_client = AsyncWebClient(token=auth_token)
     try:
-        return await slack_client.users_info(user_id=user_id)
+        response = await slack_client.users_info(user=user_id)
+        if not response.get("ok"):
+            return None
+        return response["user"]
     except SlackApiError as e:
         if "not_found" in e.response.get("error", ""):
-            return {"user_id": user_id, "user": None}
+            return None
         else:
             message = f"There was an error getting the user with ID {user_id}."
             slack_error_message = e.response.get("error", "Unknown Slack API error")
