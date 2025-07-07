@@ -29,7 +29,7 @@ async def get_users_by_id_username_or_email(
     usernames: str | list[str] | None = None,
     emails: str | list[str] | None = None,
     semaphore: asyncio.Semaphore | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Get the metadata of a user by their ID, username, or email.
 
     Provide any combination of user_ids, usernames, and/or emails. Always prefer providing user_ids
@@ -94,19 +94,19 @@ async def get_users_by_id(
 
     for user in response:
         if user["id"] in user_ids_pending:
-            users.append(user)
+            users.append(cast_user_dict(user))
             user_ids_pending.remove(user["id"])
 
     return {"users": users, "not_found": list(user_ids_pending)}
 
 
-async def get_single_user_by_id(auth_token: str, user_id: str) -> dict | None:
+async def get_single_user_by_id(auth_token: str, user_id: str) -> dict[str, Any] | None:
     slack_client = AsyncWebClient(token=auth_token)
     try:
         response = await slack_client.users_info(user=user_id)
         if not response.get("ok"):
             return None
-        return response["user"]
+        return cast_user_dict(response["user"])
     except SlackApiError as e:
         if "not_found" in e.response.get("error", ""):
             return None

@@ -480,21 +480,22 @@ async def get_available_users_prompt(
         from arcade_slack.tools.users import list_users  # Avoid circular import
 
         if isinstance(available_users, list) and available_users:
-            available_users = json.dumps(short_human_users_info(available_users))
+            available_users = [user for user in available_users if not is_user_a_bot(user)]
+            available_users_str = json.dumps(short_human_users_info(available_users))
             next_cursor = None
             potentially_more_users = True
         else:
-            users = await list_users(context, limit=limit)
+            users = await list_users(context, limit=limit, exclude_bots=True)
             next_cursor = users["next_cursor"]
-            available_users = json.dumps(short_human_users_info(users["users"]))
+            available_users_str = json.dumps(short_human_users_info(users["users"]))
             potentially_more_users = bool(next_cursor)
 
         if not potentially_more_users:
-            return f"The users available are: {available_users}"
+            return f"The users available are: {available_users_str}"
         else:
             msg = (
-                f"Some of the available users are: {available_users}. Potentially more users can "
-                f"be retrieved by calling the '{list_users.__tool_name__}' tool"
+                f"Some of the available users are: {available_users_str}. Potentially more users "
+                f"can be retrieved by calling the 'Slack.{list_users.__tool_name__}' tool"
             )
             if next_cursor:
                 msg += f" using the next cursor: '{next_cursor}' to continue pagination."
