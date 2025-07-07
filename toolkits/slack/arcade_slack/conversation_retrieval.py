@@ -1,5 +1,4 @@
 import json
-from collections.abc import Callable
 from typing import cast
 
 from arcade_tdk import ToolContext
@@ -8,15 +7,12 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from arcade_slack.models import (
-    ConcurrencySafeCoroutineCaller,
     ConversationType,
     FindChannelByNameSentinel,
 )
 from arcade_slack.utils import (
     async_paginate,
     extract_conversation_metadata,
-    filter_conversations_by_user_ids,
-    gather_with_concurrency_limit,
 )
 
 
@@ -42,69 +38,6 @@ async def get_conversation_by_id(
         raise
 
 
-async def get_conversations_by_user_ids(
-    list_conversations_func: Callable,
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation_types: list[ConversationType],
-    user_ids: list[str],
-    exact_match: bool = False,
-    limit: int | None = None,
-    next_cursor: str | None = None,
-) -> list[dict]:
-    """
-    Retrieve conversations filtered by the given user IDs. Includes pagination support
-    and optionally limits the number of returned conversations.
-    """
-    conversations_found: list[dict] = []
-
-    response = await list_conversations_func(
-        context=context,
-        conversation_types=conversation_types,
-        next_cursor=next_cursor,
-    )
-
-    # Associate members to each conversation
-    conversations_with_members = await associate_members_of_multiple_conversations(
-        get_members_in_conversation_func, response["conversations"], context
-    )
-
-    conversations_found.extend(
-        filter_conversations_by_user_ids(conversations_with_members, user_ids, exact_match)
-    )
-
-    return conversations_found if not limit else conversations_found[:limit]
-
-
-async def associate_members_of_conversation(
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation: dict,
-) -> dict:
-    response = await get_members_in_conversation_func(context, conversation["id"])
-    conversation["members"] = response["members"]
-    return conversation
-
-
-async def associate_members_of_multiple_conversations(
-    get_members_in_conversation_func: Callable,
-    conversations: list[dict],
-    context: ToolContext,
-) -> list[dict]:
-    """Associate members to each conversation, returning the updated list."""
-    results = await gather_with_concurrency_limit([
-        ConcurrencySafeCoroutineCaller(
-            associate_members_of_conversation,
-            get_members_in_conversation_func,
-            context,
-            conversation,
-        )
-        for conversation in conversations
-    ])
-
-    return cast(list[dict], results)
-
-
 async def get_channel_by_name(
     context: ToolContext,
     channel_name: str,
@@ -116,7 +49,7 @@ async def get_channel_by_name(
         func=list_conversations_metadata,
         conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
         response_key="conversations",
-        sentinel=FindChannelByNameSentinel(channel_name),
+        sentinel=FindChannelByNameSentinel(channel_name.lstrip("#")),
     )
 
     available_channels = []

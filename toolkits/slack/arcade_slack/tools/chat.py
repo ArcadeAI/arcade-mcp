@@ -10,7 +10,6 @@ from slack_sdk.web.async_client import AsyncWebClient
 from arcade_slack.conversation_retrieval import (
     get_channel_by_name,
     get_conversation_by_id,
-    get_conversations_by_user_ids,
 )
 from arcade_slack.message_retrieval import retrieve_messages_in_conversation
 from arcade_slack.models import (
@@ -41,97 +40,45 @@ from arcade_slack.utils import (
         ],
     )
 )
-async def send_dm_to_user(
+async def send_message(
     context: ToolContext,
-    user_name: Annotated[
-        str,
-        (
-            "The Slack username of the person you want to message. "
-            "Slack usernames are ALWAYS lowercase."
-        ),
-    ],
-    message: Annotated[str, "The message you want to send"],
+    message: Annotated[str, "The content of the message to send."],
+    channel_name: Annotated[str | None, "The channel name to send the message to."] = None,
+    conversation_id: Annotated[str | None, "The conversation ID to send the message to."] = None,
+    user_ids: Annotated[list[str] | None, "The Slack user IDs of the people to message."] = None,
+    emails: Annotated[list[str] | None, "The emails of the people to message."] = None,
+    usernames: Annotated[
+        list[str] | None,
+        "The Slack usernames of the people to message. Prefer providing user_ids and/or emails, "
+        "when available, since the performance is better.",
+    ] = None,
 ) -> Annotated[dict, "The response from the Slack API"]:
-    """Send a direct message to a user in Slack."""
+    """Send a message to a Channel, Direct Message (IM/DM), or MPIM (multi-person) conversation
 
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
-    slackClient = AsyncWebClient(token=token)
-
-    try:
-        # Step 1: Retrieve the user's Slack ID based on their username
-        user_list_response = await slackClient.users_list()
-        user_id = None
-        for user in user_list_response["members"]:
-            response_user_name = (
-                "" if not isinstance(user.get("name"), str) else user["name"].lower()
-            )
-            if response_user_name == user_name.lower():
-                user_id = user["id"]
-                break
-
-        if not user_id:
-            raise RetryableToolError(
-                "User not found",
-                developer_message=f"User with username '{user_name}' not found.",
-                additional_prompt_content=format_users(cast(SlackUserList, user_list_response)),
-                retry_after_ms=500,  # Play nice with Slack API rate limits
-            )
-
-        # Step 2: Retrieve the DM channel ID with the user
-        im_response = await slackClient.conversations_open(users=[user_id])
-        dm_channel_id = im_response["channel"]["id"]
-
-        # Step 3: Send the message as if it's from you (because we're using a user token)
-        response = await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
-
-    except SlackApiError as e:
-        error_message = e.response["error"] if "error" in e.response else str(e)
+    Provide exactly one of:
+    - channel_name; or
+    - conversation_id; or
+    - any combination of user_ids, usernames, and/or emails.
+    """
+    if conversation_id and any([channel_name, user_ids, usernames, emails]):
         raise ToolExecutionError(
-            "Error sending message",
-            developer_message=f"Slack API Error: {error_message}",
-        )
-    else:
-        return {"response": response.data}
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=[
-            "chat:write",
-            "channels:read",
-            "groups:read",
-        ],
-    )
-)
-async def send_message_to_channel(
-    context: ToolContext,
-    channel_name: Annotated[str, "The Slack channel name where you want to send the message. "],
-    message: Annotated[str, "The message you want to send"],
-) -> Annotated[dict, "The response from the Slack API"]:
-    """Send a message to a channel in Slack."""
-
-    try:
-        slackClient = AsyncWebClient(
-            token=context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
+            "Provide exactly one of: channel_name, conversation_id, or any combination of "
+            "user_ids, usernames, and/or emails."
         )
 
-        channel = await get_conversation_metadata(context=context, channel_name=channel_name)
-        channel_id = channel["id"]
-
-        response = await slackClient.chat_postMessage(channel=channel_id, text=message)
-
-    except SlackApiError as e:
-        error_message = e.response["error"] if "error" in e.response else str(e)
-        raise ToolExecutionError(
-            "Error sending message",
-            developer_message=f"Slack API Error: {error_message}",
+    if not conversation_id:
+        conversation = await get_conversation_metadata(
+            context=context,
+            channel_name=channel_name,
+            user_ids=user_ids,
+            usernames=usernames,
+            emails=emails,
         )
-    else:
-        return {"response": response.data}
+        conversation_id = conversation["id"]
+
+    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    response = await slack_client.chat_postMessage(channel=conversation_id, text=message)
+    return {"response": response.data}
 
 
 @tool(
@@ -317,13 +264,13 @@ async def get_conversation_metadata(
     Provide exactly one of:
     - conversation_id; or
     - channel_name; or
-    - any combination of user_ids, usernames, or emails.
+    - any combination of user_ids, usernames, and/or emails.
     """
     args = {[bool(conversation_id), bool(channel_name), any([user_ids, usernames, emails])]}
     if len(args) > 1:
         raise ToolExecutionError(
             "Provide either a conversation_id OR a channel_name OR "
-            "any combination of user_ids, usernames, or emails."
+            "any combination of user_ids, usernames, and/or emails."
         )
 
     if conversation_id:
@@ -332,39 +279,37 @@ async def get_conversation_metadata(
     elif channel_name:
         return await get_channel_by_name(context, channel_name)
 
+    user_ids_list = user_ids if isinstance(user_ids, list) else []
+
     slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
 
-    current_user, other_users = await asyncio.gather(
-        slack_client.auth_test(),
-        get_users_by_id_username_or_email(
-            context.get_auth_token_or_empty(), user_ids, usernames, emails
-        ),
-    )
+    current_user = await slack_client.auth_test()
 
-    if len(other_users) == 1:
-        user_ids = [current_user["user_id"], other_users[0]["id"]]
-        conversation_types = [ConversationType.DIRECT_MESSAGE]
-    else:
-        user_ids = [current_user["user_id"], *[user["id"] for user in other_users]]
-        conversation_types = [ConversationType.MULTI_PERSON_DIRECT_MESSAGE]
+    if not current_user.get("ok"):
+        message = "Failed to get current user"
+        raise ToolExecutionError(message=message, developer_message=message)
 
-    conversations_found = await get_conversations_by_user_ids(
-        list_conversations_func=list_conversations_metadata,
-        get_members_in_conversation_func=get_members_in_conversation_by_id,
-        context=context,
-        conversation_types=conversation_types,
-        user_ids=user_ids,
-        exact_match=True,
-        limit=1,
-    )
+    user_ids_list.append(current_user["user_id"])
 
-    if not conversations_found:
+    if usernames or emails:
+        other_users = await get_users_by_id_username_or_email(
+            context=context,
+            usernames=usernames,
+            emails=emails,
+        )
+        user_ids_list.extend([user["id"] for user in other_users])
+
+    try:
+        response = await slack_client.conversations_open(users=user_ids_list)
+    except SlackApiError as e:
+        message = "Failed to retrieve conversation metadata."
+        slack_error = e.response.get("error", "unknown_error")
         raise ToolExecutionError(
-            "Conversation not found",
-            developer_message="Conversation not found between the users.",
+            message=message,
+            developer_message=f"{message} Slack error: '{slack_error}'",
         )
 
-    return dict(**extract_conversation_metadata(conversations_found[0]))
+    return dict(**extract_conversation_metadata(response["channel"]))
 
 
 @tool(
@@ -530,6 +475,114 @@ async def list_direct_message_conversations_metadata(
 # - get_conversation_metadata
 # - get_users_in_conversation
 ##################################################################################
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "chat:write",
+            "im:write",
+            "users.profile:read",
+            "users:read",
+        ],
+    )
+)
+async def send_dm_to_user(
+    context: ToolContext,
+    user_name: Annotated[
+        str,
+        (
+            "The Slack username of the person you want to message. "
+            "Slack usernames are ALWAYS lowercase."
+        ),
+    ],
+    message: Annotated[str, "The message you want to send"],
+) -> Annotated[dict, "The response from the Slack API"]:
+    """Send a direct message to a user in Slack.
+
+    This tool is deprecated. Use `Slack.SendMessage` instead.
+    """
+    token = (
+        context.authorization.token if context.authorization and context.authorization.token else ""
+    )
+    slackClient = AsyncWebClient(token=token)
+
+    try:
+        # Step 1: Retrieve the user's Slack ID based on their username
+        user_list_response = await slackClient.users_list()
+        user_id = None
+        for user in user_list_response["members"]:
+            response_user_name = (
+                "" if not isinstance(user.get("name"), str) else user["name"].lower()
+            )
+            if response_user_name == user_name.lower():
+                user_id = user["id"]
+                break
+
+        if not user_id:
+            raise RetryableToolError(
+                "User not found",
+                developer_message=f"User with username '{user_name}' not found.",
+                additional_prompt_content=format_users(cast(SlackUserList, user_list_response)),
+                retry_after_ms=500,  # Play nice with Slack API rate limits
+            )
+
+        # Step 2: Retrieve the DM channel ID with the user
+        im_response = await slackClient.conversations_open(users=[user_id])
+        dm_channel_id = im_response["channel"]["id"]
+
+        # Step 3: Send the message as if it's from you (because we're using a user token)
+        response = await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
+
+    except SlackApiError as e:
+        error_message = e.response["error"] if "error" in e.response else str(e)
+        raise ToolExecutionError(
+            "Error sending message",
+            developer_message=f"Slack API Error: {error_message}",
+        )
+    else:
+        return {"response": response.data}
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "chat:write",
+            "channels:read",
+            "groups:read",
+        ],
+    )
+)
+async def send_message_to_channel(
+    context: ToolContext,
+    channel_name: Annotated[str, "The Slack channel name where you want to send the message. "],
+    message: Annotated[str, "The message you want to send"],
+) -> Annotated[dict, "The response from the Slack API"]:
+    """Send a message to a channel in Slack.
+
+    This tool is deprecated. Use `Slack.SendMessage` instead.
+    """
+
+    try:
+        slackClient = AsyncWebClient(
+            token=context.authorization.token
+            if context.authorization and context.authorization.token
+            else ""
+        )
+
+        channel = await get_conversation_metadata(context=context, channel_name=channel_name)
+        channel_id = channel["id"]
+
+        response = await slackClient.chat_postMessage(channel=channel_id, text=message)
+
+    except SlackApiError as e:
+        error_message = e.response["error"] if "error" in e.response else str(e)
+        raise ToolExecutionError(
+            "Error sending message",
+            developer_message=f"Slack API Error: {error_message}",
+        )
+    else:
+        return {"response": response.data}
 
 
 @tool(
