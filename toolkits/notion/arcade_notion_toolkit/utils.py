@@ -1,9 +1,29 @@
 from typing import Any
+from uuid import UUID
 
 import httpx
 from arcade_tdk import ToolContext
 
 from arcade_notion_toolkit.constants import ENDPOINTS, NOTION_API_URL, UNTITLED_TITLE
+
+
+def is_page_id(candidate: str) -> bool:
+    """
+    Determine if the provided candidate string has the structure of a valid Notion page ID.
+    Page IDs are UUID values.
+
+    Args:
+        candidate (str): The candidate string to check.
+
+    Returns:
+        bool: True if the candidate has the structure of a valid Notion page ID, False otherwise.
+    """
+    try:
+        UUID(candidate)
+    except ValueError:
+        return False
+
+    return True
 
 
 def get_url(endpoint: str, **kwargs: Any) -> str:

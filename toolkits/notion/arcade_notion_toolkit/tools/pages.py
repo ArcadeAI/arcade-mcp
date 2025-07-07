@@ -15,7 +15,9 @@ from arcade_notion_toolkit.utils import (
     extract_title,
     get_headers,
     get_next_page,
+    get_page_url,
     get_url,
+    is_page_id,
 )
 
 
@@ -150,3 +152,40 @@ async def create_page(
         response = await client.post(url, headers=headers, json=body)
         response.raise_for_status()
         return f"Successfully created page with ID: {response.json()['id']}"
+
+
+@tool(requires_auth=Notion())
+async def append_content_to_end_of_page(
+    context: ToolContext,
+    page_id_or_title: Annotated[str, "ID or title of the page to append content to"],
+    content: Annotated[str, "The markdown content to append to the end of the page"],
+) -> Annotated[dict[str, str], "A dictionary containing a success message and the URL to the page"]:
+    """Append content to the end of a Notion page by its ID or title"""
+    # Determine if the provided identifier is an ID or a title
+    page_id = page_id_or_title
+    if not is_page_id(page_id_or_title):
+        page_metadata = await get_object_metadata(
+            context,
+            object_title=page_id_or_title,
+            object_type=ObjectType.PAGE,
+        )
+        page_id = page_metadata["id"]
+
+    headers = get_headers(context)
+    # the Notion API endpoint conveniently also accepts page ID for the block_id path parameter
+    url = get_url("append_block_children", block_id=page_id)
+
+    children = convert_markdown_to_blocks(content)
+
+    body = {"children": children}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.patch(url, headers=headers, json=body)
+        response.raise_for_status()
+
+        page_url = await get_page_url(context, page_id)
+
+        return {
+            "message": f"Successfully appended content to page with ID: {page_id}",
+            "url": page_url,
+        }

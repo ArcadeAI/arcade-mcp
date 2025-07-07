@@ -10,6 +10,7 @@ from arcade_tdk import ToolCatalog
 
 import arcade_notion_toolkit
 from arcade_notion_toolkit.tools import (
+    append_content_to_end_of_page,
     create_page,
     get_page_content_by_id,
     get_page_content_by_title,
@@ -52,6 +53,15 @@ Arcade solves key challenges for agent developers:
 
 Arcade lets you focus on creating useful tool functionality rather than solving complex authentication, deployment, and integration challenges.
 """  # noqa: E501
+
+PAGE_CONTENT_TO_APPEND = """
+# Next steps
+Here are the next steps
+1. Add ability to append to the end of a page
+1. Make it Pythonic
+## Next next steps
+**Write** [evals](https://github.com/ArcadeAI/arcade-ai)
+"""
 
 # A conversation where a user asks the AI to get the content of a page named 'Arcade Notes'
 GET_PAGE_CONVERSATION = [
@@ -252,4 +262,38 @@ def get_page_content_eval_suite() -> EvalSuite:
         additional_messages=GET_PAGE_CONVERSATION,
     )
 
+    return suite
+
+
+@tool_eval()
+def append_page_content_eval_suite() -> EvalSuite:
+    """Create an evaluation suite for tools appending content to an existing Notion page"""
+    suite = EvalSuite(
+        name="Notion Append Content To End Of Page",
+        system_message=(
+            "You are an AI assistant that has access to the user's Notion workspace. "
+            "You can take actions on the user's Notion workspace on behalf of the user."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="Append page content easy difficulty",
+        user_message=f"Add this to the end of that page:\n{PAGE_CONTENT_TO_APPEND}",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=append_content_to_end_of_page,
+                args={
+                    "page_id_or_title": "Arcade Notes",
+                    "content": PAGE_CONTENT_TO_APPEND,
+                },
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="page_id_or_title", weight=0.5),
+            SimilarityCritic(critic_field="content", weight=0.5, similarity_threshold=0.95),
+        ],
+        additional_messages=GET_PAGE_CONVERSATION,
+    )
     return suite
