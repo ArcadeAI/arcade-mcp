@@ -31,6 +31,16 @@ class ConversationType(str, Enum):
     MULTI_PERSON_DIRECT_MESSAGE = "multi_person_direct_message"
     DIRECT_MESSAGE = "direct_message"
 
+    def to_slack_name_str(self) -> str:
+        mapping = {
+            ConversationType.PUBLIC_CHANNEL: ConversationTypeSlackName.PUBLIC_CHANNEL.value,
+            ConversationType.PRIVATE_CHANNEL: ConversationTypeSlackName.PRIVATE_CHANNEL.value,
+            ConversationType.MULTI_PERSON_DIRECT_MESSAGE: ConversationTypeSlackName.MPIM.value,
+            ConversationType.DIRECT_MESSAGE: ConversationTypeSlackName.IM.value,
+        }
+
+        return mapping[self]
+
 
 """
 About Slack dictionaries: Slack does not guarantee the presence of all fields for a given

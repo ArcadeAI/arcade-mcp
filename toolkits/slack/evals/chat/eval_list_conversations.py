@@ -1,4 +1,5 @@
 from arcade_evals import (
+    BinaryCritic,
     EvalRubric,
     EvalSuite,
     ExpectedToolCall,
@@ -7,13 +8,8 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_slack
-from arcade_slack.tools.chat import (
-    list_conversations_metadata,
-    list_direct_message_conversations_metadata,
-    list_group_direct_message_conversations_metadata,
-    list_private_channels_metadata,
-    list_public_channels_metadata,
-)
+from arcade_slack.models import ConversationType
+from arcade_slack.tools.chat import list_conversations
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -37,62 +33,143 @@ def list_conversations_eval_suite() -> EvalSuite:
         rubric=rubric,
     )
 
-    cases = [
-        (
-            "List my conversations",
-            "List all conversations I am a member of",
-            list_conversations_metadata,
-        ),
-        (
-            "List public channels",
-            "List all public channels",
-            list_public_channels_metadata,
-        ),
-        (
-            "List private channels",
-            "List all private channels",
-            list_private_channels_metadata,
-        ),
-        (
-            "List group direct message channels",
-            "List all group direct message channels",
-            list_group_direct_message_conversations_metadata,
-        ),
-        (
-            "List individual direct message channels",
-            "List all individual direct message channels",
-            list_direct_message_conversations_metadata,
-        ),
-        (
-            "List direct message channels",
-            "List all direct message channels",
-            list_direct_message_conversations_metadata,
-        ),
-        (
-            "List public and private channels",
-            "List public and private channels I am a member of",
-            list_public_channels_metadata,
-            list_private_channels_metadata,
-        ),
-        (
-            "List public channels and direct message conversations",
-            "List public channels and direct message conversations I am a member of",
-            list_public_channels_metadata,
-            list_direct_message_conversations_metadata,
-        ),
-    ]
+    suite.add_case(
+        name="List all conversations I am a member of",
+        user_message="List all conversations I am a member of",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": None,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
 
-    for name, user_message, *expect_called_tool_functions in cases:
-        suite.add_case(
-            name=name,
-            user_message=user_message,
-            expected_tool_calls=[
-                ExpectedToolCall(
-                    func=tool_function,
-                    args={},
-                )
-                for tool_function in expect_called_tool_functions
-            ],
-        )
+    suite.add_case(
+        name="List 10 conversations I am a member of",
+        user_message="List 10 conversations I am a member of",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": None,
+                    "limit": 10,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=0.5),
+            BinaryCritic(critic_field="limit", weight=0.5),
+        ],
+    )
+
+    suite.add_case(
+        name="List all public channels",
+        user_message="List all public channels",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [ConversationType.PUBLIC_CHANNEL.value],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="List all private channels",
+        user_message="List all private channels",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [ConversationType.PRIVATE_CHANNEL.value],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="List all public and private channels",
+        user_message="List all public and private channels",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [
+                        ConversationType.PUBLIC_CHANNEL.value,
+                        ConversationType.PRIVATE_CHANNEL.value,
+                    ],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="List direct message channels",
+        user_message="List direct message channels",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [
+                        ConversationType.DIRECT_MESSAGE.value,
+                    ],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="List group direct message channels",
+        user_message="List group direct message channels",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [
+                        ConversationType.MULTI_PERSON_DIRECT_MESSAGE.value,
+                    ],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="List my multi-person conversations",
+        user_message="List my multi-person conversations",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=list_conversations,
+                args={
+                    "conversation_types": [
+                        ConversationType.MULTI_PERSON_DIRECT_MESSAGE.value,
+                    ],
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="conversation_types", weight=1.0),
+        ],
+    )
 
     return suite

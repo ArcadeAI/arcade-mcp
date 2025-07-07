@@ -23,7 +23,6 @@ from arcade_slack.user_retrieval import (
 )
 from arcade_slack.utils import (
     async_paginate,
-    convert_conversation_type_to_slack_name,
     extract_conversation_metadata,
     format_users,
     raise_for_users_not_found,
@@ -317,44 +316,32 @@ async def get_conversation_metadata(
         scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
     )
 )
-async def list_conversations_metadata(
+async def list_conversations(
     context: ToolContext,
     conversation_types: Annotated[
         list[ConversationType] | None,
-        "The type(s) of conversations to list. Defaults to all types.",
+        "Optionally filter by the type(s) of conversations. Defaults to None (all types).",
     ] = None,
     limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
-) -> Annotated[
-    dict,
-    (
-        "The conversations metadata list and a pagination 'next_cursor', if there are more "
-        "conversations to retrieve."
-    ),
-]:
-    """
-    List metadata for Slack conversations (channels and/or direct messages) that the user
-    is a member of.
+) -> Annotated[dict, "The list of conversations found with metadata"]:
+    """List metadata for Slack conversations (channels, DMs, MPIMs) the user is a member of.
 
     This tool does not return the messages in a conversation. To get the messages, use the
     'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
+    will release too much CO2 in the atmosphere and contribute to global warming.
     """
-    if isinstance(conversation_types, ConversationType):
-        conversation_types = [conversation_types]
+    if conversation_types:
+        conversation_types_filter = ",".join(
+            conversation_type.to_slack_name_str() for conversation_type in conversation_types
+        )
+    else:
+        conversation_types_filter = None
 
-    conversation_types_filter = ",".join(
-        convert_conversation_type_to_slack_name(conv_type).value
-        for conv_type in conversation_types or ConversationType
-    )
-
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
-    )
-    slackClient = AsyncWebClient(token=token)
+    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
 
     results, next_cursor = await async_paginate(
-        slackClient.conversations_list,
+        slack_client.conversations_list,
         "channels",
         limit=limit,
         next_cursor=next_cursor,
@@ -372,108 +359,13 @@ async def list_conversations_metadata(
     }
 
 
-@tool(
-    requires_auth=Slack(
-        scopes=["channels:read"],
-    )
-)
-async def list_public_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
-) -> Annotated[dict, "The public channels"]:
-    """List metadata for public channels in Slack that the user is a member of.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
-    """
-
-    return await list_conversations_metadata(  # type: ignore[no-any-return]
-        context,
-        conversation_types=[ConversationType.PUBLIC_CHANNEL],
-        limit=limit,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["groups:read"],
-    )
-)
-async def list_private_channels_metadata(
-    context: ToolContext,
-    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
-) -> Annotated[dict, "The private channels"]:
-    """List metadata for private channels in Slack that the user is a member of.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
-    """
-
-    return await list_conversations_metadata(  # type: ignore[no-any-return]
-        context,
-        conversation_types=[ConversationType.PRIVATE_CHANNEL],
-        limit=limit,
-    )
-
-
-@tool(
-    requires_auth=Slack(
-        scopes=["mpim:read"],
-    )
-)
-async def list_group_direct_message_conversations_metadata(
-    context: ToolContext,
-    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
-) -> Annotated[dict, "The group direct message conversations metadata"]:
-    """List metadata for group direct message conversations that the user is a member of.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
-    """
-
-    return await list_conversations_metadata(  # type: ignore[no-any-return]
-        context,
-        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-        limit=limit,
-    )
-
-
-# Note: Bots are included in the results.
-# Note: Direct messages with no conversation history are included in the results.
-@tool(
-    requires_auth=Slack(
-        scopes=["im:read"],
-    )
-)
-async def list_direct_message_conversations_metadata(
-    context: ToolContext,
-    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
-) -> Annotated[dict, "The direct message conversations metadata"]:
-    """List metadata for direct message conversations in Slack that the user is a member of.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
-    """
-
-    response = await list_conversations_metadata(
-        context,
-        conversation_types=[ConversationType.DIRECT_MESSAGE],
-        limit=limit,
-    )
-
-    return response  # type: ignore[no-any-return]
-
-
 ##################################################################################
 # NOTE: The tools below are kept here for backwards compatibility. Prefer using: #
 # - send_message
 # - get_messages
 # - get_conversation_metadata
 # - get_users_in_conversation
+# - list_conversations
 ##################################################################################
 
 
@@ -953,6 +845,141 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
         limit=limit,
         next_cursor=next_cursor,
     )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+    )
+)
+async def list_conversations_metadata(
+    context: ToolContext,
+    conversation_types: Annotated[
+        list[ConversationType] | None,
+        "Optionally filter by the type(s) of conversations. Defaults to None (all types).",
+    ] = None,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
+    next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
+) -> Annotated[dict, "The list of conversations found with metadata"]:
+    """
+    List Slack conversations (channels, DMs, MPIMs) the user is a member of.
+
+    This tool is deprecated. Use the `Slack.ListConversations` tool instead.
+
+    This tool does not return the messages in a conversation. To get the messages, use the
+    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
+    will release too much CO2 in the atmosphere and contribute to global warming.
+    """
+    return await list_conversations(
+        context=context,
+        conversation_types=conversation_types,
+        limit=limit,
+        next_cursor=next_cursor,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["channels:read"],
+    )
+)
+async def list_public_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
+) -> Annotated[dict, "The public channels"]:
+    """List metadata for public channels in Slack that the user is a member of.
+
+    This tool is deprecated. Use the `Slack.ListConversations` tool instead.
+
+    This tool does not return the messages in a conversation. To get the messages, use the
+    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
+    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
+    """
+
+    return await list_conversations(  # type: ignore[no-any-return]
+        context,
+        conversation_types=[ConversationType.PUBLIC_CHANNEL],
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["groups:read"],
+    )
+)
+async def list_private_channels_metadata(
+    context: ToolContext,
+    limit: Annotated[int | None, "The maximum number of channels to list."] = None,
+) -> Annotated[dict, "The private channels"]:
+    """List metadata for private channels in Slack that the user is a member of.
+
+    This tool is deprecated. Use the `Slack.ListConversations` tool instead.
+
+    This tool does not return the messages in a conversation. To get the messages, use the
+    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
+    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
+    """
+
+    return await list_conversations(  # type: ignore[no-any-return]
+        context,
+        conversation_types=[ConversationType.PRIVATE_CHANNEL],
+        limit=limit,
+    )
+
+
+@tool(
+    requires_auth=Slack(
+        scopes=["mpim:read"],
+    )
+)
+async def list_group_direct_message_conversations_metadata(
+    context: ToolContext,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
+) -> Annotated[dict, "The group direct message conversations metadata"]:
+    """List metadata for group direct message conversations that the user is a member of.
+
+    This tool is deprecated. Use the `Slack.ListConversations` tool instead.
+
+    This tool does not return the messages in a conversation. To get the messages, use the
+    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
+    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
+    """
+
+    return await list_conversations(  # type: ignore[no-any-return]
+        context,
+        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
+        limit=limit,
+    )
+
+
+# Note: Bots are included in the results.
+# Note: Direct messages with no conversation history are included in the results.
+@tool(
+    requires_auth=Slack(
+        scopes=["im:read"],
+    )
+)
+async def list_direct_message_conversations_metadata(
+    context: ToolContext,
+    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
+) -> Annotated[dict, "The direct message conversations metadata"]:
+    """List metadata for direct message conversations in Slack that the user is a member of.
+
+    This tool is deprecated. Use the `Slack.ListConversations` tool instead.
+
+    This tool does not return the messages in a conversation. To get the messages, use the
+    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
+    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
+    """
+
+    response = await list_conversations(
+        context,
+        conversation_types=[ConversationType.DIRECT_MESSAGE],
+        limit=limit,
+    )
+
+    return response  # type: ignore[no-any-return]
 
 
 @tool(
