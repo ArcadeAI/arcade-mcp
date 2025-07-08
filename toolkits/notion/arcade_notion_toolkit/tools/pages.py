@@ -233,7 +233,7 @@ async def update_page_content(
     markdown_title = f"# {extract_title(page_metadata)}"
     content = content.replace(markdown_title, "").lstrip()
 
-    params = {"page_size": 100}
+    params = {"page_size": 25}
     async with httpx.AsyncClient() as client:
 
         async def fetch_top_level_block_ids(page_id: str) -> list:
