@@ -11,7 +11,8 @@ from arcade_evals.critic import BinaryCritic, SimilarityCritic
 from arcade_tdk import ToolCatalog
 
 import arcade_zendesk
-from arcade_zendesk.tools.search_articles import ArticleSortBy, SortOrder, search_articles
+from arcade_zendesk.enums import ArticleSortBy, SortOrder
+from arcade_zendesk.tools.search_articles import search_articles
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -60,13 +61,13 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
-                args={"query": "API documentation", "per_page": 25},
+                args={"query": "API documentation", "limit": 25},
             )
         ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.7),
-            BinaryCritic(critic_field="per_page", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.3),
         ],
     )
 
@@ -182,35 +183,35 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
 
     # Pagination scenarios
     suite.add_case(
-        name="Search with all pages requested",
-        user_message="Search for all installation guides and get every result available",
+        name="Search with higher limit",
+        user_message="Show me 100 installation guides",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
-                args={"query": "installation guide", "all_pages": True},
+                args={"query": "installation guide", "limit": 100},
             )
         ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.7),
-            BinaryCritic(critic_field="all_pages", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.3),
         ],
     )
 
     suite.add_case(
-        name="Search with limited pages",
-        user_message="Find API documentation, get up to 3 pages with 50 results per page",
+        name="Search with offset pagination",
+        user_message="Find API documentation, skip the first 50 results and show me the next 50",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
-                args={"query": "API documentation", "max_pages": 3, "per_page": 50},
+                args={"query": "API documentation", "offset": 50, "limit": 50},
             )
         ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.4),
-            BinaryCritic(critic_field="max_pages", weight=0.3),
-            BinaryCritic(critic_field="per_page", weight=0.3),
+            BinaryCritic(critic_field="offset", weight=0.3),
+            BinaryCritic(critic_field="limit", weight=0.3),
         ],
     )
 
@@ -294,30 +295,29 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
         user_message="I need to find all troubleshooting articles. "
         "Start by showing me the first 20.",
         expected_tool_calls=[
-            ExpectedToolCall(
-                func=search_articles, args={"query": "troubleshooting", "per_page": 20}
-            )
+            ExpectedToolCall(func=search_articles, args={"query": "troubleshooting", "limit": 20})
         ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.6),
-            BinaryCritic(critic_field="per_page", weight=0.4),
+            BinaryCritic(critic_field="limit", weight=0.4),
         ],
     )
 
     suite.add_case(
-        name="Request for all results after initial search",
-        user_message="Actually, just get me all the troubleshooting articles at once",
+        name="Request for more results after initial search",
+        user_message="Show me the next 20 troubleshooting articles",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
-                args={"query": "troubleshooting", "all_pages": True},
+                args={"query": "troubleshooting", "offset": 20, "limit": 20},
             )
         ],
         rubric=rubric,
         critics=[
-            SimilarityCritic(critic_field="query", weight=0.7),
-            BinaryCritic(critic_field="all_pages", weight=0.3),
+            SimilarityCritic(critic_field="query", weight=0.5),
+            BinaryCritic(critic_field="offset", weight=0.25),
+            BinaryCritic(critic_field="limit", weight=0.25),
         ],
         additional_messages=[
             {
@@ -335,7 +335,7 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
                         "type": "function",
                         "function": {
                             "name": "search_articles",
-                            "arguments": '{"query": "troubleshooting", "per_page": 20}',
+                            "arguments": '{"query": "troubleshooting", "limit": 20}',
                         },
                     }
                 ],

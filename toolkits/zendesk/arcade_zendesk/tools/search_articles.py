@@ -1,5 +1,4 @@
 import logging
-from enum import Enum
 from typing import Annotated, Any
 
 import httpx
@@ -7,28 +6,15 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
+from arcade_zendesk.enums import ArticleSortBy, SortOrder
 from arcade_zendesk.utils import (
-    fetch_all_pages,
+    fetch_paginated_results,
     get_zendesk_subdomain,
     process_search_results,
     validate_date_format,
 )
 
 logger = logging.getLogger(__name__)
-
-
-class ArticleSortBy(Enum):
-    """Sort fields for article search results."""
-
-    CREATED_AT = "created_at"
-    RELEVANCE = "relevance"
-
-
-class SortOrder(Enum):
-    """Sort order direction."""
-
-    ASC = "asc"
-    DESC = "desc"
 
 
 @tool(
@@ -66,17 +52,14 @@ async def search_articles(
         SortOrder | None,
         "Sort order direction. Defaults to descending",
     ] = None,
-    per_page: Annotated[int, "Number of results per page (maximum 100)"] = 10,
-    all_pages: Annotated[
-        bool,
-        "Automatically fetch all available pages of results when True. "
-        "Takes precedence over max_pages",
-    ] = False,
-    max_pages: Annotated[
-        int | None,
-        "Maximum number of pages to fetch (ignored if all_pages=True). If neither all_pages "
-        "nor max_pages is specified, only the first page is returned",
-    ] = None,
+    limit: Annotated[
+        int,
+        "Number of articles to return. Defaults to 30",
+    ] = 30,
+    offset: Annotated[
+        int,
+        "Number of articles to skip before returning results. Defaults to 0",
+    ] = 0,
     include_body: Annotated[
         bool,
         "Include article body content in results. Bodies will be cleaned of HTML and truncated",
@@ -86,13 +69,21 @@ async def search_articles(
         "Maximum length for article body content in characters. "
         "Set to None for no limit. Defaults to 500",
     ] = 500,
-) -> Annotated[dict[str, Any], "Article search results with pagination metadata"]:
+) -> Annotated[
+    dict[str, Any],
+    "Article search results with pagination metadata. Results include 'next_offset' "
+    "to fetch the next set of results",
+]:
     """
     Search for Help Center articles in your Zendesk knowledge base.
 
     This tool searches specifically for published knowledge base articles that provide
     solutions and guidance to users. At least one search parameter (query or label_names)
     must be provided.
+
+    The tool internally handles pagination to return the requested number of results
+    starting from the specified offset. Use the 'next_offset' value in the response
+    to fetch the next batch of results.
 
     IMPORTANT: ALL FILTERS CAN BE COMBINED IN A SINGLE CALL
     You can combine multiple filters (query, labels, dates) in one search request.
@@ -121,13 +112,21 @@ async def search_articles(
                 additional_prompt_content="Use format YYYY-MM-DD.",
             )
 
-    # Validate pagination parameters
-    if max_pages is not None and max_pages < 1:
+    # Validate limit and offset parameters
+    if limit < 1:
         raise RetryableToolError(
-            message="max_pages must be at least 1 if specified.",
-            developer_message=f"Invalid max_pages value: {max_pages}",
+            message="limit must be at least 1.",
+            developer_message=f"Invalid limit value: {limit}",
             retry_after_ms=100,
-            additional_prompt_content="Provide a positive integer for max_pages",
+            additional_prompt_content="Provide a positive limit value",
+        )
+
+    if offset < 0:
+        raise RetryableToolError(
+            message="offset cannot be negative.",
+            developer_message=f"Invalid offset value: {offset}",
+            retry_after_ms=100,
+            additional_prompt_content="Provide a non-negative offset value",
         )
 
     # Validate that at least one search parameter is provided
@@ -146,31 +145,31 @@ async def search_articles(
 
     url = f"https://{subdomain}.zendesk.com/api/v2/help_center/articles/search"
 
-    params: dict[str, Any] = {
-        "per_page": min(per_page, 100),
-        "page": 1,
+    # Base parameters for the search
+    base_params: dict[str, Any] = {
+        "per_page": 100,  # Max allowed per page
     }
 
     if query:
-        params["query"] = query
+        base_params["query"] = query
 
     if label_names:
-        params["label_names"] = ",".join(label_names)
+        base_params["label_names"] = ",".join(label_names)
 
     if created_after:
-        params["created_after"] = created_after
+        base_params["created_after"] = created_after
 
     if created_before:
-        params["created_before"] = created_before
+        base_params["created_before"] = created_before
 
     if created_at:
-        params["created_at"] = created_at
+        base_params["created_at"] = created_at
 
     if sort_by:
-        params["sort_by"] = sort_by.value
+        base_params["sort_by"] = sort_by.value
 
     if sort_order:
-        params["sort_order"] = sort_order.value
+        base_params["sort_order"] = sort_order.value
 
     async with httpx.AsyncClient() as client:
         try:
@@ -180,20 +179,21 @@ async def search_articles(
                 "Accept": "application/json",
             }
 
-            # Determine how many pages to fetch
-            if all_pages:
-                pages_to_fetch = None  # Fetch all pages
-            elif max_pages is not None:
-                pages_to_fetch = max_pages
-            else:
-                pages_to_fetch = 1  # Single page (default behavior)
+            data = await fetch_paginated_results(
+                client=client,
+                url=url,
+                headers=headers,
+                params=base_params,
+                offset=offset,
+                limit=limit,
+            )
 
-            data = await fetch_all_pages(client, url, headers, params, max_pages=pages_to_fetch)
             if "results" in data:
                 data["results"] = process_search_results(
                     data["results"], include_body=include_body, max_body_length=max_article_length
                 )
-            logger.info(f"Article search results: {data}")
+
+            logger.info(f"Article search returned {data.get('count', 0)} results")
 
         except httpx.HTTPStatusError as e:
             logger.exception(f"HTTP error during article search: {e.response.status_code}")
@@ -201,14 +201,14 @@ async def search_articles(
                 message=f"Failed to search articles: HTTP {e.response.status_code}",
                 developer_message=(
                     f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {url}, params: {params}"
+                    f"URL: {url}, base_params: {base_params}"
                 ),
             ) from e
         except httpx.TimeoutException as e:
             logger.exception("Timeout during article search")
             raise RetryableToolError(
                 message="Request timed out while searching articles.",
-                developer_message=f"Timeout occurred. URL: {url}, params: {params}",
+                developer_message=f"Timeout occurred. URL: {url}, base_params: {base_params}",
                 retry_after_ms=5000,
             ) from e
         except Exception as e:
@@ -216,7 +216,8 @@ async def search_articles(
             raise ToolExecutionError(
                 message=f"Failed to search articles: {e!s}",
                 developer_message=(
-                    f"Unexpected error: {type(e).__name__}: {e!s}. " f"URL: {url}, params: {params}"
+                    f"Unexpected error: {type(e).__name__}: {e!s}. "
+                    f"URL: {url}, base_params: {base_params}"
                 ),
             ) from e
         else:

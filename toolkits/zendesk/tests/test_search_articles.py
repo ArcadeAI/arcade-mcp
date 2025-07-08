@@ -4,7 +4,8 @@ import httpx
 import pytest
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_zendesk.tools.search_articles import ArticleSortBy, SortOrder, search_articles
+from arcade_zendesk.enums import ArticleSortBy, SortOrder
+from arcade_zendesk.tools.search_articles import search_articles
 
 
 class TestSearchArticlesValidation:
@@ -53,16 +54,27 @@ class TestSearchArticlesValidation:
         assert "YYYY-MM-DD" in str(exc_info.value.message)
         assert date_param in str(exc_info.value.message)
 
-    @pytest.mark.parametrize("max_pages", [0, -1, -10])
+    @pytest.mark.parametrize("limit", [0, -1, -10])
     @pytest.mark.asyncio
-    async def test_invalid_max_pages(self, mock_context, max_pages):
-        """Test validation of max_pages parameter."""
+    async def test_invalid_limit(self, mock_context, limit):
+        """Test validation of limit parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
         with pytest.raises(RetryableToolError) as exc_info:
-            await search_articles(context=mock_context, query="test", max_pages=max_pages)
+            await search_articles(context=mock_context, query="test", limit=limit)
 
         assert "at least 1" in str(exc_info.value.message)
+
+    @pytest.mark.parametrize("offset", [-1, -10])
+    @pytest.mark.asyncio
+    async def test_invalid_offset(self, mock_context, offset):
+        """Test validation of offset parameter."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        with pytest.raises(RetryableToolError) as exc_info:
+            await search_articles(context=mock_context, query="test", offset=offset)
+
+        assert "cannot be negative" in str(exc_info.value.message)
 
 
 class TestSearchArticlesSuccess:
@@ -92,7 +104,9 @@ class TestSearchArticlesSuccess:
             == "https://test-subdomain.zendesk.com/api/v2/help_center/articles/search"
         )
         assert call_args[1]["params"]["query"] == "password reset"
-        assert call_args[1]["params"]["per_page"] == 10
+        # Check that pagination params were set correctly
+        assert call_args[1]["params"]["page"] == 1
+        assert call_args[1]["params"]["per_page"] == 100
 
     @pytest.mark.asyncio
     async def test_search_with_filters(
@@ -110,7 +124,7 @@ class TestSearchArticlesSuccess:
             created_after="2024-01-01",
             sort_by=ArticleSortBy.CREATED_AT,
             sort_order=SortOrder.DESC,
-            per_page=25,
+            limit=25,
         )
 
         assert "results" in result
@@ -121,7 +135,9 @@ class TestSearchArticlesSuccess:
         assert call_params["created_after"] == "2024-01-01"
         assert call_params["sort_by"] == "created_at"
         assert call_params["sort_order"] == "desc"
-        assert call_params["per_page"] == 25
+        # Should fetch first page with 100 items per page
+        assert call_params["page"] == 1
+        assert call_params["per_page"] == 100
 
     @pytest.mark.asyncio
     async def test_search_without_body(
@@ -177,89 +193,84 @@ class TestSearchArticlesPagination:
         assert mock_httpx_client.get.call_count == 1
 
     @pytest.mark.asyncio
-    async def test_all_pages(
-        self, mock_context, mock_httpx_client, build_search_response, mock_http_response
+    async def test_fetch_with_limit_across_pages(
+        self, mock_context, mock_httpx_client, mock_http_response
     ):
-        """Test fetching all pages."""
+        """Test fetching results across multiple pages with limit."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        # Setup pagination responses
-        page1 = build_search_response(
-            articles=[{"id": 1, "title": "Article 1", "body": "Content 1"}],
-            next_page="page2",
-        )
-        page2 = build_search_response(
-            articles=[{"id": 2, "title": "Article 2", "body": "Content 2"}],
-            next_page="page3",
-        )
-        page3 = build_search_response(
-            articles=[{"id": 3, "title": "Article 3", "body": "Content 3"}],
-            next_page=None,
-        )
+        # Setup pagination responses - 100 items per page
+        articles_page1 = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(1, 101)
+        ]
+        articles_page2 = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(101, 201)
+        ]
+
+        page1 = {"results": articles_page1, "next_page": "page2"}
+        page2 = {"results": articles_page2, "next_page": "page3"}
 
         mock_httpx_client.get.side_effect = [
             mock_http_response(page1),
             mock_http_response(page2),
-            mock_http_response(page3),
         ]
 
-        result = await search_articles(context=mock_context, query="test", all_pages=True)
+        # Request 150 items starting from offset 0
+        result = await search_articles(context=mock_context, query="test", limit=150)
 
-        assert len(result["results"]) == 3
-        assert mock_httpx_client.get.call_count == 3
-
-    @pytest.mark.asyncio
-    async def test_max_pages_limit(
-        self, mock_context, mock_httpx_client, build_search_response, mock_http_response
-    ):
-        """Test max_pages parameter limits fetching."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        # Setup 5 pages but limit to 2
-        responses = []
-        for i in range(5):
-            next_page = f"page{i + 2}" if i < 4 else None
-            page = build_search_response(
-                articles=[{"id": i + 1, "title": f"Article {i + 1}", "body": f"Content {i + 1}"}],
-                next_page=next_page,
-            )
-            responses.append(mock_http_response(page))
-
-        mock_httpx_client.get.side_effect = responses
-
-        result = await search_articles(context=mock_context, query="test", max_pages=2)
-
-        assert len(result["results"]) == 2
-        assert mock_httpx_client.get.call_count == 2
+        assert result["count"] == 150
+        assert result["offset"] == 0
+        assert result["limit"] == 150
+        assert "next_offset" in result  # More results available
+        assert result["next_offset"] == 150
+        assert mock_httpx_client.get.call_count == 2  # Fetched 2 pages
 
     @pytest.mark.asyncio
-    async def test_all_pages_overrides_max_pages(
-        self, mock_context, mock_httpx_client, build_search_response, mock_http_response
-    ):
-        """Test all_pages=True takes precedence over max_pages."""
+    async def test_fetch_with_offset(self, mock_context, mock_httpx_client, mock_http_response):
+        """Test fetching with offset parameter."""
         mock_context.get_secret.return_value = "test-subdomain"
 
-        # Setup 3 pages
-        responses = []
-        for i in range(3):
-            next_page = f"page{i + 2}" if i < 2 else None
-            page = build_search_response(
-                articles=[{"id": i + 1, "title": f"Article {i + 1}", "body": f"Content {i + 1}"}],
-                next_page=next_page,
-            )
-            responses.append(mock_http_response(page))
+        # Setup response - page 2 would have items 101-200
+        # We want items starting from offset 150 (which is item 151, at index 50 on page 2)
+        articles_page2 = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(101, 201)
+        ]
+        response = {"results": articles_page2, "next_page": "page3"}
 
-        mock_httpx_client.get.side_effect = responses
+        mock_httpx_client.get.return_value = mock_http_response(response)
 
-        result = await search_articles(
-            context=mock_context,
-            query="test",
-            all_pages=True,
-            max_pages=1,  # Should be ignored
-        )
+        # Request 30 items starting from offset 150
+        result = await search_articles(context=mock_context, query="test", offset=150, limit=30)
 
-        assert len(result["results"]) == 3
-        assert mock_httpx_client.get.call_count == 3
+        assert result["count"] == 30
+        assert result["offset"] == 150
+        assert result["limit"] == 30
+        assert "next_offset" in result
+        assert result["next_offset"] == 180
+
+        # Should request page 2 (offset 150 = page 2, starting at index 50)
+        call_params = mock_httpx_client.get.call_args[1]["params"]
+        assert call_params["page"] == 2
+
+    @pytest.mark.asyncio
+    async def test_no_next_offset_when_no_more_results(
+        self, mock_context, mock_httpx_client, build_search_response, mock_http_response
+    ):
+        """Test that next_offset is not included when no more results."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        # Setup response with no next page
+        articles = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(1, 21)
+        ]
+        response = {"results": articles, "next_page": None}
+
+        mock_httpx_client.get.return_value = mock_http_response(response)
+
+        result = await search_articles(context=mock_context, query="test", limit=20)
+
+        assert result["count"] == 20
+        assert "next_offset" not in result  # No more results
 
 
 class TestSearchArticlesErrors:
