@@ -14,6 +14,7 @@ from arcade_notion_toolkit.tools import (
     create_page,
     get_page_content_by_id,
     get_page_content_by_title,
+    update_page_content,
 )
 
 # Evaluation rubric
@@ -58,7 +59,7 @@ PAGE_CONTENT_TO_APPEND = """
 # Next steps
 Here are the next steps
 1. Add ability to append to the end of a page
-1. Make it Pythonic
+2. Make it Pythonic
 ## Next next steps
 **Write** [evals](https://github.com/ArcadeAI/arcade-ai)
 """
@@ -91,6 +92,7 @@ GET_PAGE_CONVERSATION = [
         "content": "Here are the notes on setting up and using Arcade:\n\n### Pre-requisites\nMake sure you have the following installed on your system:\n-**Python 3.10 or higher**: Verify using `python --version` or `python3 --version` in your terminal.\n- **pip**: The Python package installer, typically included with Python.\n- **Arcade Account**: Sign up for an [Arcade account](https://api.arcade.dev/signup?utm_source=docs&utm_medium=page&utm_campaign=custom-tools) if you haven't already.\n\n### Setting up Arcade\n\n#### Obtain an API key\n1. Install the Arcade CLI and SDK.\n2. Log in to Arcade: Run the command `arcade login`.\n3. Your Arcade API key will be printed to the console and saved in `~/.arcade/credentials.yaml`.\n\n#### Try `arcade chat`\n- With Arcade CLI installed, you can test the API using `arcade chat`.\n- This command launches a chat with the Arcade Cloud Engine (hosted at `api.arcade.dev`), giving you access to all pre-built Arcade tools.\n  \nExample prompt:  \n- Ask to star the `ArcadeAI/arcade-ai` repo on GitHub. The AI assistant will star the repo for you after authorization.\n\nEvent example output:\n```\nAssistant (gpt-4o): I starred the ArcadeAI/arcade-ai repo on Github for you!\n```\n\nUse `Ctrl-C` to exit the chat anytime.\n\n### Explore More Tools\n- Try different requests like searching the web, summarizing emails, or checking your current Spotify play.\n- Run `arcade show` to see all available tools in the Cloud.\n\n### Next Steps\n- [Learn about tools](https://docs.arcade.dev/home/use-tools/tools-overview) and how they function.\n- Understand how to [call tools with models](https://docs.arcade.dev/home/use-tools/call-tools-with-models).\n- Begin building your own [custom tools](https://docs.arcade.dev/home/build-tools/create-a-toolkit).\n\nCongratulations on setting up Arcade and trying your first tool! 🎉",  # noqa: E501
     },
 ]
+UPDATED_PAGE_CONTENT = """First, make sure you have these pre-requisites installed on your system:  \n- **Python 3.11**\xa0or higherVerify your Python version by running\xa0`python --version`\xa0or\xa0`python3 --version`\xa0in your terminal.  \n- **pip**: The Python package installer should be available. It's typically included with Python.  \n- **Arcade Account**: Sign up for an\xa0[Arcade account](https://api.arcade.dev/signup?utm_source=docs&utm_medium=page&utm_campaign=custom-tools)\xa0if you haven't already."""  # noqa: E501
 
 
 @tool_eval()
@@ -293,6 +295,44 @@ def append_page_content_eval_suite() -> EvalSuite:
         critics=[
             BinaryCritic(critic_field="page_id_or_title", weight=0.5),
             SimilarityCritic(critic_field="content", weight=0.5, similarity_threshold=0.95),
+        ],
+        additional_messages=GET_PAGE_CONVERSATION,
+    )
+    return suite
+
+
+@tool_eval()
+def update_page_content_eval_suite() -> EvalSuite:
+    """Create an evaluation suite for tools updating the content of an existing Notion page"""
+    rubric.tool_choice_weight = 0  # This eval is only interested in the 'content' parameter
+    suite = EvalSuite(
+        name="Notion Update Page Content",
+        system_message=(
+            "You are an AI assistant that has access to the user's Notion workspace. "
+            "You can take actions on the user's Notion workspace on behalf of the user."
+        ),
+        catalog=catalog,
+        rubric=rubric,
+    )
+
+    suite.add_case(
+        name="Update an existing page",
+        user_message=(
+            "Please update such that it is Python 3.11 or higher and such that everything "
+            "after the instruction for signing up for an arcade account is removed. "
+            "Call update_page_content"  # I'm not interested in the tool choice, I'm interested in whether it only updates what I requested  # noqa: E501
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=update_page_content,
+                args={
+                    "page_id_or_title": "Arcade Notes",
+                    "content": UPDATED_PAGE_CONTENT,
+                },
+            ),
+        ],
+        critics=[
+            SimilarityCritic(critic_field="content", weight=1.0, similarity_threshold=0.95),
         ],
         additional_messages=GET_PAGE_CONVERSATION,
     )
