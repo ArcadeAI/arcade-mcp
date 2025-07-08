@@ -1,7 +1,6 @@
 import json
 from typing import cast
 
-from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
@@ -17,13 +16,13 @@ from arcade_slack.utils import (
 
 
 async def get_conversation_by_id(
-    context: ToolContext,
+    auth_token: str,
     conversation_id: str,
 ) -> dict:
     """Get metadata of a conversation in Slack by the conversation_id."""
     try:
-        slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
-        response = await slackClient.conversations_info(
+        slack_client = AsyncWebClient(token=auth_token)
+        response = await slack_client.conversations_info(
             channel=conversation_id,
             include_locale=True,
             include_num_members=True,
@@ -39,25 +38,29 @@ async def get_conversation_by_id(
 
 
 async def get_channel_by_name(
-    context: ToolContext,
+    auth_token: str,
     channel_name: str,
 ) -> dict:
-    from arcade_slack.tools.chat import list_conversations_metadata
+    channel_name_casefolded = channel_name.lstrip("#").casefold()
 
-    results = await async_paginate(
-        context=context,
-        func=list_conversations_metadata,
-        conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-        response_key="conversations",
-        sentinel=FindChannelByNameSentinel(channel_name.lstrip("#")),
+    slack_client = AsyncWebClient(token=auth_token)
+
+    results, _ = await async_paginate(
+        func=slack_client.conversations_list,
+        response_key="channels",
+        types=[
+            ConversationType.PUBLIC_CHANNEL.value,
+            ConversationType.PRIVATE_CHANNEL.value,
+        ],
+        exclude_archived=True,
+        sentinel=FindChannelByNameSentinel(channel_name_casefolded),
     )
 
     available_channels = []
 
-    for result in results:
-        channel = dict(**extract_conversation_metadata(result))
-        if channel["name"].casefold() == channel_name.casefold():
-            return channel
+    for channel in results:
+        if channel["name"].casefold() == channel_name_casefolded:
+            return dict(**extract_conversation_metadata(channel))
         else:
             available_channels.append({"id": channel["id"], "name": channel["name"]})
 

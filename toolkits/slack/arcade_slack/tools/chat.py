@@ -7,6 +7,7 @@ from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT
 from arcade_slack.conversation_retrieval import (
     get_channel_by_name,
     get_conversation_by_id,
@@ -52,16 +53,19 @@ async def send_message(
         "when available, since the performance is better.",
     ] = None,
 ) -> Annotated[dict, "The response from the Slack API"]:
-    """Send a message to a Channel, Direct Message (IM/DM), or MPIM (multi-person) conversation
+    """Send a message to a Channel, Direct Message (IM/DM), or Multi-Person (MPIM) conversation
 
     Provide exactly one of:
     - channel_name; or
     - conversation_id; or
     - any combination of user_ids, usernames, and/or emails.
+
+    In case multiple user_ids, usernames, and/or emails are provided, the tool will open a
+    multi-person conversation with the specified people and send the message to it.
     """
     if conversation_id and any([channel_name, user_ids, usernames, emails]):
         raise ToolExecutionError(
-            "Provide exactly one of: channel_name, conversation_id, or any combination of "
+            "Provide exactly one of: channel_name, OR conversation_id, OR any combination of "
             "user_ids, usernames, and/or emails."
         )
 
@@ -77,7 +81,7 @@ async def send_message(
 
     slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
     response = await slack_client.chat_postMessage(channel=conversation_id, text=message)
-    return {"response": response.data}
+    return {"success": True, "data": response.data}
 
 
 @tool(
@@ -113,7 +117,8 @@ async def get_users_in_conversation(
         )
         conversation_id = channel["id"]
 
-    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    auth_token = context.get_auth_token_or_empty()
+    slack_client = AsyncWebClient(token=auth_token)
     user_ids, next_cursor = await async_paginate(
         func=slack_client.conversations_members,
         response_key="members",
@@ -122,7 +127,7 @@ async def get_users_in_conversation(
         channel=conversation_id,
     )
 
-    users = await get_users_by_id(context, user_ids)
+    users = await get_users_by_id(auth_token, user_ids)
 
     raise_for_users_not_found(context, [users])
 
@@ -265,22 +270,23 @@ async def get_conversation_metadata(
     - channel_name; or
     - any combination of user_ids, usernames, and/or emails.
     """
-    args = {[bool(conversation_id), bool(channel_name), any([user_ids, usernames, emails])]}
-    if len(args) > 1:
+    if bool(conversation_id) + bool(channel_name) + any([user_ids, usernames, emails]) > 1:
         raise ToolExecutionError(
-            "Provide either a conversation_id OR a channel_name OR "
-            "any combination of user_ids, usernames, and/or emails."
+            "Provide exactly one of: conversation_id, OR channel_name, OR any combination of "
+            "user_ids, usernames, and/or emails."
         )
 
+    auth_token = context.get_auth_token_or_empty()
+
     if conversation_id:
-        return await get_conversation_by_id(context, conversation_id)
+        return await get_conversation_by_id(auth_token, conversation_id)
 
     elif channel_name:
-        return await get_channel_by_name(context, channel_name)
+        return await get_channel_by_name(auth_token, channel_name)
 
     user_ids_list = user_ids if isinstance(user_ids, list) else []
 
-    slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
+    slack_client = AsyncWebClient(token=auth_token)
 
     current_user = await slack_client.auth_test()
 
@@ -299,7 +305,8 @@ async def get_conversation_metadata(
         user_ids_list.extend([user["id"] for user in other_users])
 
     try:
-        response = await slack_client.conversations_open(users=user_ids_list)
+        response = await slack_client.conversations_open(users=user_ids_list, return_im=True)
+        return dict(**extract_conversation_metadata(response["channel"]))
     except SlackApiError as e:
         message = "Failed to retrieve conversation metadata."
         slack_error = e.response.get("error", "unknown_error")
@@ -307,8 +314,6 @@ async def get_conversation_metadata(
             message=message,
             developer_message=f"{message} Slack error: '{slack_error}'",
         )
-
-    return dict(**extract_conversation_metadata(response["channel"]))
 
 
 @tool(
@@ -343,7 +348,7 @@ async def list_conversations(
     results, next_cursor = await async_paginate(
         slack_client.conversations_list,
         "channels",
-        limit=limit,
+        limit=limit or MAX_PAGINATION_SIZE_LIMIT,
         next_cursor=next_cursor,
         types=conversation_types_filter,
         exclude_archived=True,

@@ -97,7 +97,6 @@ def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
         return ConversationTypeSlackName.IM.value
     if channel.get("is_mpim"):
         return ConversationTypeSlackName.MPIM.value
-    raise ValueError(f"Invalid conversation type in channel {channel.get('name')}")
 
 
 def convert_conversation_type_to_slack_name(
