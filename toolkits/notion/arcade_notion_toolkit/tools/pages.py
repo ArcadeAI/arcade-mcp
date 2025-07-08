@@ -138,12 +138,19 @@ async def create_page(
     else:
         properties = PageWithPageParentProperties(title=title).to_dict()
 
-    children = convert_markdown_to_blocks(content) if content else None
+    children = convert_markdown_to_blocks(content) if content else []
+
+    # Split children into chunks of 100 due to Notion API limit
+    chunk_size = 100
+    first_chunk = children[:chunk_size] if children else []
+    remaining_chunks = [
+        children[i : i + chunk_size] for i in range(chunk_size, len(children), chunk_size)
+    ]
 
     body = {
         "parent": parent.to_dict(),
         "properties": properties,
-        "children": children,
+        "children": first_chunk,
     }
 
     url = get_url("create_a_page")
@@ -151,7 +158,17 @@ async def create_page(
     async with httpx.AsyncClient() as client:
         response = await client.post(url, headers=headers, json=body)
         response.raise_for_status()
-        return f"Successfully created page with ID: {response.json()['id']}"
+        page_id = response.json()["id"]
+
+        # Append remaining chunks if any
+        if remaining_chunks:
+            append_url = get_url("append_block_children", block_id=page_id)
+            for chunk in remaining_chunks:
+                chunk_body = {"children": chunk}
+                append_response = await client.patch(append_url, headers=headers, json=chunk_body)
+                append_response.raise_for_status()
+
+        return f"Successfully created page with ID: {page_id}"
 
 
 @tool(requires_auth=Notion())
@@ -177,13 +194,15 @@ async def append_content_to_end_of_page(
 
     children = convert_markdown_to_blocks(content)
 
-    body = {"children": children}
-
+    # Split children into chunks of 100 due to Notion API limit
+    chunk_size = 100
     async with httpx.AsyncClient() as client:
-        response = await client.patch(
-            url, headers=headers, json=body
-        )  # TODO: does this have a limit on the number of children? Do I need to handle pagination?
-        response.raise_for_status()
+        for i in range(0, len(children), chunk_size):
+            chunk = children[i : i + chunk_size]
+            body = {"children": chunk}
+
+            response = await client.patch(url, headers=headers, json=body)
+            response.raise_for_status()
 
         page_url = await get_page_url(context, page_id)
 
@@ -191,77 +210,3 @@ async def append_content_to_end_of_page(
             "message": f"Successfully appended content to page with ID: {page_id}",
             "url": page_url,
         }
-
-
-# TODO: future improvement: generate a diff and apply it instead of rewriting the whole page
-@tool(requires_auth=Notion())
-async def update_page_content(
-    context: ToolContext,
-    page_id_or_title: Annotated[str, "ID or title of the page to update content of"],
-    content: Annotated[str, "The markdown content to update the page with"],
-) -> Annotated[dict, "A dictionary containing a success message and the URL to the page"]:
-    """Overwrite an existing Notion page with the provided Markdown content.
-
-    You MUST provide all of the content for the page with your updates because this function
-    overwrites the entire page contents with the provided content. When making updates, aim
-    to preserve the page's content, structure, and formatting as much as possible and only
-    alter the content that the user has explicitly asked to update.
-
-    Do not provide the page title in the content as this function does not alter the page title.
-
-    Prefer `append_content_to_end_of_page` for simple appends; it is faster and avoids re-uploading
-    the whole page content.
-    """
-    headers = get_headers(context)
-
-    # Determine if the provided identifier is an ID or a title
-    if is_page_id(page_id_or_title):
-        page_metadata = await get_object_metadata(
-            context,
-            object_id=page_id_or_title,
-            object_type=ObjectType.PAGE,
-        )
-    else:
-        page_metadata = await get_object_metadata(
-            context,
-            object_title=page_id_or_title,
-            object_type=ObjectType.PAGE,
-        )
-
-    page_id = page_metadata["id"]
-    # Remove the title from content if it was provided
-    markdown_title = f"# {extract_title(page_metadata)}"
-    content = content.replace(markdown_title, "").lstrip()
-
-    params = {"page_size": 25}
-    async with httpx.AsyncClient() as client:
-
-        async def fetch_top_level_block_ids(page_id: str) -> list:
-            """
-            Fetch all top-level block IDs for a given page ID with pagination.
-            Does not fetch the title block.
-            """
-            block_ids = []
-            url = get_url("retrieve_block_children", block_id=page_id)
-            cursor = None
-
-            while True:
-                data, has_more, cursor = await get_next_page(client, url, headers, params, cursor)
-                for block in data.get("results", []):
-                    block_ids.append(block["id"])
-                if not has_more:
-                    break
-
-            return block_ids
-
-        # Get the IDs of all top-level blocks
-        top_level_block_ids = await fetch_top_level_block_ids(page_id)
-
-        # Delete (archive) all top-level blocks
-        # TODO: future improvement: run 3-5 deletions in parallel
-        for block_id in top_level_block_ids:
-            url = get_url("delete_a_block", block_id=block_id)
-            await client.delete(url, headers=headers)
-
-        # Add the new content to the page
-        return await append_content_to_end_of_page(context, page_id, content)

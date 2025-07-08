@@ -14,16 +14,11 @@ from arcade_notion_toolkit.tools import (
     create_page,
     get_page_content_by_id,
     get_page_content_by_title,
-    update_page_content,
 )
 from evals.constants import (
-    GET_LARGE_PAGE_CONTENT_CONVERSATION,
     GET_SMALL_PAGE_CONTENT_CONVERSATION,
-    LARGE_PAGE_CONTENT_TO_INSERT,
     SMALL_PAGE_CONTENT,
     SMALL_PAGE_CONTENT_TO_APPEND,
-    SMALL_UPDATED_PAGE_CONTENT,
-    UPDATED_LARGE_PAGE_CONTENT,
 )
 
 # Evaluation rubric
@@ -240,64 +235,4 @@ def append_page_content_eval_suite() -> EvalSuite:
         ],
         additional_messages=GET_SMALL_PAGE_CONTENT_CONVERSATION,
     )
-    return suite
-
-
-@tool_eval()
-def update_page_content_eval_suite() -> EvalSuite:
-    """Create an evaluation suite for tools updating the content of an existing Notion page"""
-    rubric.tool_choice_weight = 0  # This eval is only interested in the 'content' parameter
-    suite = EvalSuite(
-        name="Notion Update Page Content",
-        system_message=(
-            "You are an AI assistant that has access to the user's Notion workspace. "
-            "You can take actions on the user's Notion workspace on behalf of the user."
-        ),
-        catalog=catalog,
-        rubric=rubric,
-    )
-
-    suite.add_case(
-        name="Update a small-sized existing page",
-        user_message=(
-            "Please update such that it is Python 3.11 or higher and such that everything "
-            "after the instruction for signing up for an arcade account is removed. "
-            "Call update_page_content"  # For this eval we're not interested in the tool choice, only content  # noqa: E501
-        ),
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=update_page_content,
-                args={
-                    "page_id_or_title": "Arcade Notes",
-                    "content": SMALL_UPDATED_PAGE_CONTENT,
-                },
-            ),
-        ],
-        critics=[
-            SimilarityCritic(critic_field="content", weight=1.0, similarity_threshold=0.95),
-        ],
-        additional_messages=GET_SMALL_PAGE_CONTENT_CONVERSATION,
-    )
-
-    suite.add_case(
-        name="Update a large-sized existing page",
-        user_message=(
-            "Between the 'Inverse reinforcement learning' and 'Safe reinforcement learning' "
-            f"sections, insert the following section: {LARGE_PAGE_CONTENT_TO_INSERT}"
-        ),
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=update_page_content,
-                args={
-                    "page_id_or_title": "Arcade Notes",
-                    "content": UPDATED_LARGE_PAGE_CONTENT,
-                },
-            ),
-        ],
-        critics=[
-            SimilarityCritic(critic_field="content", weight=1.0, similarity_threshold=1.0),
-        ],
-        additional_messages=GET_LARGE_PAGE_CONTENT_CONVERSATION,
-    )
-
     return suite

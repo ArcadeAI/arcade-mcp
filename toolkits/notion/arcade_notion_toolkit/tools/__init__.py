@@ -3,7 +3,6 @@ from arcade_notion_toolkit.tools.pages import (
     create_page,
     get_page_content_by_id,
     get_page_content_by_title,
-    update_page_content,
 )
 from arcade_notion_toolkit.tools.search import (
     get_object_metadata,
@@ -19,5 +18,4 @@ __all__ = [
     "get_page_content_by_title",
     "get_workspace_structure",
     "search_by_title",
-    "update_page_content",
 ]

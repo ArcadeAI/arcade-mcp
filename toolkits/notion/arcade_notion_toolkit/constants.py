@@ -13,6 +13,7 @@ ENDPOINTS = {
     "retrieve_a_page": "/pages/{page_id}",
     "retrieve_a_block": "/blocks/{block_id}",
     "delete_a_block": "/blocks/{block_id}",
+    "update_a_block": "/blocks/{block_id}",
 }
 
 UNTITLED_TITLE = "New Page"
