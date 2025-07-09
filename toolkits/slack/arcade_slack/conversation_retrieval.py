@@ -48,10 +48,10 @@ async def get_channel_by_name(
     results, _ = await async_paginate(
         func=slack_client.conversations_list,
         response_key="channels",
-        types=[
+        types=",".join([
             ConversationType.PUBLIC_CHANNEL.value,
             ConversationType.PRIVATE_CHANNEL.value,
-        ],
+        ]),
         exclude_archived=True,
         sentinel=FindChannelByNameSentinel(channel_name_casefolded),
     )

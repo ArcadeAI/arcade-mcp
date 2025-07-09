@@ -45,6 +45,49 @@ def random_str_factory():
 
 
 @pytest.fixture
+def dummy_channel_factory(random_str_factory: Callable[[int], str]):
+    def dummy_channel_factory(
+        id_: str | None = None,
+        name: str | None = None,
+        is_member: bool = True,
+        is_private: bool = False,
+        is_archived: bool = False,
+        is_channel: bool = False,
+        is_im: bool = False,
+        is_mpim: bool = False,
+        num_members: int | None = None,
+        user: str | None = None,
+        is_user_deleted: bool = False,
+    ):
+        channel = {
+            "id": id_ or f"channel_id_{random_str_factory()}",
+            "is_member": is_member,
+            "is_private": is_private,
+            "is_archived": is_archived,
+        }
+
+        if name or is_channel or is_mpim:
+            channel["name"] = name or f"channel_name_{random_str_factory()}"
+
+        if is_channel:
+            channel["is_channel"] = True
+        if is_im:
+            channel["is_im"] = True
+        if is_mpim:
+            channel["is_group"] = True
+        if num_members:
+            channel["num_members"] = num_members
+        if user or is_im:
+            channel["user"] = user or f"user_id_{random_str_factory()}"
+        if is_user_deleted:
+            channel["is_user_deleted"] = is_user_deleted
+
+        return channel
+
+    return dummy_channel_factory
+
+
+@pytest.fixture
 def dummy_user_factory(random_str_factory: Callable[[int], str]):
     def dummy_user_factory(
         id_: str | None = None,

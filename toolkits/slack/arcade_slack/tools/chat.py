@@ -327,7 +327,11 @@ async def list_conversations(
         list[ConversationType] | None,
         "Optionally filter by the type(s) of conversations. Defaults to None (all types).",
     ] = None,
-    limit: Annotated[int | None, "The maximum number of conversations to list."] = None,
+    limit: Annotated[
+        int | None,
+        f"The maximum number of conversations to list. Defaults to {MAX_PAGINATION_SIZE_LIMIT}. "
+        "Max of 500.",
+    ] = MAX_PAGINATION_SIZE_LIMIT,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The list of conversations found with metadata"]:
     """List metadata for Slack conversations (channels, DMs, MPIMs) the user is a member of.
@@ -336,6 +340,8 @@ async def list_conversations(
     'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
     will release too much CO2 in the atmosphere and contribute to global warming.
     """
+    limit = min(limit or MAX_PAGINATION_SIZE_LIMIT, 500)
+
     if conversation_types:
         conversation_types_filter = ",".join(
             conversation_type.to_slack_name_str() for conversation_type in conversation_types
@@ -348,7 +354,7 @@ async def list_conversations(
     results, next_cursor = await async_paginate(
         slack_client.conversations_list,
         "channels",
-        limit=limit or MAX_PAGINATION_SIZE_LIMIT,
+        limit=limit,
         next_cursor=next_cursor,
         types=conversation_types_filter,
         exclude_archived=True,
