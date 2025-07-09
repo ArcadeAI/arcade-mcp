@@ -183,7 +183,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     community_toolkit = False
     if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
         community_toolkit = ask_yes_no_question(
-            "Is your toolkit a community contribution (to be merged into Arcade's repo)?",
+            "Is your toolkit a community contribution (to be merged into Arcade's `arcade-ai` repo)?",
             default=False,  # False for now to keep the default behavior
         )
 
