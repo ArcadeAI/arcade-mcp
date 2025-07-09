@@ -37,6 +37,14 @@ async def test_get_table_schema(mock_context) -> None:
         "status: str",
     ]
 
+    assert await get_table_schema(mock_context, "public", "messages") == [
+        "id: int (PRIMARY KEY)",
+        "body: str",
+        "user_id: int",
+        "created_at: datetime",
+        "updated_at: datetime",
+    ]
+
 
 @pytest.mark.asyncio
 async def test_execute_query(mock_context) -> None:
