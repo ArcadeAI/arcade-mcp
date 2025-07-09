@@ -87,12 +87,14 @@ jobs:
           working-directory: ${{ matrix.package }}
 
       - name: Run tests
+        # Skip tests for toolkits - tests are run on every PR commit for toolkits
+        if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
           # Run tests if they exist
-          if [ -d "tests" ] && [ -f "Makefile" ] && grep -q "^test:" Makefile; then
+          if [ -f "Makefile" ] && grep -q "^test:" Makefile; then
             make test
-          elif [ -d "../tests" ] && [ -f "../Makefile" ] && grep -q "^test:" ../Makefile; then
+          elif [ -f "../Makefile" ] && grep -q "^test:" ../Makefile; then
             cd .. && make test
           else
             echo "No tests found, skipping test step"
