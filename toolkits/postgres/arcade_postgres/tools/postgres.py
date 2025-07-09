@@ -77,14 +77,14 @@ class DatabaseEngine:
         return ConnectionContextManager(engine)
 
     @classmethod
-    async def cleanup(cls):
+    async def cleanup(cls) -> None:
         """Clean up all cached engines. Call this when shutting down."""
         for engine in cls._engines.values():
             await engine.dispose()
         cls._engines.clear()
 
     @classmethod
-    def clear_cache(cls):
+    def clear_cache(cls) -> None:
         """Clear the engine cache without disposing engines. Use with caution."""
         cls._engines.clear()
 
@@ -151,7 +151,7 @@ async def execute_query(
         except Exception as e:
             for pattern, replacement in ERROR_REMAPPING.items():
                 if pattern.search(str(e)):
-                    e = BaseException(replacement)
+                    e = Exception(replacement)
 
             raise RetryableToolError(
                 f"Query failed: {e}",
