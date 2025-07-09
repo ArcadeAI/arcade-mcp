@@ -1,10 +1,13 @@
 import pytest
+import pytest_asyncio
 from arcade_postgres.tools.postgres import (
+    DatabaseEngine,
     discover_tables,
     execute_query,
     get_table_schema,
 )
 from arcade_tdk import ToolContext, ToolSecretItem
+from arcade_tdk.errors import RetryableToolError
 
 
 @pytest.fixture
@@ -18,6 +21,14 @@ def mock_context():
     )
 
     return context
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def cleanup_engines():
+    """Clean up database engines after each test to prevent connection leaks."""
+    yield
+    # Clean up all cached engines after each test
+    await DatabaseEngine.cleanup()
 
 
 @pytest.mark.asyncio
@@ -51,3 +62,27 @@ async def test_execute_query(mock_context) -> None:
     assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1") == [
         "(1, 'Mario', 'mario@example.com')"
     ]
+
+
+@pytest.mark.asyncio
+async def test_execute_query_with_no_results(mock_context) -> None:
+    # does not raise an error
+    assert await execute_query(mock_context, "SELECT * FROM users WHERE id = 9999999999") == []
+
+
+@pytest.mark.asyncio
+async def test_execute_query_with_problem(mock_context) -> None:
+    # 'foo' is not a valid id
+    with pytest.raises(RetryableToolError) as e:
+        await execute_query(mock_context, "SELECT * FROM users WHERE id = 'foo'")
+        assert "invalid input syntax" in str(e.value)
+
+
+@pytest.mark.asyncio
+async def test_execute_query_rejects_non_select(mock_context) -> None:
+    with pytest.raises(RetryableToolError) as e:
+        await execute_query(
+            mock_context,
+            "INSERT INTO users (name, email, password_hash) VALUES ('Luigi', 'luigi@example.com', 'password')",
+        )
+    assert "Only SELECT queries are allowed" in str(e.value)

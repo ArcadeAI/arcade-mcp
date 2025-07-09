@@ -1,3 +1,4 @@
+import re
 from typing import Annotated, Any, ClassVar
 
 from arcade_tdk import ToolContext, tool
@@ -8,6 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 MAX_ROWS_RETURNED = 1000
 DEFAULT_ISOLATION_LEVEL = "READ COMMITTED"
 TEST_QUERY = "SELECT 1"
+ERROR_REMAPPING = {
+    re.compile(r"This result object does not return rows"): "Only SELECT queries are allowed.",
+}
 
 
 class DatabaseEngine:
@@ -72,6 +76,18 @@ class DatabaseEngine:
 
         return ConnectionContextManager(engine)
 
+    @classmethod
+    async def cleanup(cls):
+        """Clean up all cached engines. Call this when shutting down."""
+        for engine in cls._engines.values():
+            await engine.dispose()
+        cls._engines.clear()
+
+    @classmethod
+    def clear_cache(cls):
+        """Clear the engine cache without disposing engines. Use with caution."""
+        cls._engines.clear()
+
 
 @tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
 async def discover_tables(
@@ -133,6 +149,10 @@ async def execute_query(
         try:
             return await _execute_query(engine, query)
         except Exception as e:
+            for pattern, replacement in ERROR_REMAPPING.items():
+                if pattern.search(str(e)):
+                    e = BaseException(replacement)
+
             raise RetryableToolError(
                 f"Query failed: {e}",
                 developer_message=f"Query '{query}' failed.",
