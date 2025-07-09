@@ -1,5 +1,6 @@
 import re
 from typing import Annotated, Any, ClassVar
+from urllib.parse import urlparse
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import RetryableToolError
@@ -22,18 +23,21 @@ class DatabaseEngine:
     async def get_instance(
         cls, connection_string: str, isolation_level: str = DEFAULT_ISOLATION_LEVEL
     ) -> AsyncEngine:
-        key = f"{connection_string}:{isolation_level}"
-        if key not in cls._engines:
-            # Convert sync connection string to async if needed
-            if connection_string.startswith("postgresql://"):
-                async_connection_string = connection_string.replace(
-                    "postgresql://", "postgresql+asyncpg://"
-                )
-            else:
-                async_connection_string = connection_string
+        parsed_url = urlparse(connection_string)
 
+        # TODO: something strange with sslmode= and friends
+        # query_params = parse_qs(parsed_url.query)
+        # query_params = {
+        #     k: v[0] for k, v in query_params.items()
+        # }  # assume one value allowed for each query param
+
+        async_connection_string = f"{parsed_url.scheme.replace('postgresql', 'postgresql+asyncpg')}://{parsed_url.netloc}{parsed_url.path}"
+        key = f"{async_connection_string}:{isolation_level}"
+        print(f"key: {key}")
+        if key not in cls._engines:
             cls._engines[key] = create_async_engine(
-                async_connection_string, isolation_level=isolation_level
+                async_connection_string,
+                isolation_level=isolation_level,
             )
 
         # try a simple query to see if the connection is valid
@@ -114,7 +118,7 @@ async def get_table_schema(
     """
     Get the schema of a postgres table in the postgres database when the schema is not known, and the name of the table is provided.
 
-    THIS TOOL SHOULD ALWAYS BE USED BEFORE EXECUTING ANY QUERY.  ALL TABLES IN THE QUERY MUST BE DISCOVERED FIRST.
+    THIS TOOL SHOULD ALWAYS BE USED BEFORE EXECUTING ANY QUERY.  ALL TABLES IN THE QUERY MUST BE DISCOVERED FIRST USING THE <DiscoverTables> TOOL.
     """
     async with await DatabaseEngine.get_engine(
         context.get_secret("DATABASE_CONNECTION_STRING")
@@ -133,7 +137,7 @@ async def execute_query(
 
     ONLY USE THIS TOOL IF YOU HAVE ALREADY LOADED THE SCHEMA OF THE TABLES YOU NEED TO QUERY.  USE THE <GetTableSchema> TOOL TO LOAD THE SCHEMA IF NOT ALREADY KNOWN.
 
-    When running queries, follow the following rules which will help avoid errors:
+    When running queries, follow these rules which will help avoid errors:
     * Always use case-insensitive queries to match strings in the query.
     * Always trim strings in the query.
     * Prefer LIKE queries over direct string matches or regex queries.
