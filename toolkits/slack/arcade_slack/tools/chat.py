@@ -103,21 +103,19 @@ async def get_users_in_conversation(
     limit: Annotated[int | None, "The maximum number of users to return. Defaults to 200."] = 200,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each user in the conversation"]:
-    """Get the users in a Slack conversation (channel, DM, or MPIM) by its ID or by channel name.
+    """Get the users in a Slack conversation (Channel, DM/IM, or MPIM) by its ID or by channel name.
 
     Provide exactly one of conversation_id or channel_name.
     """
     if conversation_id and channel_name:
         raise ToolExecutionError("Provide exactly one of conversation_id OR channel_name.")
 
+    auth_token = context.get_auth_token_or_empty()
+
     if not conversation_id:
-        channel = await get_conversation_metadata(
-            context=context,
-            channel_name=channel_name,
-        )
+        channel = await get_channel_by_name(auth_token, channel_name)
         conversation_id = channel["id"]
 
-    auth_token = context.get_auth_token_or_empty()
     slack_client = AsyncWebClient(token=auth_token)
     user_ids, next_cursor = await async_paginate(
         func=slack_client.conversations_members,
@@ -129,7 +127,7 @@ async def get_users_in_conversation(
 
     users = await get_users_by_id(auth_token, user_ids)
 
-    raise_for_users_not_found(context, [users])
+    await raise_for_users_not_found(context, [users])
 
     return {
         "users": [user for user in users["users"] if not user.get("is_bot")],
@@ -288,13 +286,15 @@ async def get_conversation_metadata(
 
     slack_client = AsyncWebClient(token=auth_token)
 
-    current_user = await slack_client.auth_test()
+    try:
+        current_user = await slack_client.auth_test()
+    except SlackApiError as e:
+        message = "Failed to get currently authenticated user's info."
+        developer_message = f"{message} Slack error: '{e.response.get('error', 'unknown_error')}'"
+        raise ToolExecutionError(message, developer_message)
 
-    if not current_user.get("ok"):
-        message = "Failed to get current user"
-        raise ToolExecutionError(message=message, developer_message=message)
-
-    user_ids_list.append(current_user["user_id"])
+    if current_user["user_id"] not in user_ids_list:
+        user_ids_list.append(current_user["user_id"])
 
     if usernames or emails:
         other_users = await get_users_by_id_username_or_email(

@@ -440,12 +440,12 @@ async def raise_for_users_not_found(
 ) -> None:
     """Raise an error if any user was not found in the responses."""
     users_not_found, available_users = collect_users_not_found_in_responses(users_responses)
-    available_users_prompt = await get_available_users_prompt(context, available_users)
 
     if users_not_found:
         not_found_message = ", ".join(users_not_found)
         s = "" if len(users_not_found) == 1 else "s"
         message = f"User{s} not found: {not_found_message}"
+        available_users_prompt = await get_available_users_prompt(context, available_users)
 
         raise RetryableToolError(
             message=message,
@@ -462,6 +462,7 @@ def collect_users_not_found_in_responses(
     available_users = []
 
     for response in responses:
+        print("\n\n\nresponse", response, "\n\n\n")
         if response.get("not_found"):
             users_not_found.extend(response["not_found"])
         if response.get("available_users"):

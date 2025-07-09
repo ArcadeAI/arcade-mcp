@@ -37,6 +37,12 @@ def mock_conversation_retrieval_slack_client(mocker):
 
 
 @pytest.fixture
+def mock_message_retrieval_slack_client(mocker):
+    mock_client = mocker.patch("arcade_slack.message_retrieval.AsyncWebClient", autospec=True)
+    return mock_client.return_value
+
+
+@pytest.fixture
 def random_str_factory():
     def random_str_factory(length: int = 10):
         return "".join(random.choices(string.ascii_letters + string.digits, k=length))  # noqa: S311

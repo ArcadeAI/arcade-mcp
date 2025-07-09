@@ -53,12 +53,15 @@ async def get_users_by_id_username_or_email(
     auth_token = context.get_auth_token_or_empty()
 
     if user_ids:
+        user_ids = list(set(user_ids))
         user_retrieval_calls.append(get_users_by_id(auth_token, user_ids, semaphore))
 
     if usernames:
+        usernames = list(set(usernames))
         user_retrieval_calls.append(get_users_by_username(auth_token, usernames, semaphore))
 
     if emails:
+        emails = list(set(emails))
         user_retrieval_calls.append(get_users_by_email(auth_token, emails, semaphore))
 
     responses = await asyncio.gather(*user_retrieval_calls)
@@ -139,6 +142,7 @@ async def get_users_by_username(
 
     users_found = []
     usernames_lower = {username.casefold() for username in usernames}
+    usernames_pending = set(usernames)
     available_users = []
 
     for user in users:
@@ -155,12 +159,15 @@ async def get_users_by_username(
         if username_lower in usernames_lower:
             users_found.append(cast_user_dict(user))
             # Username/handle is unique in Slack, we can ignore it after finding a match
-            usernames_lower.remove(username_lower)
+            for pending_username in usernames_pending:
+                if pending_username.casefold() == username_lower:
+                    usernames_pending.remove(pending_username)
+                    break
 
     response: dict[str, Any] = {"users": users_found}
 
-    if usernames_lower:
-        response["not_found"] = list(usernames_lower)
+    if usernames_pending:
+        response["not_found"] = list(usernames_pending)
         response["available_users"] = available_users
 
     return response
