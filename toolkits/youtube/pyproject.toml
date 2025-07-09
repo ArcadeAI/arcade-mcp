@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_youtube"
-version = "0.1.0"
+version = "2.0.0"
 description = "Arcade.dev LLM tools for searching for YouTube videos&#34;"
 requires-python = ">=3.10"
 dependencies = [
