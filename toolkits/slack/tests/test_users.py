@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -8,7 +9,7 @@ from arcade_slack.tools.users import (
     get_users_info,
     list_users,
 )
-from arcade_slack.utils import extract_basic_user_info
+from arcade_slack.utils import extract_basic_user_info, short_user_info
 
 
 @pytest.mark.asyncio
@@ -264,14 +265,20 @@ async def test_get_user_by_email_success(
 
 @pytest.mark.asyncio
 async def test_get_user_by_email_not_found(
-    mock_context, mock_user_retrieval_slack_client, dummy_user_factory
+    mock_context, mock_users_slack_client, mock_user_retrieval_slack_client, dummy_user_factory
 ):
-    additional_user = dummy_user_factory()
-    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = SlackApiError(
-        message="User not found",
-        response={"ok": False, "error": "user_not_found"},
-    )
-    mock_user_retrieval_slack_client.users_list.return_value = {
+    additional_user = dummy_user_factory(email="additional_user@example.com")
+
+    async def lookup_by_email_side_effect(*, email):
+        if email == "additional_user@example.com":
+            return {"ok": True, "user": additional_user}
+        raise SlackApiError(
+            message="User not found",
+            response={"ok": False, "error": "user_not_found"},
+        )
+
+    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = lookup_by_email_side_effect
+    mock_users_slack_client.users_list.return_value = {
         "ok": True,
         "members": [additional_user],
     }
@@ -280,6 +287,7 @@ async def test_get_user_by_email_not_found(
         await get_users_info(mock_context, emails=["not_found@example.com"])
 
     assert "not_found@example.com" in e.value.message
+    assert json.dumps(short_user_info(additional_user)) in e.value.additional_prompt_content
 
 
 @pytest.mark.asyncio
@@ -330,19 +338,26 @@ async def test_get_multiple_users_by_email_with_invalid_address(
 
 @pytest.mark.asyncio
 async def test_get_multiple_users_by_email_not_found(
-    mock_context, mock_user_retrieval_slack_client, dummy_user_factory
+    mock_context, mock_user_retrieval_slack_client, mock_users_slack_client, dummy_user_factory
 ):
     user1 = dummy_user_factory()
     user2 = dummy_user_factory()
 
-    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = [
-        {"ok": True, "user": user1},
-        {"ok": True, "user": user2},
-        SlackApiError(
+    async def lookup_by_email_side_effect(*, email):
+        if email == user1["profile"]["email"]:
+            return {"ok": True, "user": user1}
+        if email == user2["profile"]["email"]:
+            return {"ok": True, "user": user2}
+        raise SlackApiError(
             message="User not found",
             response={"ok": False, "error": "user_not_found"},
-        ),
-    ]
+        )
+
+    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = lookup_by_email_side_effect
+    mock_users_slack_client.users_list.return_value = {
+        "ok": True,
+        "members": [user1, user2],
+    }
 
     with pytest.raises(RetryableToolError) as e:
         await get_users_info(
@@ -354,5 +369,6 @@ async def test_get_multiple_users_by_email_not_found(
             ],
         )
 
-    assert "User not found" in e.value.message
     assert "not_found@example.com" in e.value.message
+    assert json.dumps(short_user_info(user1)) in e.value.additional_prompt_content
+    assert json.dumps(short_user_info(user2)) in e.value.additional_prompt_content

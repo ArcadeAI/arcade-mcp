@@ -10,6 +10,7 @@ from arcade_slack.user_retrieval import (
     get_users_by_id_username_or_email,
 )
 from arcade_slack.utils import (
+    cast_user_dict,
     extract_basic_user_info,
     short_user_info,
 )
@@ -36,29 +37,35 @@ async def test_get_multiple_users_by_emails_success(
 
 @pytest.mark.asyncio
 async def test_get_multiple_users_by_usernames_or_emails_with_emails_not_found(
-    mock_context, mock_user_retrieval_slack_client, dummy_user_factory
+    mock_context,
+    mock_user_retrieval_slack_client,
+    mock_users_slack_client,
+    dummy_user_factory,
 ):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
+    user1 = dummy_user_factory(email="user1@example.com")
 
     emails = [user1["profile"]["email"], "not_found@example.com"]
 
-    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = [
-        {"ok": True, "user": user1},
-        SlackApiError(
+    async def lookup_by_email_side_effect(*, email):
+        if email == "user1@example.com":
+            return {"ok": True, "user": user1}
+        raise SlackApiError(
             message="User not found",
             response={"error": "user_not_found"},
-        ),
-    ]
-    mock_user_retrieval_slack_client.users_list.return_value = {
+        )
+
+    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = lookup_by_email_side_effect
+
+    mock_users_slack_client.users_list.return_value = {
         "ok": True,
-        "members": [user1, user2],
+        "members": [user1],
     }
 
     with pytest.raises(RetryableToolError) as error:
         await get_users_by_id_username_or_email(context=mock_context, emails=emails)
 
     assert "not_found@example.com" in error.value.message
+    assert json.dumps(short_user_info(user1)) in error.value.additional_prompt_content
 
 
 @pytest.mark.asyncio
@@ -149,7 +156,7 @@ async def test_get_single_user_by_id_success(
         user_id=user["id"],
     )
 
-    assert response == user
+    assert response == cast_user_dict(user)
 
 
 @pytest.mark.asyncio
@@ -221,7 +228,7 @@ async def test_get_users_by_id_with_one_user_id_success(
         user_ids=[user1["id"]],
     )
 
-    assert response == {"users": [user1], "not_found": []}
+    assert response == {"users": [cast_user_dict(user1)], "not_found": []}
 
     mock_user_retrieval_slack_client.users_list.assert_not_called()
 
@@ -270,17 +277,17 @@ async def test_get_users_by_id_with_multiple_user_ids_success(
         user_ids=[user1["id"], user4["id"]],
     )
 
-    assert response == {"users": [user1, user4], "not_found": []}
+    assert response == {"users": [cast_user_dict(user1), cast_user_dict(user4)], "not_found": []}
 
 
 @pytest.mark.asyncio
 async def test_get_users_by_id_with_multiple_user_ids_some_not_found(
     mock_context, mock_user_retrieval_slack_client, dummy_user_factory
 ):
-    user1 = dummy_user_factory()
-    user2 = dummy_user_factory()
-    user3 = dummy_user_factory()
-    user4 = dummy_user_factory()
+    user1 = dummy_user_factory(id_="U1")
+    user2 = dummy_user_factory(id_="U2")
+    user3 = dummy_user_factory(id_="U3")
+    user4 = dummy_user_factory(id_="U4")
 
     mock_user_retrieval_slack_client.users_list.side_effect = [
         {
@@ -288,7 +295,11 @@ async def test_get_users_by_id_with_multiple_user_ids_some_not_found(
             "members": [user1, user2],
             "response_metadata": {"next_cursor": "next_cursor"},
         },
-        {"ok": True, "members": [user3, user4]},
+        {
+            "ok": True,
+            "members": [user3, user4],
+            "response_metadata": {"next_cursor": None},
+        },
     ]
 
     response = await get_users_by_id(
@@ -296,4 +307,7 @@ async def test_get_users_by_id_with_multiple_user_ids_some_not_found(
         user_ids=[user1["id"], user4["id"], "user_not_exists"],
     )
 
-    assert response == {"users": [user1, user4], "not_found": ["user_not_exists"]}
+    assert response == {
+        "users": [cast_user_dict(user1), cast_user_dict(user4)],
+        "not_found": ["user_not_exists"],
+    }

@@ -462,7 +462,6 @@ def collect_users_not_found_in_responses(
     available_users = []
 
     for response in responses:
-        print("\n\n\nresponse", response, "\n\n\n")
         if response.get("not_found"):
             users_not_found.extend(response["not_found"])
         if response.get("available_users"):
