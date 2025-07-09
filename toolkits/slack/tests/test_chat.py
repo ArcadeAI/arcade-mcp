@@ -518,7 +518,7 @@ async def test_get_conversation_metadata_by_username(
 
 
 @pytest.mark.asyncio
-async def test_get_conversation_metadata_by_username_not_found(
+async def test_get_dm_conversation_metadata_by_username_not_found(
     mock_context,
     mock_chat_slack_client,
     mock_user_retrieval_slack_client,
@@ -556,6 +556,179 @@ async def test_get_conversation_metadata_by_username_not_found(
     assert other_user["name"] in error.value.additional_prompt_content
 
     mock_chat_slack_client.conversations_open.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_usernames(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        usernames=[other_user1["name"], other_user2["name"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[current_user["id"], other_user1["id"], other_user2["id"]],
+        return_im=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_user_ids_and_usernames(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        user_ids=[other_user3["id"]],
+        usernames=[other_user1["name"], other_user2["name"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[other_user3["id"], current_user["id"], other_user1["id"], other_user2["id"]],
+        return_im=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_user_ids_usernames_and_emails(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+    other_user5 = dummy_user_factory(id_="U6", name="other_user5")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = [
+        {
+            "ok": True,
+            "user": other_user5,
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        user_ids=[other_user3["id"]],
+        usernames=[other_user1["name"], other_user2["name"]],
+        emails=[other_user5["profile"]["email"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[
+            other_user3["id"],
+            current_user["id"],
+            other_user1["id"],
+            other_user2["id"],
+            other_user5["id"],
+        ],
+        return_im=True,
+    )
 
 
 @pytest.mark.asyncio
@@ -933,34 +1106,40 @@ async def test_get_messages_by_channel_name(
 
 
 # @pytest.mark.asyncio
-# @patch("arcade_slack.tools.chat.get_messages_in_conversation_by_id")
-# @patch("arcade_slack.tools.chat.get_direct_message_conversation_metadata_by_user")
-# async def test_get_messages_in_direct_conversation_by_username(
-#     mock_get_direct_message_conversation_metadata_by_user,
-#     mock_get_messages_in_conversation_by_id,
+# async def test_get_messages_by_username(
 #     mock_context,
+#     mock_message_retrieval_slack_client,
+#     mock_conversation_retrieval_slack_client,
 # ):
-#     mock_get_direct_message_conversation_metadata_by_user.return_value = {
-#         "id": "C12345",
+#     mock_conversation_retrieval_slack_client.conversations_list.return_value = {
+#         "ok": True,
+#         "channels": [
+#             {
+#                 "id": "C12345",
+#                 "name": "general",
+#                 "is_member": True,
+#                 "is_channel": True,
+#             }
+#         ],
+#     }
+#     mock_message_retrieval_slack_client.conversations_history.return_value = {
+#         "ok": True,
+#         "messages": [{"text": "Hello, world!"}],
 #     }
 
-#     response = await get_messages_in_direct_message_conversation_by_user(
-#         context=mock_context, username_or_email="user2"
+#     response = await get_messages(
+#         context=mock_context,
+#         channel_name="general",
+#         limit=1,
 #     )
 
-#     assert response == mock_get_messages_in_conversation_by_id.return_value
-#     mock_get_direct_message_conversation_metadata_by_user.assert_called_once_with(
-#         context=mock_context, username_or_email="user2"
-#     )
-#     mock_get_messages_in_conversation_by_id.assert_called_once_with(
-#         context=mock_context,
-#         conversation_id="C12345",
-#         oldest_relative=None,
-#         latest_relative=None,
-#         oldest_datetime=None,
-#         latest_datetime=None,
-#         limit=None,
-#         next_cursor=None,
+#     assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+#     mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
+#         channel="C12345",
+#         include_all_metadata=True,
+#         inclusive=True,
+#         limit=1,
+#         cursor=None,
 #     )
 
 
@@ -1060,37 +1239,3 @@ async def test_get_messages_by_channel_name(
 #         await get_multi_person_dm_conversation_metadata_by_users(
 #             context=mock_context, usernames_or_emails=["user999", "user1", "user2"]
 #         )
-
-
-# @pytest.mark.asyncio
-# @patch("arcade_slack.tools.chat.get_messages_in_conversation_by_id")
-# @patch("arcade_slack.tools.chat.get_multi_person_dm_conversation_metadata_by_users")
-# async def test_get_messages_in_multi_person_dm_conversation_by_users(
-#     mock_get_multi_person_dm_conversation_metadata_by_users,
-#     mock_get_messages_in_conversation_by_id,
-#     mock_context,
-# ):
-#     mock_get_multi_person_dm_conversation_metadata_by_users.return_value = {
-#         "id": "C12345",
-#     }
-
-#     response = await get_messages_in_multi_person_dm_conversation_by_users(
-#         context=mock_context, usernames_or_emails=["user1", "user4", "user5"]
-#     )
-
-#     assert response == mock_get_messages_in_conversation_by_id.return_value
-
-#     mock_get_multi_person_dm_conversation_metadata_by_users.assert_called_once_with(
-#         context=mock_context, usernames_or_emails=["user1", "user4", "user5"]
-#     )
-
-#     mock_get_messages_in_conversation_by_id.assert_called_once_with(
-#         context=mock_context,
-#         conversation_id="C12345",
-#         oldest_relative=None,
-#         latest_relative=None,
-#         oldest_datetime=None,
-#         latest_datetime=None,
-#         limit=None,
-#         next_cursor=None,
-#     )

@@ -53,15 +53,12 @@ async def get_users_by_id_username_or_email(
     auth_token = context.get_auth_token_or_empty()
 
     if user_ids:
-        user_ids = list(set(user_ids))
         user_retrieval_calls.append(get_users_by_id(auth_token, user_ids, semaphore))
 
     if usernames:
-        usernames = list(set(usernames))
         user_retrieval_calls.append(get_users_by_username(auth_token, usernames, semaphore))
 
     if emails:
-        emails = list(set(emails))
         user_retrieval_calls.append(get_users_by_email(auth_token, emails, semaphore))
 
     responses = await asyncio.gather(*user_retrieval_calls)
@@ -74,6 +71,8 @@ async def get_users_by_id(
     user_ids: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict | str]]:
+    user_ids = list(set(user_ids))
+
     if len(user_ids) == 1:
         user = await get_single_user_by_id(auth_token, user_ids[0])
         if not user:
@@ -127,6 +126,8 @@ async def get_users_by_username(
     usernames: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict]]:
+    usernames = list(set(usernames))
+
     if not semaphore:
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
@@ -178,9 +179,14 @@ async def get_users_by_email(
     emails: list[str],
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict[str, list[dict]]:
+    emails = list(set(emails))
+
     for email in emails:
         if not is_valid_email(email):
             raise ToolExecutionError(f"Invalid email address: {email}")
+
+    if not semaphore:
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
 
     slack_client = AsyncWebClient(token=auth_token)
     callers = [GetUserByEmailCaller(slack_client.users_lookupByEmail, email) for email in emails]
