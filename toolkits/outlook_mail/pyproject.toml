@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_outlook_mail"
-version = "1.0.0"
+version = "1.0.0rc1"
 description = "Arcade.dev LLM tools for Outlook Mail"
 requires-python = ">=3.10"
 dependencies = [

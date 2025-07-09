@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_firecrawl"
-version = "2.0.0"
+version = "2.0.0rc1"
 description = "Arcade.dev LLM tools for web scraping related tasks via Firecrawl"
 requires-python = ">=3.10"
 dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "firecrawl-py>=1.3.1,<2.0.0",]

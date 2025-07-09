@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_google_search"
-version = "2.0.0"
+version = "2.0.0rc1"
 description = "Arcade.dev LLM tools for searching via Google"
 requires-python = ">=3.10"
 dependencies = [
