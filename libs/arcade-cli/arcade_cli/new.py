@@ -97,11 +97,7 @@ def create_ignore_pattern(include_evals: bool, community_toolkit: bool) -> re.Pa
         patterns.append("evals")
 
     if not community_toolkit:
-        patterns.extend([
-            ".ruff.toml",
-            ".pre-commit-config.yaml",
-            "README.md"
-        ])
+        patterns.extend([".ruff.toml", ".pre-commit-config.yaml", "README.md"])
 
     return re.compile(f"({'|'.join(patterns)})$")
 
