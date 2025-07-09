@@ -20,15 +20,17 @@ def mock_context():
     return context
 
 
-def test_discover_tables(mock_context) -> None:
-    assert discover_tables(mock_context) == ["users", "messages"]
+@pytest.mark.asyncio
+async def test_discover_tables(mock_context) -> None:
+    assert await discover_tables(mock_context) == ["users", "messages"]
 
 
-def test_get_table_schema(mock_context) -> None:
-    assert get_table_schema(mock_context, "public", "users") == [
-        "id: int",
-        "name: str",
-        "email: str",
+@pytest.mark.asyncio
+async def test_get_table_schema(mock_context) -> None:
+    assert await get_table_schema(mock_context, "public", "users") == [
+        "id: int (PRIMARY KEY)",
+        "name: str (INDEXED)",
+        "email: str (INDEXED)",
         "password_hash: str",
         "created_at: datetime",
         "updated_at: datetime",
@@ -36,7 +38,8 @@ def test_get_table_schema(mock_context) -> None:
     ]
 
 
-def test_execute_query(mock_context) -> None:
-    assert execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1") == [
+@pytest.mark.asyncio
+async def test_execute_query(mock_context) -> None:
+    assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1") == [
         "(1, 'Mario', 'mario@example.com')"
     ]

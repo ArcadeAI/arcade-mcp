@@ -13,6 +13,8 @@ dependencies = [
     "pydantic>=2.11.7",
     "sqlalchemy>=2.0.41",
     "psycopg2-binary>=2.9.10",
+    "asyncpg>=0.30.0",
+    "greenlet>=3.2.3",
 ]
 [[project.authors]]
 name = "evantahler"
@@ -54,6 +56,7 @@ ignore_missing_imports = "True"
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.report]
 skip_empty = true
