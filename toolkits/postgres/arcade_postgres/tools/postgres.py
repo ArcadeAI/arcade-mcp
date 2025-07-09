@@ -33,7 +33,6 @@ class DatabaseEngine:
 
         async_connection_string = f"{parsed_url.scheme.replace('postgresql', 'postgresql+asyncpg')}://{parsed_url.netloc}{parsed_url.path}"
         key = f"{async_connection_string}:{isolation_level}"
-        print(f"key: {key}")
         if key not in cls._engines:
             cls._engines[key] = create_async_engine(
                 async_connection_string,
