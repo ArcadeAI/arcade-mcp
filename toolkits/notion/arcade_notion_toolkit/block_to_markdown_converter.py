@@ -53,6 +53,57 @@ class BlockToMarkdownConverter:
         else:
             return self._get_plaintext(block)
 
+    async def convert_block_with_metadata(
+        self, block: dict[str, Any], indent: str = ""
+    ) -> list[str]:
+        """
+        Convert a single Notion block to Markdown with metadata comments.
+
+        Args:
+            block (dict[str, Any]): A Notion block.
+            indent (str): The indentation to apply to the metadata and content.
+
+        Returns:
+            list[str]: A list of lines including metadata and content.
+        """
+        block_id = block.get("id", "")
+        block_type = block.get("type", "")
+        block_markdown = await self.convert_block(block)
+        lines = []
+
+        if block_markdown and block_id:
+            is_list_item = block_type in ["bulleted_list_item", "numbered_list_item"]
+
+            if is_list_item:
+                lines.append(f"{indent}<!-- notion-block-id: {block_id} -->\n")
+
+                for line in block_markdown.rstrip("\n").splitlines():
+                    lines.append(f"{indent}{line}\n")
+
+                # For list items, closing comment needs extra indentation (2 spaces more than the list marker)  # noqa: E501
+                # This prevents breaking the list in CommonMark
+                lines.append(f"{indent}  <!-- /notion-block-id -->\n")
+            else:
+                # For non-list items (headings, paragraphs), use flush-left comments
+                lines.append(f"{indent}<!-- notion-block-id: {block_id} -->\n")
+
+                # Add content with indent
+                for line in block_markdown.rstrip("\n").splitlines():
+                    lines.append(f"{indent}{line}\n")
+
+                # Closing comment at same indent as opening
+                lines.append(f"{indent}<!-- /notion-block-id -->\n")
+
+                lines.append("\n")
+        elif block_markdown:
+            for line in block_markdown.rstrip("\n").splitlines():
+                lines.append(f"{indent}{line}\n")
+
+            if block_type not in ["bulleted_list_item", "numbered_list_item"]:
+                lines.append("\n")
+
+        return lines
+
     @staticmethod
     def rich_text_to_markdown(rich_text_items: list[dict[str, Any]]) -> str:
         """
@@ -160,7 +211,7 @@ class BlockToMarkdownConverter:
         element = block.get(element_key, {})
         rich_text_items = element.get("rich_text", [])
         text = self.rich_text_to_markdown(rich_text_items)
-        return f"{prefix}{text}  \n"
+        return f"{prefix}{text}"
 
     async def _convert_child_page(self, block: dict[str, Any]) -> str:
         """
@@ -173,14 +224,14 @@ class BlockToMarkdownConverter:
             title = self.rich_text_to_markdown(rich_text_items)
         else:
             title = child_page.get("title", "")
-        return f"[{title}]({page_url})  \n"
+        return f"[{title}]({page_url})"
 
     def _convert_bulleted_list_item(self, block: dict[str, Any]) -> str:
         return self._convert_text_block(block, "bulleted_list_item", "- ")
 
     def _convert_equation(self, block: dict[str, Any]) -> str:
         expression = block.get("equation", {}).get("expression", "")
-        return f"$$ {expression} $$  \n"
+        return f"$$ {expression} $$"
 
     def _convert_heading_1(self, block: dict[str, Any]) -> str:
         return self._convert_text_block(block, "heading_1", "# ")

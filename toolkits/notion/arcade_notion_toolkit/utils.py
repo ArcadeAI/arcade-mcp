@@ -243,3 +243,53 @@ def build_workspace_structure(items: list[dict[str, Any]]) -> dict[str, list]:
         return pruned_node
 
     return {"workspace": [prune_node(root) for root in roots]}
+
+
+def strip_metadata(content: str) -> str:
+    """
+    Remove all HTML comment metadata from content for user-facing display.
+
+    This function removes all <!-- notion-block-id: ... --> ... <!-- /notion-block-id -->
+    patterns from the content, leaving only the actual content.
+
+    Args:
+        content (str): The content with potential HTML comment metadata
+
+    Returns:
+        str: The content with all metadata removed
+    """
+    import re
+
+    if not content:
+        return content
+
+    pattern = r"<!-- notion-block-id: [^>]+ -->\n?(.*?)\n?<!-- /notion-block-id -->"
+
+    cleaned_content = re.sub(pattern, r"\1", content, flags=re.DOTALL)
+
+    return cleaned_content
+
+
+def sanitize_input(content: str) -> str:
+    """
+    Remove any HTML comments that look like block metadata from user input.
+
+    This prevents users from accidentally (or intentionally) including metadata
+    in their content that could interfere with the system.
+
+    Args:
+        content (str): The user-provided content to sanitize
+
+    Returns:
+        str: The content with any metadata-like HTML comments removed
+    """
+    import re
+
+    if not content:
+        return content
+
+    pattern = r"<!-- [^>]*notion-block-id[^>]* -->"
+
+    sanitized_content = re.sub(pattern, "", content)
+
+    return sanitized_content
