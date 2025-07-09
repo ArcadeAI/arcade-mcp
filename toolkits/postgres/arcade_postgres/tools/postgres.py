@@ -60,17 +60,17 @@ class DatabaseEngine:
     @classmethod
     async def get_engine(
         cls, connection_string: str, isolation_level: str = DEFAULT_ISOLATION_LEVEL
-    ):
+    ) -> Any:
         engine = await cls.get_instance(connection_string, isolation_level)
 
         class ConnectionContextManager:
-            def __init__(self, engine):
+            def __init__(self, engine: AsyncEngine) -> None:
                 self.engine = engine
 
-            async def __aenter__(self):
+            async def __aenter__(self) -> AsyncEngine:
                 return self.engine
 
-            async def __aexit__(self, exc_type, exc_val, exc_tb):
+            async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
                 # Connection cleanup is handled by the async context manager
                 pass
 
@@ -164,15 +164,19 @@ async def execute_query(
 async def _get_tables(engine: AsyncEngine, schema_name: str) -> list[str]:
     """Get all the tables in the database"""
     async with engine.connect() as conn:
-        schemas: list[str] = await conn.run_sync(
-            lambda sync_conn: inspect(sync_conn).get_schema_names()
-        )
+
+        def get_schema_names(sync_conn: Any) -> list[str]:
+            return list(inspect(sync_conn).get_schema_names())
+
+        schemas: list[str] = await conn.run_sync(get_schema_names)
         tables = []
         for schema in schemas:
             if schema == schema_name:
-                these_tables = await conn.run_sync(
-                    lambda sync_conn, s=schema: inspect(sync_conn).get_table_names(schema=s)
-                )
+
+                def get_table_names(sync_conn: Any, s: str = schema) -> list[str]:
+                    return list(inspect(sync_conn).get_table_names(schema=s))
+
+                these_tables = await conn.run_sync(get_table_names)
                 tables.extend(these_tables)
         return tables
 
@@ -180,21 +184,21 @@ async def _get_tables(engine: AsyncEngine, schema_name: str) -> list[str]:
 async def _get_table_schema(engine: AsyncEngine, schema_name: str, table_name: str) -> list[str]:
     """Get the schema of a table"""
     async with engine.connect() as connection:
-        columns_table = await connection.run_sync(
-            lambda sync_conn, t=table_name, s=schema_name: inspect(sync_conn).get_columns(t, s)
-        )
+
+        def get_columns(sync_conn: Any, t: str = table_name, s: str = schema_name) -> list[Any]:
+            return list(inspect(sync_conn).get_columns(t, s))
+
+        columns_table = await connection.run_sync(get_columns)
 
         # Get primary key information
         pk_constraint = await connection.run_sync(
-            lambda sync_conn, t=table_name, s=schema_name: inspect(sync_conn).get_pk_constraint(
-                t, s
-            )
+            lambda sync_conn: inspect(sync_conn).get_pk_constraint(table_name, schema_name)
         )
         primary_keys = set(pk_constraint.get("constrained_columns", []))
 
         # Get index information
         indexes = await connection.run_sync(
-            lambda sync_conn, t=table_name, s=schema_name: inspect(sync_conn).get_indexes(t, s)
+            lambda sync_conn: inspect(sync_conn).get_indexes(table_name, schema_name)
         )
         indexed_columns = set()
         for index in indexes:
