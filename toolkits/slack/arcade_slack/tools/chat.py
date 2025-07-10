@@ -45,7 +45,11 @@ from arcade_slack.utils import (
 async def send_message(
     context: ToolContext,
     message: Annotated[str, "The content of the message to send."],
-    channel_name: Annotated[str | None, "The channel name to send the message to."] = None,
+    channel_name: Annotated[
+        str | None,
+        "The channel name to send the message to. Prefer providing a conversation_id, "
+        "when available, since the performance is better.",
+    ] = None,
     conversation_id: Annotated[str | None, "The conversation ID to send the message to."] = None,
     user_ids: Annotated[list[str] | None, "The Slack user IDs of the people to message."] = None,
     emails: Annotated[list[str] | None, "The emails of the people to message."] = None,
@@ -101,7 +105,11 @@ async def send_message(
 async def get_users_in_conversation(
     context: ToolContext,
     conversation_id: Annotated[str | None, "The ID of the conversation to get users in."] = None,
-    channel_name: Annotated[str | None, "The name of the channel to get users in."] = None,
+    channel_name: Annotated[
+        str | None,
+        "The name of the channel to get users in. Prefer providing a conversation_id, "
+        "when available, since the performance is better.",
+    ] = None,
     # The user object is relatively small, so we allow a higher limit.
     limit: Annotated[
         int, "The maximum number of users to return. Defaults to 200. Maximum is 500."
@@ -110,7 +118,8 @@ async def get_users_in_conversation(
 ) -> Annotated[dict, "Information about each user in the conversation"]:
     """Get the users in a Slack conversation (Channel, DM/IM, or MPIM) by its ID or by channel name.
 
-    Provide exactly one of conversation_id or channel_name.
+    Provide exactly one of conversation_id or channel_name. Prefer providing a conversation_id,
+    when available, since the performance is better.
     """
     limit = max(1, min(limit, 500))
 
@@ -165,7 +174,11 @@ async def get_messages(
         "The ID of the conversation to get messages from. Provide exactly one of conversation_id "
         "OR any combination of user_ids, usernames, and/or emails.",
     ] = None,
-    channel_name: Annotated[str | None, "The name of the channel to get messages from."] = None,
+    channel_name: Annotated[
+        str | None,
+        "The name of the channel to get messages from. Prefer providing a conversation_id, "
+        "when available, since the performance is better.",
+    ] = None,
     user_ids: Annotated[
         list[str] | None, "The IDs of the users in the conversation to get messages from."
     ] = None,
@@ -283,7 +296,11 @@ async def get_messages(
 async def get_conversation_metadata(
     context: ToolContext,
     conversation_id: Annotated[str | None, "The ID of the conversation to get metadata for"] = None,
-    channel_name: Annotated[str | None, "The name of the channel to get metadata for"] = None,
+    channel_name: Annotated[
+        str | None,
+        "The name of the channel to get metadata for. Prefer providing a conversation_id, "
+        "when available, since the performance is better.",
+    ] = None,
     usernames: Annotated[
         list[str] | None,
         "The usernames of the users to get the conversation metadata. "
