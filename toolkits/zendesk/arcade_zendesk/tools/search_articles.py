@@ -71,8 +71,9 @@ async def search_articles(
     ] = 500,
 ) -> Annotated[
     dict[str, Any],
-    "Article search results with pagination metadata. Results include 'next_offset' "
-    "to fetch the next set of results",
+    "Article search results with pagination metadata. Includes 'next_offset' when more "
+    "results are available. Simply use this value as the 'offset' parameter in your next "
+    "call to fetch the next batch",
 ]:
     """
     Search for Help Center articles in your Zendesk knowledge base.
@@ -81,9 +82,11 @@ async def search_articles(
     solutions and guidance to users. At least one search parameter (query or label_names)
     must be provided.
 
-    The tool internally handles pagination to return the requested number of results
-    starting from the specified offset. Use the 'next_offset' value in the response
-    to fetch the next batch of results.
+    PAGINATION:
+    - The response includes 'next_offset' when more results are available
+    - To fetch the next batch, simply pass the 'next_offset' value as the 'offset' parameter
+    - If 'next_offset' is not present, you've reached the end of available results
+    - The tool automatically handles fetching from the correct page based on your offset
 
     IMPORTANT: ALL FILTERS CAN BE COMBINED IN A SINGLE CALL
     You can combine multiple filters (query, labels, dates) in one search request.

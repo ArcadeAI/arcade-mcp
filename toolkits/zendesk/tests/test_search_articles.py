@@ -219,8 +219,6 @@ class TestSearchArticlesPagination:
         result = await search_articles(context=mock_context, query="test", limit=150)
 
         assert result["count"] == 150
-        assert result["offset"] == 0
-        assert result["limit"] == 150
         assert "next_offset" in result  # More results available
         assert result["next_offset"] == 150
         assert mock_httpx_client.get.call_count == 2  # Fetched 2 pages
@@ -243,8 +241,6 @@ class TestSearchArticlesPagination:
         result = await search_articles(context=mock_context, query="test", offset=150, limit=30)
 
         assert result["count"] == 30
-        assert result["offset"] == 150
-        assert result["limit"] == 30
         assert "next_offset" in result
         assert result["next_offset"] == 180
 
@@ -270,6 +266,49 @@ class TestSearchArticlesPagination:
         result = await search_articles(context=mock_context, query="test", limit=20)
 
         assert result["count"] == 20
+        assert "next_offset" not in result  # No more results
+
+    @pytest.mark.asyncio
+    async def test_partial_page_with_more_items(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test that next_offset is included when there are more items on the current page."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        # Setup response with 50 items on a page, but we only request 30
+        articles = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(1, 51)
+        ]
+        response = {"results": articles, "next_page": None}
+
+        mock_httpx_client.get.return_value = mock_http_response(response)
+
+        # Request only 30 items when page has 50
+        result = await search_articles(context=mock_context, query="test", limit=30)
+
+        assert result["count"] == 30
+        assert "next_offset" in result  # More items available on current page
+        assert result["next_offset"] == 30
+
+    @pytest.mark.asyncio
+    async def test_request_more_than_available(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test when requesting more items than are available returns only what's available."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        # Setup response with only 15 items total
+        articles = [
+            {"id": i, "title": f"Article {i}", "body": f"Content {i}"} for i in range(1, 16)
+        ]
+        response = {"results": articles, "next_page": None}
+
+        mock_httpx_client.get.return_value = mock_http_response(response)
+
+        # Request 30 items when only 15 are available
+        result = await search_articles(context=mock_context, query="test", limit=30)
+
+        assert result["count"] == 15  # Only returns what's available
         assert "next_offset" not in result  # No more results
 
 

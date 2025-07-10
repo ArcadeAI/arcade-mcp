@@ -225,7 +225,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
                 func=search_articles,
                 args={
                     "query": "login issues troubleshooting",
-                    "created_after": "2024-03-01",
+                    "created_after": "2024-03-31",
                     "sort_by": ArticleSortBy.CREATED_AT,
                     "sort_order": SortOrder.DESC,
                 },
@@ -344,15 +344,15 @@ def zendesk_search_articles_pagination_eval_suite() -> EvalSuite:
                 "role": "tool",
                 "content": '{"results": [{"content": "Troubleshooting guide 1", '
                 '"metadata": {"id": 1, "title": "How to troubleshoot login issues"}}], '
-                '"count": 150}',
+                '"count": 20, "next_offset": 20}',
                 "tool_call_id": "call_1",
                 "name": "search_articles",
             },
             {
                 "role": "assistant",
-                "content": "I found 150 troubleshooting articles total. "
-                "Here are the first 20 results. "
-                "The first one is 'How to troubleshoot login issues'.",
+                "content": "I found 20 troubleshooting articles, and there are more available. "
+                "The first one is 'How to troubleshoot login issues'. "
+                "Would you like to see more results?",
             },
         ],
     )

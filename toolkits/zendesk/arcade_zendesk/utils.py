@@ -38,8 +38,6 @@ async def fetch_paginated_results(
         Dict containing:
         - results: List of fetched items
         - count: Number of items returned
-        - offset: The offset used
-        - limit: The limit used
         - next_offset: Present only if more results are available
     """
     # Calculate pagination parameters
@@ -53,6 +51,7 @@ async def fetch_paginated_results(
     current_page = start_page
     items_collected = 0
     has_more = False
+    last_page_had_more_items = False
 
     while items_collected < limit:
         # Set the current page
@@ -76,6 +75,10 @@ async def fetch_paginated_results(
         all_results.extend(results_to_add)
         items_collected += len(results_to_add)
 
+        # Check if we left items on this page
+        if len(page_results) > items_needed:
+            last_page_had_more_items = True
+
         # Check if there are more pages
         has_more = page_data.get("next_page") is not None
 
@@ -89,14 +92,16 @@ async def fetch_paginated_results(
     result = {
         "results": all_results,
         "count": len(all_results),
-        "offset": offset,
-        "limit": limit,
     }
 
     # Add next_offset if there might be more results
-    # This happens when we got exactly the limit requested AND there are more pages
-    if len(all_results) == limit and has_more:
-        result["next_offset"] = offset + limit
+    # This happens when:
+    # 1. We got exactly the limit requested AND (there are more pages OR we left items on the page)
+    # 2. We didn't get the full limit but there are more pages available
+    if (len(all_results) == limit and (has_more or last_page_had_more_items)) or (
+        len(all_results) < limit and has_more
+    ):
+        result["next_offset"] = offset + len(all_results)
 
     return result
 
