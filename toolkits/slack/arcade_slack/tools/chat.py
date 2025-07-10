@@ -208,10 +208,10 @@ async def get_messages(
         ),
     ] = None,
     limit: Annotated[
-        # The message object can be relatively large, so we limit the default and maximum to 100
+        # The message object can be relatively large, so we limit maximum to 100
         # to preserve LLM's context window and reduce the likelihood of hallucinations.
-        int, "The maximum number of messages to return. Defaults to 100. Maximum is 100."
-    ] = 100,
+        int, "The maximum number of messages to return. Defaults to 20. Maximum is 100."
+    ] = 20,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
