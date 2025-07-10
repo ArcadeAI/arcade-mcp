@@ -1,4 +1,3 @@
-import asyncio
 from typing import Annotated, Any
 
 import httpx
@@ -6,8 +5,8 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Notion
 from arcade_tdk.errors import ToolExecutionError
 
-from arcade_notion_toolkit.block_to_markdown_converter import BlockToMarkdownConverter
-from arcade_notion_toolkit.enums import BlockType, ObjectType
+from arcade_notion_toolkit.block_to_structured_converter import BlockToStructuredConverter
+from arcade_notion_toolkit.enums import ObjectType
 from arcade_notion_toolkit.markdown_to_block_converter import convert_markdown_to_blocks
 from arcade_notion_toolkit.tools.search import get_object_metadata
 from arcade_notion_toolkit.types import DatabaseParent, PageWithPageParentProperties, create_parent
@@ -24,11 +23,14 @@ from arcade_notion_toolkit.utils import (
 @tool(requires_auth=Notion())
 async def get_page_content_by_id(
     context: ToolContext, page_id: Annotated[str, "ID of the page to get content from"]
-) -> Annotated[str, "The markdown content of the page"]:
-    """Get the content of a Notion page as markdown with the page's ID"""
+) -> Annotated[dict[str, Any], "The structured content of the page with block IDs and hierarchy"]:
+    """Get the content of a Notion page as a structured dictionary with the page's ID.
+
+    DO NOT CALL THIS TOOL IF YOU ALREADY HAVE THE PAGE CONTENT IN YOUR HISTORY.
+    """
     headers = get_headers(context)
     params = {"page_size": 100}
-    converter = BlockToMarkdownConverter(context)
+    structured_converter = BlockToStructuredConverter(context)
 
     async with httpx.AsyncClient() as client:
 
@@ -46,65 +48,32 @@ async def get_page_content_by_id(
 
             return all_blocks
 
-        async def process_blocks_to_markdown(blocks: list, indent: str = "") -> str:
-            """Process a list of blocks into markdown.
-
-            If a block has children, we recurse into the children blocks.
-            """
-            markdown_pieces = []
-
-            for block in blocks:
-                block_markdown = await converter.convert_block(block)
-                if block_markdown:
-                    # Append each line with indent as a separate piece
-                    for line in block_markdown.rstrip("\n").splitlines():
-                        markdown_pieces.append(indent + line + "\n")
-
-                # If the block has children and is not a child page, recurse.
-                # We don't recurse into child page content, as this would result in fetching
-                # the children pages' content, which the Notion UI does not show.
-                if (
-                    block.get("has_children", False)
-                    and block.get("type") != BlockType.CHILD_PAGE.value
-                ):
-                    # Fetch all child blocks first
-                    child_blocks = await fetch_blocks(block["id"])
-                    # Then process them all at once
-                    child_markdown = await process_blocks_to_markdown(child_blocks, indent + "    ")
-                    markdown_pieces.append(child_markdown)
-
-            return "".join(markdown_pieces)
-
-        # Get the title
         page_metadata = await get_object_metadata(context, object_id=page_id)
-        markdown_title = f"# {extract_title(page_metadata)}\n"
+        title = extract_title(page_metadata)
 
         # Get all top-level blocks
         top_level_blocks = await fetch_blocks(page_id)
 
-        chunk_size = max(1, len(top_level_blocks) // 5)
-        chunks = [
-            top_level_blocks[i : i + chunk_size]
-            for i in range(0, len(top_level_blocks), chunk_size)
-        ]
+        structured_blocks = await structured_converter.convert_blocks_to_structured(
+            top_level_blocks, fetch_blocks
+        )
 
-        # Process all block content into markdown
-        results = await asyncio.gather(*[process_blocks_to_markdown(chunk, "") for chunk in chunks])
-        markdown_content = "".join(results)
-
-        return markdown_title + markdown_content
+        return {"page_id": page_id, "title": title, "blocks": structured_blocks}
 
 
 @tool(requires_auth=Notion())
 async def get_page_content_by_title(
     context: ToolContext, title: Annotated[str, "Title of the page to get content from"]
-) -> Annotated[str, "The markdown content of the page"]:
-    """Get the content of a Notion page as markdown with the page's title"""
+) -> Annotated[dict[str, Any], "The structured content of the page with block IDs and hierarchy"]:
+    """Get the content of a Notion page as a structured dictionary with the page's title.
+
+    DO NOT CALL THIS TOOL IF YOU ALREADY HAVE THE PAGE CONTENT IN YOUR HISTORY.
+    """
     page_metadata = await get_object_metadata(
         context, object_title=title, object_type=ObjectType.PAGE
     )
 
-    page_content: str = await get_page_content_by_id(context, page_metadata["id"])
+    page_content = await get_page_content_by_id(context, page_metadata["id"])
     return page_content
 
 
@@ -210,3 +179,90 @@ async def append_content_to_end_of_page(
             "message": f"Successfully appended content to page with ID: {page_id}",
             "url": page_url,
         }
+
+
+@tool(requires_auth=Notion())
+async def edit_block(
+    context: ToolContext,
+    block_id: Annotated[str, "The ID of the block to edit (extracted from HTML comment metadata)"],
+    new_content: Annotated[str, "The new markdown content for the block"],
+) -> Annotated[dict[str, str], "A dictionary containing a success message and the block ID"]:
+    """Edit a specific block in a Notion page by its block ID.
+
+    If you have the block ID in your conversation history, then there is no need to get the page content again.
+
+    The 'block type' of the block to update cannot be changed. For example, a list item
+    cannot be updated to a heading. An error will be raised if the provided block type differs
+    from the original block type.
+
+    The block ID should be extracted from the HTML comment metadata (<!-- notion-block-id: ... -->) in the page content.
+    The new content will replace the entire content of the block.
+    """  # noqa: E501
+    headers = get_headers(context)
+    update_url = get_url("update_a_block", block_id=block_id)
+    retrieve_url = get_url("retrieve_a_block", block_id=block_id)
+
+    async with httpx.AsyncClient() as client:
+        # Determine the original block type
+        retrieve_response = await client.get(retrieve_url, headers=headers)
+        retrieve_response.raise_for_status()
+        block_data = retrieve_response.json()
+        original_block_type = block_data.get("type")
+
+        # TODO: Can this even happen?
+        if not original_block_type:
+            raise ToolExecutionError(
+                message="Could not determine block type",
+                developer_message=f"Block {block_id} returned no type information",
+            )
+
+        updated_blocks = convert_markdown_to_blocks(new_content)
+
+        # TODO: Is this possible? If it is then I should probably raise an error.
+        if not updated_blocks:
+            # If no blocks were created, create an empty paragraph
+            updated_blocks = [{"type": "paragraph", "paragraph": {"rich_text": []}}]
+
+        updated_block = updated_blocks[0]
+
+        # Build the update payload based on the original block type
+        update_payload = {"type": original_block_type}
+
+        # Map the content from the converted block to the original block type
+        # If the converted type matches the original, use it directly
+        if updated_block["type"] == original_block_type:
+            update_payload[original_block_type] = updated_block[updated_block["type"]]
+        else:  # TODO: We might just be able to skip this if we want to throw error instead
+            # Otherwise, we need to extract the rich_text and apply it to the original type
+            # Most text-based blocks have a similar structure with rich_text
+            converted_type = updated_block["type"]
+            if converted_type in updated_block and "rich_text" in updated_block[converted_type]:
+                rich_text = updated_block[converted_type]["rich_text"]
+
+                # Apply the rich_text to the original block type
+                if original_block_type in [
+                    "paragraph",
+                    "heading_1",
+                    "heading_2",
+                    "heading_3",
+                    "bulleted_list_item",
+                    "numbered_list_item",
+                    "quote",
+                ]:
+                    update_payload[original_block_type] = {"rich_text": rich_text}
+                else:
+                    # For other block types, attempt to update with rich_text if applicable
+                    # This is a best-effort approach
+                    update_payload[original_block_type] = {"rich_text": rich_text}
+            else:
+                # If we can't extract rich_text, raise an error
+                raise ToolExecutionError(
+                    message=f"Cannot convert content to block type '{original_block_type}'",
+                    developer_message=f"Unable to map converted block type '{converted_type}' to original type '{original_block_type}'",  # noqa: E501
+                )
+
+        # Send the update request
+        response = await client.patch(update_url, headers=headers, json=update_payload)
+        response.raise_for_status()
+
+        return {"message": f"Successfully updated block with ID: {block_id}", "block_id": block_id}
