@@ -42,7 +42,6 @@ arcade-ai = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 
-
 [tool.mypy]
 files = [ "{{ package_name }}/**/*.py",]
 python_version = "3.10"
