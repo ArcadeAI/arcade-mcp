@@ -81,7 +81,7 @@ async def send_message(
         conversation_id = conversation["id"]
 
     slack_client = AsyncWebClient(token=context.get_auth_token_or_empty())
-    response = await slack_client.chat_postMessage(channel=conversation_id, text=message)
+    response = await slack_client.chat_postMessage(channel=cast(str, conversation_id), text=message)
     return {"success": True, "data": response.data}
 
 
@@ -108,13 +108,13 @@ async def get_users_in_conversation(
 
     Provide exactly one of conversation_id or channel_name.
     """
-    if conversation_id and channel_name:
+    if sum({bool(conversation_id), bool(channel_name)}) != 1:
         raise ToolExecutionError("Provide exactly one of conversation_id OR channel_name.")
 
     auth_token = context.get_auth_token_or_empty()
 
     if not conversation_id:
-        channel = await get_channel_by_name(auth_token, channel_name)
+        channel = await get_channel_by_name(auth_token, cast(str, channel_name))
         conversation_id = channel["id"]
 
     slack_client = AsyncWebClient(token=auth_token)
@@ -126,12 +126,12 @@ async def get_users_in_conversation(
         channel=conversation_id,
     )
 
-    users = await get_users_by_id(auth_token, user_ids)
+    response = await get_users_by_id(auth_token, user_ids)
 
-    await raise_for_users_not_found(context, [users])
+    await raise_for_users_not_found(context, [response])
 
     return {
-        "users": [user for user in users["users"] if not user.get("is_bot")],
+        "users": [user for user in response["users"] if not user.get("is_bot")],
         "next_cursor": next_cursor,
     }
 
@@ -224,7 +224,7 @@ async def get_messages(
 
     response = await retrieve_messages_in_conversation(
         auth_token=context.get_auth_token_or_empty(),
-        conversation_id=conversation_id,
+        conversation_id=cast(str, conversation_id),
         oldest_relative=oldest_relative,
         latest_relative=latest_relative,
         oldest_datetime=oldest_datetime,
@@ -238,7 +238,7 @@ async def get_messages(
         messages=response["messages"],
     )
 
-    return response
+    return cast(dict, response)
 
 
 @tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
@@ -663,7 +663,7 @@ async def get_messages_in_channel_by_name(
     'latest_relative'.
 
     Leave all arguments with the default None to get messages without date/time filtering"""
-    return await get_messages(
+    return await get_messages(  # type: ignore[no-any-return]
         context=context,
         channel_name=channel_name,
         oldest_relative=oldest_relative,
@@ -740,7 +740,7 @@ async def get_messages_in_conversation_by_id(
     'latest_relative'.
 
     Leave all arguments with the default None to get messages without date/time filtering"""
-    return await get_messages(
+    return await get_messages(  # type: ignore[no-any-return]
         context=context,
         conversation_id=conversation_id,
         oldest_relative=oldest_relative,
@@ -797,7 +797,7 @@ async def get_messages_in_direct_message_conversation_by_username(
 
     This tool is deprecated. Use the `Slack.GetMessages` tool instead.
     """
-    return await get_messages(
+    return await get_messages(  # type: ignore[no-any-return]
         context=context,
         usernames=[username],
         oldest_relative=oldest_relative,
@@ -854,7 +854,7 @@ async def get_messages_in_multi_person_dm_conversation_by_usernames(
 
     This tool is deprecated. Use the `Slack.GetMessages` tool instead.
     """
-    return await get_messages(
+    return await get_messages(  # type: ignore[no-any-return]
         context=context,
         usernames=usernames,
         oldest_relative=oldest_relative,
@@ -889,7 +889,7 @@ async def list_conversations_metadata(
     'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
     will release too much CO2 in the atmosphere and contribute to global warming.
     """
-    return await list_conversations(
+    return await list_conversations(  # type: ignore[no-any-return]
         context=context,
         conversation_types=conversation_types,
         limit=limit,
@@ -1014,7 +1014,7 @@ async def get_conversation_metadata_by_id(
 
     This tool is deprecated. Use the `Slack.GetConversationMetadata` tool instead.
     """
-    return await get_conversation_metadata(context, conversation_id=conversation_id)
+    return await get_conversation_metadata(context, conversation_id=conversation_id)  # type: ignore[no-any-return]
 
 
 @tool(requires_auth=Slack(scopes=["channels:read", "groups:read"]))
@@ -1031,7 +1031,7 @@ async def get_channel_metadata_by_name(
     """Get the metadata of a channel in Slack searching by its name.
 
     This tool is deprecated. Use the `Slack.GetConversationMetadata` tool instead."""
-    return await get_conversation_metadata(context, channel_name=channel_name)
+    return await get_conversation_metadata(context, channel_name=channel_name)  # type: ignore[no-any-return]
 
 
 @tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
@@ -1051,7 +1051,7 @@ async def get_direct_message_conversation_metadata_by_username(
     """Get the metadata of a direct message conversation in Slack by the username.
 
     This tool is deprecated. Use the `Slack.GetConversationMetadata` tool instead."""
-    return await get_conversation_metadata(context, usernames=[username])
+    return await get_conversation_metadata(context, usernames=[username])  # type: ignore[no-any-return]
 
 
 @tool(requires_auth=Slack(scopes=["mpim:read", "users:read", "users:read.email"]))
@@ -1071,4 +1071,4 @@ async def get_multi_person_dm_conversation_metadata_by_usernames(
     """Get the metadata of a multi-person direct message conversation in Slack by the usernames.
 
     This tool is deprecated. Use the `Slack.GetConversationMetadata` tool instead."""
-    return await get_conversation_metadata(context, usernames=usernames)
+    return await get_conversation_metadata(context, usernames=usernames)  # type: ignore[no-any-return]

@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any
+from typing import Any, cast
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import ToolExecutionError
@@ -70,7 +70,7 @@ async def get_users_by_id(
     auth_token: str,
     user_ids: list[str],
     semaphore: asyncio.Semaphore | None = None,
-) -> dict[str, list[dict | str]]:
+) -> dict[str, list]:
     user_ids = list(set(user_ids))
 
     if len(user_ids) == 1:
@@ -95,9 +95,10 @@ async def get_users_by_id(
     users = []
 
     for user in response:
-        if user["id"] in user_ids_pending:
-            users.append(cast_user_dict(user))
-            user_ids_pending.remove(user["id"])
+        user_dict = cast(dict, user)
+        if user_dict["id"] in user_ids_pending:
+            users.append(cast_user_dict(user_dict))
+            user_ids_pending.remove(user_dict["id"])
 
     return {"users": users, "not_found": list(user_ids_pending)}
 

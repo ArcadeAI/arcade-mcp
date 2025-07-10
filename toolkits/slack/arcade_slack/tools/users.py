@@ -51,7 +51,7 @@ async def list_users(
         bool | None, "Whether to exclude bots from the results. Defaults to True."
     ] = True,
     limit: Annotated[
-        int | None,
+        int,
         "The maximum number of users to return. Defaults to 200. Maximum is 500.",
     ] = 200,
     next_cursor: Annotated[str | None, "The next cursor token to use for pagination."] = None,
@@ -94,31 +94,5 @@ async def get_user_info_by_id(
 
     This tool is deprecated. Use the `Slack.GetUsersInfo` tool instead.
     """
-    return get_users_info(context, user_ids=[user_id])
-    # slackClient = AsyncWebClient(token=context.get_auth_token_or_empty())
-
-    # try:
-    #     response = await slackClient.users_info(user=user_id)
-    # except SlackApiError as e:
-    #     if e.response.get("error") == "user_not_found":
-    #         additional_prompt_content = await get_available_users_prompt(context)
-
-    #         raise RetryableToolError(
-    #             "User not found",
-    #             developer_message=f"User with ID '{user_id}' not found.",
-    #             additional_prompt_content=additional_prompt_content,
-    #             retry_after_ms=500,
-    #         )
-    #     else:
-    #         raise ToolExecutionError(
-    #             message="There was an error getting the user info.",
-    #             developer_message=(
-    #                 "Error getting the user info: "
-    #                 f"{e.response.get('error', 'Unknown Slack API error')}"
-    #             ),
-    #         ) from e
-
-    # user_dict_raw: dict[str, Any] = response.get("user", {}) or {}
-    # user_dict = cast(SlackUser, user_dict_raw)
-    # user = SlackUser(**user_dict)
-    # return dict(**extract_basic_user_info(user))
+    users = await get_users_info(context, user_ids=[user_id])
+    return cast(dict[str, Any], users["users"][0])

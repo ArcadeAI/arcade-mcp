@@ -1,7 +1,7 @@
 import asyncio
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 from typing import Any, cast
 
@@ -480,7 +480,9 @@ async def get_available_users_prompt(
         from arcade_slack.tools.users import list_users  # Avoid circular import
 
         if isinstance(available_users, list) and available_users:
-            available_users = [user for user in available_users if not is_user_a_bot(user)]
+            available_users = [
+                user for user in available_users if not is_user_a_bot(SlackUser(**user))
+            ]
             available_users_str = json.dumps(short_human_users_info(available_users))
             next_cursor = None
             potentially_more_users = True
@@ -509,10 +511,10 @@ async def get_available_users_prompt(
 
 
 async def gather_with_concurrency_limit(
-    coroutine_callers: list[AbstractConcurrencySafeCoroutineCaller],
+    coroutine_callers: Sequence[AbstractConcurrencySafeCoroutineCaller],
     semaphore: asyncio.Semaphore | None = None,
     max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
-):
+) -> list[Any]:
     if not semaphore:
         semaphore = asyncio.Semaphore(max_concurrent_requests)
 
@@ -520,7 +522,8 @@ async def gather_with_concurrency_limit(
 
 
 def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
-    return cast(dict, extract_basic_user_info(SlackUser(**user)))
+    slack_user = SlackUser(**cast(dict, user))
+    return dict(**extract_basic_user_info(slack_user))
 
 
 async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> list[dict]:
