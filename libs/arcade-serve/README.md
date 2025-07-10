@@ -20,49 +20,49 @@ pip install arcade-serve
 
 ## Usage
 
-### FastAPI Worker
+To add a toolkit to a hosted worker such as FastAPI, you can register them in the worker itself.
+This allows you to explicitly define which tools should be included on a particular worker.
 
+
+Here is an example of adding the math toolkit (pip install arcade-math) to a FastAPI Worker:
 ```python
-from arcade_serve import FastAPIWorker
+import arcade_math
+from fastapi import FastAPI
+from arcade_tdk import Toolkit
+from arcade_serve.fastapi import FastAPIWorker
 
-# Create a FastAPI worker
-worker = FastAPIWorker()
+app = FastAPI()
 
-# Add tools to the worker
-worker.add_toolkit("path/to/toolkit")
+worker_secret = os.environ.get("ARCADE_WORKER_SECRET")
+worker = FastAPIWorker(app, secret=worker_secret)
 
-# Start the server
-worker.start(host="0.0.0.0", port=8000)
+worker.register_toolkit(Toolkit.from_module(arcade_math))
 ```
 
-### MCP Server
-
+Here is an example of adding the math toolkit (pip install arcade-math) to a MCP Worker
 ```python
-from arcade_serve import StdioServer
+import arcade_math
+from arcade_core.catalog import ToolCatalog
+from arcade_serve.mcp.stdio import StdioServer
 
-# Create an MCP server
-server = StdioServer()
+# 1. Create and populate the tool catalog
+catalog = ToolCatalog()
+catalog.add_module(arcade_math)
 
-# Add tools
-server.add_toolkit("path/to/toolkit")
 
-# Start the server
-server.run()
-```
+# 2. Main entrypoint
+async def main():
+    # Create the worker with the tool catalog
+    worker = StdioServer(catalog)
 
-### Custom Worker
+    # Run the worker
+    await worker.run()
 
-```python
-from arcade_serve import BaseWorker, WorkerComponent
 
-class MyWorker(BaseWorker):
-    def __init__(self):
-        super().__init__()
-        self.add_component(MyCustomComponent())
+if __name__ == "__main__":
+    import asyncio
 
-    async def handle_request(self, request):
-        # Custom request handling
-        return await super().handle_request(request)
+    asyncio.run(main())
 ```
 
 ## License

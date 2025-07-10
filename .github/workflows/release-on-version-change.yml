@@ -1,0 +1,157 @@
+# This workflow is used to release packages to PyPI when its
+# pyproject.toml version is changed or a new package is added.
+
+name: Release on Version Change
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect-version-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has-changes: ${{ steps.set-matrix.outputs.has-changes }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
+        with:
+          files: |
+            **/pyproject.toml
+
+      - name: Check for version changes or new packages
+        id: check-versions
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          ./.github/scripts/check-version-changes.sh "${{ steps.changed-files.outputs.all_changed_files }}"
+
+      - name: Set matrix
+        id: set-matrix
+        run: |
+          packages='${{ steps.check-versions.outputs.packages }}'
+          if [ -z "$packages" ] || [ "$packages" = "[]" ]; then
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+          else
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            # Create matrix with package directories
+            matrix=$(echo "$packages" | jq -c '{include: [.[] | {package: .}]}')
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            echo "Matrix: $matrix"
+          fi
+
+  build-and-test:
+    needs: detect-version-changes
+    if: needs.detect-version-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-version-changes.outputs.matrix) }}
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract package name and version
+        working-directory: ${{ matrix.package }}
+        run: |
+          # Extract package name
+          PACKAGE_NAME=$(grep -m1 '^name = ' pyproject.toml | cut -d'"' -f2)
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+
+          # Extract version
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "Building $PACKAGE_NAME version $VERSION"
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+        with:
+          python-version: "3.10"
+          is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          working-directory: ${{ matrix.package }}
+
+      - name: Run tests
+        working-directory: ${{ matrix.package }}
+        run: |
+          # Run tests if they exist
+          if [ -f "Makefile" ] && grep -q "^test:" Makefile; then
+            make test
+          elif [ -f "../Makefile" ] && grep -q "^test:" ../Makefile; then
+            cd .. && make test
+          else
+            echo "No tests found, skipping test step"
+          fi
+
+      - name: Build release distributions
+        working-directory: ${{ matrix.package }}
+        run: |
+          uv build --out-dir dist | tee build.log
+
+          # Verify build artifacts
+          ls -la dist/
+          echo "Built artifacts for ${{ env.PACKAGE_NAME }} v${{ env.VERSION }}"
+
+      - name: Upload release distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}
+          path: ${{ matrix.package }}/dist/
+
+  pypi-publish:
+    needs: [detect-version-changes, build-and-test]
+    if: needs.detect-version-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-version-changes.outputs.matrix) }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract package name and version
+        working-directory: ${{ matrix.package }}
+        run: |
+          PACKAGE_NAME=$(grep -m1 '^name = ' pyproject.toml | cut -d'"' -f2)
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists-${{ env.PACKAGE_NAME }}-${{ env.VERSION }}
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Send status to Slack
+        if: always()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.PACKAGE_RELEASE_SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "status": "${{ (steps.pypi-publish.outcome == 'failure' || steps.pypi-publish.outcome == 'failure') && 'Failed' || 'Success' }}",
+              "package": "${{ env.PACKAGE_NAME }}",
+              "version": "${{ env.VERSION }}",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
