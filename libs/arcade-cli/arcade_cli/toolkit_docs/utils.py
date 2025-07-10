@@ -137,7 +137,7 @@ def is_well_known_provider(
         if not issubclass(obj, auth_module.OAuth2) or obj is auth_module.OAuth2:
             continue
         try:
-            instance = obj()  # type: ignore[call-arg]
+            instance = obj()
         except AttributeError:
             continue
         provider_id_matches = (
