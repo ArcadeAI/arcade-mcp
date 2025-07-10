@@ -1,9 +1,8 @@
-import asyncio
 from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Slack
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -15,9 +14,7 @@ from arcade_slack.conversation_retrieval import (
 from arcade_slack.message_retrieval import retrieve_messages_in_conversation
 from arcade_slack.models import (
     ConversationType,
-    SlackUserList,
 )
-from arcade_slack.tools.users import get_user_info_by_id
 from arcade_slack.user_retrieval import (
     get_users_by_id,
     get_users_by_id_username_or_email,
@@ -25,7 +22,6 @@ from arcade_slack.user_retrieval import (
 from arcade_slack.utils import (
     async_paginate,
     extract_conversation_metadata,
-    format_users,
     populate_users_in_messages,
     raise_for_users_not_found,
 )
@@ -34,10 +30,16 @@ from arcade_slack.utils import (
 @tool(
     requires_auth=Slack(
         scopes=[
-            "chat:write",
-            "im:write",
-            "users.profile:read",
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
             "users:read",
+            "users:read.email",
+            "chat:write",
+            "chat:write:user",
+            "mpim:write",
+            "im:write",
         ],
     )
 )
@@ -136,7 +138,22 @@ async def get_users_in_conversation(
     }
 
 
-@tool(requires_auth=Slack(scopes=["mpim:history", "mpim:read", "users:read", "users:read.email"]))
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+            "channels:history",
+            "groups:history",
+            "mpim:history",
+            "im:history",
+        ]
+    )
+)
 async def get_messages(
     context: ToolContext,
     conversation_id: Annotated[
@@ -241,7 +258,18 @@ async def get_messages(
     return cast(dict, response)
 
 
-@tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+        ],
+    )
+)
 async def get_conversation_metadata(
     context: ToolContext,
     conversation_id: Annotated[str | None, "The ID of the conversation to get metadata for"] = None,
@@ -391,10 +419,16 @@ async def list_conversations(
 @tool(
     requires_auth=Slack(
         scopes=[
-            "chat:write",
-            "im:write",
-            "users.profile:read",
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
             "users:read",
+            "users:read.email",
+            "chat:write",
+            "chat:write:user",
+            "mpim:write",
+            "im:write",
         ],
     )
 )
@@ -413,54 +447,26 @@ async def send_dm_to_user(
 
     This tool is deprecated. Use `Slack.SendMessage` instead.
     """
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
+    return await send_message(  # type: ignore[no-any-return]
+        context=context,
+        usernames=[user_name],
+        message=message,
     )
-    slackClient = AsyncWebClient(token=token)
-
-    try:
-        # Step 1: Retrieve the user's Slack ID based on their username
-        user_list_response = await slackClient.users_list()
-        user_id = None
-        for user in user_list_response["members"]:
-            response_user_name = (
-                "" if not isinstance(user.get("name"), str) else user["name"].lower()
-            )
-            if response_user_name == user_name.lower():
-                user_id = user["id"]
-                break
-
-        if not user_id:
-            raise RetryableToolError(
-                "User not found",
-                developer_message=f"User with username '{user_name}' not found.",
-                additional_prompt_content=format_users(cast(SlackUserList, user_list_response)),
-                retry_after_ms=500,  # Play nice with Slack API rate limits
-            )
-
-        # Step 2: Retrieve the DM channel ID with the user
-        im_response = await slackClient.conversations_open(users=[user_id])
-        dm_channel_id = im_response["channel"]["id"]
-
-        # Step 3: Send the message as if it's from you (because we're using a user token)
-        response = await slackClient.chat_postMessage(channel=dm_channel_id, text=message)
-
-    except SlackApiError as e:
-        error_message = e.response["error"] if "error" in e.response else str(e)
-        raise ToolExecutionError(
-            "Error sending message",
-            developer_message=f"Slack API Error: {error_message}",
-        )
-    else:
-        return {"response": response.data}
 
 
 @tool(
     requires_auth=Slack(
         scopes=[
-            "chat:write",
             "channels:read",
             "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+            "chat:write",
+            "chat:write:user",
+            "mpim:write",
+            "im:write",
         ],
     )
 )
@@ -473,27 +479,11 @@ async def send_message_to_channel(
 
     This tool is deprecated. Use `Slack.SendMessage` instead.
     """
-
-    try:
-        slackClient = AsyncWebClient(
-            token=context.authorization.token
-            if context.authorization and context.authorization.token
-            else ""
-        )
-
-        channel = await get_conversation_metadata(context=context, channel_name=channel_name)
-        channel_id = channel["id"]
-
-        response = await slackClient.chat_postMessage(channel=channel_id, text=message)
-
-    except SlackApiError as e:
-        error_message = e.response["error"] if "error" in e.response else str(e)
-        raise ToolExecutionError(
-            "Error sending message",
-            developer_message=f"Slack API Error: {error_message}",
-        )
-    else:
-        return {"response": response.data}
+    return await send_message(  # type: ignore[no-any-return]
+        context=context,
+        channel_name=channel_name,
+        message=message,
+    )
 
 
 @tool(
@@ -516,47 +506,17 @@ async def get_members_in_conversation_by_id(
 ) -> Annotated[dict, "Information about each member in the conversation"]:
     """Get the members of a conversation in Slack by the conversation's ID.
 
-    This tool is deprecated. Use the `Slack.GetMembersOfConversation` tool instead.
+    This tool is deprecated. Use the `Slack.GetUsersInConversation` tool instead.
     """
-    token = (
-        context.authorization.token if context.authorization and context.authorization.token else ""
+    response = await get_users_in_conversation(
+        context=context,
+        conversation_id=conversation_id,
+        limit=limit,
+        next_cursor=next_cursor,
     )
-    slackClient = AsyncWebClient(token=token)
-
-    try:
-        member_ids, next_cursor = await async_paginate(
-            slackClient.conversations_members,
-            "members",
-            limit=limit,
-            next_cursor=next_cursor,
-            channel=conversation_id,
-        )
-    except SlackApiError as e:
-        if e.response["error"] == "channel_not_found":
-            conversations = await list_conversations_metadata(context)
-            available_conversations = ", ".join(
-                f"{conversation['id']} ({conversation['name']})"
-                for conversation in conversations["conversations"]
-            )
-
-            raise RetryableToolError(
-                "Conversation not found",
-                developer_message=f"Conversation with ID '{conversation_id}' not found.",
-                additional_prompt_content=f"Available conversations: {available_conversations}",
-                retry_after_ms=500,
-            )
-
-    # Get the members' info
-    # TODO: This will probably hit rate limits. We should probably call list_users() and
-    # then filter the results instead.
-    members = await asyncio.gather(*[
-        get_user_info_by_id(context, member_id) for member_id in member_ids
-    ])
-
-    return {
-        "members": [member for member in members if not member.get("is_bot")],
-        "next_cursor": next_cursor,
-    }
+    response["members"] = response["users"]
+    del response["users"]
+    return cast(dict, response)
 
 
 @tool(
@@ -579,16 +539,17 @@ async def get_members_in_channel_by_name(
 ) -> Annotated[dict, "The channel members' IDs and Names"]:
     """Get the members of a conversation in Slack by the conversation's name.
 
-    This tool is deprecated. Use the `Slack.GetMembersOfConversation` tool instead.
+    This tool is deprecated. Use the `Slack.GetUsersInConversation` tool instead.
     """
-    channel = await get_conversation_metadata(context=context, channel_name=channel_name)
-
-    return await get_members_in_conversation_by_id(  # type: ignore[no-any-return]
+    response = await get_users_in_conversation(
         context=context,
-        conversation_id=channel["id"],
+        channel_name=channel_name,
         limit=limit,
         next_cursor=next_cursor,
     )
+    response["members"] = response["users"]
+    del response["users"]
+    return cast(dict, response)
 
 
 @tool(
@@ -909,12 +870,7 @@ async def list_public_channels_metadata(
     """List metadata for public channels in Slack that the user is a member of.
 
     This tool is deprecated. Use the `Slack.ListConversations` tool instead.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
     """
-
     return await list_conversations(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.PUBLIC_CHANNEL],
@@ -934,12 +890,7 @@ async def list_private_channels_metadata(
     """List metadata for private channels in Slack that the user is a member of.
 
     This tool is deprecated. Use the `Slack.ListConversations` tool instead.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
     """
-
     return await list_conversations(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.PRIVATE_CHANNEL],
@@ -959,12 +910,7 @@ async def list_group_direct_message_conversations_metadata(
     """List metadata for group direct message conversations that the user is a member of.
 
     This tool is deprecated. Use the `Slack.ListConversations` tool instead.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
     """
-
     return await list_conversations(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
@@ -986,24 +932,24 @@ async def list_direct_message_conversations_metadata(
     """List metadata for direct message conversations in Slack that the user is a member of.
 
     This tool is deprecated. Use the `Slack.ListConversations` tool instead.
-
-    This tool does not return the messages in a conversation. To get the messages, use the
-    'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
-    will release too much unnecessary CO2 in the atmosphere and contribute to global warming.
     """
-
-    response = await list_conversations(
+    return await list_conversations(  # type: ignore[no-any-return]
         context,
         conversation_types=[ConversationType.DIRECT_MESSAGE],
         limit=limit,
     )
 
-    return response  # type: ignore[no-any-return]
-
 
 @tool(
     requires_auth=Slack(
-        scopes=["channels:read", "groups:read", "im:read", "mpim:read"],
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+        ],
     )
 )
 async def get_conversation_metadata_by_id(
@@ -1017,7 +963,18 @@ async def get_conversation_metadata_by_id(
     return await get_conversation_metadata(context, conversation_id=conversation_id)  # type: ignore[no-any-return]
 
 
-@tool(requires_auth=Slack(scopes=["channels:read", "groups:read"]))
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+        ],
+    )
+)
 async def get_channel_metadata_by_name(
     context: ToolContext,
     channel_name: Annotated[str, "The name of the channel to get metadata for"],
@@ -1034,7 +991,18 @@ async def get_channel_metadata_by_name(
     return await get_conversation_metadata(context, channel_name=channel_name)  # type: ignore[no-any-return]
 
 
-@tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+        ],
+    )
+)
 async def get_direct_message_conversation_metadata_by_username(
     context: ToolContext,
     username: Annotated[str, "The username of the user/person to get messages with"],
@@ -1054,7 +1022,18 @@ async def get_direct_message_conversation_metadata_by_username(
     return await get_conversation_metadata(context, usernames=[username])  # type: ignore[no-any-return]
 
 
-@tool(requires_auth=Slack(scopes=["mpim:read", "users:read", "users:read.email"]))
+@tool(
+    requires_auth=Slack(
+        scopes=[
+            "channels:read",
+            "groups:read",
+            "mpim:read",
+            "im:read",
+            "users:read",
+            "users:read.email",
+        ],
+    )
+)
 async def get_multi_person_dm_conversation_metadata_by_usernames(
     context: ToolContext,
     usernames: Annotated[list[str], "The usernames of the users/people to get messages with"],
