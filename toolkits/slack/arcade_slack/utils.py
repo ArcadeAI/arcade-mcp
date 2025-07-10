@@ -524,6 +524,9 @@ def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
 
 
 async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> list[dict]:
+    if not messages:
+        return messages
+
     users = await get_users_from_messages(auth_token, messages)
     users_by_id = {user["id"]: {"id": user["id"], "name": user["name"]} for user in users}
 
@@ -559,14 +562,21 @@ async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> l
 
 
 async def get_users_from_messages(auth_token: str, messages: list[dict]) -> list[dict[str, Any]]:
+    if not messages:
+        return []
+
     from arcade_slack.user_retrieval import get_users_by_id  # Avoid circular import
 
     user_ids = get_user_ids_from_messages(messages)
     response = await get_users_by_id(auth_token, user_ids)
+    print("\n\n\nresponse:", response, "\n\n\n")
     return response["users"]
 
 
 def get_user_ids_from_messages(messages: list[dict]) -> list[str]:
+    if not messages:
+        return []
+
     user_ids = []
 
     for message in messages:

@@ -26,6 +26,7 @@ from arcade_slack.utils import (
     async_paginate,
     extract_conversation_metadata,
     format_users,
+    populate_users_in_messages,
     raise_for_users_not_found,
 )
 
@@ -221,7 +222,7 @@ async def get_messages(
         )
         conversation_id = conversation["id"]
 
-    return await retrieve_messages_in_conversation(
+    response = await retrieve_messages_in_conversation(
         auth_token=context.get_auth_token_or_empty(),
         conversation_id=conversation_id,
         oldest_relative=oldest_relative,
@@ -231,6 +232,13 @@ async def get_messages(
         limit=limit,
         next_cursor=next_cursor,
     )
+
+    response["messages"] = await populate_users_in_messages(
+        auth_token=context.get_auth_token_or_empty(),
+        messages=response["messages"],
+    )
+
+    return response
 
 
 @tool(requires_auth=Slack(scopes=["im:read", "users:read", "users:read.email"]))

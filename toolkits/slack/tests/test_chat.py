@@ -925,16 +925,32 @@ async def test_get_users_in_conversation_by_channel_name_not_found(
 async def test_get_messages_by_conversation_id(
     mock_context,
     mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
 ):
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
     mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
         "response_metadata": {"next_cursor": "cursor"},
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     response = await get_messages(mock_context, "C12345", limit=1)
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": "cursor"}
+    assert response["next_cursor"] == "cursor"
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
     mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
         channel="C12345",
         include_all_metadata=True,
@@ -952,10 +968,21 @@ async def test_get_messages_by_conversation_id_with_relative_datetime_args(
     mock_convert_relative_datetime_to_unix_timestamp,
     mock_context,
     mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
 ):
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
     mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     expected_oldest_timestamp = 1716489600
@@ -976,7 +1003,11 @@ async def test_get_messages_by_conversation_id_with_relative_datetime_args(
         limit=1,
     )
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
 
     mock_convert_relative_datetime_to_unix_timestamp.assert_has_calls([
         call("01:00:00", expected_current_unix_timestamp),
@@ -999,10 +1030,21 @@ async def test_get_messages_by_conversation_id_with_absolute_datetime_args(
     mock_convert_datetime_to_unix_timestamp,
     mock_context,
     mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
 ):
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
     mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     expected_latest_timestamp = 1716403200
@@ -1021,7 +1063,12 @@ async def test_get_messages_by_conversation_id_with_absolute_datetime_args(
         limit=1,
     )
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
     mock_convert_datetime_to_unix_timestamp.assert_has_calls([
         call("2025-01-02 00:00:00"),
         call("2025-01-01 00:00:00"),
@@ -1072,6 +1119,9 @@ async def test_get_messages_by_channel_name(
     mock_context,
     mock_message_retrieval_slack_client,
     mock_conversation_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_message_factory,
+    dummy_user_factory,
 ):
     mock_conversation_retrieval_slack_client.conversations_list.return_value = {
         "ok": True,
@@ -1084,9 +1134,17 @@ async def test_get_messages_by_channel_name(
             }
         ],
     }
+
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
     mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     response = await get_messages(
@@ -1095,7 +1153,12 @@ async def test_get_messages_by_channel_name(
         limit=1,
     )
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
     mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
         channel="C12345",
         include_all_metadata=True,
