@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_google_calendar"
-version = "2.0.0rc1"
+version = "2.0.0"
 description = "Arcade.dev LLM tools for Google Calendar"
 requires-python = ">=3.10"
 dependencies = [
@@ -22,7 +22,7 @@ email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>=2.0.0rc1,<3.0.0",
+    "arcade-ai[evals]>=2.0.0,<3.0.0",
     "arcade-serve>=2.0.0,<3.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "arcade_google_maps"
-version = "2.0.0rc1"
+version = "2.0.0"
 description = "Arcade.dev LLM tools for getting directions via Google Maps"
 requires-python = ">=3.10"
 dependencies = [ "arcade-tdk>=2.0.0,<3.0.0", "serpapi>=0.1.5,<1.0.0",]
