@@ -8,24 +8,13 @@ async function main() {
 
   // 2) Fetch Google toolkit from Arcade and prepare tools for OpenAI Agents
   const googleToolkit = await client.tools.list({ toolkit: "google", limit: 30 });
-  const arcadeTools = toZod({
+  const tools = toZod({
     tools: googleToolkit.items,
     client,
     userId: "<YOUR_SYSTEM_USER_ID_2>", // Replace this with your application's user ID (e.g. email address, UUID, etc.)
-  })
+  }).map(tool);
 
-  // 3) Convert the tools to a format that OpenAI Agents can use
-  const tools =  arcadeTools.map(({ name, description, execute, parameters }) =>
-    tool({
-      name,
-      description: description ?? "",
-      parameters: parameters as any,
-      execute,
-      errorFunction: (_, error) => { throw error }
-    }),
-  );
-
-  // 4) Create a new agent with the Google toolkit
+  // 3) Create a new agent with the Google toolkit
   const googleAgent = new Agent({
     name: "Google agent",
     instructions: "You are a helpful assistant that can assist with Google API calls.",
@@ -33,7 +22,7 @@ async function main() {
     tools
   });
 
-  // 5) Run the agent, if authorization is required, wait for it to complete and retry
+  // 4) Run the agent, if authorization is required, wait for it to complete and retry
   while (true) {
     try {
       const result = await run(googleAgent, "What are my latest emails?");

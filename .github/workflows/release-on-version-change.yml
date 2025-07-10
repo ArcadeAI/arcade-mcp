@@ -63,11 +63,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-uv-env
-        with:
-          python-version: "3.10"
-
       - name: Extract package name and version
         working-directory: ${{ matrix.package }}
         run: |
@@ -80,6 +75,13 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
           echo "Building $PACKAGE_NAME version $VERSION"
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+        with:
+          python-version: "3.10"
+          is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          working-directory: ${{ matrix.package }}
 
       - name: Run tests
         working-directory: ${{ matrix.package }}
@@ -139,3 +141,17 @@ jobs:
 
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Send status to Slack
+        if: always()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.PACKAGE_RELEASE_SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "status": "${{ (steps.pypi-publish.outcome == 'failure' || steps.pypi-publish.outcome == 'failure') && 'Failed' || 'Success' }}",
+              "package": "${{ env.PACKAGE_NAME }}",
+              "version": "${{ env.VERSION }}",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }

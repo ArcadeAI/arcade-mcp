@@ -75,7 +75,7 @@ def write_template(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def create_ignore_pattern(include_evals: bool) -> re.Pattern[str]:
+def create_ignore_pattern(include_evals: bool, community_toolkit: bool) -> re.Pattern[str]:
     """Create an ignore pattern based on user preferences."""
     patterns = [
         "__pycache__",
@@ -95,6 +95,9 @@ def create_ignore_pattern(include_evals: bool) -> re.Pattern[str]:
 
     if not include_evals:
         patterns.append("evals")
+
+    if not community_toolkit:
+        patterns.extend([".ruff.toml", ".pre-commit-config.yaml", "README.md"])
 
     return re.compile(f"({'|'.join(patterns)})$")
 
@@ -174,6 +177,16 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "Do you want an evals directory created for you?", default=True
     )
 
+    cwd = Path.cwd()
+    # TODO: this detection mechanism works only for people that didn't change the
+    # name of the repo, a better detection method is required here
+    community_toolkit = False
+    if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
+        community_toolkit = ask_yes_no_question(
+            "Is your toolkit a community contribution (to be merged into Arcade's `arcade-ai` repo)?",
+            default=False,  # False for now to keep the default behavior
+        )
+
     context = {
         "package_name": package_name,
         "toolkit_name": toolkit_name,
@@ -187,6 +200,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
+        "community_toolkit": community_toolkit,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
@@ -196,7 +210,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     )
 
     # Create dynamic ignore pattern based on user preferences
-    ignore_pattern = create_ignore_pattern(include_evals)
+    ignore_pattern = create_ignore_pattern(include_evals, community_toolkit)
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
