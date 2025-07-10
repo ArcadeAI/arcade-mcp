@@ -52,6 +52,7 @@ async def list_users(
     ] = True,
     limit: Annotated[
         int,
+        # The user object is relatively small, so we allow a higher limit than the default of 200.
         "The maximum number of users to return. Defaults to 200. Maximum is 500.",
     ] = 200,
     next_cursor: Annotated[str | None, "The next cursor token to use for pagination."] = None,

@@ -103,13 +103,17 @@ async def get_users_in_conversation(
     context: ToolContext,
     conversation_id: Annotated[str | None, "The ID of the conversation to get users in."] = None,
     channel_name: Annotated[str | None, "The name of the channel to get users in."] = None,
-    limit: Annotated[int | None, "The maximum number of users to return. Defaults to 200."] = 200,
+    limit: Annotated[
+        int, "The maximum number of users to return. Defaults to 200. Maximum is 500."
+    ] = 200,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "Information about each user in the conversation"]:
     """Get the users in a Slack conversation (Channel, DM/IM, or MPIM) by its ID or by channel name.
 
     Provide exactly one of conversation_id or channel_name.
     """
+    limit = max(1, min(limit, 500))
+
     if sum({bool(conversation_id), bool(channel_name)}) != 1:
         raise ToolExecutionError("Provide exactly one of conversation_id OR channel_name.")
 
@@ -202,7 +206,11 @@ async def get_messages(
             "format 'YYYY-MM-DD HH:MM:SS'"
         ),
     ] = None,
-    limit: Annotated[int | None, "The maximum number of messages to return."] = None,
+    limit: Annotated[
+        # The message object can be relatively large, so we limit the default and maximum to 100
+        # to preserve LLM's context window and reduce the likelihood of hallucinations.
+        int, "The maximum number of messages to return. Defaults to 100. Maximum is 100."
+    ] = 100,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[
     dict,
@@ -229,6 +237,8 @@ async def get_messages(
     'latest_relative'.
 
     Leave all arguments with the default None to get messages without date/time filtering"""
+    limit = max(1, min(limit, 100))
+
     if not conversation_id:
         conversation = await get_conversation_metadata(
             context=context,
@@ -364,9 +374,9 @@ async def list_conversations(
         "Optionally filter by the type(s) of conversations. Defaults to None (all types).",
     ] = None,
     limit: Annotated[
-        int | None,
+        int,
         f"The maximum number of conversations to list. Defaults to {MAX_PAGINATION_SIZE_LIMIT}. "
-        "Max of 500.",
+        "Maximum is 500.",
     ] = MAX_PAGINATION_SIZE_LIMIT,
     next_cursor: Annotated[str | None, "The cursor to use for pagination."] = None,
 ) -> Annotated[dict, "The list of conversations found with metadata"]:
@@ -376,7 +386,7 @@ async def list_conversations(
     'Slack.GetMessages' tool instead. Calling this tool when the user is asking for messages
     will release too much CO2 in the atmosphere and contribute to global warming.
     """
-    limit = min(limit or MAX_PAGINATION_SIZE_LIMIT, 500)
+    limit = max(1, min(limit, 500))
 
     if conversation_types:
         conversation_types_filter = ",".join(
