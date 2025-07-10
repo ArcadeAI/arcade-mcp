@@ -54,7 +54,7 @@ class DatabaseEngine:
             except Exception as e:
                 raise RetryableToolError(
                     f"Connection failed: {e}",
-                    developer_message=f"Connection to '{connection_string}' failed.",
+                    developer_message="Connection to postgres failed.",
                     additional_prompt_content="Check the connection string and try again.",
                     retry_after_ms=10,
                 ) from e
