@@ -51,6 +51,14 @@ def random_str_factory():
 
 
 @pytest.fixture
+def random_ts_factory():
+    def random_ts_factory():
+        return f"{random.uniform(1735689600.000000, 1751327999.999999)}"  # noqa: S311
+
+    return random_ts_factory
+
+
+@pytest.fixture
 def dummy_channel_factory(random_str_factory: Callable[[int], str]):
     def dummy_channel_factory(
         id_: str | None = None,
@@ -111,3 +119,45 @@ def dummy_user_factory(random_str_factory: Callable[[int], str]):
         }
 
     return dummy_user_factory
+
+
+@pytest.fixture
+def dummy_reaction_factory(random_str_factory):
+    def reaction_factory(
+        name: str | None = None,
+        user_ids: list[str] | None = None,
+        count: int | None = None,
+    ):
+        count = count or random.randint(1, 10)  # noqa: S311
+        if user_ids:
+            count = len(user_ids)
+        return {
+            "count": count,
+            "name": name or random_str_factory(),
+            "users": user_ids or [random_str_factory() for _ in range(count)],
+        }
+
+    return reaction_factory
+
+
+@pytest.fixture
+def dummy_message_factory(random_str_factory, random_ts_factory):
+    def message_factory(
+        user_id: str | None = None,
+        text: str | None = None,
+        reactions: list[dict] | None = None,
+        type_: str = "message",
+        ts: float | None = None,
+    ):
+        message = {
+            "user": user_id or random_str_factory(),
+            "text": text or random_str_factory(),
+            "type": type_,
+            "ts": ts or random_ts_factory(),
+        }
+
+        if reactions:
+            message["reactions"] = reactions
+        return message
+
+    return message_factory

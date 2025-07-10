@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 from unittest.mock import AsyncMock, call, patch
 
@@ -19,6 +20,7 @@ from arcade_slack.utils import (
     filter_conversations_by_user_ids,
     gather_with_concurrency_limit,
     is_valid_email,
+    populate_users_in_messages,
 )
 
 
@@ -588,3 +590,100 @@ async def test_gather_with_concurrency_limit():
 
     assert mock_semaphore.__aenter__.await_count == 2
     assert mock_semaphore.__aexit__.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_populate_users_in_messages(
+    mock_context,
+    mock_user_retrieval_slack_client,
+    dummy_message_factory,
+    dummy_reaction_factory,
+    dummy_user_factory,
+):
+    user1 = dummy_user_factory(id_="U1", name="user1")
+    user2 = dummy_user_factory(id_="U2", name="user2")
+    user3 = dummy_user_factory(id_="U3", name="user3")
+    user4 = dummy_user_factory(id_="U4", name="user4")
+    user5 = dummy_user_factory(id_="U5", name="user5")
+
+    user1_short = {"id": user1["id"], "name": user1["name"]}
+    user2_short = {"id": user2["id"], "name": user2["name"]}
+    user3_short = {"id": user3["id"], "name": user3["name"]}
+    user4_short = {"id": user4["id"], "name": user4["name"]}
+
+    user2_mention = f"<@{user2['name']} (id:{user2['id']})>"
+    user5_mention = f"<@{user5['name']} (id:{user5['id']})>"
+
+    reactions = [
+        dummy_reaction_factory(name="thumbsup", user_ids=[user1["id"], user2["id"]]),
+        dummy_reaction_factory(name="partyparrot", user_ids=[user3["id"], user4["id"]]),
+    ]
+
+    messages = [
+        dummy_message_factory(
+            user_id=user1["id"],
+            text=f"Hello <@{user2['id']}>",
+        ),
+        dummy_message_factory(
+            user_id=user2["id"],
+            text="foobar",
+            reactions=copy.deepcopy(reactions[:1]),
+        ),
+        dummy_message_factory(
+            user_id=user3["id"],
+            text=f"Is this @{user5['id']} a user mention?",
+        ),
+        dummy_message_factory(
+            user_id=user4["id"],
+            text="hello",
+            reactions=copy.deepcopy(reactions),
+        ),
+    ]
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [user1, user2, user3],
+            "response_metadata": {"next_cursor": "cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [user4, user5],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    response = await populate_users_in_messages(
+        auth_token=mock_context.get_auth_token_or_empty(),
+        messages=messages,
+    )
+
+    msg1 = response[0]
+    msg2 = response[1]
+    msg3 = response[2]
+    msg4 = response[3]
+
+    assert msg1["user"] == user1_short
+    assert msg1["text"] == f"Hello {user2_mention}"
+    assert "reactions" not in msg1
+
+    assert msg2["user"] == user2_short
+    assert msg2["text"] == "foobar"
+    assert "reactions" in msg2
+    assert len(msg2["reactions"]) == 1
+    assert msg2["reactions"][0]["name"] == "thumbsup"
+    assert msg2["reactions"][0]["users"] == [user1_short, user2_short]
+
+    assert msg3["user"] == user3_short
+    assert msg3["text"] == f"Is this @{user5['id']} a user mention?"
+    assert "reactions" not in msg3
+    assert user5_mention not in msg3["text"]
+
+    assert msg4["user"] == user4_short
+    assert msg4["text"] == "hello"
+    assert "reactions" in msg4
+    assert len(msg4["reactions"]) == 2
+    assert msg4["reactions"][0]["name"] == "thumbsup"
+    assert msg4["reactions"][0]["users"] == [user1_short, user2_short]
+    assert msg4["reactions"][1]["name"] == "partyparrot"
+    assert msg4["reactions"][1]["users"] == [user3_short, user4_short]

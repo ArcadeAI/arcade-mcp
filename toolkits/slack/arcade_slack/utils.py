@@ -80,7 +80,7 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
+def get_slack_conversation_type_as_str(channel: SlackConversation) -> str | None:
     """Get the type of conversation from a Slack channel's dictionary.
 
     Args:
@@ -97,6 +97,7 @@ def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
         return ConversationTypeSlackName.IM.value
     if channel.get("is_mpim"):
         return ConversationTypeSlackName.MPIM.value
+    raise ValueError(f"Invalid conversation type in channel: {json.dumps(channel)}")
 
 
 def convert_conversation_type_to_slack_name(
@@ -520,3 +521,72 @@ async def gather_with_concurrency_limit(
 
 def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
     return cast(dict, extract_basic_user_info(SlackUser(**user)))
+
+
+async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> list[dict]:
+    users = await get_users_from_messages(auth_token, messages)
+    users_by_id = {user["id"]: {"id": user["id"], "name": user["name"]} for user in users}
+
+    for message in messages:
+        if message.get("type") != "message":
+            continue
+
+        # Message author
+        message["user"] = users_by_id.get(
+            message.get("user"), {"id": message["user"], "name": None}
+        )
+
+        # User mentions in the message text
+        text_mentions = re.findall(r"<@([A-Z0-9]+)>", message.get("text", ""))
+        for user_id in text_mentions:
+            if user_id in users_by_id:
+                user = users_by_id.get(user_id, {"id": user_id, "name": None})
+                name = user.get("name")
+                message["text"] = message["text"].replace(
+                    f"<@{user_id}>", f"<@{name} (id:{user_id})>" if name else f"<@{user_id}>"
+                )
+
+        # User mentions in reactions
+        reactions = message.get("reactions")
+        if isinstance(reactions, list):
+            for reaction in reactions:
+                reaction_users = []
+                for user_id in reaction.get("users", []):
+                    reaction_users.append(users_by_id.get(user_id, {"id": user_id, "name": None}))
+                reaction["users"] = reaction_users
+
+    return messages
+
+
+async def get_users_from_messages(auth_token: str, messages: list[dict]) -> list[dict[str, Any]]:
+    from arcade_slack.user_retrieval import get_users_by_id  # Avoid circular import
+
+    user_ids = get_user_ids_from_messages(messages)
+    response = await get_users_by_id(auth_token, user_ids)
+    return response["users"]
+
+
+def get_user_ids_from_messages(messages: list[dict]) -> list[str]:
+    user_ids = []
+
+    for message in messages:
+        if message.get("type") != "message":
+            continue
+
+        # Message author
+        user = message.get("user")
+        if isinstance(user, str) and user:
+            user_ids.append(user)
+
+        # User mentions in the message text
+        text = message.get("text")
+        if isinstance(text, str) and text:
+            user_ids.extend(re.findall(r"<@([A-Z0-9]+)>", text))
+
+        # User mentions in reactions
+        reactions = message.get("reactions")
+        if isinstance(reactions, list):
+            for reaction in reactions:
+                user_ids.extend(reaction.get("users", []))
+
+    return user_ids
