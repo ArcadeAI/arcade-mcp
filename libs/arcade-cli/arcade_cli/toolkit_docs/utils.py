@@ -87,6 +87,9 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
         if py_file.name == "__init__.py":
             continue
 
+        if ".venv" in py_file.parts or "venv" in py_file.parts:
+            continue
+
         module_name = py_file.stem
         spec = importlib.util.spec_from_file_location(module_name, py_file)
         if spec is None or spec.loader is None:

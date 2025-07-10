@@ -164,7 +164,7 @@ def build_table_of_contents(
 
     for tool in tools:
         tools_items += table_of_contents_item_template.format(
-            tool_fully_qualified_name=clean_fully_qualified_name(tool),
+            tool_fully_qualified_name=clean_fully_qualified_name(tool.fully_qualified_name),
             description=tool.description.split("\n")[0],
         )
 
@@ -245,7 +245,7 @@ def build_tool_spec(
         docs_section=docs_section,
         toolkit_name=tool.toolkit.name.lower(),
         enums=enums,
-        parameter_template=tool_parameter_template,
+        tool_parameter_template=tool_parameter_template,
     )
 
     secrets = (
@@ -258,7 +258,7 @@ def build_tool_spec(
     )
 
     return referenced_enums, tool_spec_template.format(
-        tool_fully_qualified_name=clean_fully_qualified_name(tool),
+        tool_fully_qualified_name=clean_fully_qualified_name(tool.fully_qualified_name),
         tabbed_examples_list=tabbed_examples_list,
         description=tool.description.split("\n")[0],
         parameters=parameters,
