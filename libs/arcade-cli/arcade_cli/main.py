@@ -102,7 +102,7 @@ def login(
     callback_host: str = typer.Option(
         "localhost",
         "--callback-host",
-        help="The host to use for the callback server",
+        help="The host to use to complete the auth flow - this should be the same as the host that the CLI is running on. Include the port if needed.",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
