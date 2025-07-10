@@ -103,6 +103,7 @@ async def get_users_in_conversation(
     context: ToolContext,
     conversation_id: Annotated[str | None, "The ID of the conversation to get users in."] = None,
     channel_name: Annotated[str | None, "The name of the channel to get users in."] = None,
+    # The user object is relatively small, so we allow a higher limit.
     limit: Annotated[
         int, "The maximum number of users to return. Defaults to 200. Maximum is 500."
     ] = 200,
@@ -373,6 +374,7 @@ async def list_conversations(
         list[ConversationType] | None,
         "Optionally filter by the type(s) of conversations. Defaults to None (all types).",
     ] = None,
+    # The conversation object is relatively small, so we allow a higher limit.
     limit: Annotated[
         int,
         f"The maximum number of conversations to list. Defaults to {MAX_PAGINATION_SIZE_LIMIT}. "
