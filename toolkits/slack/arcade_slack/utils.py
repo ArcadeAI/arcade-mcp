@@ -519,7 +519,7 @@ async def gather_with_concurrency_limit(
     if not semaphore:
         semaphore = asyncio.Semaphore(max_concurrent_requests)
 
-    return await asyncio.gather(*[caller(semaphore) for caller in coroutine_callers])
+    return await asyncio.gather(*[caller(semaphore) for caller in coroutine_callers])  # type: ignore[no-any-return]
 
 
 def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
