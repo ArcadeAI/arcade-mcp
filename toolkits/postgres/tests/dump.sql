@@ -106,6 +106,8 @@ VALUES (
     );
 ALTER TABLE "public"."messages"
 ADD FOREIGN KEY ("user_id") REFERENCES "public"."users"("id");
+-- set pk to 13
+ALTER SEQUENCE users_id_seq RESTART WITH 13;
 -- Indices
 CREATE UNIQUE INDEX name_idx ON public.users USING btree (name);
 CREATE UNIQUE INDEX email_idx ON public.users USING btree (email);

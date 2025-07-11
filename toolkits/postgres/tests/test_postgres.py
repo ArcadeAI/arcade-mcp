@@ -1,3 +1,6 @@
+import os
+from os import environ
+
 import pytest
 import pytest_asyncio
 from arcade_postgres.tools.postgres import (
@@ -8,6 +11,13 @@ from arcade_postgres.tools.postgres import (
 )
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+
+DATABASE_CONNECTION_STRING = (
+    environ.get("TEST_POSTGRES_DATABASE_CONNECTION_STRING")
+    or "postgresql://evan@localhost:5432/postgres"
+)
 
 
 @pytest.fixture
@@ -15,12 +25,27 @@ def mock_context():
     context = ToolContext()
     context.secrets = []
     context.secrets.append(
-        ToolSecretItem(
-            key="DATABASE_CONNECTION_STRING", value="postgresql://evan@localhost:5432/postgres"
-        )
+        ToolSecretItem(key="DATABASE_CONNECTION_STRING", value=DATABASE_CONNECTION_STRING)
     )
 
     return context
+
+
+# before the tests, restore the database from the dump
+@pytest_asyncio.fixture(autouse=True)
+async def restore_database():
+    with open(f"{os.path.dirname(__file__)}/dump.sql") as f:
+        engine = create_async_engine(
+            DATABASE_CONNECTION_STRING.replace("postgresql", "postgresql+asyncpg").split("?")[0]
+        )
+        async with engine.connect() as c:
+            queries = f.read().split(";")
+            await c.execute(text("BEGIN"))
+            for query in queries:
+                if query.strip():
+                    await c.execute(text(query))
+            await c.commit()
+        await engine.dispose()
 
 
 @pytest_asyncio.fixture(autouse=True)

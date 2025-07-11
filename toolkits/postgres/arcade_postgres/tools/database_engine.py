@@ -56,7 +56,6 @@ class DatabaseEngine:
                     f"Connection failed: {e}",
                     developer_message="Connection to postgres failed.",
                     additional_prompt_content="Check the connection string and try again.",
-                    retry_after_ms=10,
                 ) from e
 
     @classmethod
