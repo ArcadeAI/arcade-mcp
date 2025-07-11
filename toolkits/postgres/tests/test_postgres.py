@@ -100,7 +100,7 @@ async def test_execute_query_with_problem(mock_context) -> None:
     # 'foo' is not a valid id
     with pytest.raises(RetryableToolError) as e:
         await execute_query(mock_context, "SELECT * FROM users WHERE id = 'foo'")
-        assert "invalid input syntax" in str(e.value)
+    assert "invalid input syntax" in str(e.value)
 
 
 @pytest.mark.asyncio

@@ -5,7 +5,7 @@ from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import inspect, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from .database_engine import ERROR_REMAPPING, MAX_ROWS_RETURNED, DatabaseEngine
+from .database_engine import MAX_ROWS_RETURNED, DatabaseEngine
 
 
 @tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
@@ -68,10 +68,6 @@ async def execute_query(
         try:
             return await _execute_query(engine, query)
         except Exception as e:
-            for pattern, replacement in ERROR_REMAPPING.items():
-                if pattern.search(str(e)):
-                    e = Exception(replacement)
-
             raise RetryableToolError(
                 f"Query failed: {e}",
                 developer_message=f"Query '{query}' failed.",
@@ -149,7 +145,7 @@ async def _execute_query(
 ) -> list[str]:
     """Execute a query and return the results."""
     async with engine.connect() as connection:
-        result = await connection.execute(text(query), params)
+        result = await connection.execute(text(DatabaseEngine.sanitize_query(query)), params)
         rows = result.fetchall()
         results = [str(row) for row in rows]
         return results[:MAX_ROWS_RETURNED]

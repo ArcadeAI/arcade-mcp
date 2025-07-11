@@ -1,4 +1,3 @@
-import re
 from typing import Any, ClassVar
 from urllib.parse import urlparse
 
@@ -7,11 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 MAX_ROWS_RETURNED = 1000
-DEFAULT_ISOLATION_LEVEL = "READ COMMITTED"
 TEST_QUERY = "SELECT 1"
-ERROR_REMAPPING = {
-    re.compile(r"This result object does not return rows"): "Only SELECT queries are allowed.",
-}
 
 
 class DatabaseEngine:
@@ -19,9 +14,7 @@ class DatabaseEngine:
     _engines: ClassVar[dict[str, AsyncEngine]] = {}
 
     @classmethod
-    async def get_instance(
-        cls, connection_string: str, isolation_level: str = DEFAULT_ISOLATION_LEVEL
-    ) -> AsyncEngine:
+    async def get_instance(cls, connection_string: str) -> AsyncEngine:
         parsed_url = urlparse(connection_string)
 
         # TODO: something strange with sslmode= and friends
@@ -31,12 +24,9 @@ class DatabaseEngine:
         # }  # assume one value allowed for each query param
 
         async_connection_string = f"{parsed_url.scheme.replace('postgresql', 'postgresql+asyncpg')}://{parsed_url.netloc}{parsed_url.path}"
-        key = f"{async_connection_string}:{isolation_level}"
+        key = f"{async_connection_string}"
         if key not in cls._engines:
-            cls._engines[key] = create_async_engine(
-                async_connection_string,
-                isolation_level=isolation_level,
-            )
+            cls._engines[key] = create_async_engine(async_connection_string)
 
         # try a simple query to see if the connection is valid
         try:
@@ -59,10 +49,8 @@ class DatabaseEngine:
                 ) from e
 
     @classmethod
-    async def get_engine(
-        cls, connection_string: str, isolation_level: str = DEFAULT_ISOLATION_LEVEL
-    ) -> Any:
-        engine = await cls.get_instance(connection_string, isolation_level)
+    async def get_engine(cls, connection_string: str) -> Any:
+        engine = await cls.get_instance(connection_string)
 
         class ConnectionContextManager:
             def __init__(self, engine: AsyncEngine) -> None:
@@ -88,3 +76,29 @@ class DatabaseEngine:
     def clear_cache(cls) -> None:
         """Clear the engine cache without disposing engines. Use with caution."""
         cls._engines.clear()
+
+    @classmethod
+    def sanitize_query(cls, query: str) -> str:
+        """
+        Sanitize a query to not break our read-only session.
+        THIS IS REALLY UNSAFE AND SHOULD NOT BE USED IN PRODUCTION. USE A DATABASE CONNECTION WITH A READ-ONLY USER AND PREPARE STATEMENTS.
+        There are also valid reasons for the ";" character, and this prevents that.
+        """
+
+        parts = query.split(";")
+        if len(parts) > 1:
+            raise RetryableToolError(
+                "Multiple statements are not allowed in a single query.",
+                developer_message="Multiple statements are not allowed in a single query.",
+                additional_prompt_content="Split your query into multiple queries and try again.",
+            )
+
+        words = parts[0].split(" ")
+        if words[0].upper().strip() != "SELECT":
+            raise RetryableToolError(
+                "Only SELECT queries are allowed.",
+                developer_message="Only SELECT queries are allowed.",
+                additional_prompt_content="Use the <DiscoverTables> and <GetTableSchema> tools to discover the tables and try again.",
+            )
+
+        return f"{query}"
