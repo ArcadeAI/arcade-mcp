@@ -4,9 +4,9 @@ import pytest
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import ToolExecutionError
 
+import arcade_e2b.tools.create_chart
+import arcade_e2b.tools.run_code
 from arcade_e2b.enums import E2BSupportedLanguage
-from arcade_e2b.tools.create_chart import create_static_matplotlib_chart
-from arcade_e2b.tools.run_code import run_code
 
 
 @pytest.fixture
@@ -31,7 +31,9 @@ def test_run_code_success(mock_run_code_sandbox, mock_context):
     mock_execution.to_json.return_value = '{"result": "success"}'
     mock_run_code_sandbox.run_code.return_value = mock_execution
 
-    result = run_code(mock_context, "print('Hello, World!')", E2BSupportedLanguage.PYTHON)
+    result = arcade_e2b.tools.run_code(
+        mock_context, "print('Hello, World!')", E2BSupportedLanguage.PYTHON
+    )
     assert result == '{"result": "success"}'
 
 
@@ -41,7 +43,9 @@ def test_run_code_error(mock_run_code_sandbox, mock_context):
     mock_run_code_sandbox.run_code.return_value = mock_execution
 
     with pytest.raises(ToolExecutionError, match="Execution failed"):
-        run_code(mock_context, "print('Hello, World!')", E2BSupportedLanguage.PYTHON)
+        arcade_e2b.tools.run_code(
+            mock_context, "print('Hello, World!')", E2BSupportedLanguage.PYTHON
+        )
 
 
 def test_create_static_matplotlib_chart_success(mock_create_chart_sandbox, mock_context):
@@ -51,7 +55,9 @@ def test_create_static_matplotlib_chart_success(mock_create_chart_sandbox, mock_
     mock_execution.error = None
     mock_create_chart_sandbox.run_code.return_value = mock_execution
 
-    result = create_static_matplotlib_chart(mock_context, "import matplotlib.pyplot as plt")
+    result = arcade_e2b.tools.create_chart.create_static_matplotlib_chart(
+        mock_context, "import matplotlib.pyplot as plt"
+    )
     assert result == {
         "base64_image": "base64encodedimage",
         "logs": '{"logs": "log data"}',
@@ -66,7 +72,9 @@ def test_create_static_matplotlib_chart_error(mock_create_chart_sandbox, mock_co
     mock_execution.error.to_json.return_value = '{"error": "some error"}'
     mock_create_chart_sandbox.run_code.return_value = mock_execution
 
-    result = create_static_matplotlib_chart(mock_context, "import matplotlib.pyplot as plt")
+    result = arcade_e2b.tools.create_chart.create_static_matplotlib_chart(
+        mock_context, "import matplotlib.pyplot as plt"
+    )
     assert result == {
         "base64_image": None,
         "logs": '{"logs": "log data"}',

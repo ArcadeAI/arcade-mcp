@@ -84,6 +84,8 @@ jobs:
           working-directory: ${{ matrix.package }}
 
       - name: Run tests
+        # Skip tests for toolkits - tests are run on every PR commit for toolkits
+        if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
           # Run tests if they exist

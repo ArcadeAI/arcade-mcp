@@ -1,23 +1,28 @@
 import asyncio
-from collections.abc import Callable
+import json
+import re
+from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError
 
-from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT, MAX_PAGINATION_TIMEOUT_SECONDS
-from arcade_slack.custom_types import SlackPaginationNextCursor
-from arcade_slack.exceptions import (
-    PaginationTimeoutError,
-    UsernameNotFoundError,
+from arcade_slack.constants import (
+    MAX_CONCURRENT_REQUESTS,
+    MAX_PAGINATION_SIZE_LIMIT,
+    MAX_PAGINATION_TIMEOUT_SECONDS,
 )
+from arcade_slack.custom_types import SlackPaginationNextCursor
+from arcade_slack.exceptions import PaginationTimeoutError
 from arcade_slack.models import (
+    AbstractConcurrencySafeCoroutineCaller,
     BasicUserInfo,
     ConversationMetadata,
     ConversationType,
     ConversationTypeSlackName,
     Message,
+    PaginationSentinel,
     SlackConversation,
     SlackConversationPurpose,
     SlackMessage,
@@ -75,7 +80,7 @@ def remove_none_values(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
-def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
+def get_slack_conversation_type_as_str(channel: SlackConversation) -> str | None:
     """Get the type of conversation from a Slack channel's dictionary.
 
     Args:
@@ -92,19 +97,7 @@ def get_slack_conversation_type_as_str(channel: SlackConversation) -> str:
         return ConversationTypeSlackName.IM.value
     if channel.get("is_mpim"):
         return ConversationTypeSlackName.MPIM.value
-    raise ValueError(f"Invalid conversation type in channel {channel.get('name')}")
-
-
-def get_user_by_username(username: str, users_list: list[dict]) -> SlackUser:
-    usernames_found = []
-    for user in users_list:
-        if isinstance(user.get("name"), str):
-            usernames_found.append(user["name"])
-        username_found = user.get("name") or ""
-        if username.lower() == username_found.lower():
-            return SlackUser(**user)
-
-    raise UsernameNotFoundError(usernames_found=usernames_found, username_not_found=username)
+    raise ValueError(f"Invalid conversation type in channel: {json.dumps(channel)}")
 
 
 def convert_conversation_type_to_slack_name(
@@ -191,62 +184,6 @@ def extract_basic_user_info(user_info: SlackUser) -> BasicUserInfo:
     )
 
 
-async def associate_members_of_multiple_conversations(
-    get_members_in_conversation_func: Callable,
-    conversations: list[dict],
-    context: ToolContext,
-) -> list[dict]:
-    """Associate members to each conversation, returning the updated list."""
-    return await asyncio.gather(*[  # type: ignore[no-any-return]
-        associate_members_of_conversation(get_members_in_conversation_func, context, conv)
-        for conv in conversations
-    ])
-
-
-async def associate_members_of_conversation(
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation: dict,
-) -> dict:
-    response = await get_members_in_conversation_func(context, conversation["id"])
-    conversation["members"] = response["members"]
-    return conversation
-
-
-async def retrieve_conversations_by_user_ids(
-    list_conversations_func: Callable,
-    get_members_in_conversation_func: Callable,
-    context: ToolContext,
-    conversation_types: list[ConversationType],
-    user_ids: list[str],
-    exact_match: bool = False,
-    limit: int | None = None,
-    next_cursor: str | None = None,
-) -> list[dict]:
-    """
-    Retrieve conversations filtered by the given user IDs. Includes pagination support
-    and optionally limits the number of returned conversations.
-    """
-    conversations_found: list[dict] = []
-
-    response = await list_conversations_func(
-        context=context,
-        conversation_types=conversation_types,
-        next_cursor=next_cursor,
-    )
-
-    # Associate members to each conversation
-    conversations_with_members = await associate_members_of_multiple_conversations(
-        get_members_in_conversation_func, response["conversations"], context
-    )
-
-    conversations_found.extend(
-        filter_conversations_by_user_ids(conversations_with_members, user_ids, exact_match)
-    )
-
-    return conversations_found[:limit]
-
-
 def filter_conversations_by_user_ids(
     conversations: list[dict],
     user_ids: list[str],
@@ -317,6 +254,7 @@ async def async_paginate(
     limit: int | None = None,
     next_cursor: SlackPaginationNextCursor | None = None,
     max_pagination_timeout_seconds: int = MAX_PAGINATION_TIMEOUT_SECONDS,
+    sentinel: PaginationSentinel | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> tuple[list, SlackPaginationNextCursor | None]:
@@ -332,6 +270,10 @@ async def async_paginate(
             not provided, the entire response dictionary is used.
         limit: The maximum number of items to retrieve (defaults to Slack's suggested limit).
         next_cursor: The cursor to use for pagination (optional).
+        max_pagination_timeout_seconds: The maximum timeout for the pagination loop (defaults to
+            MAX_PAGINATION_TIMEOUT_SECONDS).
+        sentinel: Control whether the pagination should continue after each iteration (optional).
+            If provided, the pagination will stop when the sentinel function returns True.
         *args: Positional arguments to pass to the Slack method.
         **kwargs: Keyword arguments to pass to the Slack method.
 
@@ -358,13 +300,18 @@ async def async_paginate(
             response = await func(*args, **iteration_kwargs)
 
             try:
-                results.extend(dict(response.data) if not response_key else response[response_key])
+                result = dict(response.data) if not response_key else response[response_key]
+                results.extend(result)
             except KeyError:
                 raise ValueError(f"Response key {response_key} not found in Slack response")
 
             next_cursor = response.get("response_metadata", {}).get("next_cursor")
 
-            if (limit and len(results) >= limit) or not next_cursor:
+            if (
+                (sentinel and sentinel(last_result=result))
+                or (limit and len(results) >= limit)
+                or not next_cursor
+            ):
                 should_continue = False
 
         return results
@@ -445,3 +392,215 @@ def convert_relative_datetime_to_unix_timestamp(
     days, hours, minutes = map(int, relative_datetime.split(":"))
     seconds = days * 86400 + hours * 3600 + minutes * 60
     return int(current_unix_timestamp - seconds)
+
+
+def short_user_info(user: dict) -> dict[str, str | None]:
+    data = {"id": user.get("id")}
+    if user.get("name"):
+        data["name"] = user["name"]
+    if isinstance(user.get("profile"), dict) and user["profile"].get("email"):
+        data["email"] = user["profile"]["email"]
+    elif user.get("email"):
+        data["email"] = user["email"]
+    return data
+
+
+def short_human_users_info(users: list[dict]) -> list[dict[str, str | None]]:
+    return [short_user_info(user) for user in users if not user.get("is_bot")]
+
+
+def is_valid_email(email: str) -> bool:
+    """Validate an email address using regex.
+
+    Args:
+        email: The email address to validate.
+
+    Returns:
+        True if the email is valid, False otherwise.
+    """
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(email_pattern, email))
+
+
+async def build_multiple_users_retrieval_response(
+    context: ToolContext,
+    users_responses: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Builds response list for the get_multiple_users_by_usernames_or_emails function."""
+    await raise_for_users_not_found(context, users_responses)
+
+    users = []
+
+    for users_response in users_responses:
+        users.extend(users_response["users"])
+
+    return cast(list[dict[str, Any]], users)
+
+
+async def raise_for_users_not_found(
+    context: ToolContext, users_responses: list[dict[str, Any]]
+) -> None:
+    """Raise an error if any user was not found in the responses."""
+    users_not_found, available_users = collect_users_not_found_in_responses(users_responses)
+
+    if users_not_found:
+        not_found_message = ", ".join(users_not_found)
+        s = "" if len(users_not_found) == 1 else "s"
+        message = f"User{s} not found: {not_found_message}"
+        available_users_prompt = await get_available_users_prompt(context, available_users)
+
+        raise RetryableToolError(
+            message=message,
+            developer_message=message,
+            additional_prompt_content=available_users_prompt,
+            retry_after_ms=500,
+        )
+
+
+def collect_users_not_found_in_responses(
+    responses: list[dict[str, Any]],
+) -> tuple[list[str], list[dict[str, Any]]]:
+    users_not_found = []
+    available_users = []
+
+    for response in responses:
+        if response.get("not_found"):
+            users_not_found.extend(response["not_found"])
+        if response.get("available_users"):
+            available_users = response["available_users"]
+
+    return users_not_found, available_users
+
+
+async def get_available_users_prompt(
+    context: ToolContext,
+    available_users: list[dict] | None = None,
+    limit: int = 100,
+) -> str:
+    try:
+        from arcade_slack.tools.users import list_users  # Avoid circular import
+
+        if isinstance(available_users, list) and available_users:
+            available_users = [
+                user for user in available_users if not is_user_a_bot(SlackUser(**user))
+            ]
+            available_users_str = json.dumps(short_human_users_info(available_users))
+            next_cursor = None
+            potentially_more_users = True
+        else:
+            users = await list_users(context, limit=limit, exclude_bots=True)
+            next_cursor = users["next_cursor"]
+            available_users_str = json.dumps(short_human_users_info(users["users"]))
+            potentially_more_users = bool(next_cursor)
+
+        if not potentially_more_users:
+            return f"The users available are: {available_users_str}"
+        else:
+            msg = (
+                f"Some of the available users are: {available_users_str}. Potentially more users "
+                f"can be retrieved by calling the 'Slack.{list_users.__tool_name__}' tool"
+            )
+            if next_cursor:
+                msg += f" using the next cursor: '{next_cursor}' to continue pagination."
+            return msg
+    except Exception as e:
+        return (
+            "The tool tried to retrieve a list of available users, but failed with error: "
+            f"{type(e).__name__}: {e!s}. Use the 'Slack.{list_users.__tool_name__}' tool "
+            "to get a list of users."
+        )
+
+
+async def gather_with_concurrency_limit(
+    coroutine_callers: Sequence[AbstractConcurrencySafeCoroutineCaller],
+    semaphore: asyncio.Semaphore | None = None,
+    max_concurrent_requests: int = MAX_CONCURRENT_REQUESTS,
+) -> list[Any]:
+    if not semaphore:
+        semaphore = asyncio.Semaphore(max_concurrent_requests)
+
+    return await asyncio.gather(*[caller(semaphore) for caller in coroutine_callers])  # type: ignore[no-any-return]
+
+
+def cast_user_dict(user: dict[str, Any]) -> dict[str, Any]:
+    slack_user = SlackUser(**cast(dict, user))
+    return dict(**extract_basic_user_info(slack_user))
+
+
+async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> list[dict]:
+    if not messages:
+        return messages
+
+    users = await get_users_from_messages(auth_token, messages)
+    users_by_id = {user["id"]: {"id": user["id"], "name": user["name"]} for user in users}
+
+    for message in messages:
+        if message.get("type") != "message":
+            continue
+
+        # Message author
+        message["user"] = users_by_id.get(
+            message.get("user"), {"id": message["user"], "name": None}
+        )
+
+        # User mentions in the message text
+        text_mentions = re.findall(r"<@([A-Z0-9]+)>", message.get("text", ""))
+        for user_id in text_mentions:
+            if user_id in users_by_id:
+                user = users_by_id.get(user_id, {"id": user_id, "name": None})
+                name = user.get("name")
+                message["text"] = message["text"].replace(
+                    f"<@{user_id}>", f"<@{name} (id:{user_id})>" if name else f"<@{user_id}>"
+                )
+
+        # User mentions in reactions
+        reactions = message.get("reactions")
+        if isinstance(reactions, list):
+            for reaction in reactions:
+                reaction_users = []
+                for user_id in reaction.get("users", []):
+                    reaction_users.append(users_by_id.get(user_id, {"id": user_id, "name": None}))
+                reaction["users"] = reaction_users
+
+    return messages
+
+
+async def get_users_from_messages(auth_token: str, messages: list[dict]) -> list[dict[str, Any]]:
+    if not messages:
+        return []
+
+    from arcade_slack.user_retrieval import get_users_by_id  # Avoid circular import
+
+    user_ids = get_user_ids_from_messages(messages)
+    response = await get_users_by_id(auth_token, user_ids)
+    print("\n\n\nresponse:", response, "\n\n\n")
+    return response["users"]
+
+
+def get_user_ids_from_messages(messages: list[dict]) -> list[str]:
+    if not messages:
+        return []
+
+    user_ids = []
+
+    for message in messages:
+        if message.get("type") != "message":
+            continue
+
+        # Message author
+        user = message.get("user")
+        if isinstance(user, str) and user:
+            user_ids.append(user)
+
+        # User mentions in the message text
+        text = message.get("text")
+        if isinstance(text, str) and text:
+            user_ids.extend(re.findall(r"<@([A-Z0-9]+)>", text))
+
+        # User mentions in reactions
+        reactions = message.get("reactions")
+        if isinstance(reactions, list):
+            for reaction in reactions:
+                user_ids.extend(reaction.get("users", []))
+
+    return user_ids
