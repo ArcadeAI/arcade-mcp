@@ -5,6 +5,8 @@ import {
 	toZodToolSet,
 } from "@arcadeai/arcadejs/lib";
 import { Agent } from "@mastra/core/agent";
+import { Memory } from "@mastra/memory";
+import { LibSQLStore } from "@mastra/libsql";
 
 // Initialize Arcade
 const arcade = new Arcade();
@@ -36,6 +38,13 @@ export const googleTools = toZodToolSet({
 	executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 });
 
+// Initialize memory
+const memory = new Memory({
+  storage: new LibSQLStore({
+    url: "file:../../memory.db",
+  }),
+});
+
 // Create an agent with Google tools
 export const googleAgent = new Agent({
 	name: "googleAgent",
@@ -50,5 +59,6 @@ When helping users:
 
 Use the googleTools to interact with various Google services and perform related tasks.`,
 	model: openai("gpt-4o-mini"),
+	memory,
 	tools: googleTools,
 });
