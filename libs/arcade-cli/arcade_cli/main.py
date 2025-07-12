@@ -17,6 +17,7 @@ from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
+import arcade_cli.types as types
 import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
@@ -54,7 +55,7 @@ cli = typer.Typer(
     cls=OrderCommands,
     add_completion=False,
     no_args_is_help=True,
-    pretty_exceptions_enable=False,
+    pretty_exceptions_enable=True,
     pretty_exceptions_show_locals=False,
     pretty_exceptions_short=True,
     rich_markup_mode="markdown",
@@ -67,11 +68,22 @@ cli.add_typer(
     help="Manage deployments of tool servers (logs, list, etc)",
     rich_help_panel="Deployment",
 )
+
+cli.add_typer(
+    types.app,
+    name="types",
+    help="Generate type definitions from tool schemas",
+    rich_help_panel="Tool Development",
+)
+
 console = Console()
 
 
 def handle_cli_error(
-    message: str, error: Exception | None = None, debug: bool = True, should_exit: bool = True
+    message: str,
+    error: Exception | None = None,
+    debug: bool = True,
+    should_exit: bool = True,
 ) -> None:
     """Handle CLI error reporting with optional debug traceback and exit."""
     if error and debug:
@@ -106,7 +118,9 @@ def login(
     """
 
     if check_existing_login():
-        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
+        console.print(
+            "\nTo log out and delete your locally-stored credentials, use ", end=""
+        )
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
         return
@@ -232,11 +246,15 @@ def show(
     rich_help_panel="Tool Development",
 )
 def chat(
-    model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
+    model: str = typer.Option(
+        "gpt-4o", "-m", "--model", help="The model to use for prediction."
+    ),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
-    prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
+    prompt: str = typer.Option(
+        None, "--prompt", help="The system prompt to use for the chat."
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
@@ -318,7 +336,9 @@ def chat(
 
             try:
                 # TODO fixup configuration to remove this + "/v1" workaround
-                openai_client = OpenAI(api_key=config.api.key, base_url=base_url + "/v1")
+                openai_client = OpenAI(
+                    api_key=config.api.key, base_url=base_url + "/v1"
+                )
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
@@ -328,7 +348,9 @@ def chat(
                 tool_authorization = chat_result.tool_authorization
 
                 # wait for tool authorizations to complete, if any
-                if tool_authorization and is_authorization_pending(tool_authorization):
+                if tool_authorization and is_authorization_pending(
+                    tool_authorization
+                ):
                     chat_result = handle_tool_authorization(
                         client,
                         AuthorizationResponse.model_validate(tool_authorization),
@@ -357,8 +379,12 @@ def chat(
 
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
-    directory: str = typer.Argument(".", help="Directory containing evaluation files"),
-    show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
+    directory: str = typer.Argument(
+        ".", help="Directory containing evaluation files"
+    ),
+    show_details: bool = typer.Option(
+        False, "--details", "-d", help="Show detailed results"
+    ),
     max_concurrent: int = typer.Option(
         1,
         "--max-concurrent",
@@ -503,7 +529,11 @@ def serve(
         show_default=True,
     ),
     port: int = typer.Option(
-        "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
     ),
     disable_auth: bool = typer.Option(
         False,
@@ -553,7 +583,9 @@ def serve(
 
 
 @cli.command(
-    help="Start a server with locally installed Arcade tools", rich_help_panel="Launch", hidden=True
+    help="Start a server with locally installed Arcade tools",
+    rich_help_panel="Launch",
+    hidden=True,
 )
 def workerup(
     host: str = typer.Option(
@@ -562,7 +594,11 @@ def workerup(
         show_default=True,
     ),
     port: int = typer.Option(
-        "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
     ),
     disable_auth: bool = typer.Option(
         False,
@@ -604,7 +640,10 @@ def workerup(
 @cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Deployment")
 def deploy(
     deployment_file: str = typer.Option(
-        "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
+        "worker.toml",
+        "--deployment-file",
+        "-d",
+        help="The deployment file to deploy.",
     ),
     cloud_host: str = typer.Option(
         PROD_CLOUD_HOST,
@@ -668,12 +707,19 @@ def deploy(
             try:
                 # Attempt to deploy worker
                 worker.request().execute(cloud_client, engine_client)
-                console.log(f"✅ Worker '{worker.config.id}' deployed successfully.", style="dim")
+                console.log(
+                    f"✅ Worker '{worker.config.id}' deployed successfully.",
+                    style="dim",
+                )
             except Exception as e:
-                handle_cli_error(f"Failed to deploy worker '{worker.config.id}'", e, debug)
+                handle_cli_error(
+                    f"Failed to deploy worker '{worker.config.id}'", e, debug
+                )
 
 
-@cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
+@cli.command(
+    help="Open the Arcade Dashboard in a web browser", rich_help_panel="User"
+)
 def dashboard(
     host: str = typer.Option(
         PROD_ENGINE_HOST,

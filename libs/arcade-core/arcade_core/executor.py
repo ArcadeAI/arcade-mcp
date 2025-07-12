@@ -12,7 +12,12 @@ from arcade_core.errors import (
     ToolSerializationError,
 )
 from arcade_core.output import output_factory
-from arcade_core.schema import ToolCallLog, ToolCallOutput, ToolContext, ToolDefinition
+from arcade_core.schema import (
+    ToolCallLog,
+    ToolCallOutput,
+    ToolContext,
+    ToolDefinition,
+)
 
 
 class ToolExecutor:
@@ -34,7 +39,9 @@ class ToolExecutor:
         if definition.deprecation_message is not None:
             tool_call_logs.append(
                 ToolCallLog(
-                    message=definition.deprecation_message, level="warning", subtype="deprecation"
+                    message=definition.deprecation_message,
+                    level="warning",
+                    subtype="deprecation",
                 )
             )
 
@@ -101,7 +108,8 @@ class ToolExecutor:
 
         except ValidationError as e:
             raise ToolInputError(
-                message="Error in tool input deserialization", developer_message=str(e)
+                message="Error in tool input deserialization",
+                developer_message=str(e),
             ) from e
 
         return inputs
