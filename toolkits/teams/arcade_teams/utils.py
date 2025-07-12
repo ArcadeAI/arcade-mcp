@@ -292,16 +292,12 @@ async def find_people_by_name(context: ToolContext, names: list[str]) -> list[di
         context=context,
         keywords=names,
         match_type=PartialMatchType.PARTIAL_ANY,
+        limit=100,
     )
 
-    people_by_display_name = {}
-    people_by_first_name = {}
-    people_by_last_name = {}
-
-    for person in response["people"]:
-        build_people_by_name(people_by_display_name, person, "display")
-        build_people_by_name(people_by_first_name, person, "first")
-        build_people_by_name(people_by_last_name, person, "last")
+    people_by_display_name = build_people_by_name(response["people"], "display")
+    people_by_first_name = build_people_by_name(response["people"], "first")
+    people_by_last_name = build_people_by_name(response["people"], "last")
 
     names_pending = set(names)
     people_found = []
@@ -346,13 +342,16 @@ def get_person_match(people_found: list[dict], people_by_name: dict, name: str) 
     return matches[0]
 
 
-def build_people_by_name(people_dict: dict, person: dict, name_key: str) -> dict:
-    name = person["name"][name_key].casefold()
-    if name not in people_dict:
-        people_dict[name] = [person]
-        return people_dict
+def build_people_by_name(people: list[dict], name_key: str) -> dict:
+    people_dict = {}
 
-    people_dict[name].append(person)
+    for person in people:
+        name = person["name"][name_key].casefold()
+        if name not in people_dict:
+            people_dict[name] = [person]
+        else:
+            people_dict[name].append(person)
+    return people_dict
 
 
 def generate_case_variants(keyword: str) -> list[str]:
