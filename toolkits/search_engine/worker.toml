@@ -1,0 +1,11 @@
+[[worker]]
+
+[worker.config]
+id = "search-engine-worker"
+enabled = true
+timeout = 30
+retries = 3
+secret = "75bc927e6bc8c4ab33f1697285d49ae9secret"
+
+[worker.local_source]
+packages = [ "./",]
