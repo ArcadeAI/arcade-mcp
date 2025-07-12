@@ -10,7 +10,6 @@ arcade-linkedin
 arcade-math
 arcade-microsoft
 arcade-notion-toolkit
-arcade-postgres
 arcade-reddit
 arcade-salesforce
 arcade-search

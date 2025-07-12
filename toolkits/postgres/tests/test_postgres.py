@@ -5,6 +5,7 @@ import pytest
 import pytest_asyncio
 from arcade_postgres.tools.postgres import (
     DatabaseEngine,
+    discover_schemas,
     discover_tables,
     execute_query,
     get_table_schema,
@@ -54,6 +55,11 @@ async def cleanup_engines():
     yield
     # Clean up all cached engines after each test
     await DatabaseEngine.cleanup()
+
+
+@pytest.mark.asyncio
+async def test_discover_schemas(mock_context) -> None:
+    assert await discover_schemas(mock_context) == ["public"]
 
 
 @pytest.mark.asyncio

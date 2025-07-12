@@ -5,13 +5,27 @@ from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import inspect, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from .database_engine import MAX_ROWS_RETURNED, DatabaseEngine
+from ..database_engine import MAX_ROWS_RETURNED, DatabaseEngine
+
+
+@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+async def discover_schemas(
+    context: ToolContext,
+) -> list[str]:
+    """Discover all the schemas in the postgres database."""
+    async with await DatabaseEngine.get_engine(
+        context.get_secret("DATABASE_CONNECTION_STRING")
+    ) as engine:
+        schemas = await _get_schemas(engine)
+        return schemas
 
 
 @tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
 async def discover_tables(
     context: ToolContext,
-    schema_name: Annotated[str, "The database schema to discover tables in"] = "public",
+    schema_name: Annotated[
+        str, "The database schema to discover tables in (default value: 'public')"
+    ] = "public",
 ) -> list[str]:
     """Discover all the tables in the postgres database when the list of tables is not known.
 
@@ -31,7 +45,7 @@ async def get_table_schema(
     table_name: Annotated[str, "The table to get the schema of"],
 ) -> list[str]:
     """
-    Get the schema of a postgres table in the postgres database when the schema is not known, and the name of the table is provided.
+    Get the schema/structure of a postgres table in the postgres database when the schema is not known, and the name of the table is provided.
 
     THIS TOOL SHOULD ALWAYS BE USED BEFORE EXECUTING ANY QUERY.  ALL TABLES IN THE QUERY MUST BE DISCOVERED FIRST USING THE <DiscoverTables> TOOL.
     """
@@ -74,6 +88,19 @@ async def execute_query(
                 additional_prompt_content="Load the database schema <GetTableSchema> or use the <DiscoverTables> tool to discover the tables and try again.",
                 retry_after_ms=10,
             ) from e
+
+
+async def _get_schemas(engine: AsyncEngine) -> list[str]:
+    """Get all the schemas in the database"""
+    async with engine.connect() as conn:
+
+        def get_schema_names(sync_conn: Any) -> list[str]:
+            return list(inspect(sync_conn).get_schema_names())
+
+        schemas: list[str] = await conn.run_sync(get_schema_names)
+        schemas = [schema for schema in schemas if schema != "information_schema"]
+
+        return schemas
 
 
 async def _get_tables(engine: AsyncEngine, schema_name: str) -> list[str]:
