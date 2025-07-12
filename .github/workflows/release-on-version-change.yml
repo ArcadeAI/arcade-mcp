@@ -127,7 +127,6 @@ jobs:
           fetch-depth: 0
 
       - name: Extract package name and version
-        id: extract-info
         working-directory: ${{ matrix.package }}
         run: |
           PACKAGE_NAME=$(grep -m1 '^name = ' pyproject.toml | cut -d'"' -f2)
