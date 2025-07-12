@@ -8,14 +8,14 @@ help:
 install: ## Install the uv environment and install all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
 	@uv sync --active --all-extras --no-sources
-	@uv run pre-commit install
+	@if [ -f .pre-commit-config.yaml ]; then uv run --no-sources pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
 
 .PHONY: install-local
 install-local: ## Install the uv environment and install all packages with dependencies with local Arcade sources
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
 	@uv sync --active --all-extras
-	@uv run pre-commit install
+	@if [ -f .pre-commit-config.yaml ]; then uv run pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
 
 .PHONY: build
@@ -31,23 +31,25 @@ clean-build: ## clean build artifacts
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
-	@uv run pytest -W ignore -v --cov --cov-config=pyproject.toml --cov-report=xml
+	@uv run --no-sources pytest -W ignore -v --cov --cov-config=pyproject.toml --cov-report=xml
 
 .PHONY: coverage
 coverage: ## Generate coverage report
 	@echo "coverage report"
-	coverage report
+	@uv run --no-sources coverage report
 	@echo "Generating coverage report"
-	coverage html
+	@uv run --no-sources coverage html
 
 .PHONY: bump-version
 bump-version: ## Bump the version in the pyproject.toml file by a patch version
 	@echo "🚀 Bumping version in pyproject.toml"
-	uv version --bump patch
+	uv version --no-sources --bump patch
 
 .PHONY: check
 check: ## Run code quality tools.
-	@echo "🚀 Linting code: Running pre-commit"
-	@uv run pre-commit run -a
+	@if [ -f .pre-commit-config.yaml ]; then\
+		echo "🚀 Linting code: Running pre-commit";\
+		uv run --no-sources pre-commit run -a;\
+	fi
 	@echo "🚀 Static type checking: Running mypy"
-	@uv run mypy --config-file=pyproject.toml
+	@uv run --no-sources mypy --config-file=pyproject.toml

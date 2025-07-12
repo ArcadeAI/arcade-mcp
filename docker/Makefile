@@ -4,7 +4,6 @@ SOURCE ?= https://github.com/ArcadeAI/arcade-ai
 LICENSE ?= MIT
 DESCRIPTION ?= "Arcade Worker for LLM Tool Serving"
 REPOSITORY ?= arcadeai/worker
-ECR_ENDPOINT ?= 471112909428.dkr.ecr.us-east-1.amazonaws.com
 ARCH ?= $(shell uname -m)
 
 VERSION ?= 0.1.0.dev0
@@ -45,29 +44,6 @@ docker-build: ## Build the Docker container
 	--label=org.opencontainers.image.description=$(DESCRIPTION) \
      ..
 
-
-ecr-manifest: ## Make a manifest file for the image
-	@echo "🛠️ Build manifest file for $(REPOSITORY):$(VERSION).."
-	@echo "- Commit: $(COMMIT)"
-	@echo "- Build Date: $(BUILD_DATE)"
-	@export DOCKER_CLI_EXPERIMENTAL=enabled
-	@echo "- Creating manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
-	@docker manifest create $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION) \
-    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-arm64 \
-    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-amd64
-	@echo "- Creating manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
-	@docker manifest create $(ECR_ENDPOINT)/$(REPOSITORY):latest \
-    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-arm64 \
-    --amend $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)-amd64
-	@echo "- Inspecting manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
-	@docker manifest inspect $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
-	@echo "- Inspecting manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
-	@docker manifest inspect $(ECR_ENDPOINT)/$(REPOSITORY):latest
-	@echo "- Pushing manifest $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)"
-	@docker manifest push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION)
-	@echo "- Pushing manifest $(ECR_ENDPOINT)/$(REPOSITORY):latest"
-	@docker manifest push $(ECR_ENDPOINT)/$(REPOSITORY):latest
-
 ghcr-manifest: ## Make a manifest file for the image
 	@echo "🛠️ Build manifest file for $(REPOSITORY):$(VERSION).."
 	@echo "- Commit: $(COMMIT)"
@@ -90,22 +66,12 @@ ghcr-manifest: ## Make a manifest file for the image
 	@echo "- Pushing manifest ghcr.io/$(REPOSITORY):latest"
 	@docker manifest push ghcr.io/$(REPOSITORY):latest
 
+
 .PHONY: docker-run
 docker-run: ## Run the Docker container
 	@echo "\n🚀 Run the container with the following ..."
 	@echo ">>> docker run -d -p $(PORT):$(PORT) $(REPOSITORY):$(VERSION_TAG)"
 
-.PHONY: publish-ecr
-publish-ecr:
-	@echo "🚚 Pushing the Agent image to ECR.."
-	@docker tag $(REPOSITORY):$(VERSION_TAG) $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)
-	@echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)"
-	@docker push $(ECR_ENDPOINT)/$(REPOSITORY):$(VERSION_TAG)
-	@echo $(VERSION_TAG) | grep -q $(RC_PART) || { \
-		docker tag $(REPOSITORY):$(VERSION_TAG) $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
-		echo "- pushing $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH)"; \
-		docker push $(ECR_ENDPOINT)/$(REPOSITORY):latest-$(ARCH); \
-	}
 
 .PHONY: publish-ghcr
 publish-ghcr:
@@ -118,11 +84,6 @@ publish-ghcr:
 		echo "- pushing ghcr.io/$(REPOSITORY):latest-$(ARCH)"; \
 		docker push ghcr.io/$(REPOSITORY):latest-$(ARCH); \
 	}
-
-
-.PHONY: ecr-login
-ecr-login: ## Login to ECR
-	@aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(ECR_ENDPOINT)
 
 
 .PHONY: gh-login
