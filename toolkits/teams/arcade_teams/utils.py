@@ -8,6 +8,7 @@ from typing import Any
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
+from msgraph.generated.chats.chats_request_builder import ChatsRequestBuilder
 from msgraph.generated.chats.item.messages.messages_request_builder import MessagesRequestBuilder
 from msgraph.generated.models.aad_user_conversation_member import AadUserConversationMember
 from msgraph.generated.models.chat import Chat
@@ -130,6 +131,19 @@ def people_request(**kwargs) -> RequestConfiguration:
 
 def users_request(**kwargs) -> RequestConfiguration:
     return config_request(UsersRequestBuilder.UsersRequestBuilderGetQueryParameters, **kwargs)
+
+
+def chats_request(
+    top: int,
+    next_page_token: str | None,
+    expand: list[str] | None,
+) -> RequestConfiguration:
+    kwargs = {
+        "top": top,
+        "next_page_token": next_page_token,
+        "expand": expand,
+    }
+    return config_request(ChatsRequestBuilder.ChatsRequestBuilderGetQueryParameters, **kwargs)
 
 
 def build_conversation_member(user_id: str) -> AadUserConversationMember:
@@ -301,6 +315,20 @@ async def find_chat_by_users(
     user_ids = user_ids or []
 
     if user_names:
+        """
+        The Users endpoint returns only people in the current user's tenant. If they're searching
+        for a chat with people from other tenants, we need to use the People endpoint instead.
+
+        The People endpoint, on the other hand, only returns people the current user has interacted
+        with before. Since this function is used in the `Teams.SendChatMessage` tool and the chat
+        may need to be created with people that the current user has never interacted with before,
+        we need to use the Users endpoint.
+
+        This is why a combination of the two is used here.
+
+        There is a limitation that the Users endpoint only returns up to the first 999 users. In
+        large tenants, we might not be able to find the relevant users.
+        """
         response = await find_people_by_name(context, user_names)
         if response["not_found"]:
             message = f"Could not find people with name(s): {', '.join(response['not_found'])}"

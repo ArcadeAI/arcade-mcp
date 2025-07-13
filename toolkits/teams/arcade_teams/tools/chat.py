@@ -8,6 +8,8 @@ from arcade_teams.constants import DatetimeField
 from arcade_teams.exceptions import ToolExecutionError
 from arcade_teams.serializers import serialize_chat, serialize_chat_message
 from arcade_teams.utils import (
+    build_token_pagination,
+    chats_request,
     find_chat_by_users,
     messages_request,
     validate_datetime_range,
@@ -44,7 +46,7 @@ async def get_chat_messages(
     dict,
     "The messages in the chat/conversation.",
 ]:
-    """Retrieves messages from a chat/conversation filtering by datetime range.
+    """Retrieves messages from a chat filtering by datetime range.
 
     Provide one of chat_id OR any combination of user_ids and/or user_names. When available, prefer
     providing a chat_id or user_ids for optimal performance.
@@ -110,18 +112,47 @@ async def get_chat(
     ] = None,
 ) -> Annotated[
     dict,
-    "Metadata about the conversation (chat or channel).",
+    "Metadata about the chat.",
 ]:
-    """Retrieves metadata about a conversation (chat or channel).
+    """Retrieves metadata about a chat.
 
-    Provide exactly one of conversation_id or channel_name. When available, prefer providing a
-    conversation_id for optimal performance.
+    Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
+    chat_id for optimal performance.
     """
     if not chat_id:
-        chat = await find_chat_by_users(context, user_ids, user_names)
-        chat_id = chat["id"]
+        return {"chat": await find_chat_by_users(context, user_ids, user_names)}
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).get()
 
-    return serialize_chat(response.value)
+    return {"chat": serialize_chat(response.value)}
+
+
+@tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
+async def list_chats(
+    context: ToolContext,
+    limit: Annotated[int, "The maximum number of chats to return. Defaults to 50, max is 50."] = 50,
+    next_page_token: Annotated[
+        str | None, "The token to use to get the next page of results."
+    ] = None,
+) -> Annotated[dict, "The chats to which the current user is a member of."]:
+    """List the chats to which the current user is a member of."""
+    limit = min(50, max(1, limit))
+
+    client = get_client(context.get_auth_token_or_empty())
+
+    response = await client.me.chats.get(
+        chats_request(
+            top=limit,
+            next_page_token=next_page_token,
+            expand=["members", "lastMessagePreview"],
+        )
+    )
+
+    chats = [serialize_chat(chat) for chat in response.value]
+
+    return {
+        "chats": chats,
+        "count": len(chats),
+        "pagination": build_token_pagination(response),
+    }
