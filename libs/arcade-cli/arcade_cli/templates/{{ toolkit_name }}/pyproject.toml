@@ -37,8 +37,8 @@ dev = [
 ]
 
 # Tell Arcade.dev that this package is a toolkit
-[project.entry-points."arcade.toolkits"]
-arcade_toolkit = "{{ package_name }}"
+[project.entry-points.arcade_toolkits]
+toolkit_name = "{{ package_name }}"
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]

@@ -38,6 +38,13 @@ class Toolkit(BaseModel):
         """
         Validator to strip the 'arcade_' prefix from the name if it exists.
         """
+        return cls._strip_arcade_prefix(value)
+
+    @classmethod
+    def _strip_arcade_prefix(cls, value: str) -> str:
+        """
+        Strip the 'arcade_' prefix from the name if it exists.
+        """
         if value.startswith("arcade_"):
             return value[len("arcade_") :]
         return value
@@ -110,6 +117,37 @@ class Toolkit(BaseModel):
         return toolkit
 
     @classmethod
+    def from_entrypoint(cls, entry: importlib.metadata.EntryPoint) -> "Toolkit":
+        """
+        Load a Toolkit from an entrypoint.
+
+        The entrypoint value is used as the toolkit name, while the package name
+        is extracted from the distribution that owns the entrypoint.
+
+        Args:
+            entry: The EntryPoint object from importlib.metadata
+
+        Returns:
+            A Toolkit instance
+
+        Raises:
+            ToolkitLoadError: If the toolkit cannot be loaded
+        """
+        # Get the package name from the distribution that owns this entrypoint
+        if not hasattr(entry, "dist") or entry.dist is None:
+            raise ToolkitLoadError(
+                f"Entry point '{entry.name}' does not have distribution metadata. "
+                f"This may indicate an incomplete package installation."
+            )
+
+        package_name = entry.dist.name
+
+        toolkit = cls.from_package(package_name)
+        toolkit.name = cls._strip_arcade_prefix(entry.value)
+
+        return toolkit
+
+    @classmethod
     def find_arcade_toolkits_from_entrypoints(cls) -> list["Toolkit"]:
         """
         Find and load as Toolkits all installed packages in the
@@ -120,19 +158,20 @@ class Toolkit(BaseModel):
         toolkit_entries: list[importlib.metadata.EntryPoint] = []
 
         try:
-            if hasattr(importlib.metadata, "entry_points"):
-                eps = importlib.metadata.entry_points()
-                if hasattr(eps, "select"):
-                    toolkit_entries = eps.select(group="arcade.toolkits")
-
+            toolkit_entries = importlib.metadata.entry_points(
+                group="arcade_toolkits", name="toolkit_name"
+            )
             for entry in toolkit_entries:
                 try:
-                    package_name = entry.value.split(":")[0]
-                    toolkit = cls.from_package(package_name)
+                    toolkit = cls.from_entrypoint(entry)
                     toolkits.append(toolkit)
-                    logger.debug(f"Loaded toolkit from entry point: '{package_name}'")
+                    logger.debug(
+                        f"Loaded toolkit from entry point: {entry.name} = '{toolkit.name}'"
+                    )
                 except ToolkitLoadError as e:
-                    logger.warning(f"Warning: {e} Skipping toolkit from entry point '{entry.name}'")
+                    logger.warning(
+                        f"Warning: {e} Skipping toolkit from entry point '{entry.value}'"
+                    )
         except Exception as e:
             logger.debug(f"Entry point discovery failed or not available: {e}")
 
@@ -180,13 +219,13 @@ class Toolkit(BaseModel):
         entrypoint_toolkits = cls.find_arcade_toolkits_from_entrypoints()
         prefix_toolkits = cls.find_arcade_toolkits_from_prefix()
 
-        # Deduplicate
-        seen = set()
+        # Deduplicate. Entrypoints are preferred over prefix-based toolkits.
+        seen_package_names = set()
         all_toolkits = []
         for toolkit in entrypoint_toolkits + prefix_toolkits:
-            if toolkit.package_name not in seen:
+            if toolkit.package_name not in seen_package_names:
                 all_toolkits.append(toolkit)
-                seen.add(toolkit.package_name)
+                seen_package_names.add(toolkit.package_name)
 
         return all_toolkits
 
