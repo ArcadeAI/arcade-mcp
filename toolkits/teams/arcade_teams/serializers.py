@@ -73,9 +73,17 @@ def serialize_channel(channel: Channel, transform: Callable | None = None) -> di
 def serialize_chat(chat: Chat, transform: Callable | None = None) -> dict:
     chat_dict = {
         "id": chat.id,
-        "name": chat.display_name,
+        "type": chat.chat_type.value,
         "tenant_id": chat.tenant_id,
     }
+
+    if chat.pinned_messages:
+        chat_dict["pinned_messages"] = [
+            serialize_chat_message(message.message) for message in chat.pinned_messages
+        ]
+
+    if chat.web_url:
+        chat_dict["web_url"] = chat.web_url
 
     if chat.topic:
         chat_dict["topic"] = chat.topic

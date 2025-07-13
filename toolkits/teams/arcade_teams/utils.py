@@ -1,11 +1,12 @@
 import datetime
+import json
 import re
 import uuid
 from dataclasses import dataclass
 from typing import Any
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.chats.item.messages.messages_request_builder import MessagesRequestBuilder
 from msgraph.generated.models.aad_user_conversation_member import AadUserConversationMember
@@ -117,6 +118,7 @@ def members_request(**kwargs) -> RequestConfiguration:
 
 
 def messages_request(**kwargs) -> RequestConfiguration:
+    kwargs = remove_none_values(kwargs)
     return config_request(MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters, **kwargs)
 
 
@@ -128,7 +130,7 @@ def build_conversation_member(user_id: str) -> AadUserConversationMember:
     return AadUserConversationMember(
         odata_type="#microsoft.graph.aadUserConversationMember",
         roles=["owner"],
-        additional_data={"user@odata_bind": f"https://graph.microsoft.com/v1.0/users('{user_id}')"},
+        additional_data={"user@odata.bind": f"https://graph.microsoft.com/v1.0/users('{user_id}')"},
     )
 
 
@@ -273,11 +275,21 @@ async def find_chat_by_users(
     user_ids = user_ids or []
 
     if user_names:
-        users = await find_people_by_name(context, user_names)
-        user_ids.extend([user["id"] for user in users])
+        response = await find_people_by_name(context, user_names)
+        if response["not_found"]:
+            message = f"Could not find people with name(s): {', '.join(response['not_found'])}"
+            did_you_mean = [short_person(person) for person in response["not_matched"]]
+            additional_content = json.dumps({"did_you_mean": did_you_mean})
+            raise RetryableToolError(
+                message=message,
+                developer_message=message,
+                additional_prompt_content=additional_content,
+            )
+
+        user_ids.extend([user["id"] for user in response["people"]])
 
     request_body = Chat(
-        chat_type=ChatType.OneOnOne,
+        chat_type=ChatType.OneOnOne if len(user_ids) == 2 else ChatType.Group,
         members=[build_conversation_member(user_id) for user_id in user_ids],
     )
     client = get_client(context.get_auth_token_or_empty())
@@ -285,7 +297,13 @@ async def find_chat_by_users(
     return serialize_chat(response)
 
 
-async def find_people_by_name(context: ToolContext, names: list[str]) -> list[dict]:
+async def find_people_by_name(context: ToolContext, names: list[str]) -> dict[str, Any]:
+    if not names:
+        message = "No names provided"
+        raise ToolExecutionError(message=message, developer_message=message)
+
+    names = deduplicate_names(names)
+
     from arcade_teams.tools.people import search_people  # Avoid circular import
 
     response = await search_people(
@@ -295,58 +313,79 @@ async def find_people_by_name(context: ToolContext, names: list[str]) -> list[di
         limit=100,
     )
 
+    people_by_id = {person["id"]: person for person in response["people"]}
     people_by_display_name = build_people_by_name(response["people"], "display")
     people_by_first_name = build_people_by_name(response["people"], "first")
     people_by_last_name = build_people_by_name(response["people"], "last")
 
-    names_pending = set(names)
     people_found = []
+    names_pending = set(names)
 
     for name in names:
         name_lower = name.casefold()
+
+        # Match by display name
         if name_lower in people_by_display_name:
-            person = get_person_match(people_found, people_by_display_name, name)
+            person = get_person_match(people_by_display_name, name)
             names_pending.remove(name)
             people_found.append(person)
+            people_by_id.pop(person["id"])
 
+        # Alternatively, match by first name
         elif name_lower in people_by_first_name:
-            person = get_person_match(people_found, people_by_first_name, name)
+            person = get_person_match(people_by_first_name, name)
             names_pending.remove(name)
             people_found.append(person)
+            people_by_id.pop(person["id"])
 
+        # Lastly, try to match by last name
         elif name_lower in people_by_last_name:
-            person = get_person_match(people_found, people_by_last_name, name)
+            person = get_person_match(people_by_last_name, name)
             names_pending.remove(name)
             people_found.append(person)
+            people_by_id.pop(person["id"])
 
     return {
         "people": people_found,
         "not_found": list(names_pending),
+        "not_matched": list(people_by_id.values()),
     }
 
 
-def get_person_match(people_found: list[dict], people_by_name: dict, name: str) -> list[dict]:
+def deduplicate_names(names: list[str]) -> list[str]:
+    names_unique = []
+    names_casefold = {name.casefold() for name in names}
+    for name in names:
+        name_lower = name.casefold()
+        if name_lower in names_casefold:
+            names_unique.append(name)
+            names_casefold.remove(name_lower)
+    return names_unique
+
+
+def get_person_match(people_by_name: dict[str, list[dict]], name: str) -> dict[str, Any]:
     name_lower = name.casefold()
 
     matches = people_by_name[name_lower]
 
     # In case multiple people match this name
     if len(matches) > 1:
-        people_found = [short_person(person) for person in matches]
         raise MultipleItemsFoundError(
             item="people",
-            available_options=people_found,
+            available_options=matches,
             search_term=name,
         )
 
     return matches[0]
 
 
-def build_people_by_name(people: list[dict], name_key: str) -> dict:
+def build_people_by_name(people: list[dict], name_key: str) -> dict[str, list[dict]]:
     people_dict = {}
 
     for person in people:
-        name = person["name"][name_key].casefold()
+        name = person["name"].get(name_key, "").casefold()
+        if not name:
+            continue
         if name not in people_dict:
             people_dict[name] = [person]
         else:

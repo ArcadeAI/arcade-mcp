@@ -5,6 +5,7 @@ from arcade_tdk.auth import Microsoft
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import DatetimeField
+from arcade_teams.exceptions import ToolExecutionError
 from arcade_teams.serializers import serialize_chat, serialize_chat_message
 from arcade_teams.utils import (
     find_chat_by_users,
@@ -13,10 +14,10 @@ from arcade_teams.utils import (
 )
 
 
-@tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
+@tool(requires_auth=Microsoft(scopes=["Chat.Read", "Chat.Create"]))
 async def get_chat_messages(
     context: ToolContext,
-    chat_id: Annotated[str, "The ID of the chat to get messages from."],
+    chat_id: Annotated[str | None, "The ID of the chat to get messages from."] = None,
     user_ids: Annotated[
         list[str] | None, "The IDs of the users in the chat to get messages from."
     ] = None,
@@ -48,11 +49,18 @@ async def get_chat_messages(
     Provide one of chat_id OR any combination of user_ids and/or user_names. When available, prefer
     providing a chat_id or user_ids for optimal performance.
 
-    Messages will be sorted in descending order by default. Ascending order is not supported by the
-    Microsoft Teams API.
+    Messages will be sorted in descending order by the messages' `created_datetime` field.
 
     The Microsoft Teams API does not support pagination for this tool.
     """
+    if not any([chat_id, user_ids, user_names]):
+        message = "At least one of chat_id, user_ids, or user_names must be provided."
+        raise ToolExecutionError(message=message, developer_message=message)
+
+    if chat_id and any([user_ids, user_names]):
+        message = "chat_id and user_ids/user_names cannot be provided together."
+        raise ToolExecutionError(message=message, developer_message=message)
+
     limit = min(50, max(1, limit))
     start_datetime, end_datetime = validate_datetime_range(start_datetime, end_datetime)
 
@@ -64,8 +72,7 @@ async def get_chat_messages(
     if end_datetime:
         datetime_filters.append(f"{datetime_field.value} le {end_datetime}")
 
-    if datetime_filters:
-        filter_clause = " and ".join(datetime_filters)
+    filter_clause = " and ".join(datetime_filters) if datetime_filters else None
 
     if not chat_id:
         chat = await find_chat_by_users(context, user_ids, user_names)
@@ -75,7 +82,7 @@ async def get_chat_messages(
     response = await client.chats.by_chat_id(chat_id).messages.get(
         messages_request(
             top=limit,
-            order_by=datetime_field.order_by_clause,
+            orderby=datetime_field.order_by_clause,
             filter=filter_clause,
         )
     )
