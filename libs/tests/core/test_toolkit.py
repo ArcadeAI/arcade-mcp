@@ -1,9 +1,8 @@
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_core.errors import ToolkitLoadError
-from arcade_core.toolkit import Toolkit, get_package_directory
+from arcade_core.toolkit import Toolkit
 
 
 class TestToolkit:
@@ -241,7 +240,7 @@ class TestEntryPointCompatibility:
 
     @patch("arcade_core.toolkit.importlib.metadata.entry_points")
     @patch("arcade_core.toolkit.Toolkit.from_entrypoint")
-    def test_duplicate_names_in_entrypoints(self, mock_from_ep, mock_entry_points):
+    def test_duplicate_toolkit_names_in_entrypoints(self, mock_from_ep, mock_entry_points):
         """Test handling of duplicate toolkit names in entry points."""
         # Create mock entry points with same name
         mock_ep1 = MagicMock()
@@ -254,7 +253,7 @@ class TestEntryPointCompatibility:
 
         mock_entry_points.return_value = [mock_ep1, mock_ep2]
 
-        # Mock toolkit creation - both with same display name
+        # Mock toolkit creation - both with same toolkit name
         toolkit1 = Toolkit(
             name="test",
             package_name="test_v1",
@@ -294,10 +293,8 @@ class TestEntryPointCompatibility:
         )
         mock_from_package.return_value = mock_toolkit
 
-        # Test
         toolkit = Toolkit.from_entrypoint(mock_entry)
 
-        # Should strip arcade_ prefix
         assert toolkit.name == "example"
         assert toolkit.package_name == "arcade-example"
 
@@ -310,50 +307,38 @@ class TestToolkitIntegration:
     def test_mixed_toolkit_sources(self, mock_find_prefix, mock_find_ep):
         """Test discovering toolkits from both sources with various naming patterns."""
         # Create toolkits with different naming patterns
-
-        # Entry point toolkits
         ep_toolkit1 = Toolkit(
             name="custom",
             package_name="my_custom_toolkit",
             version="1.0.0",
             description="Custom toolkit",
         )
-
         ep_toolkit2 = Toolkit(
             name="utils",
             package_name="arcade_utils",
             version="2.0.0",
             description="Utils toolkit",
         )
-
-        # Prefix-based toolkits
         prefix_toolkit1 = Toolkit(
             name="legacy",
             package_name="arcade_legacy",
             version="1.0.0",
             description="Legacy toolkit",
         )
-
         prefix_toolkit2 = Toolkit(
             name="utils",
             package_name="arcade_utils",  # Same package name as ep_toolkit2
             version="0.9.0",
             description="Old utils toolkit",
         )
-
         mock_find_ep.return_value = [ep_toolkit1, ep_toolkit2]
         mock_find_prefix.return_value = [prefix_toolkit1, prefix_toolkit2]
 
-        # Test
         toolkits = Toolkit.find_all_arcade_toolkits()
 
         # Should have 3 toolkits (ep_toolkit2 supersedes prefix_toolkit2 due to same package_name)
         assert len(toolkits) == 3
-
-        # Verify the toolkits
         names = {t.name for t in toolkits}
         assert names == {"custom", "utils", "legacy"}
-
-        # Verify utils is the entry point version
         utils_toolkit = next(t for t in toolkits if t.name == "utils")
         assert utils_toolkit.version == "2.0.0"
