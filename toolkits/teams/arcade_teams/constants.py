@@ -3,10 +3,12 @@ import os
 from collections.abc import Callable
 
 
-def enforce_int_env_var(key: str, value: str) -> int:
+def enforce_greater_than_zero_int(key: str, value: str) -> int:
     if value.isdigit():
-        return int(value)
-    error = f"Environment variable {key} must have a integer value"
+        int_value = int(value)
+        if int_value > 0:
+            return int_value
+    error = f"Environment variable {key} must have a positive integer value greater than zero"
     raise ValueError(error)
 
 
@@ -26,7 +28,12 @@ def load_env_var(key: str, default: str | None = None, transform: Callable | Non
 
 
 ENV_VARS = {
-    "TEAMS_MAX_CONCURRENCY": load_env_var("TEAMS_MAX_CONCURRENCY", 3, enforce_int_env_var),
+    "TEAMS_MAX_CONCURRENCY": load_env_var(
+        "TEAMS_MAX_CONCURRENCY", 3, enforce_greater_than_zero_int
+    ),
+    "TEAMS_PAGINATION_TIMEOUT": load_env_var(
+        "TEAMS_PAGINATION_TIMEOUT", 30, enforce_greater_than_zero_int
+    ),
 }
 
 

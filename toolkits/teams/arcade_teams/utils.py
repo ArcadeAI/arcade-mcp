@@ -1,12 +1,12 @@
+import asyncio
 import datetime
-import json
 import re
 import uuid
 from dataclasses import dataclass
 from typing import Any
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.chats.chats_request_builder import ChatsRequestBuilder
 from msgraph.generated.chats.item.messages.messages_request_builder import MessagesRequestBuilder
@@ -26,16 +26,18 @@ from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 from pydantic import BaseModel
 
 from arcade_teams.client import get_client
+from arcade_teams.concurency import paginate
 from arcade_teams.constants import ENV_VARS, MatchType, PartialMatchType
 from arcade_teams.exceptions import MultipleItemsFoundError, NoItemsFoundError
-from arcade_teams.serializers import serialize_chat, short_person, short_version
+from arcade_teams.models import FindChatByMembersSentinel
+from arcade_teams.serializers import serialize_chat, short_version
 
 
 def remove_none_values(kwargs: dict) -> dict:
     return {key: val for key, val in kwargs.items() if val is not None}
 
 
-def load_metadata(context: ToolContext, key: str) -> Any:
+def load_config_param(context: ToolContext, key: str) -> Any:
     try:
         return context.get_metadata(key)
     except ValueError:
@@ -311,44 +313,122 @@ async def find_chat_by_users(
     context: ToolContext,
     user_ids: list[str] | None,
     user_names: list[str] | None,
+    semaphore: asyncio.Semaphore | None = None,
 ) -> dict:
-    user_ids = user_ids or []
+    if not user_ids and not user_names:
+        error = (
+            "The user_ids and user_names arguments are empty. "
+            "Provide at least one of user_ids or user_names or a combination of both."
+        )
+        raise ToolExecutionError(message=error, developer_message=error)
 
-    if user_names:
-        """
-        The Users endpoint returns only people in the current user's tenant. If they're searching
-        for a chat with people from other tenants, we need to use the People endpoint instead.
+    if not user_names:
+        return await find_chat_by_user_ids(context, user_ids, semaphore)
 
-        The People endpoint, on the other hand, only returns people the current user has interacted
-        with before. Since this function is used in the `Teams.SendChatMessage` tool and the chat
-        may need to be created with people that the current user has never interacted with before,
-        we need to use the Users endpoint.
+    return await find_chat_by_user_ids_and_names(context, user_ids or [], user_names, semaphore)
 
-        This is why a combination of the two is used here.
 
-        There is a limitation that the Users endpoint only returns up to the first 999 users. In
-        large tenants, we might not be able to find the relevant users.
-        """
-        response = await find_people_by_name(context, user_names)
-        if response["not_found"]:
-            message = f"Could not find people with name(s): {', '.join(response['not_found'])}"
-            did_you_mean = [short_person(person) for person in response["not_matched"]]
-            additional_content = json.dumps({"did_you_mean": did_you_mean})
-            raise RetryableToolError(
-                message=message,
-                developer_message=message,
-                additional_prompt_content=additional_content,
-            )
+async def find_chat_by_user_ids(
+    context: ToolContext,
+    user_ids: list[str],
+    semaphore: asyncio.Semaphore | None = None,
+) -> dict:
+    """Find a chat by its members' IDs.
 
-        user_ids.extend([user["id"] for user in response["people"]])
+    If we only have user_ids, we can simply create the chat. If it already exists, the MS Graph API
+    will return the existing chat. This is the most efficient way.
+    """
+    from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
 
-    request_body = Chat(
-        chat_type=ChatType.OneOnOne if len(user_ids) == 2 else ChatType.Group,
-        members=[build_conversation_member(user_id) for user_id in user_ids],
-    )
     client = get_client(context.get_auth_token_or_empty())
-    response = await client.chats.post(request_body)
-    return serialize_chat(response)
+    semaphore = semaphore or asyncio.Semaphore(load_config_param(context, "TEAMS_MAX_CONCURRENCY"))
+
+    async with semaphore:
+        current_user = await get_signed_in_user(context)
+        if current_user["id"] not in user_ids:
+            user_ids.append(current_user["id"])
+
+        request_body = Chat(
+            chat_type=ChatType.OneOnOne if len(user_ids) == 2 else ChatType.Group,
+            members=[build_conversation_member(user_id) for user_id in user_ids],
+        )
+        response = await client.chats.post(request_body)
+
+        # The "chats.get" endpoint returns more data than the "chats.post" one. We call the
+        # "chats.get" endpoint to keep responses standardized.
+        chat = await client.chats.by_chat_id(response["id"]).get()
+        return serialize_chat(chat)
+
+
+async def find_chat_by_user_ids_and_names(
+    context: ToolContext,
+    user_ids: list[str],
+    user_names: list[str],
+    semaphore: asyncio.Semaphore | None = None,
+) -> dict:
+    """Find a chat by its members' IDs and names.
+
+    To find a chat by its members' names, we need to retrieve chats and filter by their members.
+    Searching for the users and getting their IDs would be more efficient, but the
+    Users and People endpoints have limitations that prevent us from doing that in a reliable way:
+
+    1) The Users endpoint will only return users in the current user's tenant. If the user is
+    looking for a chat with users from other tenants (external orgs), we won't find them.
+
+    2) The Users endpoint only returns up to 999 users. In large tenants, we might not be able to
+    find the relevant users.
+
+    3) The People endpoint only returns people the current user has interacted with before. If
+    the chat has to be created with people that the current user has never interacted with
+    before, this will not work.
+
+    4) The People endpoint will return people like email and calendar contacts, which may not
+    be relevant for the purposes of Teams chat membership and lead to false positives when we
+    do a search by name.
+
+    Even combining the two endpoints would still not be entirely reliable. This is why we do an
+    inefficient scan of chats and filter by their members.
+    """
+    from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
+
+    current_user = await get_signed_in_user(context)
+    if current_user["id"] not in user_ids:
+        user_ids.append(current_user["id"])
+
+    find_chat_sentinel = FindChatByMembersSentinel(user_ids=user_ids, user_names=user_names)
+    client = get_client(context.get_auth_token_or_empty())
+    semaphore = semaphore or asyncio.Semaphore(load_config_param(context, "TEAMS_MAX_CONCURRENCY"))
+
+    chats, _ = await paginate(
+        context=context,
+        func=client.me.chats.get,
+        request_builder=chats_request,
+        page_limit=50,
+        semaphore=semaphore,
+        sentinel=find_chat_sentinel,
+        expand=["members", "lastMessagePreview"],
+    )
+
+    if len(find_chat_sentinel.exact_matches) == 1:
+        return serialize_chat(find_chat_sentinel.exact_matches[0])
+
+    elif len(find_chat_sentinel.exact_matches) > 1:
+        raise MultipleItemsFoundError(
+            "chats", [serialize_chat(chat) for chat in find_chat_sentinel.exact_matches]
+        )
+
+    elif len(find_chat_sentinel.partial_matches) == 1:
+        return serialize_chat(find_chat_sentinel.partial_matches[0])
+
+    elif len(find_chat_sentinel.partial_matches) > 1:
+        raise MultipleItemsFoundError(
+            "chats", [serialize_chat(chat) for chat in find_chat_sentinel.partial_matches]
+        )
+
+    raise NoItemsFoundError(
+        item="chats",
+        available_options=[serialize_chat(chat) for chat in chats],
+    )
 
 
 async def find_people_by_name(context: ToolContext, names: list[str]) -> dict[str, Any]:

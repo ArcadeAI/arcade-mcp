@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from arcade_tdk import ToolAuthorizationContext, ToolContext
+from msgraph.generated.models.chat import Chat
+from msgraph.generated.models.conversation_member import ConversationMember
 from msgraph.generated.models.person import Person
 
 
@@ -88,3 +90,47 @@ def person_factory():
         )
 
     return person_factory
+
+
+@pytest.fixture
+def chat_factory():
+    def chat_factory(
+        id_: str | None = None,
+        members: list[ConversationMember] | None = None,
+    ):
+        return Chat(
+            id=id_ or str(uuid.uuid4()),
+            members=members,
+        )
+
+    return chat_factory
+
+
+@pytest.fixture
+def member_factory(random_str_factory):
+    def member_factory(
+        id_: str | None = None,
+        display_name: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        email: str | None = None,
+        tenant_name: str | None = None,
+        roles: list[str] | None = None,
+    ):
+        id_ = id_ or str(uuid.uuid4())
+        first_name = first_name or f"first_{random_str_factory(4)}"
+        last_name = last_name or f"last_{random_str_factory(4)}"
+        display_name = display_name or f"{first_name} {last_name}"
+        tenant_name = tenant_name or f"tenant_{random_str_factory(4)}"
+        email = email or f"{first_name}.{last_name}@{tenant_name}.onmicrosoft.com"
+        roles = roles or ["owner"]
+        member = ConversationMember(
+            id=id_,
+            display_name=display_name,
+            roles=roles,
+        )
+        member.email = email
+        member.user_id = id_
+        return member
+
+    return member_factory

@@ -8,6 +8,15 @@ class TeamsToolExecutionError(ToolExecutionError):
     pass
 
 
+class PaginationTimeoutError(TeamsToolExecutionError):
+    """Raised when a timeout occurs during pagination."""
+
+    def __init__(self, timeout_seconds: int):
+        self.timeout_seconds = timeout_seconds
+        message = f"The pagination process timed out after {timeout_seconds} seconds."
+        super().__init__(message=message, developer_message=message)
+
+
 class RetryableTeamsToolExecutionError(RetryableToolError):
     pass
 

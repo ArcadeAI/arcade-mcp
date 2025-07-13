@@ -2,10 +2,13 @@ from typing import Annotated
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
+from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.chat_message import ChatMessage
+from msgraph.generated.models.item_body import ItemBody
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import DatetimeField
-from arcade_teams.exceptions import ToolExecutionError
+from arcade_teams.exceptions import NoItemsFoundError
 from arcade_teams.serializers import serialize_chat, serialize_chat_message
 from arcade_teams.utils import (
     build_token_pagination,
@@ -44,9 +47,9 @@ async def get_chat_messages(
     ] = 50,
 ) -> Annotated[
     dict,
-    "The messages in the chat/conversation.",
+    "The messages in the chat.",
 ]:
-    """Retrieves messages from a chat filtering by datetime range.
+    """Retrieves messages from a Microsoft Teams chat.
 
     Provide one of chat_id OR any combination of user_ids and/or user_names. When available, prefer
     providing a chat_id or user_ids for optimal performance.
@@ -101,9 +104,9 @@ async def get_chat_messages(
 @tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
 async def get_chat(
     context: ToolContext,
-    chat_id: Annotated[str, "The ID of the chat to get metadata about."],
+    chat_id: Annotated[str | None, "The ID of the chat to get metadata about."] = None,
     user_ids: Annotated[
-        list[str] | None, "The IDs of the users in the chat to get messages from."
+        list[str] | None, "The IDs of the users in the chat to get metadata about."
     ] = None,
     user_names: Annotated[
         list[str] | None,
@@ -114,10 +117,10 @@ async def get_chat(
     dict,
     "Metadata about the chat.",
 ]:
-    """Retrieves metadata about a chat.
+    """Retrieves metadata about a Microsoft Teams chat.
 
     Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
-    chat_id for optimal performance.
+    chat_id or user_ids for optimal performance.
     """
     if not chat_id:
         return {"chat": await find_chat_by_users(context, user_ids, user_names)}
@@ -125,7 +128,7 @@ async def get_chat(
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).get()
 
-    return {"chat": serialize_chat(response.value)}
+    return {"chat": serialize_chat(response)}
 
 
 @tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
@@ -136,7 +139,7 @@ async def list_chats(
         str | None, "The token to use to get the next page of results."
     ] = None,
 ) -> Annotated[dict, "The chats to which the current user is a member of."]:
-    """List the chats to which the current user is a member of."""
+    """List the Microsoft Teams chats to which the current user is a member of."""
     limit = min(50, max(1, limit))
 
     client = get_client(context.get_auth_token_or_empty())
@@ -156,3 +159,61 @@ async def list_chats(
         "count": len(chats),
         "pagination": build_token_pagination(response),
     }
+
+
+@tool(requires_auth=Microsoft(scopes=["ChatMessage.Send"]))
+async def send_message_to_chat(
+    context: ToolContext,
+    message: Annotated[str, "The message to send to the chat."],
+    chat_id: Annotated[str | None, "The ID of the chat to get messages from."] = None,
+    user_ids: Annotated[
+        list[str] | None, "The IDs of the users in the chat to get messages from."
+    ] = None,
+    user_names: Annotated[
+        list[str] | None,
+        "The names of the users in the chat to get messages from. Prefer providing user_ids, "
+        "when available, since the performance is better.",
+    ] = None,
+) -> Annotated[dict, "The message that was sent."]:
+    """Sends a message to a Microsoft Teams chat.
+
+    Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
+    chat_id or user_ids for optimal performance.
+    """
+    if not chat_id:
+        try:
+            chat = await find_chat_by_users(context, user_ids, user_names)
+            chat_id = chat["id"]
+        except NoItemsFoundError:
+            chat = await create_chat(context, user_ids, user_names)
+            chat_id = chat["id"]
+
+    client = get_client(context.get_auth_token_or_empty())
+    response = await client.chats.by_chat_id(chat_id).messages.post(
+        ChatMessage(body=ItemBody(content=message))
+    )
+    return {
+        "status": "Message successfully sent.",
+        "message": serialize_chat_message(response),
+    }
+
+
+@tool(requires_auth=Microsoft(scopes=["Chat.Create"]))
+async def create_chat(
+    context: ToolContext,
+    user_ids: Annotated[list[str] | None, "The IDs of the users to create a chat with."] = None,
+    user_names: Annotated[list[str] | None, "The names of the users to create a chat with."] = None,
+) -> Annotated[dict, "The chat that was created."]:
+    """Creates a Microsoft Teams chat.
+
+    If the chat already exists with the specified members, the MS Graph API will return the
+    existing chat.
+
+    Provide any combination of user_ids and/or user_names. When available, prefer providing
+    user_ids for optimal performance.
+    """
+    if not any([user_ids, user_names]):
+        message = "At least one of user_ids or user_names must be provided."
+        raise ToolExecutionError(message=message, developer_message=message)
+
+    pass
