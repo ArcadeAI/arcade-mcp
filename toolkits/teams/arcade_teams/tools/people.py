@@ -8,8 +8,8 @@ from arcade_teams.client import get_client
 from arcade_teams.constants import PartialMatchType
 from arcade_teams.serializers import serialize_person
 from arcade_teams.utils import (
-    build_pagination,
-    build_search_clause,
+    build_people_search_clause,
+    build_token_pagination,
     people_request,
 )
 
@@ -31,7 +31,12 @@ async def search_people(
     ] = 50,
     next_page_token: Annotated[str | None, "The next page token to use for pagination."] = None,
 ) -> Annotated[dict, "The people matching the search criteria."]:
-    """Search for people in the organization."""
+    """Search for people in the organization.
+
+    This tool only return users that the currently signed in user has interacted with. If you need
+    to retrieve users that may not have interacted with the current user, use the
+    `Teams.SearchUsers` tool, instead.
+    """
     limit = min(100, max(1, limit))
 
     if not keywords:
@@ -42,7 +47,7 @@ async def search_people(
     response = await client.me.people.get(
         people_request(
             top=limit,
-            search=build_search_clause(keywords, match_type),
+            search=build_people_search_clause(keywords, match_type),
             skiptoken=next_page_token,
         ),
     )
@@ -52,5 +57,5 @@ async def search_people(
     return {
         "people": people,
         "count": len(people),
-        "pagination": build_pagination(response),
+        "pagination": build_token_pagination(response),
     }

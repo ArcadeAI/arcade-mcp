@@ -31,8 +31,8 @@ ENV_VARS = {
 
 
 class FilterCondition(enum.Enum):
-    OR = "or"
-    AND = "and"
+    OR = "OR"
+    AND = "AND"
 
 
 class MatchType(enum.Enum):

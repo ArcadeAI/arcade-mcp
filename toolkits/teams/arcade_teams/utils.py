@@ -12,6 +12,7 @@ from msgraph.generated.chats.item.messages.messages_request_builder import Messa
 from msgraph.generated.models.aad_user_conversation_member import AadUserConversationMember
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.chat_type import ChatType
+from msgraph.generated.models.user import User
 from msgraph.generated.teams.item.all_channels.all_channels_request_builder import (
     AllChannelsRequestBuilder,
 )
@@ -20,6 +21,7 @@ from msgraph.generated.teams.item.members.members_request_builder import (
 )
 from msgraph.generated.teams.teams_request_builder import TeamsRequestBuilder
 from msgraph.generated.users.item.people.people_request_builder import PeopleRequestBuilder
+from msgraph.generated.users.users_request_builder import UsersRequestBuilder
 from pydantic import BaseModel
 
 from arcade_teams.client import get_client
@@ -126,6 +128,10 @@ def people_request(**kwargs) -> RequestConfiguration:
     return config_request(PeopleRequestBuilder.PeopleRequestBuilderGetQueryParameters, **kwargs)
 
 
+def users_request(**kwargs) -> RequestConfiguration:
+    return config_request(UsersRequestBuilder.UsersRequestBuilderGetQueryParameters, **kwargs)
+
+
 def build_conversation_member(user_id: str) -> AadUserConversationMember:
     return AadUserConversationMember(
         odata_type="#microsoft.graph.aadUserConversationMember",
@@ -134,7 +140,7 @@ def build_conversation_member(user_id: str) -> AadUserConversationMember:
     )
 
 
-def build_pagination(response: BaseModel) -> dict:
+def build_token_pagination(response: BaseModel) -> dict:
     pagination = {"is_last_page": True}
     if response.odata_next_link:
         pagination["is_last_page"] = False
@@ -142,12 +148,32 @@ def build_pagination(response: BaseModel) -> dict:
     return pagination
 
 
-def build_search_clause(
+def build_offset_pagination(items: list, limit: int, offset: int) -> dict:
+    is_last_page = len(items) < limit or offset + limit >= 999
+    pagination = {
+        "is_last_page": is_last_page,
+        "limit": limit,
+        "current_offset": offset,
+    }
+    if not is_last_page:
+        pagination["next_offset"] = offset + len(items)
+    return pagination
+
+
+def build_people_search_clause(
     keywords: list[str],
     match_type: PartialMatchType,
 ) -> str:
     operator = match_type.to_filter_condition().value
     return f" {operator} ".join([f'"{keyword}"' for keyword in keywords])
+
+
+def build_users_search_clause(
+    keywords: list[str],
+    match_type: PartialMatchType,
+) -> str:
+    operator = match_type.to_filter_condition().value
+    return f" {operator} ".join([f'"displayName:{keyword}"' for keyword in keywords])
 
 
 def build_filter_clause(
@@ -401,3 +427,13 @@ def generate_case_variants(keyword: str) -> list[str]:
         keyword.title(),
         keyword.capitalize(),
     ]
+
+
+def match_user_by_name(user: User, keywords: list[str], match_type: MatchType) -> bool:
+    user_name = user.display_name.casefold()
+    if match_type == MatchType.EXACT:
+        return any(keyword.casefold() == user_name for keyword in keywords)
+    elif match_type == MatchType.PARTIAL_ALL:
+        return all(keyword.casefold() in user_name for keyword in keywords)
+    else:
+        return any(keyword.casefold() in user_name for keyword in keywords)

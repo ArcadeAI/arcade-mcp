@@ -8,8 +8,9 @@ from arcade_teams.client import get_client
 from arcade_teams.models import TeamMembershipType
 from arcade_teams.serializers import serialize_member, serialize_team
 from arcade_teams.utils import (
-    build_pagination,
+    build_offset_pagination,
     build_startswith_filter_clause,
+    build_token_pagination,
     find_unique_team_by_name,
     find_unique_user_team,
     members_request,
@@ -78,7 +79,7 @@ async def search_teams(
 
     return {
         "teams": [serialize_team(team) for team in response.value],
-        "pagination": build_pagination(response),
+        "pagination": build_token_pagination(response),
     }
 
 
@@ -132,7 +133,7 @@ async def list_team_members(
     ] = None,
     limit: Annotated[
         int,
-        "The maximum number of members to return. Defaults to 50, max is 100.",
+        "The maximum number of members to return. Defaults to 50, max is 999.",
     ] = 50,
     offset: Annotated[int, "The number of members to skip. Defaults to 0."] = 0,
 ) -> Annotated[
@@ -150,8 +151,10 @@ async def list_team_members(
 
     The Microsoft Graph API returns only up to the first 999 members.
     """
-    limit = min(100, max(1, limit))
-    limit = limit + offset
+    limit = min(999, max(1, limit))
+
+    if limit + offset > 999:
+        offset = 999 - limit
 
     if team_id and team_name:
         message = "Provide one of team_id or team_name."
@@ -175,6 +178,7 @@ async def list_team_members(
         "members": members,
         "count": len(members),
         "team": {"id": team_id, "name": team_name},
+        "pagination": build_offset_pagination(members, limit, offset),
     }
 
 
