@@ -256,6 +256,33 @@ async def get_channel_messages(
     }
 
 
+@tool(requires_auth=Microsoft(scopes=["ChannelMessage.Read.All", "Team.ReadBasic.All"]))
+async def get_channel_message_replies(
+    context: ToolContext,
+    message_id: Annotated[str, "The ID of the message to get the replies of."],
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to get the replies of. If not provided: in case the user is "
+        "a member of a single team, the tool will use it; otherwise an error will be returned with "
+        "a list of all teams to pick from.",
+    ],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to get the replies of."],
+) -> Annotated[dict, "The replies to the message."]:
+    """Gets the replies to a Microsoft Teams channel message."""
+    client = get_client(context.get_auth_token_or_empty())
+
+    team_id = await resolve_team_id(context, team_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
+
+    response = (
+        await client.teams.by_team_id(team_id)
+        .channels.by_channel_id(channel_id)
+        .messages.by_chat_message_id(message_id)
+        .replies.get()
+    )
+    return {"replies": [serialize_chat_message(reply) for reply in response.value]}
+
+
 @tool(requires_auth=Microsoft(scopes=["ChannelMessage.Send", "Team.ReadBasic.All"]))
 async def send_message_to_channel(
     context: ToolContext,
@@ -268,7 +295,7 @@ async def send_message_to_channel(
     ],
     channel_id_or_name: Annotated[str, "The ID or name of the channel to send the message to."],
 ) -> Annotated[dict, "The message that was sent."]:
-    """Sends a message to a channel."""
+    """Sends a message to a Microsoft Teams channel."""
     client = get_client(context.get_auth_token_or_empty())
 
     team_id = await resolve_team_id(context, team_id_or_name)
