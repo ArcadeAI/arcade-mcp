@@ -60,7 +60,9 @@ def serialize_channel(channel: Channel, transform: Callable | None = None) -> di
         channel_dict["members_count"] = channel.summary.members_count
 
     if channel.membership_type:
-        channel_dict["membership_type"] = channel.membership_type.value
+        channel_dict["membership_type"] = channel.membership_type.value.replace(
+            "standard", "publicly_visible_to_team_members"
+        )
 
     if channel.members:
         channel_dict["members"] = [member.display_name for member in channel.members]

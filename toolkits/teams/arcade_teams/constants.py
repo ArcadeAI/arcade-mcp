@@ -84,4 +84,5 @@ CHANNEL_PROPS = [
     "isArchived",
     "membershipType",
     "webUrl",
+    "members",
 ]

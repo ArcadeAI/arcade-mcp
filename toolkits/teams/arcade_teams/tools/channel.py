@@ -1,23 +1,25 @@
-import json
 from typing import Annotated
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import CHANNEL_PROPS, MatchType
-from arcade_teams.exceptions import UniqueItemError
+from arcade_teams.serializers import serialize_channel, serialize_member
 from arcade_teams.utils import (
+    build_offset_pagination,
     channels_request,
-    filter_by_name_or_description,
+    filter_channels_by_name,
+    find_unique_channel_by_name,
+    is_channel_id,
     members_request,
     resolve_channel_id,
     resolve_team_id,
 )
 
 
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All"]))
+@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
 async def get_channel(
     context: ToolContext,
     team_id_or_name: Annotated[
@@ -26,90 +28,29 @@ async def get_channel(
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
     ],
-    channel_id: Annotated[
-        str | None, "The ID of the channel to get. Provide one of channel_id OR channel_name."
-    ] = None,
-    channel_name: Annotated[
-        str | None,
-        "The name of the channel to get. Prefer providing a channel_id for optimal performance. "
-        "Provide one of channel_id OR channel_name.",
-    ] = None,
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to get."],
 ) -> Annotated[dict, "The channel."]:
     """Retrieves metadata about a channel.
 
-    Provide exactly one of channel_id or channel_name. When available, prefer providing a
-    channel_id for optimal performance.
+    When available, prefer providing a channel_id for optimal performance.
     """
-    if len({bool(channel_id), bool(channel_name)}) != 1:
-        message = "Provide exactly one of channel_id OR channel_name."
-        raise ToolExecutionError(message=message, developer_message=message)
-
-    try:
-        team_id = await resolve_team_id(context, team_id_or_name)
-    except UniqueItemError as e:
-        return {"error": e.message, "available_options": e.available_options}
+    team_id = await resolve_team_id(context, team_id_or_name)
 
     client = get_client(context.get_auth_token_or_empty())
 
-    if channel_id:
+    if is_channel_id(channel_id_or_name):
         response = (
             await client.teams.by_team_id(team_id)
-            .all_channels.by_channel_id(channel_id)
+            .channels.by_channel_id(channel_id_or_name)
             .get(channels_request(select=CHANNEL_PROPS))
         )
-        return {"channel": response}
+        return {"channel": serialize_channel(response)}
 
-    # Retrieve the channel by name
-    response = await search_channels(
-        context=context,
-        team_id_or_name=team_id_or_name,
-        keywords=channel_name,
-        match_type=MatchType.EXACT,
-    )
-    if len(response["channels"]) == 0:
-        message = f"No channel found with name '{channel_name}'."
-        raise RetryableToolError(message=message, developer_message=message)
-    elif len(response["channels"]) > 1:
-        message = f"Multiple channels found with name '{channel_name}'."
-        available_channels = json.dumps(response["channels"])
-        raise RetryableToolError(
-            message=message,
-            developer_message=message,
-            additional_prompt_content=f"Channels matching '{channel_name}': {available_channels}",
-        )
-    return {"channel": response["channels"][0]}
+    return {"channel": await find_unique_channel_by_name(context, team_id, channel_id_or_name)}
 
 
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All"]))
-async def get_channel_by_name(
-    context: ToolContext,
-    team_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the team to get the channel of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be returned with "
-        "a list of all teams to pick from.",
-    ],
-    channel_name: Annotated[str, "The name of the channel to get."],
-) -> Annotated[dict, "The channel."]:
-    """Gets a channel by name."""
-    response = await search_channels(
-        context=context,
-        team_id_or_name=team_id_or_name,
-        keywords=channel_name,
-        match_type=MatchType.EXACT,
-    )
-    if len(response["channels"]) == 0:
-        return {"channel": None, "error": f"No channel found with name '{channel_name}'."}
-    elif len(response["channels"]) > 1:
-        return {
-            "error": f"Multiple channels found with name '{channel_name}'",
-            "channels": response["channels"],
-        }
-    return {"channel": response["channels"][0]}
-
-
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All"]))
-async def list_all_channels(
+@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
+async def list_channels(
     context: ToolContext,
     team_id_or_name: Annotated[
         str | None,
@@ -117,61 +58,89 @@ async def list_all_channels(
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
     ],
+    limit: Annotated[
+        int,
+        "The maximum number of channels to return. Defaults to 50, max is 100.",
+    ] = 50,
+    offset: Annotated[int, "The offset to start from."] = 0,
 ) -> Annotated[
     dict,
     "The channels in the team.",
 ]:
-    """Lists all channels in a given team."""
-    try:
-        team_id = await resolve_team_id(context, team_id_or_name)
-    except UniqueItemError as e:
-        return {"error": e.message, "available_options": e.available_options}
+    """Lists channels in a given team (including incoming channels shared with the team)."""
+    limit = min(100, max(1, limit)) + offset
 
+    team_id = await resolve_team_id(context, team_id_or_name)
     client = get_client(context.get_auth_token_or_empty())
     response = await client.teams.by_team_id(team_id).all_channels.get(
         channels_request(select=CHANNEL_PROPS)
     )
-    return {"channels": response["value"]}
+    channels = [serialize_channel(channel) for channel in response.value]
+    channels = channels[offset : offset + limit]
+
+    return {
+        "channels": channels,
+        "count": len(channels),
+        "pagination": build_offset_pagination(channels, limit, offset),
+    }
 
 
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All"]))
+@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
 async def search_channels(
     context: ToolContext,
     team_id_or_name: Annotated[
         str | None,
         "The ID or name of the team to list the channels of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be returned with "
-        "a list of all teams to pick from.",
+        "a member of a single team, the tool will use it; otherwise an error will be raised with "
+        "a list of available teams to pick from.",
     ],
     keywords: Annotated[
-        str,
-        "The keywords to search for in the channels.",
+        list[str],
+        "The keywords to search for in channel names.",
     ],
     match_type: Annotated[
         MatchType,
-        "The type of match to use for the search. Defaults to 'partial_match_all_keywords'.",
+        f"The type of match to use for the search. Defaults to '{MatchType.PARTIAL_ALL.value}'.",
     ] = MatchType.PARTIAL_ALL,
+    limit: Annotated[
+        int, "The maximum number of channels to return. Defaults to 50. Max of 100."
+    ] = 50,
+    offset: Annotated[int, "The offset to start from."] = 0,
 ) -> Annotated[
     dict,
     "The channels in the team.",
 ]:
     """Lists the channels in a given team."""
-    try:
-        team_id = await resolve_team_id(context, team_id_or_name)
-    except UniqueItemError as e:
-        return {"error": e.message, "available_options": e.available_options}
+    if not keywords:
+        message = "At least one keyword is required."
+        raise ToolExecutionError(message=message, developer_message=message)
+
+    limit = min(100, max(1, limit)) + offset
+
+    team_id = await resolve_team_id(context, team_id_or_name)
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.teams.by_team_id(team_id).all_channels.get(
-        channels_request(
-            select=CHANNEL_PROPS,
-            filter=filter_by_name_or_description(keywords, match_type),
-        )
+        channels_request(select=CHANNEL_PROPS)
     )
-    return {"channels": response["value"]}
+
+    channels = filter_channels_by_name(
+        channels=response.value,
+        keywords=keywords,
+        match_type=match_type,
+        serializer=serialize_channel,
+    )
+
+    channels = channels[offset : offset + limit]
+
+    return {
+        "channels": channels,
+        "count": len(channels),
+        "pagination": build_offset_pagination(channels, limit, offset),
+    }
 
 
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All"]))
+@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
 async def get_primary_channel(
     context: ToolContext,
     team_id_or_name: Annotated[
@@ -181,24 +150,21 @@ async def get_primary_channel(
         "with a list of all teams to pick from.",
     ],
 ) -> Annotated[
-    dict,
-    "The primary channel of a team.",
+    dict[str, dict | None],
+    "The primary channel of a team. If no primary channel is set, returns None.",
 ]:
     """The primary channel of a team."""
-    try:
-        team_id = await resolve_team_id(context, team_id_or_name)
-    except UniqueItemError as e:
-        return {"error": e.message, "available_options": e.available_options}
-
+    team_id = await resolve_team_id(context, team_id_or_name)
     client = get_client(context.get_auth_token_or_empty())
-    response = client.teams.by_team_id(team_id).primary_channel.get(
+    response = await client.teams.by_team_id(team_id).primary_channel.get(
         channels_request(select=CHANNEL_PROPS)
     )
-    return {"primary_channel": response}
+
+    return {"primary_channel": serialize_channel(response) if response else None}
 
 
 @tool(requires_auth=Microsoft(scopes=["Group.Read.All"]))
-async def list_members_of_channel(
+async def list_channel_members(
     context: ToolContext,
     team_id_or_name: Annotated[
         str | None,
@@ -214,20 +180,22 @@ async def list_members_of_channel(
     ],
     limit: Annotated[
         int,
-        "The maximum number of members to return. Defaults to 100, max is 999.",
-    ] = 100,
+        "The maximum number of members to return. Defaults to 50, max is 999.",
+    ] = 50,
+    offset: Annotated[int, "The offset to start from."] = 0,
 ) -> Annotated[
     dict,
-    "The members of a channel (this tool does not support pagination).",
+    "The members of a channel.",
 ]:
-    """Lists the members of a channel (this tool does not support pagination)."""
-    limit = min(999, max(1, limit))
+    """Lists the members of a channel.
 
-    try:
-        team_id = await resolve_team_id(context, team_id_or_name)
-        channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
-    except UniqueItemError as e:
-        return {"error": e.message, "available_options": e.available_options}
+    The Microsoft Graph API returns only up to the first 999 members of any channel.
+    """
+    limit = min(999, max(1, limit)) + offset
+    offset = min(offset, 999 - limit)
+
+    team_id = await resolve_team_id(context, team_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
 
     client = get_client(context.get_auth_token_or_empty())
     response = (
@@ -235,4 +203,10 @@ async def list_members_of_channel(
         .channels.by_channel_id(channel_id)
         .members.get(members_request(top=limit))
     )
-    return {"members": response["value"]}
+    members = [serialize_member(member) for member in response.value]
+    members = members[offset : offset + limit]
+    return {
+        "members": members,
+        "count": len(members),
+        "pagination": build_offset_pagination(members, limit, offset),
+    }

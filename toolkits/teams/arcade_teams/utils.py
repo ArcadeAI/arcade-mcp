@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import re
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -11,6 +12,7 @@ from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.chats.chats_request_builder import ChatsRequestBuilder
 from msgraph.generated.chats.item.messages.messages_request_builder import MessagesRequestBuilder
 from msgraph.generated.models.aad_user_conversation_member import AadUserConversationMember
+from msgraph.generated.models.channel import Channel
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.chat_type import ChatType
 from msgraph.generated.models.user import User
@@ -27,7 +29,11 @@ from pydantic import BaseModel
 
 from arcade_teams.client import get_client
 from arcade_teams.concurency import paginate
-from arcade_teams.constants import ENV_VARS, MatchType, PartialMatchType
+from arcade_teams.constants import (
+    ENV_VARS,
+    MatchType,
+    PartialMatchType,
+)
 from arcade_teams.exceptions import MultipleItemsFoundError, NoItemsFoundError
 from arcade_teams.models import FindChatByMembersSentinel
 from arcade_teams.serializers import serialize_chat, short_version
@@ -84,11 +90,15 @@ def validate_datetime_range(start: str | None, end: str | None) -> tuple[str | N
 
 
 def is_id(value: str) -> bool:
-    return is_teams_id(value) or is_guid(value)
+    return is_teams_id(value) or is_guid(value) or is_channel_id(value)
 
 
 def is_teams_id(value: str) -> bool:
     return bool(re.match(r"^19:[\w\d]+@thread\.v2$", value))
+
+
+def is_channel_id(value: str) -> bool:
+    return bool(re.match(r"^19:[\w\d]+@[\w\d.]+$", value))
 
 
 def is_guid(value: str) -> bool:
@@ -201,7 +211,7 @@ def build_filter_clause(
         return f"{field} eq '{keywords.casefold()}'"
     words = keywords.casefold().split()
     condition = f" {match_type.to_filter_condition().value} "
-    return condition.join(f"contains({field}, '{word.strip()}')" for word in words)
+    return condition.join(f"startswith({field}, '{word.strip()}')" for word in words)
 
 
 def build_startswith_filter_clause(
@@ -268,7 +278,11 @@ async def find_unique_team_by_name(context: ToolContext, name: str) -> dict:
     return teams[0]
 
 
-async def resolve_channel_id(context: ToolContext, team_id: str, channel_id_or_name: str) -> str:
+async def resolve_channel_id(
+    context: ToolContext,
+    team_id: str,
+    channel_id_or_name: str | None,
+) -> str:
     if not channel_id_or_name:
         channel = await find_unique_channel(context, team_id)
         return channel["id"]
@@ -281,9 +295,9 @@ async def resolve_channel_id(context: ToolContext, team_id: str, channel_id_or_n
 
 
 async def find_unique_channel(context: ToolContext, team_id: str) -> dict:
-    from toolkits.teams.arcade_teams.tools.channel import list_all_channels  # Avoid circular import
+    from toolkits.teams.arcade_teams.tools.channel import list_channels  # Avoid circular import
 
-    response = await list_all_channels(context, team_id)
+    response = await list_channels(context, team_id)
     channels = response["channels"]
     if len(channels) == 0:
         raise NoItemsFoundError("channels")
@@ -293,20 +307,35 @@ async def find_unique_channel(context: ToolContext, team_id: str) -> dict:
 
 
 async def find_unique_channel_by_name(context: ToolContext, team_id: str, name: str) -> dict:
-    from toolkits.teams.arcade_teams.tools.channel import search_channels  # Avoid circular import
+    from arcade_teams.tools.channel import search_channels  # Avoid circular import
 
     response = await search_channels(
         context=context,
         team_id_or_name=team_id,
-        keywords=name,
-        match_type=MatchType.EXACT,
+        keywords=[name],
+        match_type=MatchType.PARTIAL_ANY,
     )
     channels = response["channels"]
+
+    if len(channels) == 1:
+        return channels[0]
+
     if len(channels) == 0:
-        raise NoItemsFoundError("channels")
+        raise NoItemsFoundError(
+            item="channels",
+            available_options=channels,
+            search_term=name,
+        )
+
     if len(channels) > 1:
-        raise MultipleItemsFoundError("channels", channels)
-    return channels[0]
+        for channel in channels:
+            if channel["name"].casefold() == name.casefold():
+                return channel
+        raise MultipleItemsFoundError(
+            item="channels",
+            available_options=channels,
+            search_term=name,
+        )
 
 
 async def find_chat_by_users(
@@ -484,6 +513,29 @@ async def find_people_by_name(context: ToolContext, names: list[str]) -> dict[st
         "not_found": list(names_pending),
         "not_matched": list(people_by_id.values()),
     }
+
+
+def _matches_channel_name(channel_name: str, keywords: list[str], match_type: MatchType) -> bool:
+    channel_name = channel_name.casefold()
+    if match_type == MatchType.EXACT:
+        return any(channel_name == keyword.casefold() for keyword in keywords)
+    if match_type == MatchType.PARTIAL_ALL:
+        return all(keyword.casefold() in channel_name for keyword in keywords)
+    return any(keyword.casefold() in channel_name for keyword in keywords)
+
+
+def filter_channels_by_name(
+    channels: list[Channel],
+    keywords: list[str],
+    match_type: MatchType,
+    serializer: Callable | None = None,
+) -> list[Channel]:
+    serializer = serializer or (lambda x: x)
+    return [
+        serializer(channel)
+        for channel in channels
+        if _matches_channel_name(channel.display_name, keywords, match_type)
+    ]
 
 
 def deduplicate_names(names: list[str]) -> list[str]:
