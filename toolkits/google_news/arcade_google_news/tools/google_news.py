@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import ToolExecutionError
@@ -9,6 +9,7 @@ from arcade_google_news.constants import (
 )
 from arcade_google_news.exceptions import CountryNotFoundError, LanguageNotFoundError
 from arcade_google_news.google_data import COUNTRY_CODES, LANGUAGE_CODES
+from arcade_google_news.types import CountryCode, LanguageCode, SearchNewsOutput
 from arcade_google_news.utils import (
     call_serpapi,
     extract_news_results,
@@ -24,12 +25,13 @@ async def search_news_stories(
         "Keywords to search for news articles. E.g. 'Apple launches new iPhone'.",
     ],
     country_code: Annotated[
-        str | None,
-        "2-character country code to search for news articles. E.g. 'us' (United States). "
+        CountryCode | None,
+        "2-character country code to search for news articles. "
+        "E.g. 'us' (United States). "
         f"Defaults to '{DEFAULT_GOOGLE_NEWS_COUNTRY}'.",
     ] = None,
     language_code: Annotated[
-        str,
+        LanguageCode,
         "2-character language code to search for news articles. E.g. 'en' (English). "
         f"Defaults to '{DEFAULT_GOOGLE_NEWS_LANGUAGE}'.",
     ] = DEFAULT_GOOGLE_NEWS_LANGUAGE,
@@ -38,7 +40,7 @@ async def search_news_stories(
         "Maximum number of news articles to return. Defaults to None "
         "(returns all results found by the API).",
     ] = None,
-) -> Annotated[dict[str, list[dict[str, Any]]], "News results."]:
+) -> Annotated[SearchNewsOutput, "News search results with article details."]:
     """Search for news articles related to a given query."""
     if not keywords:
         raise ToolExecutionError("Keywords are required to search for news articles.")
@@ -53,4 +55,4 @@ async def search_news_stories(
         "google_news", q=keywords, gl=country_code, hl=language_code
     )
     results = call_serpapi(context, params)
-    return {"news_results": extract_news_results(results, limit=limit)}
+    return SearchNewsOutput(news_results=extract_news_results(results, limit=limit))

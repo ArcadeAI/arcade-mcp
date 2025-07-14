@@ -5,6 +5,8 @@ from arcade_tdk import ToolContext
 from arcade_tdk.errors import ToolExecutionError
 from serpapi import Client as SerpClient
 
+from arcade_google_news.types import GoogleNewsResponse, SimplifiedNewsResult
+
 
 def prepare_params(engine: str, **kwargs: Any) -> dict[str, Any]:
     """
@@ -23,7 +25,7 @@ def prepare_params(engine: str, **kwargs: Any) -> dict[str, Any]:
     return params
 
 
-def call_serpapi(context: ToolContext, params: dict) -> dict:
+def call_serpapi(context: ToolContext, params: dict[str, Any]) -> GoogleNewsResponse:
     """
     Execute a search query using the SerpAPI client and return the results as a dictionary.
 
@@ -38,7 +40,7 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
     client = SerpClient(api_key=api_key)
     try:
         search = client.search(params)
-        return cast(dict[str, Any], search.as_dict())
+        return cast(GoogleNewsResponse, search.as_dict())
     except Exception as e:
         # SerpAPI error messages sometimes contain the API key, so we need to sanitize it
         sanitized_e = re.sub(r"(api_key=)[^ &]+", r"\1***", str(e))
@@ -48,16 +50,16 @@ def call_serpapi(context: ToolContext, params: dict) -> dict:
         )
 
 
-def extract_news_results(results: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
-    news_results = []
+def extract_news_results(results: GoogleNewsResponse, limit: int | None = None) -> list[SimplifiedNewsResult]:
+    news_results: list[SimplifiedNewsResult] = []
     for result in results.get("news_results", []):
-        news_results.append({
-            "title": result.get("title"),
-            "snippet": result.get("snippet"),
-            "link": result.get("link"),
-            "date": result.get("date"),
-            "source": result.get("source", {}).get("name"),
-        })
+        news_results.append(SimplifiedNewsResult(
+            title=result.get("title", ""),
+            link=result.get("link", ""),
+            source=result.get("source", {}).get("name"),
+            date=result.get("date"),
+            snippet=result.get("snippet"),
+        ))
 
     if limit:
         return news_results[:limit]

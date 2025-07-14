@@ -24,6 +24,12 @@ class ValueSchema(BaseModel):
     properties: dict[str, "ValueSchema"] | None = None
     """For object types (json), the schema of nested properties."""
 
+    inner_properties: dict[str, "ValueSchema"] | None = None
+    """For array types with json items, the schema of properties for each array item."""
+
+    description: str | None = None
+    """Optional description of the value."""
+
 
 class InputParameter(BaseModel):
     """A parameter that can be passed to a tool."""

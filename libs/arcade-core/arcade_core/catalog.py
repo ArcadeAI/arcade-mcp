@@ -93,6 +93,8 @@ class WireTypeInfo:
     inner_wire_type: InnerWireType | None = None
     enum_values: list[str] | None = None
     properties: dict[str, "WireTypeInfo"] | None = None
+    inner_properties: dict[str, "WireTypeInfo"] | None = None
+    description: str | None = None
 
 
 class ToolMeta(BaseModel):
@@ -687,12 +689,21 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     # Is this a list type?
     # If so, get the inner (enclosed) type
     is_list = get_origin(_type) is list
+    inner_properties = None
+
     if is_list:
         inner_type = get_args(_type)[0]
-        inner_wire_type = cast(
-            InnerWireType,
-            get_wire_type(str) if is_string_literal(inner_type) else get_wire_type(inner_type),
-        )
+
+        # Recursively get wire type info for inner type
+        inner_info = get_wire_type_info(inner_type)
+        inner_wire_type = cast(InnerWireType, inner_info.wire_type)
+
+        # If inner type has properties (it's a complex object), propagate them
+        if inner_info.properties:
+            inner_properties = inner_info.properties
+        # If inner type is array (nested arrays), propagate inner_properties
+        elif inner_info.inner_properties:
+            inner_properties = inner_info.inner_properties
     else:
         inner_wire_type = None
 
@@ -723,7 +734,42 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
     if wire_type == "json" and not is_list:
         properties = extract_properties(type_to_check)
 
-    return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None, properties)
+    return WireTypeInfo(
+        wire_type,
+        inner_wire_type,
+        enum_values if is_enum else None,
+        properties,
+        inner_properties
+    )
+
+
+def _extract_typeddict_field_descriptions(typeddict_class: type) -> dict[str, str]:
+    """
+    Extract field descriptions from TypedDict docstrings.
+
+    TypedDict classes typically have field descriptions as docstrings after each field.
+    This function attempts to parse the source code to extract these descriptions.
+    """
+    descriptions = {}
+
+    try:
+        source = inspect.getsource(typeddict_class)
+        # Simple regex to match field: type pattern followed by a docstring
+        # This is a simplified approach - a full AST parser would be more robust
+        import re
+
+        # Pattern to match field definition followed by docstring
+        pattern = r'(\w+):\s*[^"\n]+\n\s*"""([^"]+)"""'
+        matches = re.findall(pattern, source)
+
+        for field_name, description in matches:
+            descriptions[field_name] = description.strip()
+
+    except (OSError, TypeError):
+        # If we can't get the source, return empty descriptions
+        pass
+
+    return descriptions
 
 
 def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
@@ -740,6 +786,11 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
             if field_type is None:
                 continue
 
+            # Handle Optional types (Union[T, None])
+            if is_strict_optional(field_type):
+                # Extract the non-None type from Optional
+                field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+
             # Get wire type info recursively
             wire_info = get_wire_type_info(field_type)
             properties[field_name] = wire_info
@@ -748,8 +799,21 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
     elif is_typeddict(type_to_check):
         # Get type hints for the TypedDict
         type_hints = get_type_hints(type_to_check, include_extras=True)
+
+        # Try to extract field descriptions from the class source
+        field_descriptions = _extract_typeddict_field_descriptions(type_to_check)
+
         for field_name, field_type in type_hints.items():
+            # Handle Optional types (Union[T, None])
+            if is_strict_optional(field_type):
+                # Extract the non-None type from Optional
+                field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
             wire_info = get_wire_type_info(field_type)
+
+            # Add description if available
+            if field_name in field_descriptions:
+                wire_info.description = field_descriptions[field_name]
+
             properties[field_name] = wire_info
 
     # Handle regular dict with type annotations (e.g., dict[str, Any])
@@ -772,11 +836,21 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
             for name, nested_info in wire_info.properties.items()
         }
 
+    # Convert inner properties for array items
+    inner_properties = None
+    if wire_info.inner_properties:
+        inner_properties = {
+            name: wire_type_info_to_value_schema(nested_info)
+            for name, nested_info in wire_info.inner_properties.items()
+        }
+
     return ValueSchema(
         val_type=wire_info.wire_type,
         inner_val_type=wire_info.inner_wire_type,
         enum=wire_info.enum_values,
         properties=properties,
+        inner_properties=inner_properties,
+        description=wire_info.description
     )
 
 

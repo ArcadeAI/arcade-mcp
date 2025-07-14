@@ -166,13 +166,10 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
         else:
             # Show only the value structure (simplified view)
             # Show the value type and description
-            value_type = output.value_schema.val_type
-            display_type = value_type
-            if value_type == "array" and output.value_schema.inner_val_type:
-                display_type = f"array[{output.value_schema.inner_val_type}]"
-            elif output.value_schema.enum:
+            display_type = _format_type_string(output.value_schema)
+            if output.value_schema.enum:
                 display_type = (
-                    f"{value_type} (enum: {', '.join(output.value_schema.enum)})"
+                    f"{output.value_schema.val_type} (enum: {', '.join(output.value_schema.enum)})"
                 )
 
             output_table.add_row(
@@ -248,7 +245,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
 
 
 def _add_nested_properties(
-    table: Table, properties: dict[str, Any], indent: int = 0
+    table: Table, properties: dict[str, Any], indent: int = 0, is_array_item: bool = False
 ) -> None:
     """
     Recursively add nested properties to the output table.
@@ -257,16 +254,21 @@ def _add_nested_properties(
         table: The Rich table to add rows to
         properties: Dictionary of property names to ValueSchema objects
         indent: Current indentation level
+        is_array_item: Whether these properties are for array items
     """
     indent_prefix = "  " * indent
 
+    # Show array item indicator if needed
+    if is_array_item and indent > 0:
+        table.add_row(
+            f"{indent_prefix[:-2]}[item]",
+            "",
+            "[dim]Each item in array:[/dim]",
+        )
+
     for prop_name, prop_schema in properties.items():
         # Format the type string
-        type_str = prop_schema.val_type
-        if prop_schema.val_type == "array" and prop_schema.inner_val_type:
-            type_str = f"array[{prop_schema.inner_val_type}]"
-        elif prop_schema.enum:
-            type_str = f"{type_str} (enum)"
+        type_str = _format_type_string(prop_schema)
 
         # Add the property row with better descriptions
         description = ""
@@ -287,6 +289,30 @@ def _add_nested_properties(
             and prop_schema.properties
         ):
             _add_nested_properties(table, prop_schema.properties, indent + 1)
+        # Handle arrays with inner properties
+        elif (
+            prop_schema.val_type == "array"
+            and hasattr(prop_schema, "inner_properties")
+            and prop_schema.inner_properties
+        ):
+            _add_nested_properties(
+                table, prop_schema.inner_properties, indent + 1, is_array_item=True
+            )
+
+
+def _format_type_string(schema: Any) -> str:
+    """Format type string for display."""
+    type_str = schema.val_type
+
+    if schema.val_type == "array":
+        if hasattr(schema, "inner_properties") and schema.inner_properties:
+            type_str = "array[object]"
+        elif schema.inner_val_type:
+            type_str = f"array[{schema.inner_val_type}]"
+    elif schema.enum:
+        type_str = f"{type_str} (enum)"
+
+    return type_str
 
 
 def display_tool_messages(tool_messages: list[dict]) -> None:

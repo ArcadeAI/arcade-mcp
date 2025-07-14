@@ -1,4 +1,4 @@
-COUNTRY_CODES = {
+COUNTRY_CODES: dict[str, str] = {
     "af": "Afghanistan",
     "al": "Albania",
     "dz": "Algeria",
@@ -246,7 +246,7 @@ COUNTRY_CODES = {
 }
 
 
-LANGUAGE_CODES = {
+LANGUAGE_CODES: dict[str, str] = {
     "ar": "Arabic",
     "bn": "Bengali",
     "da": "Danish",

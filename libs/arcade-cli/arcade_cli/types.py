@@ -166,22 +166,41 @@ def show_schema(
 
 def _generate_typescript(tool_def: ToolDefinition) -> str:
     """Generate TypeScript interface definitions for a tool."""
+    # Create toolkit prefix by capitalizing and removing underscores
+    toolkit_prefix = "".join(word.capitalize() for word in tool_def.toolkit.name.split("_"))
+    
+    # Generate unique interface names
+    input_name = f"{toolkit_prefix}{tool_def.name}Input"
+    output_name = f"{toolkit_prefix}{tool_def.name}Output"
+    
     output = f"// Auto-generated types for {tool_def.name}\n"
     output += f"// Toolkit: {tool_def.toolkit.name}\n\n"
 
     # Generate input interface
-    output += f"export interface {tool_def.name}Input {{\n"
+    output += f"export interface {input_name} {{\n"
     for param in tool_def.input.parameters:
-        ts_type = _value_schema_to_ts_type(param.value_schema)
+        ts_type = _value_schema_to_ts_type(param.value_schema, 0)
         optional = "" if param.required else "?"
         comment = f"  // {param.description}" if param.description else ""
         output += f"  {param.name}{optional}: {ts_type};{comment}\n"
     output += "}\n\n"
 
     # Generate output interface
-    output += f"export interface {tool_def.name}Output {{\n"
+    output += f"export interface {output_name} {{\n"
     if tool_def.output.value_schema:
-        output += _generate_ts_output_fields(tool_def.output.value_schema)
+        schema = tool_def.output.value_schema
+        # Check if the output is a json type with properties
+        if schema.val_type == "json" and hasattr(schema, "properties") and schema.properties:
+            # Generate fields directly from properties
+            for field_name, field_schema in schema.properties.items():
+                ts_type = _value_schema_to_ts_type(field_schema, 0)
+                comment = ""
+                if hasattr(field_schema, "description") and field_schema.description:
+                    comment = f"  // {field_schema.description}"
+                output += f"  {field_name}: {ts_type};{comment}\n"
+        else:
+            # Fall back to using _generate_ts_output_fields
+            output += _generate_ts_output_fields(schema)
     else:
         output += "  // No output schema defined\n"
     output += "}\n"
@@ -191,13 +210,44 @@ def _generate_typescript(tool_def: ToolDefinition) -> str:
 
 def _generate_python_stub(tool_def: ToolDefinition) -> str:
     """Generate Python type stub for a tool."""
+    # Create toolkit prefix by capitalizing and removing underscores
+    toolkit_prefix = "".join(word.capitalize() for word in tool_def.toolkit.name.split("_"))
+    
+    # Generate unique class names
+    input_name = f"{toolkit_prefix}{tool_def.name}Input"
+    output_name = f"{toolkit_prefix}{tool_def.name}Output"
+    
     output = f'"""Auto-generated types for {tool_def.name}"""\n'
-    output += "from typing import TypedDict, Optional\n\n"
+    output += f'"""Toolkit: {tool_def.toolkit.name}"""\n'
+
+    # Determine what imports we need
+    imports = ["TypedDict"]
+    if any(not p.required for p in tool_def.input.parameters):
+        imports.append("Optional")
+
+    # Check if we need Any
+    needs_any = False
+    if tool_def.output.value_schema:
+        needs_any = _type_needs_any(tool_def.output.value_schema)
+    # Also check input parameters
+    for param in tool_def.input.parameters:
+        if _type_needs_any(param.value_schema):
+            needs_any = True
+            break
+
+    if needs_any:
+        imports.append("Any")
+
+    # Always add Any since we use dict[str, Any] as fallback
+    if "Any" not in imports:
+        imports.append("Any")
+
+    output += f"from typing import {', '.join(imports)}\n\n"
 
     # Generate input TypedDict
-    output += f"class {tool_def.name}Input(TypedDict):\n"
+    output += f"class {input_name}(TypedDict):\n"
     for param in tool_def.input.parameters:
-        py_type = _value_schema_to_py_type(param.value_schema)
+        py_type = _value_schema_to_py_type(param.value_schema, 0)
         if not param.required:
             py_type = f"Optional[{py_type}]"
         comment = f'    """{param.description}"""' if param.description else ""
@@ -207,42 +257,95 @@ def _generate_python_stub(tool_def: ToolDefinition) -> str:
     output += "\n"
 
     # Generate output TypedDict
-    output += f"class {tool_def.name}Output(TypedDict):\n"
+    output += f"class {output_name}(TypedDict):\n"
     if tool_def.output.value_schema:
-        output += "    result: " + _value_schema_to_py_type(tool_def.output.value_schema)
+        schema = tool_def.output.value_schema
+        # Check if the output is a json type with properties
+        if schema.val_type == "json" and hasattr(schema, "properties") and schema.properties:
+            # Generate fields directly from properties
+            for field_name, field_schema in schema.properties.items():
+                field_type = _value_schema_to_py_type(field_schema, 0)
+                if hasattr(field_schema, "description") and field_schema.description:
+                    output += f'    """{field_schema.description}"""\n'
+                output += f"    {field_name}: {field_type}\n"
+        else:
+            # Fall back to single result field
+            output += "    result: " + _value_schema_to_py_type(schema, 0) + "\n"
     else:
-        output += "    pass  # No output schema defined"
-    output += "\n"
+        output += "    pass  # No output schema defined\n"
 
     return output
 
 
-def _value_schema_to_ts_type(schema: ValueSchema) -> str:
-    """Convert ValueSchema to TypeScript type."""
+def _value_schema_to_ts_type(schema: ValueSchema, depth: int = 0) -> str:
+    """Convert ValueSchema to TypeScript type with depth tracking."""
+    if depth > 3:  # Prevent infinite recursion
+        return "any"
+
     if schema.enum:
         return " | ".join(f'"{val}"' for val in schema.enum)
 
-    mapping = {
-        "string": "string",
-        "integer": "number",
-        "number": "number",
-        "boolean": "boolean",
-        "json": "Record<string, any>",
-        "array": "any[]",
-    }
+    if schema.val_type == "array":
+        if hasattr(schema, "inner_properties") and schema.inner_properties:
+            inner_type = _generate_inline_interface_ts(schema.inner_properties, depth + 1)
+            return f"Array<{inner_type}>"
+        elif schema.inner_val_type:
+            inner = _get_ts_type_mapping(schema.inner_val_type)
+            return f"Array<{inner}>"
+        return "Array<any>"
 
-    if schema.val_type == "array" and schema.inner_val_type:
-        inner = mapping.get(schema.inner_val_type, "any")
-        return f"{inner}[]"
+    if schema.val_type == "json" and hasattr(schema, "properties") and schema.properties:
+        return _generate_inline_interface_ts(schema.properties, depth + 1)
 
-    return mapping.get(schema.val_type, "any")
+    return _get_ts_type_mapping(schema.val_type)
 
 
-def _value_schema_to_py_type(schema: ValueSchema) -> str:
-    """Convert ValueSchema to Python type."""
+def _value_schema_to_py_type(schema: ValueSchema, depth: int = 0) -> str:
+    """Convert ValueSchema to Python type with depth tracking."""
+    if depth > 3:  # Prevent infinite recursion
+        return "Any"
+
     if schema.enum:
         return "Literal[" + ", ".join(f'"{val}"' for val in schema.enum) + "]"
 
+    if schema.val_type == "array":
+        if hasattr(schema, "inner_properties") and schema.inner_properties:
+            # Generate inline TypedDict for array items
+            inner_type = _generate_inline_typeddict_py(schema.inner_properties, depth + 1)
+            return f"list[{inner_type}]"
+        elif schema.inner_val_type:
+            inner = _get_py_type_mapping(schema.inner_val_type)
+            return f"list[{inner}]"
+        return "list[Any]"
+
+    if schema.val_type == "json" and hasattr(schema, "properties") and schema.properties:
+        return _generate_inline_typeddict_py(schema.properties, depth + 1)
+
+    return _get_py_type_mapping(schema.val_type)
+
+
+def _generate_ts_output_fields(schema: ValueSchema) -> str:
+    """Generate TypeScript fields for output schema."""
+    if schema.val_type == "json":
+        if hasattr(schema, "properties") and schema.properties:
+            # Generate fields from properties
+            output = ""
+            for name, prop_schema in schema.properties.items():
+                ts_type = _value_schema_to_ts_type(prop_schema, 0)
+                output += f"  {name}: {ts_type};\n"
+            return output
+        else:
+            return "  [key: string]: any;\n"
+    elif schema.val_type == "array":
+        inner_type = _value_schema_to_ts_type(schema)
+        return f"  result: {inner_type};\n"
+    else:
+        ts_type = _value_schema_to_ts_type(schema)
+        return f"  result: {ts_type};\n"
+
+
+def _get_py_type_mapping(val_type: str) -> str:
+    """Get Python type for a value type."""
     mapping = {
         "string": "str",
         "integer": "int",
@@ -251,24 +354,64 @@ def _value_schema_to_py_type(schema: ValueSchema) -> str:
         "json": "dict[str, Any]",
         "array": "list[Any]",
     }
-
-    if schema.val_type == "array" and schema.inner_val_type:
-        inner = mapping.get(schema.inner_val_type, "Any")
-        return f"list[{inner}]"
-
-    return mapping.get(schema.val_type, "Any")
+    return mapping.get(val_type, "Any")
 
 
-def _generate_ts_output_fields(schema: ValueSchema) -> str:
-    """Generate TypeScript fields for output schema."""
-    if schema.val_type == "json":
-        return "  [key: string]: any;\n"
-    elif schema.val_type == "array":
-        inner_type = _value_schema_to_ts_type(schema)
-        return f"  result: {inner_type};\n"
-    else:
-        ts_type = _value_schema_to_ts_type(schema)
-        return f"  result: {ts_type};\n"
+def _get_ts_type_mapping(val_type: str) -> str:
+    """Get TypeScript type for a value type."""
+    mapping = {
+        "string": "string",
+        "integer": "number",
+        "number": "number",
+        "boolean": "boolean",
+        "json": "Record<string, any>",
+        "array": "any[]",
+    }
+    return mapping.get(val_type, "any")
+
+
+def _type_needs_any(schema: ValueSchema) -> bool:
+    """Check if a schema type will need Any import."""
+    if schema.val_type == "json" and not (hasattr(schema, "properties") and schema.properties):
+        return True
+    if schema.val_type == "array":
+        if not schema.inner_val_type and not (hasattr(schema, "inner_properties") and schema.inner_properties):
+            return True
+        if schema.inner_val_type == "json" and not (hasattr(schema, "inner_properties") and schema.inner_properties):
+            return True
+    if hasattr(schema, "properties") and schema.properties:
+        for prop in schema.properties.values():
+            if _type_needs_any(prop):
+                return True
+    if hasattr(schema, "inner_properties") and schema.inner_properties:
+        for prop in schema.inner_properties.values():
+            if _type_needs_any(prop):
+                return True
+    return False
+
+
+def _generate_inline_typeddict_py(properties: dict[str, ValueSchema], depth: int) -> str:
+    """Generate inline TypedDict for Python."""
+    if depth > 2 or len(properties) > 5:
+        return "dict[str, Any]"
+
+    # For complex nested structures, fall back to dict[str, Any]
+    # In the future, this could generate actual TypedDict classes
+    return "dict[str, Any]"
+
+
+def _generate_inline_interface_ts(properties: dict[str, ValueSchema], depth: int) -> str:
+    """Generate inline interface for TypeScript."""
+    if depth > 2 or len(properties) > 5:
+        return "Record<string, any>"
+
+    fields = []
+    for name, prop_schema in properties.items():
+        field_type = _value_schema_to_ts_type(prop_schema, depth + 1)
+        # Handle optional fields if needed
+        fields.append(f"{name}: {field_type}")
+
+    return "{ " + "; ".join(fields) + " }"
 
 
 def _value_schema_to_json_schema(schema: Any) -> dict[str, Any]:
@@ -313,45 +456,51 @@ def _generate_typescript_registry(tools: list[ToolDefinition]) -> str:
     output = "// Auto-generated type registry for dynamic tool usage\n\n"
 
     # Import all types
-    toolkit_imports: dict[str, list[str]] = {}
+    toolkit_imports: dict[str, list[tuple[str, str]]] = {}
     for tool in tools:
         toolkit_name = tool.toolkit.name.lower()
+        toolkit_prefix = "".join(word.capitalize() for word in tool.toolkit.name.split("_"))
         if toolkit_name not in toolkit_imports:
             toolkit_imports[toolkit_name] = []
-        toolkit_imports[toolkit_name].append(tool.name)
+        toolkit_imports[toolkit_name].append((tool.name, toolkit_prefix))
 
     # Generate imports
-    for toolkit, tool_names in sorted(toolkit_imports.items()):
-        for tool_name in sorted(tool_names):
-            output += f"import type {{ {tool_name}Input, {tool_name}Output }} from './tools/{toolkit}/{tool_name.lower()}';\n"
+    for toolkit, tool_info in sorted(toolkit_imports.items()):
+        for tool_name, toolkit_prefix in sorted(tool_info):
+            input_name = f"{toolkit_prefix}{tool_name}Input"
+            output_name = f"{toolkit_prefix}{tool_name}Output"
+            output += f"import type {{ {input_name}, {output_name} }} from './tools/{toolkit}/{tool_name.lower()}';\n"
 
         output += "\n// Input type map\n"
     output += "export interface ToolInputMap {\n"
     for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
         fq_name = tool.get_fully_qualified_name()
+        toolkit_prefix = "".join(word.capitalize() for word in tool.toolkit.name.split("_"))
         # Include version if available
         tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
-        output += f"  '{tool_key}': {tool.name}Input;\n"
+        output += f"  '{tool_key}': {toolkit_prefix}{tool.name}Input;\n"
     output += "}\n\n"
 
     output += "// Output type map\n"
     output += "export interface ToolOutputMap {\n"
     for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
         fq_name = tool.get_fully_qualified_name()
+        toolkit_prefix = "".join(word.capitalize() for word in tool.toolkit.name.split("_"))
         # Include version if available
         tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
-        output += f"  '{tool_key}': {tool.name}Output;\n"
+        output += f"  '{tool_key}': {toolkit_prefix}{tool.name}Output;\n"
     output += "}\n\n"
 
     output += "// Combined schema map\n"
     output += "export interface ToolSchemaMap {\n"
     for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
         fq_name = tool.get_fully_qualified_name()
+        toolkit_prefix = "".join(word.capitalize() for word in tool.toolkit.name.split("_"))
         # Include version if available
         tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
         output += f"  '{tool_key}': {{\n"
-        output += f"    input: {tool.name}Input;\n"
-        output += f"    output: {tool.name}Output;\n"
+        output += f"    input: {toolkit_prefix}{tool.name}Input;\n"
+        output += f"    output: {toolkit_prefix}{tool.name}Output;\n"
         output += "  };\n"
     output += "}\n\n"
 
@@ -369,6 +518,7 @@ def _generate_typescript_schemas(tools: list[ToolDefinition]) -> str:
     output += "export const ToolSchemas = {\n"
     for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
         fq_name = tool.get_fully_qualified_name()
+        toolkit_prefix = "".join(word.capitalize() for word in tool.toolkit.name.split("_"))
         # Include version if available
         tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
         output += f"  '{tool_key}': {{\n"
