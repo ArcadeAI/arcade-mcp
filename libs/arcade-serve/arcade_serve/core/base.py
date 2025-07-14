@@ -20,7 +20,6 @@ from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
-    SchemaComponent,
     WorkerComponent,
 )
 
@@ -39,7 +38,6 @@ class BaseWorker(Worker):
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
-        SchemaComponent,
     )
 
     def __init__(
@@ -160,9 +158,7 @@ class BaseWorker(Worker):
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
             if output.error.traceback_info:
-                logger.debug(
-                    f"{execution_id} | Tool traceback: {output.error.traceback_info}"
-                )
+                logger.debug(f"{execution_id} | Tool traceback: {output.error.traceback_info}")
         else:
             logger.info(
                 f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"
@@ -197,9 +193,7 @@ class BaseWorker(Worker):
             input_properties = {}
             required = []
             for param in definition.input.parameters:
-                input_properties[param.name] = self._value_schema_to_json_schema(
-                    param.value_schema
-                )
+                input_properties[param.name] = self._value_schema_to_json_schema(param.value_schema)
                 if param.required:
                     required.append(param.name)
                 # Add description if available
@@ -215,9 +209,7 @@ class BaseWorker(Worker):
             # Convert output schema
             output_schema = None
             if definition.output.value_schema:
-                output_schema = self._value_schema_to_json_schema(
-                    definition.output.value_schema
-                )
+                output_schema = self._value_schema_to_json_schema(definition.output.value_schema)
                 if definition.output.description:
                     output_schema["description"] = definition.output.description
             else:
@@ -247,9 +239,7 @@ class BaseWorker(Worker):
             "array": "array",
         }
 
-        result: dict[str, Any] = {
-            "type": type_mapping.get(value_schema.val_type, "object")
-        }
+        result: dict[str, Any] = {"type": type_mapping.get(value_schema.val_type, "object")}
 
         # Handle enums
         if value_schema.enum:
@@ -257,9 +247,7 @@ class BaseWorker(Worker):
 
         # Handle arrays
         if value_schema.val_type == "array" and value_schema.inner_val_type:
-            result["items"] = {
-                "type": type_mapping.get(value_schema.inner_val_type, "object")
-            }
+            result["items"] = {"type": type_mapping.get(value_schema.inner_val_type, "object")}
 
         # Handle nested properties for objects
         if (
@@ -269,9 +257,7 @@ class BaseWorker(Worker):
         ):
             result["properties"] = {}
             for prop_name, prop_schema in value_schema.properties.items():
-                result["properties"][prop_name] = self._value_schema_to_json_schema(
-                    prop_schema
-                )
+                result["properties"][prop_name] = self._value_schema_to_json_schema(prop_schema)
 
         return result
 

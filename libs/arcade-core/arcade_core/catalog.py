@@ -739,7 +739,7 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         inner_wire_type,
         enum_values if is_enum else None,
         properties,
-        inner_properties
+        inner_properties,
     )
 
 
@@ -850,7 +850,7 @@ def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
         enum=wire_info.enum_values,
         properties=properties,
         inner_properties=inner_properties,
-        description=wire_info.description
+        description=wire_info.description,
     )
 
 

@@ -17,7 +17,6 @@ from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
-import arcade_cli.types as types
 import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
@@ -69,12 +68,6 @@ cli.add_typer(
     rich_help_panel="Deployment",
 )
 
-cli.add_typer(
-    types.app,
-    name="types",
-    help="Generate type definitions from tool schemas",
-    rich_help_panel="Tool Development",
-)
 
 console = Console()
 
@@ -118,9 +111,7 @@ def login(
     """
 
     if check_existing_login():
-        console.print(
-            "\nTo log out and delete your locally-stored credentials, use ", end=""
-        )
+        console.print("\nTo log out and delete your locally-stored credentials, use ", end="")
         console.print("arcade logout", style="bold green", end="")
         console.print(".\n")
         return
@@ -262,15 +253,11 @@ def show(
     rich_help_panel="Tool Development",
 )
 def chat(
-    model: str = typer.Option(
-        "gpt-4o", "-m", "--model", help="The model to use for prediction."
-    ),
+    model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
     stream: bool = typer.Option(
         False, "-s", "--stream", is_flag=True, help="Stream the tool output."
     ),
-    prompt: str = typer.Option(
-        None, "--prompt", help="The system prompt to use for the chat."
-    ),
+    prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     host: str = typer.Option(
         PROD_ENGINE_HOST,
@@ -352,9 +339,7 @@ def chat(
 
             try:
                 # TODO fixup configuration to remove this + "/v1" workaround
-                openai_client = OpenAI(
-                    api_key=config.api.key, base_url=base_url + "/v1"
-                )
+                openai_client = OpenAI(api_key=config.api.key, base_url=base_url + "/v1")
                 chat_result = handle_chat_interaction(
                     openai_client, model, history, user_email, stream
                 )
@@ -364,9 +349,7 @@ def chat(
                 tool_authorization = chat_result.tool_authorization
 
                 # wait for tool authorizations to complete, if any
-                if tool_authorization and is_authorization_pending(
-                    tool_authorization
-                ):
+                if tool_authorization and is_authorization_pending(tool_authorization):
                     chat_result = handle_tool_authorization(
                         client,
                         AuthorizationResponse.model_validate(tool_authorization),
@@ -395,12 +378,8 @@ def chat(
 
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
-    directory: str = typer.Argument(
-        ".", help="Directory containing evaluation files"
-    ),
-    show_details: bool = typer.Option(
-        False, "--details", "-d", help="Show detailed results"
-    ),
+    directory: str = typer.Argument(".", help="Directory containing evaluation files"),
+    show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
     max_concurrent: int = typer.Option(
         1,
         "--max-concurrent",
@@ -728,14 +707,10 @@ def deploy(
                     style="dim",
                 )
             except Exception as e:
-                handle_cli_error(
-                    f"Failed to deploy worker '{worker.config.id}'", e, debug
-                )
+                handle_cli_error(f"Failed to deploy worker '{worker.config.id}'", e, debug)
 
 
-@cli.command(
-    help="Open the Arcade Dashboard in a web browser", rich_help_panel="User"
-)
+@cli.command(help="Open the Arcade Dashboard in a web browser", rich_help_panel="User")
 def dashboard(
     host: str = typer.Option(
         PROD_ENGINE_HOST,

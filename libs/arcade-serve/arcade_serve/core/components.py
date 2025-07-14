@@ -1,5 +1,3 @@
-from typing import Any
-
 from opentelemetry import trace
 
 from arcade_serve.core.common import (
@@ -99,35 +97,3 @@ class HealthCheckComponent(WorkerComponent):
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("HealthCheck"):
             return self.worker.health_check()
-
-
-class SchemaComponent(WorkerComponent):
-    """Component for exposing tool schemas including input and output types."""
-
-    def __init__(self, worker: Worker) -> None:
-        self.worker = worker
-
-    def register(self, router: Router) -> None:
-        """Register the schema route with the router."""
-        router.add_route(
-            "tools/{tool_name}/schema",
-            self,
-            method="GET",
-            response_type=dict,
-            operation_id="get_tool_schema",
-            description="Get the input and output schema for a specific tool",
-            summary="Get tool schema",
-            tags=["Arcade"],
-        )
-
-    async def __call__(self, request: RequestData) -> dict[str, Any]:
-        """Handle the request to get a tool's schema."""
-        tracer = trace.get_tracer(__name__)
-        with tracer.start_as_current_span("GetToolSchema"):
-            # Extract tool name from path
-            path_parts = request.path.strip("/").split("/")
-            if len(path_parts) < 3:
-                raise ValueError("Invalid path format")
-
-            tool_name = path_parts[2]  # /tools/{tool_name}/schema
-            return self.worker.get_tool_schema(tool_name)
