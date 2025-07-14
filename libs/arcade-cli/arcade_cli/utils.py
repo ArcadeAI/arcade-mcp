@@ -176,11 +176,22 @@ def compute_base_url(
         return f"{protocol}://{encoded_host}"
 
 
-def compute_login_url(host: str, state: str, port: int | None) -> str:
+def compute_login_url(
+    host: str, state: str, port: int | None, callback_host: str | None = None
+) -> str:
     """
     Compute the full URL for the CLI login endpoint.
     """
-    callback_uri = f"http://{LOCALHOST}:9905/callback"
+    if callback_host:
+        if not (callback_host.startswith("http://") or callback_host.startswith("https://")):
+            callback_uri = f"http://{callback_host}"
+        else:
+            callback_uri = callback_host
+        if not callback_uri.rstrip("/").endswith("/callback"):
+            callback_uri = callback_uri.rstrip("/") + "/callback"
+    else:
+        callback_uri = f"http://{LOCALHOST}:9905/callback"
+
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
     port = port if port else 8000
