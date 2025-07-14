@@ -5,7 +5,7 @@ import traceback
 import uuid
 import webbrowser
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import httpx
 import typer
@@ -81,7 +81,7 @@ console = Console()
 
 def handle_cli_error(
     message: str,
-    error: Exception | None = None,
+    error: Optional[Exception] = None,
     debug: bool = True,
     should_exit: bool = True,
 ) -> None:
@@ -105,7 +105,7 @@ def login(
         "--host",
         help="The Arcade Cloud host to log in to.",
     ),
-    port: int | None = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -199,10 +199,10 @@ def new(
     rich_help_panel="Tool Development",
 )
 def show(
-    toolkit: str | None = typer.Option(
+    toolkit: Optional[str] = typer.Option(
         None, "-T", "--toolkit", help="The toolkit to show the tools of"
     ),
-    tool: str | None = typer.Option(
+    tool: Optional[str] = typer.Option(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: str = typer.Option(
@@ -217,7 +217,7 @@ def show(
         "-l",
         help="Show the local environment's catalog instead of an Arcade Engine's catalog.",
     ),
-    port: int | None = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -233,12 +233,28 @@ def show(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    worker: bool = typer.Option(
+        False,
+        "--worker",
+        "-w",
+        help="Show full worker response structure including error, logs, and authorization fields.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    show_logic(toolkit, tool, host, local, port, force_tls, force_no_tls, debug)
+    show_logic(
+        toolkit=toolkit,
+        tool=tool,
+        host=host,
+        local=local,
+        port=port,
+        force_tls=force_tls,
+        force_no_tls=force_no_tls,
+        worker=worker,
+        debug=debug,
+    )
 
 
 @cli.command(
@@ -262,7 +278,7 @@ def chat(
         "--host",
         help="The Arcade Engine address to send chat requests to.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -408,7 +424,7 @@ def evals(
         "--cloud",
         help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -652,7 +668,7 @@ def deploy(
         help="The Arcade Cloud host to deploy to.",
         hidden=True,
     ),
-    cloud_port: int = typer.Option(
+    cloud_port: Optional[int] = typer.Option(
         None,
         "--cloud-port",
         "-cp",
@@ -665,7 +681,7 @@ def deploy(
         "-h",
         help="The Arcade Engine host to register the worker to.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "--port",
         "-p",
@@ -727,7 +743,7 @@ def dashboard(
         "--host",
         help="The Arcade Engine host that serves the dashboard.",
     ),
-    port: int | None = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -782,7 +798,7 @@ def dashboard(
 @cli.callback()
 def main_callback(
     ctx: typer.Context,
-    _: bool | None = typer.Option(
+    _: Optional[bool] = typer.Option(
         None,
         "-v",
         "--version",

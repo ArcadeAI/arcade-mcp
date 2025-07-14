@@ -3,10 +3,17 @@ from typing import Annotated, Any
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import ToolExecutionError
 
-from arcade_google_news.constants import DEFAULT_GOOGLE_NEWS_COUNTRY, DEFAULT_GOOGLE_NEWS_LANGUAGE
+from arcade_google_news.constants import (
+    DEFAULT_GOOGLE_NEWS_COUNTRY,
+    DEFAULT_GOOGLE_NEWS_LANGUAGE,
+)
 from arcade_google_news.exceptions import CountryNotFoundError, LanguageNotFoundError
 from arcade_google_news.google_data import COUNTRY_CODES, LANGUAGE_CODES
-from arcade_google_news.utils import call_serpapi, extract_news_results, prepare_params
+from arcade_google_news.utils import (
+    call_serpapi,
+    extract_news_results,
+    prepare_params,
+)
 
 
 @tool(requires_secrets=["SERP_API_KEY"])
@@ -42,6 +49,8 @@ async def search_news_stories(
     if language_code not in LANGUAGE_CODES:
         raise LanguageNotFoundError(language_code)
 
-    params = prepare_params("google_news", q=keywords, gl=country_code, hl=language_code)
+    params = prepare_params(
+        "google_news", q=keywords, gl=country_code, hl=language_code
+    )
     results = call_serpapi(context, params)
     return {"news_results": extract_news_results(results, limit=limit)}

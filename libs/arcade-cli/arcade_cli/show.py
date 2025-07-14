@@ -16,6 +16,7 @@ def show_logic(
     port: Optional[int],
     force_tls: bool,
     force_no_tls: bool,
+    worker: bool,
     debug: bool,
 ) -> None:
     """Wrapper function for the `arcade show` CLI command
@@ -27,7 +28,9 @@ def show_logic(
             catalog = create_cli_catalog(toolkit=toolkit)
             tools = [t.definition for t in list(catalog)]
         else:
-            tools = get_tools_from_engine(host, port, force_tls, force_no_tls, toolkit)
+            tools = get_tools_from_engine(
+                host, port, force_tls, force_no_tls, toolkit
+            )
 
         if tool:
             # Display detailed information for the specified tool
@@ -44,7 +47,7 @@ def show_logic(
                 console.print(f"❌ Tool '{tool}' not found.", style="bold red")
                 typer.Exit(code=1)
             else:
-                display_tool_details(tool_def)
+                display_tool_details(tool_def, worker=worker)
         else:
             # Display the list of tools as a table
             display_tools_table(tools)

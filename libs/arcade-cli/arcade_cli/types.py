@@ -4,7 +4,7 @@ Type generation commands for the Arcade CLI.
 
 import json
 from pathlib import Path
-from typing import Any  # Optional/List needed for Typer compatibility
+from typing import Any, Optional  # Optional/List needed for Typer compatibility
 
 import typer
 from arcade_core.schema import ToolDefinition, ValueSchema
@@ -28,13 +28,13 @@ app = typer.Typer(
 
 @app.command("generate", help="Generate types from tool definitions")
 def generate_types(  # noqa: C901
-    toolkit: str | None = typer.Argument(None, help="Toolkit name to generate types for"),
-    tool: str | None = typer.Option(None, "--tool", "-t", help="Specific tool name"),
+    toolkit: Optional[str] = typer.Argument(None, help="Toolkit name to generate types for"),
+    tool: Optional[str] = typer.Option(None, "--tool", "-t", help="Specific tool name"),
     output: str = typer.Option("./types", "--output", "-o", help="Output directory"),
     lang: str = typer.Option(
         "typescript", "--lang", "-l", help="Target language (typescript, python)"
     ),
-    host: str | None = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
+    host: Optional[str] = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
     local: bool = typer.Option(False, "--local", help="Use local catalog instead of engine"),
 ) -> None:
     """Generate type definitions from tool schemas."""
@@ -131,7 +131,7 @@ def show_schema(
     format_type: str = typer.Option(
         "json", "--format", "-f", help="Output format (json, typescript)"
     ),
-    host: str | None = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
+    host: Optional[str] = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
     local: bool = typer.Option(False, "--local", help="Use local catalog"),
 ) -> None:
     """Display the schema for a specific tool."""

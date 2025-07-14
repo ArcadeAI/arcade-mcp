@@ -94,7 +94,9 @@ def create_cli_catalog(
     catalog = ToolCatalog()
     for loaded_toolkit in toolkits:
         if show_toolkits:
-            console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
+            console.print(
+                f"Loading toolkit: {loaded_toolkit.name}", style="bold blue"
+            )
         catalog.add_toolkit(loaded_toolkit)
     return catalog
 
@@ -165,11 +167,15 @@ def compute_base_url(
         is_ip = False
 
     # Parse the host, handling potential IPv6 addresses
-    host_for_parsing = f"[{encoded_host}]" if is_ip and ":" in encoded_host else encoded_host
+    host_for_parsing = (
+        f"[{encoded_host}]" if is_ip and ":" in encoded_host else encoded_host
+    )
     parsed_host = urlparse(f"//{host_for_parsing}")
 
     # Check if the host is a fully qualified domain name (excluding IP addresses)
-    is_fqdn = "." in parsed_host.netloc and not is_ip and "_" not in parsed_host.netloc
+    is_fqdn = (
+        "." in parsed_host.netloc and not is_ip and "_" not in parsed_host.netloc
+    )
 
     # Handle hosts that might already include a port
     if ":" in parsed_host.netloc and not is_ip:
@@ -247,7 +253,9 @@ class StreamingResult:
     tool_authorization: dict | None
 
 
-def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) -> StreamingResult:
+def handle_streaming_content(
+    stream: Stream[ChatCompletionChunk], model: str
+) -> StreamingResult:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -499,7 +507,8 @@ def is_authorization_pending(tool_authorization: dict | None) -> bool:
     Expects a chat response's choice.tool_authorizations as input.
     """
     is_auth_pending = (
-        tool_authorization is not None and tool_authorization.get("status", "") == "pending"
+        tool_authorization is not None
+        and tool_authorization.get("status", "") == "pending"
     )
     return is_auth_pending
 
@@ -521,7 +530,8 @@ def get_eval_files(directory: str) -> list[Path]:
     elif directory_path.is_file():
         eval_files = (
             [directory_path]
-            if directory_path.name.startswith("eval_") and directory_path.name.endswith(".py")
+            if directory_path.name.startswith("eval_")
+            and directory_path.name.endswith(".py")
             else []
         )
     else:
@@ -633,7 +643,7 @@ def handle_user_command(
     user_input: str,
     history: list,
     host: str,
-    port: int,
+    port: Optional[int],
     force_tls: bool,
     force_no_tls: bool,
     show: Callable,
@@ -662,6 +672,7 @@ def handle_user_command(
             port=port,
             force_tls=force_tls,
             force_no_tls=force_no_tls,
+            worker=False,
             debug=False,
         )
         return True
