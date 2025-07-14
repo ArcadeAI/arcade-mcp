@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Optional
 
 
 class DateRange(Enum):
@@ -163,3 +164,31 @@ class DateRange(Enum):
         """
         start, end = self.to_datetime_range(reference_time)
         return start.isoformat(), end.isoformat()
+
+    @classmethod
+    def from_string(cls, date_str: str) -> Optional["DateRange"]:
+        """Create DateRange from string if it matches a known value
+
+        Args:
+            date_str: String representation of date range
+
+        Returns:
+            DateRange enum or None if no match found
+        """
+        normalized = date_str.lower().strip()
+
+        # Direct mapping
+        value_map = {
+            "today": cls.TODAY,
+            "yesterday": cls.YESTERDAY,
+            "this week": cls.THIS_WEEK,
+            "last week": cls.LAST_WEEK,
+            "this month": cls.THIS_MONTH,
+            "last month": cls.LAST_MONTH,
+            "this year": cls.THIS_YEAR,
+            "last year": cls.LAST_YEAR,
+            "last 7 days": cls.LAST_7_DAYS,
+            "last 30 days": cls.LAST_30_DAYS,
+        }
+
+        return value_map.get(normalized)
