@@ -17,15 +17,18 @@ async def get_teams(
     context: ToolContext,
     team_name: Annotated[
         str | None,
-        "Filter by team name. Provide specific team name (e.g. 'Frontend', 'Product Web') or partial name. "
-        "Use this to find specific teams or check team membership. Defaults to None (all teams).",
+        "Filter by team name. Provide specific team name (e.g. 'Frontend', 'Product Web') "
+        "or partial name. Use this to find specific teams or check team membership. "
+        "Defaults to None (all teams).",
     ] = None,
     include_archived: Annotated[
         bool, "Whether to include archived teams in results. Defaults to False."
     ] = False,
     created_after: Annotated[
         str | None,
-        "ISO date string to filter teams created after this date (e.g. '2024-01-01'). "
+        "Filter teams created after this date. Can be:\n"
+        "- Relative date string (e.g. 'last month', 'this week', 'yesterday')\n"
+        "- ISO date string (e.g. '2024-01-01')\n"
         "Defaults to None (all time).",
     ] = None,
     limit: Annotated[
@@ -33,8 +36,8 @@ async def get_teams(
     ] = 50,
     after_cursor: Annotated[
         str | None,
-        "Cursor for pagination - get teams after this cursor. Use the 'end_cursor' from previous response. "
-        "Defaults to None (start from beginning).",
+        "Cursor for pagination - get teams after this cursor. Use the 'end_cursor' "
+        "from previous response. Defaults to None (start from beginning).",
     ] = None,
 ) -> Annotated[dict[str, Any], "Teams in the workspace with member information"]:
     """Get Linear teams and team information including team members
@@ -69,12 +72,12 @@ async def get_teams(
     # Validate inputs
     limit = max(1, min(limit, 100))
 
-    # Validate date format if provided
+    # Parse and validate date
+    created_after_date = None
     if created_after:
+        # Validate and parse string (handles DateRange enum strings internally)
         validate_date_format("created_after", created_after)
-
-    # Parse date
-    created_after_date = parse_date_string(created_after) if created_after else None
+        created_after_date = parse_date_string(created_after)
 
     client = LinearClient(context.get_auth_token_or_empty())
 

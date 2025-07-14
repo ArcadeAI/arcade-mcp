@@ -1,5 +1,5 @@
 """
-Comprehensive evaluation suite for Linear team management tools.
+Evaluation suite for Linear get_teams tool.
 """
 
 from arcade_evals import (
@@ -14,7 +14,6 @@ from arcade_tdk import ToolCatalog
 
 import arcade_linear
 from arcade_linear.tools.teams import get_teams
-from arcade_linear.tools.users import get_users
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -28,7 +27,7 @@ catalog.add_module(arcade_linear)
 
 @tool_eval()
 def teams_eval_suite() -> EvalSuite:
-    """Comprehensive evaluation suite for team management tools"""
+    """Comprehensive evaluation suite for get_teams tool"""
     suite = EvalSuite(
         name="Teams Management Evaluation",
         system_message=(
@@ -69,6 +68,40 @@ def teams_eval_suite() -> EvalSuite:
         ],
     )
 
+    # Eval Prompt: Show me teams created this week
+    suite.add_case(
+        name="Find teams created this week",
+        user_message="Show me teams created this week",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_teams,
+                args={
+                    "created_after": "this week",
+                },
+            ),
+        ],
+        critics=[
+            SimilarityCritic(critic_field="created_after", weight=1.0),
+        ],
+    )
+
+    # Eval Prompt: Which teams were created in the last 7 days?
+    suite.add_case(
+        name="Find teams created in last 7 days",
+        user_message="Which teams were created in the last 7 days?",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_teams,
+                args={
+                    "created_after": "last 7 days",
+                },
+            ),
+        ],
+        critics=[
+            SimilarityCritic(critic_field="created_after", weight=1.0),
+        ],
+    )
+
     # Eval Prompt: Find teams that aren't archived
     suite.add_case(
         name="Get active teams only",
@@ -86,23 +119,6 @@ def teams_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Eval Prompt: Who is in the "test" team?
-    suite.add_case(
-        name="Get test team members",
-        user_message='Who is in the "test" team?',
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=get_users,
-                args={
-                    "team": "test",
-                },
-            ),
-        ],
-        critics=[
-            BinaryCritic(critic_field="team", weight=1.0),
-        ],
-    )
-
     # Eval Prompt: Find teams that have "Engineering" in their name
     suite.add_case(
         name="Search teams by name",
@@ -111,12 +127,12 @@ def teams_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_teams,
                 args={
-                    "name_filter": "Engineering",
+                    "team_name": "Engineering",
                 },
             ),
         ],
         critics=[
-            SimilarityCritic(critic_field="name_filter", weight=1.0),
+            SimilarityCritic(critic_field="team_name", weight=1.0),
         ],
     )
 
@@ -128,12 +144,12 @@ def teams_eval_suite() -> EvalSuite:
             ExpectedToolCall(
                 func=get_teams,
                 args={
-                    "name_filter": "Frontend",
+                    "team_name": "Frontend",
                 },
             ),
         ],
         critics=[
-            BinaryCritic(critic_field="name_filter", weight=1.0),
+            BinaryCritic(critic_field="team_name", weight=1.0),
         ],
     )
 

@@ -56,3 +56,6 @@ skip_empty = true
 
 [tool.hatch.build.targets.wheel]
 packages = [ "arcade_linear",]
+
+[tool.poetry.group.dev.dependencies]
+types-dateparser = "^1.2.2.20250627"

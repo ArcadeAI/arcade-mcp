@@ -1,5 +1,5 @@
 import json
-import random
+import secrets
 import string
 from collections.abc import Callable
 from typing import Any
@@ -11,20 +11,22 @@ from arcade_tdk import ToolAuthorizationContext, ToolContext
 
 
 @pytest.fixture
-def fake_auth_token(generate_random_str: Callable) -> str:
+def fake_auth_token() -> str:
     return generate_random_str()
 
 
+def generate_random_str(length: int = 8) -> str:
+    """Generate a random string using cryptographically secure random generator"""
+    return "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
+
+
+def generate_random_int(min_val: int = 1, max_val: int = 9999) -> int:
+    """Generate a random integer using cryptographically secure random generator"""
+    return secrets.randbelow(max_val - min_val + 1) + min_val
+
+
 @pytest.fixture
-def generate_random_str() -> Callable[[int], str]:
-    def random_str_builder(length: int = 10) -> str:
-        return "".join(random.choices(string.ascii_letters + string.digits, k=length))  # noqa: S311
-
-    return random_str_builder
-
-
-@pytest.fixture
-def generate_random_email(generate_random_str: Callable) -> Callable[[str | None, str | None], str]:
+def generate_random_email() -> Callable[[str | None, str | None], str]:
     def random_email_generator(name: str | None = None, domain: str | None = None) -> str:
         name = name or generate_random_str()
         domain = domain or f"{generate_random_str()}.com"
@@ -74,7 +76,6 @@ def mock_httpx_response() -> Callable[[int, dict], httpx.Response]:
 # Linear-specific test data builders
 @pytest.fixture
 def build_user_dict(
-    generate_random_str: Callable[[int], str],
     generate_random_email: Callable[[str | None, str | None], str],
 ) -> Callable:
     def user_dict_builder(
@@ -98,7 +99,7 @@ def build_user_dict(
 
 
 @pytest.fixture
-def build_team_dict(generate_random_str: Callable) -> Callable:
+def build_team_dict() -> Callable:
     def team_dict_builder(
         id_: str | None = None,
         key: str | None = None,
@@ -127,9 +128,7 @@ def build_team_dict(generate_random_str: Callable) -> Callable:
 
 
 @pytest.fixture
-def build_issue_dict(
-    generate_random_str: Callable, build_user_dict: Callable, build_team_dict: Callable
-) -> Callable:
+def build_issue_dict(build_user_dict: Callable, build_team_dict: Callable) -> Callable:
     def issue_dict_builder(
         id_: str | None = None,
         identifier: str | None = None,
@@ -142,7 +141,7 @@ def build_issue_dict(
         team = build_team_dict()
         return {
             "id": id_ or generate_random_str(),
-            "identifier": identifier or f"TEST-{random.randint(1, 9999)}",
+            "identifier": identifier or f"TEST-{generate_random_int(1, 9999)}",
             "title": title or f"Test Issue {generate_random_str()}",
             "description": description or f"Description for test issue {generate_random_str()}",
             "priority": priority,
@@ -178,7 +177,7 @@ def build_issue_dict(
 
 
 @pytest.fixture
-def build_workflow_state_dict(generate_random_str: Callable, build_team_dict: Callable) -> Callable:
+def build_workflow_state_dict(build_team_dict: Callable) -> Callable:
     def workflow_state_dict_builder(
         id_: str | None = None,
         name: str | None = None,
@@ -201,7 +200,7 @@ def build_workflow_state_dict(generate_random_str: Callable, build_team_dict: Ca
 
 
 @pytest.fixture
-def build_cycle_dict(generate_random_str: Callable, build_team_dict: Callable) -> Callable:
+def build_cycle_dict(build_team_dict: Callable) -> Callable:
     def cycle_dict_builder(
         id_: str | None = None,
         number: int | None = None,
@@ -209,7 +208,7 @@ def build_cycle_dict(generate_random_str: Callable, build_team_dict: Callable) -
         description: str | None = None,
     ) -> dict[str, Any]:
         team = build_team_dict()
-        number = number or random.randint(1, 100)
+        number = number or generate_random_int(1, 100)
         return {
             "id": id_ or generate_random_str(),
             "number": number,
@@ -230,7 +229,7 @@ def build_cycle_dict(generate_random_str: Callable, build_team_dict: Callable) -
 
 
 @pytest.fixture
-def build_project_dict(generate_random_str: Callable, build_user_dict: Callable) -> Callable:
+def build_project_dict(build_user_dict: Callable) -> Callable:
     def project_dict_builder(
         id_: str | None = None,
         name: str | None = None,

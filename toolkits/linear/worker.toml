@@ -1,7 +1,7 @@
 [[worker]]
 
 [worker.config]
-id = "linear-worker-v1-458pm"
+id = "linear-simple"
 enabled = true
 timeout = 30
 retries = 3
