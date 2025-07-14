@@ -4,6 +4,7 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
 from msgraph.generated.models.chat_message import ChatMessage
+from msgraph.generated.models.chat_message_type import ChatMessageType
 from msgraph.generated.models.item_body import ItemBody
 
 from arcade_teams.client import get_client
@@ -92,7 +93,13 @@ async def get_chat_messages(
         )
     )
 
-    messages = [serialize_chat_message(message) for message in response.value]
+    # Unfortunately, the MS Graph API $filter parameter does not support filtering by message type.
+    # So we need to filter out non-message items, like systemEventMessage manually.
+    messages = [
+        serialize_chat_message(message)
+        for message in response.value
+        if message.message_type == ChatMessageType.Message
+    ]
 
     return {
         "messages": messages,

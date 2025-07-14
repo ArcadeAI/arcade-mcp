@@ -8,6 +8,7 @@ from msgraph.generated.models.chat_message_mention import ChatMessageMention
 from msgraph.generated.models.chat_message_reaction import ChatMessageReaction
 from msgraph.generated.models.conversation_member import ConversationMember
 from msgraph.generated.models.identity_set import IdentitySet
+from msgraph.generated.models.item_body import ItemBody
 from msgraph.generated.models.person import Person
 from msgraph.generated.models.physical_address import PhysicalAddress
 from msgraph.generated.models.team import Team
@@ -128,6 +129,12 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
         "id": message.id,
     }
 
+    if message.from_:
+        message_dict["author"] = {
+            "user_id": message.from_.user.id,
+            "user_name": message.from_.user.display_name,
+        }
+
     content = serialize_message_content(message)
     if content:
         message_dict["content"] = content
@@ -145,7 +152,7 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
         message_dict["web_url"] = message.web_url
 
     if message.mentions:
-        message_dict["mentions"] = [serialize_mention(mention) for mention in message.mentions]
+        message_dict["mentions"] = serialize_mentions(message.mentions)
 
     if message.attachments:
         message_dict["attachments"] = [
@@ -162,12 +169,8 @@ def serialize_message_content(message: ChatMessage) -> dict:
     content = {}
 
     if message.body:
-        content["body"] = {
-            "body": {
-                "text": message.body.content,
-                "type": message.body.content_type.value,
-            },
-        }
+        content["text"] = serialize_message_body_text(message.body, message.mentions)
+        content["type"] = message.body.content_type.value
 
     if message.summary:
         content["summary"] = message.summary
@@ -176,6 +179,34 @@ def serialize_message_content(message: ChatMessage) -> dict:
         content["subject"] = message.subject
 
     return content
+
+
+def serialize_message_body_text(body: ItemBody, mentions: list[ChatMessageMention]) -> dict:
+    try:
+        user_ids_seen = set()
+        mentions_dicts = serialize_mentions(mentions)
+        mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
+        text = body.content.replace("&nbsp;", " ")
+
+        for mention in mentions:
+            if not mention.mentioned or not mention.mentioned.user:
+                pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
+                text = text.replace(pattern, f"<mention>@{mention.mention_text}</mention>")
+                continue
+
+            if mention.mentioned.user.id in user_ids_seen:
+                pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
+                text = text.replace(pattern, "")
+                continue
+            user_ids_seen.add(mention.mentioned.user.id)
+            user_name = mentions_by_id[mention.mentioned.user.id]["name"]
+            text = text.replace(
+                f'<at id="{mention.id}">{mention.mention_text}</at>',
+                f'<mention user_id="{mention.mentioned.user.id}">@{user_name}</mention>',
+            )
+    except Exception:
+        text = body.content
+    return text
 
 
 def serialize_attachment(attachment: ChatMessageAttachment) -> dict:
@@ -194,15 +225,30 @@ def serialize_attachment(attachment: ChatMessageAttachment) -> dict:
     return attachment_dict
 
 
-def serialize_mention(mention: ChatMessageMention, transform: Callable | None = None) -> dict:
-    mention_dict = {
-        "text": mention.mention_text,
-    }
+def serialize_mentions(mentions: list[ChatMessageMention]) -> list[dict]:
+    mentions_by_id = {}
+    mentions_list = []
+    mentions = [serialize_mention(mention) for mention in mentions]
+    for mention in mentions:
+        if not mention.get("id"):
+            mentions_list.append(mention)
+            continue
 
-    if mention.mentioned:
-        identity = resolve_identity_reference(mention.mentioned)
-        if identity:
-            mention_dict["identity"] = identity
+        if mention["id"] not in mentions_by_id:
+            mentions_by_id[mention["id"]] = mention
+        else:
+            mentions_by_id[mention["id"]]["name"] += f" {mention['name']}"
+    mentions_list.extend(list(mentions_by_id.values()))
+    return mentions_list
+
+
+def serialize_mention(mention: ChatMessageMention, transform: Callable | None = None) -> dict:
+    if not mention.mentioned:
+        mention_dict = {
+            "name": mention.mention_text,
+        }
+    else:
+        mention_dict = resolve_identity_reference(mention.mentioned)
 
     if transform:
         return transform(mention_dict)
@@ -491,21 +537,21 @@ def enrich_user_employment(user_dict: dict, user: User) -> dict:
 
 
 def resolve_identity_reference(identity_set: IdentitySet) -> dict | None:
-    if hasattr(identity_set, "user"):
+    if getattr(identity_set, "user", None):
         return {
             "type": "user",
             "id": identity_set.user.id,
             "name": identity_set.user.display_name,
         }
 
-    if hasattr(identity_set, "conversation"):
+    if getattr(identity_set, "conversation", None):
         return {
             "type": "conversation",
             "id": identity_set.conversation.id,
             "name": identity_set.conversation.display_name,
         }
 
-    if hasattr(identity_set, "team"):
+    if getattr(identity_set, "team", None):
         return {
             "type": "team",
             "id": identity_set.team.id,

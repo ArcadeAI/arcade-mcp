@@ -79,7 +79,7 @@ def validate_datetime_range(start: str | None, end: str | None) -> tuple[str | N
             ) from e
     if start_dt and end_dt and start_dt > end_dt:
         err_msg = "start_datetime must be before end_datetime."
-        raise ToolExecutionError(err_msg)
+        raise ToolExecutionError(message=err_msg, developer_message=err_msg)
     return start, end
 
 
