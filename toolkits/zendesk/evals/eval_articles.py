@@ -219,7 +219,7 @@ def zendesk_search_articles_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Complex search with multiple filters",
         user_message="Find recent troubleshooting articles about login issues "
-        "created after March 2024, sorted by newest first",
+        "created after March 31, 2024, sorted by newest first",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=search_articles,
