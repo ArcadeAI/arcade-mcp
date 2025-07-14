@@ -90,6 +90,7 @@ async def get_chat_messages(
             top=limit,
             orderby=datetime_field.order_by_clause,
             filter=filter_clause,
+            expand=["replies"],
         )
     )
 

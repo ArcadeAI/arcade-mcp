@@ -145,9 +145,10 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
         if attachments:
             message_dict["attachments"] = attachments
 
-    replies = serialize_message_replies(message)
-    if replies:
-        message_dict["replying_to"] = replies
+    if message.replies:
+        message_dict["replies"] = [
+            serialize_chat_message(reply, transform) for reply in message.replies
+        ]
 
     if transform:
         return transform(message_dict)

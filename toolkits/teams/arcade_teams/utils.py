@@ -287,7 +287,7 @@ async def resolve_channel_id(
         channel = await find_unique_channel(context, team_id)
         return channel["id"]
 
-    if is_id(channel_id_or_name):
+    if is_channel_id(channel_id_or_name):
         return channel_id_or_name
 
     channel = await find_unique_channel_by_name(context, team_id, channel_id_or_name)

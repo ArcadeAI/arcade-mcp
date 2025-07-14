@@ -3,10 +3,11 @@ from typing import Annotated
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.chat_message_type import ChatMessageType
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import CHANNEL_PROPS, MatchType
-from arcade_teams.serializers import serialize_channel, serialize_member
+from arcade_teams.serializers import serialize_channel, serialize_chat_message, serialize_member
 from arcade_teams.utils import (
     build_offset_pagination,
     channels_request,
@@ -14,6 +15,7 @@ from arcade_teams.utils import (
     find_unique_channel_by_name,
     is_channel_id,
     members_request,
+    messages_request,
     resolve_channel_id,
     resolve_team_id,
 )
@@ -209,4 +211,44 @@ async def list_channel_members(
         "members": members,
         "count": len(members),
         "pagination": build_offset_pagination(members, limit, offset),
+    }
+
+
+@tool(requires_auth=Microsoft(scopes=["ChannelMessage.Read.All", "Team.ReadBasic.All"]))
+async def get_channel_messages(
+    context: ToolContext,
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to get the messages of. If not provided: in case the user is "
+        "a member of a single team, the tool will use it; otherwise an error will be returned with "
+        "a list of all teams to pick from.",
+    ],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to get the messages of."],
+    limit: Annotated[
+        int,
+        "The maximum number of messages to return. Defaults to 50, max is 50.",
+    ] = 50,
+) -> Annotated[dict, "The messages in the channel."]:
+    """Gets the messages in a channel."""
+    limit = min(50, max(1, limit))
+    client = get_client(context.get_auth_token_or_empty())
+
+    team_id = await resolve_team_id(context, team_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
+
+    response = (
+        await client.teams.by_team_id(team_id)
+        .channels.by_channel_id(channel_id)
+        .messages.get(messages_request(top=limit, expand=["replies"]))
+    )
+
+    messages = [
+        serialize_chat_message(message)
+        for message in response.value
+        if message.message_type == ChatMessageType.Message
+    ]
+
+    return {
+        "messages": messages,
+        "count": len(messages),
     }
