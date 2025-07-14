@@ -197,7 +197,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
-        "community_toolkit": is_community_toolkit,
+        "is_community_toolkit": is_community_toolkit,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
