@@ -99,6 +99,11 @@ def login(
         "--port",
         help="The port of the Arcade Cloud host (if running locally).",
     ),
+    callback_host: str = typer.Option(
+        "localhost",
+        "--callback-host",
+        help="The host to use to complete the auth flow - this should be the same as the host that the CLI is running on. Include the port if needed.",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
@@ -119,7 +124,7 @@ def login(
 
     try:
         # Open the browser for user login
-        login_url = compute_login_url(host, state, port)
+        login_url = compute_login_url(host, state, port, callback_host)
 
         console.print("Opening a browser to log you in...")
         if not webbrowser.open(login_url):
