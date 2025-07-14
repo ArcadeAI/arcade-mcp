@@ -174,8 +174,14 @@ def build_token_pagination(response: BaseModel) -> dict:
     return pagination
 
 
-def build_offset_pagination(items: list, limit: int, offset: int) -> dict:
-    is_last_page = len(items) < limit or offset + limit >= 999
+def build_offset_pagination(
+    items: list, limit: int, offset: int, more_results: bool | None = None
+) -> dict:
+    if isinstance(more_results, bool):
+        is_last_page = not more_results
+    else:
+        is_last_page = len(items) < limit or offset + limit >= 999
+
     pagination = {
         "is_last_page": is_last_page,
         "limit": limit,
