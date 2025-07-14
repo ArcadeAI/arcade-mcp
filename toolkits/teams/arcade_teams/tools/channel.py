@@ -3,7 +3,9 @@ from typing import Annotated
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.chat_message import ChatMessage
 from msgraph.generated.models.chat_message_type import ChatMessageType
+from msgraph.generated.models.item_body import ItemBody
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import CHANNEL_PROPS, MatchType
@@ -252,3 +254,30 @@ async def get_channel_messages(
         "messages": messages,
         "count": len(messages),
     }
+
+
+@tool(requires_auth=Microsoft(scopes=["ChannelMessage.Send", "Team.ReadBasic.All"]))
+async def send_message_to_channel(
+    context: ToolContext,
+    message: Annotated[str, "The message to send to the channel."],
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to send the message to. If not provided: in case the user is "
+        "a member of a single team, the tool will use it; otherwise an error will be returned with "
+        "a list of all teams to pick from.",
+    ],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to send the message to."],
+) -> Annotated[dict, "The message that was sent."]:
+    """Sends a message to a channel."""
+    client = get_client(context.get_auth_token_or_empty())
+
+    team_id = await resolve_team_id(context, team_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
+
+    response = (
+        await client.teams.by_team_id(team_id)
+        .channels.by_channel_id(channel_id)
+        .messages.post(body=ChatMessage(body=ItemBody(content=message)))
+    )
+
+    return {"message": serialize_chat_message(response)}
