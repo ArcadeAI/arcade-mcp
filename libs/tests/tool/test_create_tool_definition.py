@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal
 
 import pytest
 from arcade_core.catalog import ToolCatalog
@@ -186,20 +186,20 @@ def func_with_param_with_default(param1: Annotated[str, "First param"] = "defaul
 
 
 @tool(desc="A function with an optional input parameter")
-def func_with_optional_param(param1: Annotated[Optional[str], "First param"]):
+def func_with_optional_param(param1: Annotated[str | None, "First param"]):
     pass
 
 
 @tool(desc="A function with an optional input parameter (default: None)")
 def func_with_optional_param_with_default_None(
-    param1: Annotated[Optional[str], "First param"] = None,
+    param1: Annotated[str | None, "First param"] = None,
 ):
     pass
 
 
 @tool(desc="A function with an optional input parameter with default value")
 def func_with_optional_param_with_default_value(
-    param1: Annotated[Optional[str], "First param"] = "default",
+    param1: Annotated[str | None, "First param"] = "default",
 ):
     pass
 
@@ -220,14 +220,14 @@ def func_with_optional_param_with_bar_syntax_2(
 
 @tool(desc="A function with an optional input parameter with union syntax")
 def func_with_optional_param_with_union_syntax_1(
-    param1: Annotated[Union[str, None], "First param"] = None,
+    param1: Annotated[str | None, "First param"] = None,
 ):
     pass
 
 
 @tool(desc="A function with an optional input parameter with union syntax")
 def func_with_optional_param_with_union_syntax_2(
-    param1: Annotated[Union[None, str], "First param"] = None,
+    param1: Annotated[None | str, "First param"] = None,
 ):
     pass
 
@@ -290,7 +290,7 @@ def func_with_annotated_return() -> Annotated[str, "Annotated return description
 
 
 @tool(desc="A function with an optional return type")
-def func_with_optional_return() -> Optional[str]:
+def func_with_optional_return() -> str | None:
     return "maybe output"
 
 
@@ -305,12 +305,12 @@ def func_with_optional_return_with_bar_syntax_2() -> None | str:
 
 
 @tool(desc="A function with an optional return type that uses union syntax")
-def func_with_optional_return_with_union_syntax_1() -> Union[str, None]:
+def func_with_optional_return_with_union_syntax_1() -> str | None:
     return "maybe output"
 
 
 @tool(desc="A function with an optional return type that uses union syntax")
-def func_with_optional_return_with_union_syntax_2() -> Union[None, str]:
+def func_with_optional_return_with_union_syntax_2() -> None | str:
     return "maybe output"
 
 

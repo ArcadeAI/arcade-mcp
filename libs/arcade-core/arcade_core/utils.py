@@ -3,9 +3,9 @@ from __future__ import annotations
 import ast
 import inspect
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from types import UnionType
-from typing import Any, Callable, Literal, TypeVar, Union, get_args, get_origin
+from typing import Any, Literal, TypeVar, Union, get_args, get_origin
 
 T = TypeVar("T")
 

@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -15,11 +15,14 @@ class ValueSchema(BaseModel):
     val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
     """The type of the value."""
 
-    inner_val_type: Optional[Literal["string", "integer", "number", "boolean", "json"]] = None
+    inner_val_type: Literal["string", "integer", "number", "boolean", "json"] | None = None
     """The type of the inner value, if the value is a list."""
 
-    enum: Optional[list[str]] = None
+    enum: list[str] | None = None
     """The list of possible values for the value, if it is a closed list."""
+
+    properties: dict[str, "ValueSchema"] | None = None
+    """For object types (json), the schema of nested properties."""
 
 
 class InputParameter(BaseModel):
@@ -30,8 +33,9 @@ class InputParameter(BaseModel):
         ...,
         description="Whether this parameter is required (true) or optional (false).",
     )
-    description: Optional[str] = Field(
-        None, description="A descriptive, human-readable explanation of the parameter."
+    description: str | None = Field(
+        None,
+        description="A descriptive, human-readable explanation of the parameter.",
     )
     value_schema: ValueSchema = Field(
         ...,
@@ -59,14 +63,14 @@ class ToolInput(BaseModel):
 class ToolOutput(BaseModel):
     """The output of a tool."""
 
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, description="A descriptive, human-readable explanation of the output."
     )
     available_modes: list[str] = Field(
         default_factory=lambda: ["value", "error", "null"],
         description="The available modes for the output.",
     )
-    value_schema: Optional[ValueSchema] = Field(
+    value_schema: ValueSchema | None = Field(
         None, description="The schema of the value of the output."
     )
 
@@ -74,7 +78,7 @@ class ToolOutput(BaseModel):
 class OAuth2Requirement(BaseModel):
     """Indicates that the tool requires OAuth 2.0 authorization."""
 
-    scopes: Optional[list[str]] = None
+    scopes: list[str] | None = None
     """The scope(s) needed for the authorized action."""
 
 
@@ -90,16 +94,16 @@ class ToolAuthRequirement(BaseModel):
     #
     # The Arcade SDK translates these into the appropriate provider ID (Google) and type (OAuth2).
     # The only time the developer will set these is if they are using a custom auth provider.
-    provider_id: Optional[str] = None
+    provider_id: str | None = None
     """The provider ID configured in Arcade that acts as an alias to well-known configuration."""
 
     provider_type: str
     """The type of the authorization provider."""
 
-    id: Optional[str] = None
+    id: str | None = None
     """A provider's unique identifier, allowing the tool to specify a specific authorization provider. Recommended for private tools only."""
 
-    oauth2: Optional[OAuth2Requirement] = None
+    oauth2: OAuth2Requirement | None = None
     """The OAuth 2.0 requirement, if any."""
 
 
@@ -133,13 +137,13 @@ class ToolMetadataRequirement(BaseModel):
 class ToolRequirements(BaseModel):
     """The requirements for a tool to run."""
 
-    authorization: Union[ToolAuthRequirement, None] = None
+    authorization: ToolAuthRequirement | None = None
     """The authorization requirements for the tool, if any."""
 
-    secrets: Union[list[ToolSecretRequirement], None] = None
+    secrets: list[ToolSecretRequirement] | None = None
     """The secret requirements for the tool, if any."""
 
-    metadata: Union[list[ToolMetadataRequirement], None] = None
+    metadata: list[ToolMetadataRequirement] | None = None
     """The metadata requirements for the tool, if any."""
 
 
@@ -149,10 +153,10 @@ class ToolkitDefinition(BaseModel):
     name: str
     """The name of the toolkit."""
 
-    description: Optional[str] = None
+    description: str | None = None
     """The description of the toolkit."""
 
-    version: Optional[str] = None
+    version: str | None = None
     """The version identifier of the toolkit."""
 
 
@@ -166,7 +170,7 @@ class FullyQualifiedName:
     toolkit_name: str
     """The name of the toolkit containing the tool."""
 
-    toolkit_version: Optional[str] = None
+    toolkit_version: str | None = None
     """The version of the toolkit containing the tool."""
 
     def __str__(self) -> str:
@@ -225,7 +229,7 @@ class ToolDefinition(BaseModel):
     requirements: ToolRequirements
     """The requirements (e.g. authorization) for the tool to run."""
 
-    deprecation_message: Optional[str] = None
+    deprecation_message: str | None = None
     """The message to display when the tool is deprecated."""
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
@@ -241,7 +245,7 @@ class ToolReference(BaseModel):
     toolkit: str
     """The name of the toolkit containing the tool."""
 
-    version: Optional[str] = None
+    version: str | None = None
     """The version of the toolkit containing the tool."""
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
@@ -313,7 +317,10 @@ class ToolContext(BaseModel):
         return self._get_item(key, self.metadata, "metadata")
 
     def _get_item(
-        self, key: str, items: list[ToolMetadataItem] | list[ToolSecretItem] | None, item_name: str
+        self,
+        key: str,
+        items: list[ToolMetadataItem] | list[ToolSecretItem] | None,
+        item_name: str,
     ) -> str:
         if not key or not key.strip():
             raise ValueError(
@@ -368,7 +375,7 @@ class ToolCallLog(BaseModel):
     ]
     """The level of severity for the log."""
 
-    subtype: Optional[Literal["deprecation"]] = None
+    subtype: Literal["deprecation"] | None = None
     """Optional field for further categorization of the log."""
 
 
@@ -405,7 +412,7 @@ class ToolCallRequiresAuthorization(BaseModel):
 class ToolCallOutput(BaseModel):
     """The output of a tool invocation."""
 
-    value: Union[str, int, float, bool, dict, list[str]] | None = None
+    value: str | int | float | bool | dict | list[str] | None = None
     """The value returned by the tool."""
     logs: list[ToolCallLog] | None = None
     """The logs that occurred during the tool invocation."""

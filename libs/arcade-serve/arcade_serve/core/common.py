@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from arcade_core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 from pydantic import BaseModel
@@ -70,6 +71,13 @@ class Worker(ABC):
     def health_check(self) -> HealthCheckResponse:
         """
         Perform a health check of the worker
+        """
+        pass
+
+    @abstractmethod
+    def get_tool_schema(self, tool_name: str) -> dict[str, Any]:
+        """
+        Get the input and output schema for a specific tool.
         """
         pass
 

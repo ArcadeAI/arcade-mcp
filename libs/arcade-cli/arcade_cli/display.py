@@ -80,31 +80,45 @@ def display_tool_details(tool: ToolDefinition) -> None:
             border_style="green",
         )
 
-    # Output Panel
+    # Output Panel - Enhanced to show nested structure
     output = tool.output
-    if output:
-        output_description = output.description or "No description available."
-        output_types = ", ".join(output.available_modes)
-        output_val_type = output.value_schema.val_type if output.value_schema else "N/A"
-        output_details = Text.assemble(
-            ("Description: ", "bold"),
-            (output_description, ""),
-            "\n",
-            ("Available Modes: ", "bold"),
-            (output_types, ""),
-            "\n",
-            ("Value Type: ", "bold"),
-            (output_val_type, ""),
+    if output and output.value_schema:
+        output_table = Table(show_header=True, header_style="bold blue")
+        output_table.add_column("Field", style="cyan")
+        output_table.add_column("Type", style="magenta")
+        output_table.add_column("Description", style="white")
+
+        # Add top-level output info
+        output_table.add_row(
+            "result",
+            output.value_schema.val_type,
+            output.description or "No description available.",
         )
+
+        # If the output is a json type with properties, show them
+        if (
+            output.value_schema.val_type == "json"
+            and hasattr(output.value_schema, "properties")
+            and output.value_schema.properties
+        ):
+            _add_nested_properties(output_table, output.value_schema.properties, indent=1)
+
+        # Add metadata about available modes
+        modes_info = Text.assemble(
+            ("\nAvailable Modes: ", "bold"),
+            (", ".join(output.available_modes), "yellow"),
+        )
+
         output_panel = Panel(
-            output_details,
-            title="Expected Output",
+            output_table,
+            title="Output Schema",
             border_style="blue",
+            subtitle=modes_info,
         )
     else:
         output_panel = Panel(
             "No output information available.",
-            title="Expected Output",
+            title="Output Schema",
             border_style="blue",
         )
 
@@ -112,6 +126,41 @@ def display_tool_details(tool: ToolDefinition) -> None:
     console.print(description_panel)
     console.print(inputs_panel)
     console.print(output_panel)
+
+
+def _add_nested_properties(table: Table, properties: dict[str, Any], indent: int = 0) -> None:
+    """
+    Recursively add nested properties to the output table.
+
+    Args:
+        table: The Rich table to add rows to
+        properties: Dictionary of property names to ValueSchema objects
+        indent: Current indentation level
+    """
+    indent_prefix = "  " * indent
+
+    for prop_name, prop_schema in properties.items():
+        # Format the type string
+        type_str = prop_schema.val_type
+        if prop_schema.val_type == "array" and prop_schema.inner_val_type:
+            type_str = f"array[{prop_schema.inner_val_type}]"
+        elif prop_schema.enum:
+            type_str = f"{type_str} (enum)"
+
+        # Add the property row
+        table.add_row(
+            f"{indent_prefix}{prop_name}",
+            type_str,
+            "",  # No description available for nested properties currently
+        )
+
+        # Recursively add nested properties if this is a json type with properties
+        if (
+            prop_schema.val_type == "json"
+            and hasattr(prop_schema, "properties")
+            and prop_schema.properties
+        ):
+            _add_nested_properties(table, prop_schema.properties, indent + 1)
 
 
 def display_tool_messages(tool_messages: list[dict]) -> None:
@@ -124,7 +173,8 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
                 )
         elif message["role"] == "tool":
             console.print(
-                f"[bold]'{message['name']}' tool returned:[/bold] {message['content']}", style="dim"
+                f"[bold]'{message['name']}' tool returned:[/bold] {message['content']}",
+                style="dim",
             )
 
 

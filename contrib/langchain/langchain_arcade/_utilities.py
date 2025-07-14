@@ -1,4 +1,5 @@
-from typing import Any, Callable, Union
+from collections.abc import Callable
+from typing import Any
 
 from arcadepy import NOT_GIVEN, Arcade, AsyncArcade
 from arcadepy.types import ExecuteToolResponse, ToolDefinition
@@ -179,7 +180,7 @@ def create_tool_function(
 
 
 def wrap_arcade_tool(
-    client: Union[Arcade, AsyncArcade],
+    client: Arcade | AsyncArcade,
     tool_name: str,
     tool_def: ToolDefinition,
     langgraph: bool = False,

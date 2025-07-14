@@ -1,3 +1,5 @@
+from typing import Optional
+
 import typer
 from rich.console import Console
 from rich.markup import escape
@@ -7,11 +9,11 @@ from arcade_cli.utils import create_cli_catalog, get_tools_from_engine
 
 
 def show_logic(
-    toolkit: str | None,
-    tool: str | None,
+    toolkit: Optional[str],
+    tool: Optional[str],
     host: str,
     local: bool,
-    port: int | None,
+    port: Optional[int],
     force_tls: bool,
     force_no_tls: bool,
     debug: bool,

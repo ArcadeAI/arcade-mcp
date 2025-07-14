@@ -1,4 +1,4 @@
-from typing import Annotated, Optional, Union
+from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
@@ -36,7 +36,7 @@ def func_takes_pydantic_field_with_description(
 
 @tool(desc="A function that accepts an optional Pydantic Field")
 def func_takes_pydantic_field_optional(
-    product_name: Optional[str] = Field(None, description="The name of the product"),
+    product_name: str | None = Field(None, description="The name of the product"),
 ) -> str:
     return product_name
 
@@ -50,7 +50,7 @@ def func_takes_pydantic_field_optional_bar_syntax(
 
 @tool(desc="A function that accepts an optional Pydantic Field with union syntax")
 def func_takes_pydantic_field_optional_union_syntax(
-    product_name: Union[str, None] = Field(None, description="The name of the product"),
+    product_name: str | None = Field(None, description="The name of the product"),
 ) -> str:
     return product_name
 
@@ -116,7 +116,7 @@ class FilterPriceLessThan(ProductFilter):
 class ProductSearch(BaseModel):
     column: str = Field("Product Name", description="The column to search in")
     query: str = Field(..., description="The query to search for")
-    filter_operation: Union[FilterRating, FilterPriceGreaterThan, FilterPriceLessThan] = None
+    filter_operation: FilterRating | FilterPriceGreaterThan | FilterPriceLessThan = None
 
 
 class ProductOutput(BaseModel):

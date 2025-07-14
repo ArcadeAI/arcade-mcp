@@ -179,7 +179,7 @@ def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
         output_logs = output.logs or []
         expected_logs = expected_output.logs or []
         assert len(output_logs) == len(expected_logs)
-        for output_log, expected_log in zip(output_logs, expected_logs):
+        for output_log, expected_log in zip(output_logs, expected_logs, strict=False):
             assert output_log.message == expected_log.message
             assert output_log.level == expected_log.level
             assert output_log.subtype == expected_log.subtype

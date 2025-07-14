@@ -1,4 +1,4 @@
-from typing import Annotated, Union
+from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
@@ -18,7 +18,7 @@ def func_with_missing_return_type():
 
 
 @tool(desc="A function with a union return type (illegal)")
-def func_with_union_return_type_1() -> Union[str, int]:
+def func_with_union_return_type_1() -> str | int:
     return "hello world"
 
 
@@ -48,7 +48,7 @@ def func_with_union_param_1(param1: str | int):
 
 
 @tool(desc="A function with a union parameter (illegal)")
-def func_with_union_param_2(param1: Union[str, int]):
+def func_with_union_param_2(param1: str | int):
     pass
 
 

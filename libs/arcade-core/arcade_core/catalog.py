@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import typing
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -13,13 +13,12 @@ from types import ModuleType
 from typing import (
     Annotated,
     Any,
-    Callable,
     Literal,
-    Optional,
     Union,
     cast,
     get_args,
     get_origin,
+    get_type_hints,
 )
 
 from pydantic import BaseModel, Field, create_model
@@ -62,6 +61,28 @@ InnerWireType = Literal["string", "integer", "number", "boolean", "json"]
 WireType = Union[InnerWireType, Literal["array"]]
 
 
+def is_typeddict(tp: type) -> bool:
+    """
+    Check if a type is a TypedDict.
+    Works with both typing.TypedDict and typing_extensions.TypedDict.
+    """
+    try:
+        # TypedDict creates classes that inherit from dict
+        if not isinstance(tp, type) or not issubclass(tp, dict):
+            return False
+
+        # Check for TypedDict-specific attributes
+        return (
+            hasattr(tp, "__annotations__")
+            and hasattr(tp, "__total__")
+            and hasattr(tp, "__required_keys__")
+            and hasattr(tp, "__optional_keys__")
+        )
+    except TypeError:
+        # Some special forms raise TypeError when checking issubclass
+        return False
+
+
 @dataclass
 class WireTypeInfo:
     """
@@ -71,6 +92,7 @@ class WireTypeInfo:
     wire_type: WireType
     inner_wire_type: InnerWireType | None = None
     enum_values: list[str] | None = None
+    properties: dict[str, "WireTypeInfo"] | None = None
 
 
 class ToolMeta(BaseModel):
@@ -79,9 +101,9 @@ class ToolMeta(BaseModel):
     """
 
     module: str
-    toolkit: Optional[str] = None
-    package: Optional[str] = None
-    path: Optional[str] = None
+    toolkit: str | None = None
+    package: str | None = None
+    path: str | None = None
     date_added: datetime = Field(default_factory=datetime.now)
     date_updated: datetime = Field(default_factory=datetime.now)
 
@@ -171,7 +193,7 @@ class ToolCatalog(BaseModel):
     def add_tool(
         self,
         tool_func: Callable,
-        toolkit_or_name: Union[str, Toolkit],
+        toolkit_or_name: str | Toolkit,
         module: ModuleType | None = None,
     ) -> None:
         """
@@ -289,7 +311,10 @@ class ToolCatalog(BaseModel):
         raise ValueError(f"Tool {func} not found in the catalog.")
 
     def get_tool_by_name(
-        self, name: str, version: Optional[str] = None, separator: str = TOOL_NAME_SEPARATOR
+        self,
+        name: str,
+        version: str | None = None,
+        separator: str = TOOL_NAME_SEPARATOR,
     ) -> MaterializedTool:
         """Get a tool from the catalog by name.
 
@@ -353,8 +378,8 @@ class ToolCatalog(BaseModel):
     def create_tool_definition(
         tool: Callable,
         toolkit_name: str,
-        toolkit_version: Optional[str] = None,
-        toolkit_desc: Optional[str] = None,
+        toolkit_version: str | None = None,
+        toolkit_desc: str | None = None,
     ) -> ToolDefinition:
         """
         Given a tool function, create a ToolDefinition
@@ -431,16 +456,13 @@ def create_input_definition(func: Callable) -> ToolInput:
                 description=tool_field_info.description,
                 required=is_required,
                 inferrable=tool_field_info.is_inferrable,
-                value_schema=ValueSchema(
-                    val_type=tool_field_info.wire_type_info.wire_type,
-                    inner_val_type=tool_field_info.wire_type_info.inner_wire_type,
-                    enum=tool_field_info.wire_type_info.enum_values,
-                ),
+                value_schema=wire_type_info_to_value_schema(tool_field_info.wire_type_info),
             )
         )
 
     return ToolInput(
-        parameters=input_parameters, tool_context_parameter_name=tool_context_param_name
+        parameters=input_parameters,
+        tool_context_parameter_name=tool_context_param_name,
     )
 
 
@@ -478,11 +500,7 @@ def create_output_definition(func: Callable) -> ToolOutput:
     return ToolOutput(
         description=description,
         available_modes=available_modes,
-        value_schema=ValueSchema(
-            val_type=wire_type_info.wire_type,
-            inner_val_type=wire_type_info.inner_wire_type,
-            enum=wire_type_info.enum_values,
-        ),
+        value_schema=wire_type_info_to_value_schema(wire_type_info),
     )
 
 
@@ -696,11 +714,70 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         enum_values = [str(e) for e in get_args(type_to_check)]
 
     # Special case: Enum can be enumerated on the wire
-    elif issubclass(actual_type, Enum):
+    elif isinstance(actual_type, type) and issubclass(actual_type, Enum):
         is_enum = True
-        enum_values = [e.value for e in actual_type]  # type: ignore[union-attr]
+        enum_values = [e.value for e in actual_type]
 
-    return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None)
+    # Extract properties for complex types
+    properties = None
+    if wire_type == "json" and not is_list:
+        properties = extract_properties(type_to_check)
+
+    return WireTypeInfo(wire_type, inner_wire_type, enum_values if is_enum else None, properties)
+
+
+def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
+    """
+    Extract properties from TypedDict, Pydantic models, or other structured types.
+    """
+    properties = {}
+
+    # Handle Pydantic BaseModel
+    if isinstance(type_to_check, type) and issubclass(type_to_check, BaseModel):
+        for field_name, field_info in type_to_check.model_fields.items():
+            # Get the field type
+            field_type = field_info.annotation
+            if field_type is None:
+                continue
+
+            # Get wire type info recursively
+            wire_info = get_wire_type_info(field_type)
+            properties[field_name] = wire_info
+
+    # Handle TypedDict
+    elif is_typeddict(type_to_check):
+        # Get type hints for the TypedDict
+        type_hints = get_type_hints(type_to_check, include_extras=True)
+        for field_name, field_type in type_hints.items():
+            wire_info = get_wire_type_info(field_type)
+            properties[field_name] = wire_info
+
+    # Handle regular dict with type annotations (e.g., dict[str, Any])
+    elif get_origin(type_to_check) is dict:
+        # For generic dicts, we can't extract specific properties
+        return None
+
+    return properties if properties else None
+
+
+def wire_type_info_to_value_schema(wire_info: WireTypeInfo) -> ValueSchema:
+    """
+    Convert WireTypeInfo to ValueSchema, including nested properties.
+    """
+    # Convert nested properties if they exist
+    properties = None
+    if wire_info.properties:
+        properties = {
+            name: wire_type_info_to_value_schema(nested_info)
+            for name, nested_info in wire_info.properties.items()
+        }
+
+    return ValueSchema(
+        val_type=wire_info.wire_type,
+        inner_val_type=wire_info.inner_wire_type,
+        enum=wire_info.enum_values,
+        properties=properties,
+    )
 
 
 def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
@@ -799,6 +876,9 @@ def get_wire_type(
     if isinstance(_type, type) and issubclass(_type, BaseModel):
         return "json"
 
+    if is_typeddict(_type):
+        return "json"
+
     raise ToolDefinitionError(f"Unsupported parameter type: {_type}")
 
 
@@ -831,7 +911,7 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     return input_model, output_model
 
 
-def determine_output_model(func: Callable) -> type[BaseModel]:
+def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
     """
     Determine the output model for a function based on its return annotation.
     """
@@ -845,6 +925,18 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
             description = (
                 return_annotation.__metadata__[0] if return_annotation.__metadata__ else ""
             )
+
+            # Check if the field type is a TypedDict
+            if is_typeddict(field_type):
+                # Create a Pydantic model from TypedDict
+                typeddict_model = create_model_from_typeddict(
+                    field_type, f"{output_model_name}TypedDict"
+                )
+                return create_model(
+                    output_model_name,
+                    result=(typeddict_model, Field(description=str(description))),
+                )
+
             if description:
                 return create_model(
                     output_model_name,
@@ -857,6 +949,18 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
             # TODO handle multiple non-None arguments. Raise error?
             for arg in get_args(return_annotation):
                 if arg is not type(None):
+                    # Check if the arg is a TypedDict
+                    if is_typeddict(arg):
+                        typeddict_model = create_model_from_typeddict(
+                            arg, f"{output_model_name}TypedDict"
+                        )
+                        return create_model(
+                            output_model_name,
+                            result=(
+                                typeddict_model,
+                                Field(description="No description provided."),
+                            ),
+                        )
                     return create_model(
                         output_model_name,
                         result=(arg, Field(description="No description provided.")),
@@ -871,11 +975,53 @@ def determine_output_model(func: Callable) -> type[BaseModel]:
             ),
         )
     else:
+        # Check if return type is TypedDict
+        if is_typeddict(return_annotation):
+            typeddict_model = create_model_from_typeddict(return_annotation, output_model_name)
+            return create_model(
+                output_model_name,
+                result=(
+                    typeddict_model,
+                    Field(description="No description provided."),
+                ),
+            )
+
         # Handle simple return types (like str)
         return create_model(
             output_model_name,
             result=(return_annotation, Field(description="No description provided.")),
         )
+
+
+def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[BaseModel]:
+    """
+    Create a Pydantic model from a TypedDict class.
+    This enables runtime validation of TypedDict structures.
+    """
+    # Get type hints for the TypedDict
+    type_hints = get_type_hints(typeddict_class, include_extras=True)
+
+    # Build field definitions for the Pydantic model
+    field_definitions: dict[str, Any] = {}
+    for field_name, field_type in type_hints.items():
+        # Check if field is required
+        is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
+
+        # Handle nested TypedDict
+        if is_typeddict(field_type):
+            nested_model = create_model_from_typeddict(field_type, f"{model_name}_{field_name}")
+            if is_required:
+                field_definitions[field_name] = (nested_model, Field())
+            else:
+                field_definitions[field_name] = (nested_model, Field(default=None))
+        else:
+            if is_required:
+                field_definitions[field_name] = (field_type, Field())
+            else:
+                field_definitions[field_name] = (field_type, Field(default=None))
+
+    # Create and return the Pydantic model
+    return create_model(model_name, **field_definitions)
 
 
 def to_tool_secret_requirements(

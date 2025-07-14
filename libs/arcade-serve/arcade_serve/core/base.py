@@ -1,8 +1,9 @@
 import logging
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, ClassVar
+from typing import Any, ClassVar
 
 from arcade_core.catalog import ToolCatalog, Toolkit
 from arcade_core.executor import ToolExecutor
@@ -19,6 +20,7 @@ from arcade_serve.core.components import (
     CallToolComponent,
     CatalogComponent,
     HealthCheckComponent,
+    SchemaComponent,
     WorkerComponent,
 )
 
@@ -37,10 +39,14 @@ class BaseWorker(Worker):
         CatalogComponent,
         CallToolComponent,
         HealthCheckComponent,
+        SchemaComponent,
     )
 
     def __init__(
-        self, secret: str | None = None, disable_auth: bool = False, otel_meter: Meter | None = None
+        self,
+        secret: str | None = None,
+        disable_auth: bool = False,
+        otel_meter: Meter | None = None,
     ) -> None:
         """
         Initialize the BaseWorker with an empty ToolCatalog.
@@ -176,6 +182,86 @@ class BaseWorker(Worker):
         Provide a health check that serves as a heartbeat of worker health.
         """
         return {"status": "ok", "tool_count": str(len(self.catalog))}
+
+    def get_tool_schema(self, tool_name: str) -> dict[str, Any]:
+        """
+        Get the input and output schema for a specific tool.
+        """
+        try:
+            tool = self.catalog.get_tool_by_name(tool_name)
+            definition = tool.definition
+
+            # Convert input parameters to JSON Schema
+            input_properties = {}
+            required = []
+            for param in definition.input.parameters:
+                input_properties[param.name] = self._value_schema_to_json_schema(param.value_schema)
+                if param.required:
+                    required.append(param.name)
+                # Add description if available
+                if param.description:
+                    input_properties[param.name]["description"] = param.description
+
+            input_schema = {
+                "type": "object",
+                "properties": input_properties,
+                "required": required,
+            }
+
+            # Convert output schema
+            output_schema = None
+            if definition.output.value_schema:
+                output_schema = self._value_schema_to_json_schema(definition.output.value_schema)
+                if definition.output.description:
+                    output_schema["description"] = definition.output.description
+            else:
+                output_schema = {"type": "null"}
+
+            return {
+                "tool_name": str(definition.get_fully_qualified_name()),
+                "description": definition.description,
+                "input": input_schema,
+                "output": output_schema,
+            }
+        except ValueError as e:
+            raise ValueError(f"Tool '{tool_name}' not found") from e
+
+    def _value_schema_to_json_schema(self, value_schema: Any) -> dict[str, Any]:
+        """Convert ValueSchema to JSON Schema format."""
+        if not value_schema:
+            return {"type": "null"}
+
+        # Map Arcade types to JSON Schema types
+        type_mapping = {
+            "string": "string",
+            "integer": "integer",
+            "number": "number",
+            "boolean": "boolean",
+            "json": "object",
+            "array": "array",
+        }
+
+        result: dict[str, Any] = {"type": type_mapping.get(value_schema.val_type, "object")}
+
+        # Handle enums
+        if value_schema.enum:
+            result["enum"] = value_schema.enum
+
+        # Handle arrays
+        if value_schema.val_type == "array" and value_schema.inner_val_type:
+            result["items"] = {"type": type_mapping.get(value_schema.inner_val_type, "object")}
+
+        # Handle nested properties for objects
+        if (
+            value_schema.val_type == "json"
+            and hasattr(value_schema, "properties")
+            and value_schema.properties
+        ):
+            result["properties"] = {}
+            for prop_name, prop_schema in value_schema.properties.items():
+                result["properties"][prop_name] = self._value_schema_to_json_schema(prop_schema)
+
+        return result
 
     def register_routes(self, router: Router) -> None:
         """

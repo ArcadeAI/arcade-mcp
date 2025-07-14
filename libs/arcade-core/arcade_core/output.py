@@ -17,7 +17,24 @@ class ToolOutputFactory:
         data: T | None = None,
         logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
-        value = getattr(data, "result", "") if data else ""
+        # Extract the result value
+        if data is None:
+            value = None
+        elif hasattr(data, "result"):
+            # For Pydantic models with a result field
+            result_value = data.result
+            # If the result is also a Pydantic model, convert to dict
+            if hasattr(result_value, "model_dump"):
+                value = result_value.model_dump()
+            else:
+                value = result_value
+        elif hasattr(data, "model_dump"):
+            # For other Pydantic models, get the dict representation
+            value = data.model_dump()
+        else:
+            # For plain values
+            value = data
+
         logs = coerce_empty_list_to_none(logs)
         return ToolCallOutput(value=value, logs=logs)
 

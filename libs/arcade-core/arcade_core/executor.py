@@ -1,6 +1,7 @@
 import asyncio
 import traceback
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 

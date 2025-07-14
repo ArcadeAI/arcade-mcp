@@ -2,8 +2,9 @@ import asyncio
 import logging
 import os
 import uuid
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Any
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
@@ -326,7 +327,7 @@ class MCPServer:
 
     async def _handle_list_tools(
         self, message: ListToolsRequest
-    ) -> Union[ListToolsResponse, JSONRPCError]:
+    ) -> ListToolsResponse | JSONRPCError:
         """
         Handle a tools/list request and return a list of available tools.
 

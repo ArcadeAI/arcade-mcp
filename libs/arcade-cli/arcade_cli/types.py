@@ -4,7 +4,7 @@ Type generation commands for the Arcade CLI.
 
 import json
 from pathlib import Path
-from typing import Any, Optional  # Optional needed for Typer compatibility
+from typing import Any  # Optional/List needed for Typer compatibility
 
 import typer
 from arcade_core.schema import ToolDefinition, ValueSchema
@@ -27,14 +27,14 @@ app = typer.Typer(
 
 
 @app.command("generate", help="Generate types from tool definitions")
-def generate_types(
-    toolkit: Optional[str] = typer.Argument(None, help="Toolkit name to generate types for"),
-    tool: Optional[str] = typer.Option(None, "--tool", "-t", help="Specific tool name"),
+def generate_types(  # noqa: C901
+    toolkit: str | None = typer.Argument(None, help="Toolkit name to generate types for"),
+    tool: str | None = typer.Option(None, "--tool", "-t", help="Specific tool name"),
     output: str = typer.Option("./types", "--output", "-o", help="Output directory"),
     lang: str = typer.Option(
         "typescript", "--lang", "-l", help="Target language (typescript, python)"
     ),
-    host: Optional[str] = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
+    host: str | None = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
     local: bool = typer.Option(False, "--local", help="Use local catalog instead of engine"),
 ) -> None:
     """Generate type definitions from tool schemas."""
@@ -63,26 +63,66 @@ def generate_types(
     output_path = Path(output)
     output_path.mkdir(parents=True, exist_ok=True)
 
+    # Group tools by toolkit
+    tools_by_toolkit: dict[str, list[ToolDefinition]] = {}
+    for tool_def in tools:
+        toolkit_name = tool_def.toolkit.name.lower()
+        if toolkit_name not in tools_by_toolkit:
+            tools_by_toolkit[toolkit_name] = []
+        tools_by_toolkit[toolkit_name].append(tool_def)
+
     # Generate types for each tool
     generated_files = []
-    for tool_def in tools:
-        if lang == "typescript":
-            file_path = output_path / f"{tool_def.name.lower()}.d.ts"
-            content = _generate_typescript(tool_def)
-        elif lang == "python":
-            file_path = output_path / f"{tool_def.name.lower()}.py"
-            content = _generate_python_stub(tool_def)
-        else:
-            console.print(f"❌ Unsupported language: {lang}", style="bold red")
-            return
+    for toolkit_name, toolkit_tools in tools_by_toolkit.items():
+        # Create toolkit subdirectory
+        toolkit_dir = output_path / "tools" / toolkit_name
+        toolkit_dir.mkdir(parents=True, exist_ok=True)
 
-        file_path.write_text(content)
-        generated_files.append(file_path)
+        for tool_def in toolkit_tools:
+            if lang == "typescript":
+                file_path = toolkit_dir / f"{tool_def.name.lower()}.d.ts"
+                content = _generate_typescript(tool_def)
+            elif lang == "python":
+                file_path = toolkit_dir / f"{tool_def.name.lower()}.py"
+                content = _generate_python_stub(tool_def)
+            else:
+                console.print(f"❌ Unsupported language: {lang}", style="bold red")
+                return
+
+            file_path.write_text(content)
+            generated_files.append(file_path)
+
+    # Generate registry and index files for TypeScript by default
+    if lang == "typescript":
+        # Generate registry
+        registry_path = output_path / "registry.ts"
+        registry_content = _generate_typescript_registry(tools)
+        registry_path.write_text(registry_content)
+        generated_files.append(registry_path)
+
+        # Generate schemas
+        schemas_path = output_path / "schemas.ts"
+        schemas_content = _generate_typescript_schemas(tools)
+        schemas_path.write_text(schemas_content)
+        generated_files.append(schemas_path)
+
+        # Generate index
+        index_path = output_path / "index.ts"
+        index_content = _generate_typescript_index(tools_by_toolkit)
+        index_path.write_text(index_content)
+        generated_files.append(index_path)
 
     # Summary
-    console.print(f"✅ Generated {len(generated_files)} type files:", style="bold green")
-    for file in generated_files:
-        console.print(f"  - {file}")
+    console.print(f"✅ Generated {len(generated_files)} files:", style="bold green")
+    console.print("\n📁 Output structure:")
+    console.print(f"  {output_path}/")
+    if lang == "typescript":
+        console.print("  ├── tools/         # Individual tool types")
+        for toolkit_name in sorted(tools_by_toolkit.keys()):
+            console.print(f"  │   └── {toolkit_name}/")
+        console.print("  ├── registry.ts    # Type maps for dynamic usage")
+        console.print("  ├── schemas.ts     # Runtime validation schemas")
+        console.print("  └── index.ts       # Main entry point")
 
 
 @app.command("show", help="Show tool schema")
@@ -91,7 +131,7 @@ def show_schema(
     format_type: str = typer.Option(
         "json", "--format", "-f", help="Output format (json, typescript)"
     ),
-    host: Optional[str] = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
+    host: str | None = typer.Option(None, "--host", "-h", help="Arcade Engine host"),
     local: bool = typer.Option(False, "--local", help="Use local catalog"),
 ) -> None:
     """Display the schema for a specific tool."""
@@ -103,7 +143,7 @@ def show_schema(
         tool_def = tool.definition
     else:
         tools = get_tools_from_engine(host)
-        tool_def = next((t for t in tools if t.name.lower() == tool_name.lower()), None)
+        tool_def = next((t for t in tools if t.name.lower() == tool_name.lower()), None)  # type: ignore[arg-type]
         if not tool_def:
             console.print(f"❌ Tool '{tool_name}' not found", style="bold red")
             return
@@ -126,7 +166,8 @@ def show_schema(
 
 def _generate_typescript(tool_def: ToolDefinition) -> str:
     """Generate TypeScript interface definitions for a tool."""
-    output = f"// Auto-generated types for {tool_def.name}\n\n"
+    output = f"// Auto-generated types for {tool_def.name}\n"
+    output += f"// Toolkit: {tool_def.toolkit.name}\n\n"
 
     # Generate input interface
     output += f"export interface {tool_def.name}Input {{\n"
@@ -265,3 +306,104 @@ def _arcade_to_json_type(arcade_type: str) -> str:
         "array": "array",
     }
     return mapping.get(arcade_type, "object")
+
+
+def _generate_typescript_registry(tools: list[ToolDefinition]) -> str:
+    """Generate TypeScript registry with input/output type maps."""
+    output = "// Auto-generated type registry for dynamic tool usage\n\n"
+
+    # Import all types
+    toolkit_imports: dict[str, list[str]] = {}
+    for tool in tools:
+        toolkit_name = tool.toolkit.name.lower()
+        if toolkit_name not in toolkit_imports:
+            toolkit_imports[toolkit_name] = []
+        toolkit_imports[toolkit_name].append(tool.name)
+
+    # Generate imports
+    for toolkit, tool_names in sorted(toolkit_imports.items()):
+        for tool_name in sorted(tool_names):
+            output += f"import type {{ {tool_name}Input, {tool_name}Output }} from './tools/{toolkit}/{tool_name.lower()}';\n"
+
+        output += "\n// Input type map\n"
+    output += "export interface ToolInputMap {\n"
+    for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
+        fq_name = tool.get_fully_qualified_name()
+        # Include version if available
+        tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
+        output += f"  '{tool_key}': {tool.name}Input;\n"
+    output += "}\n\n"
+
+    output += "// Output type map\n"
+    output += "export interface ToolOutputMap {\n"
+    for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
+        fq_name = tool.get_fully_qualified_name()
+        # Include version if available
+        tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
+        output += f"  '{tool_key}': {tool.name}Output;\n"
+    output += "}\n\n"
+
+    output += "// Combined schema map\n"
+    output += "export interface ToolSchemaMap {\n"
+    for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
+        fq_name = tool.get_fully_qualified_name()
+        # Include version if available
+        tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
+        output += f"  '{tool_key}': {{\n"
+        output += f"    input: {tool.name}Input;\n"
+        output += f"    output: {tool.name}Output;\n"
+        output += "  };\n"
+    output += "}\n\n"
+
+    # Add helper type
+    output += "// Helper type for tool names\n"
+    output += "export type ToolName = keyof ToolSchemaMap;\n"
+
+    return output
+
+
+def _generate_typescript_schemas(tools: list[ToolDefinition]) -> str:
+    """Generate runtime validation schemas."""
+    output = "// Auto-generated runtime validation schemas\n\n"
+
+    output += "export const ToolSchemas = {\n"
+    for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
+        fq_name = tool.get_fully_qualified_name()
+        # Include version if available
+        tool_key = f"{fq_name}@{tool.toolkit.version}" if tool.toolkit.version else str(fq_name)
+        output += f"  '{tool_key}': {{\n"
+        output += (
+            "    input: "
+            + json.dumps(_value_schema_to_json_schema(tool.input), indent=4).replace("\n", "\n    ")
+            + ",\n"
+        )
+        output += (
+            "    output: "
+            + json.dumps(_value_schema_to_json_schema(tool.output), indent=4).replace(
+                "\n", "\n    "
+            )
+            + "\n"
+        )
+        output += "  },\n"
+    output += "} as const;\n"
+
+    return output
+
+
+def _generate_typescript_index(
+    tools_by_toolkit: dict[str, list[ToolDefinition]],
+) -> str:
+    """Generate main index file."""
+    output = "// Auto-generated index file\n\n"
+
+    # Export all from registry and schemas
+    output += "export * from './registry';\n"
+    output += "export * from './schemas';\n\n"
+
+    # Export all tool types
+    output += "// Export all tool types\n"
+    for toolkit in sorted(tools_by_toolkit.keys()):
+        for tool in sorted(tools_by_toolkit[toolkit], key=lambda t: t.name):
+            output += f"export * from './tools/{toolkit}/{tool.name.lower()}';\n"
+
+    return output

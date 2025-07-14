@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from textwrap import dedent
-from typing import Any, Callable, Optional
+from typing import Any
 
 from crewai.tools.base_tool import BaseTool
 from pydantic import BaseModel as PydanticBaseModel
@@ -20,8 +21,8 @@ class StructuredTool(BaseTool):  # type: ignore[no-any-unimported]
         cls,
         func: Callable,
         args_schema: type[PydanticBaseModel],
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
         **kwargs: Any,
     ) -> "StructuredTool":
         """Create a new StructuredTool instance from a function.

@@ -1,7 +1,8 @@
 import inspect
 import json
 import logging
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from arcade_serve.mcp.types import InitializeRequest, JSONRPCRequest, MCPMessage
 

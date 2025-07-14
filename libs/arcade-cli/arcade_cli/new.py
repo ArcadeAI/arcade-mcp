@@ -3,7 +3,6 @@ import shutil
 from datetime import datetime
 from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import Optional
 
 import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -30,7 +29,7 @@ ARCADE_SERVE_MIN_VERSION = "2.0.0"
 ARCADE_SERVE_MAX_VERSION = "3.0.0"
 
 
-def ask_question(question: str, default: Optional[str] = None) -> str:
+def ask_question(question: str, default: str | None = None) -> str:
     """
     Ask a question via input() and return the answer.
     """

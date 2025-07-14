@@ -1,6 +1,7 @@
 import functools
 import inspect
-from typing import Any, Callable, TypeVar, Union
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.errors import ToolExecutionError
@@ -13,9 +14,9 @@ def tool(
     func: Callable | None = None,
     desc: str | None = None,
     name: str | None = None,
-    requires_auth: Union[ToolAuthorization, None] = None,
-    requires_secrets: Union[list[str], None] = None,
-    requires_metadata: Union[list[str], None] = None,
+    requires_auth: ToolAuthorization | None = None,
+    requires_secrets: list[str] | None = None,
+    requires_metadata: list[str] | None = None,
 ) -> Callable:
     def decorator(func: Callable) -> Callable:
         func_name = str(getattr(func, "__name__", None))

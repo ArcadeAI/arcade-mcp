@@ -5,7 +5,7 @@ import traceback
 import uuid
 import webbrowser
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import typer
@@ -105,7 +105,7 @@ def login(
         "--host",
         help="The Arcade Cloud host to log in to.",
     ),
-    port: Optional[int] = typer.Option(
+    port: int | None = typer.Option(
         None,
         "-p",
         "--port",
@@ -199,10 +199,10 @@ def new(
     rich_help_panel="Tool Development",
 )
 def show(
-    toolkit: Optional[str] = typer.Option(
+    toolkit: str | None = typer.Option(
         None, "-T", "--toolkit", help="The toolkit to show the tools of"
     ),
-    tool: Optional[str] = typer.Option(
+    tool: str | None = typer.Option(
         None, "-t", "--tool", help="The specific tool to show details for"
     ),
     host: str = typer.Option(
@@ -217,7 +217,7 @@ def show(
         "-l",
         help="Show the local environment's catalog instead of an Arcade Engine's catalog.",
     ),
-    port: Optional[int] = typer.Option(
+    port: int | None = typer.Option(
         None,
         "-p",
         "--port",
@@ -727,7 +727,7 @@ def dashboard(
         "--host",
         help="The Arcade Engine host that serves the dashboard.",
     ),
-    port: Optional[int] = typer.Option(
+    port: int | None = typer.Option(
         None,
         "-p",
         "--port",
@@ -782,7 +782,7 @@ def dashboard(
 @cli.callback()
 def main_callback(
     ctx: typer.Context,
-    _: Optional[bool] = typer.Option(
+    _: bool | None = typer.Option(
         None,
         "-v",
         "--version",
