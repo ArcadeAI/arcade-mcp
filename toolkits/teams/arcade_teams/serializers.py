@@ -1,3 +1,4 @@
+import json
 from collections.abc import Callable
 
 from msgraph.generated.models.channel import Channel
@@ -8,7 +9,6 @@ from msgraph.generated.models.chat_message_mention import ChatMessageMention
 from msgraph.generated.models.chat_message_reaction import ChatMessageReaction
 from msgraph.generated.models.conversation_member import ConversationMember
 from msgraph.generated.models.identity_set import IdentitySet
-from msgraph.generated.models.item_body import ItemBody
 from msgraph.generated.models.person import Person
 from msgraph.generated.models.physical_address import PhysicalAddress
 from msgraph.generated.models.team import Team
@@ -125,6 +125,35 @@ def serialize_member(member: ConversationMember, transform: Callable | None = No
 
 
 def serialize_chat_message(message: ChatMessage, transform: Callable | None = None) -> dict:
+    message_dict = serialize_message_metadata(message)
+
+    content = serialize_message_content(message)
+    if content:
+        message_dict["content"] = content
+
+    if message.mentions:
+        message_dict["mentions"] = serialize_mentions(message.mentions)
+
+    if message.attachments:
+        attachments = [
+            serialize_attachment(attachment)
+            for attachment in message.attachments
+            if attachment.content_type != "messageReference"
+        ]
+        if attachments:
+            message_dict["attachments"] = attachments
+
+    replies = serialize_message_replies(message)
+    if replies:
+        message_dict["replying_to"] = replies
+
+    if transform:
+        return transform(message_dict)
+
+    return message_dict
+
+
+def serialize_message_metadata(message: ChatMessage) -> dict:
     message_dict = {
         "id": message.id,
     }
@@ -134,10 +163,6 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
             "user_id": message.from_.user.id,
             "user_name": message.from_.user.display_name,
         }
-
-    content = serialize_message_content(message)
-    if content:
-        message_dict["content"] = content
 
     if message.created_date_time:
         message_dict["created_at"] = message.created_date_time.isoformat()
@@ -151,25 +176,30 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
     if message.web_url:
         message_dict["web_url"] = message.web_url
 
-    if message.mentions:
-        message_dict["mentions"] = serialize_mentions(message.mentions)
-
-    if message.attachments:
-        message_dict["attachments"] = [
-            serialize_attachment(attachment) for attachment in message.attachments
-        ]
-
-    if transform:
-        return transform(message_dict)
-
     return message_dict
+
+
+def serialize_message_replies(message: ChatMessage) -> list[dict]:
+    replies = []
+    for attachment in message.attachments:
+        if attachment.content_type == "messageReference":
+            data = json.loads(attachment.content)
+            replies.append({
+                "id": data["messageId"],
+                "preview": data["messagePreview"],
+                "author": {
+                    "user_id": data["messageSender"].get("user", {}).get("id"),
+                    "name": data["messageSender"].get("user", {}).get("displayName"),
+                },
+            })
+    return replies
 
 
 def serialize_message_content(message: ChatMessage) -> dict:
     content = {}
 
     if message.body:
-        content["text"] = serialize_message_body_text(message.body, message.mentions)
+        content["text"] = serialize_message_body_text(message)
         content["type"] = message.body.content_type.value
 
     if message.summary:
@@ -181,7 +211,10 @@ def serialize_message_content(message: ChatMessage) -> dict:
     return content
 
 
-def serialize_message_body_text(body: ItemBody, mentions: list[ChatMessageMention]) -> dict:
+def serialize_message_body_text(message: ChatMessage) -> dict:
+    mentions = message.mentions
+    body = message.body
+
     try:
         user_ids_seen = set()
         mentions_dicts = serialize_mentions(mentions)
@@ -204,6 +237,22 @@ def serialize_message_body_text(body: ItemBody, mentions: list[ChatMessageMentio
                 f'<at id="{mention.id}">{mention.mention_text}</at>',
                 f'<mention user_id="{mention.mentioned.user.id}">@{user_name}</mention>',
             )
+
+        for attachment in message.attachments:
+            if attachment.content_type == "messageReference":
+                data = json.loads(attachment.content)
+                pattern = f'<attachment id="{data["messageId"]}"></attachment>'
+                reply = (
+                    f'<blockquote type="reply" message_id="{data["messageId"]}" '
+                    f'author="{data["messageSender"].get("user", {}).get("displayName", "")}">'
+                    f"{data['messagePreview']}</blockquote>"
+                )
+                text = text.replace(pattern, reply)
+            else:
+                pattern = f'<attachment id="{attachment.id}"></attachment>'
+                text = text.replace(
+                    pattern, f'<attachment id="{attachment.id}">{attachment.name}</attachment>'
+                )
     except Exception:
         text = body.content
     return text
