@@ -552,7 +552,7 @@ def serve(
         show_default=True,
     ),
     disable_auth: bool = typer.Option(
-        False,
+        True,
         "--no-auth",
         help="Disable authentication for the worker. Not recommended for production.",
         show_default=True,

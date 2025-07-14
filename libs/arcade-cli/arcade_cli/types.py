@@ -471,7 +471,7 @@ def _generate_typescript_registry(tools: list[ToolDefinition]) -> str:
             output_name = f"{toolkit_prefix}{tool_name}Output"
             output += f"import type {{ {input_name}, {output_name} }} from './tools/{toolkit}/{tool_name.lower()}';\n"
 
-        output += "\n// Input type map\n"
+    output += "\n// Input type map\n"
     output += "export interface ToolInputMap {\n"
     for tool in sorted(tools, key=lambda t: str(t.get_fully_qualified_name())):
         fq_name = tool.get_fully_qualified_name()
