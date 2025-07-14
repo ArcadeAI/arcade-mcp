@@ -34,7 +34,7 @@ async def get_channel(
     ],
     channel_id_or_name: Annotated[str, "The ID or name of the channel to get."],
 ) -> Annotated[dict, "The channel."]:
-    """Retrieves metadata about a channel.
+    """Retrieves metadata about a Microsoft Teams channel.
 
     When available, prefer providing a channel_id for optimal performance.
     """
@@ -71,7 +71,7 @@ async def list_channels(
     dict,
     "The channels in the team.",
 ]:
-    """Lists channels in a given team (including incoming channels shared with the team)."""
+    """Lists channels in a given Microsoft Teams team (including shared incoming channels)."""
     limit = min(100, max(1, limit)) + offset
 
     team_id = await resolve_team_id(context, team_id_or_name)
@@ -114,7 +114,7 @@ async def search_channels(
     dict,
     "The channels in the team.",
 ]:
-    """Lists the channels in a given team."""
+    """Searches for channels in a given Microsoft Teams team."""
     if not keywords:
         message = "At least one keyword is required."
         raise ToolExecutionError(message=message, developer_message=message)
@@ -157,7 +157,7 @@ async def get_primary_channel(
     dict[str, dict | None],
     "The primary channel of a team. If no primary channel is set, returns None.",
 ]:
-    """The primary channel of a team."""
+    """Retrieves the primary channel of a Microsoft Teams team."""
     team_id = await resolve_team_id(context, team_id_or_name)
     client = get_client(context.get_auth_token_or_empty())
     response = await client.teams.by_team_id(team_id).primary_channel.get(
@@ -191,7 +191,7 @@ async def list_channel_members(
     dict,
     "The members of a channel.",
 ]:
-    """Lists the members of a channel.
+    """Lists the members of a Microsoft Teams channel.
 
     The Microsoft Graph API returns only up to the first 999 members of any channel.
     """
@@ -231,7 +231,7 @@ async def get_channel_messages(
         "The maximum number of messages to return. Defaults to 50, max is 50.",
     ] = 50,
 ) -> Annotated[dict, "The messages in the channel."]:
-    """Gets the messages in a channel."""
+    """Retrieves the messages in a Microsoft Teams channel."""
     limit = min(50, max(1, limit))
     client = get_client(context.get_auth_token_or_empty())
 
@@ -268,7 +268,7 @@ async def get_channel_message_replies(
     ],
     channel_id_or_name: Annotated[str, "The ID or name of the channel to get the replies of."],
 ) -> Annotated[dict, "The replies to the message."]:
-    """Gets the replies to a Microsoft Teams channel message."""
+    """Retrieves the replies to a Microsoft Teams channel message."""
     client = get_client(context.get_auth_token_or_empty())
 
     team_id = await resolve_team_id(context, team_id_or_name)

@@ -16,7 +16,7 @@ from arcade_teams.utils import build_offset_pagination, match_user_by_name, user
 async def get_signed_in_user(
     context: ToolContext,
 ) -> Annotated[dict, "The user currently signed in."]:
-    """Get the user currently signed in."""
+    """Get the user currently signed in Microsoft Teams."""
     client = get_client(context.get_auth_token_or_empty())
     response = await client.me.get()
     return serialize_user(response)
@@ -30,7 +30,7 @@ async def list_users(
     ] = 50,
     offset: Annotated[int, "The offset to start from."] = 0,
 ) -> Annotated[dict, "The users in the tenant."]:
-    """List the users in the tenant.
+    """Lists the users in the Microsoft Teams tenant.
 
     The Microsoft Graph API returns only up to the first 999 users.
     """
@@ -71,7 +71,7 @@ async def search_users(
     ] = 50,
     offset: Annotated[int, "The offset to start from."] = 0,
 ) -> Annotated[dict, "The users in the tenant."]:
-    """List the users in the tenant.
+    """Searches for users in the Microsoft Teams tenant.
 
     This tool only return users that are directly linked to the tenant the current signed in user
     is a member of. If you need to retrieve users that have interacted with the current user but

@@ -29,7 +29,7 @@ async def list_teams(
     dict,
     "The teams the current user is associated with.",
 ]:
-    """Lists the teams the current user is associated with."""
+    """Lists the teams the current user is associated with in Microsoft Teams."""
     client = get_client(context.get_auth_token_or_empty())
 
     if membership_type == TeamMembershipType.DIRECT_MEMBER:
@@ -59,7 +59,7 @@ async def search_teams(
     dict,
     "Search for teams in the organization (regardless of whether the current user is a member).",
 ]:
-    """Search for teams in the organization (regardless of whether the current user is a member)."""
+    """Searches for teams available to the current user in Microsoft Teams."""
     limit = min(50, max(1, limit))
     client = get_client(context.get_auth_token_or_empty())
 
@@ -93,7 +93,7 @@ async def get_team(
         "performance.",
     ] = None,
 ) -> Annotated[dict, "The team metadata."]:
-    """Retrieves metadata about a team.
+    """Retrieves metadata about a team in Microsoft Teams.
 
     Provide one of team_id OR team_name, never both. When available, prefer providing a team_id for
     optimal performance.
@@ -138,9 +138,9 @@ async def list_team_members(
     offset: Annotated[int, "The number of members to skip. Defaults to 0."] = 0,
 ) -> Annotated[
     dict,
-    "The members of a team.",
+    "The members of the team.",
 ]:
-    """Lists the members of a team.
+    """Lists the members of a team in Microsoft Teams.
 
     Provide one of team_id OR team_name, never both. When available, prefer providing a team_id for
     optimal performance.
@@ -205,9 +205,9 @@ async def search_team_members(
     offset: Annotated[int, "The number of members to skip. Defaults to 0."] = 0,
 ) -> Annotated[
     dict,
-    "The members of a team matching the search criteria.",
+    "The members of the team.",
 ]:
-    """Lists the members of a team matching the search criteria.
+    """Searches for members of a team in Microsoft Teams.
 
     Provide one of team_id OR team_name, never both. When available, prefer providing a team_id for
     optimal performance.
