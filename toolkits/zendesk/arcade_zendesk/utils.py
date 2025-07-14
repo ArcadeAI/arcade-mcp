@@ -62,8 +62,8 @@ async def fetch_paginated_results(
         response.raise_for_status()
         page_data = response.json()
 
-        # Extract results from current page
-        page_results = page_data.get("results", [])
+        # Extract results from current page (handle both "results" and "tickets" keys)
+        page_results = page_data.get("results", page_data.get("tickets", []))
 
         # If this is the first page, skip to the start index
         if current_page == start_page:

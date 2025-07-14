@@ -4,6 +4,7 @@ import httpx
 import pytest
 from arcade_core.errors import ToolExecutionError
 
+from arcade_zendesk.enums import SortOrder, TicketStatus
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
     get_ticket_comments,
@@ -40,7 +41,7 @@ class TestListTickets:
 
         mock_httpx_client.get.return_value = mock_http_response(tickets_response)
 
-        result = await list_tickets(mock_context)
+        result = await list_tickets(mock_context, status=TicketStatus.OPEN)
 
         # Verify the result is structured data
         assert isinstance(result, dict)
@@ -57,65 +58,84 @@ class TestListTickets:
             )
 
         # Verify the API call with default parameters
-        mock_httpx_client.get.assert_called_once()
+        mock_httpx_client.get.assert_called()
+        # The fetch_paginated_results makes the actual call
         call_args = mock_httpx_client.get.call_args
-        assert call_args[0][0] == "https://test-subdomain.zendesk.com/api/v2/tickets.json"
+        assert "https://test-subdomain.zendesk.com/api/v2/tickets.json" in call_args[0][0]
         assert call_args[1]["params"]["status"] == "open"
-        assert call_args[1]["params"]["page[size]"] == "100"  # Default per_page
-        assert call_args[1]["params"]["sort"] == "-id"  # Default sort_order desc
+        assert call_args[1]["params"]["per_page"] == 100
+        assert call_args[1]["params"]["sort_order"] == "desc"
+        assert call_args[1]["params"]["page"] == 1  # First page
 
     @pytest.mark.asyncio
-    async def test_list_tickets_with_pagination(
+    async def test_list_tickets_with_offset_limit(
         self, mock_context, mock_httpx_client, mock_http_response
     ):
-        """Test listing tickets with pagination parameters."""
+        """Test listing tickets with offset and limit."""
         mock_context.get_secret.return_value = "test-subdomain"
 
+        # Mock response for page 2 (offset 10, limit 5)
         tickets_response = {
-            "tickets": [{"id": 1, "subject": "Test", "status": "open"}],
-            "meta": {"has_more": True, "after_cursor": "abc123"},
-        }
-
-        mock_httpx_client.get.return_value = mock_http_response(tickets_response)
-
-        result = await list_tickets(mock_context, per_page=5, cursor="prev123", sort_order="asc")
-
-        # Verify pagination metadata is included
-        assert result["has_more"] is True
-        assert result["after_cursor"] == "abc123"
-
-        # Verify API call parameters
-        call_args = mock_httpx_client.get.call_args
-        assert call_args[1]["params"]["page[size]"] == "5"
-        assert call_args[1]["params"]["page[after]"] == "prev123"
-        assert call_args[1]["params"]["sort"] == "id"  # asc order
-
-    @pytest.mark.asyncio
-    async def test_list_tickets_offset_pagination(
-        self, mock_context, mock_httpx_client, mock_http_response
-    ):
-        """Test listing tickets with offset pagination."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        tickets_response = {
-            "tickets": [{"id": 3, "subject": "Test", "status": "pending"}],
+            "tickets": [
+                {"id": 11, "subject": "Test 11", "status": "open"},
+                {"id": 12, "subject": "Test 12", "status": "open"},
+                {"id": 13, "subject": "Test 13", "status": "open"},
+                {"id": 14, "subject": "Test 14", "status": "open"},
+                {"id": 15, "subject": "Test 15", "status": "open"},
+            ],
             "next_page": "https://test.zendesk.com/api/v2/tickets.json?page=3",
-            "count": 50,
         }
 
         mock_httpx_client.get.return_value = mock_http_response(tickets_response)
 
-        result = await list_tickets(mock_context, status="pending", page=2, per_page=10)
+        result = await list_tickets(
+            mock_context, status=TicketStatus.OPEN, limit=5, offset=10, sort_order=SortOrder.ASC
+        )
 
-        # Verify offset pagination metadata
-        assert "next_page" in result
-        assert result["total_count"] == 50
+        # Verify response structure
+        assert result["count"] == 5
+        assert len(result["tickets"]) == 5
+        assert "next_offset" in result
+        assert result["next_offset"] == 15  # offset + limit
 
         # Verify API call parameters
         call_args = mock_httpx_client.get.call_args
-        assert call_args[1]["params"]["page"] == "2"
-        assert call_args[1]["params"]["per_page"] == "10"
+        assert (
+            call_args[1]["params"]["page"] == 2
+        )  # offset 10 / per_page 100 = page 2 (but adjusted for limit)
+        assert call_args[1]["params"]["per_page"] == 100
+        assert call_args[1]["params"]["sort_order"] == "asc"
+
+    @pytest.mark.asyncio
+    async def test_list_tickets_no_more_results(
+        self, mock_context, mock_httpx_client, mock_http_response
+    ):
+        """Test listing tickets when no more results are available."""
+        mock_context.get_secret.return_value = "test-subdomain"
+
+        # Mock response with no next_page - simulating the last page
+        tickets_response = {
+            "tickets": [{"id": 21, "subject": "Test", "status": "pending"}],
+            # No next_page means no more results
+        }
+
+        mock_httpx_client.get.return_value = mock_http_response(tickets_response)
+
+        result = await list_tickets(
+            mock_context,
+            status=TicketStatus.PENDING,
+            limit=10,
+            offset=0,  # Start from beginning
+        )
+
+        # Verify no next_offset when no more results
+        assert "next_offset" not in result
+        assert result["count"] == 1
+
+        # Verify API call parameters
+        call_args = mock_httpx_client.get.call_args
         assert call_args[1]["params"]["status"] == "pending"
+        assert call_args[1]["params"]["page"] == 1
 
     @pytest.mark.asyncio
     async def test_list_tickets_no_tickets(
@@ -126,7 +146,7 @@ class TestListTickets:
 
         mock_httpx_client.get.return_value = mock_http_response({"tickets": []})
 
-        result = await list_tickets(mock_context)
+        result = await list_tickets(mock_context, status=TicketStatus.OPEN)
 
         assert result["tickets"] == []
         assert result["count"] == 0
@@ -499,7 +519,7 @@ class TestAuthenticationAndSecrets:
 
         mock_httpx_client.get.return_value = mock_http_response({"tickets": []})
 
-        await list_tickets(mock_context)
+        await list_tickets(mock_context, status=TicketStatus.OPEN)
 
         # Verify the correct subdomain was used
         call_args = mock_httpx_client.get.call_args

@@ -1,11 +1,12 @@
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_zendesk.utils import get_zendesk_subdomain
+from arcade_zendesk.enums import SortOrder, TicketStatus
+from arcade_zendesk.utils import fetch_paginated_results, get_zendesk_subdomain
 
 
 def _handle_ticket_not_found(response: httpx.Response, ticket_id: int) -> None:
@@ -26,64 +27,70 @@ def _handle_ticket_not_found(response: httpx.Response, ticket_id: int) -> None:
 async def list_tickets(
     context: ToolContext,
     status: Annotated[
-        str,
-        "The status of tickets to filter by. "
-        "Valid values: 'new', 'open', 'pending', 'solved', 'closed'. "
-        "Defaults to 'open'",
-    ] = "open",
-    per_page: Annotated[
-        int, "The number of tickets to return per page (max 100). Defaults to 100"
-    ] = 100,
-    page: Annotated[
-        int | None,
-        "The page number for offset pagination. If not provided, cursor pagination is used.",
-    ] = None,
-    cursor: Annotated[
-        str | None,
-        "The cursor for pagination. Use 'after_cursor' from previous response to get next page.",
-    ] = None,
+        TicketStatus,
+        "The status of tickets to filter by. Defaults to 'open'",
+    ] = TicketStatus.OPEN,
+    limit: Annotated[
+        int,
+        "Number of tickets to return. Defaults to 30",
+    ] = 30,
+    offset: Annotated[
+        int,
+        "Number of tickets to skip before returning results. Defaults to 0",
+    ] = 0,
     sort_order: Annotated[
-        Literal["asc", "desc"],
+        SortOrder,
         "Sort order for tickets by ID. 'asc' returns oldest first, 'desc' returns newest first. "
         "Defaults to 'desc'",
-    ] = "desc",
+    ] = SortOrder.DESC,
 ) -> Annotated[
     dict[str, Any],
-    "A dictionary containing tickets list (each with html_url), count, and pagination metadata",
+    "A dictionary containing tickets list (each with html_url), count, and pagination metadata. "
+    "Includes 'next_offset' when more results are available",
 ]:
-    """List tickets from your Zendesk account with pagination support.
+    """List tickets from your Zendesk account with offset-based pagination.
 
     By default, returns tickets sorted by ID with newest tickets first (desc).
 
     Each ticket in the response includes an 'html_url' field with the direct link
     to view the ticket in Zendesk.
 
-    Supports both cursor-based pagination (recommended) and offset-based pagination.
-    For cursor pagination, omit 'page' parameter and use 'cursor' for subsequent requests.
-    For offset pagination, use 'page' parameter (limited to first 100 pages).
+    PAGINATION:
+    - The response includes 'next_offset' when more results are available
+    - To fetch the next batch, simply pass the 'next_offset' value as the 'offset' parameter
+    - If 'next_offset' is not present, you've reached the end of available results
     """
+
+    # Validate limit and offset parameters
+    if limit < 1:
+        raise RetryableToolError(
+            message="limit must be at least 1.",
+            developer_message=f"Invalid limit value: {limit}",
+            retry_after_ms=100,
+            additional_prompt_content="Provide a positive limit value",
+        )
+
+    if offset < 0:
+        raise RetryableToolError(
+            message="offset cannot be negative.",
+            developer_message=f"Invalid offset value: {offset}",
+            retry_after_ms=100,
+            additional_prompt_content="Provide a non-negative offset value",
+        )
 
     # Get the authorization token
     token = context.get_auth_token_or_empty()
     subdomain = get_zendesk_subdomain(context)
 
-    # Build the API URL with query parameters
-    base_url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json"
-    params = {"status": status}
+    # Build the API URL
+    url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json"
 
-    # Determine pagination type
-    if page is not None:
-        # Offset-based pagination
-        params["page"] = str(page)
-        params["per_page"] = str(min(per_page, 100))
-        params["sort_order"] = sort_order
-    else:
-        # Cursor-based pagination (recommended)
-        params["page[size]"] = str(min(per_page, 100))
-        if cursor:
-            params["page[after]"] = cursor
-        # For cursor pagination, use minus sign for descending order
-        params["sort"] = "-id" if sort_order == "desc" else "id"
+    # Base parameters for the request
+    base_params: dict[str, Any] = {
+        "status": status.value,
+        "per_page": 100,  # Max allowed per page
+        "sort_order": sort_order.value,
+    }
 
     # Make the API request
     async with httpx.AsyncClient() as client:
@@ -93,14 +100,18 @@ async def list_tickets(
                 "Content-Type": "application/json",
             }
 
-            response = await client.get(base_url, headers=headers, params=params)
-            response.raise_for_status()
+            # Use the fetch_paginated_results utility
+            data = await fetch_paginated_results(
+                client=client,
+                url=url,
+                headers=headers,
+                params=base_params,
+                offset=offset,
+                limit=limit,
+            )
 
-            data = response.json()
-            tickets = data.get("tickets", [])
-
-            # Build response with pagination metadata
-            # Replace API url with web interface url
+            # Process tickets to add html_url and remove api url
+            tickets = data.get("results", [])
             for ticket in tickets:
                 if "id" in ticket:
                     ticket["html_url"] = (
@@ -110,44 +121,37 @@ async def list_tickets(
                 if "url" in ticket:
                     del ticket["url"]
 
+            # Build the result with consistent structure
             result = {
                 "tickets": tickets,
-                "count": len(tickets),
+                "count": data.get("count", len(tickets)),
             }
 
-            # Add pagination metadata based on response type
-            if "meta" in data:
-                # Cursor-based pagination response
-                result["has_more"] = data["meta"].get("has_more", False)
-                result["after_cursor"] = data["meta"].get("after_cursor")
-                result["before_cursor"] = data["meta"].get("before_cursor")
-            else:
-                # Offset-based pagination response
-                result["next_page"] = data.get("next_page")
-                result["previous_page"] = data.get("previous_page")
-                result["total_count"] = data.get("count")
+            # Add next_offset if present
+            if "next_offset" in data:
+                result["next_offset"] = data["next_offset"]
 
         except httpx.HTTPStatusError as e:
             raise ToolExecutionError(
                 message=f"Failed to list tickets: HTTP {e.response.status_code}",
                 developer_message=(
                     f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {base_url}, params: {params}"
+                    f"URL: {url}, params: {base_params}"
                 ),
             ) from e
         except httpx.TimeoutException as e:
             raise RetryableToolError(
                 message="Request timed out while listing tickets.",
-                developer_message=f"Timeout occurred. URL: {base_url}, params: {params}",
+                developer_message=f"Timeout occurred. URL: {url}, params: {base_params}",
                 retry_after_ms=5000,
-                additional_prompt_content="Try reducing per_page or using more specific filters.",
+                additional_prompt_content="Try reducing limit or using more specific filters.",
             ) from e
         except Exception as e:
             raise ToolExecutionError(
                 message=f"Failed to list tickets: {e!s}",
                 developer_message=(
                     f"Unexpected error: {type(e).__name__}: {e!s}. "
-                    f"URL: {base_url}, params: {params}"
+                    f"URL: {url}, params: {base_params}"
                 ),
             ) from e
         else:

@@ -9,6 +9,7 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_zendesk
+from arcade_zendesk.enums import SortOrder, TicketStatus
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
     get_ticket_comments,
@@ -86,12 +87,12 @@ def zendesk_tickets_read_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_tickets,
-                args={"per_page": 5},
+                args={"limit": 5},
             )
         ],
         rubric=rubric,
         critics=[
-            BinaryCritic(critic_field="per_page", weight=1.0),
+            BinaryCritic(critic_field="limit", weight=1.0),
         ],
     )
 
@@ -102,7 +103,7 @@ def zendesk_tickets_read_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_tickets,
-                args={"status": "pending"},
+                args={"status": TicketStatus.PENDING},
             )
         ],
         rubric=rubric,
@@ -118,7 +119,7 @@ def zendesk_tickets_read_eval_suite() -> EvalSuite:
         expected_tool_calls=[
             ExpectedToolCall(
                 func=list_tickets,
-                args={"sort_order": "asc"},
+                args={"sort_order": SortOrder.ASC},
             )
         ],
         rubric=rubric,
