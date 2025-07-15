@@ -2,6 +2,7 @@ from typing import Annotated, Any, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
@@ -434,6 +435,35 @@ async def search_issues_with_jql(
     return response
 
 
+def get_atlassian_clouds() -> list[dict]:
+    pass
+
+
+def resolve_atlassian_cloud_id(context: ToolContext) -> str:
+    clouds: list[dict] = get_atlassian_clouds(context)
+
+    if len(clouds) == 0:
+        raise ToolExecutionError(
+            message="No Atlassian Clouds found. Please provide the Atlassian Cloud ID to use."
+        )
+    elif len(clouds) == 1:
+        atlassian_cloud_id = clouds[0]["id"]
+    else:
+        import json
+
+        message = "Multiple Atlassian Clouds found. Please provide the Atlassian Cloud ID to use"
+        additional_prompt_content = (
+            "Available Atlassian Clouds to pick from, "
+            f"ask the user which one to use: {json.dumps(clouds)}"
+        )
+        raise RetryableToolError(
+            message=message,
+            developer_message=message,
+            additional_prompt_content=additional_prompt_content,
+        )
+    return atlassian_cloud_id
+
+
 @tool(
     requires_auth=Atlassian(
         scopes=[
@@ -504,6 +534,11 @@ async def create_issue(
         "provided, the tool will try to find a unique exact match among the available users. "
         "Defaults to None (no reporter).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The Atlassian Cloud ID to use for the issue. Defaults to None (uses the default Atlassian "
+        "Cloud ID).",
+    ] = None,
 ) -> Annotated[dict, "The created issue"]:
     """Create a new Jira issue.
 
@@ -520,6 +555,9 @@ async def create_issue(
     projects, priorities, issue types, or users. Provide the name, key, or email and the tool
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
+    if not atlassian_cloud_id:
+        atlassian_cloud_id = resolve_atlassian_cloud_id(context)
+
     project_data: dict[str, Any] | None = None
 
     if project is None and parent_issue is None:
@@ -544,7 +582,7 @@ async def create_issue(
     if error:
         return error
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    client = JiraClient(context.get_auth_token_or_empty(), _cloud_id=atlassian_cloud_id)
 
     request_body = {
         "fields": remove_none_values({
