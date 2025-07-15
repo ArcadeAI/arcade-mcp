@@ -1,6 +1,7 @@
 import logging
 import os
 import urllib.parse
+from typing import Optional
 
 from fastapi import FastAPI
 from opentelemetry import _logs, trace
@@ -26,13 +27,13 @@ class OTELHandler:
     def __init__(self, enable: bool = True, log_level: int = logging.INFO):
         self.enable = enable
         self.log_level = log_level
-        self._tracer_provider: TracerProvider | None = None
-        self._tracer_span_exporter: OTLPSpanExporter | None = None
-        self._meter_provider: MeterProvider | None = None
-        self._meter_reader: PeriodicExportingMetricReader | None = None
-        self._otlp_metric_exporter: OTLPMetricExporter | None = None
-        self._logger_provider: LoggerProvider | None = None
-        self._log_processor: BatchLogRecordProcessor | None = None
+        self._tracer_provider: Optional[TracerProvider] = None
+        self._tracer_span_exporter: Optional[OTLPSpanExporter] = None
+        self._meter_provider: Optional[MeterProvider] = None
+        self._meter_reader: Optional[PeriodicExportingMetricReader] = None
+        self._otlp_metric_exporter: Optional[OTLPMetricExporter] = None
+        self._logger_provider: Optional[LoggerProvider] = None
+        self._log_processor: Optional[BatchLogRecordProcessor] = None
         self.environment = os.environ.get("ARCADE_ENVIRONMENT", "local")
 
     def instrument_app(self, app: FastAPI) -> None:

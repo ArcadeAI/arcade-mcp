@@ -2,9 +2,8 @@ import asyncio
 import functools
 import inspect
 import json
-from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
 from arcade_core.config_model import Config
@@ -214,7 +213,7 @@ class EvalCase:
         sorted_actual_tools = sorted(actual_tools)
         return self.rubric.fail_on_tool_selection and not all(
             compare_tool_name(expected, actual)
-            for expected, actual in zip(sorted_expected_tools, sorted_actual_tools, strict=False)
+            for expected, actual in zip(sorted_expected_tools, sorted_actual_tools)
         )
 
     def check_tool_call_quantity_failure(self, actual_count: int) -> bool:
@@ -287,7 +286,7 @@ class EvalCase:
         total_score = 0.0
         total_weight = 0.0
 
-        for i, j in zip(row_ind, col_ind, strict=False):
+        for i, j in zip(row_ind, col_ind):
             if i < len(self.expected_tool_calls) and j < len(actual_tool_calls):
                 expected = self.expected_tool_calls[i]
                 actual_name, actual_args = actual_tool_calls[j]

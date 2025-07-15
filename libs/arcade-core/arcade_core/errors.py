@@ -1,4 +1,5 @@
 import traceback
+from typing import Optional
 
 
 class ToolkitError(Exception):
@@ -40,7 +41,7 @@ class ToolRuntimeError(RuntimeError):
     def __init__(
         self,
         message: str,
-        developer_message: str | None = None,
+        developer_message: Optional[str] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -69,9 +70,9 @@ class RetryableToolError(ToolExecutionError):
     def __init__(
         self,
         message: str,
-        developer_message: str | None = None,
-        additional_prompt_content: str | None = None,
-        retry_after_ms: int | None = None,
+        developer_message: Optional[str] = None,
+        additional_prompt_content: Optional[str] = None,
+        retry_after_ms: Optional[int] = None,
     ):
         super().__init__(message, developer_message)
         self.additional_prompt_content = additional_prompt_content

@@ -36,19 +36,15 @@ def create_arcade_app() -> fastapi.FastAPI:
     # TODO: Find a better way to pass these configs to factory used for reload
     debug_mode = os.environ.get("ARCADE_WORKER_SECRET", "dev") == "dev"
     otel_enabled = os.environ.get("ARCADE_OTEL_ENABLE", "False").lower() == "true"
-    auth_for_reload = True
+    auth_for_reload = not debug_mode
 
     # Call setup_logging here to ensure Uvicorn worker processes also get Loguru formatting
     # for all standard library loggers.
     # The log_level for Uvicorn itself is set via uvicorn.run(log_level=...),
     # this call primarily aims to capture third-party library logs into Loguru.
-    setup_logging(
-        log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False
-    )
+    setup_logging(log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False)
 
-    logger.info(
-        f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}"
-    )
+    logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
     version = get_pkg_version("arcade-ai")
     toolkits = discover_toolkits()
 
@@ -63,9 +59,7 @@ def create_arcade_app() -> fastapi.FastAPI:
         log_level=logging.DEBUG if debug_mode else logging.INFO,
     )
 
-    custom_lifespan = partial(
-        lifespan, otel_handler=otel_handler, enable_otel=otel_enabled
-    )
+    custom_lifespan = partial(lifespan, otel_handler=otel_handler, enable_otel=otel_enabled)
 
     app = fastapi.FastAPI(
         title="Arcade Worker",
@@ -80,14 +74,12 @@ def create_arcade_app() -> fastapi.FastAPI:
 
     secret = os.getenv("ARCADE_WORKER_SECRET", "dev")
     if secret == "dev" and not os.environ.get("ARCADE_WORKER_SECRET"):  # noqa: S105
-        logger.warning(
-            "Using default 'dev' for ARCADE_WORKER_SECRET. Set this in production."
-        )
+        logger.warning("Using default 'dev' for ARCADE_WORKER_SECRET. Set this in production.")
 
     worker = FastAPIWorker(
         app=app,
         secret=secret,
-        disable_auth=auth_for_reload,  # TODO (Sam): possible unexpected behavior on reload here?
+        disable_auth=not debug_mode,  # TODO (Sam): possible unexpected behavior on reload here?
         otel_meter=otel_handler.get_meter(),
     )
     for tk in toolkits:
@@ -107,10 +99,7 @@ def _run_mcp_stdio(
     if env_file:
         load_dotenv(env_file, override=False)
     else:
-        for candidate in [
-            Path(ARCADE_CONFIG_PATH) / "arcade.env",
-            Path.cwd() / "arcade.env",
-        ]:
+        for candidate in [Path(ARCADE_CONFIG_PATH) / "arcade.env", Path.cwd() / "arcade.env"]:
             if candidate.is_file():
                 load_dotenv(candidate, override=False)
                 break
@@ -160,9 +149,7 @@ def _run_fastapi_server(
                     package_dir_str = get_package_directory(tk.package_name)
                     current_reload_dirs_paths.append(Path(package_dir_str))
                 except Exception as e:
-                    logger.warning(
-                        f"Error getting reload path for toolkit {tk.name}: {e}"
-                    )
+                    logger.warning(f"Error getting reload path for toolkit {tk.name}: {e}")
 
         serve_py_dir_path = Path(__file__).resolve().parent
         current_reload_dirs_paths.append(serve_py_dir_path)
@@ -172,9 +159,7 @@ def _run_fastapi_server(
             logger.debug(f"Uvicorn reload_dirs: {reload_dirs_str_list}")
 
     effective_workers = 1 if reload else workers_param
-    log_level_str = logging.getLevelName(
-        logging.DEBUG if debug_flag else logging.INFO
-    ).lower()
+    log_level_str = logging.getLevelName(logging.DEBUG if debug_flag else logging.INFO).lower()
 
     logger.debug(
         f"Calling uvicorn.run with app='{app_import_string}', factory=True, host='{host}', port={port}, "
@@ -228,7 +213,9 @@ def setup_logging(log_level: int = logging.INFO, mcp_mode: bool = False) -> None
     if log_level == logging.DEBUG:
         format_string = "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{file}:{line: <4}</cyan> | <level>{message}</level>"
     else:
-        format_string = "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
+        format_string = (
+            "<level>{level}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
+        )
 
     logger.configure(
         handlers=[
@@ -246,9 +233,7 @@ def setup_logging(log_level: int = logging.INFO, mcp_mode: bool = False) -> None
 
 @asynccontextmanager
 async def lifespan(
-    app: fastapi.FastAPI,
-    otel_handler: OTELHandler | None = None,
-    enable_otel: bool = False,
+    app: fastapi.FastAPI, otel_handler: OTELHandler | None = None, enable_otel: bool = False
 ) -> AsyncGenerator[None, None]:
     try:
         logger.debug(f"Server lifespan startup. OTEL enabled: {enable_otel}")
@@ -268,7 +253,7 @@ async def lifespan(
 def serve_default_worker(
     host: str = "127.0.0.1",
     port: int = 8002,
-    disable_auth: bool = True,
+    disable_auth: bool = False,
     workers: int = 1,
     timeout_keep_alive: int = 5,
     enable_otel: bool = False,
@@ -285,9 +270,7 @@ def serve_default_worker(
         logger.info("MCP mode selected.")
         toolkits_for_mcp = discover_toolkits()
         _run_mcp_stdio(
-            toolkits_for_mcp,
-            logging_enabled=not debug,
-            env_file=kwargs.pop("env_file", None),
+            toolkits_for_mcp, logging_enabled=not debug, env_file=kwargs.pop("env_file", None)
         )
         return
 

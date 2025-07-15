@@ -1,5 +1,5 @@
-from collections.abc import Callable, Iterator
-from typing import Any, Protocol
+from collections.abc import Iterator
+from typing import Any, Callable, Optional, Protocol
 
 from arcadepy import Arcade
 from arcadepy.types import ToolDefinition
@@ -30,10 +30,10 @@ class ArcadeToolManager:
 
     def __init__(
         self,
-        client: Arcade | None = None,
-        executor: ArcadeToolExecutorProtocol | None = None,
+        client: Optional[Arcade] = None,
+        executor: Optional[ArcadeToolExecutorProtocol] = None,
         *,
-        default_user_id: str | None = None,
+        default_user_id: Optional[str] = None,
         **kwargs: dict[str, Any],
     ) -> None:
         """Initialize the ArcadeToolManager.
@@ -100,8 +100,8 @@ class ArcadeToolManager:
 
     def init_tools(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
     ) -> None:
         """Initialize the tools in the manager.
 
@@ -120,7 +120,9 @@ class ArcadeToolManager:
         """
         self._tools = self._retrieve_tool_definitions(tools, toolkits)
 
-    def add_tools(self, tools: list[str] | None = None, toolkits: list[str] | None = None) -> None:
+    def add_tools(
+        self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
+    ) -> None:
         """Add tools to the manager.
 
         This method adds tools to the manager's internal tool list. If no tools or
@@ -140,7 +142,7 @@ class ArcadeToolManager:
         self._tools.update(new_tool_definitions)
 
     def get_tools(
-        self, tools: list[str] | None = None, toolkits: list[str] | None = None
+        self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
     ) -> list[StructuredTool]:
         """Retrieves the requested tools or toolkits from the manager.
 
@@ -294,7 +296,7 @@ class ArcadeToolManager:
         )
 
     def _retrieve_tool_definitions(
-        self, tools: list[str] | None = None, toolkits: list[str] | None = None
+        self, tools: Optional[list[str]] = None, toolkits: Optional[list[str]] = None
     ) -> dict[str, ToolDefinition]:
         """Retrieve tool definitions from the Arcade client.
 

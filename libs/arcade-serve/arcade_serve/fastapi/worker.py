@@ -1,6 +1,5 @@
 import json
-from collections.abc import Callable
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer

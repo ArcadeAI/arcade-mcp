@@ -142,7 +142,6 @@ class Request(BaseModel):
             if status == "Running":
                 return worker_resp.json()["data"]
             if status == "Failed":
-                console.log(worker_resp.json()["data"]["error"])
                 raise ValueError(f"Worker failed to start: {worker_resp.json()['data']['error']}")
 
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:

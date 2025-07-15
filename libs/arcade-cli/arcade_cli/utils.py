@@ -3,14 +3,13 @@ import ipaddress
 import os
 import shlex
 import webbrowser
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from importlib import metadata
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Optional, cast
+from typing import Any, Callable, Union, cast
 from urllib.parse import urlencode, urlparse
 
 import idna
@@ -19,20 +18,12 @@ from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
-from arcadepy import (
-    NOT_GIVEN,
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    Arcade,
-)
+from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
 from arcadepy.types import AuthorizationResponse
 from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
-from openai.types.chat.chat_completion_chunk import (
-    Choice as ChatCompletionChunkChoice,
-)
+from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
 from pydantic import ValidationError
 from rich.console import Console
 from rich.live import Live
@@ -67,7 +58,7 @@ class ChatCommand(str, Enum):
 
 
 def create_cli_catalog(
-    toolkit: Optional[str] = None,
+    toolkit: str | None = None,
     show_toolkits: bool = False,
 ) -> ToolCatalog:
     """
@@ -94,9 +85,7 @@ def create_cli_catalog(
     catalog = ToolCatalog()
     for loaded_toolkit in toolkits:
         if show_toolkits:
-            console.print(
-                f"Loading toolkit: {loaded_toolkit.name}", style="bold blue"
-            )
+            console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
         catalog.add_toolkit(loaded_toolkit)
     return catalog
 
@@ -167,15 +156,11 @@ def compute_base_url(
         is_ip = False
 
     # Parse the host, handling potential IPv6 addresses
-    host_for_parsing = (
-        f"[{encoded_host}]" if is_ip and ":" in encoded_host else encoded_host
-    )
+    host_for_parsing = f"[{encoded_host}]" if is_ip and ":" in encoded_host else encoded_host
     parsed_host = urlparse(f"//{host_for_parsing}")
 
     # Check if the host is a fully qualified domain name (excluding IP addresses)
-    is_fqdn = (
-        "." in parsed_host.netloc and not is_ip and "_" not in parsed_host.netloc
-    )
+    is_fqdn = "." in parsed_host.netloc and not is_ip and "_" not in parsed_host.netloc
 
     # Handle hosts that might already include a port
     if ":" in parsed_host.netloc and not is_ip:
@@ -212,10 +197,10 @@ def compute_login_url(host: str, state: str, port: int | None) -> str:
 
 def get_tools_from_engine(
     host: str,
-    port: Optional[int] = None,
+    port: int | None = None,
     force_tls: bool = False,
     force_no_tls: bool = False,
-    toolkit: Optional[str] = None,
+    toolkit: str | None = None,
 ) -> list[ToolDefinition]:
     config = validate_and_get_config()
     base_url = compute_base_url(force_tls, force_no_tls, host, port)
@@ -232,8 +217,7 @@ def get_tools_from_engine(
                 continue
     except APIConnectionError:
         console.print(
-            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)",
-            style="bold red",
+            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)", style="bold red"
         )
 
     return tools
@@ -253,9 +237,7 @@ class StreamingResult:
     tool_authorization: dict | None
 
 
-def handle_streaming_content(
-    stream: Stream[ChatCompletionChunk], model: str
-) -> StreamingResult:
+def handle_streaming_content(stream: Stream[ChatCompletionChunk], model: str) -> StreamingResult:
     """
     Display the streamed markdown chunks as a single line.
     """
@@ -330,8 +312,7 @@ def validate_and_get_config(
 
     if validate_user and (not config.user or not config.user.email):
         console.print(
-            "❌ User email not found in configuration. Please run `arcade login`.",
-            style="bold red",
+            "❌ User email not found in configuration. Please run `arcade login`.", style="bold red"
         )
         raise typer.Exit(code=1)
 
@@ -376,11 +357,7 @@ class ChatInteractionResult:
 
 
 def handle_chat_interaction(
-    client: OpenAI,
-    model: str,
-    history: list[dict],
-    user_email: str | None,
-    stream: bool = False,
+    client: OpenAI, model: str, history: list[dict], user_email: str | None, stream: bool = False
 ) -> ChatInteractionResult:
     """
     Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
@@ -427,8 +404,7 @@ def handle_chat_interaction(
         elif role == "assistant":
             message_content = markdownify_urls(message_content)
             console.print(
-                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ",
-                Markdown(message_content),
+                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ", Markdown(message_content)
             )
         else:
             console.print(f"\n[bold]{role}:[/bold] {message_content}")
@@ -491,7 +467,7 @@ def wait_for_authorization_completion(
 
 
 def get_tool_authorization(
-    choice: ChatCompletionChoice | ChatCompletionChunkChoice,
+    choice: Union[ChatCompletionChoice, ChatCompletionChunkChoice],
 ) -> dict | None:
     """
     Get the tool authorization from a chat response's choice.
@@ -507,8 +483,7 @@ def is_authorization_pending(tool_authorization: dict | None) -> bool:
     Expects a chat response's choice.tool_authorizations as input.
     """
     is_auth_pending = (
-        tool_authorization is not None
-        and tool_authorization.get("status", "") == "pending"
+        tool_authorization is not None and tool_authorization.get("status", "") == "pending"
     )
     return is_auth_pending
 
@@ -530,8 +505,7 @@ def get_eval_files(directory: str) -> list[Path]:
     elif directory_path.is_file():
         eval_files = (
             [directory_path]
-            if directory_path.name.startswith("eval_")
-            and directory_path.name.endswith(".py")
+            if directory_path.name.startswith("eval_") and directory_path.name.endswith(".py")
             else []
         )
     else:
@@ -587,10 +561,7 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
         ]
 
         if not eval_suite_funcs:
-            console.print(
-                f"No @tool_eval functions found in {eval_file_path}",
-                style="bold yellow",
-            )
+            console.print(f"No @tool_eval functions found in {eval_file_path}", style="bold yellow")
             continue
 
         eval_suites.extend(eval_suite_funcs)
@@ -643,7 +614,7 @@ def handle_user_command(
     user_input: str,
     history: list,
     host: str,
-    port: Optional[int],
+    port: int,
     force_tls: bool,
     force_no_tls: bool,
     show: Callable,
@@ -672,7 +643,6 @@ def handle_user_command(
             port=port,
             force_tls=force_tls,
             force_no_tls=force_no_tls,
-            worker=False,
             debug=False,
         )
         return True

@@ -2,7 +2,7 @@
 .PHONY: install
 install: ## Install the uv environment and all packages with dependencies
 	@echo "🚀 Creating virtual environment and installing all packages using uv workspace"
-	@uv sync --dev --extra all
+	@uv sync --active --dev --extra all
 	@uv run pre-commit install
 	@echo "✅ All packages and dependencies installed via uv workspace"
 
@@ -62,7 +62,7 @@ check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
 	@for dir in toolkits/*/ ; do \
 		if [ -f "$$dir/Makefile" ]; then \
 			echo "🛠️ Checking toolkit $$dir"; \
-			(cd "$$dir" && uv run pre-commit run -a && uv run mypy --config-file=pyproject.toml); \
+			(cd "$$dir" && uv run --active pre-commit run -a && uv run --active mypy --config-file=pyproject.toml); \
 		else \
 			echo "🛠️ Skipping toolkit $$dir (no Makefile found)"; \
 		fi; \
@@ -87,7 +87,7 @@ test-toolkits: ## Iterate over all toolkits and run pytest on each one
 	@for dir in toolkits/*/ ; do \
 		toolkit_name=$$(basename "$$dir"); \
 		echo "🧪 Testing $$toolkit_name toolkit"; \
-		(cd $$dir && uv run pytest -W ignore -v --cov=arcade_$$toolkit_name --cov-report=xml || exit 1); \
+		(cd $$dir && uv run --active pytest -W ignore -v --cov=arcade_$$toolkit_name --cov-report=xml || exit 1); \
 	done
 
 .PHONY: coverage

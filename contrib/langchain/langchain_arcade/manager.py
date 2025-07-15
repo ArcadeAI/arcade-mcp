@@ -1,7 +1,7 @@
 import os
 import warnings
 from collections.abc import Iterator
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 from arcadepy import NOT_GIVEN, Arcade, AsyncArcade
 from arcadepy.types import ToolDefinition
@@ -129,7 +129,7 @@ class ToolManager(LangChainToolManager):
         >>>     manager.wait_for_auth(auth_response.id)
     """
 
-    def __init__(self, client: Arcade | None = None, **kwargs: Any) -> None:
+    def __init__(self, client: Optional[Arcade] = None, **kwargs: Any) -> None:
         """
         Initialize the ToolManager.
 
@@ -194,10 +194,10 @@ class ToolManager(LangChainToolManager):
 
     def init_tools(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
         raise_on_empty: bool = True,
     ) -> list[StructuredTool]:
         """
@@ -305,11 +305,11 @@ class ToolManager(LangChainToolManager):
 
     def _retrieve_tool_definitions(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
         raise_on_empty: bool = True,
-        limit: int | None = None,
-        offset: int | None = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> list[ToolDefinition]:
         """
         Retrieve tool definitions from the Arcade client, accounting for pagination.
@@ -378,7 +378,7 @@ class ToolManager(LangChainToolManager):
         self._tools.update(_create_tool_map([tool]))
 
     def add_toolkit(
-        self, toolkit_name: str, limit: int | None = None, offset: int | None = None
+        self, toolkit_name: str, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> None:
         """
         Add all tools from a specific toolkit to the manager.
@@ -412,8 +412,8 @@ class ToolManager(LangChainToolManager):
 
     def get_tools(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
         langgraph: bool = True,
     ) -> list[StructuredTool]:
         """
@@ -484,7 +484,7 @@ class AsyncToolManager(LangChainToolManager):
 
     def __init__(
         self,
-        client: AsyncArcade | None = None,
+        client: Optional[AsyncArcade] = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -528,10 +528,10 @@ class AsyncToolManager(LangChainToolManager):
 
     async def init_tools(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
         raise_on_empty: bool = True,
     ) -> list[StructuredTool]:
         """
@@ -659,11 +659,11 @@ class AsyncToolManager(LangChainToolManager):
 
     async def _retrieve_tool_definitions(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
         raise_on_empty: bool = True,
-        limit: int | None = None,
-        offset: int | None = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> list[ToolDefinition]:
         """
         Retrieve tool definitions asynchronously from the Arcade client, accounting for pagination.
@@ -734,7 +734,7 @@ class AsyncToolManager(LangChainToolManager):
         self._tools.update(_create_tool_map([tool]))
 
     async def add_toolkit(
-        self, toolkit_name: str, limit: int | None = None, offset: int | None = None
+        self, toolkit_name: str, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> None:
         """
         Add all tools from a specific toolkit to the manager.
@@ -768,8 +768,8 @@ class AsyncToolManager(LangChainToolManager):
 
     async def get_tools(
         self,
-        tools: list[str] | None = None,
-        toolkits: list[str] | None = None,
+        tools: Optional[list[str]] = None,
+        toolkits: Optional[list[str]] = None,
         langgraph: bool = True,
     ) -> list[StructuredTool]:
         """
