@@ -435,8 +435,17 @@ async def search_issues_with_jql(
     return response
 
 
-def get_atlassian_clouds() -> list[dict]:
-    pass
+async def get_atlassian_clouds(context: ToolContext) -> list[dict]:
+    import httpx
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.atlassian.com/oauth/token/accessible-resources",
+            headers={"Authorization": f"Bearer {context.get_auth_token_or_empty()}"},
+        )
+        from arcade_jira.utils import deduplicate_available_resources
+
+        return deduplicate_available_resources(response.json())
 
 
 def resolve_atlassian_cloud_id(context: ToolContext) -> str:
@@ -556,7 +565,7 @@ async def create_issue(
     will figure out the ID, WITHOUT CAUSING CATASTROPHIC CLIMATE CHANGE.
     """
     if not atlassian_cloud_id:
-        atlassian_cloud_id = resolve_atlassian_cloud_id(context)
+        atlassian_cloud_id = await resolve_atlassian_cloud_id(context)
 
     project_data: dict[str, Any] | None = None
 
