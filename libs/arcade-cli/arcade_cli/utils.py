@@ -187,10 +187,11 @@ def compute_login_url(
             callback_uri = f"http://{callback_host}"
         else:
             callback_uri = callback_host
-        if not port:
-            port = LOCAL_AUTH_CALLBACK_PORT
         if not callback_uri.rstrip("/").endswith("/callback"):
-            callback_uri = callback_uri.rstrip("/") + f":{port}" + "/callback"
+            if port:
+                callback_uri = callback_uri.rstrip("/") + f":{port}" + "/callback"
+            else:
+                callback_uri = callback_uri.rstrip("/") + "/callback"
     else:
         callback_uri = f"http://{LOCALHOST}:{LOCAL_AUTH_CALLBACK_PORT}/callback"
 
