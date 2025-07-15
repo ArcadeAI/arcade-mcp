@@ -1,10 +1,6 @@
 """Type definitions for Google News API responses and parameters."""
 
-from typing import Optional
-
 from typing_extensions import TypedDict
-
-from arcade_google_news.google_data import COUNTRY_CODES, LANGUAGE_CODES
 
 # For now, we'll use str type alias to maintain compatibility
 # In the future, these could be converted to proper Literal types
@@ -16,16 +12,20 @@ class SearchNewsParams(TypedDict):
     """Input parameters for searching news articles."""
 
     keywords: str
-    """Search query terms to find relevant news articles (e.g., 'Apple launches new iPhone')."""
+    """Search query terms to find relevant news articles \
+    (e.g., 'Apple launches new iPhone')."""
 
-    country_code: Optional[CountryCode]
-    """Optional 2-letter country code to filter news by region (e.g., 'us' for United States, 'uk' for United Kingdom)."""
+    country_code: CountryCode | None
+    """Optional 2-letter country code to filter news by region \
+    (e.g., 'us' for United States, 'uk' for United Kingdom)."""
 
-    language_code: Optional[LanguageCode]
-    """Optional 2-letter language code to filter news by language (e.g., 'en' for English, 'es' for Spanish)."""
+    language_code: LanguageCode | None
+    """Optional 2-letter language code to filter news by language \
+    (e.g., 'en' for English, 'es' for Spanish)."""
 
-    limit: Optional[int]
-    """Optional maximum number of news articles to return. If not specified, returns all results from the API."""
+    limit: int | None
+    """Optional maximum number of news articles to return. \
+    If not specified, returns all results from the API."""
 
 
 class SourceInfo(TypedDict, total=False):
@@ -179,13 +179,13 @@ class SimplifiedNewsResult(TypedDict):
     link: str
     """URL to the full article."""
 
-    source: Optional[str]
+    source: str | None
     """Name of the publication source."""
 
-    date: Optional[str]
+    date: str | None
     """When the article was published."""
 
-    snippet: Optional[str]
+    snippet: str | None
     """Brief excerpt from the article."""
 
 

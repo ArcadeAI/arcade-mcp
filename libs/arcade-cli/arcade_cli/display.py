@@ -105,14 +105,12 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
 
             if "value" in modes:
                 # Show the value field with its schema
-                value_type = output.value_schema.val_type
-                display_type = value_type  # Separate variable for display string
+                value_type: str = output.value_schema.val_type
+                display_type: str = value_type  # Separate variable for display string
                 if value_type == "array" and output.value_schema.inner_val_type:
                     display_type = f"array[{output.value_schema.inner_val_type}]"
                 elif output.value_schema.enum:
-                    display_type = (
-                        f"{value_type} (enum: {', '.join(output.value_schema.enum)})"
-                    )
+                    display_type = f"{value_type} (enum: {', '.join(output.value_schema.enum)})"
 
                 output_table.add_row(
                     "  value",
@@ -126,9 +124,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
                     and hasattr(output.value_schema, "properties")
                     and output.value_schema.properties
                 ):
-                    _add_nested_properties(
-                        output_table, output.value_schema.properties, indent=2
-                    )
+                    _add_nested_properties(output_table, output.value_schema.properties, indent=2)
 
             if "error" in modes:
                 output_table.add_row(
@@ -144,9 +140,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
                 )
 
             if "null" in modes:
-                output_table.add_row(
-                    "  value", "null", "[dim]Tool can return null/None[/dim]"
-                )
+                output_table.add_row("  value", "null", "[dim]Tool can return null/None[/dim]")
 
             # Additional fields that may be present
             output_table.add_row("", "", "")
@@ -184,9 +178,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
                 and hasattr(output.value_schema, "properties")
                 and output.value_schema.properties
             ):
-                _add_nested_properties(
-                    output_table, output.value_schema.properties, indent=1
-                )
+                _add_nested_properties(output_table, output.value_schema.properties, indent=1)
 
         # Create subtitle with modes info
         modes_text = Text()
@@ -224,9 +216,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
             no_schema_table.add_row("[cyan]Response Structure:[/cyan]")
             no_schema_table.add_row("  • [bold]value[/bold]: null (when successful)")
             no_schema_table.add_row("  • [bold]error[/bold]: object (when failed)")
-            no_schema_table.add_row(
-                "  • [bold]logs[/bold]: array? (optional warnings/info)"
-            )
+            no_schema_table.add_row("  • [bold]logs[/bold]: array? (optional warnings/info)")
         else:
             no_schema_table.add_row("[dim]No output schema defined.[/dim]")
             no_schema_table.add_row("")
@@ -245,7 +235,10 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
 
 
 def _add_nested_properties(
-    table: Table, properties: dict[str, Any], indent: int = 0, is_array_item: bool = False
+    table: Table,
+    properties: dict[str, Any],
+    indent: int = 0,
+    is_array_item: bool = False,
 ) -> None:
     """
     Recursively add nested properties to the output table.
@@ -302,7 +295,7 @@ def _add_nested_properties(
 
 def _format_type_string(schema: Any) -> str:
     """Format type string for display."""
-    type_str = schema.val_type
+    type_str: str = schema.val_type
 
     if schema.val_type == "array":
         if hasattr(schema, "inner_properties") and schema.inner_properties:
@@ -330,9 +323,7 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
             )
 
 
-def display_eval_results(
-    results: list[list[dict[str, Any]]], show_details: bool = False
-) -> None:
+def display_eval_results(results: list[list[dict[str, Any]]], show_details: bool = False) -> None:
     """
     Display evaluation results in a format inspired by pytest's output.
 
@@ -374,9 +365,7 @@ def display_eval_results(
 
                 # Display one-line summary for each case with score as a percentage
                 score_percentage = evaluation.score * 100
-                console.print(
-                    f"{status} {case['name']} -- Score: {score_percentage:.2f}%"
-                )
+                console.print(f"{status} {case['name']} -- Score: {score_percentage:.2f}%")
 
                 if show_details:
                     # Show detailed information for each case
@@ -386,7 +375,9 @@ def display_eval_results(
                     console.print("-" * 80)
 
     # Summary
-    summary = f"[bold]Summary -- [/bold]Total: {total_cases} -- [green]Passed: {total_passed}[/green]"
+    summary = (
+        f"[bold]Summary -- [/bold]Total: {total_cases} -- [green]Passed: {total_passed}[/green]"
+    )
     if total_warned > 0:
         summary += f" -- [yellow]Warnings: {total_warned}[/yellow]"
     if total_failed > 0:
@@ -406,18 +397,12 @@ def _format_evaluation(evaluation: "EvaluationResult") -> str:
     """
     result_lines = []
     if evaluation.failure_reason:
-        result_lines.append(
-            f"[bold red]Failure Reason:[/bold red] {evaluation.failure_reason}"
-        )
+        result_lines.append(f"[bold red]Failure Reason:[/bold red] {evaluation.failure_reason}")
     else:
         for critic_result in evaluation.results:
             is_criticized = critic_result.get("is_criticized", True)
             match_color = (
-                "yellow"
-                if not is_criticized
-                else "green"
-                if critic_result["match"]
-                else "red"
+                "yellow" if not is_criticized else "green" if critic_result["match"] else "red"
             )
             field = critic_result["field"]
             score = critic_result["score"]

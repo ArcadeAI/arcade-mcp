@@ -50,16 +50,20 @@ def call_serpapi(context: ToolContext, params: dict[str, Any]) -> GoogleNewsResp
         )
 
 
-def extract_news_results(results: GoogleNewsResponse, limit: int | None = None) -> list[SimplifiedNewsResult]:
+def extract_news_results(
+    results: GoogleNewsResponse, limit: int | None = None
+) -> list[SimplifiedNewsResult]:
     news_results: list[SimplifiedNewsResult] = []
     for result in results.get("news_results", []):
-        news_results.append(SimplifiedNewsResult(
-            title=result.get("title", ""),
-            link=result.get("link", ""),
-            source=result.get("source", {}).get("name"),
-            date=result.get("date"),
-            snippet=result.get("snippet"),
-        ))
+        news_results.append(
+            SimplifiedNewsResult(
+                title=result.get("title", ""),
+                link=result.get("link", ""),
+                source=result.get("source", {}).get("name"),
+                date=result.get("date"),
+                snippet=result.get("snippet"),
+            )
+        )
 
     if limit:
         return news_results[:limit]

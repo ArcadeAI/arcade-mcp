@@ -28,9 +28,7 @@ def show_logic(
             catalog = create_cli_catalog(toolkit=toolkit)
             tools = [t.definition for t in list(catalog)]
         else:
-            tools = get_tools_from_engine(
-                host, port, force_tls, force_no_tls, toolkit
-            )
+            tools = get_tools_from_engine(host, port, force_tls, force_no_tls, toolkit)
 
         if tool:
             # Display detailed information for the specified tool

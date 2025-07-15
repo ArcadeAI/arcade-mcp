@@ -51,8 +51,6 @@ async def search_news_stories(
     if language_code not in LANGUAGE_CODES:
         raise LanguageNotFoundError(language_code)
 
-    params = prepare_params(
-        "google_news", q=keywords, gl=country_code, hl=language_code
-    )
+    params = prepare_params("google_news", q=keywords, gl=country_code, hl=language_code)
     results = call_serpapi(context, params)
     return SearchNewsOutput(news_results=extract_news_results(results, limit=limit))
