@@ -1,5 +1,12 @@
+import asyncio
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from enum import Enum
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
+
+from arcade_tdk.errors import ToolExecutionError
+from slack_sdk.errors import SlackApiError
 
 from arcade_slack.custom_types import (
     SlackOffsetSecondsFromUTC,
@@ -23,6 +30,16 @@ class ConversationType(str, Enum):
     PRIVATE_CHANNEL = "private_channel"
     MULTI_PERSON_DIRECT_MESSAGE = "multi_person_direct_message"
     DIRECT_MESSAGE = "direct_message"
+
+    def to_slack_name_str(self) -> str:
+        mapping = {
+            ConversationType.PUBLIC_CHANNEL: ConversationTypeSlackName.PUBLIC_CHANNEL.value,
+            ConversationType.PRIVATE_CHANNEL: ConversationTypeSlackName.PRIVATE_CHANNEL.value,
+            ConversationType.MULTI_PERSON_DIRECT_MESSAGE: ConversationTypeSlackName.MPIM.value,
+            ConversationType.DIRECT_MESSAGE: ConversationTypeSlackName.IM.value,
+        }
+
+        return mapping[self]
 
 
 """
@@ -204,3 +221,150 @@ class SlackConversationsToolResponse(TypedDict, total=True):
 
     conversations: list[ConversationMetadata]
     next_cursor: SlackPaginationNextCursor | None
+
+
+class PaginationSentinel(ABC):
+    """Base class for pagination sentinel classes."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        self.kwargs = kwargs
+
+    @abstractmethod
+    def __call__(self, last_result: Any) -> bool:
+        """Determine if the pagination should stop."""
+        raise NotImplementedError
+
+
+class FindUserByUsernameSentinel(PaginationSentinel):
+    """Sentinel class for finding a user by username."""
+
+    def __call__(self, last_result: Any) -> bool:
+        for user in last_result:
+            if not isinstance(user.get("name"), str):
+                continue
+            if user.get("name").casefold() == self.kwargs["username"].casefold():
+                return True
+        return False
+
+
+class FindMultipleUsersByUsernameSentinel(PaginationSentinel):
+    """Sentinel class for finding multiple users by username."""
+
+    def __init__(self, usernames: list[str]) -> None:
+        if not usernames:
+            raise ValueError("usernames must be a non-empty list of strings")
+        super().__init__(usernames=usernames)
+        self.usernames_pending = {username.casefold() for username in usernames}
+
+    def _flag_username_found(self, username: str) -> None:
+        with suppress(KeyError):
+            self.usernames_pending.remove(username.casefold())
+
+    def _all_usernames_found(self) -> bool:
+        return not self.usernames_pending
+
+    def __call__(self, last_result: Any) -> bool:
+        if not self.usernames_pending:
+            return True
+        for user in last_result:
+            username = user.get("name")
+            if not isinstance(username, str):
+                continue
+            if username.casefold() in self.usernames_pending:
+                self._flag_username_found(username)
+                if self._all_usernames_found():
+                    return True
+        return False
+
+
+class FindMultipleUsersByIdSentinel(PaginationSentinel):
+    """Sentinel class for finding multiple users by ID."""
+
+    def __init__(self, user_ids: list[str]) -> None:
+        if not user_ids:
+            raise ValueError("user_ids must be a non-empty list of strings")
+        super().__init__(user_ids=user_ids)
+        self.user_ids_pending = set(user_ids)
+
+    def _flag_user_id_found(self, user_id: str) -> None:
+        with suppress(KeyError):
+            self.user_ids_pending.remove(user_id.casefold())
+
+    def _all_user_ids_found(self) -> bool:
+        return not self.user_ids_pending
+
+    def __call__(self, last_result: Any) -> bool:
+        if not self.user_ids_pending:
+            return True
+        for user in last_result:
+            user_id = user.get("id")
+            if user_id in self.user_ids_pending:
+                self._flag_user_id_found(user_id)
+                if self._all_user_ids_found():
+                    return True
+        return False
+
+
+class FindChannelByNameSentinel(PaginationSentinel):
+    """Sentinel class for finding a channel by name."""
+
+    def __init__(self, channel_name: str) -> None:
+        super().__init__(channel_name=channel_name)
+        self.channel_name_casefold = channel_name.casefold()
+
+    def __call__(self, last_result: Any) -> bool:
+        for channel in last_result:
+            channel_name = channel.get("name")
+            if not isinstance(channel_name, str):
+                continue
+            if channel_name.casefold() == self.channel_name_casefold:
+                return True
+        return False
+
+
+class AbstractConcurrencySafeCoroutineCaller(ABC):
+    """Abstract base class for concurrency-safe coroutine callers."""
+
+    def __init__(self, func: Callable[..., Awaitable[Any]], *args: Any, **kwargs: Any) -> None:
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    @abstractmethod
+    async def __call__(self, semaphore: asyncio.Semaphore) -> Any:
+        """Call a coroutine with a semaphore."""
+        raise NotImplementedError
+
+
+class ConcurrencySafeCoroutineCaller(AbstractConcurrencySafeCoroutineCaller):
+    """Calls a coroutine with an asyncio semaphore."""
+
+    async def __call__(self, semaphore: asyncio.Semaphore) -> Any:
+        async with semaphore:
+            return await self.func(*self.args, **self.kwargs)
+
+
+class GetUserByEmailCaller(AbstractConcurrencySafeCoroutineCaller):
+    """Call Slack's lookupByEmail method with an asyncio semaphore while handling API errors."""
+
+    def __init__(
+        self,
+        func: Callable[..., Awaitable[Any]],
+        email: str,
+    ) -> None:
+        super().__init__(func)
+        self.email = email
+
+    async def __call__(self, semaphore: asyncio.Semaphore) -> dict[str, Any]:
+        async with semaphore:
+            try:
+                user = await self.func(email=self.email)
+                return {"user": user["user"], "email": self.email}
+            except SlackApiError as e:
+                if e.response.get("error") in ["user_not_found", "users_not_found"]:
+                    return {"user": None, "email": self.email}
+                else:
+                    raise ToolExecutionError(
+                        message="Error getting user by email",
+                        developer_message=f"Error getting user by email: {e.response.get('error')}",
+                    )

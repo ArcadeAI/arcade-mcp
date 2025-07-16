@@ -49,6 +49,6 @@ def generate_google_file_picker_url(
         "url": url,
         "llm_instructions": (
             "Instruct the user to click the following link to open the Google Drive File Picker. "
-            "This will allow them to select files and grant access permissions: {url}"
+            f"This will allow them to select files and grant access permissions: {url}"
         ),
     }

@@ -1,11 +1,11 @@
 from typing import NewType
 
 
-class PositiveInt(int):
-    def __new__(cls, value: str | int, name: str = "value") -> "PositiveInt":
+class PositiveNonZeroInt(int):
+    def __new__(cls, value: str | int, name: str = "value") -> "PositiveNonZeroInt":
         def validate(val: int) -> int:
-            if val <= 0:
-                raise ValueError(f"{name} must be positive, got {val}")
+            if val < 1:
+                raise ValueError(f"{name} must be a positive non-zero integer, got {val}")
             return val
 
         try:
