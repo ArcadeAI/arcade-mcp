@@ -17,20 +17,16 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Define toolkits that require secrets
-        id: toolkits_with_secrets
-        run: |
-          # Find toolkits that have "arcade-ci:requires-secret" in any file
-          TOOLKITS_WITH_SECRETS=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
-          echo "Found toolkits with secrets: $TOOLKITS_WITH_SECRETS"
-          echo "toolkits_with_secrets=$TOOLKITS_WITH_SECRETS" >> $GITHUB_OUTPUT
-
       - name: determine toolkits without secrets
         id: toolkits_without_secrets
         run: |
-          # Find toolkits that do not have "arcade-ci:requires-secret" in any file
-          TOOLKITS_WITHOUT_SECRETS=$(grep -L 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          # Find all directories in toolkits/ that have a pyproject.toml
+          TOOLKITS=$(find toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          TOOLKITS_WITH_SECRETS=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          TOOLKITS_WITHOUT_SECRETS=$(echo "$TOOLKITS" | jq -c --argjson with "$TOOLKITS_WITH_SECRETS" '[.[] | select(. as $t | $with | index($t) | not)]')
+          echo "Found toolkits: $TOOLKITS"
           echo "Found toolkits without secrets: $TOOLKITS_WITHOUT_SECRETS"
+          echo "Found toolkits with secrets: $TOOLKITS_WITH_SECRETS"
           echo "toolkits_without_secrets=$TOOLKITS_WITHOUT_SECRETS" >> $GITHUB_OUTPUT
 
   test-toolkits-with-secrets:
@@ -70,7 +66,7 @@ jobs:
             exit ${EXIT_CODE}
           fi
 
-  test-toolkits-without-secrets:
+  test-toolkits:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
