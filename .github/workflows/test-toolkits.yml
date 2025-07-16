@@ -22,7 +22,7 @@ jobs:
         run: |
           # Find all directories in toolkits/ that have a pyproject.toml
           TOOLKITS=$(find toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
-          TOOLKITS_WITH_SECRETS=["postgres"]
+          TOOLKITS_WITH_SECRETS='["postgres"]'
           TOOLKITS_WITHOUT_SECRETS=$(echo "$TOOLKITS" | jq -c --argjson with "$TOOLKITS_WITH_SECRETS" '[.[] | select(. as $t | $with | index($t) | not)]')
           echo "Found toolkits: $TOOLKITS"
           echo "Found toolkits without secrets: $TOOLKITS_WITHOUT_SECRETS"
