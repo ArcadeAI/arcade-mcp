@@ -48,10 +48,34 @@ jobs:
           uv run --active pre-commit run -a
           uv run --active mypy --config-file=pyproject.toml
 
-      - name: Test toolkit
+      - name: Define toolkits that require secrets
+        id: toolkits_with_secrets
+        run: |
+          echo "toolkits_with_secrets=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Test toolkit stand-alone toolkits
+        working-directory: toolkits/${{ matrix.toolkit }}
+        if: |
+          !contains(needs.toolkits_with_secrets.outputs.toolkits_with_secrets , matrix.toolkit)
+        run: |
+          # Run pytest and capture exit code
+          uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
+
+          if [ "${EXIT_CODE:-0}" -eq 5 ]; then
+            echo "No tests found for toolkit ${{ matrix.toolkit }}, skipping..."
+            exit 0
+          elif [ "${EXIT_CODE:-0}" -ne 0 ]; then
+            exit ${EXIT_CODE}
+          fi
+
+      - name: Test toolkits that require secrets
+        if: |
+          contains(needs.toolkits_with_secrets.outputs.toolkits_with_secrets, matrix.toolkit) &&
+          github.repository == 'arcade-ai/arcade-ai'
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
-          TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
+          # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
+          TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }}
         run: |
           # Run pytest and capture exit code
           uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?

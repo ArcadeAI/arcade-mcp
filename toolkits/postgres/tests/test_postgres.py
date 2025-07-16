@@ -1,3 +1,5 @@
+# arcade-ci:requires-secret:TEST_POSTGRES_DATABASE_CONNECTION_STRING
+
 import os
 from os import environ
 
