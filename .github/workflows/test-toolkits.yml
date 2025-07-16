@@ -54,7 +54,7 @@ jobs:
           echo "toolkits_with_secrets=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT        run: |
           echo "toolkits_with_secrets: ${{ needs.toolkits_with_secrets.outputs.toolkits_with_secrets }}"
 
-      - name: Test toolkit stand-alone toolkits
+      - name: Test stand-alone toolkits (no secrets)
         working-directory: toolkits/${{ matrix.toolkit }}
         if: |
           !contains(needs.toolkits_with_secrets.outputs.toolkits_with_secrets , matrix.toolkit)
@@ -75,8 +75,7 @@ jobs:
           github.repository == 'arcade-ai/arcade-ai'
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
-          # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
-          TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }}
+          TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
         run: |
           # Run pytest and capture exit code
           uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
