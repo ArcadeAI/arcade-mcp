@@ -51,7 +51,8 @@ jobs:
       - name: Define toolkits that require secrets
         id: toolkits_with_secrets
         run: |
-          echo "toolkits_with_secrets=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "toolkits_with_secrets=$(grep -rl 'arcade-ci:requires-secret' toolkits/* | cut -d'/' -f2 | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT        run: |
+          echo "toolkits_with_secrets: ${{ needs.toolkits_with_secrets.outputs.toolkits_with_secrets }}"
 
       - name: Test toolkit stand-alone toolkits
         working-directory: toolkits/${{ matrix.toolkit }}
