@@ -72,7 +72,7 @@ jobs:
       - name: Test toolkits that require secrets
         if: |
           contains(needs.toolkits_with_secrets.outputs.toolkits_with_secrets, matrix.toolkit) &&
-          github.repository == 'arcade-ai/arcade-ai'
+          github.repository == 'ArcadeAI/arcade-ai'
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
