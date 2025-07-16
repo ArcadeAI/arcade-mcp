@@ -1,8 +1,9 @@
-from typing import Annotated
+import json
+from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from msgraph.generated.models.chat_message import ChatMessage
 from msgraph.generated.models.chat_message_type import ChatMessageType
 from msgraph.generated.models.item_body import ItemBody
@@ -10,11 +11,14 @@ from msgraph.generated.models.item_body import ItemBody
 from arcade_teams.client import get_client
 from arcade_teams.constants import DatetimeField
 from arcade_teams.exceptions import NoItemsFoundError
-from arcade_teams.serializers import serialize_chat, serialize_chat_message
+from arcade_teams.serializers import serialize_chat, serialize_chat_message, short_human
 from arcade_teams.utils import (
+    build_conversation_member,
     build_token_pagination,
     chats_request,
+    create_chat_request,
     find_chat_by_users,
+    find_humans_by_name,
     messages_request,
     validate_datetime_range,
 )
@@ -223,4 +227,35 @@ async def create_chat(
         message = "At least one of user_ids or user_names must be provided."
         raise ToolExecutionError(message=message, developer_message=message)
 
-    pass
+    user_ids = cast(list[str], user_ids or [])
+
+    humans = await find_humans_by_name(context, user_names)
+
+    if humans["not_found"]:
+        from arcade_teams.tools.people import search_people
+        from arcade_teams.tools.users import search_users
+
+        max_items = 50
+        message = f"Could not find the following users: {', '.join(humans['not_found'])}"
+        available_humans = [short_human(human) for human in humans["not_matched"][0:max_items]]
+        additional_prompt = f"Available users/people: {json.dumps(available_humans)}"
+        if len(available_humans) > max_items:
+            additional_prompt = (
+                "Some of the available users/people are listed next. To retrieve more, use the "
+                f"Teams.{search_users.__tool_name__} or Teams.{search_people.__tool_name__} tools. "
+                f"{additional_prompt}"
+            )
+        raise RetryableToolError(
+            message=message,
+            developer_message=message,
+            additional_prompt_content=additional_prompt,
+        )
+
+    client = get_client(context.get_auth_token_or_empty())
+    response = await client.chats.post(
+        create_chat_request(
+            members=[build_conversation_member(user_id=user_id) for user_id in user_ids]
+        )
+    )
+
+    return {"chat": serialize_chat(response)}

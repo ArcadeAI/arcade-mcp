@@ -20,6 +20,7 @@ from msgraph.generated.models.user import User
 
 def serialize_team(team: Team, transform: Callable | None = None) -> dict:
     team_dict = {
+        "object_type": "team",
         "id": team.id,
         "name": team.display_name,
         "description": team.description,
@@ -49,6 +50,7 @@ def serialize_team(team: Team, transform: Callable | None = None) -> dict:
 
 def serialize_channel(channel: Channel, transform: Callable | None = None) -> dict:
     channel_dict = {
+        "object_type": "channel",
         "id": channel.id,
         "name": channel.display_name,
         "description": channel.description,
@@ -77,6 +79,7 @@ def serialize_channel(channel: Channel, transform: Callable | None = None) -> di
 
 def serialize_chat(chat: Chat, transform: Callable | None = None) -> dict:
     chat_dict = {
+        "object_type": "chat",
         "id": chat.id,
         "type": chat.chat_type.value,
         "tenant_id": chat.tenant_id,
@@ -107,6 +110,7 @@ def serialize_chat(chat: Chat, transform: Callable | None = None) -> dict:
 
 def serialize_tag(tag: TeamworkTag) -> dict:
     return {
+        "object_type": "tag",
         "id": tag.id,
         "name": tag.display_name,
     }
@@ -114,6 +118,7 @@ def serialize_tag(tag: TeamworkTag) -> dict:
 
 def serialize_member(member: ConversationMember, transform: Callable | None = None) -> dict:
     member_dict = {
+        "object_type": "conversation_member",
         "id": member.user_id,
         "name": member.display_name,
         "email": member.email,
@@ -166,6 +171,7 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
 
 def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict:
     message_dict = {
+        "object_type": "search_message_hit",
         "summary": search_hit.summary,
         "message_id": search_hit.resource.id,
     }
@@ -202,6 +208,7 @@ def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict:
 
 def serialize_message_metadata(message: ChatMessage) -> dict:
     message_dict = {
+        "object_type": "message",
         "id": message.id,
     }
 
@@ -307,6 +314,7 @@ def serialize_message_body_text(message: ChatMessage) -> dict:
 
 def serialize_attachment(attachment: ChatMessageAttachment) -> dict:
     attachment_dict = {
+        "object_type": "attachment",
         "id": attachment.id,
         "name": attachment.name,
         "type": attachment.content_type,
@@ -380,6 +388,7 @@ def serialize_chat_reaction(
 
 def serialize_person(person: Person, transform: Callable | None = None) -> dict:
     person_dict = {
+        "object_type": "person",
         "id": person.id,
     }
 
@@ -514,9 +523,10 @@ def enrich_location_address(location_dict: dict, address: PhysicalAddress | None
 
 
 def enrich_human_name(human_dict: dict, human: Person | User) -> dict:
-    human_dict["name"] = {
-        "display": human.display_name,
-    }
+    human_dict["name"] = {}
+
+    if human.display_name:
+        human_dict["name"]["display"] = human.display_name
 
     if human.given_name:
         human_dict["name"]["first"] = human.given_name
@@ -529,6 +539,7 @@ def enrich_human_name(human_dict: dict, human: Person | User) -> dict:
 
 def serialize_user(user: User, transform: Callable | None = None) -> dict:
     user_dict = {
+        "object_type": "user",
         "id": user.id,
     }
 
@@ -662,8 +673,23 @@ def short_version(item: dict, keys: list[str] | None = None) -> dict:
     return {key: item.get(key) for key in keys}
 
 
-def short_person(person: dict) -> dict:
-    return {
-        "id": person["id"],
-        "name": person["name"]["display"],
-    }
+def short_human(human: dict) -> dict:
+    person_dict = {"id": human["id"], "name": {}}
+
+    display = human["name"].get("display")
+    first = human["name"].get("first")
+    last = human["name"].get("last")
+
+    if display:
+        person_dict["name"]["display"] = display
+    elif first and last:
+        person_dict["name"]["first"] = first
+        person_dict["name"]["last"] = last
+    elif first:
+        person_dict["name"]["first"] = first
+    elif last:
+        person_dict["name"]["last"] = last
+    else:
+        del person_dict["name"]
+
+    return person_dict

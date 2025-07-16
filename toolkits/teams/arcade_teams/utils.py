@@ -4,6 +4,7 @@ import re
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 from arcade_tdk import ToolContext
@@ -166,10 +167,20 @@ def chats_request(
     return config_request(ChatsRequestBuilder.ChatsRequestBuilderGetQueryParameters, **kwargs)
 
 
-def build_conversation_member(user_id: str) -> AadUserConversationMember:
+def create_chat_request(members: list[AadUserConversationMember]) -> Chat:
+    return Chat(
+        chat_type=ChatType.OneOnOne if len(members) == 2 else ChatType.Group,
+        members=members,
+    )
+
+
+def build_conversation_member(
+    user_id: str, roles: list[str] | None = None
+) -> AadUserConversationMember:
+    roles = roles or ["owner"]
     return AadUserConversationMember(
         odata_type="#microsoft.graph.aadUserConversationMember",
-        roles=["owner"],
+        roles=roles,
         additional_data={"user@odata.bind": f"https://graph.microsoft.com/v1.0/users('{user_id}')"},
     )
 
@@ -474,59 +485,114 @@ async def find_chat_by_user_ids_and_names(
     )
 
 
-async def find_people_by_name(context: ToolContext, names: list[str]) -> dict[str, Any]:
+async def find_humans_by_name(
+    context: ToolContext,
+    names: list[str],
+    semaphore: asyncio.Semaphore | None = None,
+) -> dict[str, Any]:
     if not names:
         message = "No names provided"
         raise ToolExecutionError(message=message, developer_message=message)
 
+    semaphore = semaphore or asyncio.Semaphore(load_config_param(context, "TEAMS_MAX_CONCURRENCY"))
     names = deduplicate_names(names)
 
     from arcade_teams.tools.people import search_people  # Avoid circular import
+    from arcade_teams.tools.users import search_users  # Avoid circular import
 
-    response = await search_people(
-        context=context,
-        keywords=names,
-        match_type=PartialMatchType.PARTIAL_ANY,
-        limit=100,
-    )
+    async with semaphore:
+        users_response, people_response = await asyncio.gather(
+            search_users(
+                context=context,
+                keywords=names,
+                match_type=PartialMatchType.PARTIAL_ANY,
+                limit=999,
+            ),
+            search_people(
+                context=context,
+                keywords=names,
+                match_type=PartialMatchType.PARTIAL_ANY,
+                limit=100,
+            ),
+        )
 
-    people_by_id = {person["id"]: person for person in response["people"]}
-    people_by_display_name = build_people_by_name(response["people"], "display")
-    people_by_first_name = build_people_by_name(response["people"], "first")
-    people_by_last_name = build_people_by_name(response["people"], "last")
+    users_by_id = {user["id"]: user for user in users_response["users"]}
+    users_by_display_name = build_people_by_name(users_response["users"], "display")
+    users_by_first_name = build_people_by_name(users_response["users"], "first")
+    users_by_last_name = build_people_by_name(users_response["users"], "last")
 
-    people_found = []
+    people_by_id = {person["id"]: person for person in people_response["people"]}
+    people_by_display_name = build_people_by_name(people_response["people"], "display")
+    people_by_first_name = build_people_by_name(people_response["people"], "first")
+    people_by_last_name = build_people_by_name(people_response["people"], "last")
+
+    humans_found = []
     names_pending = set(names)
 
     for name in names:
+        process_user_match = partial(
+            process_human_match,
+            name=name,
+            item="users",
+            humans_by_id=users_by_id,
+            humans_found=humans_found,
+            names_pending=names_pending,
+        )
+        process_people_match = partial(
+            process_human_match,
+            name=name,
+            item="people",
+            humans_by_id=people_by_id,
+            humans_found=humans_found,
+            names_pending=names_pending,
+        )
         name_lower = name.casefold()
 
+        """
+        Below, we match by user first, because the users are the most relevant ones. The People API
+        may return people that are not relevant for the purposes of Teams chat membership, for
+        instance.
+
+        People has to be included in the matching process, because the Users endpoints do not return
+        people external to the current user's tenant. An example of a situation where this would be
+        a problem is when user searches for a chat that includes external people as members.
+        """
+
         # Match by display name
-        if name_lower in people_by_display_name:
-            person = get_person_match(people_by_display_name, name)
-            names_pending.remove(name)
-            people_found.append(person)
-            people_by_id.pop(person["id"])
-
-        # Alternatively, match by first name
+        if name_lower in users_by_display_name:
+            process_user_match(humans_by_name=users_by_display_name)
+        elif name_lower in people_by_display_name:
+            process_people_match(humans_by_name=people_by_display_name)
+        # Match by first name
+        elif name_lower in users_by_first_name:
+            process_user_match(humans_by_name=users_by_first_name)
         elif name_lower in people_by_first_name:
-            person = get_person_match(people_by_first_name, name)
-            names_pending.remove(name)
-            people_found.append(person)
-            people_by_id.pop(person["id"])
-
-        # Lastly, try to match by last name
+            process_people_match(humans_by_name=people_by_first_name)
+        # Match by last name
+        elif name_lower in users_by_last_name:
+            process_user_match(humans_by_name=users_by_last_name)
         elif name_lower in people_by_last_name:
-            person = get_person_match(people_by_last_name, name)
-            names_pending.remove(name)
-            people_found.append(person)
-            people_by_id.pop(person["id"])
+            process_people_match(humans_by_name=people_by_last_name)
 
     return {
-        "people": people_found,
+        "humans": humans_found,
         "not_found": list(names_pending),
-        "not_matched": list(people_by_id.values()),
+        "not_matched": list(users_by_id.values()) + list(people_by_id.values()),
     }
+
+
+def process_human_match(
+    humans_by_name: dict[str, list[dict]],
+    name: str,
+    humans_found: list[dict],
+    humans_by_id: dict[str, dict],
+    names_pending: set[str],
+    item: str,
+):
+    human = get_human_match(humans_by_name, name, item)
+    names_pending.remove(name)
+    humans_found.append(human)
+    humans_by_id.pop(human["id"])
 
 
 def _matches_channel_name(channel_name: str, keywords: list[str], match_type: MatchType) -> bool:
@@ -563,15 +629,15 @@ def deduplicate_names(names: list[str]) -> list[str]:
     return names_unique
 
 
-def get_person_match(people_by_name: dict[str, list[dict]], name: str) -> dict[str, Any]:
+def get_human_match(humans_by_name: dict[str, list[dict]], name: str, item: str) -> dict[str, Any]:
     name_lower = name.casefold()
 
-    matches = people_by_name[name_lower]
+    matches = humans_by_name[name_lower]
 
-    # In case multiple people match this name
+    # In case multiple humans match this name
     if len(matches) > 1:
         raise MultipleItemsFoundError(
-            item="people",
+            item=item,
             available_options=matches,
             search_term=name,
         )

@@ -7,8 +7,8 @@ from arcade_teams.serializers import serialize_person
 from arcade_teams.utils import (
     build_people_by_name,
     deduplicate_names,
-    find_people_by_name,
-    get_person_match,
+    find_humans_by_name,
+    get_human_match,
 )
 
 
@@ -70,12 +70,12 @@ def test_get_person_match(person_dict_factory):
 
     people_by_display = build_people_by_name(people, "display")
 
-    assert get_person_match(people_by_display, "John Smith") == people[0]
-    assert get_person_match(people_by_display, "John Bar") == people[2]
-    assert get_person_match(people_by_display, "Jenifer Smith") == people[3]
+    assert get_human_match(people_by_display, "John Smith") == people[0]
+    assert get_human_match(people_by_display, "John Bar") == people[2]
+    assert get_human_match(people_by_display, "Jenifer Smith") == people[3]
 
     with pytest.raises(MultipleItemsFoundError) as error:
-        get_person_match(people_by_display, "Jane Foo")
+        get_human_match(people_by_display, "Jane Foo")
 
     assert "Multiple people found" in error.value.message
     assert "Jane Foo" in error.value.message
@@ -99,7 +99,7 @@ async def test_find_people_by_name_success(
 
     mock_client.me.people.get.return_value = response_factory(value=people)
 
-    result = await find_people_by_name(
+    result = await find_humans_by_name(
         mock_context, ["John Smith", "Jenifer Smith", "Do Not Exist", "HELLO", "FOx"]
     )
 
@@ -144,7 +144,7 @@ async def test_find_people_by_name_success_ambiguous_matches(
     mock_client.me.people.get.return_value = response_factory(value=people)
 
     with pytest.raises(MultipleItemsFoundError) as error:
-        await find_people_by_name(mock_context, names)
+        await find_humans_by_name(mock_context, names)
 
     assert "Multiple people found" in error.value.message
     assert names[0] in error.value.message

@@ -1,7 +1,18 @@
-from arcade_teams.models import ChatMembershipMatchType, FindChatByMembersSentinel
+from collections.abc import Callable
+from typing import Any
+
+from msgraph.generated.models.conversation_member import ConversationMember
+
+from arcade_teams.models import Chat, ChatMembershipMatchType, FindChatByMembersSentinel
 
 
-def test_find_chat_by_members_sentinel_exact_match(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_exact_match(
+    chat_factory: Callable[[Any, list[ConversationMember] | None], Chat],
+    member_factory: Callable[
+        [Any, str | None, str | None, str | None, str | None, str | None, list[str] | None],
+        ConversationMember,
+    ],
+):
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),

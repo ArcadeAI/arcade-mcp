@@ -103,7 +103,7 @@ def chat_factory() -> Callable[[Any, list[ConversationMember] | None], Chat]:
     def chat_factory(
         id_: str | None = None,
         members: list[ConversationMember] | None = None,
-    ):
+    ) -> Chat:
         return Chat(
             id=id_ or str(uuid.uuid4()),
             members=members,
@@ -114,7 +114,7 @@ def chat_factory() -> Callable[[Any, list[ConversationMember] | None], Chat]:
 
 @pytest.fixture
 def member_factory(
-    random_str_factory,
+    random_str_factory: Callable[[int], str],
 ) -> Callable[
     [Any, str | None, str | None, str | None, str | None, str | None, list[str] | None],
     ConversationMember,
