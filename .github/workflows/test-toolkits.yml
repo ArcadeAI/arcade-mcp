@@ -30,6 +30,43 @@ jobs:
           echo "toolkits_without_secrets=$TOOLKITS_WITHOUT_SECRETS" >> $GITHUB_OUTPUT
           echo "toolkits_with_secrets=$TOOLKITS_WITH_SECRETS" >> $GITHUB_OUTPUT
 
+  test-toolkits:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_without_secrets) }}
+      fail-fast: true
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+
+      - name: Install toolkit dependencies
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: uv pip install -e ".[dev]"
+
+      - name: Check toolkit
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: |
+          uv run --active pre-commit run -a
+          uv run --active mypy --config-file=pyproject.toml
+
+      - name: Test stand-alone toolkits (no secrets)
+        working-directory: toolkits/${{ matrix.toolkit }}
+        run: |
+          # Run pytest and capture exit code
+          uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
+
+          if [ "${EXIT_CODE:-0}" -eq 5 ]; then
+            echo "No tests found for toolkit ${{ matrix.toolkit }}, skipping..."
+            exit 0
+          elif [ "${EXIT_CODE:-0}" -ne 0 ]; then
+            exit ${EXIT_CODE}
+          fi
+
   test-toolkits-with-secrets:
     needs: setup
     runs-on: ubuntu-latest
@@ -56,43 +93,6 @@ jobs:
 
       - name: Test stand-alone toolkits (with secrets)
         if: github.repository == 'ArcadeAI/arcade-ai'
-        working-directory: toolkits/${{ matrix.toolkit }}
-        run: |
-          # Run pytest and capture exit code
-          uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
-
-          if [ "${EXIT_CODE:-0}" -eq 5 ]; then
-            echo "No tests found for toolkit ${{ matrix.toolkit }}, skipping..."
-            exit 0
-          elif [ "${EXIT_CODE:-0}" -ne 0 ]; then
-            exit ${EXIT_CODE}
-          fi
-
-  test-toolkits:
-    needs: setup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_without_secrets) }}
-      fail-fast: true
-    steps:
-      - name: Check out
-        uses: actions/checkout@v4
-
-      - name: Set up the environment
-        uses: ./.github/actions/setup-uv-env
-
-      - name: Install toolkit dependencies
-        working-directory: toolkits/${{ matrix.toolkit }}
-        run: uv pip install -e ".[dev]"
-
-      - name: Check toolkit
-        working-directory: toolkits/${{ matrix.toolkit }}
-        run: |
-          uv run --active pre-commit run -a
-          uv run --active mypy --config-file=pyproject.toml
-
-      - name: Test stand-alone toolkits (no secrets)
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
