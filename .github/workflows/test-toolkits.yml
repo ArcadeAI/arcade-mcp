@@ -11,31 +11,31 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      toolkits_with_secrets: ${{ steps.load_toolkits.outputs.toolkits_with_secrets }}
-      toolkits_without_secrets: ${{ steps.load_toolkits.outputs.toolkits_without_secrets }}
+      toolkits_with_gha_secrets: ${{ steps.load_toolkits.outputs.toolkits_with_gha_secrets }}
+      toolkits_without_gha_secrets: ${{ steps.load_toolkits.outputs.toolkits_without_gha_secrets }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: determine toolkits without secrets
+      - name: determine toolkits with and without GHA secrets
         id: load_toolkits
         run: |
           # Find all directories in toolkits/ that have a pyproject.toml
           TOOLKITS=$(find toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
-          TOOLKITS_WITH_SECRETS='["postgres"]'
-          TOOLKITS_WITHOUT_SECRETS=$(echo "$TOOLKITS" | jq -c --argjson with "$TOOLKITS_WITH_SECRETS" '[.[] | select(. as $t | $with | index($t) | not)]')
+          TOOLKITS_WITH_GHA_SECRETS='["postgres"]'
+          TOOLKITS_WITHOUT_GHA_SECRETS=$(echo "$TOOLKITS" | jq -c --argjson with "$TOOLKITS_WITH_GHA_SECRETS" '[.[] | select(. as $t | $with | index($t) | not)]')
           echo "Found toolkits: $TOOLKITS"
-          echo "Found toolkits without secrets: $TOOLKITS_WITHOUT_SECRETS"
-          echo "Found toolkits with secrets: $TOOLKITS_WITH_SECRETS"
-          echo "toolkits_without_secrets=$TOOLKITS_WITHOUT_SECRETS" >> $GITHUB_OUTPUT
-          echo "toolkits_with_secrets=$TOOLKITS_WITH_SECRETS" >> $GITHUB_OUTPUT
+          echo "Found toolkits without GHA secrets: $TOOLKITS_WITHOUT_GHA_SECRETS"
+          echo "Found toolkits with GHA secrets: $TOOLKITS_WITH_GHA_SECRETS"
+          echo "toolkits_without_gha_secrets=$TOOLKITS_WITHOUT_GHA_SECRETS" >> $GITHUB_OUTPUT
+          echo "toolkits_with_gha_secrets=$TOOLKITS_WITH_GHA_SECRETS" >> $GITHUB_OUTPUT
 
   test-toolkits:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_without_secrets) }}
+        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_without_gha_secrets) }}
       fail-fast: true
     steps:
       - name: Check out
@@ -67,12 +67,12 @@ jobs:
             exit ${EXIT_CODE}
           fi
 
-  test-toolkits-with-secrets:
+  test-toolkits-with-gha-secrets:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_with_secrets) }}
+        toolkit: ${{ fromJson(needs.setup.outputs.toolkits_with_gha_secrets) }}
       fail-fast: true
     steps:
       - name: Check out
