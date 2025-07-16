@@ -38,6 +38,13 @@ class Toolkit(BaseModel):
         """
         Validator to strip the 'arcade_' prefix from the name if it exists.
         """
+        return cls._strip_arcade_prefix(value)
+
+    @classmethod
+    def _strip_arcade_prefix(cls, value: str) -> str:
+        """
+        Strip the 'arcade_' prefix from the name if it exists.
+        """
         if value.startswith("arcade_"):
             return value[len("arcade_") :]
         return value
@@ -68,24 +75,24 @@ class Toolkit(BaseModel):
             repo = metadata.get("Repository", None)  # type: ignore[attr-defined]
 
         except importlib.metadata.PackageNotFoundError as e:
-            raise ToolkitLoadError(f"Package {package} not found.") from e
+            raise ToolkitLoadError(f"Package '{package}' not found.") from e
         except KeyError as e:
-            raise ToolkitLoadError(f"Metadata key error for package {package}.") from e
+            raise ToolkitLoadError(f"Metadata key error for package '{package}'.") from e
         except Exception as e:
-            raise ToolkitLoadError(f"Failed to load metadata for package {package}.") from e
+            raise ToolkitLoadError(f"Failed to load metadata for package '{package}'.") from e
 
         # Get the package directory
         try:
             package_dir = Path(get_package_directory(package))
         except (ImportError, AttributeError) as e:
-            raise ToolkitLoadError(f"Failed to locate package directory for {package}.") from e
+            raise ToolkitLoadError(f"Failed to locate package directory for '{package}'.") from e
 
         # Get all python files in the package directory
         try:
             modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
         except OSError as e:
             raise ToolkitLoadError(
-                f"Failed to locate Python files in package directory for {package}."
+                f"Failed to locate Python files in package directory for '{package}'."
             ) from e
 
         toolkit = cls(
@@ -110,30 +117,117 @@ class Toolkit(BaseModel):
         return toolkit
 
     @classmethod
-    def find_all_arcade_toolkits(cls) -> list["Toolkit"]:
+    def from_entrypoint(cls, entry: importlib.metadata.EntryPoint) -> "Toolkit":
         """
-        Find all installed packages prefixed with 'arcade_' in the current
-        Python interpreter's environment and load them as Toolkits.
+        Load a Toolkit from an entrypoint.
+
+        The entrypoint value is used as the toolkit name, while the package name
+        is extracted from the distribution that owns the entrypoint.
+
+        Args:
+            entry: The EntryPoint object from importlib.metadata
 
         Returns:
-            List[Toolkit]: A list of Toolkit instances.
+            A Toolkit instance
+
+        Raises:
+            ToolkitLoadError: If the toolkit cannot be loaded
+        """
+        # Get the package name from the distribution that owns this entrypoint
+        if not hasattr(entry, "dist") or entry.dist is None:
+            raise ToolkitLoadError(
+                f"Entry point '{entry.name}' does not have distribution metadata. "
+                f"This may indicate an incomplete package installation."
+            )
+
+        package_name = entry.dist.name
+
+        toolkit = cls.from_package(package_name)
+        toolkit.name = cls._strip_arcade_prefix(entry.value)
+
+        return toolkit
+
+    @classmethod
+    def find_arcade_toolkits_from_entrypoints(cls) -> list["Toolkit"]:
+        """
+        Find and load as Toolkits all installed packages in the
+        current Python interpreter's environment that have a
+        registered entrypoint under the 'arcade.toolkits' group.
+        """
+        toolkits = []
+        toolkit_entries: list[importlib.metadata.EntryPoint] = []
+
+        try:
+            toolkit_entries = importlib.metadata.entry_points(
+                group="arcade_toolkits", name="toolkit_name"
+            )
+            for entry in toolkit_entries:
+                try:
+                    toolkit = cls.from_entrypoint(entry)
+                    toolkits.append(toolkit)
+                    logger.debug(
+                        f"Loaded toolkit from entry point: {entry.name} = '{toolkit.name}'"
+                    )
+                except ToolkitLoadError as e:
+                    logger.warning(
+                        f"Warning: {e} Skipping toolkit from entry point '{entry.value}'"
+                    )
+        except Exception as e:
+            logger.debug(f"Entry point discovery failed or not available: {e}")
+
+        return toolkits
+
+    @classmethod
+    def find_arcade_toolkits_from_prefix(cls) -> list["Toolkit"]:
+        """
+        Find and load as Toolkits all installed packages in the
+        current Python interpreter's environment that are prefixed with 'arcade_'.
         """
         import sysconfig
 
-        # Get the site-packages directory of the current interpreter
+        toolkits = []
         site_packages_dir = sysconfig.get_paths()["purelib"]
+
         arcade_packages = [
             dist.metadata["Name"]
             for dist in importlib.metadata.distributions(path=[site_packages_dir])
             if dist.metadata["Name"].startswith("arcade_")
         ]
-        toolkits = []
+
         for package in arcade_packages:
             try:
-                toolkits.append(cls.from_package(package))
+                toolkit = cls.from_package(package)
+                toolkits.append(toolkit)
+                logger.debug(f"Loaded toolkit from prefix discovery: {package}")
             except ToolkitLoadError as e:
                 logger.warning(f"Warning: {e} Skipping toolkit {package}")
+
         return toolkits
+
+    @classmethod
+    def find_all_arcade_toolkits(cls) -> list["Toolkit"]:
+        """
+        Find and load as Toolkits all installed packages in the
+        current Python interpreter's environment that either
+        1. Have a registered entrypoint under the 'arcade.toolkits' group, or
+        2. Are prefixed with 'arcade_'
+
+        Returns:
+            List[Toolkit]: A list of Toolkit instances.
+        """
+        # Find toolkits
+        entrypoint_toolkits = cls.find_arcade_toolkits_from_entrypoints()
+        prefix_toolkits = cls.find_arcade_toolkits_from_prefix()
+
+        # Deduplicate. Entrypoints are preferred over prefix-based toolkits.
+        seen_package_names = set()
+        all_toolkits = []
+        for toolkit in entrypoint_toolkits + prefix_toolkits:
+            if toolkit.package_name not in seen_package_names:
+                all_toolkits.append(toolkit)
+                seen_package_names.add(toolkit.package_name)
+
+        return all_toolkits
 
 
 def get_package_directory(package_name: str) -> str:

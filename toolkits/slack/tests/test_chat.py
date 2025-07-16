@@ -1,4 +1,4 @@
-import copy
+import json
 from datetime import datetime, timezone
 from unittest.mock import Mock, call, patch
 
@@ -10,30 +10,18 @@ from slack_sdk.web.async_slack_response import AsyncSlackResponse
 from arcade_slack.constants import MAX_PAGINATION_SIZE_LIMIT
 from arcade_slack.models import ConversationType, ConversationTypeSlackName
 from arcade_slack.tools.chat import (
-    get_channel_metadata_by_name,
-    get_conversation_metadata_by_id,
-    get_direct_message_conversation_metadata_by_username,
-    get_members_in_channel_by_name,
-    get_members_in_conversation_by_id,
-    get_messages_in_channel_by_name,
-    get_messages_in_conversation_by_id,
-    get_messages_in_direct_message_conversation_by_username,
-    get_messages_in_multi_person_dm_conversation_by_usernames,
-    get_multi_person_dm_conversation_metadata_by_usernames,
-    list_conversations_metadata,
-    list_direct_message_conversations_metadata,
-    list_group_direct_message_conversations_metadata,
-    list_private_channels_metadata,
-    list_public_channels_metadata,
-    send_dm_to_user,
-    send_message_to_channel,
+    get_conversation_metadata,
+    get_messages,
+    get_users_in_conversation,
+    list_conversations,
+    send_message,
 )
-from arcade_slack.utils import extract_basic_user_info, extract_conversation_metadata
+from arcade_slack.utils import cast_user_dict, extract_conversation_metadata
 
 
 @pytest.fixture
-def mock_list_conversations_metadata(mocker):
-    return mocker.patch("arcade_slack.tools.chat.list_conversations_metadata", autospec=True)
+def mock_list_conversations(mocker):
+    return mocker.patch("arcade_slack.tools.chat.list_conversations", autospec=True)
 
 
 @pytest.fixture
@@ -42,72 +30,147 @@ def mock_channel_info() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_send_dm_to_user(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.users_list.return_value = {
-        "ok": True,
-        "members": [{"name": "testuser", "id": "U12345"}],
-    }
+async def test_send_message_to_conversation_id(
+    mock_context,
+    mock_chat_slack_client,
+):
+    mock_slack_response = Mock(spec=AsyncSlackResponse)
+    mock_slack_response.data = {"ok": True}
+    mock_chat_slack_client.chat_postMessage.return_value = mock_slack_response
+
+    response = await send_message(mock_context, conversation_id="abc123", message="Hello!")
+
+    assert response["success"] is True
+    assert response["data"]["ok"] is True
+    mock_chat_slack_client.chat_postMessage.assert_called_once_with(channel="abc123", text="Hello!")
+
+
+@pytest.mark.asyncio
+async def test_send_message_to_username(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+):
+    mock_chat_slack_client.auth_test.return_value = {"ok": True, "user_id": "current_user_id"}
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [{"name": "foo", "id": "bar"}],
+            "response_metadata": {"next_cursor": "123"},
+        },
+        {
+            "ok": True,
+            "members": [{"name": "foobar", "id": "foobar_user_id"}],
+        },
+    ]
     mock_chat_slack_client.conversations_open.return_value = {
         "ok": True,
-        "channel": {"id": "D12345"},
+        "channel": {
+            "id": "conversation_id",
+            "is_im": True,
+        },
     }
     mock_slack_response = Mock(spec=AsyncSlackResponse)
     mock_slack_response.data = {"ok": True}
     mock_chat_slack_client.chat_postMessage.return_value = mock_slack_response
 
-    response = await send_dm_to_user(mock_context, "testuser", "Hello!")
+    response = await send_message(
+        context=mock_context,
+        usernames=["foobar"],
+        message="Hello, world!",
+    )
 
-    assert response["response"]["ok"] is True
-    mock_chat_slack_client.users_list.assert_called_once()
-    mock_chat_slack_client.conversations_open.assert_called_once_with(users=["U12345"])
-    mock_chat_slack_client.chat_postMessage.assert_called_once_with(channel="D12345", text="Hello!")
+    assert response["success"] is True
+    assert response["data"]["ok"] is True
+
+    mock_chat_slack_client.auth_test.assert_called_once()
+    assert mock_user_retrieval_slack_client.users_list.call_count == 2
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[
+            "current_user_id",
+            "foobar_user_id",
+        ],
+        return_im=True,
+    )
+    mock_chat_slack_client.chat_postMessage.assert_called_once_with(
+        channel="conversation_id",
+        text="Hello, world!",
+    )
 
 
 @pytest.mark.asyncio
-async def test_send_dm_to_inexistent_user(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.users_list.return_value = {
+async def test_send_dm_to_inexistent_user(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+):
+    mock_chat_slack_client.auth_test.return_value = {"ok": True, "user_id": "current_user_id"}
+    mock_user_retrieval_slack_client.users_list.return_value = {
         "ok": True,
-        "members": [{"name": "testuser", "id": "U12345"}],
+        "members": [{"name": "foo", "id": "bar"}],
     }
 
-    with pytest.raises(RetryableToolError):
-        await send_dm_to_user(mock_context, "inexistent_user", "Hello!")
+    with pytest.raises(RetryableToolError) as error:
+        await send_message(mock_context, usernames=["inexistent_user"], message="Hello!")
 
-    mock_chat_slack_client.users_list.assert_called_once()
+    assert "inexistent_user" in error.value.message
+    assert "foo" in error.value.additional_prompt_content
+    assert "bar" in error.value.additional_prompt_content
+    mock_user_retrieval_slack_client.users_list.assert_called_once()
     mock_chat_slack_client.conversations_open.assert_not_called()
     mock_chat_slack_client.chat_postMessage.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_send_message_to_channel(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.conversations_list.return_value = {
+async def test_send_message_to_channel_success(
+    mock_context,
+    mock_chat_slack_client,
+    mock_conversation_retrieval_slack_client,
+):
+    mock_conversation_retrieval_slack_client.conversations_list.return_value = {
         "ok": True,
-        "channels": [{"id": "C12345", "name": "general", "is_member": True, "is_group": True}],
+        "channels": [{"id": "channel_id", "name": "general", "is_member": True, "is_group": True}],
     }
     mock_slack_response = Mock(spec=AsyncSlackResponse)
     mock_slack_response.data = {"ok": True}
     mock_chat_slack_client.chat_postMessage.return_value = mock_slack_response
 
-    response = await send_message_to_channel(mock_context, "general", "Hello, channel!")
+    response = await send_message(mock_context, channel_name="general", message="Hello, channel!")
 
-    assert response["response"]["ok"] is True
-    mock_chat_slack_client.conversations_list.assert_called_once()
+    assert response["success"] is True
+    assert response["data"]["ok"] is True
+    mock_conversation_retrieval_slack_client.conversations_list.assert_called_once()
     mock_chat_slack_client.chat_postMessage.assert_called_once_with(
-        channel="C12345", text="Hello, channel!"
+        channel="channel_id", text="Hello, channel!"
     )
 
 
 @pytest.mark.asyncio
-async def test_send_message_to_inexistent_channel(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.conversations_list.return_value = {
+async def test_send_message_to_inexistent_channel(
+    mock_context,
+    mock_chat_slack_client,
+    mock_conversation_retrieval_slack_client,
+):
+    mock_conversation_retrieval_slack_client.conversations_list.return_value = {
         "ok": True,
-        "channels": [],
+        "channels": [
+            {
+                "id": "another_channel_id",
+                "name": "another_channel",
+                "is_member": True,
+                "is_group": True,
+            }
+        ],
     }
 
-    with pytest.raises(RetryableToolError):
-        await send_message_to_channel(mock_context, "inexistent_channel", "Hello!")
+    with pytest.raises(RetryableToolError) as error:
+        await send_message(mock_context, channel_name="inexistent_channel", message="Hello!")
 
-    mock_chat_slack_client.conversations_list.assert_called_once()
+    assert "inexistent_channel" in error.value.message
+    assert "another_channel" in error.value.additional_prompt_content
+    assert "another_channel_id" in error.value.additional_prompt_content
+
+    mock_conversation_retrieval_slack_client.conversations_list.assert_called_once()
     mock_chat_slack_client.chat_postMessage.assert_not_called()
 
 
@@ -120,17 +183,42 @@ async def test_list_conversations_metadata_with_default_args(
         "channels": [mock_channel_info],
     }
 
-    response = await list_conversations_metadata(mock_context)
+    response = await list_conversations(mock_context)
 
     assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
     assert response["next_cursor"] is None
 
     mock_chat_slack_client.conversations_list.assert_called_once_with(
-        types=",".join([conv_type.value for conv_type in ConversationTypeSlackName]),
+        types=None,
         exclude_archived=True,
         limit=MAX_PAGINATION_SIZE_LIMIT,
         cursor=None,
     )
+
+
+@pytest.mark.asyncio
+async def test_list_conversations_metadata_with_more_pages(
+    mock_context, mock_chat_slack_client, dummy_channel_factory, random_str_factory
+):
+    channel1 = dummy_channel_factory(is_channel=True)
+    channel2 = dummy_channel_factory(is_im=True)
+    channel3 = dummy_channel_factory(is_mpim=True)
+    next_cursor = random_str_factory()
+
+    mock_chat_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [channel1, channel2, channel3],
+        "response_metadata": {"next_cursor": next_cursor},
+    }
+
+    response = await list_conversations(mock_context, limit=3)
+
+    assert response["conversations"] == [
+        extract_conversation_metadata(channel1),
+        extract_conversation_metadata(channel2),
+        extract_conversation_metadata(channel3),
+    ]
+    assert response["next_cursor"] == next_cursor
 
 
 @pytest.mark.asyncio
@@ -142,8 +230,8 @@ async def test_list_conversations_metadata_filtering_single_conversation_type(
         "channels": [mock_channel_info],
     }
 
-    response = await list_conversations_metadata(
-        mock_context, conversation_types=ConversationType.PUBLIC_CHANNEL
+    response = await list_conversations(
+        mock_context, conversation_types=[ConversationType.PUBLIC_CHANNEL]
     )
 
     assert response["conversations"] == [extract_conversation_metadata(mock_channel_info)]
@@ -166,11 +254,11 @@ async def test_list_conversations_metadata_filtering_multiple_conversation_types
         "channels": [mock_channel_info],
     }
 
-    response = await list_conversations_metadata(
+    response = await list_conversations(
         mock_context,
         conversation_types=[
-            ConversationTypeSlackName.PUBLIC_CHANNEL,
-            ConversationTypeSlackName.PRIVATE_CHANNEL,
+            ConversationType.PUBLIC_CHANNEL,
+            ConversationType.PRIVATE_CHANNEL,
         ],
     )
 
@@ -195,7 +283,7 @@ async def test_list_conversations_metadata_with_custom_pagination_args(
         "response_metadata": {"next_cursor": "456"},
     }
 
-    response = await list_conversations_metadata(mock_context, limit=3, next_cursor="123")
+    response = await list_conversations(mock_context, limit=3, next_cursor="123")
 
     assert response["conversations"] == [
         extract_conversation_metadata(mock_channel_info) for _ in range(3)
@@ -203,7 +291,7 @@ async def test_list_conversations_metadata_with_custom_pagination_args(
     assert response["next_cursor"] == "456"
 
     mock_chat_slack_client.conversations_list.assert_called_once_with(
-        types=",".join([conv_type.value for conv_type in ConversationTypeSlackName]),
+        types=None,
         exclude_archived=True,
         limit=3,
         cursor="123",
@@ -214,64 +302,37 @@ async def test_list_conversations_metadata_with_custom_pagination_args(
 @pytest.mark.parametrize(
     "faulty_slack_function_name, tool_function, tool_args",
     [
-        ("users_list", send_dm_to_user, ("testuser", "Hello!")),
-        ("conversations_list", send_message_to_channel, ("general", "Hello!")),
+        ("users_list", send_message, {"usernames": ["testuser"], "message": "Hello!"}),
+        ("conversations_list", send_message, {"channel_name": "general", "message": "Hello!"}),
     ],
 )
 async def test_tools_with_slack_error(
     mock_context, mock_chat_slack_client, faulty_slack_function_name, tool_function, tool_args
 ):
+    mock_chat_slack_client.auth_test.return_value = {"ok": True, "user_id": "current_user_id"}
     getattr(mock_chat_slack_client, faulty_slack_function_name).side_effect = SlackApiError(
         message="test_slack_error",
         response={"ok": False, "error": "test_slack_error"},
     )
 
     with pytest.raises(ToolExecutionError) as e:
-        await tool_function(mock_context, *tool_args)
+        await tool_function(mock_context, **tool_args)
         assert "test_slack_error" in str(e.value)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "tool_function, conversation_type",
-    [
-        (list_public_channels_metadata, ConversationType.PUBLIC_CHANNEL),
-        (list_private_channels_metadata, ConversationType.PRIVATE_CHANNEL),
-        (
-            list_group_direct_message_conversations_metadata,
-            ConversationType.MULTI_PERSON_DIRECT_MESSAGE,
-        ),
-        (list_direct_message_conversations_metadata, ConversationType.DIRECT_MESSAGE),
-    ],
-)
-async def test_list_channels_metadata(
-    mock_context,
-    mock_list_conversations_metadata,
-    tool_function,
-    conversation_type,
-):
-    response = await tool_function(mock_context, limit=3)
-
-    mock_list_conversations_metadata.assert_called_once_with(
-        mock_context, conversation_types=[conversation_type], limit=3
-    )
-
-    assert response == mock_list_conversations_metadata.return_value
-
-
-@pytest.mark.asyncio
 async def test_get_conversation_metadata_by_id(
-    mock_context, mock_chat_slack_client, mock_channel_info
+    mock_context, mock_conversation_retrieval_slack_client, mock_channel_info
 ):
-    mock_chat_slack_client.conversations_info.return_value = {
+    mock_conversation_retrieval_slack_client.conversations_info.return_value = {
         "ok": True,
         "channel": mock_channel_info,
     }
 
-    response = await get_conversation_metadata_by_id(mock_context, "C12345")
+    response = await get_conversation_metadata(mock_context, conversation_id="C12345")
 
     assert response == extract_conversation_metadata(mock_channel_info)
-    mock_chat_slack_client.conversations_info.assert_called_once_with(
+    mock_conversation_retrieval_slack_client.conversations_info.assert_called_once_with(
         channel="C12345",
         include_locale=True,
         include_num_members=True,
@@ -279,304 +340,618 @@ async def test_get_conversation_metadata_by_id(
 
 
 @pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.list_conversations_metadata")
 async def test_get_conversation_metadata_by_id_slack_api_error(
-    mock_list_conversations_metadata, mock_context, mock_chat_slack_client, mock_channel_info
+    mock_context,
+    mock_conversation_retrieval_slack_client,
+    mock_channel_info,
 ):
-    mock_channel_info["name"] = "whatever_conversation_should_be_present_in_additional_prompt"
-    mock_list_conversations_metadata.return_value = {
-        "conversations": [extract_conversation_metadata(mock_channel_info)],
-        "response_metadata": {"next_cursor": None},
-    }
-    mock_chat_slack_client.conversations_info.side_effect = SlackApiError(
+    mock_conversation_retrieval_slack_client.conversations_info.side_effect = SlackApiError(
         message="channel_not_found",
         response={"ok": False, "error": "channel_not_found"},
     )
 
-    with pytest.raises(RetryableToolError) as e:
-        await get_conversation_metadata_by_id(mock_context, "C12345")
+    with pytest.raises(ToolExecutionError) as e:
+        await get_conversation_metadata(mock_context, conversation_id="C12345")
 
-        assert (
-            "whatever_conversation_should_be_present_in_additional_prompt"
-            in e.additional_prompt_content
-        )
-
-    mock_chat_slack_client.conversations_info.assert_called_once_with(
-        channel="C12345",
-        include_locale=True,
-        include_num_members=True,
-    )
-    mock_list_conversations_metadata.assert_called_once_with(mock_context)
+    assert "C12345" in e.value.message
+    assert "not found" in e.value.message
 
 
 @pytest.mark.asyncio
-async def test_get_conversation_metadata_by_name(
-    mock_context, mock_list_conversations_metadata, mock_channel_info
+async def test_get_conversation_metadata_by_channel_name(
+    mock_context,
+    mock_conversation_retrieval_slack_client,
+    dummy_channel_factory,
+    random_str_factory,
 ):
-    sample_conversation = extract_conversation_metadata(mock_channel_info)
-    mock_list_conversations_metadata.return_value = {
-        "conversations": [sample_conversation],
-        "next_cursor": None,
+    channel_name = random_str_factory()
+    channel1 = dummy_channel_factory(is_channel=True, name=f"{channel_name}_another_channel")
+    channel2 = dummy_channel_factory(is_channel=True, name=channel_name)
+
+    mock_conversation_retrieval_slack_client.conversations_list.return_value = {
+        "ok": True,
+        "channels": [channel1, channel2],
     }
 
-    response = await get_channel_metadata_by_name(mock_context, sample_conversation["name"])
+    response = await get_conversation_metadata(mock_context, channel_name=channel_name)
 
-    assert response == sample_conversation
-    mock_list_conversations_metadata.assert_called_once_with(
-        context=mock_context,
-        conversation_types=[
-            ConversationType.PUBLIC_CHANNEL,
-            ConversationType.PRIVATE_CHANNEL,
-        ],
-        next_cursor=None,
+    assert response == extract_conversation_metadata(channel2)
+    mock_conversation_retrieval_slack_client.conversations_list.assert_called_once_with(
+        types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+        exclude_archived=True,
+        limit=MAX_PAGINATION_SIZE_LIMIT,
+        cursor=None,
     )
 
 
 @pytest.mark.asyncio
-async def test_get_channel_metadata_by_name_triggering_pagination(
-    mock_context, mock_list_conversations_metadata, mock_channel_info
+async def test_get_conversation_metadata_by_channel_name_triggering_pagination(
+    mock_context,
+    mock_conversation_retrieval_slack_client,
+    dummy_channel_factory,
+    random_str_factory,
 ):
-    target_channel = extract_conversation_metadata(mock_channel_info)
-    another_channel = extract_conversation_metadata(mock_channel_info)
-    another_channel["name"] = "another_channel"
+    target_channel_name = random_str_factory()
+    target_channel = dummy_channel_factory(is_channel=True, name=target_channel_name)
+    another_channel = dummy_channel_factory(
+        is_channel=True, name=f"{target_channel_name}_another_channel"
+    )
 
-    mock_list_conversations_metadata.side_effect = [
+    mock_conversation_retrieval_slack_client.conversations_list.side_effect = [
         {
-            "conversations": [another_channel],
-            "next_cursor": "123",
+            "ok": True,
+            "channels": [another_channel],
+            "response_metadata": {"next_cursor": "123"},
         },
         {
-            "conversations": [target_channel],
-            "next_cursor": None,
+            "ok": True,
+            "channels": [target_channel],
+            "response_metadata": {"next_cursor": None},
         },
     ]
 
-    response = await get_channel_metadata_by_name(mock_context, target_channel["name"])
+    response = await get_conversation_metadata(mock_context, channel_name=target_channel_name)
 
-    assert response == target_channel
-    assert mock_list_conversations_metadata.call_count == 2
-    mock_list_conversations_metadata.assert_has_calls([
+    assert response == extract_conversation_metadata(target_channel)
+    assert mock_conversation_retrieval_slack_client.conversations_list.call_count == 2
+    mock_conversation_retrieval_slack_client.conversations_list.assert_has_calls([
         call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor=None,
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor=None,
         ),
         call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor="123",
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor="123",
         ),
     ])
 
 
 @pytest.mark.asyncio
-async def test_get_channel_metadata_by_name_not_found(
-    mock_context, mock_list_conversations_metadata, mock_channel_info
+async def test_get_conversation_metadata_by_channel_name_not_found(
+    mock_context,
+    mock_conversation_retrieval_slack_client,
+    dummy_channel_factory,
+    random_str_factory,
 ):
-    first_channel = extract_conversation_metadata(mock_channel_info)
-    second_channel = extract_conversation_metadata(mock_channel_info)
-    second_channel["name"] = "second_channel"
+    not_found_name = random_str_factory()
+    channel1 = dummy_channel_factory(is_channel=True, name=f"{not_found_name}_first")
+    channel2 = dummy_channel_factory(is_channel=True, name=f"{not_found_name}_second")
 
-    mock_list_conversations_metadata.side_effect = [
+    mock_conversation_retrieval_slack_client.conversations_list.side_effect = [
         {
-            "conversations": [second_channel],
-            "next_cursor": "123",
+            "ok": True,
+            "channels": [channel1],
+            "response_metadata": {"next_cursor": "123"},
         },
         {
-            "conversations": [first_channel],
-            "next_cursor": None,
+            "ok": True,
+            "channels": [channel2],
+            "response_metadata": {"next_cursor": None},
         },
     ]
 
-    with pytest.raises(RetryableToolError):
-        await get_channel_metadata_by_name(mock_context, "inexistent_channel")
+    with pytest.raises(RetryableToolError) as error:
+        await get_conversation_metadata(mock_context, channel_name=not_found_name)
 
-    assert mock_list_conversations_metadata.call_count == 2
-    mock_list_conversations_metadata.assert_has_calls([
+    assert "not found" in error.value.message
+    assert not_found_name in error.value.message
+    assert (
+        json.dumps([
+            {"id": channel1["id"], "name": channel1["name"]},
+            {"id": channel2["id"], "name": channel2["name"]},
+        ])
+        in error.value.additional_prompt_content
+    )
+
+    assert mock_conversation_retrieval_slack_client.conversations_list.call_count == 2
+    mock_conversation_retrieval_slack_client.conversations_list.assert_has_calls([
         call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor=None,
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor=None,
         ),
         call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor="123",
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor="123",
         ),
     ])
 
 
 @pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.async_paginate")
-@patch("arcade_slack.tools.chat.get_user_info_by_id")
-async def test_get_members_from_conversation_id(
-    mock_get_user_info_by_id, mock_async_paginate, mock_context, mock_chat_slack_client
+async def test_get_conversation_metadata_by_username(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
 ):
-    member1 = {"id": "U123", "name": "testuser123"}
-    member1_info = extract_basic_user_info(member1)
-    member2 = {"id": "U456", "name": "testuser456"}
-    member2_info = extract_basic_user_info(member2)
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user = dummy_user_factory(id_="U2", name="other_user")
+    conversation = dummy_channel_factory(is_im=True)
 
-    mock_async_paginate.return_value = [member1["id"], member2["id"]], "token123"
-    mock_get_user_info_by_id.side_effect = [member1_info, member2_info]
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
 
-    response = await get_members_in_conversation_by_id(
-        mock_context, conversation_id="C12345", limit=2
+    mock_user_retrieval_slack_client.users_list.return_value = {
+        "ok": True,
+        "members": [current_user, other_user],
+        "response_metadata": {"next_cursor": None},
+    }
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(mock_context, usernames=[other_user["name"]])
+
+    assert response == extract_conversation_metadata(conversation)
+
+
+@pytest.mark.asyncio
+async def test_get_dm_conversation_metadata_by_username_not_found(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+    random_str_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user = dummy_user_factory(id_="U2", name="other_user")
+    conversation = dummy_channel_factory(is_im=True)
+    not_found_user_name = random_str_factory()
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.return_value = {
+        "ok": True,
+        "members": [current_user, other_user],
+        "response_metadata": {"next_cursor": None},
+    }
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    with pytest.raises(RetryableToolError) as error:
+        await get_conversation_metadata(mock_context, usernames=[not_found_user_name])
+
+    assert "not found" in error.value.message
+    assert not_found_user_name in error.value.message
+    assert other_user["id"] in error.value.additional_prompt_content
+    assert other_user["name"] in error.value.additional_prompt_content
+
+    mock_chat_slack_client.conversations_open.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_usernames(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        usernames=[other_user1["name"], other_user2["name"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[current_user["id"], other_user1["id"], other_user2["id"]],
+        return_im=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_user_ids_and_usernames(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        user_ids=[other_user3["id"]],
+        usernames=[other_user1["name"], other_user2["name"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[other_user3["id"], current_user["id"], other_user1["id"], other_user2["id"]],
+        return_im=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_mpim_conversation_metadata_by_user_ids_usernames_and_emails(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_channel_factory,
+):
+    current_user = dummy_user_factory(id_="U1", name="current_user")
+    other_user1 = dummy_user_factory(id_="U2", name="other_user1")
+    other_user2 = dummy_user_factory(id_="U3", name="other_user2")
+    other_user3 = dummy_user_factory(id_="U4", name="other_user3")
+    other_user4 = dummy_user_factory(id_="U5", name="other_user4")
+    other_user5 = dummy_user_factory(id_="U6", name="other_user5")
+
+    conversation = dummy_channel_factory(is_mpim=True)
+
+    mock_chat_slack_client.auth_test.return_value = {
+        "ok": True,
+        "user_id": current_user["id"],
+    }
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [current_user, other_user1, other_user3],
+            "response_metadata": {"next_cursor": "users_list_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [current_user, other_user2, other_user4],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_user_retrieval_slack_client.users_lookupByEmail.side_effect = [
+        {
+            "ok": True,
+            "user": other_user5,
+        },
+    ]
+
+    mock_chat_slack_client.conversations_open.return_value = {
+        "ok": True,
+        "channel": conversation,
+    }
+
+    response = await get_conversation_metadata(
+        mock_context,
+        user_ids=[other_user3["id"]],
+        usernames=[other_user1["name"], other_user2["name"]],
+        emails=[other_user5["profile"]["email"]],
+    )
+
+    assert response == extract_conversation_metadata(conversation)
+
+    mock_chat_slack_client.conversations_open.assert_called_once_with(
+        users=[
+            other_user3["id"],
+            current_user["id"],
+            other_user1["id"],
+            other_user2["id"],
+            other_user5["id"],
+        ],
+        return_im=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_users_in_conversation_by_id_with_conversation_and_user_paginations(
+    mock_context,
+    mock_chat_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    random_str_factory,
+):
+    conversation_id = random_str_factory()
+    user1 = dummy_user_factory(id_="1")
+    user2 = dummy_user_factory(id_="2")
+    user3 = dummy_user_factory(id_="3")
+
+    mock_chat_slack_client.conversations_members.side_effect = [
+        {
+            "ok": True,
+            "members": [user1["id"], user2["id"]],
+            "response_metadata": {"next_cursor": "conversations_members_cursor1"},
+        },
+        {
+            "ok": True,
+            "members": [user3["id"]],
+            "response_metadata": {"next_cursor": "conversations_members_cursor2"},
+        },
+    ]
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [user1, user2],
+            "response_metadata": {"next_cursor": "users_list_cursor"},
+        },
+        {
+            "ok": True,
+            "members": [user3],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    response = await get_users_in_conversation(
+        context=mock_context,
+        conversation_id=conversation_id,
+        limit=3,
     )
 
     assert response == {
-        "members": [member1_info, member2_info],
-        "next_cursor": "token123",
+        "users": [
+            cast_user_dict(user1),
+            cast_user_dict(user2),
+            cast_user_dict(user3),
+        ],
+        "next_cursor": "conversations_members_cursor2",
     }
-    mock_async_paginate.assert_called_once_with(
-        mock_chat_slack_client.conversations_members,
-        "members",
-        limit=2,
-        next_cursor=None,
-        channel="C12345",
-    )
-    mock_get_user_info_by_id.assert_has_calls([
-        call(mock_context, member1["id"]),
-        call(mock_context, member2["id"]),
+
+    mock_chat_slack_client.conversations_members.assert_has_calls([
+        call(
+            channel=conversation_id,
+            limit=3,
+            cursor=None,
+        ),
+        call(
+            channel=conversation_id,
+            limit=1,
+            cursor="conversations_members_cursor1",
+        ),
+    ])
+
+    mock_user_retrieval_slack_client.users_list.assert_has_calls([
+        call(
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor=None,
+        ),
+        call(
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor="users_list_cursor",
+        ),
     ])
 
 
 @pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.async_paginate")
-@patch("arcade_slack.tools.chat.get_user_info_by_id")
-@patch("arcade_slack.tools.chat.list_conversations_metadata")
-async def test_get_members_from_conversation_id_channel_not_found(
-    mock_list_conversations_metadata,
-    mock_get_user_info_by_id,
-    mock_async_paginate,
+async def test_get_users_in_conversation_by_channel_name(
     mock_context,
     mock_chat_slack_client,
-    mock_channel_info,
+    mock_conversation_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_channel_factory,
+    dummy_user_factory,
+    random_str_factory,
 ):
-    conversations = [extract_conversation_metadata(mock_channel_info)] * 2
-    mock_list_conversations_metadata.return_value = {
-        "conversations": conversations,
-        "next_cursor": None,
-    }
+    channel_name = random_str_factory()
+    channel1 = dummy_channel_factory(is_channel=True, name=f"{channel_name}_another_channel")
+    channel2 = dummy_channel_factory(is_channel=True, name=channel_name)
 
-    member1 = {"id": "U123", "name": "testuser123"}
-    member1_info = extract_basic_user_info(member1)
-    member2 = {"id": "U456", "name": "testuser456"}
-    member2_info = extract_basic_user_info(member2)
-
-    mock_async_paginate.side_effect = SlackApiError(
-        message="channel_not_found",
-        response={"ok": False, "error": "channel_not_found"},
-    )
-    mock_get_user_info_by_id.side_effect = [member1_info, member2_info]
-
-    with pytest.raises(RetryableToolError):
-        await get_members_in_conversation_by_id(mock_context, conversation_id="C12345", limit=2)
-
-    mock_async_paginate.assert_called_once_with(
-        mock_chat_slack_client.conversations_members,
-        "members",
-        limit=2,
-        next_cursor=None,
-        channel="C12345",
-    )
-    mock_get_user_info_by_id.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.list_conversations_metadata")
-@patch("arcade_slack.tools.chat.get_members_in_conversation_by_id")
-async def test_get_members_in_channel_by_name(
-    mock_get_members_in_conversation_by_id,
-    mock_list_conversations_metadata,
-    mock_context,
-    mock_channel_info,
-):
-    mock_list_conversations_metadata.return_value = {
-        "conversations": [extract_conversation_metadata(mock_channel_info)],
-        "next_cursor": None,
-    }
-
-    response = await get_members_in_channel_by_name(
-        mock_context, mock_channel_info["name"], limit=2
-    )
-
-    assert response == mock_get_members_in_conversation_by_id.return_value
-    mock_list_conversations_metadata.assert_called_once_with(
-        context=mock_context,
-        conversation_types=[
-            ConversationType.PUBLIC_CHANNEL,
-            ConversationType.PRIVATE_CHANNEL,
-        ],
-        next_cursor=None,
-    )
-    mock_get_members_in_conversation_by_id.assert_called_once_with(
-        context=mock_context,
-        conversation_id="C12345",
-        limit=2,
-        next_cursor=None,
-    )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.list_conversations_metadata")
-@patch("arcade_slack.tools.chat.get_members_in_conversation_by_id")
-async def test_get_members_in_channel_by_name_triggering_pagination(
-    mock_get_members_in_conversation_by_id,
-    mock_list_conversations_metadata,
-    mock_context,
-    mock_channel_info,
-):
-    conversation1 = copy.deepcopy(mock_channel_info)
-    conversation1["name"] = "conversation1"
-    conversation2 = copy.deepcopy(mock_channel_info)
-    conversation2["name"] = "conversation2"
-
-    mock_list_conversations_metadata.side_effect = [
+    mock_conversation_retrieval_slack_client.conversations_list.side_effect = [
         {
-            "conversations": [extract_conversation_metadata(conversation1)],
-            "next_cursor": "123",
+            "ok": True,
+            "channels": [channel1],
+            "response_metadata": {"next_cursor": "123"},
         },
         {
-            "conversations": [extract_conversation_metadata(conversation2)],
-            "next_cursor": None,
+            "ok": True,
+            "channels": [channel2],
+            "response_metadata": {"next_cursor": None},
         },
     ]
 
-    response = await get_members_in_channel_by_name(mock_context, conversation2["name"], limit=2)
+    user1 = dummy_user_factory(id_="1")
+    user2 = dummy_user_factory(id_="2")
 
-    assert response == mock_get_members_in_conversation_by_id.return_value
-    mock_list_conversations_metadata.assert_has_calls([
-        call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor=None,
-        ),
-        call(
-            context=mock_context,
-            conversation_types=[ConversationType.PUBLIC_CHANNEL, ConversationType.PRIVATE_CHANNEL],
-            next_cursor="123",
-        ),
-    ])
-    mock_get_members_in_conversation_by_id.assert_called_once_with(
-        context=mock_context,
-        conversation_id="C12345",
-        limit=2,
-        next_cursor=None,
-    )
+    mock_chat_slack_client.conversations_members.side_effect = [
+        {
+            "ok": True,
+            "members": [user1["id"], user2["id"]],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    mock_user_retrieval_slack_client.users_list.side_effect = [
+        {
+            "ok": True,
+            "members": [user1, user2],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    response = await get_users_in_conversation(mock_context, channel_name=channel_name)
+
+    assert response == {
+        "users": [
+            cast_user_dict(user1),
+            cast_user_dict(user2),
+        ],
+        "next_cursor": None,
+    }
 
 
 @pytest.mark.asyncio
-async def test_get_conversation_history_by_id(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.conversations_history.return_value = {
+async def test_get_users_in_conversation_by_channel_name_not_found(
+    mock_context,
+    mock_conversation_retrieval_slack_client,
+    dummy_channel_factory,
+    random_str_factory,
+):
+    not_found_channel_name = random_str_factory()
+    channel1 = dummy_channel_factory(is_channel=True, name=f"{not_found_channel_name}_first")
+    channel2 = dummy_channel_factory(is_channel=True, name=f"{not_found_channel_name}_second")
+
+    mock_conversation_retrieval_slack_client.conversations_list.side_effect = [
+        {
+            "ok": True,
+            "channels": [channel1],
+            "response_metadata": {"next_cursor": "123"},
+        },
+        {
+            "ok": True,
+            "channels": [channel2],
+            "response_metadata": {"next_cursor": None},
+        },
+    ]
+
+    with pytest.raises(RetryableToolError) as error:
+        await get_users_in_conversation(mock_context, channel_name=not_found_channel_name)
+
+    assert "not found" in error.value.message
+    assert not_found_channel_name in error.value.message
+    assert (
+        json.dumps([
+            {"id": channel1["id"], "name": channel1["name"]},
+            {"id": channel2["id"], "name": channel2["name"]},
+        ])
+        in error.value.additional_prompt_content
+    )
+
+    assert mock_conversation_retrieval_slack_client.conversations_list.call_count == 2
+    mock_conversation_retrieval_slack_client.conversations_list.assert_has_calls([
+        call(
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor=None,
+        ),
+        call(
+            types=f"{ConversationTypeSlackName.PUBLIC_CHANNEL.value},{ConversationTypeSlackName.PRIVATE_CHANNEL.value}",
+            exclude_archived=True,
+            limit=MAX_PAGINATION_SIZE_LIMIT,
+            cursor="123",
+        ),
+    ])
+
+
+@pytest.mark.asyncio
+async def test_get_messages_by_conversation_id(
+    mock_context,
+    mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
+):
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
+    mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+        "response_metadata": {"next_cursor": "cursor"},
     }
 
-    response = await get_messages_in_conversation_by_id(mock_context, "C12345", limit=1)
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
+    }
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
-    mock_chat_slack_client.conversations_history.assert_called_once_with(
+    response = await get_messages(mock_context, "C12345", limit=1)
+
+    assert response["next_cursor"] == "cursor"
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
+    mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
         channel="C12345",
         include_all_metadata=True,
         inclusive=True,
@@ -585,28 +960,34 @@ async def test_get_conversation_history_by_id(mock_context, mock_chat_slack_clie
     )
 
 
-# TODO: pass a current unix timestamp to the tool, instead of mocking the datetime
-# conversion. Have to wait until arcade.core.annotations.Inferrable is implemented.
 @pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.convert_relative_datetime_to_unix_timestamp")
-@patch("arcade_slack.tools.chat.datetime")
-async def test_get_conversation_history_by_id_with_relative_datetime_args(
+@patch("arcade_slack.message_retrieval.convert_relative_datetime_to_unix_timestamp")
+@patch("arcade_slack.message_retrieval.datetime")
+async def test_get_messages_by_conversation_id_with_relative_datetime_args(
     mock_datetime,
     mock_convert_relative_datetime_to_unix_timestamp,
     mock_context,
-    mock_chat_slack_client,
+    mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
 ):
-    mock_chat_slack_client.conversations_history.return_value = {
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
+    mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     expected_oldest_timestamp = 1716489600
     expected_latest_timestamp = 1716403200
 
-    # Ideally we'd pass the current unix timestamp to the function, instead of mocking, but
-    # currently there's no way to have a tool argument that is not exposed to the LLM. We
-    # should have that soon, though.
     mock_datetime.now.return_value = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
     expected_current_unix_timestamp = int(mock_datetime.now.return_value.timestamp())
     mock_convert_relative_datetime_to_unix_timestamp.side_effect = [
@@ -614,16 +995,25 @@ async def test_get_conversation_history_by_id_with_relative_datetime_args(
         expected_oldest_timestamp,
     ]
 
-    response = await get_messages_in_conversation_by_id(
-        mock_context, "C12345", oldest_relative="02:00:00", latest_relative="01:00:00", limit=1
+    response = await get_messages(
+        context=mock_context,
+        conversation_id="C12345",
+        oldest_relative="02:00:00",
+        latest_relative="01:00:00",
+        limit=1,
     )
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
     mock_convert_relative_datetime_to_unix_timestamp.assert_has_calls([
         call("01:00:00", expected_current_unix_timestamp),
         call("02:00:00", expected_current_unix_timestamp),
     ])
-    mock_chat_slack_client.conversations_history.assert_called_once_with(
+    mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
         channel="C12345",
         include_all_metadata=True,
         inclusive=True,
@@ -634,43 +1024,56 @@ async def test_get_conversation_history_by_id_with_relative_datetime_args(
     )
 
 
-# TODO: pass a current unix timestamp to the tool, instead of mocking the datetime
-# conversion. Have to wait until arcade.core.annotations.Inferrable is implemented.
 @pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.convert_datetime_to_unix_timestamp")
-async def test_get_conversation_history_by_id_with_absolute_datetime_args(
-    mock_convert_datetime_to_unix_timestamp, mock_context, mock_chat_slack_client
+@patch("arcade_slack.message_retrieval.convert_datetime_to_unix_timestamp")
+async def test_get_messages_by_conversation_id_with_absolute_datetime_args(
+    mock_convert_datetime_to_unix_timestamp,
+    mock_context,
+    mock_message_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_user_factory,
+    dummy_message_factory,
 ):
-    mock_chat_slack_client.conversations_history.return_value = {
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+
+    mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
+    }
+
+    mock_user_retrieval_slack_client.users_info.return_value = {
+        "ok": True,
+        "user": user,
     }
 
     expected_latest_timestamp = 1716403200
     expected_oldest_timestamp = 1716489600
 
-    # Ideally we'd pass the current unix timestamp to the function, instead of mocking, but
-    # currently there's no way to have a tool argument that is not exposed to the LLM. We
-    # should have that soon, though.
     mock_convert_datetime_to_unix_timestamp.side_effect = [
         expected_latest_timestamp,
         expected_oldest_timestamp,
     ]
 
-    response = await get_messages_in_conversation_by_id(
-        mock_context,
-        "C12345",
+    response = await get_messages(
+        context=mock_context,
+        conversation_id="C12345",
         oldest_datetime="2025-01-01 00:00:00",
         latest_datetime="2025-01-02 00:00:00",
         limit=1,
     )
 
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
+
     mock_convert_datetime_to_unix_timestamp.assert_has_calls([
         call("2025-01-02 00:00:00"),
         call("2025-01-01 00:00:00"),
     ])
-    mock_chat_slack_client.conversations_history.assert_called_once_with(
+    mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
         channel="C12345",
         include_all_metadata=True,
         inclusive=True,
@@ -682,34 +1085,45 @@ async def test_get_conversation_history_by_id_with_absolute_datetime_args(
 
 
 @pytest.mark.asyncio
-async def test_get_conversation_history_by_id_with_messed_oldest_args(
-    mock_context, mock_chat_slack_client
+async def test_get_messages_by_conversation_id_with_messed_oldest_args(
+    mock_context, mock_message_retrieval_slack_client
 ):
     with pytest.raises(ToolExecutionError):
-        await get_messages_in_conversation_by_id(
-            mock_context,
-            "C12345",
+        await get_messages(
+            context=mock_context,
+            conversation_id="C12345",
             oldest_datetime="2025-01-01 00:00:00",
             oldest_relative="01:00:00",
         )
 
+    mock_message_retrieval_slack_client.conversations_history.assert_not_called()
+
 
 @pytest.mark.asyncio
-async def test_get_conversation_history_by_id_with_messed_latest_args(
-    mock_context, mock_chat_slack_client
+async def test_get_messages_by_conversation_id_with_messed_latest_args(
+    mock_context, mock_message_retrieval_slack_client
 ):
     with pytest.raises(ToolExecutionError):
-        await get_messages_in_conversation_by_id(
-            mock_context,
-            "C12345",
+        await get_messages(
+            context=mock_context,
+            conversation_id="C12345",
             latest_datetime="2025-01-01 00:00:00",
             latest_relative="01:00:00",
         )
 
+    mock_message_retrieval_slack_client.conversations_history.assert_not_called()
+
 
 @pytest.mark.asyncio
-async def test_get_conversation_history_by_name(mock_context, mock_chat_slack_client):
-    mock_chat_slack_client.conversations_list.return_value = {
+async def test_get_messages_by_channel_name(
+    mock_context,
+    mock_message_retrieval_slack_client,
+    mock_conversation_retrieval_slack_client,
+    mock_user_retrieval_slack_client,
+    dummy_message_factory,
+    dummy_user_factory,
+):
+    mock_conversation_retrieval_slack_client.conversations_list.return_value = {
         "ok": True,
         "channels": [
             {
@@ -720,273 +1134,35 @@ async def test_get_conversation_history_by_name(mock_context, mock_chat_slack_cl
             }
         ],
     }
-    mock_chat_slack_client.conversations_history.return_value = {
+
+    user = dummy_user_factory()
+    message = dummy_message_factory(user_id=user["id"])
+    mock_message_retrieval_slack_client.conversations_history.return_value = {
         "ok": True,
-        "messages": [{"text": "Hello, world!"}],
+        "messages": [message],
     }
 
-    response = await get_messages_in_channel_by_name(mock_context, "general", limit=1)
-
-    assert response == {"messages": [{"text": "Hello, world!"}], "next_cursor": None}
-    mock_chat_slack_client.conversations_history.assert_called_once_with(
-        channel="C12345", include_all_metadata=True, inclusive=True, limit=1, cursor=None
-    )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.retrieve_conversations_by_user_ids")
-async def test_get_direct_message_conversation_metadata_by_username(
-    mock_retrieve_conversations_by_user_ids,
-    mock_context,
-    mock_chat_slack_client,
-    mock_users_slack_client,
-):
-    mock_chat_slack_client.auth_test.return_value = {
+    mock_user_retrieval_slack_client.users_info.return_value = {
         "ok": True,
-        "user_id": "U1",
-        "team_id": "T1",
-        "user": "user1",
+        "user": user,
     }
 
-    mock_users_slack_client.users_list.return_value = {
-        "ok": True,
-        "members": [
-            {"id": "U1", "name": "user1"},
-            {"id": "U2", "name": "user2"},
-        ],
-        "response_metadata": {"next_cursor": None},
-    }
-
-    conversation = {
-        "id": "C12345",
-        "type": ConversationTypeSlackName.IM.value,
-        "is_im": True,
-        "members": ["U1", "U2"],
-    }
-
-    mock_retrieve_conversations_by_user_ids.return_value = [conversation]
-
-    response = await get_direct_message_conversation_metadata_by_username(
-        context=mock_context, username="user2"
-    )
-
-    assert response == conversation
-    mock_retrieve_conversations_by_user_ids.assert_called_once_with(
-        list_conversations_func=list_conversations_metadata,
-        get_members_in_conversation_func=get_members_in_conversation_by_id,
+    response = await get_messages(
         context=mock_context,
-        conversation_types=[ConversationType.DIRECT_MESSAGE],
-        user_ids=["U1", "U2"],
-        exact_match=True,
+        channel_name="general",
         limit=1,
-        next_cursor=None,
     )
 
+    assert response["next_cursor"] is None
+    assert len(response["messages"]) == 1
+    returned_message = response["messages"][0]
+    assert returned_message["user"] == {"id": user["id"], "name": user["name"]}
+    assert returned_message["text"] == message["text"]
 
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.retrieve_conversations_by_user_ids")
-async def test_get_direct_message_conversation_metadata_by_username_username_not_found(
-    mock_retrieve_conversations_by_user_ids,
-    mock_context,
-    mock_chat_slack_client,
-    mock_users_slack_client,
-):
-    mock_chat_slack_client.users_identity.return_value = {
-        "ok": True,
-        "user": {"id": "U1", "name": "user1"},
-        "team": {"id": "T1", "name": "team1"},
-    }
-
-    mock_users_slack_client.users_list.return_value = {
-        "ok": True,
-        "members": [
-            {"id": "U1", "name": "user1"},
-            {"id": "U2", "name": "user2"},
-        ],
-        "response_metadata": {"next_cursor": None},
-    }
-
-    mock_retrieve_conversations_by_user_ids.side_effect = TimeoutError()
-
-    with pytest.raises(RetryableToolError):
-        await get_direct_message_conversation_metadata_by_username(
-            context=mock_context, username="user999"
-        )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.get_messages_in_conversation_by_id")
-@patch("arcade_slack.tools.chat.get_direct_message_conversation_metadata_by_username")
-async def test_get_messages_in_direct_conversation_by_username(
-    mock_get_direct_message_conversation_metadata_by_username,
-    mock_get_messages_in_conversation_by_id,
-    mock_context,
-):
-    mock_get_direct_message_conversation_metadata_by_username.return_value = {
-        "id": "C12345",
-    }
-
-    response = await get_messages_in_direct_message_conversation_by_username(
-        context=mock_context, username="user2"
-    )
-
-    assert response == mock_get_messages_in_conversation_by_id.return_value
-    mock_get_direct_message_conversation_metadata_by_username.assert_called_once_with(
-        context=mock_context, username="user2"
-    )
-    mock_get_messages_in_conversation_by_id.assert_called_once_with(
-        context=mock_context,
-        conversation_id="C12345",
-        oldest_relative=None,
-        latest_relative=None,
-        oldest_datetime=None,
-        latest_datetime=None,
-        limit=None,
-        next_cursor=None,
-    )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.get_direct_message_conversation_metadata_by_username")
-async def test_get_messages_in_direct_conversation_by_username_not_found(
-    mock_get_direct_message_conversation_metadata_by_username,
-    mock_context,
-):
-    mock_get_direct_message_conversation_metadata_by_username.return_value = None
-
-    with pytest.raises(ToolExecutionError):
-        await get_messages_in_direct_message_conversation_by_username(
-            context=mock_context, username="user2"
-        )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.retrieve_conversations_by_user_ids")
-async def test_get_multi_person_direct_message_conversation_metadata_by_username(
-    mock_retrieve_conversations_by_user_ids,
-    mock_context,
-    mock_chat_slack_client,
-    mock_users_slack_client,
-):
-    mock_chat_slack_client.auth_test.return_value = {
-        "ok": True,
-        "user_id": "U1",
-        "team_id": "T1",
-        "user": "user1",
-    }
-
-    mock_users_slack_client.users_list.return_value = {
-        "ok": True,
-        "members": [
-            {"id": "U1", "name": "user1"},
-            {"id": "U2", "name": "user2"},
-            {"id": "U3", "name": "user3"},
-            {"id": "U4", "name": "user4"},
-            {"id": "U5", "name": "user5"},
-        ],
-        "response_metadata": {"next_cursor": None},
-    }
-
-    conversation = {
-        "id": "C12345",
-        "type": ConversationTypeSlackName.MPIM.value,
-        "is_mpim": True,
-        "members": ["U1", "U4", "U5"],
-    }
-
-    mock_retrieve_conversations_by_user_ids.return_value = [conversation]
-
-    response = await get_multi_person_dm_conversation_metadata_by_usernames(
-        context=mock_context, usernames=["user1", "user4", "user5"]
-    )
-
-    assert response == conversation
-    mock_retrieve_conversations_by_user_ids.assert_called_once_with(
-        list_conversations_func=list_conversations_metadata,
-        get_members_in_conversation_func=get_members_in_conversation_by_id,
-        context=mock_context,
-        conversation_types=[ConversationType.MULTI_PERSON_DIRECT_MESSAGE],
-        user_ids=["U1", "U4", "U5"],
-        exact_match=True,
+    mock_message_retrieval_slack_client.conversations_history.assert_called_once_with(
+        channel="C12345",
+        include_all_metadata=True,
+        inclusive=True,
         limit=1,
-        next_cursor=None,
+        cursor=None,
     )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.retrieve_conversations_by_user_ids")
-async def test_get_multi_person_direct_message_conversation_metadata_by_username_username_not_found(
-    mock_retrieve_conversations_by_user_ids,
-    mock_context,
-    mock_chat_slack_client,
-    mock_users_slack_client,
-):
-    mock_chat_slack_client.users_identity.return_value = {
-        "ok": True,
-        "user": {"id": "U1", "name": "user1"},
-        "team": {"id": "T1", "name": "team1"},
-    }
-
-    mock_users_slack_client.users_list.return_value = {
-        "ok": True,
-        "members": [
-            {"id": "U1", "name": "user1"},
-            {"id": "U2", "name": "user2"},
-        ],
-        "response_metadata": {"next_cursor": None},
-    }
-
-    mock_retrieve_conversations_by_user_ids.side_effect = TimeoutError()
-
-    with pytest.raises(RetryableToolError):
-        await get_multi_person_dm_conversation_metadata_by_usernames(
-            context=mock_context, usernames=["user999", "user1", "user2"]
-        )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.get_messages_in_conversation_by_id")
-@patch("arcade_slack.tools.chat.get_multi_person_dm_conversation_metadata_by_usernames")
-async def test_get_messages_in_multi_person_dm_conversation_by_usernames(
-    mock_get_multi_person_dm_conversation_metadata_by_usernames,
-    mock_get_messages_in_conversation_by_id,
-    mock_context,
-):
-    mock_get_multi_person_dm_conversation_metadata_by_usernames.return_value = {
-        "id": "C12345",
-    }
-
-    response = await get_messages_in_multi_person_dm_conversation_by_usernames(
-        context=mock_context, usernames=["user1", "user4", "user5"]
-    )
-
-    assert response == mock_get_messages_in_conversation_by_id.return_value
-
-    mock_get_multi_person_dm_conversation_metadata_by_usernames.assert_called_once_with(
-        context=mock_context, usernames=["user1", "user4", "user5"]
-    )
-
-    mock_get_messages_in_conversation_by_id.assert_called_once_with(
-        context=mock_context,
-        conversation_id="C12345",
-        oldest_relative=None,
-        latest_relative=None,
-        oldest_datetime=None,
-        latest_datetime=None,
-        limit=None,
-        next_cursor=None,
-    )
-
-
-@pytest.mark.asyncio
-@patch("arcade_slack.tools.chat.get_multi_person_dm_conversation_metadata_by_usernames")
-async def test_get_messages_in_multi_person_dm_conversation_by_usernames_not_found(
-    mock_get_multi_person_dm_conversation_metadata_by_usernames,
-    mock_context,
-):
-    mock_get_multi_person_dm_conversation_metadata_by_usernames.return_value = None
-
-    with pytest.raises(ToolExecutionError):
-        await get_messages_in_direct_message_conversation_by_username(
-            context=mock_context, username="user2"
-        )

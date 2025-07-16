@@ -50,6 +50,8 @@ jobs:
 
       - name: Test toolkit
         working-directory: toolkits/${{ matrix.toolkit }}
+        env:
+          TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
         run: |
           # Run pytest and capture exit code
           uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
