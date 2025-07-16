@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         toolkit: ${{ fromJson(needs.setup.outputs.tool_matrix) }}
-      fail-fast: false
+      fail-fast: true
     steps:
       - name: Check out
         uses: actions/checkout@v4
