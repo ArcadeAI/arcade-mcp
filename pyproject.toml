@@ -1,6 +1,6 @@
 [project]
 name = "arcade-ai"
-version = "2.0.5"
+version = "2.0.6"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}

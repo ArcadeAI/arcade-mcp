@@ -100,7 +100,7 @@ def login(
         help="The port of the Arcade Cloud host (if running locally).",
     ),
     callback_host: str = typer.Option(
-        "localhost",
+        None,
         "--callback-host",
         help="The host to use to complete the auth flow - this should be the same as the host that the CLI is running on. Include the port if needed.",
     ),

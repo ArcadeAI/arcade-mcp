@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import re
 from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
@@ -29,6 +30,8 @@ from arcade_slack.models import (
     SlackUser,
     SlackUserList,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def format_users(user_list_response: SlackUserList) -> str:
@@ -535,32 +538,38 @@ async def populate_users_in_messages(auth_token: str, messages: list[dict]) -> l
     users_by_id = {user["id"]: {"id": user["id"], "name": user["name"]} for user in users}
 
     for message in messages:
-        if message.get("type") != "message":
-            continue
+        try:
+            if "user" not in message or message.get("type") != "message":
+                continue
 
-        # Message author
-        message["user"] = users_by_id.get(
-            message.get("user"), {"id": message["user"], "name": None}
-        )
+            # Message author
+            message["user"] = users_by_id.get(
+                message.get("user"), {"id": message["user"], "name": None}
+            )
 
-        # User mentions in the message text
-        text_mentions = re.findall(r"<@([A-Z0-9]+)>", message.get("text", ""))
-        for user_id in text_mentions:
-            if user_id in users_by_id:
-                user = users_by_id.get(user_id, {"id": user_id, "name": None})
-                name = user.get("name")
-                message["text"] = message["text"].replace(
-                    f"<@{user_id}>", f"<@{name} (id:{user_id})>" if name else f"<@{user_id}>"
-                )
+            # User mentions in the message text
+            text_mentions = re.findall(r"<@([A-Z0-9]+)>", message.get("text", ""))
+            for user_id in text_mentions:
+                if user_id in users_by_id:
+                    user = users_by_id.get(user_id, {"id": user_id, "name": None})
+                    name = user.get("name")
+                    message["text"] = message["text"].replace(
+                        f"<@{user_id}>", f"<@{name} (id:{user_id})>" if name else f"<@{user_id}>"
+                    )
 
-        # User mentions in reactions
-        reactions = message.get("reactions")
-        if isinstance(reactions, list):
-            for reaction in reactions:
-                reaction_users = []
-                for user_id in reaction.get("users", []):
-                    reaction_users.append(users_by_id.get(user_id, {"id": user_id, "name": None}))
-                reaction["users"] = reaction_users
+            # User mentions in reactions
+            reactions = message.get("reactions")
+            if isinstance(reactions, list):
+                for reaction in reactions:
+                    reaction_users = []
+                    for user_id in reaction.get("users", []):
+                        reaction_users.append(
+                            users_by_id.get(user_id, {"id": user_id, "name": None})
+                        )
+                    reaction["users"] = reaction_users
+        # If any data is missing, just leave the message as it is
+        except Exception as exc:
+            logger.exception(exc)  # noqa: TRY401
 
     return messages
 
@@ -573,7 +582,7 @@ async def get_users_from_messages(auth_token: str, messages: list[dict]) -> list
 
     user_ids = get_user_ids_from_messages(messages)
     response = await get_users_by_id(auth_token, user_ids)
-    print("\n\n\nresponse:", response, "\n\n\n")
+
     return response["users"]
 
 

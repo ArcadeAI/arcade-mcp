@@ -32,7 +32,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
 
-from arcade_cli.constants import LOCALHOST
+from arcade_cli.constants import LOCAL_AUTH_CALLBACK_PORT, LOCALHOST
 
 console = Console()
 
@@ -188,9 +188,12 @@ def compute_login_url(
         else:
             callback_uri = callback_host
         if not callback_uri.rstrip("/").endswith("/callback"):
-            callback_uri = callback_uri.rstrip("/") + "/callback"
+            if port:
+                callback_uri = callback_uri.rstrip("/") + f":{port}" + "/callback"
+            else:
+                callback_uri = callback_uri.rstrip("/") + "/callback"
     else:
-        callback_uri = f"http://{LOCALHOST}:9905/callback"
+        callback_uri = f"http://{LOCALHOST}:{LOCAL_AUTH_CALLBACK_PORT}/callback"
 
     params = urlencode({"callback_uri": callback_uri, "state": state})
 
