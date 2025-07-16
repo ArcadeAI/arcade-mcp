@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
 from msgraph.generated.models.chat import Chat
+from msgraph.generated.models.conversation_member import ConversationMember
 
 
 class ChatMembershipMatchType(Enum):
@@ -32,7 +33,7 @@ class FindChatByMembersSentinel(PaginationSentinel):
         self.user_ids = user_ids or []
         self.user_names = user_names or []
         self.expected_member_count = len(self.user_ids) + len(self.user_names)
-        self.matches = {
+        self.matches: dict[ChatMembershipMatchType, list[Chat]] = {
             ChatMembershipMatchType.EXACT_MATCH: [],
             ChatMembershipMatchType.PARTIAL_MATCH: [],
         }
@@ -58,10 +59,12 @@ class FindChatByMembersSentinel(PaginationSentinel):
 
     def chat_members_match(self, chat: Chat) -> ChatMembershipMatchType | None:
         # First we check if the member list length matches
-        if len(chat.members) != self.expected_member_count:
+        if isinstance(chat.members, list) and len(chat.members) != self.expected_member_count:
             return None
 
-        members_by_id = {member.user_id: member for member in chat.members}
+        members = cast(list[ConversationMember], chat.members)
+
+        members_by_id = {member.id: member for member in members}
 
         # Check the user_ids
         member_user_ids = set(members_by_id.keys())
@@ -77,12 +80,15 @@ class FindChatByMembersSentinel(PaginationSentinel):
         # Check the user_names
         for user_name in self.user_names:
             for member in members_by_id.values():
+                if not isinstance(member.display_name, str):
+                    continue
+
                 if member.display_name.casefold() == user_name.casefold():
-                    del members_by_id[member.user_id]
+                    del members_by_id[member.id]
                     break
                 elif user_name.casefold() in member.display_name.casefold():
                     has_partial_match = True
-                    del members_by_id[member.user_id]
+                    del members_by_id[member.id]
                     break
 
         # If there are any members left in the list, it's not a match

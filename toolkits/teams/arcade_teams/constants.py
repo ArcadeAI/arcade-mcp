@@ -12,7 +12,9 @@ def enforce_greater_than_zero_int(key: str, value: str) -> int:
     raise ValueError(error)
 
 
-def load_env_var(key: str, default: str | None = None, transform: Callable | None = None) -> str:
+def load_env_var(
+    key: str, default: str | None = None, transform: Callable | None = None
+) -> str | None:
     if key not in os.environ:
         return default
 
@@ -29,10 +31,10 @@ def load_env_var(key: str, default: str | None = None, transform: Callable | Non
 
 ENV_VARS = {
     "TEAMS_MAX_CONCURRENCY": load_env_var(
-        "TEAMS_MAX_CONCURRENCY", 3, enforce_greater_than_zero_int
+        "TEAMS_MAX_CONCURRENCY", "3", enforce_greater_than_zero_int
     ),
     "TEAMS_PAGINATION_TIMEOUT": load_env_var(
-        "TEAMS_PAGINATION_TIMEOUT", 30, enforce_greater_than_zero_int
+        "TEAMS_PAGINATION_TIMEOUT", "30", enforce_greater_than_zero_int
     ),
 }
 

@@ -72,7 +72,7 @@ async def search_teams(
     response = await client.teams.get(
         teams_request(
             top=limit,
-            filter=filter_by_name,
+            filter_=filter_by_name,
             skiptoken=next_page_token,
         )
     )
@@ -245,7 +245,7 @@ async def search_team_members(
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.teams.by_team_id(team_id).members.get(
-        members_request(top=limit, filter=filter_by_name)
+        members_request(top=limit, filter_=filter_by_name)
     )
 
     members = [serialize_member(member) for member in response.value[offset:]]

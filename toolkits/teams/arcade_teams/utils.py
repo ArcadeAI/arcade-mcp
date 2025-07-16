@@ -118,18 +118,26 @@ def config_request(
     return RequestConfiguration(query_parameters=query_params)
 
 
-def teams_request(**kwargs) -> RequestConfiguration:
-    return config_request(TeamsRequestBuilder.TeamsRequestBuilderGetQueryParameters, **kwargs)
-
-
-def channels_request(**kwargs) -> RequestConfiguration:
+def teams_request(top: int, filter_: str | None, skiptoken: str | None) -> RequestConfiguration:
     return config_request(
-        AllChannelsRequestBuilder.AllChannelsRequestBuilderGetQueryParameters, **kwargs
+        TeamsRequestBuilder.TeamsRequestBuilderGetQueryParameters,
+        top=top,
+        filter=filter_,
+        skiptoken=skiptoken,
     )
 
 
-def members_request(**kwargs) -> RequestConfiguration:
-    return config_request(MembersRequestBuilder.MembersRequestBuilderGetQueryParameters, **kwargs)
+def channels_request(select: list[str] | None) -> RequestConfiguration:
+    return config_request(
+        AllChannelsRequestBuilder.AllChannelsRequestBuilderGetQueryParameters,
+        select=select,
+    )
+
+
+def members_request(top: int, filter_: str | None) -> RequestConfiguration:
+    return config_request(
+        MembersRequestBuilder.MembersRequestBuilderGetQueryParameters, top=top, filter=filter_
+    )
 
 
 def messages_request(**kwargs) -> RequestConfiguration:
