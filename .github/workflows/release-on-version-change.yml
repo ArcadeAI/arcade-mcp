@@ -152,7 +152,7 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
             {
-              "status": "${{ (steps.pypi-publish.outcome == 'failure' || steps.pypi-publish.outcome == 'failure') && 'Failed' || 'Success' }}",
+              "status": "${{ job.status == 'failure' || job.status == 'cancelled' && 'Failed' || 'Success' }}",
               "package": "${{ env.PACKAGE_NAME }}",
               "version": "${{ env.VERSION }}",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

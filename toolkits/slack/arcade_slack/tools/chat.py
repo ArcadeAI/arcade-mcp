@@ -37,7 +37,7 @@ from arcade_slack.utils import (
             "users:read",
             "users:read.email",
             "chat:write",
-            "mpim:write",
+            # "mpim:write",
             "im:write",
         ],
     )
@@ -454,7 +454,7 @@ async def list_conversations(
             "users:read",
             "users:read.email",
             "chat:write",
-            "mpim:write",
+            # "mpim:write",
             "im:write",
         ],
     )
@@ -491,7 +491,7 @@ async def send_dm_to_user(
             "users:read",
             "users:read.email",
             "chat:write",
-            "mpim:write",
+            # "mpim:write",
             "im:write",
         ],
     )
