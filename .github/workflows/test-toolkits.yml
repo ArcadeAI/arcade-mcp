@@ -92,7 +92,8 @@ jobs:
           uv run --active mypy --config-file=pyproject.toml
 
       - name: Test stand-alone toolkits (with secrets)
-        if: github.repository == 'ArcadeAI/arcade-ai'
+        if: |
+          !github.event.pull_request.head.repo.fork
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
