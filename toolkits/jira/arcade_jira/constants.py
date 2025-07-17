@@ -19,6 +19,8 @@ try:
 except Exception:
     JIRA_CACHE_MAX_ITEMS = 5000
 
+# Board types that support sprints in Jira
+BOARD_TYPES_WITH_SPRINTS = {"scrum"}
 
 STOP_WORDS = [
     "a",

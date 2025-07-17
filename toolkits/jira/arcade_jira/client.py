@@ -17,6 +17,10 @@ class JiraClient:
     base_url: str = JIRA_BASE_URL
     api_version: str = JIRA_API_VERSION
     max_concurrent_requests: int = JIRA_MAX_CONCURRENT_REQUESTS
+    # If True, use the Agile API (v1) instead of the REST API
+    # This is required for some operations, such as listing sprints for a board
+    # https://developer.atlassian.com/cloud/jira/software/rest/api-group-sprints/#api-agile-1-0-board-boardid-sprint-get
+    use_agile_api: bool = False
     _semaphore: asyncio.Semaphore | None = None
     _cloud_id: str | None = None
 
@@ -47,7 +51,10 @@ class JiraClient:
 
     async def _build_url(self, endpoint: str) -> str:
         cloud_id = await self.get_cloud_id()
-        return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
+        if self.use_agile_api:
+            return f"{self.base_url}/{cloud_id}/rest/agile/1.0/{endpoint.lstrip('/')}"
+        else:
+            return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"
 
     async def _get_cloud_data_from_available_resources(self) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:

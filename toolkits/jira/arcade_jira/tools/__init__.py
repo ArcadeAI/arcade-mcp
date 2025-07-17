@@ -4,6 +4,10 @@ from arcade_jira.tools.attachments import (
     get_attachment_metadata,
     list_issue_attachments_metadata,
 )
+from arcade_jira.tools.boards import (
+    get_boards_by_ids_or_names,
+    list_all_boards,
+)
 from arcade_jira.tools.comments import (
     add_comment_to_issue,
     get_comment_by_id,
@@ -30,6 +34,7 @@ from arcade_jira.tools.priorities import (
     list_projects_associated_with_a_priority_scheme,
 )
 from arcade_jira.tools.projects import get_project_by_id, search_projects
+from arcade_jira.tools.sprint_planning import list_sprints_for_boards
 from arcade_jira.tools.transitions import (
     get_transition_by_status_name,
     get_transitions_available_for_issue,
@@ -43,6 +48,9 @@ __all__ = [
     "download_attachment",
     "get_attachment_metadata",
     "list_issue_attachments_metadata",
+    # Boards tools
+    "get_boards_by_ids_or_names",
+    "list_all_boards",
     # Comments tools
     "add_comment_to_issue",
     "get_comment_by_id",
@@ -73,6 +81,8 @@ __all__ = [
     "get_transition_by_status_name",
     "get_transitions_available_for_issue",
     "transition_issue_to_new_status",
+    # Sprints tools
+    "list_sprints_for_boards",
     # Users tools
     "get_user_by_id",
     "get_users_without_id",

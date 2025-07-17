@@ -1142,3 +1142,199 @@ def build_user_url(cloud_name: str | None, user_id: str) -> str | None:
         return None
 
     return f"https://{cloud_name}.atlassian.net/jira/people/{user_id}"
+
+
+def clean_board_dict(board: dict) -> dict:
+    """
+    Clean and standardize a board dictionary.
+
+    Args:
+        board: Raw board data from Jira API
+
+    Returns:
+        Cleaned board dictionary with essential fields
+    """
+    return {
+        "id": board["id"],
+        "name": board["name"],
+        "type": board.get("type"),
+        "self": board.get("self"),
+    }
+
+
+def clean_sprint_dict(sprint: dict) -> dict:
+    """
+    Clean and standardize a sprint dictionary.
+
+    Args:
+        sprint: Raw sprint data from Jira API
+
+    Returns:
+        Cleaned sprint dictionary with essential fields
+    """
+    return {
+        "id": sprint["id"],
+        "name": sprint["name"],
+        "state": sprint.get("state"),
+        "startDate": sprint.get("startDate"),
+        "endDate": sprint.get("endDate"),
+        "completeDate": sprint.get("completeDate"),
+        "originBoardId": sprint.get("originBoardId"),
+        "goal": sprint.get("goal"),
+        "self": sprint.get("self"),
+    }
+
+
+def build_sprint_params(offset: int, max_results: int, state: str | None = None) -> dict[str, str]:
+    """
+    Build parameters for sprint API calls.
+
+    Args:
+        offset: Number of sprints to skip
+        max_results: Maximum number of sprints to return
+        state: Optional state filter
+
+    Returns:
+        Dictionary of parameters for sprint API call
+    """
+    params = {
+        "startAt": str(int(offset)),
+        "maxResults": str(int(max_results)),
+    }
+    if state:
+        params["state"] = str(state)
+    return params
+
+
+def validate_sprint_limit(limit: int) -> int:
+    """
+    Validate and normalize sprint limit parameter.
+
+    Args:
+        limit: Raw limit value
+
+    Returns:
+        Normalized limit value (1-50)
+    """
+    return max(1, min(limit, 50))
+
+
+def validate_board_limit(limit: int) -> int:
+    """
+    Validate and normalize board limit parameter.
+
+    Args:
+        limit: Raw limit value
+
+    Returns:
+        Normalized limit value (1-100)
+    """
+    return max(1, min(limit, 100))
+
+
+def find_board_by_name(boards: list[dict], board_name: str) -> dict | None:
+    """
+    Find a board by name (case-insensitive).
+
+    Args:
+        boards: List of board dictionaries
+        board_name: Name to search for
+
+    Returns:
+        Board dictionary if found, None otherwise
+    """
+    for board in boards:
+        if board.get("name", "").casefold() == board_name.casefold():
+            return board
+    return None
+
+
+def create_board_error_message(board_identifier: str, available_boards: list[dict]) -> str:
+    """
+    Create an error message for board not found.
+
+    Args:
+        board_identifier: The board identifier that wasn't found
+        available_boards: List of available boards
+
+    Returns:
+        Formatted error message
+    """
+    available_names = [b["name"] for b in available_boards]
+    return f"Board '{board_identifier}' not found. Available boards: {', '.join(available_names)}"
+
+
+def create_board_result_dict(
+    boards: list[dict], total: int, is_last: bool, start_at: int, max_results: int
+) -> dict[str, Any]:
+    """
+    Create a standardized result dictionary for board operations.
+
+    Args:
+        boards: List of board dictionaries
+        total: Total number of boards
+        is_last: Whether this is the last page
+        start_at: Starting offset
+        max_results: Maximum results per page
+
+    Returns:
+        Standardized result dictionary
+    """
+    return {
+        "boards": [clean_board_dict(b) for b in boards],
+        "total": total,
+        "isLast": is_last,
+        "startAt": start_at,
+        "maxResults": max_results,
+    }
+
+
+def create_sprint_result_dict(board: dict, sprints: list[dict], response: dict) -> dict[str, Any]:
+    """
+    Create a standardized result dictionary for sprint operations.
+
+    Args:
+        board: Board dictionary
+        sprints: List of sprint dictionaries
+        response: Raw API response
+
+    Returns:
+        Standardized result dictionary
+    """
+    return {
+        "board": clean_board_dict(board),
+        "sprints": sprints,
+        "isLast": response.get("isLast"),
+        "total": response.get("total"),
+        "startAt": response.get("startAt"),
+        "maxResults": response.get("maxResults"),
+    }
+
+
+def create_error_entry(
+    board_identifier: str,
+    error_message: str,
+    board_name: str | None = None,
+    board_id: int | None = None,
+) -> dict[str, Any]:
+    """
+    Create a standardized error entry for board operations.
+
+    Args:
+        board_identifier: The board identifier that caused the error
+        error_message: The error message
+        board_name: Optional board name
+        board_id: Optional board ID
+
+    Returns:
+        Standardized error entry dictionary
+    """
+    error_entry = {
+        "board_identifier": board_identifier,
+        "error": error_message,
+    }
+    if board_name:
+        error_entry["board_name"] = board_name
+    if board_id:
+        error_entry["board_id"] = str(board_id)
+    return error_entry
