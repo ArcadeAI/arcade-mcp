@@ -75,7 +75,7 @@ def write_template(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def create_ignore_pattern(include_evals: bool) -> re.Pattern[str]:
+def create_ignore_pattern(include_evals: bool, community_toolkit: bool) -> re.Pattern[str]:
     """Create an ignore pattern based on user preferences."""
     patterns = [
         "__pycache__",
@@ -95,6 +95,9 @@ def create_ignore_pattern(include_evals: bool) -> re.Pattern[str]:
 
     if not include_evals:
         patterns.append("evals")
+
+    if not community_toolkit:
+        patterns.extend([".ruff.toml", ".pre-commit-config.yaml", "README.md"])
 
     return re.compile(f"({'|'.join(patterns)})$")
 
@@ -144,12 +147,8 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     """Create a new toolkit from a template with user input."""
     toolkit_directory = Path(output_directory)
 
-    package_name = toolkit_name if toolkit_name.startswith("arcade_") else f"arcade_{toolkit_name}"
-
     # Check for illegal characters in the toolkit name
-    if re.match(r"^[a-z0-9_]+$", package_name):
-        toolkit_name = package_name.replace("arcade_", "", 1)
-
+    if re.match(r"^[a-z0-9_]+$", toolkit_name):
         if (toolkit_directory / toolkit_name).exists():
             console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
             exit(1)
@@ -174,8 +173,19 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "Do you want an evals directory created for you?", default=True
     )
 
+    cwd = Path.cwd()
+    # TODO: this detection mechanism works only for people that didn't change the
+    # name of the repo, a better detection method is required here
+    is_community_toolkit = False
+    if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
+        prompt = (
+            "Is your toolkit a community contribution (to be merged into "
+            "\x1b]8;;https://github.com/ArcadeAI/arcade-ai\x1b\\ArcadeAI/arcade-ai\x1b]8;;\x1b\\ repo)?"
+        )
+        is_community_toolkit = ask_yes_no_question(prompt, default=False)
+
     context = {
-        "package_name": package_name,
+        "package_name": "arcade_" + toolkit_name if is_community_toolkit else toolkit_name,
         "toolkit_name": toolkit_name,
         "toolkit_description": toolkit_description,
         "toolkit_author_name": toolkit_author_name,
@@ -187,6 +197,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
+        "is_community_toolkit": is_community_toolkit,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
@@ -196,7 +207,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     )
 
     # Create dynamic ignore pattern based on user preferences
-    ignore_pattern = create_ignore_pattern(include_evals)
+    ignore_pattern = create_ignore_pattern(include_evals, is_community_toolkit)
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)

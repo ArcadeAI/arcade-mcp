@@ -10,7 +10,10 @@ from arcade_evals import (
 from arcade_tdk import ToolCatalog
 
 import arcade_slack
-from arcade_slack.tools.users import get_user_info_by_id, list_users
+from arcade_slack.tools.users import (
+    get_users_info,
+    list_users,
+)
 
 # Evaluation rubric
 rubric = EvalRubric(
@@ -25,7 +28,7 @@ catalog.add_module(arcade_slack)
 
 
 @tool_eval()
-def get_user_info_by_id_eval_suite() -> EvalSuite:
+def get_user_info_eval_suite() -> EvalSuite:
     """Create an evaluation suite for tools getting user info by id."""
     suite = EvalSuite(
         name="Slack Users Tools Evaluation",
@@ -53,12 +56,100 @@ def get_user_info_by_id_eval_suite() -> EvalSuite:
             user_message=user_message,
             expected_tool_calls=[
                 ExpectedToolCall(
-                    func=get_user_info_by_id,
-                    args={"user_id": expected_user_id},
+                    func=get_users_info,
+                    args={
+                        "user_ids": [expected_user_id],
+                        "usernames": None,
+                        "emails": None,
+                    },
                 )
             ],
-            critics=[BinaryCritic(critic_field="user_id", weight=1.0)],
+            critics=[
+                BinaryCritic(critic_field="user_ids", weight=1 / 3),
+                BinaryCritic(critic_field="usernames", weight=1 / 3),
+                BinaryCritic(critic_field="emails", weight=1 / 3),
+            ],
         )
+
+    suite.add_case(
+        name="get user by username",
+        user_message="get the user 'johndoe'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_users_info,
+                args={
+                    "usernames": ["johndoe"],
+                    "user_ids": None,
+                    "emails": None,
+                },
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="usernames", weight=1 / 3),
+            BinaryCritic(critic_field="user_ids", weight=1 / 3),
+            BinaryCritic(critic_field="emails", weight=1 / 3),
+        ],
+    )
+
+    suite.add_case(
+        name="get user by email",
+        user_message="get the user 'john.doe@acme.com'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_users_info,
+                args={
+                    "usernames": None,
+                    "user_ids": None,
+                    "emails": ["john.doe@acme.com"],
+                },
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="usernames", weight=1 / 3),
+            BinaryCritic(critic_field="user_ids", weight=1 / 3),
+            BinaryCritic(critic_field="emails", weight=1 / 3),
+        ],
+    )
+
+    suite.add_case(
+        name="get multiple users by username",
+        user_message="get the users with the usernames 'johndoe' and 'foobar'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_users_info,
+                args={
+                    "usernames": ["johndoe", "foobar"],
+                    "user_ids": None,
+                    "emails": None,
+                },
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="usernames", weight=1 / 3),
+            BinaryCritic(critic_field="user_ids", weight=1 / 3),
+            BinaryCritic(critic_field="emails", weight=1 / 3),
+        ],
+    )
+
+    suite.add_case(
+        name="get multiple users by email",
+        user_message="get the users with the emails 'john.doe@acme.com' and 'jane.doe@acme.com'",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_users_info,
+                args={
+                    "usernames": None,
+                    "user_ids": None,
+                    "emails": ["john.doe@acme.com", "jane.doe@acme.com"],
+                },
+            ),
+        ],
+        critics=[
+            BinaryCritic(critic_field="usernames", weight=1 / 3),
+            BinaryCritic(critic_field="user_ids", weight=1 / 3),
+            BinaryCritic(critic_field="emails", weight=1 / 3),
+        ],
+    )
 
     return suite
 
