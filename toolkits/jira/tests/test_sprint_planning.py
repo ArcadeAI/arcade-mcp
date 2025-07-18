@@ -27,9 +27,7 @@ class TestListSprintsForBoards:
         )
         mock_jira_client.return_value = mock_client
 
-        with patch(
-            "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-        ) as mock_get_boards:
+        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             mock_get_boards.return_value = {
                 "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
                 "errors": [],
@@ -82,9 +80,7 @@ class TestListSprintsForBoards:
             patch(
                 "arcade_jira.tools.sprint_planning._list_boards_with_sprints"
             ) as mock_list_boards,
-            patch(
-                "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-            ) as mock_get_boards,
+            patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards,
         ):
             mock_list_boards.return_value = {
                 "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}]
@@ -107,9 +103,7 @@ class TestListSprintsForBoards:
         mock_client = Mock()
         mock_jira_client.return_value = mock_client
 
-        with patch(
-            "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-        ) as mock_get_boards:
+        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             mock_get_boards.return_value = {
                 "boards": [],
                 "errors": [{"board_identifier": "999", "error": "Board not found"}],
@@ -129,9 +123,7 @@ class TestListSprintsForBoards:
         mock_jira_client.return_value = mock_client
 
         with (
-            patch(
-                "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-            ) as mock_get_boards,
+            patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards,
             patch(
                 "arcade_jira.tools.sprint_planning._try_fetch_sprints_and_determine_type"
             ) as mock_try_fetch,
@@ -164,9 +156,7 @@ class TestListSprintsForBoards:
         )
         mock_jira_client.return_value = mock_client
 
-        with patch(
-            "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-        ) as mock_get_boards:
+        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             mock_get_boards.return_value = {
                 "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
                 "errors": [],
@@ -195,9 +185,7 @@ class TestListSprintsForBoards:
         )
         mock_jira_client.return_value = mock_client
 
-        with patch(
-            "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-        ) as mock_get_boards:
+        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             mock_get_boards.return_value = {
                 "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
                 "errors": [],
@@ -219,9 +207,7 @@ class TestListSprintsForBoards:
         mock_client = Mock()
         mock_jira_client.return_value = mock_client
 
-        with patch(
-            "arcade_jira.tools.sprint_planning.get_boards_by_ids_or_names"
-        ) as mock_get_boards:
+        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             mock_get_boards.side_effect = Exception("Unexpected API error")
 
             result = await list_sprints_for_boards(Mock(), boards=["123"])

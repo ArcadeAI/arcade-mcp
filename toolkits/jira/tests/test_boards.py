@@ -2,17 +2,16 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# from arcade_jira.client import JiraClient
-from arcade_jira.tools.boards import list_all_boards
+from arcade_jira.tools.boards import get_boards
 
 
-class TestListAllBoards:
-    """Test cases for listing all boards functionality."""
+class TestGetBoards:
+    """Test cases for getting boards functionality."""
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_success(self, mock_jira_client):
-        """Test successful listing of all boards."""
+    async def test_get_all_boards_success(self, mock_jira_client):
+        """Test successful listing of all boards with default pagination."""
         mock_client = Mock()
         mock_client.get = AsyncMock(
             return_value={
@@ -26,7 +25,7 @@ class TestListAllBoards:
         )
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=10, offset=0)
+        result = await get_boards(Mock())
 
         assert len(result["boards"]) == 3
         assert result["boards"][0]["name"] == "Scrum Board"
@@ -35,288 +34,229 @@ class TestListAllBoards:
         assert result["total"] == 3
         assert result["isLast"] is True
         assert result["startAt"] == 0
-        assert result["maxResults"] == 10
+        assert result["maxResults"] == 50
+
+        # Verify API call
+        mock_client.get.assert_called_once_with("/board", params={"startAt": 0, "maxResults": 50})
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_pagination(self, mock_jira_client):
-        """Test pagination in board listing."""
+    async def test_get_all_boards_with_pagination(self, mock_jira_client):
+        """Test board listing with custom pagination parameters."""
         mock_client = Mock()
         mock_client.get = AsyncMock(
+            return_value={
+                "values": [{"id": 10, "name": "Board 10", "type": "scrum"}],
+                "isLast": False,
+            }
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), limit=10, offset=5)
+
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["name"] == "Board 10"
+        assert result["isLast"] is False
+        assert result["startAt"] == 5
+        assert result["maxResults"] == 10
+
+        # Verify API call with pagination
+        mock_client.get.assert_called_once_with("/board", params={"startAt": 5, "maxResults": 10})
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_by_id_success(self, mock_jira_client):
+        """Test successful retrieval of boards by numeric ID."""
+        mock_client = Mock()
+        mock_client.get = AsyncMock(return_value={"id": 123, "name": "Test Board", "type": "scrum"})
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["123"])
+
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 123
+        assert result["boards"][0]["name"] == "Test Board"
+        assert result["boards"][0]["found_by"] == "id"
+        assert len(result["errors"]) == 0
+
+        # Verify API call
+        mock_client.get.assert_called_once_with("/board/123")
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_by_name_success(self, mock_jira_client):
+        """Test successful retrieval of boards by name."""
+        mock_client = Mock()
+        mock_client.get = AsyncMock(
+            return_value={
+                "values": [{"id": 456, "name": "My Board", "type": "kanban"}],
+                "isLast": True,
+            }
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["My Board"])
+
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 456
+        assert result["boards"][0]["name"] == "My Board"
+        assert result["boards"][0]["found_by"] == "name"
+        assert len(result["errors"]) == 0
+
+        # Verify API call
+        mock_client.get.assert_called_once_with(
+            "/board", params={"name": "My Board", "startAt": 0, "maxResults": 1}
+        )
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_mixed_identifiers(self, mock_jira_client):
+        """Test retrieval with mixed ID and name identifiers."""
+        mock_client = Mock()
+
+        # Mock responses: first call for ID, second call for name
+        mock_client.get = AsyncMock(
             side_effect=[
-                {"values": [{"id": 1, "name": "Board 1", "type": "scrum"}], "isLast": False},
-                {"values": [{"id": 2, "name": "Board 2", "type": "kanban"}], "isLast": True},
+                {"id": 123, "name": "Board by ID", "type": "scrum"},  # ID lookup
+                {"values": [{"id": 456, "name": "Board by Name", "type": "kanban"}]},  # Name lookup
             ]
         )
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=2, offset=0)
+        result = await get_boards(Mock(), ["123", "Board by Name"])
 
         assert len(result["boards"]) == 2
-        assert result["boards"][0]["name"] == "Board 1"
-        assert result["boards"][1]["name"] == "Board 2"
-        assert result["total"] == 2
-        assert result["isLast"] is True
+        assert result["boards"][0]["id"] == 123
+        assert result["boards"][0]["found_by"] == "id"
+        assert result["boards"][1]["id"] == 456
+        assert result["boards"][1]["found_by"] == "name"
+        assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_with_offset(self, mock_jira_client):
-        """Test board listing with offset."""
+    async def test_get_boards_id_not_found_fallback_to_name(self, mock_jira_client):
+        """Test fallback from ID to name when numeric ID is not found."""
         mock_client = Mock()
+
+        # First call fails (ID not found), second call succeeds (name found)
         mock_client.get = AsyncMock(
-            return_value={
-                "values": [{"id": 3, "name": "Board 3", "type": "simple"}],
-                "isLast": True,
-            }
+            side_effect=[
+                Exception("Board not found"),  # ID lookup fails
+                {"values": [{"id": 789, "name": "123", "type": "simple"}]},  # Name lookup succeeds
+            ]
         )
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=10, offset=2)
+        result = await get_boards(Mock(), ["123"])
 
         assert len(result["boards"]) == 1
-        assert result["boards"][0]["name"] == "Board 3"
-        assert result["startAt"] == 2
+        assert result["boards"][0]["id"] == 789
+        assert result["boards"][0]["name"] == "123"
+        assert result["boards"][0]["found_by"] == "name"
+        assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_limit_enforcement(self, mock_jira_client):
-        """Test that limit is properly enforced."""
+    async def test_get_boards_not_found(self, mock_jira_client):
+        """Test when boards are not found by either ID or name."""
         mock_client = Mock()
+
+        # Both ID and name lookups fail
         mock_client.get = AsyncMock(
-            return_value={
-                "values": [
-                    {"id": 1, "name": "Board 1", "type": "scrum"},
-                    {"id": 2, "name": "Board 2", "type": "kanban"},
-                    {"id": 3, "name": "Board 3", "type": "simple"},
-                ],
-                "isLast": True,
-            }
+            side_effect=[
+                Exception("Board not found"),  # ID lookup fails
+                {"values": []},  # Name lookup returns empty
+            ]
         )
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=2, offset=0)
+        result = await get_boards(Mock(), ["999"])
 
-        assert len(result["boards"]) == 2
-        assert result["boards"][0]["name"] == "Board 1"
-        assert result["boards"][1]["name"] == "Board 2"
-        # Board 3 should be excluded due to limit
+        assert len(result["boards"]) == 0
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["board_identifier"] == "999"
+        assert "not found" in result["errors"][0]["error"]
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_empty_response(self, mock_jira_client):
-        """Test board listing with empty response."""
+    async def test_get_boards_name_not_found(self, mock_jira_client):
+        """Test when board name is not found."""
+        mock_client = Mock()
+        mock_client.get = AsyncMock(
+            return_value={"values": []}  # Empty response
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["Nonexistent Board"])
+
+        assert len(result["boards"]) == 0
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["board_identifier"] == "Nonexistent Board"
+        assert "not found" in result["errors"][0]["error"]
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_partial_success(self, mock_jira_client):
+        """Test when some boards are found and some are not."""
+        mock_client = Mock()
+
+        # First board found by ID, second board not found
+        mock_client.get = AsyncMock(
+            side_effect=[
+                {"id": 123, "name": "Found Board", "type": "scrum"},  # First board found
+                Exception("Not found"),  # Second board ID fails
+                {"values": []},  # Second board name lookup empty
+            ]
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["123", "Missing Board"])
+
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 123
+        assert len(result["errors"]) == 1
+        assert result["errors"][0]["board_identifier"] == "Missing Board"
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_api_error_treated_as_not_found(self, mock_jira_client):
+        """Test that API errors during board lookup are treated as 'not found'."""
+        mock_client = Mock()
+        mock_client.get = AsyncMock(side_effect=RuntimeError("API error"))
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["123"])
+
+        assert len(result["boards"]) == 0
+        assert len(result["errors"]) == 1
+        assert "not found" in result["errors"][0]["error"]
+        assert result["errors"][0]["board_identifier"] == "123"
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    @patch("arcade_jira.tools.boards.validate_board_limit")
+    async def test_get_boards_limit_validation(self, mock_validate, mock_jira_client):
+        """Test that board limit validation is called."""
+        mock_validate.return_value = 25
         mock_client = Mock()
         mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=10, offset=0)
+        await get_boards(Mock(), limit=25)
 
-        assert len(result["boards"]) == 0
-        assert result["total"] == 0
-        assert result["isLast"] is True
+        mock_validate.assert_called_once_with(25)
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_limit_validation_max(self, mock_jira_client):
-        """Test that maximum limit is enforced."""
+    async def test_get_boards_empty_list(self, mock_jira_client):
+        """Test behavior with empty board identifiers list."""
         mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={"values": [{"id": 1, "name": "Board 1", "type": "scrum"}], "isLast": True}
-        )
+        mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
         mock_jira_client.return_value = mock_client
 
-        result = await list_all_boards(Mock(), limit=150, offset=0)
+        result = await get_boards(Mock(), [])
 
-        # Should use maximum limit of 100
-        assert result["maxResults"] == 100
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_negative_limit(self, mock_jira_client):
-        """Test board listing with negative limit."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={"values": [{"id": 1, "name": "Board 1", "type": "scrum"}], "isLast": True}
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=-5, offset=0)
-
-        # Should use minimum limit of 1
-        assert result["maxResults"] == 1
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_clean_board_dict(self, mock_jira_client):
-        """Test that board dictionaries are properly cleaned."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={
-                "values": [
-                    {
-                        "id": 1,
-                        "name": "Test Board",
-                        "type": "scrum",
-                        "self": "https://example.com/board/1",
-                        "extra_field": "should_be_ignored",
-                    }
-                ],
-                "isLast": True,
-            }
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=10, offset=0)
-
-        assert len(result["boards"]) == 1
-        board = result["boards"][0]
-        assert board["id"] == 1
-        assert board["name"] == "Test Board"
-        assert board["type"] == "scrum"
-        assert board["self"] == "https://example.com/board/1"
-        assert "extra_field" not in board
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_missing_fields(self, mock_jira_client):
-        """Test board listing with boards missing optional fields."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={
-                "values": [
-                    {"id": 1, "name": "Board 1"},  # Missing type and self
-                ],
-                "isLast": True,
-            }
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=10, offset=0)
-
-        assert len(result["boards"]) == 1
-        board = result["boards"][0]
-        assert board["id"] == 1
-        assert board["name"] == "Board 1"
-        assert board["type"] is None
-        assert board["self"] is None
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_multiple_pages(self, mock_jira_client):
-        """Test board listing across multiple pages."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            side_effect=[
-                {"values": [{"id": 1, "name": "Board 1", "type": "scrum"}], "isLast": False},
-                {"values": [{"id": 2, "name": "Board 2", "type": "kanban"}], "isLast": False},
-                {"values": [{"id": 3, "name": "Board 3", "type": "simple"}], "isLast": True},
-            ]
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=3, offset=0)
-
-        assert len(result["boards"]) == 3
-        assert result["boards"][0]["name"] == "Board 1"
-        assert result["boards"][1]["name"] == "Board 2"
-        assert result["boards"][2]["name"] == "Board 3"
-        assert result["total"] == 3
-        assert result["isLast"] is True
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_list_all_boards_partial_page(self, mock_jira_client):
-        """Test board listing when last page has fewer items than maxResults."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={"values": [{"id": 1, "name": "Board 1", "type": "scrum"}], "isLast": True}
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=10, offset=0)
-
-        assert len(result["boards"]) == 1
-        assert result["total"] == 1
-        assert result["isLast"] is True
-
-    @pytest.mark.asyncio
-    async def test_list_all_boards_client_initialization(self):
-        """Test that JiraClient is properly initialized with agile API."""
-        with patch("arcade_jira.tools.boards.JiraClient") as mock_client_class:
-            mock_client = Mock()
-            mock_client_class.return_value = mock_client
-            mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
-
-            await list_all_boards(Mock(), limit=10, offset=0)
-
-            # Verify JiraClient was called with use_agile_api=True
-            mock_client_class.assert_called_once()
-            call_args = mock_client_class.call_args
-            assert call_args[1]["use_agile_api"] is True
-
-
-class TestBoardIntegration:
-    """Integration tests for board functionality."""
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.boards.JiraClient")
-    async def test_board_listing_workflow(self, mock_jira_client):
-        """Test complete board listing workflow."""
-        mock_client = Mock()
-        mock_client.get = AsyncMock(
-            return_value={
-                "values": [
-                    {"id": 1, "name": "Scrum Board", "type": "scrum"},
-                    {"id": 2, "name": "Kanban Board", "type": "kanban"},
-                ],
-                "isLast": True,
-            }
-        )
-        mock_jira_client.return_value = mock_client
-
-        result = await list_all_boards(Mock(), limit=5, offset=0)
-
-        # Verify the API call was made correctly
-        mock_client.get.assert_called_once_with("/board", params={"startAt": 0, "maxResults": 5})
-
-        # Verify the result structure
-        assert len(result["boards"]) == 2
-        assert result["total"] == 2
-        assert result["isLast"] is True
-        assert result["startAt"] == 0
-        assert result["maxResults"] == 5
-
-        # Verify board data is properly cleaned
-        for board in result["boards"]:
-            assert "id" in board
-            assert "name" in board
-            assert "type" in board
-            assert "self" in board
-            assert len(board) == 4  # Only the expected fields
-
-    @pytest.mark.asyncio
-    async def test_board_listing_with_context(self):
-        """Test board listing with proper context handling."""
-        mock_context = Mock()
-        mock_context.get_auth_token_or_empty.return_value = "test_token"
-
-        with patch("arcade_jira.tools.boards.JiraClient") as mock_client_class:
-            mock_client = Mock()
-            mock_client_class.return_value = mock_client
-            mock_client.get = AsyncMock(
-                return_value={
-                    "values": [{"id": 1, "name": "Test Board", "type": "scrum"}],
-                    "isLast": True,
-                }
-            )
-
-            result = await list_all_boards(mock_context, limit=10, offset=0)
-
-            # Verify context was used to get auth token
-            mock_context.get_auth_token_or_empty.assert_called_once()
-
-            # Verify JiraClient was initialized with the token
-            mock_client_class.assert_called_once_with("test_token", use_agile_api=True)
-
-            assert len(result["boards"]) == 1
-            assert result["boards"][0]["name"] == "Test Board"
+        # Empty list should trigger get all boards behavior
+        assert "boards" in result
+        assert "total" in result
+        mock_client.get.assert_called_once_with("/board", params={"startAt": 0, "maxResults": 50})

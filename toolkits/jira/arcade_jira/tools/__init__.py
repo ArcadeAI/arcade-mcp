@@ -5,8 +5,7 @@ from arcade_jira.tools.attachments import (
     list_issue_attachments_metadata,
 )
 from arcade_jira.tools.boards import (
-    get_boards_by_ids_or_names,
-    list_all_boards,
+    get_boards,
 )
 from arcade_jira.tools.comments import (
     add_comment_to_issue,
@@ -49,8 +48,7 @@ __all__ = [
     "get_attachment_metadata",
     "list_issue_attachments_metadata",
     # Boards tools
-    "get_boards_by_ids_or_names",
-    "list_all_boards",
+    "get_boards",
     # Comments tools
     "add_comment_to_issue",
     "get_comment_by_id",

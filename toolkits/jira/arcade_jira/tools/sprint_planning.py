@@ -5,7 +5,7 @@ from arcade_tdk.auth import Atlassian
 from arcade_tdk.errors import RetryableToolError
 
 from arcade_jira.client import JiraClient
-from arcade_jira.tools.boards import get_boards_by_ids_or_names
+from arcade_jira.tools.boards import get_boards
 from arcade_jira.utils import (
     build_sprint_params,
     clean_sprint_dict,
@@ -95,8 +95,8 @@ async def list_sprints_for_boards(
     # Process each board
     for board_identifier in board_identifiers:
         try:
-            # Resolve board by ID or name using the new tool
-            board_response = await get_boards_by_ids_or_names(context, [board_identifier])
+            # Resolve board by ID or name using the boards tool
+            board_response = await get_boards(context, [board_identifier])
 
             # Check if board was found
             if board_response["boards"]:
