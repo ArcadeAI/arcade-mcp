@@ -99,7 +99,12 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
         spec.loader.exec_module(module)
 
         for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, Enum) and obj is not Enum:
+            if (
+                name not in enums
+                and inspect.isclass(obj)
+                and issubclass(obj, Enum)
+                and obj is not Enum
+            ):
                 enums[name] = obj
 
     return enums
