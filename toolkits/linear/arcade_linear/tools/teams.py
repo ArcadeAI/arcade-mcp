@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from arcade_tdk import ToolContext, tool
-from arcade_tdk.auth import OAuth2
+from arcade_tdk.auth import Linear
 
 from arcade_linear.client import LinearClient
 from arcade_linear.utils import (
@@ -12,7 +12,7 @@ from arcade_linear.utils import (
 )
 
 
-@tool(requires_auth=OAuth2(id="arcade-linear", scopes=["read"]))
+@tool(requires_auth=Linear(scopes=["read"]))
 async def get_teams(
     context: ToolContext,
     team_name: Annotated[
