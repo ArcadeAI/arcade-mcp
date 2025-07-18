@@ -82,9 +82,10 @@ def expand_urls_in_tweets(
         new_tweet = tweet_data.copy()
         if "entities" in new_tweet and "urls" in new_tweet["entities"]:
             for url_entity in new_tweet["entities"]["urls"]:
-                short_url = url_entity["url"]
-                expanded_url = url_entity["expanded_url"]
-                new_tweet["text"] = new_tweet["text"].replace(short_url, expanded_url)
+                if "url" in url_entity and "expanded_url" in url_entity:
+                    short_url = url_entity["url"]
+                    expanded_url = url_entity["expanded_url"]
+                    new_tweet["text"] = new_tweet["text"].replace(short_url, expanded_url)
 
         if delete_entities:
             new_tweet.pop("entities", None)
