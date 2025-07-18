@@ -8,7 +8,7 @@ from typing import Optional
 class DateRange(Enum):
     """Date range enum for Linear datetime queries
 
-    Provides consistent datetime range handling similar to Google toolkit.
+    Provides consistent datetime range handling.
     All ranges are calculated in UTC and return timezone-aware datetime objects.
     """
 
