@@ -135,7 +135,7 @@ auth:
 
     - id: arcade-linear
       description: "The Linear provider for Arcade"
-      enabled: true
+      enabled: false
       type: oauth2
       provider_id: linear
       client_id: ${env:LINEAR_CLIENT_ID}
