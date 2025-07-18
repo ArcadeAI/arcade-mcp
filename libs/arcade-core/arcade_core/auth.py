@@ -105,15 +105,6 @@ class LinkedIn(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
-class Linear(OAuth2):
-    """Marks a tool as requiring Linear authorization."""
-
-    provider_id: str = "linear"
-
-    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
-        super().__init__(id=id, scopes=scopes)
-
-
 class Microsoft(OAuth2):
     """Marks a tool as requiring Microsoft authorization."""
 
