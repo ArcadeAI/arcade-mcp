@@ -28,7 +28,7 @@ async def get_teams(
         str | None,
         "Filter teams created after this date. Can be:\n"
         "- Relative date string (e.g. 'last month', 'this week', 'yesterday')\n"
-        "- ISO date string (e.g. '2024-01-01')\n"
+        "- ISO date string (e.g. 'YYYY-MM-DD')\n"
         "Defaults to None (all time).",
     ] = None,
     limit: Annotated[
