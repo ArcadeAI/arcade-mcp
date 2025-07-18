@@ -3,6 +3,7 @@ import os
 PROD_CLOUD_HOST = "cloud.arcade.dev"
 PROD_ENGINE_HOST = "api.arcade.dev"
 LOCALHOST = "localhost"
+LOCAL_AUTH_CALLBACK_PORT = 9905
 
 # The path to the directory containing the Arcade configuration files. Typically ~/.arcade
 ARCADE_CONFIG_PATH = os.path.join(os.path.expanduser(os.getenv("ARCADE_WORK_DIR", "~")), ".arcade")

@@ -1,0 +1,46 @@
+target-version = "py310"
+line-length = 100
+fix = true
+
+[lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+    # tryceratops
+    "TRY",
+]
+
+[lint.per-file-ignores]
+"*" = ["TRY003", "B904"]
+"**/tests/*" = ["S101", "E501"]
+"**/evals/*" = ["S101", "E501"]
+
+[format]
+preview = true
+skip-magic-trailing-comma = false

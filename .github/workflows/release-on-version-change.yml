@@ -63,11 +63,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-uv-env
-        with:
-          python-version: "3.10"
-
       - name: Extract package name and version
         working-directory: ${{ matrix.package }}
         run: |
@@ -81,7 +76,16 @@ jobs:
 
           echo "Building $PACKAGE_NAME version $VERSION"
 
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
+        with:
+          python-version: "3.10"
+          is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          working-directory: ${{ matrix.package }}
+
       - name: Run tests
+        # Skip tests for toolkits - tests are run on every PR commit for toolkits
+        if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
           # Run tests if they exist
@@ -144,10 +148,12 @@ jobs:
         if: always()
         uses: slackapi/slack-github-action@v2.0.0
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.PACKAGE_RELEASE_SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-            status: "${{ (steps.pypi-publish.outcome == 'failure' || steps.pypi-publish.outcome == 'failure') && 'Failed' || 'Success' }}"
-            toolkit: ${{ env.PACKAGE_NAME }}
-            version: ${{ env.VERSION }}
-            url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            {
+              "status": "${{ job.status == 'failure' || job.status == 'cancelled' && 'Failed' || 'Success' }}",
+              "package": "${{ env.PACKAGE_NAME }}",
+              "version": "${{ env.VERSION }}",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }

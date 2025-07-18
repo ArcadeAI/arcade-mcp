@@ -36,12 +36,15 @@ dev = [
     "ruff>=0.7.4,<0.8.0",
 ]
 
+# Tell Arcade.dev that this package is a toolkit
+[project.entry-points.arcade_toolkits]
+toolkit_name = "{{ package_name }}"
+
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
 arcade-ai = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
-
 
 [tool.mypy]
 files = [ "{{ package_name }}/**/*.py",]
