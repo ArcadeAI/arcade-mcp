@@ -34,7 +34,7 @@ async def get_teams(
     limit: Annotated[
         int, "Maximum number of teams to return. Min 1, max 100. Defaults to 50."
     ] = 50,
-    after_cursor: Annotated[
+    end_cursor: Annotated[
         str | None,
         "Cursor for pagination - get teams after this cursor. Use the 'end_cursor' "
         "from previous response. Defaults to None (start from beginning).",
@@ -84,7 +84,7 @@ async def get_teams(
     # Get teams with filtering
     teams_response = await client.get_teams(
         first=limit,
-        after=after_cursor,
+        after=end_cursor,
         include_archived=include_archived,
         name_filter=team_name,
     )
