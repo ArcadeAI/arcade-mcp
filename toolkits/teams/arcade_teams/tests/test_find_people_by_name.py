@@ -3,7 +3,7 @@ import json
 import pytest
 
 from arcade_teams.exceptions import MatchHumansByNameRetryableError
-from arcade_teams.serializers import serialize_person, short_human
+from arcade_teams.serializers import serialize_person, serialize_user, short_human
 from arcade_teams.utils import (
     deduplicate_names,
     find_humans_by_name,
@@ -25,7 +25,9 @@ class TestFindHumansByName:
     ):
         people = [
             person_factory(first_name="John", last_name="Smith"),
+            person_factory(first_name="John", last_name="Smitho"),
             person_factory(first_name="Jane", last_name="Foo"),
+            person_factory(first_name="Jane", last_name="Foobar"),
         ]
 
         mock_client.users.get.return_value = response_factory(value=[])
@@ -38,7 +40,7 @@ class TestFindHumansByName:
 
         assert result == [
             serialize_person(people[0]),
-            serialize_person(people[1]),
+            serialize_person(people[2]),
         ]
 
     @pytest.mark.asyncio
@@ -71,3 +73,272 @@ class TestFindHumansByName:
         assert john_smith2_match in error.value.additional_prompt_content
         assert "Jane" not in error.value.message
         assert "Jane" not in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_people_multiple_exact_matches_and_partial_matches(
+        self, mock_context, mock_client, person_factory, response_factory
+    ):
+        john_smith1 = person_factory(first_name="John", last_name="Smith")
+        john_smith2 = person_factory(first_name="John", last_name="Smith")
+        hello_world = person_factory(first_name="Hello", last_name="World")
+        people = [
+            john_smith1,
+            person_factory(first_name="Jane", last_name="Foo"),
+            john_smith2,
+            person_factory(first_name="Jane", last_name="Bar"),
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=[])
+        mock_client.me.people.get.return_value = response_factory(value=people)
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane Foo", "Hello"],
+            )
+
+        john_smith1_match = json.dumps(short_human(serialize_person(john_smith1), with_email=True))
+        john_smith2_match = json.dumps(short_human(serialize_person(john_smith2), with_email=True))
+        hello_world_match = json.dumps(short_human(serialize_person(hello_world), with_email=True))
+
+        assert "John Smith" in error.value.message
+        assert john_smith1_match in error.value.additional_prompt_content
+        assert john_smith2_match in error.value.additional_prompt_content
+
+        assert "Jane" not in error.value.message
+        assert "Jane" not in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_people_one_partial_match(
+        self, mock_context, mock_client, person_factory, response_factory
+    ):
+        hello_world = person_factory(first_name="Hello", last_name="World")
+        people = [
+            person_factory(first_name="John", last_name="Smith"),
+            person_factory(first_name="Jack", last_name="Smith"),
+            person_factory(first_name="Jane", last_name="Foo"),
+            person_factory(first_name="Jane", last_name="Bar"),
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=[])
+        mock_client.me.people.get.return_value = response_factory(value=people)
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane Foo", "Hello"],
+            )
+
+        hello_world_match = json.dumps(short_human(serialize_person(hello_world), with_email=True))
+
+        assert "John" not in error.value.message
+        assert "Jane" not in error.value.message
+        assert "Jane" not in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_people_multiple_partial_matches(
+        self, mock_context, mock_client, person_factory, response_factory
+    ):
+        jane_foo = person_factory(first_name="Jane", last_name="Foo")
+        jane_bar = person_factory(first_name="Jane", last_name="Bar")
+        hello_world = person_factory(first_name="Hello", last_name="World")
+        people = [
+            person_factory(first_name="John", last_name="Smith"),
+            person_factory(first_name="Jack", last_name="Smith"),
+            jane_foo,
+            jane_bar,
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=[])
+        mock_client.me.people.get.return_value = response_factory(value=people)
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane", "Hello"],
+            )
+
+        hello_world_match = json.dumps(short_human(serialize_person(hello_world), with_email=True))
+        jane_foo_match = json.dumps(short_human(serialize_person(jane_foo), with_email=True))
+        jane_bar_match = json.dumps(short_human(serialize_person(jane_bar), with_email=True))
+
+        assert "John" not in error.value.message
+        assert "Smith" not in error.value.message
+
+        assert "Jane" in error.value.message
+        assert jane_foo_match in error.value.additional_prompt_content
+        assert jane_bar_match in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_users_unique_exact_matches(
+        self, mock_context, mock_client, user_factory, response_factory
+    ):
+        users = [
+            user_factory(first_name="John", last_name="Smith"),
+            user_factory(first_name="John", last_name="Smitho"),
+            user_factory(first_name="Jane", last_name="Foo"),
+            user_factory(first_name="Jane", last_name="Foobar"),
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=users)
+        mock_client.me.people.get.return_value = response_factory(value=[])
+
+        result = await find_humans_by_name(
+            context=mock_context,
+            names=["John Smith", "Jane Foo"],
+        )
+
+        assert result == [
+            serialize_user(users[0]),
+            serialize_user(users[2]),
+        ]
+
+    @pytest.mark.asyncio
+    async def test_only_users_multiple_exact_matches(
+        self, mock_context, mock_client, user_factory, response_factory
+    ):
+        john_smith1 = user_factory(first_name="John", last_name="Smith")
+        john_smith2 = user_factory(first_name="John", last_name="Smith")
+        users = [
+            john_smith1,
+            user_factory(first_name="Jane", last_name="Foo"),
+            john_smith2,
+            user_factory(first_name="Jane", last_name="Bar"),
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=users)
+        mock_client.me.people.get.return_value = response_factory(value=[])
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane Foo"],
+            )
+
+        john_smith1_match = json.dumps(short_human(serialize_user(john_smith1), with_email=True))
+        john_smith2_match = json.dumps(short_human(serialize_user(john_smith2), with_email=True))
+
+        assert "John Smith" in error.value.message
+        assert john_smith1_match in error.value.additional_prompt_content
+        assert john_smith2_match in error.value.additional_prompt_content
+        assert "Jane" not in error.value.message
+        assert "Jane" not in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_users_multiple_exact_matches_and_partial_matches(
+        self, mock_context, mock_client, user_factory, response_factory
+    ):
+        john_smith1 = user_factory(first_name="John", last_name="Smith")
+        john_smith2 = user_factory(first_name="John", last_name="Smith")
+        hello_world = user_factory(first_name="Hello", last_name="World")
+        users = [
+            john_smith1,
+            user_factory(first_name="Jane", last_name="Foo"),
+            john_smith2,
+            user_factory(first_name="Jane", last_name="Bar"),
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=users)
+        mock_client.me.people.get.return_value = response_factory(value=[])
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane Foo", "Hello"],
+            )
+
+        john_smith1_match = json.dumps(short_human(serialize_user(john_smith1), with_email=True))
+        john_smith2_match = json.dumps(short_human(serialize_user(john_smith2), with_email=True))
+        hello_world_match = json.dumps(short_human(serialize_user(hello_world), with_email=True))
+
+        assert "John Smith" in error.value.message
+        assert john_smith1_match in error.value.additional_prompt_content
+        assert john_smith2_match in error.value.additional_prompt_content
+
+        assert "Jane" not in error.value.message
+        assert "Jane" not in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_users_one_partial_match(
+        self, mock_context, mock_client, user_factory, response_factory
+    ):
+        hello_world = user_factory(first_name="Hello", last_name="World")
+        users = [
+            user_factory(first_name="John", last_name="Smith"),
+            user_factory(first_name="Jack", last_name="Smith"),
+            user_factory(first_name="Jane", last_name="Foo"),
+            user_factory(first_name="Jane", last_name="Bar"),
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=users)
+        mock_client.me.people.get.return_value = response_factory(value=[])
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane Foo", "Hello"],
+            )
+
+        hello_world_match = json.dumps(short_human(serialize_user(hello_world), with_email=True))
+
+        assert "John" not in error.value.message
+        assert "Jane" not in error.value.message
+        assert "Jane" not in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
+
+    @pytest.mark.asyncio
+    async def test_only_users_multiple_partial_matches(
+        self, mock_context, mock_client, user_factory, response_factory
+    ):
+        jane_foo = user_factory(first_name="Jane", last_name="Foo")
+        jane_bar = user_factory(first_name="Jane", last_name="Bar")
+        hello_world = user_factory(first_name="Hello", last_name="World")
+        users = [
+            user_factory(first_name="John", last_name="Smith"),
+            user_factory(first_name="Jack", last_name="Smith"),
+            jane_foo,
+            jane_bar,
+            hello_world,
+        ]
+
+        mock_client.users.get.return_value = response_factory(value=users)
+        mock_client.me.people.get.return_value = response_factory(value=[])
+
+        with pytest.raises(MatchHumansByNameRetryableError) as error:
+            await find_humans_by_name(
+                context=mock_context,
+                names=["John Smith", "Jane", "Hello"],
+            )
+
+        hello_world_match = json.dumps(short_human(serialize_user(hello_world), with_email=True))
+        jane_foo_match = json.dumps(short_human(serialize_user(jane_foo), with_email=True))
+        jane_bar_match = json.dumps(short_human(serialize_user(jane_bar), with_email=True))
+
+        assert "John" not in error.value.message
+        assert "Smith" not in error.value.message
+
+        assert "Jane" in error.value.message
+        assert jane_foo_match in error.value.additional_prompt_content
+        assert jane_bar_match in error.value.additional_prompt_content
+
+        assert "Hello" in error.value.message
+        assert hello_world_match in error.value.additional_prompt_content
