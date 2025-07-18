@@ -45,15 +45,6 @@ async def get_teams(
     This tool retrieves team information from your Linear workspace, including team details,
     settings, and member information. Use this tool for team discovery and team membership queries.
 
-    WHEN TO USE THIS TOOL:
-    - "Show me all teams" → Use this tool
-    - "Who is in the 'Product Web' team?" → Use this tool with team_name="Product Web"
-    - "What teams exist in our workspace?" → Use this tool
-    - "Find the Frontend team" → Use this tool with team_name="Frontend"
-    - "Which teams were created recently?" → Use this tool with created_after filter
-    - "List all active teams" → Use this tool with include_archived=False
-    - ANY question about team information, team discovery, or team membership
-
     What this tool provides:
     - Team basic information (name, key, description)
     - Team members and their roles
@@ -61,12 +52,7 @@ async def get_teams(
     - Team creation and status information
     - Team hierarchy and relationships
 
-    When NOT to use this tool:
-    - Finding individual users across teams - Use get_users
-    - Getting user-specific assigned issues - Use get_assigned_issues
-    - Searching for issues within teams - Use search_issues with team filter
-
-    This tool is the primary way to get team information and answer "who is in team X" questions.
+    This tool is the primary way to get team information.
     """
 
     # Validate inputs
