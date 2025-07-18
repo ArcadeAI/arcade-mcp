@@ -54,3 +54,29 @@ class MultipleItemsFoundError(UniqueItemError):
 
 class NoItemsFoundError(UniqueItemError):
     base_message = "No {item} found."
+
+
+class MatchHumansByNameRetryableError(RetryableTeamsToolExecutionError):
+    def __init__(self, match_errors: list[dict]):
+        # Avoid circular import
+        from arcade_teams.tools.people import search_people
+        from arcade_teams.tools.users import list_users, search_users
+
+        self.match_errors = match_errors
+        names = "'" + "', '".join([error["name"] for error in match_errors]) + "'"
+        tool_names = ", ".join([
+            search_people.__tool_name__,
+            search_users.__tool_name__,
+            list_users.__tool_name__,
+        ])
+        message = f"Multiple matches found for the following names: {names}."
+        additional_prompt = (
+            "This is a list of names and corresponding matches found. Please ask the requester "
+            f"whether they were referencing any of these options: {json.dumps(match_errors)}"
+            f"The following tools can be used to retrieve users and people: {tool_names}."
+        )
+        super().__init__(
+            message=message,
+            developer_message=message,
+            additional_prompt_content=additional_prompt,
+        )

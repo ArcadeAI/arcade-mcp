@@ -1,9 +1,17 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, cast
 
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.conversation_member import ConversationMember
+
+from arcade_teams.exceptions import MatchHumansByNameRetryableError
+
+
+class HumanNameMatchType(Enum):
+    EXACT = "exact"
+    PARTIAL = "partial"
 
 
 class ChatMembershipMatchType(Enum):
@@ -100,3 +108,96 @@ class FindChatByMembersSentinel(PaginationSentinel):
             if has_partial_match
             else ChatMembershipMatchType.EXACT_MATCH
         )
+
+
+@dataclass
+class HumanNameMatch:
+    human: dict
+    match_type: HumanNameMatchType
+
+
+class MatchHumansByName:
+    def __init__(self, names: list[str], users: list[dict], people: list[dict]):
+        self.matches_by_name: dict[str, list[HumanNameMatch]] = {}
+        self.names = names
+        self.users = users
+        self.people = people
+        self._human_id_matched: dict[str, set[str]] = {name: set() for name in names}
+
+    def _human_name(self, human: dict) -> str:
+        if human["name"].get("display"):
+            return human["name"]["display"].casefold()
+        elif human["name"].get("first") and human["name"].get("last"):
+            return f"{human['name']['first']} {human['name']['last']}".casefold()
+        else:
+            return ""
+
+    def run(self) -> None:
+        for name in self.names:
+            name_lower = name.casefold()
+            self.matches_by_name[name] = []
+            for user in self.users:
+                user_name = self._human_name(user)
+                if name_lower == user_name:
+                    self.add_exact_match(name, user)
+                elif name_lower in user_name:
+                    self.add_partial_match(name, user)
+
+            for person in self.people:
+                person_name = self._human_name(person)
+                if name_lower == person_name:
+                    self.add_exact_match(name, person)
+                elif name_lower in person_name:
+                    self.add_partial_match(name, person)
+
+    def add_exact_match(self, name: str, human: dict) -> None:
+        if human["id"] in self._human_id_matched[name]:
+            return
+
+        human_match = HumanNameMatch(human=human, match_type=HumanNameMatchType.EXACT)
+        self.matches_by_name[name].append(human_match)
+        self._human_id_matched[name].add(human["id"])
+
+    def add_partial_match(self, name: str, human: dict) -> None:
+        if human["id"] in self._human_id_matched[name]:
+            return
+
+        human_match = HumanNameMatch(human=human, match_type=HumanNameMatchType.PARTIAL)
+        self.matches_by_name[name].append(human_match)
+        self._human_id_matched[name].add(human["id"])
+
+    def get_unique_exact_matches(self) -> list[dict]:
+        unique_exact_matches = []
+        match_errors = []
+
+        for name, matches in self.matches_by_name.items():
+            exact_matches = []
+            partial_matches = []
+            human_ids_matched = set()
+            for human_match in matches:
+                if human_match.human["id"] in human_ids_matched:
+                    continue
+
+                if human_match.match_type == HumanNameMatchType.EXACT:
+                    exact_matches.append(human_match.human)
+                    human_ids_matched.add(human_match.human["id"])
+                    continue
+                else:
+                    partial_matches.append(human_match.human)
+
+            # If there is a single exact match, we ignore partial matches, if any
+            if len(exact_matches) == 1:
+                unique_exact_matches.append(exact_matches[0])
+                continue
+
+            # If there are none or multiple exact matches, we add this name to match errors
+            match_errors.append({
+                "name": name,
+                # Exact matches are the relevant ones, so we focus on them first
+                "matches": exact_matches if exact_matches else partial_matches,
+            })
+
+        if match_errors:
+            raise MatchHumansByNameRetryableError(match_errors)
+
+        return unique_exact_matches

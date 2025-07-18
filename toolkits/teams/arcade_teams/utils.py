@@ -1,14 +1,14 @@
 import asyncio
 import datetime
+import json
 import re
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from functools import partial
 from typing import Any
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 from kiota_abstractions.base_request_configuration import RequestConfiguration
 from msgraph.generated.chats.chats_request_builder import ChatsRequestBuilder
 from msgraph.generated.chats.item.messages.messages_request_builder import MessagesRequestBuilder
@@ -36,7 +36,10 @@ from arcade_teams.constants import (
     PartialMatchType,
 )
 from arcade_teams.exceptions import MultipleItemsFoundError, NoItemsFoundError
-from arcade_teams.models import FindChatByMembersSentinel
+from arcade_teams.models import (
+    FindChatByMembersSentinel,
+    MatchHumansByName,
+)
 from arcade_teams.serializers import serialize_chat, short_version
 
 
@@ -115,7 +118,10 @@ def config_request(
     request_builder: dataclass,
     **kwargs,
 ) -> RequestConfiguration:
-    query_params = request_builder(**remove_none_values(kwargs))
+    kwargs = remove_none_values(kwargs)
+    if "next_page_token" in kwargs:
+        kwargs["skiptoken"] = kwargs.pop("next_page_token")
+    query_params = request_builder(**kwargs)
     return RequestConfiguration(query_parameters=query_params)
 
 
@@ -146,8 +152,17 @@ def messages_request(**kwargs) -> RequestConfiguration:
     return config_request(MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters, **kwargs)
 
 
-def people_request(**kwargs) -> RequestConfiguration:
-    return config_request(PeopleRequestBuilder.PeopleRequestBuilderGetQueryParameters, **kwargs)
+def people_request(
+    top: int,
+    next_page_token: str | None,
+    search: str | None,
+) -> RequestConfiguration:
+    return config_request(
+        PeopleRequestBuilder.PeopleRequestBuilderGetQueryParameters,
+        top=top,
+        next_page_token=next_page_token,
+        search=search,
+    )
 
 
 def users_request(**kwargs) -> RequestConfiguration:
@@ -489,7 +504,7 @@ async def find_humans_by_name(
     context: ToolContext,
     names: list[str],
     semaphore: asyncio.Semaphore | None = None,
-) -> dict[str, Any]:
+):
     if not names:
         message = "No names provided"
         raise ToolExecutionError(message=message, developer_message=message)
@@ -497,102 +512,39 @@ async def find_humans_by_name(
     semaphore = semaphore or asyncio.Semaphore(load_config_param(context, "TEAMS_MAX_CONCURRENCY"))
     names = deduplicate_names(names)
 
-    from arcade_teams.tools.people import search_people  # Avoid circular import
-    from arcade_teams.tools.users import search_users  # Avoid circular import
+    # Avoid circular import
+    from arcade_teams.serializers import serialize_person
+    from arcade_teams.tools.users import search_users
+
+    client = get_client(context.get_auth_token_or_empty())
 
     async with semaphore:
-        users_response, people_response = await asyncio.gather(
+        users_response, people = await asyncio.gather(
             search_users(
                 context=context,
                 keywords=names,
                 match_type=PartialMatchType.PARTIAL_ANY,
-                limit=999,
+                limit=999,  # The MS Graph API does not support more than 999 users
             ),
-            search_people(
+            paginate(
                 context=context,
-                keywords=names,
-                match_type=PartialMatchType.PARTIAL_ANY,
-                limit=100,
+                func=client.me.people.get,
+                request_builder=people_request,
+                page_limit=1000,
+                semaphore=semaphore,
+                search=build_people_search_clause(names, PartialMatchType.PARTIAL_ANY),
             ),
         )
 
-    users_by_id = {user["id"]: user for user in users_response["users"]}
-    users_by_display_name = build_people_by_name(users_response["users"], "display")
-    users_by_first_name = build_people_by_name(users_response["users"], "first")
-    users_by_last_name = build_people_by_name(users_response["users"], "last")
+    match_humans_by_name = MatchHumansByName(
+        names=names,
+        users=users_response["users"],
+        people=[serialize_person(person) for person in people],
+    )
 
-    people_by_id = {person["id"]: person for person in people_response["people"]}
-    people_by_display_name = build_people_by_name(people_response["people"], "display")
-    people_by_first_name = build_people_by_name(people_response["people"], "first")
-    people_by_last_name = build_people_by_name(people_response["people"], "last")
+    match_humans_by_name.run()
 
-    humans_found = []
-    names_pending = set(names)
-
-    for name in names:
-        process_user_match = partial(
-            process_human_match,
-            name=name,
-            item="users",
-            humans_by_id=users_by_id,
-            humans_found=humans_found,
-            names_pending=names_pending,
-        )
-        process_people_match = partial(
-            process_human_match,
-            name=name,
-            item="people",
-            humans_by_id=people_by_id,
-            humans_found=humans_found,
-            names_pending=names_pending,
-        )
-        name_lower = name.casefold()
-
-        """
-        Below, we match by user first, because the users are the most relevant ones. The People API
-        may return people that are not relevant for the purposes of Teams chat membership, for
-        instance.
-
-        People has to be included in the matching process, because the Users endpoints do not return
-        people external to the current user's tenant. An example of a situation where this would be
-        a problem is when user searches for a chat that includes external people as members.
-        """
-
-        # Match by display name
-        if name_lower in users_by_display_name:
-            process_user_match(humans_by_name=users_by_display_name)
-        elif name_lower in people_by_display_name:
-            process_people_match(humans_by_name=people_by_display_name)
-        # Match by first name
-        elif name_lower in users_by_first_name:
-            process_user_match(humans_by_name=users_by_first_name)
-        elif name_lower in people_by_first_name:
-            process_people_match(humans_by_name=people_by_first_name)
-        # Match by last name
-        elif name_lower in users_by_last_name:
-            process_user_match(humans_by_name=users_by_last_name)
-        elif name_lower in people_by_last_name:
-            process_people_match(humans_by_name=people_by_last_name)
-
-    return {
-        "humans": humans_found,
-        "not_found": list(names_pending),
-        "not_matched": list(users_by_id.values()) + list(people_by_id.values()),
-    }
-
-
-def process_human_match(
-    humans_by_name: dict[str, list[dict]],
-    name: str,
-    humans_found: list[dict],
-    humans_by_id: dict[str, dict],
-    names_pending: set[str],
-    item: str,
-):
-    human = get_human_match(humans_by_name, name, item)
-    names_pending.remove(name)
-    humans_found.append(human)
-    humans_by_id.pop(human["id"])
+    return match_humans_by_name.get_unique_exact_matches()
 
 
 def _matches_channel_name(channel_name: str, keywords: list[str], match_type: MatchType) -> bool:
@@ -629,36 +581,6 @@ def deduplicate_names(names: list[str]) -> list[str]:
     return names_unique
 
 
-def get_human_match(humans_by_name: dict[str, list[dict]], name: str, item: str) -> dict[str, Any]:
-    name_lower = name.casefold()
-
-    matches = humans_by_name[name_lower]
-
-    # In case multiple humans match this name
-    if len(matches) > 1:
-        raise MultipleItemsFoundError(
-            item=item,
-            available_options=matches,
-            search_term=name,
-        )
-
-    return matches[0]
-
-
-def build_people_by_name(people: list[dict], name_key: str) -> dict[str, list[dict]]:
-    people_dict = {}
-
-    for person in people:
-        name = person["name"].get(name_key, "").casefold()
-        if not name:
-            continue
-        if name not in people_dict:
-            people_dict[name] = [person]
-        else:
-            people_dict[name].append(person)
-    return people_dict
-
-
 def generate_case_variants(keyword: str) -> list[str]:
     return [
         keyword,
@@ -677,3 +599,29 @@ def match_user_by_name(user: User, keywords: list[str], match_type: MatchType) -
         return all(keyword.casefold() in user_name for keyword in keywords)
     else:
         return any(keyword.casefold() in user_name for keyword in keywords)
+
+
+def raise_for_humans_not_found(
+    not_found: list[str],
+    not_matched: list[dict],
+) -> None:
+    # Avoid circular import
+    from arcade_teams.serializers import short_human
+    from arcade_teams.tools.people import search_people
+    from arcade_teams.tools.users import search_users
+
+    max_items = 50
+    message = f"Could not find the following users: {', '.join(not_found)}"
+    available_humans = [short_human(human) for human in not_matched[0:max_items]]
+    additional_prompt = f"Available users/people: {json.dumps(available_humans)}"
+    if len(available_humans) > max_items:
+        additional_prompt = (
+            "Some of the available users/people are listed next. To retrieve more, use the "
+            f"Teams.{search_users.__tool_name__} or Teams.{search_people.__tool_name__} tools. "
+            f"{additional_prompt}"
+        )
+    raise RetryableToolError(
+        message=message,
+        developer_message=message,
+        additional_prompt_content=additional_prompt,
+    )
