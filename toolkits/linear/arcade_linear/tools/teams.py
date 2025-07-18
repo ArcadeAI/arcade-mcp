@@ -101,7 +101,7 @@ async def get_teams(
     }
 
     # Add pagination info
-    if "pageInfo" in teams_response and team_respone["pageInfo"].get("has_next_page"):
+    if "pageInfo" in teams_response and team_response["pageInfo"].get("has_next_page"):
         add_pagination_info(response, teams_response["pageInfo"])
 
     return response
