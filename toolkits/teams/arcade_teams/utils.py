@@ -519,7 +519,7 @@ async def find_humans_by_name(
     client = get_client(context.get_auth_token_or_empty())
 
     async with semaphore:
-        users_response, people = await asyncio.gather(
+        users_response, (people, _) = await asyncio.gather(
             search_users(
                 context=context,
                 keywords=names,

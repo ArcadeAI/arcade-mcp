@@ -16,7 +16,7 @@ def load_env_var(
     key: str, default: str | None = None, transform: Callable | None = None
 ) -> str | None:
     if key not in os.environ:
-        return default
+        return transform(key, default) if default else None
 
     value = os.getenv(key, default)
     if not value:

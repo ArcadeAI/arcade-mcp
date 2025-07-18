@@ -673,7 +673,7 @@ def short_version(item: dict, keys: list[str] | None = None) -> dict:
     return {key: item.get(key) for key in keys}
 
 
-def short_human(human: dict) -> dict:
+def short_human(human: dict, with_email: bool = False) -> dict:
     person_dict = {"id": human["id"], "name": {}}
 
     display = human["name"].get("display")
@@ -691,5 +691,11 @@ def short_human(human: dict) -> dict:
         person_dict["name"]["last"] = last
     else:
         del person_dict["name"]
+
+    if with_email:
+        if human.get("email"):
+            person_dict["email"] = human["email"]
+        elif human.get("emails"):
+            person_dict["emails"] = human["emails"]
 
     return person_dict

@@ -10,6 +10,7 @@ from arcade_tdk import ToolAuthorizationContext, ToolContext
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.conversation_member import ConversationMember
 from msgraph.generated.models.person import Person
+from msgraph.generated.models.user import User
 from pytest_mock import MockerFixture
 
 
@@ -51,31 +52,6 @@ def random_str_factory() -> Callable[[int], str]:
 
 
 @pytest.fixture
-def person_dict_factory(
-    random_str_factory: Callable[[int], str],
-) -> Callable[[Any, str | None, str | None, str | None], dict]:
-    def person_dict_factory(
-        id_: str | None = None,
-        display_name: str | None = None,
-        first_name: str | None = None,
-        last_name: str | None = None,
-    ) -> dict:
-        first_name = first_name or f"first_{random_str_factory(4)}"
-        last_name = last_name or f"last_{random_str_factory(4)}"
-        display_name = display_name or f"{first_name} {last_name}"
-        return {
-            "id": id_ or random_str_factory(10),
-            "name": {
-                "display": display_name,
-                "first": first_name,
-                "last": last_name,
-            },
-        }
-
-    return person_dict_factory
-
-
-@pytest.fixture
 def person_factory(
     random_str_factory: Callable[[int], str],
 ) -> Callable[[Any, str | None, str | None, str | None], Person]:
@@ -85,8 +61,8 @@ def person_factory(
         first_name: str | None = None,
         last_name: str | None = None,
     ) -> Person:
-        first_name = first_name or f"first_{random_str_factory(4)}"
-        last_name = last_name or f"last_{random_str_factory(4)}"
+        first_name = first_name or f"first_{random_str_factory(6)}"
+        last_name = last_name or f"last_{random_str_factory(6)}"
         display_name = display_name or f"{first_name} {last_name}"
         return Person(
             id=id_ or str(uuid.uuid4()),
@@ -96,6 +72,29 @@ def person_factory(
         )
 
     return person_factory
+
+
+@pytest.fixture
+def user_factory(
+    random_str_factory: Callable[[int], str],
+) -> Callable[[Any, str | None, str | None, str | None], User]:
+    def user_factory(
+        id_: str | None = None,
+        display_name: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+    ) -> User:
+        first_name = first_name or f"first_{random_str_factory(6)}"
+        last_name = last_name or f"last_{random_str_factory(6)}"
+        display_name = display_name or f"{first_name} {last_name}"
+        return User(
+            id=id_ or str(uuid.uuid4()),
+            display_name=display_name,
+            given_name=first_name,
+            surname=last_name,
+        )
+
+    return user_factory
 
 
 @pytest.fixture

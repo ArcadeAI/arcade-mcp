@@ -58,23 +58,36 @@ class NoItemsFoundError(UniqueItemError):
 
 class MatchHumansByNameRetryableError(RetryableTeamsToolExecutionError):
     def __init__(self, match_errors: list[dict]):
-        # Avoid circular import
-        from arcade_teams.tools.people import search_people
-        from arcade_teams.tools.users import list_users, search_users
+        try:
+            # Avoid circular import
+            from arcade_teams.serializers import short_human
 
-        self.match_errors = match_errors
-        names = "'" + "', '".join([error["name"] for error in match_errors]) + "'"
-        tool_names = ", ".join([
-            search_people.__tool_name__,
-            search_users.__tool_name__,
-            list_users.__tool_name__,
-        ])
+            self.match_errors = [
+                {
+                    "name": error["name"],
+                    "matches": [short_human(match, with_email=True) for match in error["matches"]],
+                }
+                for error in match_errors
+            ]
+        except Exception:
+            self.match_errors = match_errors
+
+        try:
+            match_errors_json = json.dumps(self.match_errors)
+        except Exception:
+            match_errors_json = str(self.match_errors)
+
+        try:
+            names = "'" + "', '".join([error["name"] for error in match_errors]) + "'"
+        except Exception:
+            names = str(match_errors)
+
         message = f"Multiple matches found for the following names: {names}."
         additional_prompt = (
             "Next is a list of names and corresponding matches. Ask the requester whether they "
-            f"meant to reference any of these options:\n```json\n{json.dumps(match_errors)}```\n"
-            f"The following tools can retrieve more users and people, if needed: {tool_names}."
+            f"meant to reference any of these options:\n```json\n{match_errors_json}```"
         )
+
         super().__init__(
             message=message,
             developer_message=message,
