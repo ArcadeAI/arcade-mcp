@@ -1,4 +1,4 @@
-"""Linear Toolkit for Arcade AI - Simplified Linear API Integration"""
+"""Linear Toolkit for Arcade AI"""
 
 from arcade_linear.models import DateRange
 from arcade_linear.tools import (
