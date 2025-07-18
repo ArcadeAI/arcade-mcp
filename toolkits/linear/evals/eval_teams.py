@@ -38,7 +38,6 @@ def teams_eval_suite() -> EvalSuite:
         rubric=rubric,
     )
 
-    # Eval Prompt: Show me all teams in our workspace
     suite.add_case(
         name="Get all teams in workspace",
         user_message="Show me all teams in our workspace",
@@ -51,7 +50,6 @@ def teams_eval_suite() -> EvalSuite:
         critics=[],  # No specific args expected
     )
 
-    # Eval Prompt: Which teams were created in the last month?
     suite.add_case(
         name="Find recently created teams",
         user_message="Which teams were created in the last month?",
@@ -64,11 +62,10 @@ def teams_eval_suite() -> EvalSuite:
             ),
         ],
         critics=[
-            SimilarityCritic(critic_field="created_after", weight=1.0),
+            BinaryCritic(critic_field="created_after", weight=1.0),
         ],
     )
 
-    # Eval Prompt: Show me teams created this week
     suite.add_case(
         name="Find teams created this week",
         user_message="Show me teams created this week",
@@ -81,11 +78,10 @@ def teams_eval_suite() -> EvalSuite:
             ),
         ],
         critics=[
-            SimilarityCritic(critic_field="created_after", weight=1.0),
+            BinaryCritic(critic_field="created_after", weight=1.0),
         ],
     )
 
-    # Eval Prompt: Which teams were created in the last 7 days?
     suite.add_case(
         name="Find teams created in last 7 days",
         user_message="Which teams were created in the last 7 days?",
@@ -98,11 +94,10 @@ def teams_eval_suite() -> EvalSuite:
             ),
         ],
         critics=[
-            SimilarityCritic(critic_field="created_after", weight=1.0),
+            BinaryCritic(critic_field="created_after", weight=1.0),
         ],
     )
 
-    # Eval Prompt: Find teams that aren't archived
     suite.add_case(
         name="Get active teams only",
         user_message="Find teams that aren't archived",
@@ -119,7 +114,6 @@ def teams_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Eval Prompt: Find teams that have "Engineering" in their name
     suite.add_case(
         name="Search teams by name",
         user_message='Find teams that have "Engineering" in their name',
@@ -136,7 +130,6 @@ def teams_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Eval Prompt: Show me the Frontend team details
     suite.add_case(
         name="Get specific team by name",
         user_message="Show me the Frontend team details",
@@ -150,6 +143,32 @@ def teams_eval_suite() -> EvalSuite:
         ],
         critics=[
             BinaryCritic(critic_field="team_name", weight=1.0),
+        ],
+    )
+
+    suite.add_case(
+        name="Clarify ambiguous team request",
+        user_message="I need to see the Engineering team info",
+        additional_messages=[
+            {
+                "role": "assistant",
+                "content": (
+                    "I found multiple teams with 'Engineering' in the name. "
+                    "Could you be more specific about which Engineering team you're looking for?"
+                ),
+            },
+            {"role": "user", "content": "I meant the Backend Engineering team specifically"},
+        ],
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_teams,
+                args={
+                    "team_name": "Backend Engineering",
+                },
+            ),
+        ],
+        critics=[
+            SimilarityCritic(critic_field="team_name", weight=1.0),
         ],
     )
 

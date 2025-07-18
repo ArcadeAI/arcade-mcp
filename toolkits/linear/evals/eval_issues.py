@@ -38,7 +38,6 @@ def get_issue_eval_suite() -> EvalSuite:
         rubric=rubric,
     )
 
-    # Eval Prompt: Show me complete details for issue API-789
     suite.add_case(
         name="Get complete issue details",
         user_message="Show me complete details for issue API-789",
@@ -63,7 +62,6 @@ def get_issue_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Eval Prompt: Find all dependencies for issue PROJ-100
     suite.add_case(
         name="Get issue dependencies",
         user_message="Find all dependencies for issue PROJ-100",
@@ -82,7 +80,6 @@ def get_issue_eval_suite() -> EvalSuite:
         ],
     )
 
-    # Eval Prompt: Get issue FE-123 with all related sub-issues and dependencies
     suite.add_case(
         name="Get issue with sub-issues and dependencies",
         user_message="Get issue FE-123 with all related sub-issues and dependencies",

@@ -1,5 +1,5 @@
 import json
-import secrets
+import random
 import string
 from collections.abc import Callable
 from typing import Any
@@ -9,6 +9,35 @@ import httpx
 import pytest
 from arcade_tdk import ToolAuthorizationContext, ToolContext
 
+# Seed random generator for deterministic tests
+random.seed(42)
+
+# Hardcoded email list for deterministic testing with varied domains
+TEST_EMAILS = [
+    "alice.smith@testcorp.com",
+    "bob.jones@acme.org",
+    "charlie.brown@techstart.io",
+    "diana.wilson@example.net",
+    "eve.davis@startup.co",
+    "frank.miller@bigtech.com",
+    "grace.taylor@innovation.ai",
+    "henry.anderson@devteam.dev",
+    "iris.johnson@design.studio",
+    "jack.white@cloudops.tech",
+    "karen.thomas@product.team",
+    "liam.jackson@engineering.co",
+    "mia.harris@marketing.agency",
+    "noah.martin@sales.pro",
+    "olivia.garcia@support.help",
+    "peter.rodriguez@finance.biz",
+    "quinn.lewis@legal.firm",
+    "rachel.lee@hr.people",
+    "sam.walker@operations.work",
+    "tina.hall@consulting.group",
+]
+
+_email_counter = 0
+
 
 @pytest.fixture
 def fake_auth_token() -> str:
@@ -16,20 +45,32 @@ def fake_auth_token() -> str:
 
 
 def generate_random_str(length: int = 8) -> str:
-    """Generate a random string using cryptographically secure random generator"""
-    return "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(length))
+    """Generate a deterministic random string for testing"""
+    return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(length))  # noqa: S311
 
 
 def generate_random_int(min_val: int = 1, max_val: int = 9999) -> int:
-    """Generate a random integer using cryptographically secure random generator"""
-    return secrets.randbelow(max_val - min_val + 1) + min_val
+    """Generate a deterministic random integer for testing"""
+    return random.randint(min_val, max_val)  # noqa: S311
+
+
+def get_test_email() -> str:
+    """Get the next email from the hardcoded list, cycling through them"""
+    global _email_counter
+    email = TEST_EMAILS[_email_counter % len(TEST_EMAILS)]
+    _email_counter += 1
+    return email
 
 
 @pytest.fixture
 def generate_random_email() -> Callable[[str | None, str | None], str]:
     def random_email_generator(name: str | None = None, domain: str | None = None) -> str:
+        # If specific name/domain provided, use them, otherwise use hardcoded emails
+        if name is None and domain is None:
+            return get_test_email()
+
         name = name or generate_random_str()
-        domain = domain or f"{generate_random_str()}.com"
+        domain = domain or "example.com"
         return f"{name}@{domain}"
 
     return random_email_generator

@@ -11,4 +11,3 @@ __all__ = [
     "get_issue",
     "get_teams",
 ]
-

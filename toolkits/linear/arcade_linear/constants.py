@@ -11,4 +11,3 @@ try:
     LINEAR_MAX_TIMEOUT_SECONDS = int(os.getenv("LINEAR_MAX_TIMEOUT_SECONDS", 30))
 except ValueError:
     LINEAR_MAX_TIMEOUT_SECONDS = 30
-
