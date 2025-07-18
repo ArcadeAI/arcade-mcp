@@ -71,9 +71,9 @@ class MatchHumansByNameRetryableError(RetryableTeamsToolExecutionError):
         ])
         message = f"Multiple matches found for the following names: {names}."
         additional_prompt = (
-            "This is a list of names and corresponding matches found. Please ask the requester "
-            f"whether they were referencing any of these options: {json.dumps(match_errors)}"
-            f"The following tools can be used to retrieve users and people: {tool_names}."
+            "Next is a list of names and corresponding matches. Ask the requester whether they "
+            f"meant to reference any of these options:\n```json\n{json.dumps(match_errors)}```\n"
+            f"The following tools can retrieve more users and people, if needed: {tool_names}."
         )
         super().__init__(
             message=message,

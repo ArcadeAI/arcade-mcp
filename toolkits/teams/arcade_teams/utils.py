@@ -544,7 +544,7 @@ async def find_humans_by_name(
 
     match_humans_by_name.run()
 
-    return match_humans_by_name.get_unique_exact_matches()
+    return match_humans_by_name.get_unique_exact_matches(max_matches_per_name=10)
 
 
 def _matches_channel_name(channel_name: str, keywords: list[str], match_type: MatchType) -> bool:

@@ -166,7 +166,7 @@ class MatchHumansByName:
         self.matches_by_name[name].append(human_match)
         self._human_id_matched[name].add(human["id"])
 
-    def get_unique_exact_matches(self) -> list[dict]:
+    def get_unique_exact_matches(self, max_matches_per_name: int = 10) -> list[dict]:
         unique_exact_matches = []
         match_errors = []
 
@@ -180,22 +180,23 @@ class MatchHumansByName:
 
                 if human_match.match_type == HumanNameMatchType.EXACT:
                     exact_matches.append(human_match.human)
+                    # If we already found an exact match with this human id, we skip other matches
                     human_ids_matched.add(human_match.human["id"])
-                    continue
                 else:
                     partial_matches.append(human_match.human)
 
             # If there is a single exact match, we ignore partial matches, if any
             if len(exact_matches) == 1:
                 unique_exact_matches.append(exact_matches[0])
-                continue
 
             # If there are none or multiple exact matches, we add this name to match errors
-            match_errors.append({
-                "name": name,
-                # Exact matches are the relevant ones, so we focus on them first
-                "matches": exact_matches if exact_matches else partial_matches,
-            })
+            else:
+                # If multiple exact matches, we can ignore the partial ones
+                final_matches = exact_matches or partial_matches
+                match_errors.append({
+                    "name": name,
+                    "matches": final_matches[:max_matches_per_name],
+                })
 
         if match_errors:
             raise MatchHumansByNameRetryableError(match_errors)
