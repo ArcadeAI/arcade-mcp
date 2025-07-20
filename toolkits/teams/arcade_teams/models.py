@@ -12,6 +12,7 @@ from arcade_teams.exceptions import MatchHumansByNameRetryableError
 class HumanNameMatchType(Enum):
     EXACT = "exact"
     PARTIAL = "partial"
+    NOT_FOUND = "not_found"
 
 
 class ChatMembershipMatchType(Enum):
@@ -193,10 +194,16 @@ class MatchHumansByName:
             else:
                 # If multiple exact matches, we can ignore the partial ones
                 final_matches = exact_matches or partial_matches
-                match_errors.append({
+                match_error = {
                     "name": name,
                     "matches": final_matches[:max_matches_per_name],
-                })
+                }
+                if len(final_matches) > max_matches_per_name:
+                    match_error["message"] = (
+                        f"Too many matches found for '{name}'. "
+                        f"Truncated to the first {max_matches_per_name} matches."
+                    )
+                match_errors.append(match_error)
 
         if match_errors:
             raise MatchHumansByNameRetryableError(match_errors)

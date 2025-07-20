@@ -59,34 +59,36 @@ class NoItemsFoundError(UniqueItemError):
 class MatchHumansByNameRetryableError(RetryableTeamsToolExecutionError):
     def __init__(self, match_errors: list[dict]):
         try:
+            names = []
+            potential_matches = []
+
             # Avoid circular import
             from arcade_teams.serializers import short_human
 
-            self.match_errors = [
-                {
-                    "name": error["name"],
-                    "matches": [short_human(match, with_email=True) for match in error["matches"]],
-                }
-                for error in match_errors
-            ]
-        except Exception:
-            self.match_errors = match_errors
+            for error in match_errors:
+                names.append(error["name"])
+                if error["matches"]:
+                    potential_matches.append({
+                        "name": error["name"],
+                        "matches": [
+                            short_human(match, with_email=True) for match in error["matches"]
+                        ],
+                    })
 
-        try:
-            match_errors_json = json.dumps(self.match_errors)
-        except Exception:
-            match_errors_json = str(self.match_errors)
+            if potential_matches:
+                match_errors_json = json.dumps(potential_matches)
+                additional_prompt = (
+                    "Next is a list of names and corresponding matches. Ask the requester if they "
+                    f"meant to reference any of these options:\n```json\n{match_errors_json}```"
+                )
+            else:
+                additional_prompt = None
 
-        try:
-            names = "'" + "', '".join([error["name"] for error in match_errors]) + "'"
-        except Exception:
-            names = str(match_errors)
+            message = f"Failed to find a unique match for the following names: {', '.join(names)}."
 
-        message = f"Multiple matches found for the following names: {names}."
-        additional_prompt = (
-            "Next is a list of names and corresponding matches. Ask the requester whether they "
-            f"meant to reference any of these options:\n```json\n{match_errors_json}```"
-        )
+        except Exception:
+            message = "Failed to find a unique match for the names searched."
+            additional_prompt = str(match_errors)
 
         super().__init__(
             message=message,
