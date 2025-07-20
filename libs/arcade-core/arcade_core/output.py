@@ -1,5 +1,7 @@
 from typing import TypeVar
 
+from pydantic import BaseModel
+
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -18,25 +20,28 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
         # Extract the result value
+        """
+        Extracts the result value for the tool output.
+
+        The executor guarantees that `data` is either a string, a dict, or None.
+        """
+        value: str | int | float | bool | dict | list[str] | None
         if data is None:
-            value = None
+            value = ""
         elif hasattr(data, "result"):
-            # For Pydantic models with a result field
-            result_value = data.result
-            # If the result is also a Pydantic model, convert to dict
-            if hasattr(result_value, "model_dump"):
-                value = result_value.model_dump()
-            else:
-                value = result_value
-        elif hasattr(data, "model_dump"):
-            # For other Pydantic models, get the dict representation
+            value = getattr(data, "result", "")
+        elif isinstance(data, BaseModel):
             value = data.model_dump()
-        else:
-            # For plain values
+        elif isinstance(data, (str, int, float, bool, list)):
             value = data
+        else:
+            raise ValueError(f"Unsupported data output type: {type(data)}")
 
         logs = coerce_empty_list_to_none(logs)
-        return ToolCallOutput(value=value, logs=logs)
+        return ToolCallOutput(
+            value=value,
+            logs=logs,
+        )
 
     def fail(
         self,
@@ -73,6 +78,7 @@ class ToolOutputFactory:
                 can_retry=True,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
+                traceback_info=traceback_info,
             ),
             logs=coerce_empty_list_to_none(logs),
         )
