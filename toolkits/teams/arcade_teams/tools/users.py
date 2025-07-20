@@ -16,7 +16,10 @@ from arcade_teams.utils import build_offset_pagination, match_user_by_name, user
 async def get_signed_in_user(
     context: ToolContext,
 ) -> Annotated[dict, "The user currently signed in."]:
-    """Get the user currently signed in Microsoft Teams."""
+    """Get the user currently signed in Microsoft Teams.
+
+    This tool is not necessary to call before calling other tools.
+    """
     client = get_client(context.get_auth_token_or_empty())
     response = await client.me.get()
     return serialize_user(response)

@@ -33,9 +33,10 @@ async def search_people(
 ) -> Annotated[dict, "The people matching the search criteria."]:
     """Searches for people the user has interacted with in Microsoft Teams and other 365 products.
 
-    This tool only returns users that the currently signed in user has interacted with. If you need
-    to retrieve users that may not have interacted with the current user, use the
-    `Teams.SearchUsers` tool instead.
+    This tool only returns users that the currently signed in user has interacted with. It may also
+    include people that are part of external tenants/organizations. If you need to retrieve users
+    that may not have interacted with the current user and/or that are exclusively part of the same
+    tenant, use the `Teams.SearchUsers` tool instead.
     """
     limit = min(100, max(1, limit))
 

@@ -53,10 +53,15 @@ async def get_chat_messages(
     dict,
     "The messages in the chat.",
 ]:
-    """Retrieves messages from a Microsoft Teams chat.
+    """Retrieves messages from a Microsoft Teams chat (individual or group).
 
     Provide one of chat_id OR any combination of user_ids and/or user_names. When available, prefer
     providing a chat_id or user_ids for optimal performance.
+
+    If the user provides user name(s), DO NOT CALL THE `Teams.SearchUsers` or `Teams.SearchPeople`
+    tools first. Instead, provide the user name(s) directly to this tool through the `user_names`
+    argument. It is not necessary to provide the currently signed in user's name/id, so do not call
+    `Teams.GetSignedInUser` before calling this tool.
 
     Messages will be sorted in descending order by the messages' `created_datetime` field.
 
