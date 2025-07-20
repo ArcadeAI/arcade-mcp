@@ -1,16 +1,88 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, NoReturn
+
 import httpx
 from pydantic import BaseModel
 
 from .constants import API_BASE_URL, API_VERSION, MAX_ROWS_RETURNED
 
 
+class GibsonAIError(Exception):
+    """Base exception for GibsonAI API errors."""
+
+    pass
+
+
+class GibsonAIHTTPError(GibsonAIError):
+    """HTTP-related errors from GibsonAI API."""
+
+    pass
+
+
+class GibsonAIQueryError(GibsonAIError):
+    """Query execution errors from GibsonAI API."""
+
+    pass
+
+
+class GibsonAITimeoutError(GibsonAIError):
+    """Timeout errors from GibsonAI API."""
+
+    pass
+
+
+class GibsonAINetworkError(GibsonAIError):
+    """Network-related errors when connecting to GibsonAI API."""
+
+    pass
+
+
 class GibsonAIResponse(BaseModel):
     """Response model for GibsonAI API."""
 
-    data: List[Dict[str, Any]]
+    data: list[dict[str, Any]]
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
+
+
+def _raise_http_error(status_code: int, response_text: str) -> NoReturn:
+    """Raise an HTTP error with formatted message."""
+    error_msg = f"HTTP {status_code}: {response_text}"
+    raise GibsonAIHTTPError(f"GibsonAI API error: {error_msg}")
+
+
+def _raise_query_error(error_message: str) -> NoReturn:
+    """Raise a query error with formatted message."""
+    raise GibsonAIQueryError(f"GibsonAI query error: {error_message}")
+
+
+def _raise_timeout_error() -> NoReturn:
+    """Raise a timeout error."""
+    raise GibsonAITimeoutError("Request timeout - GibsonAI API took too long to respond")
+
+
+def _raise_network_error(error: Exception) -> NoReturn:
+    """Raise a network error with original exception details."""
+    raise GibsonAINetworkError(f"Network error connecting to GibsonAI API: {error}")
+
+
+def _raise_unexpected_error(error: Exception) -> NoReturn:
+    """Raise an unexpected error."""
+    raise GibsonAIError(f"Unexpected error: {error}")
+
+
+def _process_response_data(result: Any) -> list[str]:
+    """Process the API response data into a list of strings."""
+    if isinstance(result, dict):
+        if result.get("error"):
+            _raise_query_error(result["error"])
+        elif "data" in result:
+            return [str(row) for row in result["data"]]
+        else:
+            return [str(result)]
+    elif isinstance(result, list):
+        return [str(row) for row in result]
+    else:
+        return [str(result)]
 
 
 class GibsonAIClient:
@@ -21,9 +93,7 @@ class GibsonAIClient:
         self.base_url = f"{API_BASE_URL}/{API_VERSION}"
         self.headers = {"Content-Type": "application/json", "X-Gibson-API-Key": api_key}
 
-    async def execute_query(
-        self, query: str, params: Optional[List[Any]] = None
-    ) -> List[str]:
+    async def execute_query(self, query: str, params: list[Any] | None = None) -> list[str]:
         """Execute a query against GibsonAI database."""
         if params is None:
             params = []
@@ -40,34 +110,20 @@ class GibsonAIClient:
                 )
 
                 if response.status_code != 200:
-                    error_msg = f"HTTP {response.status_code}: {response.text}"
-                    raise Exception(f"GibsonAI API error: {error_msg}")
+                    _raise_http_error(response.status_code, response.text)
 
                 result = response.json()
-
-                # Handle different response formats
-                if isinstance(result, dict):
-                    if "error" in result and result["error"]:
-                        raise Exception(f"GibsonAI query error: {result['error']}")
-                    elif "data" in result:
-                        results = [str(row) for row in result["data"]]
-                    else:
-                        results = [str(result)]
-                elif isinstance(result, list):
-                    results = [str(row) for row in result]
-                else:
-                    results = [str(result)]
+                results = _process_response_data(result)
 
                 # Limit results to avoid memory issues
                 return results[:MAX_ROWS_RETURNED]
 
         except httpx.TimeoutException:
-            raise Exception("Request timeout - GibsonAI API took too long to respond")
+            _raise_timeout_error()
         except httpx.RequestError as e:
-            raise Exception(f"Network error connecting to GibsonAI API: {e}")
+            _raise_network_error(e)
+        except GibsonAIError:
+            # Re-raise our custom exceptions as-is
+            raise
         except Exception as e:
-            # Re-raise if it's already our custom exception
-            if "GibsonAI" in str(e):
-                raise
-            else:
-                raise Exception(f"Unexpected error: {e}")
+            _raise_unexpected_error(e)

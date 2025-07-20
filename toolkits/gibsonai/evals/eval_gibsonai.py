@@ -1,4 +1,3 @@
-from arcade_tdk import ToolCatalog
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
@@ -6,16 +5,19 @@ from arcade_evals import (
     tool_eval,
 )
 from arcade_evals.critic import SimilarityCritic
+from arcade_tdk import ToolCatalog
 
 import arcade_gibsonai
-from arcade_gibsonai.tools.query import execute_query
+from arcade_gibsonai.tools.delete import delete_records
+from arcade_gibsonai.tools.insert import insert_records
+from arcade_gibsonai.tools.query import execute_read_query
+from arcade_gibsonai.tools.update import update_records
 
 # Evaluation rubric
 rubric = EvalRubric(
     fail_threshold=0.85,
     warn_threshold=0.95,
 )
-
 
 catalog = ToolCatalog()
 catalog.add_module(arcade_gibsonai)
@@ -27,20 +29,21 @@ def gibsonai_eval_suite() -> EvalSuite:
         name="GibsonAI Database Tools Evaluation",
         system_message=(
             "You are an AI assistant with access to GibsonAI database tools. "
-            "Use them to help the user execute queries against the GibsonAI database. "
-            "You can perform all SQL operations including SELECT, INSERT, UPDATE, DELETE, "
-            "CREATE, ALTER, DROP, and other schema management operations."
+            "Use them to help the user execute queries and database operations. "
+            "For read operations, use execute_read_query. For data modifications, "
+            "use the specific parameterized tools: insert_records, update_records, "
+            "and delete_records with proper validation."
         ),
         catalog=catalog,
         rubric=rubric,
     )
 
-    # SELECT query test
+    # SELECT query test (read-only)
     suite.add_case(
         name="Execute SELECT query",
         user_message="Can you run a simple SELECT query to get the current timestamp?",
         expected_tool_calls=[
-            ExpectedToolCall(func=execute_query, args={"query": "SELECT NOW()"})
+            ExpectedToolCall(func=execute_read_query, args={"query": "SELECT NOW()"})
         ],
         rubric=rubric,
         critics=[
@@ -55,87 +58,143 @@ def gibsonai_eval_suite() -> EvalSuite:
         ],
     )
 
-    # INSERT query test
+    # INSERT query test (using parameterized tool)
     suite.add_case(
-        name="Execute INSERT query",
+        name="Execute INSERT operation",
         user_message="Insert a new user with name 'John Doe' and email 'john@example.com' into the users table.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=execute_query,
+                func=insert_records,
                 args={
-                    "query": "INSERT INTO users (name, email) VALUES ('John Doe', 'john@example.com')"
+                    "table_name": "users",
+                    "records": '[{"name": "John Doe", "email": "john@example.com"}]',
+                    "on_conflict": "",
                 },
             )
         ],
         rubric=rubric,
         critics=[
-            SimilarityCritic(critic_field="query", weight=0.8),
+            SimilarityCritic(critic_field="table_name", weight=0.4),
+            SimilarityCritic(critic_field="records", weight=0.6),
         ],
         additional_messages=[
             {"role": "user", "content": "I need to add a new user to the database."},
             {
                 "role": "assistant",
-                "content": "I'll help you insert a new user into the users table.",
+                "content": "I'll help you insert a new user into the users table using the parameterized insert tool.",
             },
         ],
     )
 
-    # UPDATE query test
+    # UPDATE query test (using parameterized tool)
     suite.add_case(
-        name="Execute UPDATE query",
+        name="Execute UPDATE operation",
         user_message="Update the user with ID 1 to change their email to 'newemail@example.com'.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=execute_query,
+                func=update_records,
                 args={
-                    "query": "UPDATE users SET email = 'newemail@example.com' WHERE id = 1"
+                    "table_name": "users",
+                    "updates": '{"email": "newemail@example.com"}',
+                    "conditions": '[{"column": "id", "operator": "=", "value": 1}]',
+                    "limit": 0,
                 },
             )
         ],
         rubric=rubric,
         critics=[
-            SimilarityCritic(critic_field="query", weight=0.8),
+            SimilarityCritic(critic_field="table_name", weight=0.3),
+            SimilarityCritic(critic_field="updates", weight=0.4),
+            SimilarityCritic(critic_field="conditions", weight=0.3),
         ],
         additional_messages=[
             {"role": "user", "content": "I need to update a user's email address."},
             {
                 "role": "assistant",
-                "content": "I'll help you update the user's email in the database.",
+                "content": "I'll help you update the user's email using the parameterized update tool.",
             },
         ],
     )
 
-    # DELETE query test
+    # DELETE query test (using parameterized tool)
     suite.add_case(
-        name="Execute DELETE query",
+        name="Execute DELETE operation",
         user_message="Delete the user with ID 5 from the users table.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=execute_query, args={"query": "DELETE FROM users WHERE id = 5"}
+                func=delete_records,
+                args={
+                    "table_name": "users",
+                    "conditions": '[{"column": "id", "operator": "=", "value": 5}]',
+                    "limit": 0,
+                    "confirm_deletion": True,
+                },
             )
+        ],
+        rubric=rubric,
+        critics=[
+            SimilarityCritic(critic_field="table_name", weight=0.3),
+            SimilarityCritic(critic_field="conditions", weight=0.4),
+            SimilarityCritic(critic_field="confirm_deletion", weight=0.3),
+        ],
+        additional_messages=[
+            {"role": "user", "content": "I need to remove a user from the database."},
+            {
+                "role": "assistant",
+                "content": "I'll help you delete the user using the parameterized delete tool with safety confirmation.",
+            },
+        ],
+    )
+
+    # SHOW TABLES test (read-only)
+    suite.add_case(
+        name="Execute SHOW TABLES query",
+        user_message="Show me all the tables in the database.",
+        expected_tool_calls=[
+            ExpectedToolCall(func=execute_read_query, args={"query": "SHOW TABLES"})
         ],
         rubric=rubric,
         critics=[
             SimilarityCritic(critic_field="query", weight=0.8),
         ],
         additional_messages=[
-            {"role": "user", "content": "I need to remove a user from the database."},
+            {"role": "user", "content": "I need to see what tables exist in the database."},
             {
                 "role": "assistant",
-                "content": "I'll help you delete the user from the users table.",
+                "content": "I'll show you all the tables using a SHOW TABLES query.",
             },
         ],
     )
 
-    # CREATE TABLE query test
+    # DESCRIBE test (read-only)
     suite.add_case(
-        name="Execute CREATE TABLE query",
-        user_message="Create a new table called 'products' with columns: id (integer primary key), name (varchar), price (decimal).",
+        name="Execute DESCRIBE query",
+        user_message="Describe the structure of the users table.",
+        expected_tool_calls=[
+            ExpectedToolCall(func=execute_read_query, args={"query": "DESCRIBE users"})
+        ],
+        rubric=rubric,
+        critics=[
+            SimilarityCritic(critic_field="query", weight=0.8),
+        ],
+        additional_messages=[
+            {"role": "user", "content": "I need to understand the structure of the users table."},
+            {
+                "role": "assistant",
+                "content": "I'll describe the users table structure for you.",
+            },
+        ],
+    )
+
+    # Complex SELECT with JOIN (read-only)
+    suite.add_case(
+        name="Execute complex SELECT with JOIN",
+        user_message="Get all users with their order totals, joining users and orders tables.",
         expected_tool_calls=[
             ExpectedToolCall(
-                func=execute_query,
+                func=execute_read_query,
                 args={
-                    "query": "CREATE TABLE products (id INTEGER PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2))"
+                    "query": "SELECT u.name, u.email, SUM(o.total) as total_orders FROM users u LEFT JOIN orders o ON u.id = o.user_id GROUP BY u.id, u.name, u.email LIMIT 100"
                 },
             )
         ],
@@ -144,61 +203,10 @@ def gibsonai_eval_suite() -> EvalSuite:
             SimilarityCritic(critic_field="query", weight=0.8),
         ],
         additional_messages=[
-            {
-                "role": "user",
-                "content": "I need to create a new table for storing product information.",
-            },
+            {"role": "user", "content": "I need to analyze user order data."},
             {
                 "role": "assistant",
-                "content": "I'll help you create a products table with the specified columns.",
-            },
-        ],
-    )
-
-    # ALTER TABLE query test
-    suite.add_case(
-        name="Execute ALTER TABLE query",
-        user_message="Add a new column 'description' of type TEXT to the products table.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=execute_query,
-                args={"query": "ALTER TABLE products ADD COLUMN description TEXT"},
-            )
-        ],
-        rubric=rubric,
-        critics=[
-            SimilarityCritic(critic_field="query", weight=0.8),
-        ],
-        additional_messages=[
-            {
-                "role": "user",
-                "content": "I need to add a description column to the products table.",
-            },
-            {
-                "role": "assistant",
-                "content": "I'll help you alter the products table to add a description column.",
-            },
-        ],
-    )
-
-    # DROP TABLE query test
-    suite.add_case(
-        name="Execute DROP TABLE query",
-        user_message="Drop the temporary_data table as it's no longer needed.",
-        expected_tool_calls=[
-            ExpectedToolCall(
-                func=execute_query, args={"query": "DROP TABLE temporary_data"}
-            )
-        ],
-        rubric=rubric,
-        critics=[
-            SimilarityCritic(critic_field="query", weight=0.8),
-        ],
-        additional_messages=[
-            {"role": "user", "content": "I need to remove the temporary_data table."},
-            {
-                "role": "assistant",
-                "content": "I'll help you drop the temporary_data table.",
+                "content": "I'll create a query that joins users with their orders to show the totals.",
             },
         ],
     )
