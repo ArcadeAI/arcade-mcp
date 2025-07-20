@@ -192,13 +192,16 @@ async def test_update_records_validation_errors():
     mock_context.get_secret.return_value = "test_api_key"
 
     # Test missing conditions
-    with pytest.raises(RetryableToolError, match="conditions must be a non-empty list"):
+    with pytest.raises(
+        RetryableToolError,
+        match="Update operations require at least one WHERE condition for safety",
+    ):
         await update_records(
             context=mock_context, table_name="users", updates='{"name": "Johnny"}', conditions="[]"
         )
 
     # Test invalid table name
-    with pytest.raises(RetryableToolError, match="table_name must be a non-empty string"):
+    with pytest.raises(RetryableToolError, match="Table name cannot be empty"):
         await update_records(
             context=mock_context,
             table_name="",

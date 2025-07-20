@@ -3,55 +3,90 @@ from typing import Annotated, Any
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import RetryableToolError
+from pydantic import BaseModel, Field, field_validator
 
 from ..api_client import GibsonAIClient
 
 
-def _validate_update_conditions(conditions: list[dict[str, Any]]) -> None:
-    """Validate that all update conditions have required keys."""
-    if not conditions:
-        raise ValueError("Update operations require at least one WHERE condition for safety")
+class UpdateCondition(BaseModel):
+    """Pydantic model for update WHERE conditions."""
 
-    required_keys = {"column", "operator", "value"}
-    valid_operators = {
-        "=",
-        "!=",
-        "<>",
-        "<",
-        "<=",
-        ">",
-        ">=",
-        "LIKE",
-        "NOT LIKE",
-        "IN",
-        "NOT IN",
-        "IS NULL",
-        "IS NOT NULL",
-    }
+    column: str = Field(..., min_length=1, description="Column name for the condition")
+    operator: str = Field(..., description="SQL operator for the condition")
+    value: Any = Field(..., description="Value for the condition")
 
-    for i, condition in enumerate(conditions):
-        if not isinstance(condition, dict):
-            raise TypeError(f"Condition {i} must be a dictionary")
-
-        missing_keys = required_keys - set(condition.keys())
-        if missing_keys:
-            raise ValueError(f"Condition {i} missing required keys: {missing_keys}")
-
-        if condition["operator"] not in valid_operators:
-            raise ValueError(
-                f"Condition {i} has invalid operator '{condition['operator']}'. "
-                f"Valid operators: {', '.join(sorted(valid_operators))}"
-            )
+    @field_validator("operator")
+    @classmethod
+    def validate_operator(cls, v: str) -> str:
+        """Validate SQL operator."""
+        valid_operators = {
+            "=",
+            "!=",
+            "<>",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "LIKE",
+            "NOT LIKE",
+            "IN",
+            "NOT IN",
+            "IS NULL",
+            "IS NOT NULL",
+        }
+        if v not in valid_operators:
+            operators_str = ", ".join(sorted(valid_operators))
+            raise ValueError(f"Invalid operator '{v}'. Valid operators: {operators_str}")
+        return v
 
 
-def _build_update_query(
-    table_name: str, updates: dict[str, Any], conditions: list[dict[str, Any]], limit: int
-) -> tuple[str, list[Any]]:
-    """Build UPDATE query with parameterized values."""
+class UpdateRequest(BaseModel):
+    """Pydantic model for validating update requests."""
+
+    table_name: str = Field(..., min_length=1, description="Name of the table to update records in")
+    updates: dict[str, Any] = Field(
+        ..., min_length=1, description="Dictionary of column-value pairs to update"
+    )
+    conditions: list[UpdateCondition] = Field(
+        ..., min_length=1, description="List of WHERE conditions for safety"
+    )
+    limit: int = Field(default=0, ge=0, description="Optional LIMIT for safety")
+
+    @field_validator("table_name")
+    @classmethod
+    def validate_table_name(cls, v: str) -> str:
+        """Validate table name for security."""
+        if not v.strip():
+            raise ValueError("Table name cannot be empty")
+
+        dangerous_keywords = [";", "--", "/*", "*/", "drop", "delete", "truncate"]
+        if any(keyword in v.lower() for keyword in dangerous_keywords):
+            raise ValueError("Invalid characters in table name")
+
+        return v.strip()
+
+    @field_validator("updates")
+    @classmethod
+    def validate_updates(cls, v: dict[str, Any]) -> dict[str, Any]:
+        """Validate updates dictionary."""
+        if not v:
+            raise ValueError("Updates must be a non-empty dictionary")
+
+        # Check for dangerous column names
+        for column in v:
+            if not isinstance(column, str) or not column.strip():
+                raise ValueError("Column names must be non-empty strings")
+
+        return v
+
+
+def _build_update_query(request: UpdateRequest) -> tuple[str, list[Any]]:
+    """Build UPDATE query with parameterized values from validated request."""
     # Build SET clause
     set_parts = []
     values: list[Any] = []
-    for column, value in updates.items():
+
+    for column, value in request.updates.items():
         set_parts.append(f"{column} = ?")
         values.append(value)
 
@@ -59,10 +94,10 @@ def _build_update_query(
 
     # Build WHERE clause
     where_parts = []
-    for condition in conditions:
-        column = condition["column"]
-        operator = condition["operator"]
-        value = condition["value"]
+    for condition in request.conditions:
+        column = condition.column
+        operator = condition.operator
+        value = condition.value
 
         if operator in ("IS NULL", "IS NOT NULL"):
             where_parts.append(f"{column} {operator}")
@@ -80,28 +115,42 @@ def _build_update_query(
     where_clause = "WHERE " + " AND ".join(where_parts)
 
     # Build complete query
-    query = f"UPDATE {table_name} {set_clause} {where_clause}"
-    if limit > 0:
-        query += f" LIMIT {limit}"
+    query = f"UPDATE {request.table_name} {set_clause} {where_clause}"
+    if request.limit > 0:
+        query += f" LIMIT {request.limit}"
 
     return query, values
 
 
-def _validate_update_inputs(
+def _create_update_request(
     table_name: str, parsed_updates: dict, parsed_conditions: list, limit: int
-) -> None:
-    """Validate update inputs and raise appropriate errors."""
-    if not table_name or not isinstance(table_name, str):
-        raise ValueError("table_name must be a non-empty string")
+) -> UpdateRequest:
+    """Create and validate UpdateRequest from parsed data."""
+    try:
+        # Convert conditions to UpdateCondition models
+        condition_models = [
+            UpdateCondition(column=cond["column"], operator=cond["operator"], value=cond["value"])
+            for cond in parsed_conditions
+        ]
 
-    if not parsed_updates:
-        raise ValueError("updates must be a non-empty dictionary")
-
-    if not parsed_conditions:
-        raise TypeError("conditions must be a non-empty list")
-
-    if limit < 0:
-        raise ValueError("limit must be non-negative (0 = no limit)")
+        return UpdateRequest(
+            table_name=table_name,
+            updates=parsed_updates,
+            conditions=condition_models,
+            limit=limit,
+        )
+    except Exception as e:
+        # Convert Pydantic validation errors to more readable messages
+        error_msg = str(e)
+        if "String should have at least 1 character" in error_msg:
+            raise ValueError("Table name cannot be empty") from e
+        elif "List should have at least 1 item" in error_msg:
+            msg = "Update operations require at least one WHERE condition for safety"
+            raise ValueError(msg) from e
+        elif "Updates must be a non-empty dictionary" in error_msg:
+            raise ValueError("Updates must be a non-empty dictionary") from e
+        else:
+            raise ValueError(f"Validation error: {error_msg}") from e
 
 
 @tool(requires_secrets=["GIBSONAI_API_KEY"])
@@ -133,7 +182,7 @@ async def update_records(
         limit: Optional LIMIT clause for additional safety (0 = no limit)
 
     Returns:
-        A message indicating the number of records updated
+        A message indicating successful update
 
     Raises:
         ValueError: If no conditions provided or invalid conditions
@@ -155,13 +204,11 @@ async def update_records(
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON format for conditions: {e}") from e
 
-        # Validate inputs
-        _validate_update_inputs(table_name, parsed_updates, parsed_conditions, limit)
-
-        _validate_update_conditions(parsed_conditions)
+        # Create and validate request using Pydantic
+        request = _create_update_request(table_name, parsed_updates, parsed_conditions, limit)
 
         # Build query with parameterized values
-        query, values = _build_update_query(table_name, parsed_updates, parsed_conditions, limit)
+        query, values = _build_update_query(request)
 
         # Execute update
         client = GibsonAIClient(context.get_secret("GIBSONAI_API_KEY"))

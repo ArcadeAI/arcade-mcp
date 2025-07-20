@@ -3,41 +3,86 @@ from typing import Annotated, Any
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.errors import RetryableToolError
+from pydantic import BaseModel, Field, field_validator
 
 from ..api_client import GibsonAIClient
 
 
-def _validate_record_columns_simple(records: list[dict[str, Any]]) -> list[str]:
-    """Validate that all records have the same columns and return column names."""
-    if not records:
-        raise ValueError("At least one record is required")
+class InsertRequest(BaseModel):
+    """Pydantic model for validating insert requests."""
 
-    columns = list(records[0].keys())
-    for i, record in enumerate(records[1:], 1):
-        if set(record.keys()) != set(columns):
-            raise ValueError(f"Record {i + 1} has different columns than the first record")
+    table_name: str = Field(
+        ..., min_length=1, description="Name of the table to insert records into"
+    )
+    records: list[dict[str, Any]] = Field(
+        ..., min_length=1, description="List of records to insert"
+    )
+    on_conflict: str = Field(default="", description="Conflict resolution strategy")
 
-    return columns
+    @field_validator("table_name")
+    @classmethod
+    def validate_table_name(cls, v: str) -> str:
+        """Validate table name for security."""
+        if not v.strip():
+            raise ValueError("Table name cannot be empty")
+
+        dangerous_keywords = [";", "--", "/*", "*/", "drop", "delete", "truncate"]
+        if any(keyword in v.lower() for keyword in dangerous_keywords):
+            raise ValueError("Invalid characters in table name")
+
+        return v.strip()
+
+    @field_validator("records")
+    @classmethod
+    def validate_records_consistency(cls, v: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Validate that all records have the same columns."""
+        if not v:
+            raise ValueError("At least one record is required")
+
+        if not all(isinstance(record, dict) for record in v):
+            raise ValueError("All records must be dictionaries")
+
+        # Check column consistency
+        expected_columns = set(v[0].keys())
+        for i, record in enumerate(v[1:], 1):
+            if set(record.keys()) != expected_columns:
+                msg = f"Record {i + 1} has different columns than the first record"
+                raise ValueError(msg)
+
+        return v
+
+    @field_validator("on_conflict")
+    @classmethod
+    def validate_on_conflict(cls, v: str) -> str:
+        """Validate on_conflict strategy."""
+        if not v:
+            return ""
+
+        valid_strategies = {"ignore", "replace", "update"}
+        if v.lower() not in valid_strategies:
+            strategies_str = ", ".join(valid_strategies)
+            raise ValueError(f"Invalid on_conflict strategy. Must be one of: {strategies_str}")
+
+        return v.upper()
 
 
-def _build_insert_query_simple(
-    table_name: str, records: list[dict[str, Any]], on_conflict: str, columns: list[str]
-) -> str:
-    """Build the INSERT SQL query from simple parameters."""
+def _build_insert_query(request: InsertRequest) -> str:
+    """Build the INSERT SQL query from validated request."""
+    columns = list(request.records[0].keys())
     columns_str = ", ".join(f"`{col}`" for col in columns)
 
     conflict_clause = ""
-    if on_conflict.strip():
-        if on_conflict.upper() == "IGNORE":
+    if request.on_conflict:
+        if request.on_conflict == "IGNORE":
             conflict_clause = " ON DUPLICATE KEY UPDATE id=id"
-        elif on_conflict.upper() == "REPLACE":
+        elif request.on_conflict == "REPLACE":
             conflict_clause = " ON DUPLICATE KEY UPDATE " + ", ".join(
                 f"`{col}`=VALUES(`{col}`)" for col in columns
             )
 
     # Build value groups
     value_groups = []
-    for record in records:
+    for record in request.records:
         values = []
         for col in columns:
             val = record[col]
@@ -53,27 +98,13 @@ def _build_insert_query_simple(
 
     # Build complete query using proper SQL construction
     # Note: table_name is validated above, not user-controlled
-    query_parts = ["INSERT INTO", f"`{table_name}`", f"({columns_str})", "VALUES"]
+    query_parts = ["INSERT INTO", f"`{request.table_name}`", f"({columns_str})", "VALUES"]
     query_parts.append(", ".join(value_groups))
     if conflict_clause:
         query_parts.append(conflict_clause)
 
     query = " ".join(query_parts)
     return query
-
-
-def _validate_insert_inputs(table_name: str, parsed_records: list) -> None:
-    """Validate insert inputs and raise appropriate errors."""
-    # Validate table name
-    if not table_name.strip():
-        raise ValueError("Table name cannot be empty")
-    dangerous_keywords = [";", "--", "/*", "*/", "drop", "delete", "truncate"]
-    if any(keyword in table_name.lower() for keyword in dangerous_keywords):
-        raise ValueError("Invalid characters in table name")
-
-    # Validate records
-    if not parsed_records:
-        raise ValueError("At least one record is required")
 
 
 @tool(requires_secrets=["GIBSONAI_API_KEY"])
@@ -107,9 +138,6 @@ async def insert_records(
     The tool automatically generates properly formatted INSERT statements
     based on the validated input data.
     """
-    api_key = context.get_secret("GIBSONAI_API_KEY")
-    client = GibsonAIClient(api_key)
-
     try:
         # Parse JSON records
         try:
@@ -119,14 +147,28 @@ async def insert_records(
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON format: {e}") from e
 
-        # Validate table name and records
-        _validate_insert_inputs(table_name, parsed_records)
-
-        # Validate columns consistency across all records
-        columns = _validate_record_columns_simple(parsed_records)
+        # Create and validate request using Pydantic
+        try:
+            request = InsertRequest(
+                table_name=table_name, records=parsed_records, on_conflict=on_conflict
+            )
+        except Exception as e:
+            # Convert Pydantic validation errors to more readable messages
+            error_msg = str(e)
+            if "String should have at least 1 character" in error_msg:
+                raise ValueError("Table name cannot be empty") from e
+            elif "List should have at least 1 item" in error_msg:
+                raise ValueError("At least one record is required") from e
+            elif "Invalid on_conflict strategy" in error_msg:
+                raise ValueError(error_msg) from e
+            else:
+                raise ValueError(f"Validation error: {error_msg}") from e
 
         # Build and execute the INSERT query
-        query = _build_insert_query_simple(table_name, parsed_records, on_conflict, columns)
+        query = _build_insert_query(request)
+
+        api_key = context.get_secret("GIBSONAI_API_KEY")
+        client = GibsonAIClient(api_key)
         results = await client.execute_query(query)
 
     except ValueError as e:
