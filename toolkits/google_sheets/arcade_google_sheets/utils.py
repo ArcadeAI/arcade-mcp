@@ -546,3 +546,131 @@ def parse_write_to_cell_response(response: dict) -> dict:
         "updatedCell": response["updatedData"]["range"].split("!")[1],
         "value": response["updatedData"]["values"][0][0],
     }
+
+
+def calculate_pagination_ranges(
+    sheet_name: str,
+    sheet_row_count: int,
+    sheet_col_count: int,
+    max_rows_per_request: int,
+    max_cols_per_request: int,
+    start_row: int,
+    start_col: str,
+    max_rows: int | None,
+    max_cols: int | None,
+) -> list[str]:
+    """Calculate the ranges needed for paginated requests."""
+    ranges = []
+
+    start_col_index = col_to_index(start_col)
+
+    effective_max_rows = min(sheet_row_count, max_rows or sheet_row_count)
+    effective_max_cols = min(sheet_col_count, max_cols or sheet_col_count)
+
+    end_row = min(start_row + effective_max_rows - 1, sheet_row_count)
+    end_col_index = min(start_col_index + effective_max_cols - 1, sheet_col_count - 1)
+
+    # Generate ranges for pagination
+    current_row = start_row
+    while current_row <= end_row:
+        chunk_end_row = min(current_row + max_rows_per_request - 1, end_row)
+
+        current_col_index = start_col_index
+        while current_col_index <= end_col_index:
+            chunk_end_col_index = min(current_col_index + max_cols_per_request - 1, end_col_index)
+
+            # Convert indices back to range notation
+            range_start = f"{index_to_col(current_col_index)}{current_row}"
+            range_end = f"{index_to_col(chunk_end_col_index)}{chunk_end_row}"
+            range_str = f"'{sheet_name}'!{range_start}:{range_end}"
+            ranges.append(range_str)
+
+            current_col_index += max_cols_per_request
+
+        current_row += max_rows_per_request
+
+    return ranges
+
+
+def get_spreadsheet_with_pagination(
+    service: Any,  # Resource type
+    spreadsheet_id: str,
+    max_rows_per_request: int,
+    max_cols_per_request: int,
+    start_row: int,
+    start_col: str,
+    max_rows: int | None,
+    max_cols: int | None,
+) -> dict:
+    """
+    Get spreadsheet data with pagination support for large spreadsheets.
+
+    This function calculates pagination ranges and fetches all ranges in a single
+    API call to avoid memory limits while minimizing API calls.
+    """
+
+    # First get metadata to understand sheet dimensions
+    metadata_response = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            includeGridData=False,
+            fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties",
+        )
+        .execute()
+    )
+
+    # Calculate all ranges we need across all sheets
+    all_ranges = []
+    for sheet in metadata_response.get("sheets", []):
+        sheet_props = sheet.get("properties", {})
+        sheet_name = sheet_props.get("title", "")
+        grid_props = sheet_props.get("gridProperties", {})
+        sheet_row_count = grid_props.get("rowCount", 0)
+        sheet_col_count = grid_props.get("columnCount", 0)
+
+        ranges = calculate_pagination_ranges(
+            sheet_name,
+            sheet_row_count,
+            sheet_col_count,
+            max_rows_per_request,
+            max_cols_per_request,
+            start_row,
+            start_col,
+            max_rows,
+            max_cols,
+        )
+        all_ranges.extend(ranges)
+
+    if all_ranges:
+        response = (
+            service.spreadsheets()
+            .get(
+                spreadsheetId=spreadsheet_id,
+                includeGridData=True,
+                ranges=all_ranges,
+                fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
+            )
+            .execute()
+        )
+    else:
+        response = metadata_response
+
+    return parse_get_spreadsheet_response(response)
+
+
+def get_spreadsheet_simple(service: Any, spreadsheet_id: str) -> dict:
+    """
+    Get spreadsheet data without pagination (for backward compatibility).
+    This is the original implementation that loads all data at once.
+    """
+    response = (
+        service.spreadsheets()
+        .get(
+            spreadsheetId=spreadsheet_id,
+            includeGridData=True,
+            fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
+        )
+        .execute()
+    )
+    return parse_get_spreadsheet_response(response)
