@@ -57,9 +57,9 @@ async def list_users(
     }
 
 
-# NOTE: the "list users" endpoint docs say it supports $search and $filter, but it's completely
+# NOTE: the "list users" endpoint docs says it supports $search and $filter, but it's completely
 # broken and simply don't work. The endpoint returns all users, regardless of keywords specified
-# in the $search or $filter parameters.
+# in the $search or $filter parameters. This is why we filter users dynamically in this tool.
 @tool(requires_auth=Microsoft(scopes=["User.Read"]))
 async def search_users(
     context: ToolContext,
