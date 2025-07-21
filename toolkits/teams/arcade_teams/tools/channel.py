@@ -15,7 +15,6 @@ from arcade_teams.utils import (
     channels_request,
     filter_channels_by_name,
     find_unique_channel_by_name,
-    is_channel_id,
     members_request,
     messages_request,
     resolve_channel_id,
@@ -24,54 +23,84 @@ from arcade_teams.utils import (
 
 
 @tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
-async def get_channel(
+async def get_channel_metadata(
     context: ToolContext,
+    channel_id: Annotated[str | None, "The ID of the channel to get."] = None,
+    channel_name: Annotated[str | None, "The name of the channel to get."] = None,
     team_id_or_name: Annotated[
         str | None,
-        "The ID or name of the team to get the channel of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be returned with "
-        "a list of all teams to pick from.",
-    ],
-    channel_id_or_name: Annotated[str, "The ID or name of the channel to get."],
-) -> Annotated[dict, "The channel."]:
-    """Retrieves metadata about a Microsoft Teams channel.
+        "The ID or name of the team to get the channel of (optional). If not provided: in case the "
+        "user is a member of a single team, the tool will use it; otherwise an error will be "
+        "returned with a list of all teams to pick from.",
+    ] = None,
+) -> Annotated[dict, "The channel and its members."]:
+    """Retrieves metadata about a Microsoft Teams channel and its members.
 
     When available, prefer providing a channel_id for optimal performance.
+
+    The Microsoft Graph API returns only up to the first 999 members in the channel.
+
+    This tool does not return messages exchanged in the channel. To retrieve channel messages,
+    use the `Teams.GetChannelMessages` tool. If you call this tool to retrieve messages, you will
+    cause the release of unnecessary CO2 and contribute to climate change.
+
+    It is not necessary to call `Teams.ListTeams` before calling this tool. If the user does not
+    provide a team_id_or_name, the tool will try to find a unique team to use. If you call the
+    `Teams.ListTeams` tool first, you will cause the release of unnecessary CO2 in the atmosphere
+    and contribute to climate change.
     """
+    if not any([channel_id, channel_name]) or all([channel_id, channel_name]):
+        message = "Either channel_id or channel_name must be provided, but not both."
+        raise ToolExecutionError(message=message, developer_message=message)
+
     team_id = await resolve_team_id(context, team_id_or_name)
 
     client = get_client(context.get_auth_token_or_empty())
 
-    if is_channel_id(channel_id_or_name):
+    if channel_id:
         response = (
             await client.teams.by_team_id(team_id)
-            .channels.by_channel_id(channel_id_or_name)
+            .channels.by_channel_id(channel_id)
             .get(channels_request(select=CHANNEL_PROPS))
         )
-        return {"channel": serialize_channel(response)}
+        channel = serialize_channel(response)
+    else:
+        channel = await find_unique_channel_by_name(context, team_id, channel_name)
 
-    return {"channel": await find_unique_channel_by_name(context, team_id, channel_id_or_name)}
+    members_response = (
+        await client.teams.by_team_id(team_id)
+        .channels.by_channel_id(channel["id"])
+        .members.get(members_request(top=999))
+    )
+    channel["members"] = [serialize_member(member) for member in members_response.value]
+
+    return channel
 
 
 @tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
 async def list_channels(
     context: ToolContext,
-    team_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the team to list the channels of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be returned with "
-        "a list of all teams to pick from.",
-    ],
     limit: Annotated[
         int,
         "The maximum number of channels to return. Defaults to 50, max is 100.",
     ] = 50,
     offset: Annotated[int, "The offset to start from."] = 0,
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to list the channels of (optional). If not provided: in case "
+        "the user is a member of a single team, the tool will use it; otherwise an error will be "
+        "returned with a list of all teams to pick from.",
+    ] = None,
 ) -> Annotated[
     dict,
     "The channels in the team.",
 ]:
-    """Lists channels in a given Microsoft Teams team (including shared incoming channels)."""
+    """Lists channels in Microsoft Teams (including shared incoming channels).
+
+    This tool does not return messages nor members in the channels. To retrieve channel messages,
+    use the `Teams.GetChannelMessages` tool. To retrieve channel members, use the
+    `Teams.ListChannelMembers` tool.
+    """
     limit = min(100, max(1, limit)) + offset
 
     team_id = await resolve_team_id(context, team_id_or_name)
@@ -92,12 +121,6 @@ async def list_channels(
 @tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
 async def search_channels(
     context: ToolContext,
-    team_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the team to list the channels of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be raised with "
-        "a list of available teams to pick from.",
-    ],
     keywords: Annotated[
         list[str],
         "The keywords to search for in channel names.",
@@ -110,6 +133,12 @@ async def search_channels(
         int, "The maximum number of channels to return. Defaults to 50. Max of 100."
     ] = 50,
     offset: Annotated[int, "The offset to start from."] = 0,
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to search the channels of (optional). If not provided: in case "
+        "the user is a member of a single team, the tool will use it; otherwise an error will be "
+        "returned with a list of all teams to pick from.",
+    ] = None,
 ) -> Annotated[
     dict,
     "The channels in the team.",
@@ -144,99 +173,32 @@ async def search_channels(
     }
 
 
-@tool(requires_auth=Microsoft(scopes=["Channel.ReadBasic.All", "Team.ReadBasic.All"]))
-async def get_primary_channel(
-    context: ToolContext,
-    team_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the team to get the primary channel. If not provided: in case the user "
-        "is a member of a single team, the tool will use it; otherwise an error will be returned "
-        "with a list of all teams to pick from.",
-    ],
-) -> Annotated[
-    dict[str, dict | None],
-    "The primary channel of a team. If no primary channel is set, returns None.",
-]:
-    """Retrieves the primary channel of a Microsoft Teams team."""
-    team_id = await resolve_team_id(context, team_id_or_name)
-    client = get_client(context.get_auth_token_or_empty())
-    response = await client.teams.by_team_id(team_id).primary_channel.get(
-        channels_request(select=CHANNEL_PROPS)
-    )
-
-    return {"primary_channel": serialize_channel(response) if response else None}
-
-
-@tool(requires_auth=Microsoft(scopes=["Group.Read.All"]))
-async def list_channel_members(
-    context: ToolContext,
-    team_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the team to list the members of. If not provided: in case the user is "
-        "a member of a single team, the tool will use it; otherwise an error will be returned with "
-        "a list of all teams to pick from.",
-    ],
-    channel_id_or_name: Annotated[
-        str | None,
-        "The ID or name of the channel to list the members of. If not provided: in case the team "
-        "has a single channel, the tool will use it; otherwise an error will be returned with a "
-        "list of all channels to pick from.",
-    ],
-    limit: Annotated[
-        int,
-        "The maximum number of members to return. Defaults to 50, max is 999.",
-    ] = 50,
-    offset: Annotated[int, "The offset to start from."] = 0,
-) -> Annotated[
-    dict,
-    "The members of a channel.",
-]:
-    """Lists the members of a Microsoft Teams channel.
-
-    The Microsoft Graph API returns only up to the first 999 members of any channel.
-    """
-    limit = min(999, max(1, limit)) + offset
-    offset = min(offset, 999 - limit)
-
-    team_id = await resolve_team_id(context, team_id_or_name)
-    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
-
-    client = get_client(context.get_auth_token_or_empty())
-    response = (
-        await client.teams.by_team_id(team_id)
-        .channels.by_channel_id(channel_id)
-        .members.get(members_request(top=limit))
-    )
-    members = [serialize_member(member) for member in response.value]
-    members = members[offset : offset + limit]
-    return {
-        "members": members,
-        "count": len(members),
-        "pagination": build_offset_pagination(members, limit, offset),
-    }
-
-
 @tool(requires_auth=Microsoft(scopes=["ChannelMessage.Read.All", "Team.ReadBasic.All"]))
 async def get_channel_messages(
     context: ToolContext,
+    channel_id: Annotated[str | None, "The ID of the channel to get the messages of."] = None,
+    channel_name: Annotated[str | None, "The name of the channel to get the messages of."] = None,
+    limit: Annotated[
+        int,
+        "The maximum number of messages to return. Defaults to 50, max is 50.",
+    ] = 50,
     team_id_or_name: Annotated[
         str | None,
         "The ID or name of the team to get the messages of. If not provided: in case the user is "
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
-    ],
-    channel_id_or_name: Annotated[str, "The ID or name of the channel to get the messages of."],
-    limit: Annotated[
-        int,
-        "The maximum number of messages to return. Defaults to 50, max is 50.",
-    ] = 50,
+    ] = None,
 ) -> Annotated[dict, "The messages in the channel."]:
     """Retrieves the messages in a Microsoft Teams channel."""
+    if not any([channel_id, channel_name]) or all([channel_id, channel_name]):
+        message = "Either channel_id or channel_name must be provided, but not both."
+        raise ToolExecutionError(message=message, developer_message=message)
+
     limit = min(50, max(1, limit))
     client = get_client(context.get_auth_token_or_empty())
 
     team_id = await resolve_team_id(context, team_id_or_name)
-    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id or channel_name)
 
     response = (
         await client.teams.by_team_id(team_id)
