@@ -159,9 +159,10 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
         ]
 
     # In chat messages, replies are available as attachments
-    replies = serialize_message_replies_from_attachments(message)
-    if replies:
-        message_dict["replying_to"] = replies
+    if message.attachments:
+        replies = serialize_message_replies_from_attachments(message)
+        if replies:
+            message_dict["replying_to"] = replies
 
     if transform:
         return transform(message_dict)

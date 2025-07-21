@@ -222,13 +222,13 @@ async def get_channel_messages(
 async def get_channel_message_replies(
     context: ToolContext,
     message_id: Annotated[str, "The ID of the message to get the replies of."],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to get the replies of."],
     team_id_or_name: Annotated[
         str | None,
         "The ID or name of the team to get the replies of. If not provided: in case the user is "
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
-    ],
-    channel_id_or_name: Annotated[str, "The ID or name of the channel to get the replies of."],
+    ] = None,
 ) -> Annotated[dict, "The replies to the message."]:
     """Retrieves the replies to a Microsoft Teams channel message."""
     client = get_client(context.get_auth_token_or_empty())
