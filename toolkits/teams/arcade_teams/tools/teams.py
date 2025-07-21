@@ -172,7 +172,7 @@ async def list_team_members(
     client = get_client(context.get_auth_token_or_empty())
     response = await client.teams.by_team_id(team_id).members.get(members_request(top=limit))
 
-    members = [serialize_member(member) for member in response.value[offset:]]
+    members = [serialize_member(member) for member in response.value[offset : offset + limit]]
 
     return {
         "members": members,
@@ -213,16 +213,12 @@ async def search_team_members(
     optimal performance.
 
     If team_id nor team_name are provided: 1) if the user has a single team, the tool will use it;
-    2) if the user has multiple teams, an error will be returned with a list of all teams to pick
-    from.
+    2) if the user has multiple teams, an error will be raised with a list of available teams to
+    pick from.
 
-    The Microsoft Graph API returns only up to the first 999 members.
-
-    Note: Due to Microsoft Graph API limitations, the search is performed using startswith on the
-    displayName field only.
+    The Microsoft Graph API returns only up to the first 999 members of a team.
     """
     limit = min(100, max(1, limit))
-    limit = limit + offset
 
     if team_id and team_name:
         message = "Provide one of team_id or team_name."
@@ -248,10 +244,11 @@ async def search_team_members(
         members_request(top=limit, filter_=filter_by_name)
     )
 
-    members = [serialize_member(member) for member in response.value[offset:]]
+    members = [serialize_member(member) for member in response.value[offset : offset + limit]]
 
     return {
         "members": members,
         "count": len(members),
         "team": {"id": team_id, "name": team_name},
+        "pagination": build_offset_pagination(members, limit, offset),
     }
