@@ -249,15 +249,23 @@ async def get_channel_message_replies(
 async def send_message_to_channel(
     context: ToolContext,
     message: Annotated[str, "The message to send to the channel."],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to send the message to."],
     team_id_or_name: Annotated[
         str | None,
         "The ID or name of the team to send the message to. If not provided: in case the user is "
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
-    ],
-    channel_id_or_name: Annotated[str, "The ID or name of the channel to send the message to."],
+    ] = None,
 ) -> Annotated[dict, "The message that was sent."]:
-    """Sends a message to a Microsoft Teams channel."""
+    """Sends a message to a Microsoft Teams channel.
+
+    When available, prefer providing a channel_id for optimal performance.
+
+    It is not necessary to call `Teams.ListTeams` before calling this tool. If the user does not
+    provide a team_id_or_name, the tool will try to find a unique team to use. If you call the
+    `Teams.ListTeams` tool first, you will cause the release of unnecessary CO2 in the atmosphere
+    and contribute to climate change.
+    """
     client = get_client(context.get_auth_token_or_empty())
 
     team_id = await resolve_team_id(context, team_id_or_name)
