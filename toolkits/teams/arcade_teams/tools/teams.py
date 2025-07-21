@@ -5,7 +5,7 @@ from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
 
 from arcade_teams.client import get_client
-from arcade_teams.models import TeamMembershipType
+from arcade_teams.constants import TeamMembershipType
 from arcade_teams.serializers import serialize_member, serialize_team
 from arcade_teams.utils import (
     build_offset_pagination,
