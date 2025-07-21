@@ -5,7 +5,7 @@ import re
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
@@ -384,6 +384,9 @@ async def find_chat_by_users(
     user_names: list[str] | None,
     semaphore: asyncio.Semaphore | None = None,
 ) -> dict:
+    user_ids = cast(list[str], user_ids or [])
+    user_names = cast(list[str], user_names or [])
+
     if not user_ids and not user_names:
         error = (
             "The user_ids and user_names arguments are empty. "
@@ -407,16 +410,12 @@ async def find_chat_by_user_ids(
     If we only have user_ids, we can simply create the chat. If it already exists, the MS Graph API
     will return the existing chat. This is the most efficient way.
     """
-    from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
-
     client = get_client(context.get_auth_token_or_empty())
     semaphore = semaphore or asyncio.Semaphore(load_config_param(context, "TEAMS_MAX_CONCURRENCY"))
 
-    async with semaphore:
-        current_user = await get_signed_in_user(context)
-        if current_user["id"] not in user_ids:
-            user_ids.append(current_user["id"])
+    user_ids = list(set(user_ids))
 
+    async with semaphore:
         request_body = Chat(
             chat_type=ChatType.OneOnOne if len(user_ids) == 2 else ChatType.Group,
             members=[build_conversation_member(user_id) for user_id in user_ids],
@@ -458,11 +457,8 @@ async def find_chat_by_user_ids_and_names(
     Even combining the two endpoints would still not be entirely reliable. This is why we do an
     inefficient scan of chats and filter by their members.
     """
-    from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
-
-    current_user = await get_signed_in_user(context)
-    if current_user["id"] not in user_ids:
-        user_ids.append(current_user["id"])
+    user_ids = list(set(user_ids))
+    user_names = list(set(user_names))
 
     find_chat_sentinel = FindChatByMembersSentinel(user_ids=user_ids, user_names=user_names)
     client = get_client(context.get_auth_token_or_empty())
@@ -625,3 +621,13 @@ def raise_for_humans_not_found(
         developer_message=message,
         additional_prompt_content=additional_prompt,
     )
+
+
+async def add_current_user_id(context: ToolContext, user_ids: list[str | None]) -> list[str]:
+    from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
+
+    current_user = await get_signed_in_user(context)
+    user_ids = cast(list[str], user_ids or [])
+    if current_user["id"] not in user_ids:
+        user_ids.append(current_user["id"])
+    return list(set(user_ids))

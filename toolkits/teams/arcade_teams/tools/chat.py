@@ -1,4 +1,4 @@
-from typing import Annotated, cast
+from typing import Annotated
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
@@ -9,9 +9,9 @@ from msgraph.generated.models.item_body import ItemBody
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import DatetimeField
-from arcade_teams.exceptions import NoItemsFoundError
 from arcade_teams.serializers import serialize_chat, serialize_chat_message
 from arcade_teams.utils import (
+    add_current_user_id,
     build_conversation_member,
     build_token_pagination,
     chats_request,
@@ -89,7 +89,8 @@ async def get_chat_messages(
     filter_clause = " and ".join(datetime_filters) if datetime_filters else None
 
     if not chat_id:
-        chat = await find_chat_by_users(context, user_ids, user_names)
+        user_ids_with_current_user = await add_current_user_id(context, user_ids)
+        chat = await find_chat_by_users(context, user_ids_with_current_user, user_names)
         chat_id = chat["id"]
 
     client = get_client(context.get_auth_token_or_empty())
@@ -117,7 +118,7 @@ async def get_chat_messages(
 
 
 @tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
-async def get_chat(
+async def get_chat_metadata(
     context: ToolContext,
     chat_id: Annotated[str | None, "The ID of the chat to get metadata about."] = None,
     user_ids: Annotated[
@@ -136,9 +137,13 @@ async def get_chat(
 
     Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
     chat_id or user_ids for optimal performance.
+
+    This tool DOES NOT return messages in a chat. Use the `Teams.GetChatMessages` tool to get
+    chat messages.
     """
     if not chat_id:
-        return {"chat": await find_chat_by_users(context, user_ids, user_names)}
+        user_ids_with_current_user = await add_current_user_id(context, user_ids)
+        return {"chat": await find_chat_by_users(context, user_ids_with_current_user, user_names)}
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).get()
@@ -194,14 +199,16 @@ async def send_message_to_chat(
 
     Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
     chat_id or user_ids for optimal performance.
+
+    If the user provides user name(s), DO NOT CALL THE `Teams.SearchUsers` or `Teams.SearchPeople`
+    tools first. Instead, provide the user name(s) directly to this tool through the `user_names`
+    argument. It is not necessary to provide the currently signed in user's name/id, so do not call
+    `Teams.GetSignedInUser` before calling this tool either.
     """
     if not chat_id:
-        try:
-            chat = await find_chat_by_users(context, user_ids, user_names)
-            chat_id = chat["id"]
-        except NoItemsFoundError:
-            chat = await create_chat(context, user_ids, user_names)
-            chat_id = chat["id"]
+        user_ids_with_current_user = await add_current_user_id(context, user_ids)
+        chat = await create_chat(context, user_ids_with_current_user, user_names)
+        chat_id = chat["id"]
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).messages.post(
@@ -231,16 +238,18 @@ async def create_chat(
         message = "At least one of user_ids or user_names must be provided."
         raise ToolExecutionError(message=message, developer_message=message)
 
-    user_ids = cast(list[str], user_ids or [])
+    user_ids_with_current_user = await add_current_user_id(context, user_ids)
 
     if user_names:
         humans = await find_humans_by_name(context, user_names)
-        user_ids.extend([human["id"] for human in humans["found"]])
+        user_ids_with_current_user.extend([human["id"] for human in humans["found"]])
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.post(
         create_chat_request(
-            members=[build_conversation_member(user_id=user_id) for user_id in user_ids]
+            members=[
+                build_conversation_member(user_id=user_id) for user_id in user_ids_with_current_user
+            ]
         )
     )
 
