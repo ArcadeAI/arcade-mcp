@@ -87,6 +87,34 @@ def search_people_eval_suite() -> EvalSuite:
     )
 
     suite.add_case(
+        name=(
+            "Search people by name, mentioning 'users' and "
+            "'including users outside my organization'"
+        ),
+        user_message=(
+            "Search for users whose name contains 'John Doe', "
+            "including users outside my organization"
+        ),
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=search_people,
+                args={
+                    "keywords": ["John Doe"],
+                    "match_type": PartialMatchType.PARTIAL_ANY,
+                    "limit": 50,
+                    "next_page_token": None,
+                },
+            ),
+        ],
+        critics=[
+            BinaryListCaseInsensitiveCritic(critic_field="keywords", weight=0.4),
+            BinaryCritic(critic_field="match_type", weight=0.4),
+            BinaryCritic(critic_field="limit", weight=0.1),
+            BinaryCritic(critic_field="next_page_token", weight=0.1),
+        ],
+    )
+
+    suite.add_case(
         name="Search people by name with custom limit",
         user_message=(
             "Search for 10 people I have interacted with before whose name contains 'John Doe'"
