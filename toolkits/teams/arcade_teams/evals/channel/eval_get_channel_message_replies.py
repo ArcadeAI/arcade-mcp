@@ -82,6 +82,9 @@ def get_channel_message_replies_eval_suite() -> EvalSuite:
         ],
     )
 
+    # TODO: the engine is failing to process the additional_messages in the case below.
+    # Waiting until it's fixed to uncomment this.
+
     # suite.add_case(
     #     name="Get channel message replies with chat history",
     #     user_message="Get the replies to the last message",
@@ -90,7 +93,7 @@ def get_channel_message_replies_eval_suite() -> EvalSuite:
     #             func=get_channel_message_replies,
     #             args={
     #                 "message_id": "3b07649f-79ff-4f5b-9b6d-e85dca4f18d7",
-    #                 "channel_id_or_name": "general",
+    #                 "channel_id_or_name": "project-acme",
     #                 "team_id_or_name": None,
     #             },
     #         ),
