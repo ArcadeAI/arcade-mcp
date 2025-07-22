@@ -11,6 +11,7 @@ from arcade_google_sheets.models import (
     SheetDataInput,
 )
 from arcade_google_sheets.utils import (
+    calculate_a1_sheet_range,
     col_to_index,
     compute_sheet_data_dimensions,
     convert_api_grid_data_to_dict,
@@ -22,6 +23,7 @@ from arcade_google_sheets.utils import (
     group_contiguous_rows,
     index_to_col,
     is_col_greater,
+    process_get_spreadsheet_params,
     process_row,
     validate_write_to_cell_params,
 )
@@ -540,3 +542,153 @@ def test_validate_write_to_cell_params_column_out_of_bounds(mock_build):
             row=5,
         )
     assert f"Column {out_of_bounds_column} is out of bounds" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "start_row, start_col, max_rows, max_cols, expected_start_row, expected_start_col, expected_max_rows, expected_max_cols, should_fail",
+    [
+        (1, "A", 1000, 26, 1, "A", 1000, 26, False),
+        (1, "1", 1000, 26, 1, "A", 1000, 26, False),
+        (-1, "A", 10_000, 10_000, 1, "A", 1000, 26, False),
+        (1234, "baz", 1000, 26, 1234, "BAZ", 1000, 26, False),
+        (1, "A2", 1000, 26, None, None, None, None, True),
+    ],
+)
+def test_process_get_spreadsheet_params(
+    start_row: int,
+    start_col: str,
+    max_rows: int,
+    max_cols: int,
+    expected_start_row: int,
+    expected_start_col: str,
+    expected_max_rows: int,
+    expected_max_cols: int,
+    should_fail: bool,
+) -> None:
+    if should_fail:
+        with pytest.raises(ToolExecutionError):
+            process_get_spreadsheet_params(start_row, start_col, max_rows, max_cols)
+    else:
+        result = process_get_spreadsheet_params(start_row, start_col, max_rows, max_cols)
+        assert result == (
+            expected_start_row,
+            expected_start_col,
+            expected_max_rows,
+            expected_max_cols,
+        )
+
+
+@pytest.mark.parametrize(
+    "sheet_name, sheet_row_count, sheet_col_count, start_row, start_col, max_rows, max_cols, expected_range",
+    [
+        ("Sheet1", 1000, 26, 1, "A", 1000, 26, "'Sheet1'!A1:Z1000"),
+        ("My new sheet", 1000, 26, 1, "A", 1000, 26, "'My new sheet'!A1:Z1000"),
+        ("Sheet1", 500, 2, 1, "A", 1000, 26, "'Sheet1'!A1:B500"),
+        ("Sheet1", 1000, 52, 10001, "AA", 1000, 26, None),
+        ("Accounting (New)", 1000, 26, 3, "B", 1, 1, "'Accounting (New)'!B3:B3"),
+    ],
+)
+def test_calculate_a1_sheet_range(
+    sheet_name: str,
+    sheet_row_count: int,
+    sheet_col_count: int,
+    start_row: int,
+    start_col: str,
+    max_rows: int,
+    max_cols: int,
+    expected_range: str | None,
+) -> None:
+    result = calculate_a1_sheet_range(
+        sheet_name, sheet_row_count, sheet_col_count, start_row, start_col, max_rows, max_cols
+    )
+    assert result == expected_range
+
+
+@patch("arcade_google_sheets.utils.parse_get_spreadsheet_response")
+@patch("arcade_google_sheets.utils.calculate_a1_sheet_range")
+def test_get_spreadsheet_with_pagination_with_valid_ranges(
+    mock_calculate_range, mock_parse_response
+):
+    from arcade_google_sheets.utils import get_spreadsheet_with_pagination
+
+    mock_service = MagicMock()
+
+    metadata_response = {
+        "properties": {"title": "Test Spreadsheet"},
+        "sheets": [
+            {
+                "properties": {
+                    "title": "Sheet1",
+                    "sheetId": 1,
+                    "gridProperties": {"rowCount": 1000, "columnCount": 26},
+                }
+            },
+            {
+                "properties": {
+                    "title": "Sheet2",
+                    "sheetId": 2,
+                    "gridProperties": {"rowCount": 500, "columnCount": 10},
+                }
+            },
+        ],
+    }
+
+    data_response = {
+        "spreadsheetId": "test_id",
+        "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/test_id",
+        "properties": {"title": "Test Spreadsheet"},
+        "sheets": [
+            {
+                "properties": {"title": "Sheet1", "sheetId": 1},
+                "data": [{"rowData": [{"values": [{"userEnteredValue": {"stringValue": "A1"}}]}]}],
+            },
+            {
+                "properties": {"title": "Sheet2", "sheetId": 2},
+                "data": [{"rowData": [{"values": [{"userEnteredValue": {"stringValue": "A1"}}]}]}],
+            },
+        ],
+    }
+
+    mock_spreadsheet_get = mock_service.spreadsheets().get.return_value
+    mock_spreadsheet_get.execute.side_effect = [metadata_response, data_response]
+
+    mock_calculate_range.side_effect = ["'Sheet1'!A1:Z100", "'Sheet2'!A1:J50"]
+
+    expected_parsed_result = {"test": "parsed_data"}
+    mock_parse_response.return_value = expected_parsed_result
+
+    # Call the function
+    result = get_spreadsheet_with_pagination(
+        service=mock_service,
+        spreadsheet_id="test_id",
+        start_row=1,
+        start_col="A",
+        max_rows=100,
+        max_cols=26,
+    )
+
+    # Verify metadata call was made first
+    mock_service.spreadsheets().get.assert_any_call(
+        spreadsheetId="test_id",
+        includeGridData=False,
+        fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties",
+    )
+
+    # Verify data call was made with ranges
+    mock_service.spreadsheets().get.assert_any_call(
+        spreadsheetId="test_id",
+        includeGridData=True,
+        ranges=["'Sheet1'!A1:Z100", "'Sheet2'!A1:J50"],
+        fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
+    )
+
+    # Verify calculate_a1_sheet_range was called for each sheet
+    assert mock_calculate_range.call_count == 2
+    mock_calculate_range.assert_any_call("Sheet1", 1000, 26, 1, "A", 100, 26)
+    mock_calculate_range.assert_any_call("Sheet2", 500, 10, 1, "A", 100, 26)
+
+    # Verify parse_get_spreadsheet_response was called with data response
+    mock_parse_response.assert_called_once_with(data_response)
+
+    # Verify result
+    assert result == expected_parsed_result

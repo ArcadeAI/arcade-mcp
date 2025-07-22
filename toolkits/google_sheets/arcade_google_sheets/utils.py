@@ -21,6 +21,7 @@ from arcade_google_sheets.models import (
     Sheet,
     SheetDataInput,
     SheetProperties,
+    Spreadsheet,
 )
 from arcade_google_sheets.types import CellValue
 
@@ -548,20 +549,29 @@ def parse_write_to_cell_response(response: dict) -> dict:
     }
 
 
-def calculate_pagination_ranges(
+def calculate_a1_sheet_range(
     sheet_name: str,
     sheet_row_count: int,
     sheet_col_count: int,
-    max_rows_per_request: int,
-    max_cols_per_request: int,
     start_row: int,
     start_col: str,
-    max_rows: int | None,
-    max_cols: int | None,
-) -> list[str]:
-    """Calculate the ranges needed for paginated requests."""
-    ranges = []
+    max_rows: int,
+    max_cols: int,
+) -> str | None:
+    """Calculate a single range for a sheet based on start position and limits.
 
+    Args:
+        sheet_name (str): The name of the sheet.
+        sheet_row_count (int): The number of rows in the sheet.
+        sheet_col_count (int): The number of columns in the sheet.
+        start_row (int): The row from which to start fetching data.
+        start_col (str): The column letter(s) from which to start fetching data.
+        max_rows (int): The maximum number of rows to fetch.
+        max_cols (int): The maximum number of columns to fetch.
+
+    Returns:
+        str | None: The A1 range for the sheet, or None if there is no data to fetch.
+    """
     start_col_index = col_to_index(start_col)
 
     effective_max_rows = min(sheet_row_count, max_rows or sheet_row_count)
@@ -570,46 +580,40 @@ def calculate_pagination_ranges(
     end_row = min(start_row + effective_max_rows - 1, sheet_row_count)
     end_col_index = min(start_col_index + effective_max_cols - 1, sheet_col_count - 1)
 
-    # Generate ranges for pagination
-    current_row = start_row
-    while current_row <= end_row:
-        chunk_end_row = min(current_row + max_rows_per_request - 1, end_row)
+    # Only create a range if there's actually data to fetch
+    if start_row <= end_row and start_col_index <= end_col_index:
+        range_start = f"{index_to_col(start_col_index)}{start_row}"
+        range_end = f"{index_to_col(end_col_index)}{end_row}"
+        return f"'{sheet_name}'!{range_start}:{range_end}"
 
-        current_col_index = start_col_index
-        while current_col_index <= end_col_index:
-            chunk_end_col_index = min(current_col_index + max_cols_per_request - 1, end_col_index)
-
-            # Convert indices back to range notation
-            range_start = f"{index_to_col(current_col_index)}{current_row}"
-            range_end = f"{index_to_col(chunk_end_col_index)}{chunk_end_row}"
-            range_str = f"'{sheet_name}'!{range_start}:{range_end}"
-            ranges.append(range_str)
-
-            current_col_index += max_cols_per_request
-
-        current_row += max_rows_per_request
-
-    return ranges
+    return None
 
 
-def get_spreadsheet_with_pagination(
-    service: Any,  # Resource type
+def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
+    service: Resource,
     spreadsheet_id: str,
-    max_rows_per_request: int,
-    max_cols_per_request: int,
     start_row: int,
     start_col: str,
-    max_rows: int | None,
-    max_cols: int | None,
+    max_rows: int,
+    max_cols: int,
 ) -> dict:
     """
     Get spreadsheet data with pagination support for large spreadsheets.
 
-    This function calculates pagination ranges and fetches all ranges in a single
-    API call to avoid memory limits while minimizing API calls.
+    Args:
+        service (Resource): The Google Sheets service.
+        spreadsheet_id (str): The ID of the spreadsheet provided to the tool.
+        start_row (int): The row from which to start fetching data.
+        start_col (str): The column letter(s) from which to start fetching data.
+        max_rows (int): The maximum number of rows to fetch.
+        max_cols (int): The maximum number of columns to fetch.
+
+    Returns:
+        dict: The spreadsheet data for all sheets in the spreadsheet.
+
     """
 
-    # First get metadata to understand sheet dimensions
+    # First, only get the spreadsheet metadata to collect the sheet names and dimensions
     metadata_response = (
         service.spreadsheets()
         .get(
@@ -619,36 +623,37 @@ def get_spreadsheet_with_pagination(
         )
         .execute()
     )
+    spreadsheet = Spreadsheet.model_validate(metadata_response)
 
-    # Calculate all ranges we need across all sheets
-    all_ranges = []
-    for sheet in metadata_response.get("sheets", []):
-        sheet_props = sheet.get("properties", {})
-        sheet_name = sheet_props.get("title", "")
-        grid_props = sheet_props.get("gridProperties", {})
-        sheet_row_count = grid_props.get("rowCount", 0)
-        sheet_col_count = grid_props.get("columnCount", 0)
+    a1_ranges = []
+    for sheet in spreadsheet.sheets:
+        sheet_name = sheet.properties.title
+        grid_props = sheet.properties.gridProperties
+        if not grid_props:
+            continue
+        sheet_row_count = grid_props.rowCount
+        sheet_col_count = grid_props.columnCount
 
-        ranges = calculate_pagination_ranges(
+        curr_range = calculate_a1_sheet_range(
             sheet_name,
             sheet_row_count,
             sheet_col_count,
-            max_rows_per_request,
-            max_cols_per_request,
             start_row,
             start_col,
             max_rows,
             max_cols,
         )
-        all_ranges.extend(ranges)
+        if curr_range:
+            a1_ranges.append(curr_range)
 
-    if all_ranges:
+    # Next, get the data for the ranges
+    if a1_ranges:
         response = (
             service.spreadsheets()
             .get(
                 spreadsheetId=spreadsheet_id,
                 includeGridData=True,
-                ranges=all_ranges,
+                ranges=a1_ranges,
                 fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
             )
             .execute()
@@ -659,18 +664,35 @@ def get_spreadsheet_with_pagination(
     return parse_get_spreadsheet_response(response)
 
 
-def get_spreadsheet_simple(service: Any, spreadsheet_id: str) -> dict:
+def process_get_spreadsheet_params(
+    start_row: int,
+    start_col: str,
+    max_rows: int,
+    max_cols: int,
+) -> tuple[int, str, int, int]:
+    """Process and validate the input parameters for the get_spreadsheet tool.
+
+    Args:
+        start_row (int): Processed to be within the range [1, 1000]
+        start_col (str): Processed to be alphabetic column representation. e.g., A, Z, QED
+        max_rows (int): Processed to be within the range [1, 1000]
+        max_cols (int): Processed to be within the range [1, 26]
+
+    Returns:
+        tuple[int, str, int, int]: The processed parameters.
+
+    Raises:
+        ToolExecutionError:
+            If the start_col is not one of alphabetic or numeric
     """
-    Get spreadsheet data without pagination (for backward compatibility).
-    This is the original implementation that loads all data at once.
-    """
-    response = (
-        service.spreadsheets()
-        .get(
-            spreadsheetId=spreadsheet_id,
-            includeGridData=True,
-            fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
-        )
-        .execute()
-    )
-    return parse_get_spreadsheet_response(response)
+    processed_start_row = max(1, start_row)
+    processed_max_rows = max(1, min(max_rows, 1000))
+    processed_max_cols = max(1, min(max_cols, 26))
+    if not start_col.isalpha():
+        if not start_col.isdigit():
+            raise ToolExecutionError("Input 'start_col' must be alphabetic")
+        processed_start_col = index_to_col(int(start_col) - 1)
+    else:
+        processed_start_col = start_col.upper()
+
+    return processed_start_row, processed_start_col, processed_max_rows, processed_max_cols
