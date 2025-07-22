@@ -104,7 +104,7 @@ class JiraClient:
                 )
 
                 response = await get_available_atlassian_clouds(self.context)
-                clouds_available = response["clouds_available"]
+                clouds_available = response["clouds_available"]  # type: ignore[index]
 
                 raise RetryableToolError(
                     message=message,

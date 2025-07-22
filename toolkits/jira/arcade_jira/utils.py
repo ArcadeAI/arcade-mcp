@@ -7,10 +7,11 @@ from contextlib import suppress
 from datetime import date, datetime
 from typing import Any, cast
 
+import httpx
 from arcade_tdk import ToolContext
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_jira.constants import STOP_WORDS
+from arcade_jira.constants import JIRA_BASE_URL, STOP_WORDS
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 
 
@@ -1219,3 +1220,30 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
         )
 
     return cast(str, clouds[0]["id"])
+
+
+async def check_if_cloud_is_authorized(
+    context: ToolContext,
+    cloud: dict[str, Any],
+    semaphore: asyncio.Semaphore,
+) -> dict[str, Any] | bool:
+    async with semaphore, httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{JIRA_BASE_URL}/{cloud['id']}/rest/api/3/myself",
+            headers={"Authorization": f"Bearer {context.get_auth_token_or_empty()}"},
+        )
+
+    if response.status_code == 200:
+        return cloud
+
+    if response.status_code == 404:
+        data = response.json()
+        if data.get("errorMessages") == "No message available":
+            return False
+
+    message = "An error occurred while checking if the Atlassian Cloud is authorized"
+
+    raise ToolExecutionError(
+        message=message,
+        developer_message=f"{message}: {response.text}",
+    )
