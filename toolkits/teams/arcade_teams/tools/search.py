@@ -40,7 +40,7 @@ async def search_messages(
     response = await client.search.query.post(request_body)
     search_hits = response.value[0].hits_containers[0].hits
     messages = [serialize_chat_message_search_hit(search_hit) for search_hit in search_hits]
-    more_results = response.value[0].hits_containers[0].more_results_available
+    more_results = bool(response.value[0].hits_containers[0].more_results_available)
     pagination = build_offset_pagination(messages, limit, offset, more_results)
 
     return {
