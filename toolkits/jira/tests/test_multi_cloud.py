@@ -221,12 +221,9 @@ async def test_check_if_cloud_is_authorized_returning_404_unrecognized_error(
 
     semaphore = asyncio.Semaphore(1)
 
-    with pytest.raises(ToolExecutionError) as exc:
-        await check_if_cloud_is_authorized(mock_context, cloud, semaphore)
+    response = await check_if_cloud_is_authorized(mock_context, cloud, semaphore)
 
-    assert fake_cloud_id in exc.value.message
-    assert fake_cloud_id in exc.value.developer_message
-    assert "Something else was not found" in exc.value.developer_message
+    assert response is False
 
 
 @pytest.mark.asyncio

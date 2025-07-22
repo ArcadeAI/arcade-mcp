@@ -1257,23 +1257,11 @@ async def check_if_cloud_is_authorized(
         if response.status_code == 200:
             return cloud
 
-        if response.status_code == 401:
+        elif response.status_code == 429 or response.status_code >= 500:
+            response.raise_for_status()
+
+        else:
             return False
-
-        if response.status_code == 404:
-            data = response.json()
-            if data.get("message") == "No message available":
-                return False
-
-        developer_message = f"{error_message}: API Response: {response.status_code} {response.text}"
-
-        raise ToolExecutionError(  # noqa: TRY301
-            message=error_message,
-            developer_message=developer_message,
-        )
-
-    except ToolExecutionError:
-        raise
 
     except Exception as exc:
         developer_message = f"{error_message}: {type(exc).__name__}: {exc!s}"
@@ -1282,3 +1270,7 @@ async def check_if_cloud_is_authorized(
             message=error_message,
             developer_message=developer_message,
         ) from exc
+
+    # This is necessary otherwise mypy will complain
+    else:
+        return False
