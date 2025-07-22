@@ -103,14 +103,15 @@ class JiraClient:
                     "Atlassian Cloud ID."
                 )
 
-                available_clouds = await get_available_atlassian_clouds(self.context)
+                response = await get_available_atlassian_clouds(self.context)
+                clouds_available = response["clouds_available"]
 
                 raise RetryableToolError(
                     message=message,
                     developer_message=message,
                     additional_prompt_content=(
                         "Available Atlassian Clouds:\n\n```json\n"
-                        f"{json.dumps(available_clouds)}\n```"
+                        f"{json.dumps(clouds_available)}\n```"
                     ),
                 )
 

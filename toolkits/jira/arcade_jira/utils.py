@@ -1195,16 +1195,17 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
 
     from arcade_jira.tools.cloud import get_available_atlassian_clouds  # Avoid circular import
 
-    cloud_ids = await get_available_atlassian_clouds(context)
+    response = await get_available_atlassian_clouds(context)
+    clouds = response["clouds_available"]
 
-    if len(cloud_ids) == 0:
+    if len(clouds) == 0:
         message = "No Atlassian Cloud is available. Please authorize an Atlassian Cloud."
         raise ToolExecutionError(
             message=message,
             developer_message=message,
         )
 
-    if len(cloud_ids) > 1:
+    if len(clouds) > 1:
         message = (
             "Multiple Atlassian Clouds are available. One Cloud ID has to be selected and provided "
             "in the tool call using the `atlassian_cloud_id` argument."
@@ -1213,8 +1214,8 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
             message=message,
             developer_message=message,
             additional_prompt_content=(
-                f"Available Atlassian Clouds:\n\n```json\n{json.dumps(cloud_ids)}\n```"
+                f"Available Atlassian Clouds:\n\n```json\n{json.dumps(clouds)}\n```"
             ),
         )
 
-    return cast(str, cloud_ids[0]["id"])
+    return cast(str, clouds[0]["id"])
