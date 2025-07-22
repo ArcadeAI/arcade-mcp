@@ -26,10 +26,14 @@ async def get_spreadsheet(
         str, "Starting column letter(s) or 1-based column number (defaults to 'A')"
     ] = "A",
     max_rows: Annotated[
-        int, "Maximum total rows to fetch. Must be between 1 and 1000. Defaults to 1000."
+        int,
+        "Maximum number of rows to fetch for each sheet in the spreadsheet. "
+        "Must be between 1 and 1000. Defaults to 1000.",
     ] = 1000,
     max_cols: Annotated[
-        int, "Maximum total columns to fetch. Must be between 1 and 26. Defaults to 26."
+        int,
+        "Maximum number of columns to fetch for each sheet in the spreadsheet. "
+        "Must be between 1 and 26. Defaults to 26.",
     ] = 26,
 ) -> Annotated[
     dict,
