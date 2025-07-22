@@ -14,11 +14,6 @@ try:
 except Exception:
     JIRA_API_REQUEST_TIMEOUT = 30
 
-try:
-    JIRA_CACHE_MAX_ITEMS = max(1, int(os.getenv("JIRA_CACHE_MAX_ITEMS", 5000)))
-except Exception:
-    JIRA_CACHE_MAX_ITEMS = 5000
-
 
 STOP_WORDS = [
     "a",

@@ -4,10 +4,14 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
 from arcade_tdk.errors import ToolExecutionError
 
-import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import NotFoundError
-from arcade_jira.utils import add_pagination_to_response, clean_user_dict, remove_none_values
+from arcade_jira.utils import (
+    add_pagination_to_response,
+    clean_user_dict,
+    remove_none_values,
+    resolve_cloud_id,
+)
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
@@ -29,10 +33,16 @@ async def list_users(
         "The number of users to skip before starting to return users. "
         "Defaults to 0 (start from the first user).",
     ] = 0,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The information about all users."]:
     """Browse users in Jira."""
     limit = max(min(limit, 50), 1)
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     api_response = await client.get(
         "/users/search",
         params={
@@ -41,9 +51,9 @@ async def list_users(
         },
     )
     items = cast(list[dict[str, Any]], api_response)
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+
     users = [
-        clean_user_dict(user, cloud_name)
+        clean_user_dict(user)
         for user in api_response
         if not account_type or user["accountType"].casefold() == account_type.casefold()
     ]
@@ -56,9 +66,15 @@ async def list_users(
 async def get_user_by_id(
     context: ToolContext,
     user_id: Annotated[str, "The the user's ID."],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The user information."]:
     """Get user information by their ID."""
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     not_found = {"error": "User not found"}
 
@@ -70,8 +86,7 @@ async def get_user_by_id(
     if not response:
         return not_found
 
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
-    return {"user": clean_user_dict(response, cloud_name)}
+    return {"user": clean_user_dict(response)}
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-user"]))
@@ -100,6 +115,11 @@ async def get_users_without_id(
         "The number of users to skip before starting to return users. "
         "Defaults to 0 (start from the first user).",
     ] = 0,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The information about users that match the search criteria."]:
     """Get users without their account ID, searching by display name and email address.
 
@@ -119,7 +139,8 @@ async def get_users_without_id(
             message="The `user_name_or_email` argument is required to search for users."
         )
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     api_response = await client.get(
         "/user/search",
         params=remove_none_values({
@@ -128,8 +149,8 @@ async def get_users_without_id(
             "maxResults": limit,
         }),
     )
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
-    users = [clean_user_dict(user, cloud_name) for user in api_response]
+
+    users = [clean_user_dict(user) for user in api_response]
 
     if enforce_exact_match:
         users = [

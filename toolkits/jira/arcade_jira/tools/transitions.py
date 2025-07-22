@@ -4,6 +4,7 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
 
 from arcade_jira.client import JiraClient
+from arcade_jira.utils import resolve_cloud_id
 
 
 @tool(requires_auth=Atlassian(scopes=["read:jira-work"]))
@@ -11,6 +12,11 @@ async def get_transition_by_id(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
     transition_id: Annotated[str, "The ID of the transition"],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The transition data"]:
     """Get a transition by its ID."""
     if not transition_id:
@@ -18,7 +24,8 @@ async def get_transition_by_id(
     if not transition_id.isdigit():
         return {"error": "The transition ID must be a numeric string."}
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     response = await client.get(
         f"/issue/{issue}/transitions",
         params={
@@ -49,12 +56,22 @@ async def get_transition_by_id(
 async def get_transitions_available_for_issue(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The transitions available and the issue's current status"]:
     """Get the transitions available for an existing Jira issue."""
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
-    client = JiraClient(context.get_auth_token_or_empty())
-    issue_data = await get_issue_by_id(context, issue)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
+    issue_data = await get_issue_by_id(
+        context=context,
+        issue=issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if issue_data.get("error"):
         return cast(dict, issue_data)
     response = await client.get(
@@ -85,12 +102,21 @@ async def get_transition_by_status_name(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue"],
     transition: Annotated[str, "The name of the transition status"],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The transition data, including screen fields available"]:
     """Get a transition available for an issue by the transition name.
 
     The response will contain screen fields available for the transition, if any.
     """
-    transitions = await get_transitions_available_for_issue(context, issue)
+    transitions = await get_transitions_available_for_issue(
+        context=context,
+        issue=issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     for available_transition in transitions["transitions_available"]:
         if available_transition["name"].casefold() == transition.casefold():
             return {"issue": issue, "transition": available_transition}
@@ -115,12 +141,23 @@ async def transition_issue_to_new_status(
         str,
         "The transition to perform. Provide the transition ID or its name (case insensitive).",
     ],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The updated issue"]:
     """Transition a Jira issue to a new status."""
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     # Try to get the transition by ID first
-    response = await get_transition_by_id(context, issue, transition)
+    response = await get_transition_by_id(
+        context=context,
+        issue=issue,
+        transition_id=transition,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
 
     # If the transition is not found by ID, try to get it by name
     if response.get("error"):

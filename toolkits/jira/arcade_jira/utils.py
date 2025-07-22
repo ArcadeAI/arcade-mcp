@@ -8,7 +8,7 @@ from datetime import date, datetime
 from typing import Any, cast
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_jira.constants import STOP_WORDS
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
@@ -91,7 +91,7 @@ def build_search_issues_jql(
     return " AND ".join(clauses) if clauses else ""
 
 
-def clean_issue_dict(issue: dict, cloud_name: str | None = None) -> dict:
+def clean_issue_dict(issue: dict) -> dict:
     fields = cast(dict, issue["fields"])
     rendered_fields = issue.get("renderedFields", {})
 
@@ -103,13 +103,13 @@ def clean_issue_dict(issue: dict, cloud_name: str | None = None) -> dict:
         fields["parent"] = get_summarized_issue_dict(fields["parent"])
 
     if fields["assignee"]:
-        fields["assignee"] = clean_user_dict(fields["assignee"], cloud_name)
+        fields["assignee"] = clean_user_dict(fields["assignee"])
 
     if fields["creator"]:
-        fields["creator"] = clean_user_dict(fields["creator"], cloud_name)
+        fields["creator"] = clean_user_dict(fields["creator"])
 
     if fields["reporter"]:
-        fields["reporter"] = clean_user_dict(fields["reporter"], cloud_name)
+        fields["reporter"] = clean_user_dict(fields["reporter"])
 
     if fields.get("description"):
         fields["description"] = rendered_fields.get("description")
@@ -125,8 +125,7 @@ def clean_issue_dict(issue: dict, cloud_name: str | None = None) -> dict:
 
     if fields.get("attachment"):
         fields["attachments"] = [
-            clean_attachment_dict(attachment, cloud_name)
-            for attachment in fields.get("attachment", [])
+            clean_attachment_dict(attachment) for attachment in fields.get("attachment", [])
         ]
 
     add_identified_fields_to_issue(fields, ["status", "issuetype", "priority", "project"])
@@ -150,8 +149,6 @@ def clean_issue_dict(issue: dict, cloud_name: str | None = None) -> dict:
             "self",
         ],
     )
-
-    fields["url"] = build_issue_url(cloud_name, fields["project"]["key"], fields["key"])
 
     return fields
 
@@ -190,14 +187,12 @@ def clean_comment_dict(comment: dict, include_adf_content: bool = False) -> dict
     return data
 
 
-def clean_project_dict(project: dict, cloud_name: str | None = None) -> dict:
+def clean_project_dict(project: dict) -> dict:
     data = {
         "id": project["id"],
         "key": project["key"],
         "name": project["name"],
     }
-
-    data["url"] = build_project_url(cloud_name, project["key"])
 
     if "description" in project:
         data["description"] = project["description"]
@@ -227,14 +222,12 @@ def clean_issue_type_dict(issue_type: dict) -> dict:
     return data
 
 
-def clean_user_dict(user: dict, cloud_name: str | None = None) -> dict:
+def clean_user_dict(user: dict) -> dict:
     data = {
         "id": user["accountId"],
         "name": user["displayName"],
         "active": user["active"],
     }
-
-    data["url"] = build_user_url(cloud_name, user["accountId"])
 
     if user.get("emailAddress"):
         data["email"] = user["emailAddress"]
@@ -251,17 +244,17 @@ def clean_user_dict(user: dict, cloud_name: str | None = None) -> dict:
     return data
 
 
-def clean_attachment_dict(attachment: dict, cloud_name: str | None = None) -> dict:
+def clean_attachment_dict(attachment: dict) -> dict:
     return {
         "id": attachment["id"],
         "filename": attachment["filename"],
         "mime_type": attachment["mimeType"],
         "size": {"bytes": attachment["size"]},
-        "author": clean_user_dict(attachment["author"], cloud_name),
+        "author": clean_user_dict(attachment["author"]),
     }
 
 
-def clean_priority_scheme_dict(scheme: dict, cloud_name: str | None = None) -> dict:
+def clean_priority_scheme_dict(scheme: dict) -> dict:
     data = {
         "id": scheme["id"],
         "name": scheme["name"],
@@ -290,9 +283,7 @@ def clean_priority_scheme_dict(scheme: dict, cloud_name: str | None = None) -> d
 
     if isinstance(scheme.get("projects"), dict):
         all_projects = scheme["projects"].get("isLast", True)
-        data["projects"] = [
-            clean_project_dict(project, cloud_name) for project in scheme["projects"]["values"]
-        ]
+        data["projects"] = [clean_project_dict(project) for project in scheme["projects"]["values"]]
         if not all_projects:
             # Avoid circular import
             from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme
@@ -378,6 +369,7 @@ async def find_multiple_unique_users(
     context: ToolContext,
     user_identifiers: list[str],
     exact_match: bool = False,
+    atlassian_cloud_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Find users matching either their display name, email address, or account ID.
@@ -400,6 +392,7 @@ async def find_multiple_unique_users(
             context=context,
             name_or_email=user_identifier,
             enforce_exact_match=exact_match,
+            atlassian_cloud_id=atlassian_cloud_id,
         )
         for user_identifier in user_identifiers
     ])
@@ -424,7 +417,12 @@ async def find_multiple_unique_users(
 
     if search_by_id:
         responses = await asyncio.gather(*[
-            get_user_by_id(context, user_id=user_id) for user_id in search_by_id
+            get_user_by_id(
+                context=context,
+                user_id=user_id,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
+            for user_id in search_by_id
         ])
         for response in responses:
             if response["user"]:
@@ -440,6 +438,7 @@ async def find_multiple_unique_users(
 async def find_unique_project(
     context: ToolContext,
     project_identifier: str,
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     """Find a unique project by its ID, key, or name
 
@@ -453,12 +452,20 @@ async def find_unique_project(
     from arcade_jira.tools.projects import get_project_by_id, search_projects
 
     # Try to find project by ID or key
-    response = await get_project_by_id(context, project=project_identifier)
+    response = await get_project_by_id(
+        context=context,
+        project=project_identifier,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if response.get("project"):
         return cast(dict, response["project"])
 
     # If not found, search by name
-    response = await search_projects(context, keywords=project_identifier)
+    response = await search_projects(
+        context=context,
+        keywords=project_identifier,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     projects = response["projects"]
     if len(projects) == 1:
         return cast(dict, projects[0])
@@ -482,6 +489,7 @@ async def find_unique_priority(
     context: ToolContext,
     priority_identifier: str,
     project_id: str,
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     """Find a unique priority by ID or name that is associated with a project
 
@@ -499,12 +507,20 @@ async def find_unique_priority(
     )
 
     # Try to get the priority by ID first
-    response = await get_priority_by_id(context, priority_identifier)
+    response = await get_priority_by_id(
+        context=context,
+        priority_id=priority_identifier,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if response.get("priority"):
         return cast(dict, response["priority"])
 
     # If not found, search by name
-    response = await list_priorities_available_to_a_project(context, project_id)
+    response = await list_priorities_available_to_a_project(
+        context=context,
+        project=project_id,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
 
     if response.get("error"):
         raise JiraToolExecutionError(response["error"])
@@ -538,6 +554,7 @@ async def find_unique_issue_type(
     context: ToolContext,
     issue_type_identifier: str,
     project_id: str,
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     """Find a unique issue type by its ID or name that is associated with a project
 
@@ -552,12 +569,20 @@ async def find_unique_issue_type(
     from arcade_jira.tools.issues import get_issue_type_by_id, list_issue_types_by_project
 
     # Try to get the issue type by ID first
-    response = await get_issue_type_by_id(context, issue_type_identifier)
+    response = await get_issue_type_by_id(
+        context=context,
+        issue_type_id=issue_type_identifier,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if response.get("issue_type"):
         return cast(dict, response["issue_type"])
 
     # If not found, search by name
-    response = await list_issue_types_by_project(context, project_id)
+    response = await list_issue_types_by_project(
+        context=context,
+        project=project_id,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
 
     if response.get("error"):
         raise JiraToolExecutionError(response["error"])
@@ -601,19 +626,27 @@ async def find_unique_issue_type(
 async def find_unique_user(
     context: ToolContext,
     user_identifier: str,
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     """Find a unique user by their ID, key, email address, or display name."""
     # Avoid circular import
     from arcade_jira.tools.users import get_user_by_id, get_users_without_id
 
     # Try to get the user by ID
-    response = await get_user_by_id(context, user_identifier)
+    response = await get_user_by_id(
+        context=context,
+        user_id=user_identifier,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if response.get("user"):
         return cast(dict, response["user"])
 
     # Search for the user name or email, if not found by ID
     response = await get_users_without_id(
-        context, name_or_email=user_identifier, enforce_exact_match=True
+        context=context,
+        name_or_email=user_identifier,
+        enforce_exact_match=True,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     users = response["users"]
 
@@ -636,13 +669,17 @@ async def find_unique_user(
     raise NotFoundError(message=f"User not found with ID, name or email '{user_identifier}'")
 
 
-async def get_single_project(context: ToolContext) -> dict[str, Any]:
+async def get_single_project(
+    context: ToolContext,
+    atlassian_cloud_id: str | None = None,
+) -> dict[str, Any]:
     from arcade_jira.tools.projects import list_projects
 
     projects = await paginate_all_items(
         context=context,
         tool=list_projects,
         response_items_key="projects",
+        atlassian_cloud_id=atlassian_cloud_id,
     )
 
     if len(projects) == 0:
@@ -916,6 +953,7 @@ async def resolve_issue_users(
     context: ToolContext,
     assignee: str | None,
     reporter: str | None,
+    atlassian_cloud_id: str | None = None,
 ) -> tuple[dict | None, str | dict | None, str | dict | None]:
     assignee_data: str | dict | None = None
     reporter_data: str | dict | None = None
@@ -927,7 +965,11 @@ async def resolve_issue_users(
         assignee_data = ""
     elif assignee:
         try:
-            assignee_data = await find_unique_user(context, assignee)
+            assignee_data = await find_unique_user(
+                context=context,
+                user_identifier=assignee,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, assignee_data, reporter_data
 
@@ -935,7 +977,11 @@ async def resolve_issue_users(
         reporter_data = ""
     elif reporter:
         try:
-            reporter_data = await find_unique_user(context, reporter)
+            reporter_data = await find_unique_user(
+                context=context,
+                user_identifier=reporter,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, assignee_data, reporter_data
 
@@ -1123,22 +1169,33 @@ def extract_id(field: Any) -> dict[str, str] | None:
     return {"id": field["id"]} if isinstance(field, dict) else None
 
 
-def build_issue_url(cloud_name: str | None, issue_id: str, issue_key: str) -> str | None:
-    if not cloud_name:
-        return None
+async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
+    if isinstance(cloud_id, str) and cloud_id != "":
+        return cloud_id
 
-    return f"https://{cloud_name}.atlassian.net/jira/software/projects/{issue_id}/list?selectedIssue={issue_key}"
+    from arcade_jira.tools.cloud import get_available_atlassian_clouds  # Avoid circular import
 
+    cloud_ids = await get_available_atlassian_clouds(context)
 
-def build_project_url(cloud_name: str | None, project_key: str) -> str | None:
-    if not cloud_name:
-        return None
+    if len(cloud_ids) == 1:
+        return cast(str, cloud_ids[0]["id"])
 
-    return f"https://{cloud_name}.atlassian.net/jira/software/projects/{project_key}/summary"
+    if len(cloud_ids) == 0:
+        message = "No Atlassian Cloud is available. Please authorize an Atlassian Cloud."
+        raise ToolExecutionError(
+            message=message,
+            developer_message=message,
+        )
 
-
-def build_user_url(cloud_name: str | None, user_id: str) -> str | None:
-    if not cloud_name:
-        return None
-
-    return f"https://{cloud_name}.atlassian.net/jira/people/{user_id}"
+    if len(cloud_ids) > 1:
+        message = (
+            "Multiple Atlassian Clouds are available. One Cloud ID has to be selected and provided "
+            "in the tool call using the `atlassian_cloud_id` argument."
+        )
+        raise RetryableToolError(
+            message=message,
+            developer_message=message,
+            additional_prompt_content=(
+                f"Available Atlassian Clouds:\n\n```json\n{json.dumps(cloud_ids)}\n```"
+            ),
+        )
