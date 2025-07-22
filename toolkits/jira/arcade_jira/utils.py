@@ -1232,11 +1232,8 @@ async def check_if_cloud_is_authorized(
     The Atlassian available-resources endpoint may return Clouds that have not been
     authorized by the current user. This is a known Atlassian OAuth2 API bug [1].
 
-    When an unauthorized cloud is used in an API call, Atlassian returns this generic 404
-    error: 'No message available'. When the auth token is invalid, it returns a 401 error.
-
-    We use a 404 error from the '/myself' endpoint as a proxy to determine whether the
-    cloud is authorized.
+    We run this check against the '/myself' endpoint to confirm whether the Cloud
+    was actually authorized for the current auth token.
 
     [1] Reference about the Atlassian API bug:
     https://community.developer.atlassian.com/t/urgent-api-accessible-resources-endpoint-returns-sites-resources-that-are-not-permitted-by-the-user/66899
