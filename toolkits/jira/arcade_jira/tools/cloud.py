@@ -14,7 +14,6 @@ async def get_available_atlassian_clouds(
     context: ToolContext,
 ) -> Annotated[dict[str, list[dict[str, str]]], "Available Atlassian Clouds"]:
     """Get available Atlassian Clouds."""
-    print("\n\n\n\n", context.get_auth_token_or_empty(), "\n\n\n\n")
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://api.atlassian.com/oauth/token/accessible-resources",

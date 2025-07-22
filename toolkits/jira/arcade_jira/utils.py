@@ -1227,23 +1227,58 @@ async def check_if_cloud_is_authorized(
     cloud: dict[str, Any],
     semaphore: asyncio.Semaphore,
 ) -> dict[str, Any] | bool:
-    async with semaphore, httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{JIRA_BASE_URL}/{cloud['id']}/rest/api/3/myself",
-            headers={"Authorization": f"Bearer {context.get_auth_token_or_empty()}"},
-        )
+    """Confirm whether an Atlassian Cloud is authorized for the current auth token.
 
-    if response.status_code == 200:
-        return cloud
+    The Atlassian available-resources endpoint may return Clouds that have not been
+    authorized by the current user. This is a known Atlassian OAuth2 API bug [1].
 
-    if response.status_code == 404:
-        data = response.json()
-        if data.get("errorMessages") == "No message available":
+    When an unauthorized cloud is used in an API call, Atlassian returns this generic 404
+    error: 'No message available'. When the auth token is invalid, it returns a 401 error.
+
+    We use a 404 error from the '/myself' endpoint as a proxy to determine whether the
+    cloud is authorized.
+
+    [1] Reference about the Atlassian API bug:
+    https://community.developer.atlassian.com/t/urgent-api-accessible-resources-endpoint-returns-sites-resources-that-are-not-permitted-by-the-user/66899
+    Archived (2025-07-22): https://archive.is/0noNX
+    """
+    cloud_id = cloud["id"]
+    error_message = (
+        f"An error occurred while checking if the Atlassian Cloud '{cloud_id}' is authorized"
+    )
+
+    try:
+        async with semaphore, httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{JIRA_BASE_URL}/{cloud_id}/rest/api/3/myself",
+                headers={"Authorization": f"Bearer {context.get_auth_token_or_empty()}"},
+            )
+
+        if response.status_code == 200:
+            return cloud
+
+        if response.status_code == 401:
             return False
 
-    message = "An error occurred while checking if the Atlassian Cloud is authorized"
+        if response.status_code == 404:
+            data = response.json()
+            if data.get("message") == "No message available":
+                return False
 
-    raise ToolExecutionError(
-        message=message,
-        developer_message=f"{message}: {response.text}",
-    )
+        developer_message = f"{error_message}: API Response: {response.status_code} {response.text}"
+
+        raise ToolExecutionError(  # noqa: TRY301
+            message=error_message,
+            developer_message=developer_message,
+        )
+
+    except ToolExecutionError:
+        raise
+
+    except Exception as exc:
+        developer_message = f"{error_message}: {type(exc).__name__}: {exc!s}"
+
+        raise ToolExecutionError(
+            message=error_message,
+            developer_message=developer_message,
+        ) from exc

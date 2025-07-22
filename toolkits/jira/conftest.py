@@ -82,13 +82,15 @@ def mock_get_available_atlassian_clouds_globally(
     """Mock get_available_atlassian_clouds for all tests."""
 
     def mock_func(context: ToolContext) -> list[dict]:
-        return [
-            {
-                "id": fake_cloud_id,
-                "name": fake_cloud_name,
-                "url": f"https://{fake_cloud_name}.atlassian.net",
-            }
-        ]
+        return {
+            "clouds_available": [
+                {
+                    "id": fake_cloud_id,
+                    "name": fake_cloud_name,
+                    "url": f"https://{fake_cloud_name}.atlassian.net",
+                }
+            ]
+        }
 
     with patch(
         "arcade_jira.tools.cloud.get_available_atlassian_clouds",

@@ -6,7 +6,7 @@ from typing import cast
 
 import httpx
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import ToolExecutionError
 
 from arcade_jira.constants import JIRA_API_VERSION, JIRA_BASE_URL, JIRA_MAX_CONCURRENT_REQUESTS
 from arcade_jira.exceptions import NotFoundError
@@ -83,38 +83,6 @@ class JiraClient:
         error_message, developer_message = self._build_error_messages(response)
 
         if response.status_code == 404:
-            # The Atlassian available-resources endpoint may return Clouds that have not been
-            # authorized by the current user. Our toolkit may provide such unauthorized clouds
-            # as options to call tools.
-
-            # When an unauthorized cloud is used in an API call, Atlassian returns this generic 404
-            # error: 'No message available'. In such case, we raise a descriptive error.
-
-            # Reference about the Atlassian API bug:
-            # https://community.developer.atlassian.com/t/urgent-api-accessible-resources-endpoint-returns-sites-resources-that-are-not-permitted-by-the-user/66899
-            # Archived (2025-07-22): https://archive.is/0noNX
-            if error_message == "No message available":
-                from arcade_jira.tools.cloud import get_available_atlassian_clouds
-
-                message = (
-                    "The Atlassian Jira API returned an error. It is possible that the Atlassian "
-                    f"Cloud ID provided in the tool call ('{self.cloud_id}') has not been "
-                    "authorized by the user. Please authorize it or select a different "
-                    "Atlassian Cloud ID."
-                )
-
-                response = await get_available_atlassian_clouds(self.context)
-                clouds_available = response["clouds_available"]  # type: ignore[index]
-
-                raise RetryableToolError(
-                    message=message,
-                    developer_message=message,
-                    additional_prompt_content=(
-                        "Available Atlassian Clouds:\n\n```json\n"
-                        f"{json.dumps(clouds_available)}\n```"
-                    ),
-                )
-
             raise NotFoundError(error_message, developer_message)
 
         raise ToolExecutionError(error_message, developer_message)

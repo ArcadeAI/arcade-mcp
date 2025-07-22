@@ -40,7 +40,6 @@ async def list_users(
     ] = None,
 ) -> Annotated[dict[str, Any], "The information about all users."]:
     """Browse users in Jira."""
-    print("\n\n\n\n", context.get_auth_token_or_empty(), "\n\n\n\n")
     limit = max(min(limit, 50), 1)
     atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
     client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
