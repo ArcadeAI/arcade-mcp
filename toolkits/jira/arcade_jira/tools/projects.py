@@ -37,6 +37,7 @@ async def list_projects(
             keywords=None,
             limit=limit,
             offset=offset,
+            atlassian_cloud_id=atlassian_cloud_id,
         ),
     )
 
