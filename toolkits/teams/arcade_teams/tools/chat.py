@@ -1,9 +1,12 @@
-from typing import Annotated
+from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.chat import Chat
+from msgraph.generated.models.chat_collection_response import ChatCollectionResponse
 from msgraph.generated.models.chat_message import ChatMessage
+from msgraph.generated.models.chat_message_collection_response import ChatMessageCollectionResponse
 from msgraph.generated.models.chat_message_type import ChatMessageType
 from msgraph.generated.models.item_body import ItemBody
 
@@ -91,7 +94,7 @@ async def get_chat_messages(
     if not chat_id:
         user_ids_with_current_user = await add_current_user_id(context, user_ids)
         chat = await find_chat_by_users(context, user_ids_with_current_user, user_names)
-        chat_id = chat["id"]
+        chat_id = cast(str, chat["id"])
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).messages.get(
@@ -102,11 +105,13 @@ async def get_chat_messages(
         )
     )
 
+    response = cast(ChatMessageCollectionResponse, response)
+
     # Unfortunately, the MS Graph API $filter parameter does not support filtering by message type.
     # So we need to filter out non-message items, like systemEventMessage manually.
     messages = [
         serialize_chat_message(message)
-        for message in response.value
+        for message in cast(list[ChatMessage], response.value)
         if message.message_type == ChatMessageType.Message
     ]
 
@@ -148,7 +153,7 @@ async def get_chat_metadata(
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).get()
 
-    return {"chat": serialize_chat(response)}
+    return {"chat": serialize_chat(cast(Chat, response))}
 
 
 @tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
@@ -172,7 +177,9 @@ async def list_chats(
         )
     )
 
-    chats = [serialize_chat(chat) for chat in response.value]
+    response = cast(ChatCollectionResponse, response)
+
+    chats = [serialize_chat(chat) for chat in cast(list[Chat], response.value)]
 
     return {
         "chats": chats,
@@ -208,7 +215,7 @@ async def send_message_to_chat(
     if not chat_id:
         user_ids_with_current_user = await add_current_user_id(context, user_ids)
         chat = await create_chat(context, user_ids_with_current_user, user_names)
-        chat_id = chat["id"]
+        chat_id = cast(str, chat["id"])
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.by_chat_id(chat_id).messages.post(
@@ -216,7 +223,7 @@ async def send_message_to_chat(
     )
     return {
         "status": "Message successfully sent.",
-        "message": serialize_chat_message(response),
+        "message": serialize_chat_message(cast(ChatMessage, response)),
     }
 
 
@@ -253,4 +260,4 @@ async def create_chat(
         )
     )
 
-    return {"chat": serialize_chat(response)}
+    return {"chat": serialize_chat(cast(Chat, response))}

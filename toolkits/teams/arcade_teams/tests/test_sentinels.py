@@ -1,18 +1,12 @@
 from collections.abc import Callable
-from typing import Any
 
-from msgraph.generated.models.conversation_member import ConversationMember
-
-from arcade_teams.models import Chat, ChatMembershipMatchType, FindChatByMembersSentinel
+from arcade_teams.models import ChatMembershipMatchType, FindChatByMembersSentinel
 
 
 def test_find_chat_by_members_sentinel_exact_match(
-    chat_factory: Callable[[Any, list[ConversationMember] | None], Chat],
-    member_factory: Callable[
-        [Any, str | None, str | None, str | None, str | None, str | None, list[str] | None],
-        ConversationMember,
-    ],
-):
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),
@@ -27,7 +21,10 @@ def test_find_chat_by_members_sentinel_exact_match(
     assert len(sentinel.matches[ChatMembershipMatchType.PARTIAL_MATCH]) == 0
 
 
-def test_find_chat_by_members_sentinel_partial_match(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_partial_match(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),
@@ -42,7 +39,10 @@ def test_find_chat_by_members_sentinel_partial_match(chat_factory, member_factor
     assert len(sentinel.matches[ChatMembershipMatchType.EXACT_MATCH]) == 0
 
 
-def test_find_chat_by_members_sentinel_partial_match_mixed_order(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_partial_match_mixed_order(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),
@@ -57,7 +57,10 @@ def test_find_chat_by_members_sentinel_partial_match_mixed_order(chat_factory, m
     assert len(sentinel.matches[ChatMembershipMatchType.EXACT_MATCH]) == 0
 
 
-def test_find_chat_by_members_sentinel_member_length_mismatch(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_member_length_mismatch(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),
@@ -73,7 +76,10 @@ def test_find_chat_by_members_sentinel_member_length_mismatch(chat_factory, memb
     assert sentinel.matches[ChatMembershipMatchType.PARTIAL_MATCH] == []
 
 
-def test_find_chat_by_members_sentinel_missing_user_id(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_missing_user_id(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="3", display_name="John Smith"),
@@ -87,7 +93,10 @@ def test_find_chat_by_members_sentinel_missing_user_id(chat_factory, member_fact
     assert sentinel.matches[ChatMembershipMatchType.PARTIAL_MATCH] == []
 
 
-def test_find_chat_by_members_sentinel_missing_user_name(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_missing_user_name(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),
@@ -102,7 +111,10 @@ def test_find_chat_by_members_sentinel_missing_user_name(chat_factory, member_fa
     assert sentinel.matches[ChatMembershipMatchType.EXACT_MATCH] == []
 
 
-def test_find_chat_by_members_sentinel_exact_match_multiple_chats(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_exact_match_multiple_chats(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     chat1 = chat_factory(
         members=[
             member_factory(id_="1", display_name="John Doe"),
@@ -126,7 +138,10 @@ def test_find_chat_by_members_sentinel_exact_match_multiple_chats(chat_factory, 
     assert len(sentinel.matches[ChatMembershipMatchType.PARTIAL_MATCH]) == 0
 
 
-def test_find_chat_by_members_sentinel_partial_match_multiple_chats(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_partial_match_multiple_chats(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     chat1 = chat_factory(
         members=[
             member_factory(id_="1", display_name="John Doe"),
@@ -151,8 +166,9 @@ def test_find_chat_by_members_sentinel_partial_match_multiple_chats(chat_factory
 
 
 def test_find_chat_by_members_sentinel_multiple_matches_with_exact_match(
-    chat_factory, member_factory
-):
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     chat1 = chat_factory(
         members=[
             member_factory(id_="1", display_name="John Doe"),
@@ -183,7 +199,10 @@ def test_find_chat_by_members_sentinel_multiple_matches_with_exact_match(
     assert sentinel.matches[ChatMembershipMatchType.PARTIAL_MATCH] == [chat2]
 
 
-def test_find_chat_by_members_sentinel_called_multiple_times(chat_factory, member_factory):
+def test_find_chat_by_members_sentinel_called_multiple_times(
+    chat_factory: Callable,
+    member_factory: Callable,
+) -> None:
     members = [
         member_factory(id_="1", display_name="John Doe"),
         member_factory(id_="2", display_name="Jane Smith"),

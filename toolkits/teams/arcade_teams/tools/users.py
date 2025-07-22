@@ -1,8 +1,9 @@
-from typing import Annotated
+from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.user import User
 
 # Microsoft Graph search requires the special request header "ConsistencyLevel: eventual"
 # and the $count query parameter. We build these explicitly via RequestConfiguration.
@@ -22,7 +23,7 @@ async def get_signed_in_user(
     """
     client = get_client(context.get_auth_token_or_empty())
     response = await client.me.get()
-    return serialize_user(response)
+    return serialize_user(cast(User, response))
 
 
 @tool(requires_auth=Microsoft(scopes=["User.Read"]))
@@ -43,7 +44,10 @@ async def list_users(
 
     response = await client.users.get(users_request(top=limit))
 
-    users = [serialize_user(user) for user in response.value[offset:]]
+    users = [
+        serialize_user(user)
+        for user in response.value[offset : offset + limit]  # type: ignore[index,union-attr]
+    ]
 
     return {
         "users": users,
@@ -97,7 +101,7 @@ async def search_users(
 
     users = [
         serialize_user(user)
-        for user in response.value
+        for user in response.value  # type: ignore[union-attr]
         if match_user_by_name(user, keywords, match_type)
     ][offset : offset + limit]
 

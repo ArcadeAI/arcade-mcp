@@ -1,10 +1,12 @@
-from typing import Annotated
+from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.channel import Channel
 from msgraph.generated.models.chat_message import ChatMessage
 from msgraph.generated.models.chat_message_type import ChatMessageType
+from msgraph.generated.models.conversation_member import ConversationMember
 from msgraph.generated.models.item_body import ItemBody
 
 from arcade_teams.client import get_client
@@ -63,16 +65,28 @@ async def get_channel_metadata(
             .channels.by_channel_id(channel_id)
             .get(channels_request(select=CHANNEL_PROPS))
         )
-        channel = serialize_channel(response)
+        channel = serialize_channel(cast(Channel, response))
     else:
-        channel = await find_unique_channel_by_name(context, team_id, channel_name)
+        channel = await find_unique_channel_by_name(context, team_id, cast(str, channel_name))
 
     members_response = (
         await client.teams.by_team_id(team_id)
         .channels.by_channel_id(channel["id"])
         .members.get(members_request(top=999))
     )
-    channel["members"] = [serialize_member(member) for member in members_response.value]
+
+    if (
+        not members_response
+        or not isinstance(members_response.value, list)
+        or not members_response.value
+    ):
+        return {"members": []}
+
+    channel["members"] = [
+        serialize_member(member)
+        for member in members_response.value
+        if isinstance(member, ConversationMember)
+    ]
 
     return channel
 
@@ -108,7 +122,13 @@ async def list_channels(
     response = await client.teams.by_team_id(team_id).all_channels.get(
         channels_request(select=CHANNEL_PROPS)
     )
-    channels = [serialize_channel(channel) for channel in response.value]
+
+    if not response or not isinstance(response.value, list) or not response.value:
+        return {"channels": [], "count": 0}
+
+    channels = [
+        serialize_channel(channel) for channel in response.value if isinstance(channel, Channel)
+    ]
     channels = channels[offset : offset + limit]
 
     return {
@@ -156,6 +176,9 @@ async def search_channels(
     response = await client.teams.by_team_id(team_id).all_channels.get(
         channels_request(select=CHANNEL_PROPS)
     )
+
+    if not response or not isinstance(response.value, list) or not response.value:
+        return {"channels": [], "count": 0}
 
     channels = filter_channels_by_name(
         channels=response.value,
@@ -206,10 +229,13 @@ async def get_channel_messages(
         .messages.get(messages_request(top=limit, expand=["replies"]))
     )
 
+    if not response or not isinstance(response.value, list) or not response.value:
+        return {"messages": [], "count": 0}
+
     messages = [
         serialize_chat_message(message)
         for message in response.value
-        if message.message_type == ChatMessageType.Message
+        if isinstance(message, ChatMessage) and message.message_type == ChatMessageType.Message
     ]
 
     return {
@@ -242,7 +268,16 @@ async def get_channel_message_replies(
         .messages.by_chat_message_id(message_id)
         .replies.get()
     )
-    return {"replies": [serialize_chat_message(reply) for reply in response.value]}
+    if not response or not isinstance(response.value, list) or not response.value:
+        return {"replies": []}
+
+    return {
+        "replies": [
+            serialize_chat_message(reply)
+            for reply in response.value
+            if isinstance(reply, ChatMessage)
+        ]
+    }
 
 
 @tool(requires_auth=Microsoft(scopes=["ChannelMessage.Send", "Team.ReadBasic.All"]))
@@ -276,5 +311,8 @@ async def send_message_to_channel(
         .channels.by_channel_id(channel_id)
         .messages.post(body=ChatMessage(body=ItemBody(content=message)))
     )
+
+    if not isinstance(response, ChatMessage):
+        return {"message": None}
 
     return {"message": serialize_chat_message(response)}

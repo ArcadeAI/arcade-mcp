@@ -100,7 +100,7 @@ def search_teams_eval_suite() -> EvalSuite:
             {
                 "role": "assistant",
                 "content": "",
-                "tool_calls": [
+                "tool_calls": [  # type: ignore[dict-item]
                     {
                         "id": "call_1",
                         "type": "function",

@@ -26,7 +26,6 @@ from msgraph.generated.teams.item.members.members_request_builder import (
 from msgraph.generated.teams.teams_request_builder import TeamsRequestBuilder
 from msgraph.generated.users.item.people.people_request_builder import PeopleRequestBuilder
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
-from pydantic import BaseModel
 
 from arcade_teams.client import get_client
 from arcade_teams.concurency import paginate
@@ -141,7 +140,7 @@ def channels_request(select: list[str] | None) -> RequestConfiguration:
     )
 
 
-def members_request(top: int, filter_: str | None) -> RequestConfiguration:
+def members_request(top: int, filter_: str | None = None) -> RequestConfiguration:
     return config_request(
         MembersRequestBuilder.MembersRequestBuilderGetQueryParameters, top=top, filter=filter_
     )
@@ -200,7 +199,7 @@ def build_conversation_member(
     )
 
 
-def build_token_pagination(response: BaseModel) -> dict:
+def build_token_pagination(response: Any) -> dict:
     pagination = {"is_last_page": True}
     if response.odata_next_link:
         pagination["is_last_page"] = False
@@ -587,11 +586,9 @@ def generate_case_variants(keyword: str) -> list[str]:
     ]
 
 
-def match_user_by_name(user: User, keywords: list[str], match_type: MatchType) -> bool:
+def match_user_by_name(user: User, keywords: list[str], match_type: PartialMatchType) -> bool:
     user_name = user.display_name.casefold()
-    if match_type == MatchType.EXACT:
-        return any(keyword.casefold() == user_name for keyword in keywords)
-    elif match_type == MatchType.PARTIAL_ALL:
+    if match_type == PartialMatchType.PARTIAL_ALL:
         return all(keyword.casefold() in user_name for keyword in keywords)
     else:
         return any(keyword.casefold() in user_name for keyword in keywords)
@@ -623,7 +620,7 @@ def raise_for_humans_not_found(
     )
 
 
-async def add_current_user_id(context: ToolContext, user_ids: list[str | None]) -> list[str]:
+async def add_current_user_id(context: ToolContext, user_ids: list[str] | None) -> list[str]:
     from arcade_teams.tools.users import get_signed_in_user  # Avoid circular import
 
     current_user = await get_signed_in_user(context)

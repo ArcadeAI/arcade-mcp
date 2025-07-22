@@ -1,6 +1,7 @@
 import datetime
 import json
 from collections.abc import Callable
+from typing import Any
 
 from msgraph.generated.models.channel import Channel
 from msgraph.generated.models.chat import Chat
@@ -18,8 +19,10 @@ from msgraph.generated.models.teamwork_tag import TeamworkTag
 from msgraph.generated.models.user import User
 
 
-def serialize_team(team: Team, transform: Callable | None = None) -> dict:
-    team_dict = {
+def serialize_team(
+    team: Team, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    team_dict: dict[str, Any] = {
         "object_type": "team",
         "id": team.id,
         "name": team.display_name,
@@ -48,8 +51,10 @@ def serialize_team(team: Team, transform: Callable | None = None) -> dict:
     return team_dict
 
 
-def serialize_channel(channel: Channel, transform: Callable | None = None) -> dict:
-    channel_dict = {
+def serialize_channel(
+    channel: Channel, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    channel_dict: dict[str, Any] = {
         "object_type": "channel",
         "id": channel.id,
         "name": channel.display_name,
@@ -64,9 +69,10 @@ def serialize_channel(channel: Channel, transform: Callable | None = None) -> di
         channel_dict["members_count"] = channel.summary.members_count
 
     if channel.membership_type:
-        channel_dict["membership_type"] = channel.membership_type.value.replace(
-            "standard", "publicly_visible_to_team_members"
-        )
+        membership_type = channel.membership_type.value
+        if membership_type == "standard":
+            membership_type = "publicly_visible_to_team_members"
+        channel_dict["membership_type"] = membership_type
 
     if channel.members:
         channel_dict["members"] = [member.display_name for member in channel.members]
@@ -77,17 +83,23 @@ def serialize_channel(channel: Channel, transform: Callable | None = None) -> di
     return channel_dict
 
 
-def serialize_chat(chat: Chat, transform: Callable | None = None) -> dict:
-    chat_dict = {
+def serialize_chat(
+    chat: Chat, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    chat_dict: dict[str, Any] = {
         "object_type": "chat",
         "id": chat.id,
-        "type": chat.chat_type.value,
         "tenant_id": chat.tenant_id,
     }
 
+    if chat.chat_type:
+        chat_dict["type"] = chat.chat_type.value
+
     if chat.pinned_messages:
         chat_dict["pinned_messages"] = [
-            serialize_chat_message(message.message) for message in chat.pinned_messages
+            serialize_chat_message(message.message)
+            for message in chat.pinned_messages
+            if isinstance(message.message, ChatMessage)
         ]
 
     if chat.web_url:
@@ -108,7 +120,7 @@ def serialize_chat(chat: Chat, transform: Callable | None = None) -> dict:
     return chat_dict
 
 
-def serialize_tag(tag: TeamworkTag) -> dict:
+def serialize_tag(tag: TeamworkTag) -> dict[str, Any]:
     return {
         "object_type": "tag",
         "id": tag.id,
@@ -116,8 +128,10 @@ def serialize_tag(tag: TeamworkTag) -> dict:
     }
 
 
-def serialize_member(member: ConversationMember, transform: Callable | None = None) -> dict:
-    member_dict = {
+def serialize_member(
+    member: ConversationMember, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    member_dict: dict[str, Any] = {
         "object_type": "conversation_member",
         "id": member.user_id,
         "name": member.display_name,
@@ -133,8 +147,10 @@ def serialize_member(member: ConversationMember, transform: Callable | None = No
     return member_dict
 
 
-def serialize_chat_message(message: ChatMessage, transform: Callable | None = None) -> dict:
-    message_dict = serialize_message_metadata(message)
+def serialize_chat_message(
+    message: ChatMessage, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    message_dict: dict[str, Any] = serialize_message_metadata(message)
 
     content = serialize_message_content(message)
     if content:
@@ -170,8 +186,8 @@ def serialize_chat_message(message: ChatMessage, transform: Callable | None = No
     return message_dict
 
 
-def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict:
-    message_dict = {
+def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict[str, Any]:
+    message_dict: dict[str, Any] = {
         "object_type": "search_message_hit",
         "summary": search_hit.summary,
         "message_id": search_hit.resource.id,
@@ -208,7 +224,7 @@ def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict:
 
 
 def serialize_message_metadata(message: ChatMessage) -> dict:
-    message_dict = {
+    message_dict: dict[str, Any] = {
         "object_type": "message",
         "id": message.id,
     }
@@ -234,8 +250,8 @@ def serialize_message_metadata(message: ChatMessage) -> dict:
     return message_dict
 
 
-def serialize_message_replies_from_attachments(message: ChatMessage) -> list[dict]:
-    replies = []
+def serialize_message_replies_from_attachments(message: ChatMessage) -> list[dict[str, Any]]:
+    replies: list[dict[str, Any]] = []
     for attachment in message.attachments:
         if attachment.content_type == "messageReference":
             data = json.loads(attachment.content)
@@ -251,11 +267,12 @@ def serialize_message_replies_from_attachments(message: ChatMessage) -> list[dic
 
 
 def serialize_message_content(message: ChatMessage) -> dict:
-    content = {}
+    content: dict[str, Any] = {}
 
     if message.body:
+        message_type = message.body.content_type.value if message.body.content_type else "text"
         content["text"] = serialize_message_body_text(message)
-        content["type"] = message.body.content_type.value
+        content["type"] = message_type
 
     if message.summary:
         content["summary"] = message.summary
@@ -266,55 +283,67 @@ def serialize_message_content(message: ChatMessage) -> dict:
     return content
 
 
-def serialize_message_body_text(message: ChatMessage) -> dict:
-    mentions = message.mentions
-    body = message.body
+def serialize_message_body_text(message: ChatMessage) -> str:
+    if not message.body or not message.body.content:
+        return ""
 
     try:
-        user_ids_seen = set()
-        mentions_dicts = serialize_mentions(mentions)
-        mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
-        text = body.content.replace("&nbsp;", " ")
+        if message.mentions:
+            text = serialize_message_body_text_with_mentions(message)
 
-        for mention in mentions:
-            if not mention.mentioned or not mention.mentioned.user:
-                pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
-                text = text.replace(pattern, f"<mention>@{mention.mention_text}</mention>")
-                continue
+        if message.attachments:
+            for attachment in message.attachments:
+                if attachment.content_type == "messageReference":
+                    try:
+                        data = json.loads(attachment.content)  # type: ignore[arg-type]
+                    except (json.JSONDecodeError, ValueError, TypeError):
+                        continue
 
-            if mention.mentioned.user.id in user_ids_seen:
-                pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
-                text = text.replace(pattern, "")
-                continue
-            user_ids_seen.add(mention.mentioned.user.id)
-            user_name = mentions_by_id[mention.mentioned.user.id]["name"]
-            text = text.replace(
-                f'<at id="{mention.id}">{mention.mention_text}</at>',
-                f'<mention user_id="{mention.mentioned.user.id}">@{user_name}</mention>',
-            )
-
-        for attachment in message.attachments:
-            if attachment.content_type == "messageReference":
-                data = json.loads(attachment.content)
-                pattern = f'<attachment id="{data["messageId"]}"></attachment>'
-                reply = (
-                    f'<blockquote type="reply" message_id="{data["messageId"]}" '
-                    f'author="{data["messageSender"].get("user", {}).get("displayName", "")}">'
-                    f"{data['messagePreview']}</blockquote>"
-                )
-                text = text.replace(pattern, reply)
-            else:
-                pattern = f'<attachment id="{attachment.id}"></attachment>'
-                text = text.replace(
-                    pattern, f'<attachment id="{attachment.id}">{attachment.name}</attachment>'
-                )
+                    pattern = f'<attachment id="{data["messageId"]}"></attachment>'
+                    reply = (
+                        f'<blockquote type="reply" message_id="{data["messageId"]}" '
+                        f'author="{data["messageSender"].get("user", {}).get("displayName", "")}">'
+                        f"{data['messagePreview']}</blockquote>"
+                    )
+                    text = text.replace(pattern, reply)
+                else:
+                    pattern = f'<attachment id="{attachment.id}"></attachment>'
+                    text = text.replace(
+                        pattern, f'<attachment id="{attachment.id}">{attachment.name}</attachment>'
+                    )
     except Exception:
-        text = body.content
+        text = str(message.body.content)
     return text
 
 
-def serialize_attachment(attachment: ChatMessageAttachment) -> dict:
-    attachment_dict = {
+def serialize_message_body_text_with_mentions(message: ChatMessage) -> str:
+    user_ids_seen = set()
+    mentions_dicts = serialize_mentions(message.mentions) if message.mentions else []
+    mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
+    text = str(message.body.content).replace("&nbsp;", " ")
+
+    for mention in message.mentions:
+        if not mention.mentioned or not mention.mentioned.user:
+            pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
+            text = text.replace(pattern, f"<mention>@{mention.mention_text}</mention>")
+            continue
+
+        if mention.mentioned.user.id in user_ids_seen:
+            pattern = f'<at id="{mention.id}">{mention.mention_text}</at>'
+            text = text.replace(pattern, "")
+            continue
+        user_ids_seen.add(mention.mentioned.user.id)
+        user_name = mentions_by_id[mention.mentioned.user.id]["name"]
+        text = text.replace(
+            f'<at id="{mention.id}">{mention.mention_text}</at>',
+            f'<mention user_id="{mention.mentioned.user.id}">@{user_name}</mention>',
+        )
+
+    return text
+
+
+def serialize_attachment(attachment: ChatMessageAttachment) -> dict[str, Any]:
+    attachment_dict: dict[str, Any] = {
         "object_type": "attachment",
         "id": attachment.id,
         "name": attachment.name,
@@ -330,11 +359,11 @@ def serialize_attachment(attachment: ChatMessageAttachment) -> dict:
     return attachment_dict
 
 
-def serialize_mentions(mentions: list[ChatMessageMention]) -> list[dict]:
-    mentions_by_id = {}
-    mentions_list = []
-    mentions = [serialize_mention(mention) for mention in mentions]
-    for mention in mentions:
+def serialize_mentions(mentions: list[ChatMessageMention]) -> list[dict[str, Any]]:
+    mentions_by_id: dict[str, Any] = {}
+    mentions_list: list[dict[str, Any]] = []
+    serialized_mentions = [serialize_mention(mention) for mention in mentions]
+    for mention in serialized_mentions:
         if not mention.get("id"):
             mentions_list.append(mention)
             continue
@@ -347,13 +376,15 @@ def serialize_mentions(mentions: list[ChatMessageMention]) -> list[dict]:
     return mentions_list
 
 
-def serialize_mention(mention: ChatMessageMention, transform: Callable | None = None) -> dict:
+def serialize_mention(
+    mention: ChatMessageMention, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
     if not mention.mentioned:
-        mention_dict = {
+        mention_dict: dict[str, Any] = {
             "name": mention.mention_text,
         }
     else:
-        mention_dict = resolve_identity_reference(mention.mentioned)
+        mention_dict = resolve_identity_reference(mention.mentioned)  # type: ignore[assignment]
 
     if transform:
         return transform(mention_dict)
@@ -362,9 +393,10 @@ def serialize_mention(mention: ChatMessageMention, transform: Callable | None = 
 
 
 def serialize_chat_reaction(
-    reaction: ChatMessageReaction, transform: Callable | None = None
-) -> dict:
-    reaction_dict = {}
+    reaction: ChatMessageReaction,
+    transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    reaction_dict: dict[str, Any] = {}
 
     if reaction.created_date_time:
         reaction_dict["datetime"] = reaction.created_date_time.isoformat()
@@ -377,8 +409,8 @@ def serialize_chat_reaction(
 
     if reaction.user:
         reaction_dict["user"] = {
-            "id": reaction.user.user.id,
-            "name": reaction.user.user.display_name,
+            "id": reaction.user.user.id,  # type: ignore[union-attr]
+            "name": reaction.user.user.display_name,  # type: ignore[union-attr]
         }
 
     if transform:
@@ -387,8 +419,10 @@ def serialize_chat_reaction(
     return reaction_dict
 
 
-def serialize_person(person: Person, transform: Callable | None = None) -> dict:
-    person_dict = {
+def serialize_person(
+    person: Person, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    person_dict: dict[str, Any] = {
         "object_type": "person",
         "id": person.id,
     }
@@ -416,12 +450,12 @@ def serialize_person(person: Person, transform: Callable | None = None) -> dict:
     return person_dict
 
 
-def enrich_person_phones(person_dict: dict, person: Person) -> list:
-    phones = []
+def enrich_person_phones(person_dict: dict[str, Any], person: Person) -> dict[str, Any]:
+    phones: list[dict[str, Any]] = []
 
     if person.phones:
         for phone in person.phones:
-            phone_dict = {}
+            phone_dict: dict[str, Any] = {}
             if phone.type:
                 phone_dict["type"] = phone.type.value
 
@@ -443,8 +477,8 @@ def enrich_person_phones(person_dict: dict, person: Person) -> list:
     return person_dict
 
 
-def enrich_person_employment(person_dict: dict, person: Person) -> dict:
-    employment = {}
+def enrich_person_employment(person_dict: dict[str, Any], person: Person) -> dict[str, Any]:
+    employment: dict[str, Any] = {}
 
     if person.company_name:
         employment["company"] = person.company_name
@@ -467,14 +501,14 @@ def enrich_person_employment(person_dict: dict, person: Person) -> dict:
     return person_dict
 
 
-def enrich_person_locations(person_dict: dict, person: Person) -> dict:
+def enrich_person_locations(person_dict: dict[str, Any], person: Person) -> dict[str, Any]:
     if not person.postal_addresses:
         return person_dict
 
-    locations = []
+    locations: list[dict[str, Any]] = []
 
     for location in person.postal_addresses:
-        location_dict = {}
+        location_dict: dict[str, Any] = {}
 
         enrich_location_address(location_dict, location.address)
 
@@ -496,11 +530,13 @@ def enrich_person_locations(person_dict: dict, person: Person) -> dict:
     return person_dict
 
 
-def enrich_location_address(location_dict: dict, address: PhysicalAddress | None) -> dict:
+def enrich_location_address(
+    location_dict: dict[str, Any], address: PhysicalAddress | None
+) -> dict[str, Any]:
     if not address:
         return location_dict
 
-    address_dict = {}
+    address_dict: dict[str, Any] = {}
 
     if address.street:
         address_dict["street"] = address.street
@@ -523,7 +559,7 @@ def enrich_location_address(location_dict: dict, address: PhysicalAddress | None
     return location_dict
 
 
-def enrich_human_name(human_dict: dict, human: Person | User) -> dict:
+def enrich_human_name(human_dict: dict[str, Any], human: Person | User) -> dict[str, Any]:
     human_dict["name"] = {}
 
     if human.display_name:
@@ -538,8 +574,10 @@ def enrich_human_name(human_dict: dict, human: Person | User) -> dict:
     return human_dict
 
 
-def serialize_user(user: User, transform: Callable | None = None) -> dict:
-    user_dict = {
+def serialize_user(
+    user: User, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    user_dict: dict[str, Any] = {
         "object_type": "user",
         "id": user.id,
     }
@@ -568,9 +606,9 @@ def serialize_user(user: User, transform: Callable | None = None) -> dict:
     return user_dict
 
 
-def enrich_user_contacts(user_dict: dict, user: User) -> dict:
-    contacts = {}
-    email = {}
+def enrich_user_contacts(user_dict: dict[str, Any], user: User) -> dict[str, Any]:
+    contacts: dict[str, Any] = {}
+    email: dict[str, Any] = {}
 
     if user.mail:
         email["primary"] = user.mail
@@ -593,8 +631,8 @@ def enrich_user_contacts(user_dict: dict, user: User) -> dict:
     return user_dict
 
 
-def enrich_user_location(user_dict: dict, user: User) -> dict:
-    location = {}
+def enrich_user_location(user_dict: dict[str, Any], user: User) -> dict[str, Any]:
+    location: dict[str, Any] = {}
 
     if user.street_address:
         location["address"] = user.street_address
@@ -620,8 +658,8 @@ def enrich_user_location(user_dict: dict, user: User) -> dict:
     return user_dict
 
 
-def enrich_user_employment(user_dict: dict, user: User) -> dict:
-    employment = {}
+def enrich_user_employment(user_dict: dict[str, Any], user: User) -> dict[str, Any]:
+    employment: dict[str, Any] = {}
 
     if user.company_name:
         employment["company"] = user.company_name
@@ -644,8 +682,8 @@ def enrich_user_employment(user_dict: dict, user: User) -> dict:
     return user_dict
 
 
-def resolve_identity_reference(identity_set: IdentitySet) -> dict | None:
-    if getattr(identity_set, "user", None):
+def resolve_identity_reference(identity_set: IdentitySet) -> dict[str, Any] | None:
+    if getattr(identity_set, "user", None) and isinstance(identity_set.user, User):
         return {
             "type": "user",
             "id": identity_set.user.id,
@@ -655,27 +693,27 @@ def resolve_identity_reference(identity_set: IdentitySet) -> dict | None:
     if getattr(identity_set, "conversation", None):
         return {
             "type": "conversation",
-            "id": identity_set.conversation.id,
-            "name": identity_set.conversation.display_name,
+            "id": getattr(identity_set.conversation, "id", None),  # type: ignore[attr-defined]
+            "name": getattr(identity_set.conversation, "display_name", None),  # type: ignore[attr-defined]
         }
 
     if getattr(identity_set, "team", None):
         return {
             "type": "team",
-            "id": identity_set.team.id,
-            "name": identity_set.team.display_name,
+            "id": getattr(identity_set.team, "id", None),  # type: ignore[attr-defined]
+            "name": getattr(identity_set.team, "display_name", None),  # type: ignore[attr-defined]
         }
 
     return None
 
 
-def short_version(item: dict, keys: list[str] | None = None) -> dict:
+def short_version(item: dict[str, Any], keys: list[str] | None = None) -> dict[str, Any]:
     keys = keys or ["id", "name"]
     return {key: item.get(key) for key in keys}
 
 
-def short_human(human: dict, with_email: bool = False) -> dict:
-    person_dict = {"id": human["id"], "name": {}}
+def short_human(human: dict[str, Any], with_email: bool = False) -> dict[str, Any]:
+    person_dict: dict[str, Any] = {"id": human["id"], "name": {}}
 
     display = human["name"].get("display")
     first = human["name"].get("first")

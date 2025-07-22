@@ -1,6 +1,7 @@
 import enum
 import os
 from collections.abc import Callable
+from typing import Any
 
 
 def enforce_greater_than_zero_int(key: str, value: str) -> int:
@@ -12,11 +13,14 @@ def enforce_greater_than_zero_int(key: str, value: str) -> int:
     raise ValueError(error)
 
 
-def load_env_var(
-    key: str, default: str | None = None, transform: Callable | None = None
-) -> str | None:
+def load_env_var(key: str, default: str | None = None, transform: Callable | None = None) -> Any:
     if key not in os.environ:
-        return transform(key, default) if default else None
+        if not default:
+            return None
+        if transform:
+            return transform(key, default)
+        else:
+            return default
 
     value = os.getenv(key, default)
     if not value:
