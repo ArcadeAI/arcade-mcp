@@ -162,7 +162,13 @@ async def add_comment_to_issue(
         adf_body["content"][0]["content"] = mentions + adf_body["content"][0]["content"]
 
     if reply_to_comment:
-        quote_comment = await get_comment_by_id(context, issue, reply_to_comment, True)
+        quote_comment = await get_comment_by_id(
+            context=context,
+            issue_id=issue,
+            comment_id=reply_to_comment,
+            include_adf_content=True,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
         if not quote_comment["comment"]:
             raise ToolExecutionError(
                 message=f"Cannot quote comment. No comment found with ID '{reply_to_comment}'."
