@@ -6,7 +6,7 @@ from typing import cast
 
 import httpx
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_jira.constants import JIRA_API_VERSION, JIRA_BASE_URL, JIRA_MAX_CONCURRENT_REQUESTS
 from arcade_jira.exceptions import NotFoundError
@@ -37,7 +37,7 @@ class JiraClient:
                 self._semaphore = cached_semaphore
             else:
                 self._semaphore = asyncio.Semaphore(self.max_concurrent_requests)
-                self.context._global_jira_client_semaphore = self._semaphore
+                self.context._global_jira_client_semaphore = self._semaphore  # type: ignore[attr-defined]
 
         self.base_url = self.base_url.rstrip("/")
         self.api_version = self.api_version.strip("/")
@@ -76,7 +76,7 @@ class JiraClient:
 
         return error_message, developer_message
 
-    def _raise_for_status(self, response: httpx.Response) -> None:
+    async def _raise_for_status(self, response: httpx.Response) -> None:
         if response.status_code < 300:
             return
 
@@ -100,14 +100,18 @@ class JiraClient:
                     "The Atlassian Jira API returned an error. It is possible that the Atlassian "
                     f"Cloud ID provided in the tool call ('{self.cloud_id}') has not been "
                     "authorized by the user. Please authorize it or select a different "
-                    "Atlassian Cloud ID. "
-                    f"The Jira.{get_available_atlassian_clouds.__tool_name__} tool can be used "
-                    "to list the available Atlassian Cloud IDs. Due to a bug in the Atlassian API, "
-                    "some of the listed Clouds may not have been authorized by the user."
+                    "Atlassian Cloud ID."
                 )
-                raise ToolExecutionError(
+
+                available_clouds = await get_available_atlassian_clouds(self.context)
+
+                raise RetryableToolError(
                     message=message,
                     developer_message=message,
+                    additional_prompt_content=(
+                        "Available Atlassian Clouds:\n\n```json\n"
+                        f"{json.dumps(available_clouds)}\n```"
+                    ),
                 )
 
             raise NotFoundError(error_message, developer_message)
@@ -154,7 +158,7 @@ class JiraClient:
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.get(**kwargs)  # type: ignore[arg-type]
-            self._raise_for_status(response)
+            await self._raise_for_status(response)
 
         return self._format_response_dict(response)
 
@@ -190,7 +194,7 @@ class JiraClient:
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.post(**kwargs)  # type: ignore[arg-type]
-            self._raise_for_status(response)
+            await self._raise_for_status(response)
 
         return self._format_response_dict(response)
 
@@ -219,6 +223,6 @@ class JiraClient:
 
         async with self._semaphore, httpx.AsyncClient() as client:  # type: ignore[union-attr]
             response = await client.put(**kwargs)  # type: ignore[arg-type]
-            self._raise_for_status(response)
+            await self._raise_for_status(response)
 
         return self._format_response_dict(response)

@@ -780,17 +780,26 @@ async def paginate_all_items(
     return items
 
 
-async def paginate_all_priority_schemes(context: ToolContext) -> list[dict]:
+async def paginate_all_priority_schemes(
+    context: ToolContext,
+    atlassian_cloud_id: str | None = None,
+) -> list[dict]:
     """Get all priority schemes."""
     # Avoid circular import
     from arcade_jira.tools.priorities import list_priority_schemes
 
-    return await paginate_all_items(context, list_priority_schemes, "priority_schemes")
+    return await paginate_all_items(
+        context=context,
+        tool=list_priority_schemes,
+        response_items_key="priority_schemes",
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
 
 
 async def paginate_all_priorities_by_priority_scheme(
     context: ToolContext,
     scheme_id: str,
+    atlassian_cloud_id: str | None = None,
 ) -> list[dict]:
     """Get all priorities associated with a priority scheme."""
     # Avoid circular import
@@ -801,6 +810,7 @@ async def paginate_all_priorities_by_priority_scheme(
         list_priorities_associated_with_a_priority_scheme,
         "priorities",
         scheme_id=scheme_id,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
 
 
@@ -991,6 +1001,7 @@ async def resolve_issue_users(
 async def find_priorities_by_project(
     context: ToolContext,
     project: dict[str, Any],
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     # Avoid circular import
     from arcade_jira.tools.priorities import list_projects_associated_with_a_priority_scheme
@@ -999,7 +1010,10 @@ async def find_priorities_by_project(
     priority_ids: set[str] = set()
     priorities: list[dict[str, Any]] = []
 
-    priority_schemes = await paginate_all_priority_schemes(context)
+    priority_schemes = await paginate_all_priority_schemes(
+        context=context,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
 
     if not priority_schemes:
         raise NotFoundError("No priority schemes found")  # noqa: TRY003
@@ -1009,6 +1023,7 @@ async def find_priorities_by_project(
             context=context,
             scheme_id=scheme["id"],
             project=project["id"],
+            atlassian_cloud_id=atlassian_cloud_id,
         )
         for scheme in priority_schemes
     ])
@@ -1027,7 +1042,12 @@ async def find_priorities_by_project(
         return {"error": f"No priority schemes found for the project {project['id']}"}
 
     priorities_by_scheme = await asyncio.gather(*[
-        paginate_all_priorities_by_priority_scheme(context, scheme_id) for scheme_id in scheme_ids
+        paginate_all_priorities_by_priority_scheme(
+            context=context,
+            scheme_id=scheme_id,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
+        for scheme_id in scheme_ids
     ])
 
     for priorities_available in priorities_by_scheme:
@@ -1177,9 +1197,6 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
 
     cloud_ids = await get_available_atlassian_clouds(context)
 
-    if len(cloud_ids) == 1:
-        return cast(str, cloud_ids[0]["id"])
-
     if len(cloud_ids) == 0:
         message = "No Atlassian Cloud is available. Please authorize an Atlassian Cloud."
         raise ToolExecutionError(
@@ -1199,3 +1216,5 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
                 f"Available Atlassian Clouds:\n\n```json\n{json.dumps(cloud_ids)}\n```"
             ),
         )
+
+    return cast(str, cloud_ids[0]["id"])

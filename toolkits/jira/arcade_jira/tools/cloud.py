@@ -29,4 +29,4 @@ async def get_available_atlassian_clouds(
             })
             cloud_ids_seen.add(cloud["id"])
 
-    return unique_clouds
+    return {"clouds_available": unique_clouds}
