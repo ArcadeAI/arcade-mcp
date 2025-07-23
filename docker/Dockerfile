@@ -19,6 +19,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install --upgrade setuptools>=78.1.1
+
 WORKDIR /app
 
 # Copy the dist directory contents into the container
