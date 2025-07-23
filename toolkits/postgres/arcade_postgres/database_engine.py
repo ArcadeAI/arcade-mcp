@@ -78,7 +78,7 @@ class DatabaseEngine:
         cls._engines.clear()
 
     @classmethod
-    def sanitize_query(cls, query: str) -> str:
+    def sanitize_query(cls, query: str, limit: int, offset: int) -> str:
         """
         Sanitize a query to not break our read-only session.
         THIS IS REALLY UNSAFE AND SHOULD NOT BE USED IN PRODUCTION. USE A DATABASE CONNECTION WITH A READ-ONLY USER AND PREPARE STATEMENTS.
@@ -86,6 +86,7 @@ class DatabaseEngine:
         """
 
         parts = query.split(";")
+        parts = [part.strip() for part in parts if len(part.strip()) > 0]
         if len(parts) > 1:
             raise RetryableToolError(
                 "Multiple statements are not allowed in a single query.",
@@ -101,4 +102,25 @@ class DatabaseEngine:
                 additional_prompt_content="Use the <DiscoverTables> and <GetTableSchema> tools to discover the tables and try again.",
             )
 
-        return f"{query}"
+        if limit > MAX_ROWS_RETURNED:
+            raise RetryableToolError(
+                f"Limit is too high.  Maximum is {MAX_ROWS_RETURNED}.",
+                developer_message="Limit is too high.",
+                additional_prompt_content="Use a lower limit and try again.",
+            )
+
+        if offset < 0:
+            raise RetryableToolError(
+                "Offset must be greater than or equal to 0.",
+                developer_message="Offset must be greater than or equal to 0.",
+                additional_prompt_content="Use a higher offset and try again.",
+            )
+
+        if limit <= 0:
+            raise RetryableToolError(
+                "Limit must be greater than 0.",
+                developer_message="Limit must be greater than 0.",
+                additional_prompt_content="Use a higher limit and try again.",
+            )
+
+        return f"{query} LIMIT {limit} OFFSET {offset}"
