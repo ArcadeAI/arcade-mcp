@@ -161,7 +161,12 @@ async def transition_issue_to_new_status(
 
     # If the transition is not found by ID, try to get it by name
     if response.get("error"):
-        response = await get_transition_by_status_name(context, issue, transition)
+        response = await get_transition_by_status_name(
+            context=context,
+            issue=issue,
+            transition=transition,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
         if response.get("error"):
             return cast(dict, response)
 

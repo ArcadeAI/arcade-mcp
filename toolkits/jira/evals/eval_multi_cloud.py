@@ -80,8 +80,16 @@ def multi_cloud_eval_suite() -> EvalSuite:
     cloud_1_id = str(uuid.uuid4())
     cloud_2_id = str(uuid.uuid4())
     available_clouds = [
-        {"id": cloud_1_id, "name": "Foobar", "url": "https://foobar.atlassian.com"},
-        {"id": cloud_2_id, "name": "Quick Brown Fox", "url": "https://quickbrownfox.atlassian.com"},
+        {
+            "atlassian_cloud_id": cloud_1_id,
+            "atlassian_cloud_name": "Foobar",
+            "atlassian_cloud_url": "https://foobar.atlassian.com",
+        },
+        {
+            "atlassian_cloud_id": cloud_2_id,
+            "atlassian_cloud_name": "Quick Brown Fox",
+            "atlassian_cloud_url": "https://quickbrownfox.atlassian.com",
+        },
     ]
     available_clouds_str = json.dumps(available_clouds)
 

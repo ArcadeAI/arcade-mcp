@@ -815,19 +815,6 @@ async def paginate_all_priorities_by_priority_scheme(
     )
 
 
-async def paginate_all_issue_types(context: ToolContext, project_identifier: str) -> list[dict]:
-    """Get all issue types associated with a project."""
-    # Avoid circular import
-    from arcade_jira.tools.issues import list_issue_types_by_project
-
-    return await paginate_all_items(
-        context,
-        list_issue_types_by_project,
-        "issue_types",
-        project=project_identifier,
-    )
-
-
 async def validate_issue_args(
     context: ToolContext,
     due_date: str | None,
@@ -835,6 +822,7 @@ async def validate_issue_args(
     issue_type: str | None,
     priority: str | None,
     parent_issue: str | None,
+    atlassian_cloud_id: str | None = None,
 ) -> tuple[dict | None, dict | None, str | dict | None, str | dict | None, dict | None]:
     if due_date and not is_valid_date_string(due_date):
         return (
@@ -856,7 +844,10 @@ async def validate_issue_args(
 
     error: dict[str, Any] | None = None
     project_data = await get_project_by_project_identifier_or_by_parent_issue(
-        context, project, parent_issue
+        context=context,
+        project=project,
+        parent_issue_id=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     issue_type_data: str | dict[str, Any] | None = None
     priority_data: str | dict[str, Any] | None = None
@@ -866,15 +857,29 @@ async def validate_issue_args(
         error = project_data
         return error, None, issue_type_data, priority_data, parent_issue_data
 
-    error, issue_type_data = await resolve_issue_type(context, issue_type, project_data)
+    error, issue_type_data = await resolve_issue_type(
+        context=context,
+        issue_type=issue_type,
+        project_data=project_data,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error, project_data, issue_type_data, priority_data, parent_issue_data
 
-    error, priority_data = await resolve_issue_priority(context, priority, project_data)
+    error, priority_data = await resolve_issue_priority(
+        context=context,
+        priority=priority,
+        project_data=project_data,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error, project_data, issue_type_data, priority_data, parent_issue_data
 
-    error, parent_issue_data = await resolve_parent_issue(context, parent_issue)
+    error, parent_issue_data = await resolve_parent_issue(
+        context=context,
+        parent_issue=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error, project_data, issue_type_data, priority_data, parent_issue_data
 
@@ -885,12 +890,18 @@ async def resolve_issue_type(
     context: ToolContext,
     issue_type: str | None,
     project_data: dict,
+    atlassian_cloud_id: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | dict[str, Any] | None]:
     if issue_type == "":
         return None, ""
     elif issue_type:
         try:
-            response = await find_unique_issue_type(context, issue_type, project_data["id"])
+            response = await find_unique_issue_type(
+                context=context,
+                issue_type_identifier=issue_type,
+                project_id=project_data["id"],
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None
         else:
@@ -903,12 +914,18 @@ async def resolve_issue_priority(
     context: ToolContext,
     priority: str | None,
     project_data: dict,
+    atlassian_cloud_id: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | dict[str, Any] | None]:
     if priority == "":
         return None, ""
     elif priority:
         try:
-            priority_data = await find_unique_priority(context, priority, project_data["id"])
+            priority_data = await find_unique_priority(
+                context=context,
+                priority_identifier=priority,
+                project_id=project_data["id"],
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None
         else:
@@ -920,6 +937,7 @@ async def resolve_issue_priority(
 async def resolve_parent_issue(
     context: ToolContext,
     parent_issue: str | None,
+    atlassian_cloud_id: str | None = None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     if parent_issue == "":
         return {"error": "Parent issue cannot be empty"}, None
@@ -927,7 +945,11 @@ async def resolve_parent_issue(
         from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
         try:
-            parent_issue_data = await get_issue_by_id(context, parent_issue)
+            parent_issue_data = await get_issue_by_id(
+                context=context,
+                issue=parent_issue,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except JiraToolExecutionError as exc:
             return {"error": exc.message}, None
         else:
@@ -940,6 +962,7 @@ async def get_project_by_project_identifier_or_by_parent_issue(
     context: ToolContext,
     project: str | None,
     parent_issue_id: str | None,
+    atlassian_cloud_id: str | None = None,
 ) -> dict[str, Any]:
     from arcade_jira.tools.issues import get_issue_by_id  # Avoid circular import
 
@@ -947,13 +970,21 @@ async def get_project_by_project_identifier_or_by_parent_issue(
         return {"error": "Must provide either `project` or `parent_issue_id` argument."}
 
     if not project:
-        parent_issue_data = await get_issue_by_id(context, parent_issue_id)
+        parent_issue_data = await get_issue_by_id(
+            context=context,
+            issue=parent_issue_id,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
         if parent_issue_data.get("error"):
             return {"error": f"Parent issue not found with ID {parent_issue_id}."}
         project = cast(str, parent_issue_data["project"]["id"])
 
     try:
-        project_data = await find_unique_project(context, project)
+        project_data = await find_unique_project(
+            context=context,
+            project_identifier=project,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
     except JiraToolExecutionError as exc:
         return {"error": exc.message}
 
@@ -1219,7 +1250,7 @@ async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
             ),
         )
 
-    return cast(str, clouds[0]["id"])
+    return cast(str, clouds[0]["atlassian_cloud_id"])
 
 
 async def check_if_cloud_is_authorized(
@@ -1239,10 +1270,7 @@ async def check_if_cloud_is_authorized(
     https://community.developer.atlassian.com/t/urgent-api-accessible-resources-endpoint-returns-sites-resources-that-are-not-permitted-by-the-user/66899
     Archived (2025-07-22): https://archive.is/0noNX
     """
-    cloud_id = cloud["id"]
-    error_message = (
-        f"An error occurred while checking if the Atlassian Cloud '{cloud_id}' is authorized"
-    )
+    cloud_id = cloud["atlassian_cloud_id"]
 
     try:
         async with semaphore, httpx.AsyncClient() as client:
@@ -1261,10 +1289,14 @@ async def check_if_cloud_is_authorized(
             return False
 
     except Exception as exc:
-        developer_message = f"{error_message}: {type(exc).__name__}: {exc!s}"
+        message = (
+            f"An error occurred while checking if the Atlassian Cloud with ID '{cloud_id}' "
+            "is authorized."
+        )
+        developer_message = f"{message} Error info: {type(exc).__name__}: {exc!s}"
 
         raise ToolExecutionError(
-            message=error_message,
+            message=message,
             developer_message=developer_message,
         ) from exc
 

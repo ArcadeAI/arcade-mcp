@@ -592,7 +592,15 @@ async def create_issue(
         issue_type_data,
         priority_data,
         parent_data,
-    ) = await validate_issue_args(context, due_date, project, issue_type, priority, parent_issue)
+    ) = await validate_issue_args(
+        context=context,
+        due_date=due_date,
+        project=project,
+        issue_type=issue_type,
+        priority=priority,
+        parent_issue=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error
 
@@ -839,7 +847,13 @@ async def update_issue(
     project = issue_data["issue"]["project"]["id"]
 
     error, _, issue_type_data, priority_data, parent_issue_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority, parent_issue
+        context=context,
+        due_date=due_date,
+        project=project,
+        issue_type=issue_type,
+        priority=priority,
+        parent_issue=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     if error:
         return cast(dict, error)

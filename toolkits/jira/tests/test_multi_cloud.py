@@ -28,9 +28,9 @@ async def test_resolve_cloud_id_with_value_already_provided(
     mock_get_available_atlassian_clouds.return_value = {
         "clouds_available": [
             {
-                "id": fake_cloud_id,
-                "name": fake_cloud_name,
-                "url": f"https://{fake_cloud_name}.atlassian.net",
+                "atlassian_cloud_id": fake_cloud_id,
+                "atlassian_cloud_name": fake_cloud_name,
+                "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
             }
         ]
     }
@@ -50,9 +50,9 @@ async def test_resolve_cloud_id_with_single_cloud_available(
     mock_get_available_atlassian_clouds.return_value = {
         "clouds_available": [
             {
-                "id": fake_cloud_id,
-                "name": fake_cloud_name,
-                "url": f"https://{fake_cloud_name}.atlassian.net",
+                "atlassian_cloud_id": fake_cloud_id,
+                "atlassian_cloud_name": fake_cloud_name,
+                "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
             }
         ]
     }
@@ -72,14 +72,14 @@ async def test_resolve_cloud_id_with_multiple_distinct_clouds_available(
     mock_get_available_atlassian_clouds.return_value = {
         "clouds_available": [
             {
-                "id": fake_cloud_id,
-                "name": fake_cloud_name,
-                "url": f"https://{fake_cloud_name}.atlassian.net",
+                "atlassian_cloud_id": fake_cloud_id,
+                "atlassian_cloud_name": fake_cloud_name,
+                "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
             },
             {
-                "id": "cloud_id_2",
-                "name": "Cloud 2",
-                "url": "https://cloud2.atlassian.net",
+                "atlassian_cloud_id": "cloud_id_2",
+                "atlassian_cloud_name": "Cloud 2",
+                "atlassian_cloud_url": "https://cloud2.atlassian.net",
             },
         ]
     }
@@ -118,9 +118,9 @@ async def test_check_if_cloud_is_authorized_success(
     fake_cloud_name: str,
 ):
     cloud = {
-        "id": fake_cloud_id,
-        "name": fake_cloud_name,
-        "url": f"https://{fake_cloud_name}.atlassian.net",
+        "atlassian_cloud_id": fake_cloud_id,
+        "atlassian_cloud_name": fake_cloud_name,
+        "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
     }
     fake_user_id = uuid.uuid4()
     mock_httpx_client.get.return_value.status_code = 200
@@ -147,9 +147,9 @@ async def test_check_if_cloud_is_authorized_returning_401_error(
     fake_cloud_name: str,
 ):
     cloud = {
-        "id": fake_cloud_id,
-        "name": fake_cloud_name,
-        "url": f"https://{fake_cloud_name}.atlassian.net",
+        "atlassian_cloud_id": fake_cloud_id,
+        "atlassian_cloud_name": fake_cloud_name,
+        "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
     }
 
     mock_httpx_client.get.return_value.status_code = 401
@@ -173,9 +173,9 @@ async def test_check_if_cloud_is_authorized_returning_404_no_message_available_e
     fake_cloud_name: str,
 ):
     cloud = {
-        "id": fake_cloud_id,
-        "name": fake_cloud_name,
-        "url": f"https://{fake_cloud_name}.atlassian.net",
+        "atlassian_cloud_id": fake_cloud_id,
+        "atlassian_cloud_name": fake_cloud_name,
+        "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
     }
 
     def mock_response_json() -> dict[str, Any]:
@@ -202,9 +202,9 @@ async def test_check_if_cloud_is_authorized_returning_404_unrecognized_error(
     fake_cloud_name: str,
 ):
     cloud = {
-        "id": fake_cloud_id,
-        "name": fake_cloud_name,
-        "url": f"https://{fake_cloud_name}.atlassian.net",
+        "atlassian_cloud_id": fake_cloud_id,
+        "atlassian_cloud_name": fake_cloud_name,
+        "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
     }
 
     response_data = {
@@ -234,9 +234,9 @@ async def test_check_if_cloud_is_authorized_raising_unexpected_exception(
     fake_cloud_name: str,
 ):
     cloud = {
-        "id": fake_cloud_id,
-        "name": fake_cloud_name,
-        "url": f"https://{fake_cloud_name}.atlassian.net",
+        "atlassian_cloud_id": fake_cloud_id,
+        "atlassian_cloud_name": fake_cloud_name,
+        "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
     }
 
     mock_httpx_client.get.side_effect = Exception("Something went wrong")

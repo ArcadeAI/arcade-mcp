@@ -85,9 +85,9 @@ def mock_get_available_atlassian_clouds_globally(
         return {
             "clouds_available": [
                 {
-                    "id": fake_cloud_id,
-                    "name": fake_cloud_name,
-                    "url": f"https://{fake_cloud_name}.atlassian.net",
+                    "atlassian_cloud_id": fake_cloud_id,
+                    "atlassian_cloud_name": fake_cloud_name,
+                    "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
                 }
             ]
         }
