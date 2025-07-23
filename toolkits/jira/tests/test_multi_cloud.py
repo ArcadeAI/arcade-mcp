@@ -25,6 +25,7 @@ async def test_resolve_cloud_id_with_value_already_provided(
     fake_cloud_id: str,
     fake_cloud_name: str,
 ):
+    another_cloud_id = str(uuid.uuid4())
     mock_get_available_atlassian_clouds.return_value = {
         "clouds_available": [
             {
@@ -35,8 +36,30 @@ async def test_resolve_cloud_id_with_value_already_provided(
         ]
     }
 
-    cloud_id = await resolve_cloud_id(mock_context, "cloud_id_provided")
-    assert cloud_id == "cloud_id_provided"
+    cloud_id = await resolve_cloud_id(mock_context, another_cloud_id)
+    assert cloud_id == another_cloud_id
+
+
+@patch("arcade_jira.tools.cloud.get_available_atlassian_clouds")
+@pytest.mark.asyncio
+async def test_resolve_cloud_id_providing_cloud_name(
+    mock_get_available_atlassian_clouds: MagicMock,
+    mock_context: ToolContext,
+    fake_cloud_id: str,
+    fake_cloud_name: str,
+):
+    mock_get_available_atlassian_clouds.return_value = {
+        "clouds_available": [
+            {
+                "atlassian_cloud_id": fake_cloud_id,
+                "atlassian_cloud_name": fake_cloud_name,
+                "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
+            }
+        ]
+    }
+
+    cloud_id = await resolve_cloud_id(mock_context, fake_cloud_name)
+    assert cloud_id == fake_cloud_id
 
 
 @patch("arcade_jira.tools.cloud.get_available_atlassian_clouds")
@@ -69,6 +92,7 @@ async def test_resolve_cloud_id_with_multiple_distinct_clouds_available(
     fake_cloud_id: str,
     fake_cloud_name: str,
 ):
+    cloud_id_2 = str(uuid.uuid4())
     mock_get_available_atlassian_clouds.return_value = {
         "clouds_available": [
             {
@@ -77,7 +101,7 @@ async def test_resolve_cloud_id_with_multiple_distinct_clouds_available(
                 "atlassian_cloud_url": f"https://{fake_cloud_name}.atlassian.net",
             },
             {
-                "atlassian_cloud_id": "cloud_id_2",
+                "atlassian_cloud_id": cloud_id_2,
                 "atlassian_cloud_name": "Cloud 2",
                 "atlassian_cloud_url": "https://cloud2.atlassian.net",
             },
@@ -90,7 +114,7 @@ async def test_resolve_cloud_id_with_multiple_distinct_clouds_available(
     assert "Multiple Atlassian Clouds are available" in exc.value.message
     assert fake_cloud_id in exc.value.additional_prompt_content
     assert fake_cloud_name in exc.value.additional_prompt_content
-    assert "cloud_id_2" in exc.value.additional_prompt_content
+    assert cloud_id_2 in exc.value.additional_prompt_content
     assert "Cloud 2" in exc.value.additional_prompt_content
 
 

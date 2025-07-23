@@ -1,5 +1,6 @@
 import random
 import string
+import uuid
 from collections.abc import Callable, Generator
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -15,8 +16,8 @@ def fake_auth_token(generate_random_str: Callable) -> str:
 
 
 @pytest.fixture
-def fake_cloud_id(generate_random_str: Callable) -> str:
-    return generate_random_str()
+def fake_cloud_id() -> str:
+    return str(uuid.uuid4())
 
 
 @pytest.fixture

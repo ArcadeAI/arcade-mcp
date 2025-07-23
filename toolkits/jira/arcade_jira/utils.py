@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import mimetypes
+import uuid
 from collections.abc import Callable
 from contextlib import suppress
 from datetime import date, datetime
@@ -1222,9 +1223,53 @@ def extract_id(field: Any) -> dict[str, str] | None:
 
 
 async def resolve_cloud_id(context: ToolContext, cloud_id: str | None) -> str:
-    if isinstance(cloud_id, str) and cloud_id != "":
-        return cloud_id
+    try:
+        uuid.UUID(cloud_id)
+    except (AttributeError, TypeError, ValueError):
+        is_valid_uuid = False
+    else:
+        is_valid_uuid = True
 
+    # If this is already a valid Cloud ID, return it
+    if is_valid_uuid:
+        return cast(str, cloud_id)
+
+    # If not, it's possibly a Cloud name, so we try to match that.
+    if isinstance(cloud_id, str) and cloud_id != "":
+        return await get_cloud_id_by_cloud_name(context, cloud_name=cloud_id)
+
+    # As a last resort, try to get a unique Cloud ID from the available Atlassian Clouds
+    return await get_unique_cloud_id(context)
+
+
+async def get_cloud_id_by_cloud_name(context: ToolContext, cloud_name: str) -> str:
+    from arcade_jira.tools.cloud import get_available_atlassian_clouds  # Avoid circular import
+
+    response = await get_available_atlassian_clouds(context)
+    clouds = response["clouds_available"]
+
+    for cloud in clouds:
+        if (
+            # Case-insensitive match in case of cloud names.
+            cloud["atlassian_cloud_name"].casefold() == cloud_name.casefold()
+            # Match the ID as well just in case. Who knows, Atlassian may start
+            # using some weird values as cloud IDs. If the value provided matches
+            # an ID in the list of clouds, then it's a match.
+            or cloud["atlassian_cloud_id"] == cloud_name
+        ):
+            return cast(str, cloud["atlassian_cloud_id"])
+
+    message = f"No Atlassian Cloud found matching '{cloud_name}'"
+    available_clouds_str = f"Available Atlassian Clouds:\n\n```json\n{json.dumps(clouds)}\n```"
+
+    raise RetryableToolError(
+        message=message,
+        developer_message=message,
+        additional_prompt_content=available_clouds_str,
+    )
+
+
+async def get_unique_cloud_id(context: ToolContext) -> str:
     from arcade_jira.tools.cloud import get_available_atlassian_clouds  # Avoid circular import
 
     response = await get_available_atlassian_clouds(context)
