@@ -15,6 +15,7 @@ from arcade_jira.utils import (
     create_error_entry,
     create_sprint_result_dict,
     validate_sprint_limit,
+    validate_sprint_state,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,10 +33,11 @@ CONFLICTING_DATE_PARAMS_ERROR = (
 @tool(
     requires_auth=Atlassian(
         scopes=[
-            "read:board-scope:jira-software",
-            "read:project:jira",
-            "read:sprint:jira-software",
-            "read:issue-details:jira",
+            "read:board-scope:jira-software",  # /board, /board/{boardId} (via get_boards)
+            "read:project:jira",  # project info from /board responses (via get_boards)
+            "read:sprint:jira-software",  # /board/{boardId}/sprint
+            "read:issue-details:jira",  # issue metadata in /board/{boardId}, /board responses
+            # administrative access to /board/{boardId}/sprint
             "read:board-scope.admin:jira-software",
         ]
     )
@@ -46,8 +48,7 @@ async def list_sprints_for_boards(
         list[str],
         "Required list of board names or IDs to retrieve sprints for. "
         "Can contain mixed board identifiers - "
-        "both numeric IDs (e.g., '123') and board names (e.g., 'My Scrum Board'). "
-        "Example: ['123', 'My Board', '456']",
+        "both numeric IDs and board names.",
     ],
     sprints_per_board: Annotated[
         int,
@@ -63,31 +64,30 @@ async def list_sprints_for_boards(
         "Must be 0 or greater. Defaults to 0 (start from the most recent sprints).",
     ] = 0,
     state: Annotated[
-        str | None,
+        list[str] | None,
         "Filter sprints by their current state. Valid values are: "
         "'future' (not started), 'active' (currently running), 'closed' (completed). "
-        "You can specify multiple states as a comma-separated list (e.g., 'active,future'). "
-        "If not provided, returns sprints in all states. Example: 'active' or 'active,future'",
+        "You can specify multiple states as a list (e.g., ['active', 'future']). "
+        "If not provided, returns sprints in all states. Example: ['active'] or "
+        "['active', 'future']",
     ] = None,
     start_date: Annotated[
         str | None,
         "Optional start date filter for sprints in YYYY-MM-DD format. "
         "Filters sprints that overlap with or occur after this date. "
-        "Can be used together with end_date to create a date range. "
-        "Example: '2024-01-01'",
+        "Can be used together with end_date to create a date range.",
     ] = None,
     end_date: Annotated[
         str | None,
         "Optional end date filter for sprints in YYYY-MM-DD format. "
         "Filters sprints that overlap with or occur before this date. "
-        "Can be used together with start_date to create a date range. "
-        "Example: '2024-03-31'",
+        "Can be used together with start_date to create a date range.",
     ] = None,
     specific_date: Annotated[
         str | None,
         "Optional specific date in YYYY-MM-DD format to get sprints that are active on that date. "
         "Returns sprints where the specific date falls between their start and end dates. "
-        "Cannot be used together with start_date or end_date. Example: '2024-02-15'",
+        "Cannot be used together with start_date or end_date.",
     ] = None,
 ) -> Annotated[
     dict[str, Any],
@@ -101,7 +101,7 @@ async def list_sprints_for_boards(
     Requires a list of board identifiers and supports date-based filtering.
     Returns valid responses for sprint boards and error messages for non-sprint boards.
     """
-    _validate_parameters(board_ids, specific_date, start_date, end_date)
+    _validate_parameters(board_ids, specific_date, start_date, end_date, state)
 
     sprints_per_board = validate_sprint_limit(sprints_per_board)
     client = JiraClient(context.get_auth_token_or_empty(), use_agile_api=True)
@@ -112,12 +112,16 @@ async def list_sprints_for_boards(
         "errors": [],
     }
 
+    # Get boards by ID or name using the boards tool
+    board_response = await get_boards(context, board_ids)
+
     # Process each board ID
     for board_id in board_ids:
         await _process_single_board(
             context,
             client,
             board_id,
+            board_response,
             offset,
             sprints_per_board,
             state,
@@ -131,96 +135,209 @@ async def list_sprints_for_boards(
 
 
 def _validate_parameters(
-    board_ids: list[str], specific_date: str | None, start_date: str | None, end_date: str | None
+    board_ids: list[str],
+    specific_date: str | None,
+    start_date: str | None,
+    end_date: str | None,
+    state: list[str] | None,
 ) -> None:
-    """Validate input parameters."""
+    """
+    Validate input parameters.
+
+    Args:
+        board_ids: List of board identifiers
+        specific_date: Optional specific date filter
+        start_date: Optional start date filter
+        end_date: Optional end date filter
+        state: Optional state filter list
+
+    Raises:
+        ToolExecutionError: If validation fails
+    """
     if not board_ids:
         raise ToolExecutionError(BOARD_IDS_REQUIRED_ERROR)
 
     if specific_date and (start_date or end_date):
         raise ToolExecutionError(CONFLICTING_DATE_PARAMS_ERROR)
 
+    if state:
+        validate_sprint_state(state)
 
-async def _process_single_board(
-    context: ToolContext,
+
+def _find_board_in_response(board_id: str, board_response: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    Find a specific board from the board response that matches the given board_id.
+
+    Args:
+        board_id: Board identifier to search for
+        board_response: Response from get_boards containing list of boards
+
+    Returns:
+        Board info dictionary if found, None otherwise
+    """
+    if not board_response["boards"]:
+        return None
+
+    for board in board_response["boards"]:
+        # Check if board_id matches either the ID or name
+        if (
+            str(board["id"]) == str(board_id)
+            or board.get("name", "").casefold() == board_id.casefold()
+        ):
+            return board
+    return None
+
+
+def _handle_board_not_found(
+    board_id: str, board_response: dict[str, Any], results: dict[str, Any]
+) -> None:
+    """
+    Handle case when board is not found and add appropriate error to results.
+
+    Args:
+        board_id: Board identifier that wasn't found
+        board_response: Response from get_boards
+        results: Results dictionary to update with error
+    """
+    if board_response["errors"]:
+        # Board not found, add the existing errors to our results
+        results["errors"].extend(board_response["errors"])
+    else:
+        # Unexpected case - no boards and no errors
+        error_entry = create_error_entry(
+            board_id,
+            f"Board '{board_id}' could not be resolved",
+        )
+        results["errors"].append(error_entry)
+
+
+async def _process_board_sprints(
     client: JiraClient,
+    board_info: dict[str, Any],
     board_id: str,
     offset: int,
     sprints_per_board: int,
-    state: str | None,
+    state: list[str] | None,
     start_date: str | None,
     end_date: str | None,
     specific_date: str | None,
     results: dict[str, Any],
 ) -> None:
-    """Process a single board and add results to the results dictionary."""
-    try:
-        # Resolve board by ID or name using the boards tool
-        board_response = await get_boards(context, [board_id])
+    """
+    Process sprints for a single board and add results.
 
-        # Check if board was found
-        if board_response["boards"]:
-            board_info = board_response["boards"][0]  # Get the first (and only) board
-            board_id_resolved = board_info["id"]
-        elif board_response["errors"]:
-            # Board not found, add the error to our results
-            results["errors"].extend(board_response["errors"])
-            return
-        else:
-            # Unexpected case - no boards and no errors
-            error_entry = create_error_entry(
-                board_id,
-                f"Board '{board_id}' could not be resolved",
-            )
-            results["errors"].append(error_entry)
-            return
+    Args:
+        client: JiraClient instance for API calls
+        board_info: Board information dictionary
+        board_id: Original board identifier
+        offset: Number of sprints to skip
+        sprints_per_board: Maximum sprints per board
+        state: Optional state filter
+        start_date: Optional start date filter
+        end_date: Optional end date filter
+        specific_date: Optional specific date filter
+        results: Results dictionary to update
+    """
+    board_id_resolved = board_info["id"]
 
-        # Check if board supports sprints and get final type, fetch sprints in one call
-        params = build_sprint_params(offset, sprints_per_board, state)
-        supports_sprints, final_type, response = await _try_fetch_sprints_and_determine_type(
-            client, board_info, cast(dict[str, Any], params)
+    # Check if board supports sprints and get final type, fetch sprints in one call
+    params = build_sprint_params(offset, sprints_per_board, state)
+    supports_sprints, final_type, response = await _try_fetch_sprints_and_determine_type(
+        client, board_info, cast(dict[str, Any], params)
+    )
+
+    if not supports_sprints:
+        error_entry = create_error_entry(
+            board_id,
+            f"Board '{board_info.get('name', board_id)}' does not support sprints "
+            f"(type: {board_info.get('type', 'unknown')}). "
+            f"Only Scrum boards support sprints.",
+            board_info.get("name", "Unknown"),
+            board_id_resolved,
         )
+        results["errors"].append(error_entry)
+        return
 
-        if not supports_sprints:
-            error_entry = create_error_entry(
-                board_id,
-                f"Board '{board_info.get('name', board_id)}' does not support sprints "
-                f"(type: {board_info.get('type', 'unknown')}). "
-                f"Only Scrum boards support sprints.",
-                board_info.get("name", "Unknown"),
-                board_id_resolved,
-            )
-            results["errors"].append(error_entry)
+    # Update board type if it changed (simple -> scrum)
+    board_info["type"] = final_type
+
+    # Process the sprints we already fetched
+    if response is None:
+        # This should not happen if supports_sprints is True, but handle it gracefully
+        error_entry = create_error_entry(
+            board_id,
+            f"Unexpected error: No sprint data received for board "
+            f"'{board_info.get('name', board_id)}'",
+            board_info.get("name", "Unknown"),
+            board_id_resolved,
+        )
+        results["errors"].append(error_entry)
+        return
+
+    sprints = [clean_sprint_dict(s) for s in response.get("values", [])]
+
+    # Apply date filtering if specified
+    if start_date or end_date or specific_date:
+        sprints = _filter_sprints_by_date(sprints, start_date, end_date, specific_date)
+
+    # Sort sprints with latest first (by end date, then start date, then ID)
+    sprints = _sort_sprints_latest_first(sprints)
+
+    results["boards"].append(board_info)
+    results["sprints_by_board"][board_id_resolved] = create_sprint_result_dict(
+        board_info, sprints, response
+    )
+
+
+async def _process_single_board(
+    context: ToolContext,
+    client: JiraClient,
+    board_id: str,
+    board_response: dict[str, Any],
+    offset: int,
+    sprints_per_board: int,
+    state: list[str] | None,
+    start_date: str | None,
+    end_date: str | None,
+    specific_date: str | None,
+    results: dict[str, Any],
+) -> None:
+    """
+    Process a single board and add results to the results dictionary.
+
+    Args:
+        context: Tool context for authentication
+        client: JiraClient instance for API calls
+        board_id: Board identifier to process
+        board_response: Board response from get_boards
+        offset: Number of sprints to skip
+        sprints_per_board: Maximum sprints per board
+        state: Optional state filter
+        start_date: Optional start date filter
+        end_date: Optional end date filter
+        specific_date: Optional specific date filter
+        results: Results dictionary to update
+    """
+    try:
+        # Find the board in the response
+        board_info = _find_board_in_response(board_id, board_response)
+
+        if not board_info:
+            _handle_board_not_found(board_id, board_response, results)
             return
 
-        # Update board type if it changed (simple -> scrum)
-        board_info["type"] = final_type
-
-        # Process the sprints we already fetched
-        if response is None:
-            # This should not happen if supports_sprints is True, but handle it gracefully
-            error_entry = create_error_entry(
-                board_id,
-                f"Unexpected error: No sprint data received for board "
-                f"'{board_info.get('name', board_id)}'",
-                board_info.get("name", "Unknown"),
-                board_id_resolved,
-            )
-            results["errors"].append(error_entry)
-            return
-
-        sprints = [clean_sprint_dict(s) for s in response.get("values", [])]
-
-        # Apply date filtering if specified
-        if start_date or end_date or specific_date:
-            sprints = _filter_sprints_by_date(sprints, start_date, end_date, specific_date)
-
-        # Sort sprints with latest first (by end date, then start date, then ID)
-        sprints = _sort_sprints_latest_first(sprints)
-
-        results["boards"].append(board_info)
-        results["sprints_by_board"][board_id_resolved] = create_sprint_result_dict(
-            board_info, sprints, response
+        # Process the board's sprints
+        await _process_board_sprints(
+            client,
+            board_info,
+            board_id,
+            offset,
+            sprints_per_board,
+            state,
+            start_date,
+            end_date,
+            specific_date,
+            results,
         )
 
     except ToolExecutionError:
@@ -239,7 +356,14 @@ async def _try_fetch_sprints_and_determine_type(
 ) -> tuple[bool, str, dict[str, Any] | None]:
     """
     Try to fetch sprints for a board and determine if it supports sprints.
-    Returns (supports_sprints, final_board_type, response).
+
+    Args:
+        client: JiraClient instance for API calls
+        board_info: Board information dictionary
+        params: Parameters for sprint API call
+
+    Returns:
+        Tuple of (supports_sprints, final_board_type, response)
     """
     board_id = board_info["id"]
     board_type = board_info.get("type", "").lower()
@@ -291,7 +415,16 @@ def _filter_sprints_by_date(
 
 
 def _filter_sprints_by_specific_date(sprints: list[dict], target_date: str) -> list[dict]:
-    """Filter sprints that are active on a specific date."""
+    """
+    Filter sprints that are active on a specific date.
+
+    Args:
+        sprints: List of sprint dictionaries
+        target_date: Target date string in YYYY-MM-DD format
+
+    Returns:
+        Filtered list of sprints
+    """
     try:
         target = datetime.strptime(target_date, "%Y-%m-%d").date()
     except ValueError:
@@ -325,7 +458,17 @@ def _filter_sprints_by_specific_date(sprints: list[dict], target_date: str) -> l
 def _filter_sprints_by_date_range(
     sprints: list[dict], start_date: str | None, end_date: str | None
 ) -> list[dict]:
-    """Filter sprints that overlap with the specified date range."""
+    """
+    Filter sprints that overlap with the specified date range.
+
+    Args:
+        sprints: List of sprint dictionaries
+        start_date: Start date string in YYYY-MM-DD format
+        end_date: End date string in YYYY-MM-DD format
+
+    Returns:
+        Filtered list of sprints
+    """
     try:
         filter_start = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
         filter_end = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
@@ -375,7 +518,15 @@ def _filter_sprints_by_date_range(
 
 
 def _sort_sprints_latest_first(sprints: list[dict]) -> list[dict]:
-    """Sort sprints with latest first (by end date, start date, then ID)."""
+    """
+    Sort sprints with latest first (by end date, start date, then ID).
+
+    Args:
+        sprints: List of sprint dictionaries
+
+    Returns:
+        Sorted list of sprints with latest first
+    """
     from datetime import date as min_date
 
     def sort_key(sprint: dict) -> tuple:

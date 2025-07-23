@@ -88,6 +88,21 @@ class IssueCommentOrderBy(Enum):
         return _map[self]
 
 
+class SprintState(Enum):
+    FUTURE = "future"
+    ACTIVE = "active"
+    CLOSED = "closed"
+
+    def to_api_value(self) -> str:
+        """Convert enum value to API parameter value."""
+        return self.value
+
+    @classmethod
+    def get_valid_values(cls) -> list[str]:
+        """Get list of all valid string values for validation."""
+        return [state.value for state in cls]
+
+
 class PrioritySchemeOrderBy(Enum):
     NAME_ASCENDING = "name ascending"
     NAME_DESCENDING = "name descending"

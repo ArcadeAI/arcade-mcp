@@ -203,7 +203,7 @@ class TestSprintUtils:
 
     def test_build_sprint_params_with_state(self):
         """Test building sprint parameters with state filter."""
-        result = build_sprint_params(10, 25, "active")
+        result = build_sprint_params(10, 25, ["active"])
 
         assert result == {
             "startAt": "10",
@@ -353,7 +353,7 @@ class TestIntegration:
         ]
 
         # Build parameters
-        params = build_sprint_params(0, 50, "active")
+        params = build_sprint_params(0, 50, ["active"])
         assert params["maxResults"] == "50"
         assert params["state"] == "active"
 
@@ -368,3 +368,99 @@ class TestIntegration:
         assert result["board"]["name"] == "Test Board"
         assert len(result["sprints"]) == 2
         assert result["total"] == 2
+
+
+class TestSprintStateValidation:
+    """Test cases for sprint state validation."""
+
+    def test_validate_sprint_state_valid_single_values(self):
+        """Test validation with valid single state values."""
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test valid single values
+        assert validate_sprint_state(["active"]) == ["active"]
+        assert validate_sprint_state(["future"]) == ["future"]
+        assert validate_sprint_state(["closed"]) == ["closed"]
+
+    def test_validate_sprint_state_valid_multiple_values(self):
+        """Test validation with valid multiple state values."""
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test valid combinations
+        assert validate_sprint_state(["active", "future"]) == ["active", "future"]
+        assert validate_sprint_state(["active", "closed"]) == ["active", "closed"]
+        assert validate_sprint_state(["future", "active", "closed"]) == [
+            "future",
+            "active",
+            "closed",
+        ]
+
+    def test_validate_sprint_state_case_insensitive(self):
+        """Test validation is case insensitive."""
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test case variations
+        assert validate_sprint_state(["ACTIVE"]) == ["ACTIVE"]
+        assert validate_sprint_state(["Active"]) == ["Active"]
+        assert validate_sprint_state(["FuTuRe"]) == ["FuTuRe"]
+
+    def test_validate_sprint_state_none_and_empty(self):
+        """Test validation with None and empty values."""
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test None and empty cases
+        assert validate_sprint_state(None) is None
+        assert validate_sprint_state([]) == []
+        assert validate_sprint_state(["   "]) is None
+
+    def test_validate_sprint_state_whitespace_handling(self):
+        """Test validation handles whitespace correctly."""
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test whitespace handling
+        assert validate_sprint_state([" active "]) == [" active "]
+        assert validate_sprint_state(["active ", " future"]) == ["active ", " future"]
+
+    def test_validate_sprint_state_invalid_single_value(self):
+        """Test validation with invalid single state value."""
+        import pytest
+        from arcade_tdk.errors import RetryableToolError
+
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test invalid single value
+        with pytest.raises(RetryableToolError) as exc_info:
+            validate_sprint_state(["invalid"])
+
+        assert "Invalid sprint state(s): 'invalid'" in str(exc_info.value)
+        assert exc_info.value.additional_prompt_content is not None
+        assert "Valid sprint states are:" in exc_info.value.additional_prompt_content
+
+    def test_validate_sprint_state_invalid_multiple_values(self):
+        """Test validation with invalid multiple state values."""
+        import pytest
+        from arcade_tdk.errors import RetryableToolError
+
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test multiple invalid values
+        with pytest.raises(RetryableToolError) as exc_info:
+            validate_sprint_state(["invalid", "badstate"])
+
+        assert "Invalid sprint state(s):" in str(exc_info.value)
+        assert "'invalid'" in str(exc_info.value)
+        assert "'badstate'" in str(exc_info.value)
+
+    def test_validate_sprint_state_mixed_valid_invalid(self):
+        """Test validation with mix of valid and invalid state values."""
+        import pytest
+        from arcade_tdk.errors import RetryableToolError
+
+        from arcade_jira.utils import validate_sprint_state
+
+        # Test mix of valid and invalid
+        with pytest.raises(RetryableToolError) as exc_info:
+            validate_sprint_state(["active", "invalid", "future"])
+
+        assert "Invalid sprint state(s): 'invalid'" in str(exc_info.value)
+        # Should only report the invalid ones

@@ -15,15 +15,22 @@ from arcade_jira.utils import (
 logger = logging.getLogger(__name__)
 
 
-@tool(requires_auth=Atlassian(scopes=["read:board-scope:jira-software", "read:project:jira"]))
+@tool(
+    requires_auth=Atlassian(
+        scopes=[
+            "read:board-scope:jira-software",  # /board/{boardId}, /board
+            "read:project:jira",  # project info included in /board responses
+            "read:issue-details:jira",  # issue metadata in /board/{boardId}, /board responses
+        ]
+    )
+)
 async def get_boards(
     context: ToolContext,
     board_identifiers: Annotated[
         list[str] | None,
         "List of board names or IDs to retrieve. Can contain mixed board identifiers - "
-        "both numeric IDs (e.g., '123') and board names (e.g., 'My Scrum Board'). "
-        "If not provided or empty, returns all boards with pagination. "
-        "Example: ['123', 'My Board', '456', 'Another Board Name']",
+        "both numeric IDs and board names. "
+        "If not provided or empty, returns all boards with pagination.",
     ] = None,
     limit: Annotated[
         int,
@@ -130,6 +137,14 @@ async def _get_all_boards_paginated(
 ) -> dict[str, Any]:
     """
     Get all boards with pagination using Jira API parameters.
+
+    Args:
+        client: JiraClient instance for API calls
+        limit: Maximum number of boards to return
+        offset: Number of boards to skip
+
+    Returns:
+        Dictionary containing boards and pagination metadata
     """
     response = await client.get(
         "/board",

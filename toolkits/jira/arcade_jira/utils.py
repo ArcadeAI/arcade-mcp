@@ -8,9 +8,9 @@ from datetime import date, datetime
 from typing import Any, cast
 
 from arcade_tdk import ToolContext
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_jira.constants import STOP_WORDS
+from arcade_jira.constants import STOP_WORDS, SprintState
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 
 
@@ -1185,14 +1185,16 @@ def clean_sprint_dict(sprint: dict) -> dict:
     }
 
 
-def build_sprint_params(offset: int, max_results: int, state: str | None = None) -> dict[str, str]:
+def build_sprint_params(
+    offset: int, max_results: int, state: list[str] | None = None
+) -> dict[str, str]:
     """
     Build parameters for sprint API calls.
 
     Args:
         offset: Number of sprints to skip
         max_results: Maximum number of sprints to return
-        state: Optional state filter
+        state: Optional state filter list
 
     Returns:
         Dictionary of parameters for sprint API call
@@ -1202,7 +1204,8 @@ def build_sprint_params(offset: int, max_results: int, state: str | None = None)
         "maxResults": str(int(max_results)),
     }
     if state:
-        params["state"] = str(state)
+        # Convert list to comma-separated string for API
+        params["state"] = ",".join(state)
     return params
 
 
@@ -1230,6 +1233,45 @@ def validate_board_limit(limit: int) -> int:
         Normalized limit value (1-100)
     """
     return max(1, min(limit, 100))
+
+
+def validate_sprint_state(state: list[str] | None) -> list[str] | None:
+    """
+    Validate sprint state parameter against allowed values.
+
+    Args:
+        state: List of sprint state strings
+
+    Returns:
+        Validated state list unchanged if valid
+
+    Raises:
+        RetryableToolError: If any state values are invalid
+    """
+    if not state:
+        return state
+
+    # Clean and normalize state values
+    state_values = [s.strip().lower() for s in state if s.strip()]
+
+    if not state_values:
+        return None
+
+    # Get valid state values
+    valid_states = SprintState.get_valid_values()
+
+    # Check for invalid states
+    invalid_states = [s for s in state_values if s not in valid_states]
+
+    if invalid_states:
+        invalid_states_str = ", ".join(f"'{state}'" for state in invalid_states)
+        valid_states_json = json.dumps(valid_states, default=str)
+
+        message = f"Invalid sprint state(s): {invalid_states_str}."
+        additional_message = f"Valid sprint states are: {valid_states_json}"
+        raise RetryableToolError(message, additional_prompt_content=additional_message)
+
+    return state
 
 
 def find_board_by_name(boards: list[dict], board_name: str) -> dict | None:

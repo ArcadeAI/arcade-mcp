@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from arcade_tdk.errors import ToolExecutionError
+from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_jira.tools.sprint_planning import list_sprints_for_boards
 
@@ -90,16 +90,13 @@ class TestListSprintsForBoards:
         with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             # Mock responses for two different boards
             def mock_get_boards_side_effect(context, board_ids):
-                if board_ids[0] == "123":
-                    return {
-                        "boards": [{"id": 123, "name": "Board 1", "type": "scrum"}],
-                        "errors": [],
-                    }
-                else:  # board_ids[0] == "456"
-                    return {
-                        "boards": [{"id": 456, "name": "Board 2", "type": "scrum"}],
-                        "errors": [],
-                    }
+                return {
+                    "boards": [
+                        {"id": 123, "name": "Board 1", "type": "scrum"},
+                        {"id": 456, "name": "Board 2", "type": "scrum"},
+                    ],
+                    "errors": [],
+                }
 
             mock_get_boards.side_effect = mock_get_boards_side_effect
 
@@ -228,7 +225,7 @@ class TestListSprintsForBoards:
                 "errors": [],
             }
 
-            result = await list_sprints_for_boards(Mock(), board_ids=["123"], state="active")
+            result = await list_sprints_for_boards(Mock(), board_ids=["123"], state=["active"])
 
             assert len(result["boards"]) == 1
             assert len(result["sprints_by_board"][123]["sprints"]) == 1
@@ -479,23 +476,6 @@ class TestListSprintsForBoards:
 
     @pytest.mark.asyncio
     @patch("arcade_jira.tools.sprint_planning.JiraClient")
-    async def test_list_sprints_for_boards_exception_handling(self, mock_jira_client):
-        """Test handling of unexpected exceptions."""
-        mock_client = Mock()
-        mock_jira_client.return_value = mock_client
-
-        with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
-            mock_get_boards.side_effect = Exception("Unexpected API error")
-
-            result = await list_sprints_for_boards(Mock(), board_ids=["123"])
-
-            assert len(result["boards"]) == 0
-            assert len(result["sprints_by_board"]) == 0
-            assert len(result["errors"]) == 1
-            assert "Unexpected error" in result["errors"][0]["error"]
-
-    @pytest.mark.asyncio
-    @patch("arcade_jira.tools.sprint_planning.JiraClient")
     async def test_list_sprints_sorting_latest_first(self, mock_jira_client):
         """Test that sprints are sorted with latest first."""
         mock_client = Mock()
@@ -546,3 +526,114 @@ class TestListSprintsForBoards:
             assert sprints[0]["name"] == "Sprint 3"  # Latest end date
             assert sprints[1]["name"] == "Sprint 2"
             assert sprints[2]["name"] == "Sprint 1"  # Earliest end date
+
+
+class TestSprintStateValidationIntegration:
+    """Integration tests for sprint state validation in list_sprints_for_boards."""
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_valid_state_single(self):
+        """Test list_sprints_for_boards with valid single state."""
+        with (
+            patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards,
+            patch("arcade_jira.tools.sprint_planning.JiraClient") as mock_jira_client,
+        ):
+            # Mock board resolution
+            mock_get_boards.return_value = {
+                "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
+                "errors": [],
+            }
+
+            # Mock client response
+            mock_client = Mock()
+            mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
+            mock_jira_client.return_value = mock_client
+
+            # Should not raise an exception
+            result = await list_sprints_for_boards(Mock(), board_ids=["123"], state=["active"])
+
+            assert "boards" in result
+            assert "sprints_by_board" in result
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_valid_state_multiple(self):
+        """Test list_sprints_for_boards with valid multiple states."""
+        with (
+            patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards,
+            patch("arcade_jira.tools.sprint_planning.JiraClient") as mock_jira_client,
+        ):
+            # Mock board resolution
+            mock_get_boards.return_value = {
+                "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
+                "errors": [],
+            }
+
+            # Mock client response
+            mock_client = Mock()
+            mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
+            mock_jira_client.return_value = mock_client
+
+            # Should not raise an exception
+            result = await list_sprints_for_boards(
+                Mock(), board_ids=["123"], state=["active", "future"]
+            )
+
+            assert "boards" in result
+            assert "sprints_by_board" in result
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_invalid_state_single(self):
+        """Test list_sprints_for_boards with invalid single state raises error."""
+        with pytest.raises(RetryableToolError) as exc_info:
+            await list_sprints_for_boards(Mock(), board_ids=["123"], state=["invalid"])
+
+        assert "Invalid sprint state(s): 'invalid'" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_invalid_state_multiple(self):
+        """Test list_sprints_for_boards with invalid multiple states raises error."""
+        with pytest.raises(RetryableToolError) as exc_info:
+            await list_sprints_for_boards(
+                Mock(), board_ids=["123"], state=["active", "invalid", "badstate"]
+            )
+
+        assert "Invalid sprint state(s):" in str(exc_info.value)
+        assert "'invalid'" in str(exc_info.value)
+        assert "'badstate'" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_mixed_valid_invalid_state(self):
+        """Test list_sprints_for_boards with mix of valid and invalid states."""
+        with pytest.raises(RetryableToolError) as exc_info:
+            await list_sprints_for_boards(
+                Mock(), board_ids=["123"], state=["active", "invalid", "future"]
+            )
+
+        # Should only report invalid states, not the valid ones
+        assert "Invalid sprint state(s): 'invalid'" in str(exc_info.value)
+        assert "'active'" not in str(exc_info.value) or "Invalid" not in str(exc_info.value)
+        assert "'future'" not in str(exc_info.value) or "Invalid" not in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_list_sprints_none_state(self):
+        """Test list_sprints_for_boards with None state (should work fine)."""
+        with (
+            patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards,
+            patch("arcade_jira.tools.sprint_planning.JiraClient") as mock_jira_client,
+        ):
+            # Mock board resolution
+            mock_get_boards.return_value = {
+                "boards": [{"id": 123, "name": "Test Board", "type": "scrum"}],
+                "errors": [],
+            }
+
+            # Mock client response
+            mock_client = Mock()
+            mock_client.get = AsyncMock(return_value={"values": [], "isLast": True})
+            mock_jira_client.return_value = mock_client
+
+            # Should not raise an exception
+            result = await list_sprints_for_boards(Mock(), board_ids=["123"], state=None)
+
+            assert "boards" in result
+            assert "sprints_by_board" in result
