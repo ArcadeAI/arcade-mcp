@@ -111,6 +111,31 @@ async def test_execute_select_query(mock_context) -> None:
 
 
 @pytest.mark.asyncio
+async def test_execute_select_query_with_keywords(mock_context) -> None:
+    assert await execute_select_query(
+        mock_context,
+        select_clause="SELECT id, name, email",
+        from_clause="FROM users",
+        limit=1,
+    ) == [
+        "(1, 'Alice', 'alice@example.com')",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_execute_select_query_with_join(mock_context) -> None:
+    assert await execute_select_query(
+        mock_context,
+        select_clause="u.id, u.name, u.email, m.id, m.body",
+        from_clause="users u",
+        join_clause="messages m ON u.id = m.user_id",
+        limit=1,
+    ) == [
+        "(1, 'Alice', 'alice@example.com', 1, 'Hello everyone!')",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_execute_select_query_with_group_by(mock_context) -> None:
     assert await execute_select_query(
         mock_context,

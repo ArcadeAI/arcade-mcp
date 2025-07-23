@@ -91,10 +91,27 @@ class DatabaseEngine:
         order_by_clause: str | None,
         with_clause: str | None,
     ) -> tuple[str, dict[str, Any]]:
+        # Remove the leading keywords from the clauses if they are present
         if select_clause.strip().split(" ")[0].upper() == "SELECT":
-            raise RetryableToolError(
-                "Do not include the SELECT keyword in the select clause.  It will be added automatically.",
-            )
+            select_clause = select_clause.strip()[6:]
+
+        if from_clause.strip().split(" ")[0].upper() == "FROM":
+            from_clause = from_clause.strip()[4:]
+
+        if join_clause and join_clause.strip().split(" ")[0].upper() == "JOIN":
+            join_clause = join_clause.strip()[4:]
+
+        if where_clause and where_clause.strip().split(" ")[0].upper() == "WHERE":
+            where_clause = where_clause.strip()[5:]
+
+        if group_by_clause and group_by_clause.strip().split(" ")[0].upper() == "GROUP BY":
+            group_by_clause = group_by_clause.strip()[8:]
+
+        if order_by_clause and order_by_clause.strip().split(" ")[0].upper() == "ORDER BY":
+            order_by_clause = order_by_clause.strip()[8:]
+
+        if having_clause and having_clause.strip().split(" ")[0].upper() == "HAVING":
+            having_clause = having_clause.strip()[6:]
 
         first_select_word = select_clause.strip().split(" ")[0].upper()
         if first_select_word in [

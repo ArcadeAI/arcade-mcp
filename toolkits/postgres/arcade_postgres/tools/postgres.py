@@ -64,7 +64,7 @@ async def execute_select_query(
     ],
     from_clause: Annotated[
         str,
-        "This is the part of the SQL query that comes after the FROM keyword.",
+        "This is the part of the SQL query that comes after the FROM keyword.  Do not include the FROM keyword.",
     ],
     limit: Annotated[
         int,
