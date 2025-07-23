@@ -1,7 +1,7 @@
 import datetime
 import json
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from msgraph.generated.models.channel import Channel
 from msgraph.generated.models.chat import Chat
@@ -69,7 +69,7 @@ def serialize_channel(
         channel_dict["members_count"] = channel.summary.members_count
 
     if channel.membership_type:
-        membership_type = channel.membership_type.value
+        membership_type = cast(str, channel.membership_type.value)
         if membership_type == "standard":
             membership_type = "publicly_visible_to_team_members"
         channel_dict["membership_type"] = membership_type
@@ -133,10 +133,14 @@ def serialize_member(
 ) -> dict[str, Any]:
     member_dict: dict[str, Any] = {
         "object_type": "conversation_member",
-        "id": member.user_id,
         "name": member.display_name,
-        "email": member.email,
     }
+
+    if hasattr(member, "user_id"):
+        member_dict["id"] = member.user_id
+
+    elif hasattr(member, "email") and member.email:
+        member_dict["email"] = member.email
 
     if member.roles:
         member_dict["roles"] = member.roles
@@ -190,35 +194,46 @@ def serialize_chat_message_search_hit(search_hit: SearchHit) -> dict[str, Any]:
     message_dict: dict[str, Any] = {
         "object_type": "search_message_hit",
         "summary": search_hit.summary,
-        "message_id": search_hit.resource.id,
     }
 
-    metadata = search_hit.resource.additional_data
+    if search_hit.resource:
+        if hasattr(search_hit.resource, "id") and search_hit.resource.id:
+            message_dict["message_id"] = search_hit.resource.id
 
-    if metadata:
-        if metadata.get("webLink"):
-            message_dict["web_url"] = metadata["webLink"]
+        if hasattr(search_hit.resource, "additional_data") and search_hit.resource.additional_data:
+            metadata = search_hit.resource.additional_data
+            if metadata:
+                message_dict.update(serialize_search_hit_metadata(metadata))
 
-        if isinstance(metadata.get("createdDateTime"), datetime.datetime):
-            message_dict["created_at"] = metadata["createdDateTime"].isoformat()
+    return message_dict
 
-        if metadata.get("importance"):
-            message_dict["importance"] = metadata["importance"]
 
-        if metadata.get("subject"):
-            message_dict["subject"] = metadata["subject"]
+def serialize_search_hit_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    message_dict: dict[str, Any] = {}
 
-        if isinstance(metadata.get("author"), dict):
-            message_dict["author"] = {
-                "user_name": metadata["author"].get("name"),
-                "microsoft_email_address": metadata["author"].get("emailAddress"),
-            }
+    if metadata.get("webLink"):
+        message_dict["web_url"] = metadata["webLink"]
 
-        if metadata.get("channelIdentity"):
-            message_dict["channel_id"] = metadata["channelIdentity"].get("channelId")
+    if isinstance(metadata.get("createdDateTime"), datetime.datetime):
+        message_dict["created_at"] = metadata["createdDateTime"].isoformat()
 
-        elif metadata.get("chatId"):
-            message_dict["chat_id"] = metadata["chatId"]
+    if metadata.get("importance"):
+        message_dict["importance"] = metadata["importance"]
+
+    if metadata.get("subject"):
+        message_dict["subject"] = metadata["subject"]
+
+    if isinstance(metadata.get("author"), dict):
+        message_dict["author"] = {
+            "user_name": metadata["author"].get("name"),
+            "microsoft_email_address": metadata["author"].get("emailAddress"),
+        }
+
+    if metadata.get("channelIdentity"):
+        message_dict["channel_id"] = metadata["channelIdentity"].get("channelId")
+
+    elif metadata.get("chatId"):
+        message_dict["chat_id"] = metadata["chatId"]
 
     return message_dict
 
@@ -229,7 +244,7 @@ def serialize_message_metadata(message: ChatMessage) -> dict:
         "id": message.id,
     }
 
-    if message.from_:
+    if message.from_ and message.from_.user:
         message_dict["author"] = {
             "user_id": message.from_.user.id,
             "user_name": message.from_.user.display_name,
@@ -252,8 +267,10 @@ def serialize_message_metadata(message: ChatMessage) -> dict:
 
 def serialize_message_replies_from_attachments(message: ChatMessage) -> list[dict[str, Any]]:
     replies: list[dict[str, Any]] = []
+    if not message.attachments:
+        return replies
     for attachment in message.attachments:
-        if attachment.content_type == "messageReference":
+        if attachment.content_type == "messageReference" and isinstance(attachment.content, str):
             data = json.loads(attachment.content)
             replies.append({
                 "id": data["messageId"],
@@ -317,10 +334,17 @@ def serialize_message_body_text(message: ChatMessage) -> str:
 
 
 def serialize_message_body_text_with_mentions(message: ChatMessage) -> str:
-    user_ids_seen = set()
-    mentions_dicts = serialize_mentions(message.mentions) if message.mentions else []
-    mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
+    if not message.body or not message.body.content:
+        return ""
+
     text = str(message.body.content).replace("&nbsp;", " ")
+
+    if not message.mentions:
+        return text
+
+    user_ids_seen: set[str] = set()
+    mentions_dicts = serialize_mentions(message.mentions)
+    mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
 
     for mention in message.mentions:
         if not mention.mentioned or not mention.mentioned.user:
