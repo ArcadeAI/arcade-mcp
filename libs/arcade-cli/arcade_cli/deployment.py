@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import toml
+from arcade_core import Toolkit
 from arcadepy import Arcade, NotFoundError
 from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
 from packaging.requirements import Requirement
@@ -261,6 +262,9 @@ class Worker(BaseModel):
                 raise ValueError(
                     f"package '{package_path}' must contain a pyproject.toml or setup.py file"
                 )
+
+            # Validate that we are able to load the package
+            Toolkit.tools_from_directory(package_dir=package_path, package_name=package_path.name)
 
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()

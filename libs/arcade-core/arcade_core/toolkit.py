@@ -87,14 +87,6 @@ class Toolkit(BaseModel):
         except (ImportError, AttributeError) as e:
             raise ToolkitLoadError(f"Failed to locate package directory for '{package}'.") from e
 
-        # Get all python files in the package directory
-        try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
-        except OSError as e:
-            raise ToolkitLoadError(
-                f"Failed to locate Python files in package directory for '{package}'."
-            ) from e
-
         toolkit = cls(
             name=name,
             package_name=package_name,
@@ -105,14 +97,7 @@ class Toolkit(BaseModel):
             repository=repo,
         )
 
-        for module_path in modules:
-            relative_path = module_path.relative_to(package_dir)
-            import_path = ".".join(relative_path.with_suffix("").parts)
-            import_path = f"{package_name}.{import_path}"
-            toolkit.tools[import_path] = get_tools_from_file(str(module_path))
-
-        if not toolkit.tools:
-            raise ToolkitLoadError(f"No tools found in package {package}")
+        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
 
         return toolkit
 
@@ -228,6 +213,58 @@ class Toolkit(BaseModel):
                 seen_package_names.add(toolkit.package_name)
 
         return all_toolkits
+
+    @classmethod
+    def tools_from_directory(cls, package_dir: Path, package_name: str) -> dict[str, list[str]]:
+        """
+        Load a Toolkit from a directory.
+        """
+        # Get all python files in the package directory
+        try:
+            modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
+        except OSError as e:
+            raise ToolkitLoadError(
+                f"Failed to locate Python files in package directory for '{package_name}'."
+            ) from e
+
+        tools: dict[str, list[str]] = {}
+
+        for module_path in modules:
+            relative_path = module_path.relative_to(package_dir)
+            cls.validate_file(module_path)
+            import_path = ".".join(relative_path.with_suffix("").parts)
+            import_path = f"{package_name}.{import_path}"
+            tools[import_path] = get_tools_from_file(str(module_path))
+
+        if not tools:
+            raise ToolkitLoadError(f"No tools found in package {package_name}")
+
+        return tools
+
+    @classmethod
+    def validate_file(cls, file_path: str | Path) -> None:
+        """
+        Validate that the Python code in the given file is syntactically correct.
+
+        Args:
+            file_path: Path to the Python file to validate
+        """
+        # Convert string path to Path object if needed
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        # Check if file exists
+        if not path.exists():
+            raise ValueError(f"❌ File not found: {path}")
+
+        # Check if it's a Python file
+        if not path.suffix == ".py":
+            raise ValueError(f"❌ Not a Python file: {path}")
+
+        # Try to compile the code to check for syntax errors
+        with open(path, encoding="utf-8") as f:
+            source = f.read()
+
+        compile(source, str(path), "exec")
 
 
 def get_package_directory(package_name: str) -> str:

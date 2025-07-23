@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -342,3 +343,57 @@ class TestToolkitIntegration:
         assert names == {"custom", "utils", "legacy"}
         utils_toolkit = next(t for t in toolkits if t.name == "utils")
         assert utils_toolkit.version == "2.0.0"
+
+
+@pytest.fixture
+def cleanup_test_files():
+    test_files = ["valid.py", "invalid.py", "test.txt"]
+
+    # Run the test
+    yield
+
+    # Clean up test files after the test
+    for file in test_files:
+        try:  # noqa: SIM105
+            Path(file).unlink(missing_ok=True)
+        except Exception:  # noqa: S110
+            pass
+
+
+class TestValidateFile:
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_file(self):
+        """Test validation of Python files with valid syntax."""
+        # Create a temporary valid Python file
+        valid_file = Path("valid.py")
+        valid_file.write_text("def test(): return True")
+
+        # Should not raise any exceptions
+        Toolkit.validate_file(valid_file)
+        # Test with string path
+        Toolkit.validate_file(str(valid_file))
+
+    def test_validate_tools_nonexistent_file(self):
+        """Test validation with non-existent file."""
+        nonexistent = Path("nonexistent.py")
+
+        with pytest.raises(ValueError, match="File not found"):
+            Toolkit.validate_file(nonexistent)
+
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_tools_non_python_file(self):
+        """Test validation with non-Python file."""
+        txt_file = Path("test.txt")
+        txt_file.write_text("Not a Python file")
+
+        with pytest.raises(ValueError, match="Not a Python file"):
+            Toolkit.validate_file(txt_file)
+
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_tools_syntax_error(self):
+        """Test validation with Python file containing syntax errors."""
+        invalid_file = Path("invalid.py")
+        invalid_file.write_text("def test(): return True:")  # Invalid syntax
+
+        with pytest.raises(SyntaxError):
+            Toolkit.validate_file(invalid_file)
