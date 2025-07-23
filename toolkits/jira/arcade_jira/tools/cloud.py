@@ -27,9 +27,9 @@ async def get_available_atlassian_clouds(
     for cloud in verified_clouds:
         if cloud["id"] not in cloud_ids_seen:
             unique_clouds.append({
-                "id": cloud["id"],
-                "name": cloud["name"],
-                "url": cloud["url"],
+                "atlassian_cloud_id": cloud["id"],
+                "atlassian_cloud_name": cloud["name"],
+                "atlassian_cloud_url": cloud["url"],
             })
             cloud_ids_seen.add(cloud["id"])
 
