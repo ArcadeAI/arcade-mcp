@@ -19,7 +19,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install setuptools>=78.1.1
+RUN pip install --upgrade setuptools>=78.1.1
 
 WORKDIR /app
 
