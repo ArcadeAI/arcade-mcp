@@ -645,7 +645,6 @@ async def create_issue(
         "issue": {
             "id": response["id"],
             "key": response["key"],
-            "url": response["self"],
         },
     }
 
