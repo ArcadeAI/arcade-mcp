@@ -7,7 +7,7 @@ from arcade_postgres.tools.postgres import (
     DatabaseEngine,
     discover_schemas,
     discover_tables,
-    execute_query,
+    execute_select_query,
     get_table_schema,
 )
 from arcade_tdk import ToolContext, ToolSecretItem
@@ -89,52 +89,76 @@ async def test_get_table_schema(mock_context) -> None:
 
 
 @pytest.mark.asyncio
-async def test_execute_query(mock_context) -> None:
-    assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1") == [
+async def test_execute_select_query(mock_context) -> None:
+    assert await execute_select_query(
+        mock_context,
+        select_clause="id, name, email",
+        from_clause="users",
+        where_clause="id = 1",
+    ) == [
         "(1, 'Alice', 'alice@example.com')",
     ]
-    assert await execute_query(
-        mock_context, "SELECT id, name, email FROM users ORDER BY id", limit=1, offset=1
+    assert await execute_select_query(
+        mock_context,
+        select_clause="id, name, email",
+        from_clause="users",
+        order_by_clause="id",
+        limit=1,
+        offset=1,
     ) == [
         "(2, 'Bob', 'bob@example.com')",
     ]
 
 
 @pytest.mark.asyncio
-async def test_execute_query_with_no_results(mock_context) -> None:
-    # does not raise an error
-    assert await execute_query(mock_context, "SELECT * FROM users WHERE id = 9999999999") == []
+async def test_execute_select_query_with_group_by(mock_context) -> None:
+    assert await execute_select_query(
+        mock_context,
+        select_clause="u.name, COUNT(m.id) AS message_count",
+        from_clause="messages m",
+        join_clause="users u ON m.user_id = u.id",
+        group_by_clause="u.name",
+        order_by_clause="message_count DESC",
+        limit=2,
+    ) == [
+        "('Evan', 13)",
+        "('Alice', 3)",
+    ]
 
 
 @pytest.mark.asyncio
-async def test_execute_query_with_problem(mock_context) -> None:
+async def test_execute_select_query_with_no_results(mock_context) -> None:
+    # does not raise an error
+    assert (
+        await execute_select_query(
+            mock_context,
+            select_clause="id, name, email",
+            from_clause="users",
+            where_clause="id = 9999999999",
+        )
+        == []
+    )
+
+
+@pytest.mark.asyncio
+async def test_execute_select_query_with_problem(mock_context) -> None:
     # 'foo' is not a valid id
     with pytest.raises(RetryableToolError) as e:
-        await execute_query(mock_context, "SELECT * FROM users WHERE id = 'foo'")
-    assert "invalid input syntax" in str(e.value)
+        await execute_select_query(
+            mock_context,
+            select_clause="*",
+            from_clause="users",
+            where_clause="id = 'foo'",
+        )
+    assert "Do not use * in the select clause" in str(e.value)
 
 
 @pytest.mark.asyncio
-async def test_execute_query_rejects_non_select(mock_context) -> None:
+async def test_execute_select_query_rejects_non_select(mock_context) -> None:
     with pytest.raises(RetryableToolError) as e:
-        await execute_query(
+        await execute_select_query(
             mock_context,
-            "INSERT INTO users (name, email, password_hash) VALUES ('Luigi', 'luigi@example.com', 'password')",
+            select_clause="INSERT INTO users (name, email, password_hash) VALUES ('Luigi', 'luigi@example.com', 'password')",
+            from_clause="users",
         )
     assert "Only SELECT queries are allowed" in str(e.value)
-
-
-@pytest.mark.asyncio
-async def test_execute_query_with_semicolon_at_end(mock_context) -> None:
-    """Test that queries with semicolons at the end are handled properly."""
-    # Query with semicolon at the end should work the same as without
-    assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1;") == [
-        "(1, 'Alice', 'alice@example.com')",
-    ]
-
-    # Query with semicolon and whitespace should also work
-    assert await execute_query(
-        mock_context, "SELECT id, name, email FROM users WHERE id = 2 ; "
-    ) == [
-        "(2, 'Bob', 'bob@example.com')",
-    ]

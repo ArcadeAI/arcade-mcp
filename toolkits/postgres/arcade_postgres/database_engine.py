@@ -78,49 +78,86 @@ class DatabaseEngine:
         cls._engines.clear()
 
     @classmethod
-    def sanitize_query(cls, query: str, limit: int, offset: int) -> str:
-        """
-        Sanitize a query to not break our read-only session.
-        THIS IS REALLY UNSAFE AND SHOULD NOT BE USED IN PRODUCTION. USE A DATABASE CONNECTION WITH A READ-ONLY USER AND PREPARE STATEMENTS.
-        There are also valid reasons for the ";" character, and this prevents that.
-        """
-
-        parts = query.split(";")
-        parts = [part.strip() for part in parts if len(part.strip()) > 0]
-        if len(parts) > 1:
+    def sanitize_query(  # noqa: C901
+        cls,
+        select_clause: str,
+        from_clause: str,
+        limit: int,
+        offset: int,
+        join_clause: str | None,
+        where_clause: str | None,
+        having_clause: str | None,
+        group_by_clause: str | None,
+        order_by_clause: str | None,
+        with_clause: str | None,
+    ) -> tuple[str, dict[str, Any]]:
+        if select_clause.strip().split(" ")[0].upper() == "SELECT":
             raise RetryableToolError(
-                "Multiple statements are not allowed in a single query.",
-                developer_message="Multiple statements are not allowed in a single query.",
-                additional_prompt_content="Split your query into multiple queries and try again.",
+                "Do not include the SELECT keyword in the select clause.  It will be added automatically.",
             )
 
-        words = parts[0].split(" ")
-        if words[0].upper().strip() != "SELECT":
+        first_select_word = select_clause.strip().split(" ")[0].upper()
+        if first_select_word in [
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+            "CREATE",
+            "ALTER",
+            "DROP",
+            "TRUNCATE",
+            "REINDEX",
+            "VACUUM",
+            "ANALYZE",
+            "COMMENT",
+        ]:
             raise RetryableToolError(
                 "Only SELECT queries are allowed.",
-                developer_message="Only SELECT queries are allowed.",
-                additional_prompt_content="Use the <DiscoverTables> and <GetTableSchema> tools to discover the tables and try again.",
+            )
+
+        if select_clause.strip() == "*":
+            raise RetryableToolError(
+                "Do not use * in the select clause.  Use a comma separated list of columns you wish to return.",
             )
 
         if limit > MAX_ROWS_RETURNED:
             raise RetryableToolError(
                 f"Limit is too high.  Maximum is {MAX_ROWS_RETURNED}.",
-                developer_message="Limit is too high.",
-                additional_prompt_content="Use a lower limit and try again.",
             )
 
         if offset < 0:
             raise RetryableToolError(
                 "Offset must be greater than or equal to 0.",
                 developer_message="Offset must be greater than or equal to 0.",
-                additional_prompt_content="Use a higher offset and try again.",
             )
 
         if limit <= 0:
             raise RetryableToolError(
                 "Limit must be greater than 0.",
                 developer_message="Limit must be greater than 0.",
-                additional_prompt_content="Use a higher limit and try again.",
             )
 
-        return f"{parts[0]} LIMIT {limit} OFFSET {offset}"
+        # Build query with identifiers directly interpolated, but use parameters for values
+        parts = []
+        if with_clause:
+            parts.append(f"WITH {with_clause}")
+        parts.append(f"SELECT {select_clause} FROM {from_clause}")  # noqa: S608
+        if join_clause:
+            parts.append(f"JOIN {join_clause}")
+        if where_clause:
+            parts.append(f"WHERE {where_clause}")
+        if group_by_clause:
+            parts.append(f"GROUP BY {group_by_clause}")
+        if having_clause:
+            parts.append(f"HAVING {having_clause}")
+        if order_by_clause:
+            parts.append(f"ORDER BY {order_by_clause}")
+        parts.append("LIMIT :limit OFFSET :offset")
+        query = " ".join(parts)
+
+        # Only use parameters for values, not identifiers
+        parameters = {
+            "limit": limit,
+            "offset": offset,
+        }
+
+        return query, parameters
