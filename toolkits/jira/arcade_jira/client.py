@@ -2,6 +2,7 @@ import asyncio
 import json
 import json.decoder
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, cast
 
 import httpx
@@ -11,16 +12,23 @@ from arcade_jira.constants import JIRA_API_VERSION, JIRA_BASE_URL, JIRA_MAX_CONC
 from arcade_jira.exceptions import JiraToolExecutionError, NotFoundError
 
 
+class APIType(Enum):
+    """Enum for different Jira API types."""
+
+    V3_REST = "v3_rest"
+    AGILE = "agile"
+
+
 @dataclass
 class JiraClient:
     auth_token: str
     base_url: str = JIRA_BASE_URL
     api_version: str = JIRA_API_VERSION
     max_concurrent_requests: int = JIRA_MAX_CONCURRENT_REQUESTS
-    # If True, use the Agile API (v1) instead of the REST API
+    # Type of API to use - V3_REST for standard operations, AGILE for sprint/board operations
     # This is required for some operations, such as listing sprints for a board
     # https://developer.atlassian.com/cloud/jira/software/rest/api-group-sprints/#api-agile-1-0-board-boardid-sprint-get
-    use_agile_api: bool = False
+    client_type: APIType = APIType.V3_REST
     _semaphore: asyncio.Semaphore | None = None
     _cloud_id: str | None = None
 
@@ -51,7 +59,7 @@ class JiraClient:
 
     async def _build_url(self, endpoint: str) -> str:
         cloud_id = await self.get_cloud_id()
-        if self.use_agile_api:
+        if self.client_type == APIType.AGILE:
             return f"{self.base_url}/{cloud_id}/rest/agile/1.0/{endpoint.lstrip('/')}"
         else:
             return f"{self.base_url}/{cloud_id}/rest/api/{self.api_version}/{endpoint.lstrip('/')}"

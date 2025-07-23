@@ -4,7 +4,7 @@ from typing import Annotated, Any
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
 
-from arcade_jira.client import JiraClient
+from arcade_jira.client import APIType, JiraClient
 from arcade_jira.utils import (
     clean_board_dict,
     create_board_result_dict,
@@ -58,7 +58,7 @@ async def get_boards(
     Returns successfully found boards and error details for any boards that couldn't be resolved.
     Automatically deduplicates boards if the same board is requested by both ID and name.
     """
-    client = JiraClient(context.get_auth_token_or_empty(), use_agile_api=True)
+    client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
     limit = validate_board_limit(limit)
 
     # If no specific boards requested, get all boards with pagination

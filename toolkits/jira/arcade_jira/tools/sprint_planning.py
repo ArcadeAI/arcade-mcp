@@ -6,7 +6,7 @@ from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
 from arcade_tdk.errors import ToolExecutionError
 
-from arcade_jira.client import JiraClient
+from arcade_jira.client import APIType, JiraClient
 from arcade_jira.constants import BOARD_TYPES_WITH_SPRINTS
 from arcade_jira.tools.boards import get_boards
 from arcade_jira.utils import (
@@ -129,7 +129,7 @@ async def list_sprints_for_boards(
     _validate_parameters(board_ids, specific_date, start_date, end_date, state)
 
     sprints_per_board = validate_sprint_limit(sprints_per_board)
-    client = JiraClient(context.get_auth_token_or_empty(), use_agile_api=True)
+    client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
 
     results = {
         "boards": [],
