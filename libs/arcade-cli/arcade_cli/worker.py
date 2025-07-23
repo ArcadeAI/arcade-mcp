@@ -164,9 +164,11 @@ def compare_endpoints(worker_id: str, engine_endpoint: str, deployments: list[di
     if is_cloud_deployment(worker_id, deployments):
         for deployment in deployments:
             deployment_endpoint = deployment["endpoint"]
-            if deployment_endpoint == engine_endpoint:
-                return engine_endpoint
-            return f"[red]Endpoint Mismatch[/red]\n[yellow]Registered Endpoint: {engine_endpoint}[/yellow]\n[green]Actual Endpoint:     {deployment_endpoint}[/green]"
+            if deployment["name"] == worker_id:
+                if deployment_endpoint == engine_endpoint:
+                    return engine_endpoint
+                else:
+                    return f"[red]Endpoint Mismatch[/red]\n[yellow]Registered Endpoint: {engine_endpoint}[/yellow]\n[green]Actual Endpoint:     {deployment_endpoint}[/green]"
     return engine_endpoint
 
 
