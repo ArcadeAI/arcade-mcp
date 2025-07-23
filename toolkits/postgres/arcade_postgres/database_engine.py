@@ -123,4 +123,4 @@ class DatabaseEngine:
                 additional_prompt_content="Use a higher limit and try again.",
             )
 
-        return f"{query} LIMIT {limit} OFFSET {offset}"
+        return f"{parts[0]} LIMIT {limit} OFFSET {offset}"

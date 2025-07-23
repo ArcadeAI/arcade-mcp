@@ -91,7 +91,12 @@ async def test_get_table_schema(mock_context) -> None:
 @pytest.mark.asyncio
 async def test_execute_query(mock_context) -> None:
     assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1") == [
-        "(1, 'Mario', 'mario@example.com')"
+        "(1, 'Alice', 'alice@example.com')",
+    ]
+    assert await execute_query(
+        mock_context, "SELECT id, name, email FROM users ORDER BY id", limit=1, offset=1
+    ) == [
+        "(2, 'Bob', 'bob@example.com')",
     ]
 
 
@@ -117,3 +122,19 @@ async def test_execute_query_rejects_non_select(mock_context) -> None:
             "INSERT INTO users (name, email, password_hash) VALUES ('Luigi', 'luigi@example.com', 'password')",
         )
     assert "Only SELECT queries are allowed" in str(e.value)
+
+
+@pytest.mark.asyncio
+async def test_execute_query_with_semicolon_at_end(mock_context) -> None:
+    """Test that queries with semicolons at the end are handled properly."""
+    # Query with semicolon at the end should work the same as without
+    assert await execute_query(mock_context, "SELECT id, name, email FROM users WHERE id = 1;") == [
+        "(1, 'Alice', 'alice@example.com')",
+    ]
+
+    # Query with semicolon and whitespace should also work
+    assert await execute_query(
+        mock_context, "SELECT id, name, email FROM users WHERE id = 2 ; "
+    ) == [
+        "(2, 'Bob', 'bob@example.com')",
+    ]
