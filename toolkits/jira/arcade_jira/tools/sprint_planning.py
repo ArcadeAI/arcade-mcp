@@ -47,8 +47,11 @@ async def list_sprints_for_boards(
     board_ids: Annotated[
         list[str],
         "Required list of board names or IDs to retrieve sprints for. "
-        "Can contain mixed board identifiers - "
-        "both numeric IDs and board names.",
+        "IMPORTANT: Always provide ALL boards in a single list, even when requesting "
+        "multiple boards. When sprints for multiple boards requested, avoid making "
+        "separate tool calls for different boards - combine them into one list. "
+        "Can contain mixed board identifiers (numeric IDs as strings and board names). "
+        "When both ID and name are available for a board, prefer using the numeric ID. ",
     ],
     sprints_per_board: Annotated[
         int,
@@ -65,11 +68,13 @@ async def list_sprints_for_boards(
     ] = 0,
     state: Annotated[
         list[str] | None,
-        "Filter sprints by their current state. Valid values are: "
+        "Filter sprints by their lifecycle state. Valid values are: "
         "'future' (not started), 'active' (currently running), 'closed' (completed). "
+        "Use 'active' for current, running, ongoing, or in-progress sprints. "
+        "Use 'future' for upcoming, planned, or not-yet-started sprints. "
+        "Use 'closed' for finished, completed, or done sprints. "
         "You can specify multiple states as a list (e.g., ['active', 'future']). "
-        "If not provided, returns sprints in all states. Example: ['active'] or "
-        "['active', 'future']",
+        "If not provided, returns sprints in all states.",
     ] = None,
     start_date: Annotated[
         str | None,
@@ -81,13 +86,17 @@ async def list_sprints_for_boards(
         str | None,
         "Optional end date filter for sprints in YYYY-MM-DD format. "
         "Filters sprints that overlap with or occur before this date. "
-        "Can be used together with start_date to create a date range.",
+        "When using phrases like 'before April 1st', use the exact date mentioned "
+        "(2024-04-01). Can be used together with start_date to create a date range.",
     ] = None,
     specific_date: Annotated[
         str | None,
-        "Optional specific date in YYYY-MM-DD format to get sprints that are active on that date. "
-        "Returns sprints where the specific date falls between their start and end dates. "
-        "Cannot be used together with start_date or end_date.",
+        "Optional specific calendar date in YYYY-MM-DD format to find sprints that "
+        "were active on that particular date. Returns sprints where the given date "
+        "falls between their start and end dates. Use this for historical date "
+        "queries like 'sprints active on March 1st' or 'what was running yesterday'. "
+        "Do NOT use for current status - use the 'state' parameter instead for "
+        "current/running sprints. Cannot be used together with start_date or end_date.",
     ] = None,
 ) -> Annotated[
     dict[str, Any],
@@ -100,6 +109,22 @@ async def list_sprints_for_boards(
     List sprints for Jira boards by name or ID with advanced filtering and pagination.
     Requires a list of board identifiers and supports date-based filtering.
     Returns valid responses for sprint boards and error messages for non-sprint boards.
+
+    When querying sprints for multiple boards, always send them as a single list
+    rather than making separate tool calls for each board.
+
+    Date Range Filtering: Use start_date and/or end_date to find sprints that overlap
+    with a specified time period. Either parameter can be used alone or both can be
+    combined to create a date range. The filter finds any sprint that overlaps with
+    the specified period.
+
+    Active Sprint Filtering: Use specific_date to find sprints that were active on a
+    particular day. This returns only sprints where the given date falls between the
+    sprint's start and end dates. Cannot be used together with start_date or
+    end_date.
+
+    For no Date Filtering, omit all date parameters to retrieve all sprints regardless
+    of their timing.
     """
     _validate_parameters(board_ids, specific_date, start_date, end_date, state)
 
