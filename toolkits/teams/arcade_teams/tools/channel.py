@@ -330,7 +330,7 @@ async def reply_to_channel_message(
         "a member of a single team, the tool will use it; otherwise an error will be returned with "
         "a list of all teams to pick from.",
     ] = None,
-) -> Annotated[dict, "The message that was sent."]:
+) -> Annotated[dict, "The reply message that was sent."]:
     """Sends a reply to a Microsoft Teams channel message.
 
     When available, prefer providing a channel_id for optimal performance.

@@ -25,6 +25,40 @@ from arcade_teams.utils import (
 )
 
 
+@tool(requires_auth=Microsoft(scopes=["Chat.Read"]))
+async def get_chat_message_by_id(
+    context: ToolContext,
+    message_id: Annotated[str, "The ID of the message to get."],
+    chat_id: Annotated[str, "The ID of the chat to get the message from."],
+    user_ids: Annotated[
+        list[str] | None, "The IDs of the users in the chat to get the message from."
+    ] = None,
+    user_names: Annotated[
+        list[str] | None,
+        "The names of the users in the chat to get the message from. Prefer providing user_ids, "
+        "when available, since the performance is better.",
+    ] = None,
+) -> Annotated[dict, "The message."]:
+    """Retrieves a Microsoft Teams chat message."""
+    client = get_client(context.get_auth_token_or_empty())
+
+    if not chat_id:
+        user_ids_with_current_user = await add_current_user_id(context, user_ids)
+        chat = await find_chat_by_users(context, user_ids_with_current_user, user_names)
+        chat_id = cast(str, chat["id"])
+
+    response = (
+        await client.chats.by_chat_id(cast(str, chat_id))
+        .messages.by_chat_message_id(message_id)
+        .get()
+    )
+
+    if not response or not isinstance(response, ChatMessage):
+        return {"message": None}
+
+    return {"message": serialize_chat_message(response)}
+
+
 @tool(requires_auth=Microsoft(scopes=["Chat.Read", "Chat.Create"]))
 async def get_chat_messages(
     context: ToolContext,
@@ -196,13 +230,13 @@ async def list_chats(
 async def send_message_to_chat(
     context: ToolContext,
     message: Annotated[str, "The message to send to the chat."],
-    chat_id: Annotated[str | None, "The ID of the chat to get messages from."] = None,
+    chat_id: Annotated[str | None, "The ID of the chat to send the message."] = None,
     user_ids: Annotated[
-        list[str] | None, "The IDs of the users in the chat to get messages from."
+        list[str] | None, "The IDs of the users in the chat to send the message."
     ] = None,
     user_names: Annotated[
         list[str] | None,
-        "The names of the users in the chat to get messages from. Prefer providing user_ids, "
+        "The names of the users in the chat to send the message. Prefer providing user_ids, "
         "when available, since the performance is better.",
     ] = None,
 ) -> Annotated[dict, "The message that was sent."]:
@@ -225,9 +259,13 @@ async def send_message_to_chat(
     response = await client.chats.by_chat_id(cast(str, chat_id)).messages.post(
         ChatMessage(body=ItemBody(content=message))
     )
+
+    if not isinstance(response, ChatMessage):
+        return {"message": None}
+
     return {
         "status": "Message successfully sent.",
-        "message": serialize_chat_message(cast(ChatMessage, response)),
+        "message": serialize_chat_message(response),
     }
 
 
