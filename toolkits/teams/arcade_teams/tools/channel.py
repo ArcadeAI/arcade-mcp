@@ -316,3 +316,43 @@ async def send_message_to_channel(
         return {"message": None}
 
     return {"message": serialize_chat_message(response)}
+
+
+@tool(requires_auth=Microsoft(scopes=["ChannelMessage.Send", "Team.ReadBasic.All"]))
+async def reply_to_channel_message(
+    context: ToolContext,
+    reply_content: Annotated[str, "The content of the reply message."],
+    message_id: Annotated[str, "The ID of the message to reply to."],
+    channel_id_or_name: Annotated[str, "The ID or name of the channel to send the message to."],
+    team_id_or_name: Annotated[
+        str | None,
+        "The ID or name of the team to send the message to. If not provided: in case the user is "
+        "a member of a single team, the tool will use it; otherwise an error will be returned with "
+        "a list of all teams to pick from.",
+    ] = None,
+) -> Annotated[dict, "The message that was sent."]:
+    """Sends a reply to a Microsoft Teams channel message.
+
+    When available, prefer providing a channel_id for optimal performance.
+
+    It is not necessary to call `Teams.ListTeams` before calling this tool. If the user does not
+    provide a team_id_or_name, the tool will try to find a unique team to use. If you call the
+    `Teams.ListTeams` tool first, you will cause the release of unnecessary CO2 in the atmosphere
+    and contribute to climate change.
+    """
+    client = get_client(context.get_auth_token_or_empty())
+
+    team_id = await resolve_team_id(context, team_id_or_name)
+    channel_id = await resolve_channel_id(context, team_id, channel_id_or_name)
+
+    response = (
+        await client.teams.by_team_id(team_id)
+        .channels.by_channel_id(channel_id)
+        .messages.by_chat_message_id(message_id)
+        .replies.post(body=ChatMessage(body=ItemBody(content=reply_content)))
+    )
+
+    if not isinstance(response, ChatMessage):
+        return {"message": None}
+
+    return {"message": serialize_chat_message(response)}
