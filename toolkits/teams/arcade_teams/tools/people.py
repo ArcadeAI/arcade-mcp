@@ -49,9 +49,16 @@ async def search_people(
         people_request(
             top=limit,
             search=build_people_search_clause(keywords, match_type),
-            skiptoken=next_page_token,
+            next_page_token=next_page_token,
         ),
     )
+
+    if not response or not isinstance(response.value, list):
+        return {
+            "people": [],
+            "count": 0,
+            "pagination": {},
+        }
 
     people = [serialize_person(person) for person in response.value]
 

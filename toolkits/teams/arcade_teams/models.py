@@ -121,12 +121,20 @@ class MatchHumansByName:
         self._human_id_matched: dict[str, set[str]] = {name: set() for name in names}
 
     def _human_name(self, human: dict) -> str:
-        if human["name"].get("display"):
-            return human["name"]["display"].casefold()
-        elif human["name"].get("first") and human["name"].get("last"):
-            return f"{human['name']['first']} {human['name']['last']}".casefold()
+        if isinstance(human["name"].get("display"), str):
+            return cast(str, human["name"]["display"].casefold())
         else:
-            return ""
+            name_parts = []
+
+            if isinstance(human["name"].get("first"), str):
+                name_parts.append(human["name"]["first"])
+            if isinstance(human["name"].get("last"), str):
+                name_parts.append(human["name"]["last"])
+
+            if not name_parts:
+                return ""
+
+            return " ".join(name_parts).casefold()
 
     def run(self) -> None:
         for name in self.names:

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
@@ -6,7 +6,7 @@ from arcade_tdk.errors import ToolExecutionError
 
 from arcade_teams.client import get_client
 from arcade_teams.constants import TeamMembershipType
-from arcade_teams.serializers import serialize_member, serialize_team
+from arcade_teams.serializers import serialize_associated_team, serialize_member, serialize_team
 from arcade_teams.utils import (
     build_offset_pagination,
     build_startswith_filter_clause,
@@ -34,10 +34,15 @@ async def list_teams(
 
     if membership_type == TeamMembershipType.DIRECT_MEMBER:
         response = await client.me.joined_teams.get()
-    elif membership_type == TeamMembershipType.MEMBER_OF_SHARED_CHANNEL:
-        response = await client.me.teamwork.associated_teams.get()
+        if not response or not isinstance(response.value, list):
+            return {"teams": []}
+        return {"teams": [serialize_team(team) for team in response.value]}
 
-    return {"teams": [serialize_team(team) for team in response.value]}
+    elif membership_type == TeamMembershipType.MEMBER_OF_SHARED_CHANNEL:
+        response_associated = await client.me.teamwork.associated_teams.get()
+        if not response_associated or not isinstance(response_associated.value, list):
+            return {"teams": []}
+        return {"teams": [serialize_associated_team(team) for team in response_associated.value]}
 
 
 @tool(requires_auth=Microsoft(scopes=["Team.ReadBasic.All"]))
@@ -77,6 +82,13 @@ async def search_teams(
         )
     )
 
+    if not response or not isinstance(response.value, list):
+        return {
+            "teams": [],
+            "count": 0,
+            "pagination": {},
+        }
+
     return {
         "teams": [serialize_team(team) for team in response.value],
         "pagination": build_token_pagination(response),
@@ -113,10 +125,15 @@ async def get_team(
         team_id = response["id"]
 
     if team_id:
-        response = await client.teams.by_team_id(team_id).get()
-        return serialize_team(response)
+        response_team = await client.teams.by_team_id(team_id).get()
+        if not response_team:
+            raise ToolExecutionError(
+                message="Team not found",
+                developer_message=f"Team with ID '{team_id}' not found",
+            )
+        return serialize_team(response_team)
 
-    return await find_unique_team_by_name(context, team_name)
+    return await find_unique_team_by_name(context, cast(str, team_name))
 
 
 @tool(requires_auth=Microsoft(scopes=["TeamMember.Read.All"]))
@@ -170,9 +187,20 @@ async def list_team_members(
         team_id = response["id"]
 
     client = get_client(context.get_auth_token_or_empty())
-    response = await client.teams.by_team_id(team_id).members.get(members_request(top=limit))
+    response_members = await client.teams.by_team_id(cast(str, team_id)).members.get(
+        members_request(top=limit)
+    )
 
-    members = [serialize_member(member) for member in response.value[offset : offset + limit]]
+    if not response_members or not isinstance(response_members.value, list):
+        return {
+            "members": [],
+            "count": 0,
+            "team": {"id": team_id, "name": team_name},
+        }
+
+    members = [
+        serialize_member(member) for member in response_members.value[offset : offset + limit]
+    ]
 
     return {
         "members": members,
@@ -230,7 +258,7 @@ async def search_team_members(
         team_name = response["name"]
 
     if team_name:
-        response = await find_unique_team_by_name(context, team_name)
+        response = await find_unique_team_by_name(context, cast(str, team_name))
         team_id = response["id"]
 
     filter_by_name = build_startswith_filter_clause(
@@ -240,11 +268,20 @@ async def search_team_members(
     )
 
     client = get_client(context.get_auth_token_or_empty())
-    response = await client.teams.by_team_id(team_id).members.get(
+    response_members = await client.teams.by_team_id(cast(str, team_id)).members.get(
         members_request(top=limit, filter_=filter_by_name)
     )
 
-    members = [serialize_member(member) for member in response.value[offset : offset + limit]]
+    if not response_members or not isinstance(response_members.value, list):
+        return {
+            "members": [],
+            "count": 0,
+            "team": {"id": team_id, "name": team_name},
+        }
+
+    members = [
+        serialize_member(member) for member in response_members.value[offset : offset + limit]
+    ]
 
     return {
         "members": members,

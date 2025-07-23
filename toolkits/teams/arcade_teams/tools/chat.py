@@ -248,8 +248,8 @@ async def create_chat(
     user_ids_with_current_user = await add_current_user_id(context, user_ids)
 
     if user_names:
-        humans = await find_humans_by_name(context, user_names)
-        user_ids_with_current_user.extend([human["id"] for human in humans["found"]])
+        users_by_name = await find_humans_by_name(context, user_names)
+        user_ids_with_current_user.extend([user["id"] for user in users_by_name])
 
     client = get_client(context.get_auth_token_or_empty())
     response = await client.chats.post(

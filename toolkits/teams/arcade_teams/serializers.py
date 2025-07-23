@@ -3,6 +3,7 @@ import json
 from collections.abc import Callable
 from typing import Any, cast
 
+from msgraph.generated.models.associated_team_info import AssociatedTeamInfo
 from msgraph.generated.models.channel import Channel
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.chat_message import ChatMessage
@@ -47,6 +48,21 @@ def serialize_team(
 
     if transform:
         return transform(team_dict)
+
+    return team_dict
+
+
+def serialize_associated_team(
+    team: AssociatedTeamInfo, transform: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+) -> dict[str, Any]:
+    team_dict: dict[str, Any] = {
+        "object_type": "associated_team",
+        "id": team.id,
+        "name": team.display_name,
+    }
+
+    if team.tenant_id:
+        team_dict["tenant_id"] = team.tenant_id
 
     return team_dict
 
@@ -342,7 +358,7 @@ def serialize_message_body_text_with_mentions(message: ChatMessage) -> str:
     if not message.mentions:
         return text
 
-    user_ids_seen: set[str] = set()
+    user_ids_seen = set()
     mentions_dicts = serialize_mentions(message.mentions)
     mentions_by_id = {mention["id"]: mention for mention in mentions_dicts}
 

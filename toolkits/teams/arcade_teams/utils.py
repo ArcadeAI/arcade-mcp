@@ -4,7 +4,6 @@ import json
 import re
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any, cast
 
 from arcade_tdk import ToolContext
@@ -61,7 +60,7 @@ def load_config_param(context: ToolContext, key: str) -> Any:
 
 
 def validate_datetime_string(value: str) -> str:
-    datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+    datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
     return value
 
 
@@ -114,8 +113,8 @@ def is_guid(value: str) -> bool:
 
 
 def config_request(
-    request_builder: dataclass,
-    **kwargs,
+    request_builder: Callable,
+    **kwargs: Any,
 ) -> RequestConfiguration:
     kwargs = remove_none_values(kwargs)
     if "next_page_token" in kwargs:
@@ -146,7 +145,7 @@ def members_request(top: int, filter_: str | None = None) -> RequestConfiguratio
     )
 
 
-def messages_request(**kwargs) -> RequestConfiguration:
+def messages_request(**kwargs: Any) -> RequestConfiguration:
     kwargs = remove_none_values(kwargs)
     return config_request(MessagesRequestBuilder.MessagesRequestBuilderGetQueryParameters, **kwargs)
 
@@ -164,7 +163,7 @@ def people_request(
     )
 
 
-def users_request(**kwargs) -> RequestConfiguration:
+def users_request(**kwargs: Any) -> RequestConfiguration:
     return config_request(UsersRequestBuilder.UsersRequestBuilderGetQueryParameters, **kwargs)
 
 
@@ -184,7 +183,9 @@ def chats_request(
 def create_chat_request(members: list[AadUserConversationMember]) -> Chat:
     return Chat(
         chat_type=ChatType.OneOnOne if len(members) == 2 else ChatType.Group,
-        members=members,
+        # The Chat.members expect a list[ConversationMember], but we actually
+        # need to pass a list[AadUserConversationMember]
+        members=members,  # type: ignore[arg-type]
     )
 
 
@@ -280,13 +281,13 @@ def filter_by_name_or_description(
 async def resolve_team_id(context: ToolContext, team_id_or_name: str | None) -> str:
     if not team_id_or_name:
         team = await find_unique_user_team(context=context)
-        return team["id"]
+        return cast(str, team["id"])
 
     if is_id(team_id_or_name):
         return team_id_or_name
 
     team = await find_unique_team_by_name(context=context, name=team_id_or_name)
-    return team["id"]
+    return cast(str, team["id"])
 
 
 async def find_unique_user_team(context: ToolContext) -> dict:
@@ -298,7 +299,7 @@ async def find_unique_user_team(context: ToolContext) -> dict:
         raise NoItemsFoundError("teams")
     if len(teams) > 1:
         raise MultipleItemsFoundError("teams", [short_version(team) for team in teams])
-    return teams[0]
+    return cast(dict, teams[0])
 
 
 async def find_unique_team_by_name(context: ToolContext, name: str) -> dict:
@@ -314,7 +315,7 @@ async def find_unique_team_by_name(context: ToolContext, name: str) -> dict:
         raise NoItemsFoundError("teams")
     elif len(teams) > 1:
         raise MultipleItemsFoundError("teams", [short_version(team) for team in teams])
-    return teams[0]
+    return cast(dict, teams[0])
 
 
 async def resolve_channel_id(
@@ -324,13 +325,13 @@ async def resolve_channel_id(
 ) -> str:
     if not channel_id_or_name:
         channel = await find_unique_channel(context, team_id)
-        return channel["id"]
+        return cast(str, channel["id"])
 
     if is_channel_id(channel_id_or_name):
         return channel_id_or_name
 
     channel = await find_unique_channel_by_name(context, team_id, channel_id_or_name)
-    return channel["id"]
+    return cast(str, channel["id"])
 
 
 async def find_unique_channel(context: ToolContext, team_id: str) -> dict:
@@ -342,7 +343,7 @@ async def find_unique_channel(context: ToolContext, team_id: str) -> dict:
         raise NoItemsFoundError("channels")
     if len(channels) > 1:
         raise MultipleItemsFoundError("channels", channels)
-    return channels[0]
+    return cast(dict, channels[0])
 
 
 async def find_unique_channel_by_name(context: ToolContext, team_id: str, name: str) -> dict:
@@ -357,19 +358,19 @@ async def find_unique_channel_by_name(context: ToolContext, team_id: str, name: 
     channels = response["channels"]
 
     if len(channels) == 1:
-        return channels[0]
+        return cast(dict, channels[0])
 
-    if len(channels) == 0:
+    elif len(channels) == 0:
         raise NoItemsFoundError(
             item="channels",
             available_options=channels,
             search_term=name,
         )
 
-    if len(channels) > 1:
+    else:
         for channel in channels:
             if channel["name"].casefold() == name.casefold():
-                return channel
+                return cast(dict, channel)
         raise MultipleItemsFoundError(
             item="channels",
             available_options=channels,
@@ -421,9 +422,27 @@ async def find_chat_by_user_ids(
         )
         response = await client.chats.post(request_body)
 
+        type_error_message = "Unexpected response type from the Microsoft Graph API"
+        type_error_developer_message = (
+            f"Unexpected response type from the Microsoft Graph API: '{type(response)}'. "
+            "Expected a msgraph.generated.models.chat.Chat object."
+        )
+
+        if not isinstance(response, Chat):
+            raise ToolExecutionError(
+                message=type_error_message,
+                developer_message=type_error_developer_message,
+            )
+
         # The "chats.get" endpoint returns more data than the "chats.post" one. We call the
-        # "chats.get" endpoint to keep responses standardized.
-        chat = await client.chats.by_chat_id(response["id"]).get()
+        # "chats.get" endpoint to keep the tool responses standardized.
+        chat = await client.chats.by_chat_id(cast(str, response.id)).get()
+
+        if not isinstance(chat, Chat):
+            raise ToolExecutionError(
+                message=type_error_message,
+                developer_message=type_error_developer_message,
+            )
         return serialize_chat(chat)
 
 
@@ -499,7 +518,7 @@ async def find_humans_by_name(
     context: ToolContext,
     names: list[str],
     semaphore: asyncio.Semaphore | None = None,
-):
+) -> list[dict]:
     if not names:
         message = "No names provided"
         raise ToolExecutionError(message=message, developer_message=message)
@@ -561,7 +580,7 @@ def filter_channels_by_name(
     return [
         serializer(channel)
         for channel in channels
-        if _matches_channel_name(channel.display_name, keywords, match_type)
+        if _matches_channel_name(cast(str, channel.display_name), keywords, match_type)
     ]
 
 
@@ -587,6 +606,9 @@ def generate_case_variants(keyword: str) -> list[str]:
 
 
 def match_user_by_name(user: User, keywords: list[str], match_type: PartialMatchType) -> bool:
+    if not user.display_name:
+        return False
+
     user_name = user.display_name.casefold()
     if match_type == PartialMatchType.PARTIAL_ALL:
         return all(keyword.casefold() in user_name for keyword in keywords)
