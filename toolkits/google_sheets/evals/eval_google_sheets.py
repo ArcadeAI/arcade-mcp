@@ -85,6 +85,39 @@ Nate Green 30 nateg@example.com 88 Male Orlando USA 2024-02-01
 456, 234, 234, 399, 234, 1234, 23526, 123, 54, 234, 4567, 23, 12, 234, 1324, (the formula for sum of everything to the left)
 """
 
+# A conversation where the user asks for a small amount of data from a sheet within a spreadsheet
+first_page_of_sheet_conversation = [
+    {"role": "system", "content": "Today is 2025-07-22, Tuesday."},
+    {
+        "role": "user",
+        "content": "get the first 3 columns and the first 5 rows in the second sheet in 1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs",
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+            {
+                "id": "call_9wF1QvhE0oLvkoayO6R53Q0C",
+                "type": "function",
+                "function": {
+                    "name": "GoogleSheets_GetSpreadsheet",
+                    "arguments": '{"spreadsheet_id":"1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs","sheet_identifier":"2","start_col":"A","max_cols":3,"start_row":1,"max_rows":5}',
+                },
+            }
+        ],
+    },
+    {
+        "role": "tool",
+        "content": '{"sheets":[{"columnCount":26,"data":{"1":{"A":{"formattedValue":"Day 1","userEnteredValue":"Day 1"},"B":{"formattedValue":"Day 2","userEnteredValue":"Day 2"},"C":{"formattedValue":"Day 3","userEnteredValue":"Day 3"}},"2":{"A":{"formattedValue":"1","userEnteredValue":1},"B":{"formattedValue":"2","userEnteredValue":2},"C":{"formattedValue":"3","userEnteredValue":3}},"3":{"A":{"formattedValue":"3","userEnteredValue":3},"B":{"formattedValue":"4","userEnteredValue":4},"C":{"formattedValue":"2","userEnteredValue":2}},"4":{"A":{"formattedValue":"2","userEnteredValue":2},"B":{"formattedValue":"2","userEnteredValue":2},"C":{"formattedValue":"2","userEnteredValue":2}},"5":{"A":{"formattedValue":"6","userEnteredValue":6},"B":{"formattedValue":"7","userEnteredValue":7},"C":{"formattedValue":"8","userEnteredValue":8}}},"rowCount":1000,"sheetId":428226469,"title":"Sheet4"}],"spreadsheetId":"1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs","spreadsheetUrl":"https://docs.google.com/spreadsheets/d/1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs/edit?ouid=115006420821264674388","title":"Test Spreadsheet Formatting"}',
+        "tool_call_id": "call_9wF1QvhE0oLvkoayO6R53Q0C",
+        "name": "GoogleSheets_GetSpreadsheet",
+    },
+    {
+        "role": "assistant",
+        "content": "Here are the first 3 columns and the first 5 rows from the second sheet:\n\n| Day 1 | Day 2 | Day 3 |\n|-------|-------|-------|\n| 1     | 2     | 3     |\n| 3     | 4     | 2   |\n| 2     | 2     | 2     |\n| 6     | 7     | 8     |\n\nYou can view and edit the spreadsheet directly [here](https://docs.google.com/spreadsheets/d/1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs/edit?ouid=115006420821264674388).",
+    },
+]
+
 
 @tool_eval()
 def create_spreadsheet_eval() -> EvalSuite:
@@ -151,19 +184,48 @@ def get_spreadsheet_eval() -> EvalSuite:
     )
 
     suite.add_case(
-        name="Get a spreadsheet",
+        name="Get a sheet in a spreadsheet",
         user_message="Get the data in the second sheet of the spreadsheet with the following id 1L2ovCUcRNOacoWxtLV3jgaidWZq4Bw_WXbIWJcxobN0",
         expected_tool_calls=[
             ExpectedToolCall(
                 func=get_spreadsheet,
                 args={
                     "spreadsheet_id": "1L2ovCUcRNOacoWxtLV3jgaidWZq4Bw_WXbIWJcxobN0",
+                    "sheet_identifier": "2",
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="spreadsheet_id", weight=1.0),
+            BinaryCritic(critic_field="spreadsheet_id", weight=0.5),
+            BinaryCritic(critic_field="sheet_identifier", weight=0.5),
         ],
+    )
+
+    suite.add_case(
+        name="Get the next rows in a sheet given a previous conversation",
+        user_message="Get the next 10 rows.",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_spreadsheet,
+                args={
+                    "spreadsheet_id": "1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs",
+                    "sheet_identifier": "2",
+                    "start_row": 6,
+                    "max_rows": 10,
+                    "start_col": "A",
+                    "max_cols": 3,
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="spreadsheet_id", weight=1 / 6),
+            BinaryCritic(critic_field="sheet_identifier", weight=1 / 6),
+            BinaryCritic(critic_field="start_row", weight=1 / 6),
+            BinaryCritic(critic_field="max_rows", weight=1 / 6),
+            BinaryCritic(critic_field="start_col", weight=1 / 6),
+            BinaryCritic(critic_field="max_cols", weight=1 / 6),
+        ],
+        additional_messages=first_page_of_sheet_conversation,
     )
 
     return suite

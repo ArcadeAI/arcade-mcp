@@ -589,9 +589,40 @@ def calculate_a1_sheet_range(
     return None
 
 
+def find_sheet_by_identifier(sheets: list[Sheet], sheet_identifier: str) -> Sheet | None:
+    """
+    Find a sheet by identifier (name, sheet ID, or 1-based index).
+
+    Args:
+        sheets (list): List of Sheet objects from the spreadsheet.
+        sheet_identifier (str): The identifier to match against.
+
+    Returns:
+        Sheet | None: The matching sheet, or None if not found.
+    """
+    # First, try to match by sheet name (case-insensitive)
+    for sheet in sheets:
+        if sheet.properties.title.casefold() == sheet_identifier.casefold():
+            return sheet
+
+    # Second, try to match by sheet ID
+    for sheet in sheets:
+        if str(sheet.properties.sheetId).casefold() == sheet_identifier.casefold():
+            return sheet
+
+    # Finally, try to match by 1-based index
+    if sheet_identifier.isdigit():
+        index = int(sheet_identifier) - 1
+        if 0 <= index < len(sheets):
+            return sheets[index]
+
+    return None
+
+
 def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     service: Resource,
     spreadsheet_id: str,
+    sheet_identifier: str,
     start_row: int,
     start_col: str,
     max_rows: int,
@@ -603,13 +634,14 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     Args:
         service (Resource): The Google Sheets service.
         spreadsheet_id (str): The ID of the spreadsheet provided to the tool.
+        sheet_identifier (str): The identifier of the sheet to get.
         start_row (int): The row from which to start fetching data.
         start_col (str): The column letter(s) from which to start fetching data.
         max_rows (int): The maximum number of rows to fetch.
         max_cols (int): The maximum number of columns to fetch.
 
     Returns:
-        dict: The spreadsheet data for all sheets in the spreadsheet.
+        dict: The spreadsheet data for the specified sheet in the spreadsheet.
 
     """
 
@@ -625,12 +657,20 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     )
     spreadsheet = Spreadsheet.model_validate(metadata_response)
 
+    target_sheet = find_sheet_by_identifier(spreadsheet.sheets, sheet_identifier)
+    if not target_sheet:
+        raise ToolExecutionError(
+            message=f"Sheet with identifier '{sheet_identifier}' not found",
+            developer_message=(
+                "Sheet(s) in the spreadsheet: "
+                + ", ".join([sheet.model_dump_json() for sheet in spreadsheet.sheets])
+            ),
+        )
+
     a1_ranges = []
-    for sheet in spreadsheet.sheets:
-        sheet_name = sheet.properties.title
-        grid_props = sheet.properties.gridProperties
-        if not grid_props:
-            continue
+    sheet_name = target_sheet.properties.title
+    grid_props = target_sheet.properties.gridProperties
+    if grid_props:
         sheet_row_count = grid_props.rowCount
         sheet_col_count = grid_props.columnCount
 
@@ -696,3 +736,23 @@ def process_get_spreadsheet_params(
         processed_start_col = start_col.upper()
 
     return processed_start_row, processed_start_col, processed_max_rows, processed_max_cols
+
+
+def enforce_data_size_limit(data: dict) -> None:
+    """Enforce a 10MB limit on the data size.
+
+    Args:
+        data (dict): The data to enforce the size limit on.
+
+    Raises:
+        ToolExecutionError:
+            If the data size exceeds 10MB
+    """
+    num_bytes = len(str(data).encode("utf-8"))
+
+    if num_bytes >= (10 * 1024 * 1024):
+        raise ToolExecutionError(
+            message="Spreadsheet size exceeds 10MB limit. "
+            "Please reduce the number of rows and columns you are requesting and try again.",
+            developer_message=f"Data size: {num_bytes / 1024 / 1024:.4f}MB",
+        )

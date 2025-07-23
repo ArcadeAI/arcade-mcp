@@ -4,12 +4,7 @@ import pytest
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
 from arcade_google_sheets.enums import NumberFormatType
-from arcade_google_sheets.models import (
-    CellData,
-    CellExtendedValue,
-    RowData,
-    SheetDataInput,
-)
+from arcade_google_sheets.models import CellData, CellExtendedValue, RowData, Sheet, SheetDataInput
 from arcade_google_sheets.utils import (
     calculate_a1_sheet_range,
     col_to_index,
@@ -20,6 +15,7 @@ from arcade_google_sheets.utils import (
     create_sheet_data,
     create_sheet_properties,
     extract_user_entered_cell_value,
+    find_sheet_by_identifier,
     group_contiguous_rows,
     index_to_col,
     is_col_greater,
@@ -604,6 +600,72 @@ def test_calculate_a1_sheet_range(
     assert result == expected_range
 
 
+@pytest.mark.parametrize(
+    "sheets, sheet_identifier, expected",
+    [
+        (  # Find by sheet name
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 3444444}),
+            ],
+            "sheet1",
+            Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+        ),
+        (  # Find by sheet name that is numerical
+            [
+                Sheet(properties={"title": "23", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 3444444}),
+            ],
+            "23",
+            Sheet(properties={"title": "23", "sheetId": 1838284}),
+        ),
+        (  # Sheet name does not exist
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 2343444}),
+            ],
+            "Sheet 234",
+            None,
+        ),
+        (  # Find by sheet ID
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 2343434}),
+            ],
+            "1838284",
+            Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+        ),
+        (  # Sheet ID does not exist
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 3453322}),
+            ],
+            "99929",
+            None,
+        ),
+        (  # Find sheet by 1-based index
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 2}),
+            ],
+            "1",
+            Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+        ),
+        (  # 1-based index does not exist
+            [
+                Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
+                Sheet(properties={"title": "Sheet2", "sheetId": 2}),
+            ],
+            "12",
+            None,
+        ),
+    ],
+)
+def test_find_sheet_by_identifier(sheets, sheet_identifier, expected):
+    result = find_sheet_by_identifier(sheets, sheet_identifier)
+    assert result == expected
+
+
 @patch("arcade_google_sheets.utils.parse_get_spreadsheet_response")
 @patch("arcade_google_sheets.utils.calculate_a1_sheet_range")
 def test_get_spreadsheet_with_pagination_with_valid_ranges(
@@ -642,10 +704,6 @@ def test_get_spreadsheet_with_pagination_with_valid_ranges(
                 "properties": {"title": "Sheet1", "sheetId": 1},
                 "data": [{"rowData": [{"values": [{"userEnteredValue": {"stringValue": "A1"}}]}]}],
             },
-            {
-                "properties": {"title": "Sheet2", "sheetId": 2},
-                "data": [{"rowData": [{"values": [{"userEnteredValue": {"stringValue": "A1"}}]}]}],
-            },
         ],
     }
 
@@ -661,6 +719,7 @@ def test_get_spreadsheet_with_pagination_with_valid_ranges(
     result = get_spreadsheet_with_pagination(
         service=mock_service,
         spreadsheet_id="test_id",
+        sheet_identifier="1",
         start_row=1,
         start_col="A",
         max_rows=100,
@@ -678,14 +737,13 @@ def test_get_spreadsheet_with_pagination_with_valid_ranges(
     mock_service.spreadsheets().get.assert_any_call(
         spreadsheetId="test_id",
         includeGridData=True,
-        ranges=["'Sheet1'!A1:Z100", "'Sheet2'!A1:J50"],
+        ranges=["'Sheet1'!A1:Z100"],
         fields="spreadsheetId,spreadsheetUrl,properties/title,sheets/properties,sheets/data/rowData/values/userEnteredValue,sheets/data/rowData/values/formattedValue,sheets/data/rowData/values/effectiveValue",
     )
 
     # Verify calculate_a1_sheet_range was called for each sheet
-    assert mock_calculate_range.call_count == 2
+    assert mock_calculate_range.call_count == 1
     mock_calculate_range.assert_any_call("Sheet1", 1000, 26, 1, "A", 100, 26)
-    mock_calculate_range.assert_any_call("Sheet2", 500, 10, 1, "A", 100, 26)
 
     # Verify parse_get_spreadsheet_response was called with data response
     mock_parse_response.assert_called_once_with(data_response)
