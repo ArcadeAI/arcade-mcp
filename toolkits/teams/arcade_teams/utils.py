@@ -544,7 +544,7 @@ async def find_humans_by_name(
                 context=context,
                 func=client.me.people.get,
                 request_builder=people_request,
-                page_limit=1000,
+                page_limit=100,
                 semaphore=semaphore,
                 search=build_people_search_clause(names, PartialMatchType.PARTIAL_ANY),
             ),

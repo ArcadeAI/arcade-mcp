@@ -1,5 +1,7 @@
 import datetime
 import json
+import logging
+import traceback
 from collections.abc import Callable
 from typing import Any, cast
 
@@ -18,6 +20,8 @@ from msgraph.generated.models.search_hit import SearchHit
 from msgraph.generated.models.team import Team
 from msgraph.generated.models.teamwork_tag import TeamworkTag
 from msgraph.generated.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_team(
@@ -320,6 +324,8 @@ def serialize_message_body_text(message: ChatMessage) -> str:
     if not message.body or not message.body.content:
         return ""
 
+    text = str(message.body.content)
+
     try:
         if message.mentions:
             text = serialize_message_body_text_with_mentions(message)
@@ -345,7 +351,8 @@ def serialize_message_body_text(message: ChatMessage) -> str:
                         pattern, f'<attachment id="{attachment.id}">{attachment.name}</attachment>'
                     )
     except Exception:
-        text = str(message.body.content)
+        traceback.print_exc()
+        logger.exception("Error serializing message body text with mentions and attachments")
     return text
 
 
@@ -404,6 +411,8 @@ def serialize_mentions(mentions: list[ChatMessageMention]) -> list[dict[str, Any
     mentions_list: list[dict[str, Any]] = []
     serialized_mentions = [serialize_mention(mention) for mention in mentions]
     for mention in serialized_mentions:
+        # if not mention:
+        #     continue
         if not mention.get("id"):
             mentions_list.append(mention)
             continue
@@ -723,21 +732,21 @@ def enrich_user_employment(user_dict: dict[str, Any], user: User) -> dict[str, A
 
 
 def resolve_identity_reference(identity_set: IdentitySet) -> dict[str, Any] | None:
-    if getattr(identity_set, "user", None) and isinstance(identity_set.user, User):
+    if hasattr(identity_set, "user") and identity_set.user:
         return {
             "type": "user",
-            "id": identity_set.user.id,
-            "name": identity_set.user.display_name,
+            "id": getattr(identity_set.user, "id", None),  # type: ignore[attr-defined]
+            "name": getattr(identity_set.user, "display_name", None),  # type: ignore[attr-defined]
         }
 
-    if getattr(identity_set, "conversation", None):
+    if hasattr(identity_set, "conversation") and identity_set.conversation:
         return {
             "type": "conversation",
             "id": getattr(identity_set.conversation, "id", None),  # type: ignore[attr-defined]
             "name": getattr(identity_set.conversation, "display_name", None),  # type: ignore[attr-defined]
         }
 
-    if getattr(identity_set, "team", None):
+    if hasattr(identity_set, "team") and identity_set.team:
         return {
             "type": "team",
             "id": getattr(identity_set.team, "id", None),  # type: ignore[attr-defined]

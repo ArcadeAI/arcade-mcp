@@ -6,7 +6,6 @@ from arcade_tdk.errors import ToolExecutionError
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.chat_collection_response import ChatCollectionResponse
 from msgraph.generated.models.chat_message import ChatMessage
-from msgraph.generated.models.chat_message_collection_response import ChatMessageCollectionResponse
 from msgraph.generated.models.chat_message_type import ChatMessageType
 from msgraph.generated.models.item_body import ItemBody
 
@@ -105,13 +104,18 @@ async def get_chat_messages(
         )
     )
 
-    response = cast(ChatMessageCollectionResponse, response)
+    if not response or not isinstance(response.value, list):
+        return {
+            "messages": [],
+            "count": 0,
+            "chat": {"id": chat_id},
+        }
 
     # Unfortunately, the MS Graph API $filter parameter does not support filtering by message type.
     # So we need to filter out non-message items, like systemEventMessage manually.
     messages = [
         serialize_chat_message(message)
-        for message in cast(list[ChatMessage], response.value)
+        for message in response.value
         if message.message_type == ChatMessageType.Message
     ]
 
@@ -215,10 +219,10 @@ async def send_message_to_chat(
     if not chat_id:
         user_ids_with_current_user = await add_current_user_id(context, user_ids)
         chat = await create_chat(context, user_ids_with_current_user, user_names)
-        chat_id = cast(str, chat["id"])
+        chat_id = chat["chat"]["id"]
 
     client = get_client(context.get_auth_token_or_empty())
-    response = await client.chats.by_chat_id(chat_id).messages.post(
+    response = await client.chats.by_chat_id(cast(str, chat_id)).messages.post(
         ChatMessage(body=ItemBody(content=message))
     )
     return {

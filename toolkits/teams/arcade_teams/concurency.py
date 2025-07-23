@@ -45,7 +45,6 @@ async def paginate(
             )
             request_kwargs["next_page_token"] = next_page_token
             request = request_builder(**request_kwargs)
-
             async with semaphore:
                 api_response = await func(request)
 
