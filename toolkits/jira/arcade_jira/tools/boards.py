@@ -50,70 +50,62 @@ async def get_boards(
     "A comprehensive dictionary containing successfully resolved boards in a 'boards' list, "
     "with each board including metadata like ID, name, type, and location information. "
     "Any boards that couldn't be found are listed in an 'errors' array with detailed "
-    "error messages. Includes pagination metadata.",
+    "error messages. Includes pagination metadata. Duplicate boards are automatically "
+    "deduplicated based on board ID.",
 ]:
     """
     Get Jira boards by their names or IDs, or list all boards with pagination.
     Returns successfully found boards and error details for any boards that couldn't be resolved.
+    Automatically deduplicates boards if the same board is requested by both ID and name.
     """
     client = JiraClient(context.get_auth_token_or_empty(), use_agile_api=True)
     limit = validate_board_limit(limit)
-
-    results = {
-        "boards": [],
-        "errors": [],
-    }
 
     # If no specific boards requested, get all boards with pagination
     if not board_identifiers:
         return await _get_all_boards_paginated(client, limit, offset)
 
-    # Process specific board identifiers
+    # Process specific board identifiers with deduplication
+    return await _get_boards_by_identifiers(client, board_identifiers)
+
+
+async def _get_boards_by_identifiers(
+    client: JiraClient,
+    board_identifiers: list[str],
+) -> dict[str, Any]:
+    """
+    Get boards by specific identifiers with deduplication logic.
+
+    Args:
+        client: JiraClient instance for API calls
+        board_identifiers: List of board names or IDs to retrieve
+
+    Returns:
+        Dictionary containing deduplicated boards and any errors
+    """
+    results = {
+        "boards": [],
+        "errors": [],
+    }
+
+    # Track processed identifiers (both IDs and names) to prevent duplicates
+    processed_identifiers = set()
+
     for board_identifier in board_identifiers:
+        # Skip if we already processed this identifier or found this board
+        if board_identifier in processed_identifiers:
+            continue
+
         try:
-            board_found = False
+            board_result = await _find_board_by_identifier(client, board_identifier)
 
-            # If identifier is numeric, try to get by ID first
-            if board_identifier.isdigit():
-                try:
-                    board = await client.get(f"/board/{board_identifier}")
-                    board_result = clean_board_dict(board)
-                    board_result["found_by"] = "id"
-                    results["boards"].append(board_result)
-                    board_found = True
-                    continue
-                except Exception:
-                    # ID lookup failed, will try by name
-                    logger.warning(
-                        f"Board ID lookup failed for '{board_identifier}'. Attempting name lookup."
-                    )
-
-            # Try by name using Jira API name filter (for non-numeric or failed ID lookup)
-            if not board_found:
-                try:
-                    response = await client.get(
-                        "/board",
-                        params={
-                            "name": board_identifier,
-                            "startAt": 0,
-                            "maxResults": 1,
-                        },
-                    )
-
-                    boards = response.get("values", [])
-                    if boards:
-                        # Found board by name
-                        board_result = clean_board_dict(boards[0])
-                        board_result["found_by"] = "name"
-                        results["boards"].append(board_result)
-                        board_found = True
-
-                except Exception:
-                    # Name lookup also failed (API error)
-                    logger.warning(f"Board name lookup failed for '{board_identifier}'. API error.")
-
-            # If still not found, add to errors
-            if not board_found:
+            if board_result:
+                # Add both the board ID and name to processed set to prevent future duplicates
+                processed_identifiers.add(str(board_result["id"]))
+                processed_identifiers.add(board_result["name"])
+                results["boards"].append(board_result)
+            else:
+                # Board not found, add to errors
                 error_entry = create_error_entry(
                     board_identifier,
                     f"Board '{board_identifier}' not found",
@@ -128,6 +120,93 @@ async def get_boards(
             results["errors"].append(error_entry)
 
     return results
+
+
+async def _find_board_by_identifier(
+    client: JiraClient,
+    board_identifier: str,
+) -> dict[str, Any] | None:
+    """
+    Find a board by either ID or name.
+
+    Args:
+        client: JiraClient instance for API calls
+        board_identifier: Board ID or name to search for
+
+    Returns:
+        Cleaned board dictionary if found, None otherwise
+    """
+    # If identifier is numeric, try to get by ID first
+    if board_identifier.isdigit():
+        board_result = await _find_board_by_id(client, board_identifier)
+        if board_result:
+            return board_result
+        # ID lookup failed, fall back to name lookup
+        logger.warning(f"Board ID lookup failed for '{board_identifier}'. Attempting name lookup.")
+
+    # Try by name (for non-numeric identifiers or failed ID lookup)
+    return await _find_board_by_name(client, board_identifier)
+
+
+async def _find_board_by_id(
+    client: JiraClient,
+    board_id: str,
+) -> dict[str, Any] | None:
+    """
+    Find a board by its ID.
+
+    Args:
+        client: JiraClient instance for API calls
+        board_id: Board ID to search for
+
+    Returns:
+        Cleaned board dictionary if found, None otherwise
+    """
+    try:
+        board = await client.get(f"/board/{board_id}")
+        board_result = clean_board_dict(board)
+        board_result["found_by"] = "id"
+        return board_result
+    except Exception:
+        return None
+    else:
+        logger.warning(f"Board ID lookup failed for '{board_id}'. API error.")
+        return None
+
+
+async def _find_board_by_name(
+    client: JiraClient,
+    board_name: str,
+) -> dict[str, Any] | None:
+    """
+    Find a board by its name using Jira API name filter.
+
+    Args:
+        client: JiraClient instance for API calls
+        board_name: Board name to search for
+
+    Returns:
+        Cleaned board dictionary if found, None otherwise
+    """
+    try:
+        response = await client.get(
+            "/board",
+            params={
+                "name": board_name,
+                "startAt": 0,
+                "maxResults": 1,
+            },
+        )
+
+        boards = response.get("values", [])
+        if boards:
+            board_result = clean_board_dict(boards[0])
+            board_result["found_by"] = "name"
+            return board_result
+    except Exception:
+        logger.warning(f"Board name lookup failed for '{board_name}'. API error.")
+
+    return None
 
 
 async def _get_all_boards_paginated(

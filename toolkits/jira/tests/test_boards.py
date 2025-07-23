@@ -260,3 +260,178 @@ class TestGetBoards:
         assert "boards" in result
         assert "total" in result
         mock_client.get.assert_called_once_with("/board", params={"startAt": 0, "maxResults": 50})
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_id_and_name_same_board(self, mock_jira_client):
+        """Test deduplication when the same board is requested by both ID and name."""
+        mock_client = Mock()
+
+        # Both ID and name resolve to the same board (ID: 123, Name: "Test Board")
+        mock_client.get = AsyncMock(
+            side_effect=[
+                {"id": 123, "name": "Test Board", "type": "scrum"},  # ID lookup
+                {"values": [{"id": 123, "name": "Test Board", "type": "scrum"}]},  # Name lookup
+            ]
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["123", "Test Board"])
+
+        # Should only return one board despite two identifiers
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 123
+        assert result["boards"][0]["name"] == "Test Board"
+        assert result["boards"][0]["found_by"] == "id"  # First match wins
+        assert len(result["errors"]) == 0
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_multiple_same_ids(self, mock_jira_client):
+        """Test deduplication when the same ID is provided multiple times."""
+        mock_client = Mock()
+
+        # Same ID provided multiple times
+        mock_client.get = AsyncMock(
+            return_value={"id": 456, "name": "Duplicate Board", "type": "kanban"}
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["456", "456", "456"])
+
+        # Should only return one board despite multiple identical identifiers
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 456
+        assert result["boards"][0]["name"] == "Duplicate Board"
+        assert len(result["errors"]) == 0
+
+        # Should only make one API call since identical identifiers are skipped
+        mock_client.get.assert_called_once_with("/board/456")
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_multiple_same_names(self, mock_jira_client):
+        """Test deduplication when the same name is provided multiple times."""
+        mock_client = Mock()
+
+        # Same name provided multiple times
+        mock_client.get = AsyncMock(
+            return_value={"values": [{"id": 789, "name": "My Board", "type": "simple"}]}
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["My Board", "My Board"])
+
+        # Should only return one board despite multiple identical identifiers
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 789
+        assert result["boards"][0]["name"] == "My Board"
+        assert len(result["errors"]) == 0
+
+        # Should only make one API call since identical identifiers are skipped
+        mock_client.get.assert_called_once_with(
+            "/board", params={"name": "My Board", "startAt": 0, "maxResults": 1}
+        )
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_id_fallback_to_name_same_board(self, mock_jira_client):
+        """Test deduplication when the same identifier is provided multiple times."""
+        mock_client = Mock()
+
+        # Scenario: Same identifier "100" provided twice
+        # First "100": successful ID lookup for board 100
+        # (adds "100" and "Fallback Board" to processed set)
+        # Second "100": skipped (already in processed set)
+        mock_client.get = AsyncMock(
+            return_value={"id": 100, "name": "Fallback Board", "type": "scrum"}
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["100", "100"])
+
+        # Should only return one board - second "100" is skipped
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 100
+        assert result["boards"][0]["name"] == "Fallback Board"
+        assert result["boards"][0]["found_by"] == "id"
+        assert len(result["errors"]) == 0
+
+        # Should only make one API call since second "100" is skipped
+        mock_client.get.assert_called_once_with("/board/100")
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_mixed_identifiers_complex(self, mock_jira_client):
+        """Test complex deduplication scenario with mixed identifiers."""
+        mock_client = Mock()
+
+        # Complex scenario with simplified deduplication:
+        # - "123" (ID) -> Board 123 "Alpha" (found, adds "123" and "Alpha" to processed set)
+        # - "Alpha" (name) -> Skipped (already in processed set)
+        # - "456" (ID) -> Board 456 "Beta" (found, adds "456" and "Beta" to processed set)
+        # - "Beta" (name) -> Skipped (already in processed set)
+        # - "Gamma" (name) -> Board 789 "Gamma" (found, unique)
+        mock_client.get = AsyncMock(
+            side_effect=[
+                {"id": 123, "name": "Alpha", "type": "scrum"},  # ID lookup for "123"
+                {"id": 456, "name": "Beta", "type": "kanban"},  # ID lookup for "456"
+                {
+                    "values": [{"id": 789, "name": "Gamma", "type": "simple"}]
+                },  # Name lookup for "Gamma"
+            ]
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["123", "Alpha", "456", "Beta", "Gamma"])
+
+        # Should return 3 unique boards (Alpha and Beta are skipped after first match)
+        assert len(result["boards"]) == 3
+
+        # Check board IDs are unique
+        board_ids = [board["id"] for board in result["boards"]]
+        assert board_ids == [123, 456, 789]
+
+        # Check found_by attributes
+        assert result["boards"][0]["found_by"] == "id"  # 123 found by ID
+        assert result["boards"][1]["found_by"] == "id"  # 456 found by ID
+        assert result["boards"][2]["found_by"] == "name"  # Gamma found by name
+
+        assert len(result["errors"]) == 0
+
+        # Verify only 3 API calls were made (Alpha and Beta were skipped)
+        assert mock_client.get.call_count == 3
+
+    @pytest.mark.asyncio
+    @patch("arcade_jira.tools.boards.JiraClient")
+    async def test_get_boards_deduplication_with_errors(self, mock_jira_client):
+        """Test deduplication works correctly when some boards are not found."""
+        mock_client = Mock()
+
+        # Mixed scenario with duplicates and errors:
+        # - "100" (ID) -> Board 100 "Found" (adds "100" and "Found" to processed set)
+        # - "Found" (name) -> Skipped (already in processed set)
+        # - "999" (ID) -> Not found
+        # - "Missing" (name) -> Not found
+        mock_client.get = AsyncMock(
+            side_effect=[
+                {"id": 100, "name": "Found", "type": "scrum"},  # ID lookup success
+                Exception("Not found"),  # ID 999 fails
+                {"values": []},  # Name 999 fails
+                {"values": []},  # Name "Missing" fails
+            ]
+        )
+        mock_jira_client.return_value = mock_client
+
+        result = await get_boards(Mock(), ["100", "Found", "999", "Missing"])
+
+        # Should return 1 board and 2 errors ("Found" is skipped)
+        assert len(result["boards"]) == 1
+        assert result["boards"][0]["id"] == 100
+        assert result["boards"][0]["name"] == "Found"
+        assert result["boards"][0]["found_by"] == "id"
+
+        assert len(result["errors"]) == 2
+        error_identifiers = [error["board_identifier"] for error in result["errors"]]
+        assert "999" in error_identifiers
+        assert "Missing" in error_identifiers
