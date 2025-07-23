@@ -172,14 +172,10 @@ async def _get_table_schema(engine: AsyncEngine, schema_name: str, table_name: s
         return results[:MAX_ROWS_RETURNED]
 
 
-async def _execute_query(
-    engine: AsyncEngine, query: str, limit: int, offset: int, params: dict[str, Any] | None = None
-) -> list[str]:
+async def _execute_query(engine: AsyncEngine, query: str, limit: int, offset: int) -> list[str]:
     """Execute a query and return the results."""
     async with engine.connect() as connection:
-        result = await connection.execute(
-            text(DatabaseEngine.sanitize_query(query, limit, offset)), params
-        )
+        result = await connection.execute(text(DatabaseEngine.sanitize_query(query, limit, offset)))
         rows = result.fetchall()
         results = [str(row) for row in rows]
         return results[:MAX_ROWS_RETURNED]
