@@ -46,12 +46,12 @@ async def list_sprints_for_boards(
     context: ToolContext,
     board_ids: Annotated[
         list[str],
-        "Required list of board names or IDs to retrieve sprints for. "
-        "IMPORTANT: Always provide ALL boards in a single list, even when requesting "
-        "multiple boards. When sprints for multiple boards requested, avoid making "
-        "separate tool calls for different boards - combine them into one list. "
-        "Can contain mixed board identifiers (numeric IDs as strings and board names). "
-        "When both ID and name are available for a board, prefer using the numeric ID. ",
+        "MANDATORY: Combine all mentioned board names or IDs into a SINGLE list. "
+        "This list should include every board identifier mentioned in the request, "
+        "without splitting them into separate calls. "
+        "Identifiers can be numeric IDs (as strings) or board names. "
+        "Prioritize numeric IDs when both are available. "
+        "If no specific identifiers are provided, use None to retrieve all boards with pagination.",
     ],
     sprints_per_board: Annotated[
         int,
@@ -110,8 +110,12 @@ async def list_sprints_for_boards(
     Requires a list of board identifiers and supports date-based filtering.
     Returns valid responses for sprint boards and error messages for non-sprint boards.
 
-    When querying sprints for multiple boards, always send them as a single list
-    rather than making separate tool calls for each board.
+    ⚠️  CRITICAL PERFORMANCE WARNING ⚠️
+    Calling this function multiple times severely degrades performance and wastes system resources.
+    Always call this function ONCE with ALL boards to achieve maximum performance and efficiency.
+    Multiple separate calls will cause significant slowdowns and should be avoided at all costs.
+    Combining all boards into a single call provides dramatically better performance
+    and resource utilization.
 
     Date Range Filtering: Use start_date and/or end_date to find sprints that overlap
     with a specified time period. Either parameter can be used alone or both can be
@@ -131,7 +135,7 @@ async def list_sprints_for_boards(
     sprints_per_board = validate_sprint_limit(sprints_per_board)
     client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
 
-    results = {
+    results: dict[str, Any] = {
         "boards": [],
         "sprints_by_board": {},
         "errors": [],
@@ -209,7 +213,7 @@ def _find_board_in_response(board_id: str, board_response: dict[str, Any]) -> di
             str(board["id"]) == str(board_id)
             or board.get("name", "").casefold() == board_id.casefold()
         ):
-            return board
+            return board  # type: ignore[no-any-return]
     return None
 
 

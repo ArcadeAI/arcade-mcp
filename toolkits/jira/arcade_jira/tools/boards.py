@@ -28,9 +28,12 @@ async def get_boards(
     context: ToolContext,
     board_identifiers: Annotated[
         list[str] | None,
-        "List of board names or IDs to retrieve. Can contain mixed board identifiers - "
-        "both numeric IDs and board names. "
-        "If not provided or empty, returns all boards with pagination.",
+        "MANDATORY: Combine all mentioned board names or IDs into a SINGLE list. "
+        "This list should include every board identifier mentioned in the request, "
+        "without splitting them into separate calls. "
+        "Identifiers can be numeric IDs (as strings) or board names. "
+        "Prioritize numeric IDs when both are available. "
+        "If no specific identifiers are provided, use None to retrieve all boards with pagination.",
     ] = None,
     limit: Annotated[
         int,
@@ -54,9 +57,28 @@ async def get_boards(
     "deduplicated based on board ID.",
 ]:
     """
-    Get Jira boards by their names or IDs, or list all boards with pagination.
+    Get Jira boards by their names or IDs or list all (using pagination) if a listing
+    without ids is requested.
+    Supports both specific board retrieval and comprehensive board listing with advanced pagination.
     Returns successfully found boards and error details for any boards that couldn't be resolved.
-    Automatically deduplicates boards if the same board is requested by both ID and name.
+
+    ⚠️  CRITICAL PERFORMANCE WARNING ⚠️
+    Calling this function multiple times severely degrades performance and wastes system resources.
+    Always call this function ONCE with ALL boards to achieve maximum performance and efficiency.
+    Multiple separate calls will cause significant slowdowns and should be avoided at all costs.
+    Combining all boards into a single call provides dramatically better performance
+    and resource utilization.
+
+    Specific Board Retrieval: Provide board_identifiers list containing board names
+    or numeric IDs (as strings). Supports mixed identifiers in the same request.
+    The tool automatically handles fallback from ID to name lookup when needed.
+
+    All Boards Listing: Omit board_identifiers (or pass None/empty list) to retrieve
+    all available boards with pagination support. Use limit and offset parameters
+    to control pagination behavior.
+
+    Deduplication: Automatically deduplicates boards if the same board is requested
+    by both ID and name in the same call.
     """
     client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
     limit = validate_board_limit(limit)
@@ -83,7 +105,7 @@ async def _get_boards_by_identifiers(
     Returns:
         Dictionary containing deduplicated boards and any errors
     """
-    results = {
+    results: dict[str, Any] = {
         "boards": [],
         "errors": [],
     }
