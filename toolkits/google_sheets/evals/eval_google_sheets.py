@@ -204,6 +204,34 @@ def get_spreadsheet_eval() -> EvalSuite:
     )
 
     suite.add_case(
+        name="Get a sheet range in a spreadsheet",
+        user_message="Get F3:BA900 from the spreadsheet id 1L2ovCUcRNOacoWxtLV3jgaidWZq4Bw_WXbIWJcxobN0",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_spreadsheet,
+                args={
+                    "spreadsheet_id": "1L2ovCUcRNOacoWxtLV3jgaidWZq4Bw_WXbIWJcxobN0",
+                    "sheet_position": 1,
+                    "sheet_id_or_name": None,
+                    "start_row": 3,
+                    "start_col": "F",
+                    "max_rows": 897,  # 900 - 3 = 897
+                    "max_cols": 47,  # BA - F = 52 - 5 = 47
+                },
+            )
+        ],
+        critics=[
+            BinaryCritic(critic_field="spreadsheet_id", weight=1 / 7),
+            BinaryCritic(critic_field="sheet_position", weight=1 / 7),
+            BinaryCritic(critic_field="sheet_id_or_name", weight=1 / 7),
+            BinaryCritic(critic_field="start_row", weight=1 / 7),
+            BinaryCritic(critic_field="start_col", weight=1 / 7),
+            BinaryCritic(critic_field="max_rows", weight=1 / 7),
+            BinaryCritic(critic_field="max_cols", weight=1 / 7),
+        ],
+    )
+
+    suite.add_case(
         name="Get the next rows in a sheet given a previous conversation",
         user_message="Get the next 10 rows.",
         expected_tool_calls=[
