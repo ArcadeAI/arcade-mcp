@@ -228,13 +228,19 @@ def show(
         False,
         "--worker",
         "-w",
-        help="Show full worker response structure including error, logs, and authorization fields.",
+        help="Show full worker response structure including error, logs, and authorization fields (only applies when used with -t/--tool).",
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Show the available toolkits or detailed information about a specific tool.
     """
+    if worker and not tool:
+        console.print(
+            "⚠️  The -w/--worker flag only affects output when used with -t/--tool flag",
+            style="bold yellow",
+        )
+
     show_logic(
         toolkit=toolkit,
         tool=tool,

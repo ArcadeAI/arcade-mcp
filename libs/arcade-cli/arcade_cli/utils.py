@@ -662,6 +662,7 @@ def handle_user_command(
             force_tls=force_tls,
             force_no_tls=force_no_tls,
             debug=False,
+            worker=False,
         )
         return True
     return False
