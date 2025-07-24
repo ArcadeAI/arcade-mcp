@@ -108,7 +108,7 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
                 value_type: str = output.value_schema.val_type
                 display_type: str = value_type  # Separate variable for display string
                 if value_type == "array" and output.value_schema.inner_val_type:
-                    display_type = rf"array\[{output.value_schema.inner_val_type}]"
+                    display_type = f"array\[{output.value_schema.inner_val_type}]"
                 elif output.value_schema.enum:
                     display_type = f"{value_type} (enum: {', '.join(output.value_schema.enum)})"
 
@@ -299,9 +299,9 @@ def _format_type_string(schema: Any) -> str:
 
     if schema.val_type == "array":
         if hasattr(schema, "inner_properties") and schema.inner_properties:
-            type_str = r"array\[object]"
+            type_str = "array\[object]"
         elif schema.inner_val_type:
-            type_str = rf"array\[{schema.inner_val_type}]"
+            type_str = f"array\[{schema.inner_val_type}]"
     elif schema.enum:
         type_str = f"{type_str} (enum)"
 
