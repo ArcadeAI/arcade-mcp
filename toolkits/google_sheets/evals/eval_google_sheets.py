@@ -101,7 +101,7 @@ first_page_of_sheet_conversation = [
                 "type": "function",
                 "function": {
                     "name": "GoogleSheets_GetSpreadsheet",
-                    "arguments": '{"spreadsheet_id":"1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs","sheet_identifier":"2","start_col":"A","max_cols":3,"start_row":1,"max_rows":5}',
+                    "arguments": '{"spreadsheet_id":"1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs","sheet_position":"2","start_col":"A","max_cols":3,"start_row":1,"max_rows":5}',
                 },
             }
         ],
@@ -191,13 +191,15 @@ def get_spreadsheet_eval() -> EvalSuite:
                 func=get_spreadsheet,
                 args={
                     "spreadsheet_id": "1L2ovCUcRNOacoWxtLV3jgaidWZq4Bw_WXbIWJcxobN0",
-                    "sheet_identifier": "2",
+                    "sheet_position": 2,
+                    "sheet_id_or_name": None,
                 },
             )
         ],
         critics=[
-            BinaryCritic(critic_field="spreadsheet_id", weight=0.5),
-            BinaryCritic(critic_field="sheet_identifier", weight=0.5),
+            BinaryCritic(critic_field="spreadsheet_id", weight=1 / 3),
+            BinaryCritic(critic_field="sheet_position", weight=1 / 3),
+            BinaryCritic(critic_field="sheet_id_or_name", weight=1 / 3),
         ],
     )
 
@@ -209,7 +211,8 @@ def get_spreadsheet_eval() -> EvalSuite:
                 func=get_spreadsheet,
                 args={
                     "spreadsheet_id": "1eIvMFbodYgtrKe6xMHhvuIDoViM5JdA21hj91pZmBCs",
-                    "sheet_identifier": "2",
+                    "sheet_position": 2,
+                    "sheet_id_or_name": None,
                     "start_row": 6,
                     "max_rows": 10,
                     "start_col": "A",
@@ -218,12 +221,13 @@ def get_spreadsheet_eval() -> EvalSuite:
             )
         ],
         critics=[
-            BinaryCritic(critic_field="spreadsheet_id", weight=1 / 6),
-            BinaryCritic(critic_field="sheet_identifier", weight=1 / 6),
-            BinaryCritic(critic_field="start_row", weight=1 / 6),
-            BinaryCritic(critic_field="max_rows", weight=1 / 6),
-            BinaryCritic(critic_field="start_col", weight=1 / 6),
-            BinaryCritic(critic_field="max_cols", weight=1 / 6),
+            BinaryCritic(critic_field="spreadsheet_id", weight=1 / 7),
+            BinaryCritic(critic_field="sheet_position", weight=1 / 7),
+            BinaryCritic(critic_field="sheet_id_or_name", weight=1 / 7),
+            BinaryCritic(critic_field="start_row", weight=1 / 7),
+            BinaryCritic(critic_field="start_col", weight=1 / 7),
+            BinaryCritic(critic_field="max_rows", weight=1 / 7),
+            BinaryCritic(critic_field="max_cols", weight=1 / 7),
         ],
         additional_messages=first_page_of_sheet_conversation,
     )

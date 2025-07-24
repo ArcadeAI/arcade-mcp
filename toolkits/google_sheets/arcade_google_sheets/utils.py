@@ -1,4 +1,5 @@
 import logging
+import string
 from typing import Any
 
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
@@ -9,7 +10,7 @@ from arcade_google_sheets.constants import (
     DEFAULT_SHEET_COLUMN_COUNT,
     DEFAULT_SHEET_ROW_COUNT,
 )
-from arcade_google_sheets.enums import NumberFormatType
+from arcade_google_sheets.enums import NumberFormatType, SheetIdentifierType
 from arcade_google_sheets.models import (
     CellData,
     CellExtendedValue,
@@ -589,32 +590,34 @@ def calculate_a1_sheet_range(
     return None
 
 
-def find_sheet_by_identifier(sheets: list[Sheet], sheet_identifier: str) -> Sheet | None:
+def find_sheet_by_identifier(
+    sheets: list[Sheet], sheet_identifier: str, sheet_identifier_type: SheetIdentifierType
+) -> Sheet | None:
     """
-    Find a sheet by identifier (name, sheet ID, or 1-based index).
+    Find a sheet by identifier (name, sheet ID, or 1-based position index).
 
     Args:
         sheets (list): List of Sheet objects from the spreadsheet.
-        sheet_identifier (str): The identifier to match against.
+        sheet_identifier (str): The identifier of the sheet to get.
+        sheet_identifier_type (SheetIdentifierType): The type of the identifier.
 
     Returns:
         Sheet | None: The matching sheet, or None if not found.
     """
-    # First, try to match by sheet name (case-insensitive)
-    for sheet in sheets:
-        if sheet.properties.title.casefold() == sheet_identifier.casefold():
-            return sheet
-
-    # Second, try to match by sheet ID
-    for sheet in sheets:
-        if str(sheet.properties.sheetId).casefold() == sheet_identifier.casefold():
-            return sheet
-
-    # Finally, try to match by 1-based index
-    if sheet_identifier.isdigit():
+    if sheet_identifier_type == SheetIdentifierType.POSITION:
         index = int(sheet_identifier) - 1
         if 0 <= index < len(sheets):
             return sheets[index]
+
+    if sheet_identifier_type == SheetIdentifierType.ID_OR_NAME:
+        for sheet in sheets:
+            sheet_title = sheet.properties.title
+            sheet_id = sheet.properties.sheetId
+            if (
+                sheet_title.casefold() == sheet_identifier.casefold()
+                or str(sheet_id).casefold() == sheet_identifier.casefold()
+            ):
+                return sheet
 
     return None
 
@@ -623,6 +626,7 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     service: Resource,
     spreadsheet_id: str,
     sheet_identifier: str,
+    sheet_identifier_type: SheetIdentifierType,
     start_row: int,
     start_col: str,
     max_rows: int,
@@ -634,7 +638,8 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     Args:
         service (Resource): The Google Sheets service.
         spreadsheet_id (str): The ID of the spreadsheet provided to the tool.
-        sheet_identifier (str): The identifier of the sheet to get.
+        sheet_position (int | None): The position/tab of the sheet to get.
+        sheet_id_or_name (str | None): The id or name of the sheet to get.
         start_row (int): The row from which to start fetching data.
         start_col (str): The column letter(s) from which to start fetching data.
         max_rows (int): The maximum number of rows to fetch.
@@ -657,7 +662,9 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
     )
     spreadsheet = Spreadsheet.model_validate(metadata_response)
 
-    target_sheet = find_sheet_by_identifier(spreadsheet.sheets, sheet_identifier)
+    target_sheet = find_sheet_by_identifier(
+        spreadsheet.sheets, sheet_identifier, sheet_identifier_type
+    )
     if not target_sheet:
         raise ToolExecutionError(
             message=f"Sheet with identifier '{sheet_identifier}' not found",
@@ -705,40 +712,60 @@ def get_spreadsheet_with_pagination(  # type: ignore[no-any-unimported]
 
 
 def process_get_spreadsheet_params(
+    sheet_position: int | None,
+    sheet_id_or_name: str | None,
     start_row: int,
     start_col: str,
     max_rows: int,
     max_cols: int,
-) -> tuple[int, str, int, int]:
+) -> tuple[str, SheetIdentifierType, int, str, int, int]:
     """Process and validate the input parameters for the get_spreadsheet tool.
 
     Args:
+        sheet_position (int | None): The position/tab of the sheet to get.
+        sheet_id_or_name (str | None): The id or name of the sheet to get.
         start_row (int): Processed to be within the range [1, 1000]
         start_col (str): Processed to be alphabetic column representation. e.g., A, Z, QED
         max_rows (int): Processed to be within the range [1, 1000]
         max_cols (int): Processed to be within the range [1, 26]
 
     Returns:
-        tuple[int, str, int, int]: The processed parameters.
+        tuple[str, str, int, str, int, int]: The processed parameters.
 
     Raises:
         ToolExecutionError:
             If the start_col is not one of alphabetic or numeric
     """
+    if sheet_id_or_name:
+        sheet_identifier = sheet_id_or_name
+        sheet_identifier_type = SheetIdentifierType.ID_OR_NAME
+    elif sheet_position:
+        sheet_identifier = str(sheet_position)
+        sheet_identifier_type = SheetIdentifierType.POSITION
+    else:
+        raise RetryableToolError("Either sheet_position or sheet_id_or_name must be provided")
+
     processed_start_row = max(1, start_row)
     processed_max_rows = max(1, min(max_rows, 1000))
     processed_max_cols = max(1, min(max_cols, 26))
-    if not start_col.isalpha():
+    if not all(c in string.ascii_letters for c in start_col):
         if not start_col.isdigit():
-            raise ToolExecutionError("Input 'start_col' must be alphabetic")
+            raise ToolExecutionError("Input 'start_col' must be alphabetic (A-Z) or numeric")
         processed_start_col = index_to_col(int(start_col) - 1)
     else:
         processed_start_col = start_col.upper()
 
-    return processed_start_row, processed_start_col, processed_max_rows, processed_max_cols
+    return (
+        sheet_identifier,
+        sheet_identifier_type,
+        processed_start_row,
+        processed_start_col,
+        processed_max_rows,
+        processed_max_cols,
+    )
 
 
-def enforce_data_size_limit(data: dict) -> None:
+def raise_for_large_payload(data: dict) -> None:
     """Enforce a 10MB limit on the data size.
 
     Args:

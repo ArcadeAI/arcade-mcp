@@ -23,3 +23,8 @@ class NumberFormatType(str, Enum):
     NUMBER = "NUMBER"
     PERCENT = "PERCENT"
     CURRENCY = "CURRENCY"
+
+
+class SheetIdentifierType(str, Enum):
+    POSITION = "position"
+    ID_OR_NAME = "id_or_name"

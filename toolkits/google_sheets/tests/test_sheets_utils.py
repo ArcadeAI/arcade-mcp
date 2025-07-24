@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
-from arcade_google_sheets.enums import NumberFormatType
+from arcade_google_sheets.enums import NumberFormatType, SheetIdentifierType
 from arcade_google_sheets.models import CellData, CellExtendedValue, RowData, Sheet, SheetDataInput
 from arcade_google_sheets.utils import (
     calculate_a1_sheet_range,
@@ -541,20 +541,127 @@ def test_validate_write_to_cell_params_column_out_of_bounds(mock_build):
 
 
 @pytest.mark.parametrize(
-    "start_row, start_col, max_rows, max_cols, expected_start_row, expected_start_col, expected_max_rows, expected_max_cols, should_fail",
+    "sheet_position, sheet_id_or_name, start_row, start_col, max_rows, max_cols, expected_sheet_identifier, expected_sheet_identifier_type, expected_start_row, expected_start_col, expected_max_rows, expected_max_cols, should_fail",
     [
-        (1, "A", 1000, 26, 1, "A", 1000, 26, False),
-        (1, "1", 1000, 26, 1, "A", 1000, 26, False),
-        (-1, "A", 10_000, 10_000, 1, "A", 1000, 26, False),
-        (1234, "baz", 1000, 26, 1234, "BAZ", 1000, 26, False),
-        (1, "A2", 1000, 26, None, None, None, None, True),
+        (
+            # inputs
+            1,
+            None,
+            1,
+            "A",
+            1000,
+            26,
+            # outputs
+            "1",
+            SheetIdentifierType.POSITION,
+            1,
+            "A",
+            1000,
+            26,
+            # should not fail
+            False,
+        ),
+        (
+            # inputs
+            None,
+            "3",
+            1,
+            "A",
+            1000,
+            26,
+            # expected outputs
+            "3",
+            SheetIdentifierType.ID_OR_NAME,
+            1,
+            "A",
+            1000,
+            26,
+            # should not fail
+            False,
+        ),
+        (
+            # inputs
+            2,
+            "Sheet4",
+            -1,
+            "A",
+            10_000,
+            10_000,
+            # expected outputs
+            "Sheet4",
+            SheetIdentifierType.ID_OR_NAME,
+            1,
+            "A",
+            1000,
+            26,
+            # should not fail
+            False,
+        ),
+        (
+            # inputs
+            3,
+            None,
+            1234,
+            "baz",
+            1000,
+            26,
+            # expected outputs
+            "3",
+            SheetIdentifierType.POSITION,
+            1234,
+            "BAZ",
+            1000,
+            26,
+            # should not fail
+            False,
+        ),
+        (
+            # inputs
+            3,
+            None,
+            1,
+            "A2",
+            1000,
+            26,
+            # expected outputs
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            # should fail for invalid start_row
+            True,
+        ),
+        (
+            # inputs
+            None,
+            None,
+            1234,
+            "baz",
+            1000,
+            26,
+            # expected outputs
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            # should fail (retryable) for not providing one of sheet_position or sheet_id_or_name
+            True,
+        ),
     ],
 )
 def test_process_get_spreadsheet_params(
+    sheet_position: int | None,
+    sheet_id_or_name: str | None,
     start_row: int,
     start_col: str,
     max_rows: int,
     max_cols: int,
+    expected_sheet_identifier: str,
+    expected_sheet_identifier_type: SheetIdentifierType,
     expected_start_row: int,
     expected_start_col: str,
     expected_max_rows: int,
@@ -562,11 +669,17 @@ def test_process_get_spreadsheet_params(
     should_fail: bool,
 ) -> None:
     if should_fail:
-        with pytest.raises(ToolExecutionError):
-            process_get_spreadsheet_params(start_row, start_col, max_rows, max_cols)
+        with pytest.raises((ToolExecutionError, RetryableToolError)):
+            process_get_spreadsheet_params(
+                sheet_position, sheet_id_or_name, start_row, start_col, max_rows, max_cols
+            )
     else:
-        result = process_get_spreadsheet_params(start_row, start_col, max_rows, max_cols)
+        result = process_get_spreadsheet_params(
+            sheet_position, sheet_id_or_name, start_row, start_col, max_rows, max_cols
+        )
         assert result == (
+            expected_sheet_identifier,
+            expected_sheet_identifier_type,
             expected_start_row,
             expected_start_col,
             expected_max_rows,
@@ -601,7 +714,7 @@ def test_calculate_a1_sheet_range(
 
 
 @pytest.mark.parametrize(
-    "sheets, sheet_identifier, expected",
+    "sheets, sheet_identifier, sheet_identifier_type, expected",
     [
         (  # Find by sheet name
             [
@@ -609,6 +722,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 3444444}),
             ],
             "sheet1",
+            SheetIdentifierType.ID_OR_NAME,
             Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
         ),
         (  # Find by sheet name that is numerical
@@ -617,6 +731,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 3444444}),
             ],
             "23",
+            SheetIdentifierType.ID_OR_NAME,
             Sheet(properties={"title": "23", "sheetId": 1838284}),
         ),
         (  # Sheet name does not exist
@@ -625,6 +740,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 2343444}),
             ],
             "Sheet 234",
+            SheetIdentifierType.ID_OR_NAME,
             None,
         ),
         (  # Find by sheet ID
@@ -633,6 +749,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 2343434}),
             ],
             "1838284",
+            SheetIdentifierType.ID_OR_NAME,
             Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
         ),
         (  # Sheet ID does not exist
@@ -641,6 +758,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 3453322}),
             ],
             "99929",
+            SheetIdentifierType.ID_OR_NAME,
             None,
         ),
         (  # Find sheet by 1-based index
@@ -649,6 +767,7 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 2}),
             ],
             "1",
+            SheetIdentifierType.POSITION,
             Sheet(properties={"title": "Sheet1", "sheetId": 1838284}),
         ),
         (  # 1-based index does not exist
@@ -657,12 +776,13 @@ def test_calculate_a1_sheet_range(
                 Sheet(properties={"title": "Sheet2", "sheetId": 2}),
             ],
             "12",
+            SheetIdentifierType.POSITION,
             None,
         ),
     ],
 )
-def test_find_sheet_by_identifier(sheets, sheet_identifier, expected):
-    result = find_sheet_by_identifier(sheets, sheet_identifier)
+def test_find_sheet_by_identifier(sheets, sheet_identifier, sheet_identifier_type, expected):
+    result = find_sheet_by_identifier(sheets, sheet_identifier, sheet_identifier_type)
     assert result == expected
 
 
@@ -720,6 +840,7 @@ def test_get_spreadsheet_with_pagination_with_valid_ranges(
         service=mock_service,
         spreadsheet_id="test_id",
         sheet_identifier="1",
+        sheet_identifier_type=SheetIdentifierType.POSITION,
         start_row=1,
         start_col="A",
         max_rows=100,
