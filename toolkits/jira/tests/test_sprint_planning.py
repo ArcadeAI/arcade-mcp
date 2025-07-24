@@ -89,7 +89,7 @@ class TestListSprintsForBoards:
 
         with patch("arcade_jira.tools.sprint_planning.get_boards") as mock_get_boards:
             # Mock responses for two different boards
-            def mock_get_boards_side_effect(context, board_ids):
+            def mock_get_boards_side_effect(context, board_ids, **kwargs):
                 return {
                     "boards": [
                         {"id": 123, "name": "Board 1", "type": "scrum"},
