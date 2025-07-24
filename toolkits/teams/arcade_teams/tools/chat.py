@@ -1,11 +1,14 @@
+import json
 from typing import Annotated, cast
 
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Microsoft
 from arcade_tdk.errors import ToolExecutionError
+from msgraph.generated.models.body_type import BodyType
 from msgraph.generated.models.chat import Chat
 from msgraph.generated.models.chat_collection_response import ChatCollectionResponse
 from msgraph.generated.models.chat_message import ChatMessage
+from msgraph.generated.models.chat_message_attachment import ChatMessageAttachment
 from msgraph.generated.models.chat_message_type import ChatMessageType
 from msgraph.generated.models.item_body import ItemBody
 
@@ -262,6 +265,118 @@ async def send_message_to_chat(
 
     if not isinstance(response, ChatMessage):
         return {"message": None}
+
+    return {
+        "status": "Message successfully sent.",
+        "message": serialize_chat_message(response),
+    }
+
+
+@tool(requires_auth=Microsoft(scopes=["ChatMessage.Send"]))
+async def reply_to_chat_message(
+    context: ToolContext,
+    reply_content: Annotated[str, "The content of the reply message."],
+    message_id: Annotated[str, "The ID of the message to reply to."],
+    chat_id: Annotated[str | None, "The ID of the chat to send the message."] = None,
+    user_ids: Annotated[
+        list[str] | None, "The IDs of the users in the chat to send the message."
+    ] = None,
+    user_names: Annotated[
+        list[str] | None,
+        "The names of the users in the chat to send the message. Prefer providing user_ids, "
+        "when available, since the performance is better.",
+    ] = None,
+) -> Annotated[dict, "The reply message that was sent."]:
+    """Sends a reply to a Microsoft Teams chat message.
+
+    Provide exactly one of chat_id or user_ids/user_names. When available, prefer providing a
+    chat_id or user_ids for optimal performance.
+
+    If the user provides user name(s), DO NOT CALL THE `Teams.SearchUsers` or `Teams.SearchPeople`
+    tools first. Instead, provide the user name(s) directly to this tool through the `user_names`
+    argument. It is not necessary to provide the currently signed in user's name/id, so do not call
+    `Teams.GetSignedInUser` before calling this tool either.
+    """
+    if not chat_id:
+        user_ids_with_current_user = await add_current_user_id(context, user_ids)
+        chat = await create_chat(context, user_ids_with_current_user, user_names)
+        chat_id = chat["chat"]["id"]
+
+    original_msg_response = await get_chat_message_by_id(
+        context=context,
+        message_id=message_id,
+        chat_id=chat_id,
+    )
+
+    if not original_msg_response["message"]:
+        raise ToolExecutionError(
+            message="Original message not found with id: " + message_id,
+            developer_message="Original message not found with id: " + message_id,
+        )
+
+    original_msg = original_msg_response["message"]
+    if original_msg["content"].get("summary"):
+        original_msg_preview = original_msg["content"]["summary"]
+    else:
+        text = original_msg["content"]["text"]
+        original_msg_preview = text[:97] + "..." if len(text) > 100 else text
+
+    if original_msg.get("author") and original_msg["author"].get("user"):
+        original_msg_sender = {
+            "application": None,
+            "device": None,
+            "conversation": None,
+            "tag": None,
+            "user": {
+                "userIdentityType": "aadUser",
+                "id": original_msg["author"]["user_id"],
+                "displayName": original_msg["author"]["user_name"],
+            },
+        }
+    else:
+        original_msg_sender = {}
+
+    original_msg_content = {
+        "messageId": original_msg["id"],
+        "messagePreview": original_msg_preview,
+        "messageSender": original_msg_sender,
+    }
+
+    reply_body = f"""
+        <attachment id="{original_msg["id"]}"></attachment>
+        <blockquote
+            itemscope
+            itemtype="http://schema.skype.com/Reply"
+            itemid="{original_msg["id"]}"
+        >
+            <strong itemprop="mri" itemid="{original_msg["author"]["user_id"]}">
+                {original_msg["author"]["user_name"]}
+            </strong>
+            <span itemprop="time" itemid="{original_msg["id"]}"></span>
+            <p itemprop="preview">{original_msg_preview}</p>
+        </blockquote>
+        <p>{reply_content}</p>
+    """
+
+    client = get_client(context.get_auth_token_or_empty())
+    response = await client.chats.by_chat_id(cast(str, chat_id)).messages.post(
+        ChatMessage(
+            body=ItemBody(
+                content=reply_body,
+                content_type=BodyType.Html,
+            ),
+            attachments=[
+                ChatMessageAttachment(
+                    id=original_msg["id"],
+                    content=json.dumps(original_msg_content),
+                    content_type="reference",
+                ),
+            ],
+        )
+    )
+
+    if not isinstance(response, ChatMessage):
+        return {"status": "Failed to send reply message."}
 
     return {
         "status": "Message successfully sent.",
