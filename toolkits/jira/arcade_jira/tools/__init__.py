@@ -4,9 +4,8 @@ from arcade_jira.tools.attachments import (
     get_attachment_metadata,
     list_issue_attachments_metadata,
 )
-from arcade_jira.tools.boards import (
-    get_boards,
-)
+from arcade_jira.tools.boards import get_boards
+from arcade_jira.tools.cloud import get_available_atlassian_clouds
 from arcade_jira.tools.comments import (
     add_comment_to_issue,
     get_comment_by_id,
@@ -47,6 +46,8 @@ __all__ = [
     "download_attachment",
     "get_attachment_metadata",
     "list_issue_attachments_metadata",
+    # Cloud tools
+    "get_available_atlassian_clouds",
     # Boards tools
     "get_boards",
     # Comments tools

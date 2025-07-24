@@ -3,7 +3,6 @@ from typing import Annotated, Any, cast
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import Atlassian
 
-import arcade_jira.cache as cache
 from arcade_jira.client import JiraClient
 from arcade_jira.exceptions import JiraToolExecutionError, MultipleItemsFoundError, NotFoundError
 from arcade_jira.utils import (
@@ -19,6 +18,7 @@ from arcade_jira.utils import (
     find_unique_project,
     get_single_project,
     remove_none_values,
+    resolve_cloud_id,
     resolve_issue_users,
     validate_issue_args,
 )
@@ -41,15 +41,25 @@ async def list_issue_types_by_project(
         int,
         "The number of issue types to skip. Defaults to 0 (start from the first issue type).",
     ] = 0,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[
     dict[str, Any], "Information about the issue types available for the specified project."
 ]:
     """Get the list of issue types (e.g. 'Task', 'Epic', etc.) available to a given project."""
     limit = max(1, min(limit, 200))
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     try:
-        project_data = await find_unique_project(context, project)
+        project_data = await find_unique_project(
+            context=context,
+            project_identifier=project,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
     except JiraToolExecutionError as error:
         return {"error": error.message}
 
@@ -79,9 +89,15 @@ async def list_issue_types_by_project(
 async def get_issue_type_by_id(
     context: ToolContext,
     issue_type_id: Annotated[str, "The ID of the issue type to retrieve"],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "Information about the issue type"]:
     """Get the details of a Jira issue type by its ID."""
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     try:
         response = await client.get(f"issuetype/{issue_type_id}")
     except NotFoundError:
@@ -93,9 +109,15 @@ async def get_issue_type_by_id(
 async def get_issue_by_id(
     context: ToolContext,
     issue: Annotated[str, "The ID or key of the issue to retrieve"],
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issue"]:
     """Get the details of a Jira issue by its ID."""
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     try:
         response = await client.get(
             f"issue/{issue}",
@@ -104,8 +126,7 @@ async def get_issue_by_id(
     except NotFoundError:
         return {"error": f"Issue not found with ID/key '{issue}'."}
 
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
-    return {"issue": clean_issue_dict(response, cloud_name)}
+    return {"issue": clean_issue_dict(response)}
 
 
 # NOTE: This is not named `search_issues` because sometimes LLM's won't realize they can
@@ -183,6 +204,11 @@ async def get_issues_without_id(
         str | None,
         "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
     """Search for Jira issues when you don't have the issue ID(s).
 
@@ -193,7 +219,8 @@ async def get_issues_without_id(
     """
     limit = max(1, min(limit, 100))
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     due_from_date = convert_date_string_to_date(due_from) if due_from else None
     due_until_date = convert_date_string_to_date(due_until) if due_until else None
@@ -233,10 +260,8 @@ async def get_issues_without_id(
     if response.get("nextPageToken"):
         pagination["next_page_token"] = response["nextPageToken"]
 
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
-
     return {
-        "issues": [clean_issue_dict(issue, cloud_name) for issue in response["issues"]],
+        "issues": [clean_issue_dict(issue) for issue in response["issues"]],
         "pagination": pagination,
     }
 
@@ -267,10 +292,18 @@ async def list_issues(
         str | None,
         "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
     """Get the issues for a given project."""
     if not project:
-        project_data = await get_single_project(context)
+        project_data = await get_single_project(
+            context=context,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
         project = project_data["id"]
 
     return cast(
@@ -280,6 +313,7 @@ async def list_issues(
             project=project,
             limit=limit,
             next_page_token=next_page_token,
+            atlassian_cloud_id=atlassian_cloud_id,
         ),
     )
 
@@ -358,6 +392,11 @@ async def search_issues_without_jql(
         str | None,
         "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
     """Parameterized search for Jira issues (without having to provide a JQL query).
 
@@ -381,6 +420,7 @@ async def search_issues_without_jql(
             parent_issue=parent_issue,
             limit=limit,
             next_page_token=next_page_token,
+            atlassian_cloud_id=atlassian_cloud_id,
         ),
     )
 
@@ -397,6 +437,11 @@ async def search_issues_with_jql(
         str | None,
         "The token to use to get the next page of issues. Defaults to None (first page).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issues matching the search criteria"]:
     """Search for Jira issues using a JQL (Jira Query Language) query.
 
@@ -406,7 +451,8 @@ async def search_issues_with_jql(
     `Jira_SearchIssuesWithoutJql` TOOL OR IF THE USER PROVIDES A JQL QUERY THEMSELVES.
     """
     limit = max(1, min(limit, 100))
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     api_response = await client.post(
         "search/jql",
         json_data={
@@ -417,9 +463,9 @@ async def search_issues_with_jql(
             "expand": "renderedFields",
         },
     )
-    cloud_name = cache.get_cloud_name(context.get_auth_token_or_empty())
+
     response: dict[str, Any] = {
-        "issues": [clean_issue_dict(issue, cloud_name) for issue in api_response["issues"]]
+        "issues": [clean_issue_dict(issue) for issue in api_response["issues"]]
     }
 
     if api_response.get("isLast") is not False and api_response.get("nextPageToken"):
@@ -504,6 +550,11 @@ async def create_issue(
         "provided, the tool will try to find a unique exact match among the available users. "
         "Defaults to None (no reporter).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The created issue"]:
     """Create a new Jira issue.
 
@@ -522,9 +573,14 @@ async def create_issue(
     """
     project_data: dict[str, Any] | None = None
 
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+
     if project is None and parent_issue is None:
         try:
-            project_data = await get_single_project(context)
+            project_data = await get_single_project(
+                context=context,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except (NotFoundError, MultipleItemsFoundError) as exc:
             return {"error": str(exc)}
         else:
@@ -536,15 +592,28 @@ async def create_issue(
         issue_type_data,
         priority_data,
         parent_data,
-    ) = await validate_issue_args(context, due_date, project, issue_type, priority, parent_issue)
+    ) = await validate_issue_args(
+        context=context,
+        due_date=due_date,
+        project=project,
+        issue_type=issue_type,
+        priority=priority,
+        parent_issue=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error
 
-    error, assignee_data, reporter_data = await resolve_issue_users(context, assignee, reporter)
+    error, assignee_data, reporter_data = await resolve_issue_users(
+        context=context,
+        assignee=assignee,
+        reporter=reporter,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return error
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     request_body = {
         "fields": remove_none_values({
@@ -576,7 +645,6 @@ async def create_issue(
         "issue": {
             "id": response["id"],
             "key": response["key"],
-            "url": response["self"],
         },
     }
 
@@ -603,9 +671,19 @@ async def add_labels_to_issue(
         bool,
         "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
     ] = True,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict, "The updated issue"]:
     """Add labels to an existing Jira issue."""
-    issue_data = await get_issue_by_id(context, issue)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    issue_data = await get_issue_by_id(
+        context=context,
+        issue=issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
@@ -616,6 +694,7 @@ async def add_labels_to_issue(
         issue=issue_data["issue"]["id"],
         labels=current_labels + labels,
         notify_watchers=notify_watchers,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     return cast(dict, response)
 
@@ -638,9 +717,15 @@ async def remove_labels_from_issue(
         bool,
         "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
     ] = True,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The updated issue"]:
     """Remove labels from an existing Jira issue."""
-    issue_data = await get_issue_by_id(context, issue)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    issue_data = await get_issue_by_id(context, issue, atlassian_cloud_id=atlassian_cloud_id)
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
@@ -652,6 +737,7 @@ async def remove_labels_from_issue(
         issue=issue_data["issue"]["id"],
         labels=new_labels,
         notify_watchers=notify_watchers,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     return cast(dict, response)
 
@@ -732,6 +818,11 @@ async def update_issue(
         bool,
         "Whether to notify the issue's watchers. Defaults to True (notifies watchers).",
     ] = True,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "The updated issue"]:
     """Update an existing Jira issue.
 
@@ -743,23 +834,39 @@ async def update_issue(
     DO NOT CALL OTHER TOOLS only to list available priorities, issue types, or users.
     Provide the name, key, or email and the tool will figure out the ID.
     """
-    issue_data = await get_issue_by_id(context, issue)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    issue_data = await get_issue_by_id(
+        context=context,
+        issue=issue,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if issue_data.get("error"):
         return cast(dict, issue_data)
 
     project = issue_data["issue"]["project"]["id"]
 
     error, _, issue_type_data, priority_data, parent_issue_data = await validate_issue_args(
-        context, due_date, project, issue_type, priority, parent_issue
+        context=context,
+        due_date=due_date,
+        project=project,
+        issue_type=issue_type,
+        priority=priority,
+        parent_issue=parent_issue,
+        atlassian_cloud_id=atlassian_cloud_id,
     )
     if error:
         return cast(dict, error)
 
-    error, assignee_data, reporter_data = await resolve_issue_users(context, assignee, reporter)
+    error, assignee_data, reporter_data = await resolve_issue_users(
+        context=context,
+        assignee=assignee,
+        reporter=reporter,
+        atlassian_cloud_id=atlassian_cloud_id,
+    )
     if error:
         return cast(dict, error)
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     params = {"notifyWatchers": notify_watchers, "expand": "renderedFields"}
     request_body = build_issue_update_request_body(
         title=title,

@@ -13,6 +13,7 @@ from arcade_jira.utils import (
     clean_comment_dict,
     find_multiple_unique_users,
     remove_none_values,
+    resolve_cloud_id,
 )
 
 
@@ -26,9 +27,15 @@ async def get_comment_by_id(
         "Whether to include the ADF (Atlassian Document Format) content of the comment in the "
         "response. Defaults to False (return only the HTML rendered content).",
     ] = False,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the comment"]:
     """Get a comment by its ID."""
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     response = await client.get(
         f"issue/{issue_id}/comment/{comment_id}",
         params={"expand": "renderedBody"},
@@ -66,10 +73,16 @@ async def get_issue_comments(
         "Whether to include the ADF (Atlassian Document Format) content of the comment in the "
         "response. Defaults to False (return only the HTML rendered content).",
     ] = False,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the issue comments"]:
     """Get the comments of a Jira issue by its ID."""
     limit = max(min(limit, 100), 1)
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
     api_response = await client.get(
         f"issue/{issue}/comment",
         params=remove_none_values({
@@ -114,18 +127,29 @@ async def add_comment_to_issue(
         "The users to mention in the comment. Provide the user display name, email address, or ID. "
         "Ex: 'John Doe' or 'john.doe@example.com'. Defaults to None (no user mentions).",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[dict[str, Any], "Information about the comment created"]:
     """Add a comment to a Jira issue."""
     if not body:
         raise ToolExecutionError(message="Comment body cannot be empty.")
 
-    client = JiraClient(context.get_auth_token_or_empty())
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context=context, cloud_id=atlassian_cloud_id)
 
     adf_body = build_adf_doc(body)
 
     if mention_users:
         try:
-            users = await find_multiple_unique_users(context, mention_users, exact_match=True)
+            users = await find_multiple_unique_users(
+                context=context,
+                user_identifiers=mention_users,
+                exact_match=True,
+                atlassian_cloud_id=atlassian_cloud_id,
+            )
         except (NotFoundError, MultipleItemsFoundError) as exc:
             return {"error": f"Failed to mention user: {exc.message}"}
         mentions = [
@@ -138,7 +162,13 @@ async def add_comment_to_issue(
         adf_body["content"][0]["content"] = mentions + adf_body["content"][0]["content"]
 
     if reply_to_comment:
-        quote_comment = await get_comment_by_id(context, issue, reply_to_comment, True)
+        quote_comment = await get_comment_by_id(
+            context=context,
+            issue_id=issue,
+            comment_id=reply_to_comment,
+            include_adf_content=True,
+            atlassian_cloud_id=atlassian_cloud_id,
+        )
         if not quote_comment["comment"]:
             raise ToolExecutionError(
                 message=f"Cannot quote comment. No comment found with ID '{reply_to_comment}'."

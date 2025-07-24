@@ -9,6 +9,7 @@ from arcade_jira.utils import (
     clean_board_dict,
     create_board_result_dict,
     create_error_entry,
+    resolve_cloud_id,
     validate_board_limit,
 )
 
@@ -48,6 +49,11 @@ async def get_boards(
         "For example, offset=50 with limit=50 would return boards 51-100. "
         "Must be 0 or greater. Defaults to 0.",
     ] = 0,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[
     dict[str, Any],
     "A comprehensive dictionary containing successfully resolved boards in a 'boards' list, "
@@ -80,7 +86,8 @@ async def get_boards(
     Deduplication: Automatically deduplicates boards if the same board is requested
     by both ID and name in the same call.
     """
-    client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context, atlassian_cloud_id, client_type=APIType.AGILE)
     limit = validate_board_limit(limit)
 
     # If no specific boards requested, get all boards with pagination

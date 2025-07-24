@@ -18,6 +18,7 @@ from rich.text import Text
 from tqdm import tqdm
 
 import arcade_cli.worker as worker
+from arcade_cli import toolkit_docs
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
@@ -736,6 +737,76 @@ def dashboard(
             )
     except Exception as e:
         handle_cli_error("Failed to open dashboard", e, debug)
+
+
+@cli.command(help="Generate Toolkit documentation", rich_help_panel="Tool Development")
+def generate_toolkit_docs(
+    toolkit_name: str = typer.Option(
+        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+    ),
+    toolkit_dir: str = typer.Option(
+        ...,
+        "--toolkit-dir",
+        "-t",
+        help="The path to the toolkit root directory.",
+    ),
+    docs_dir: str = typer.Option(
+        ...,
+        "--docs-dir",
+        "-r",
+        help="The path to the documentation root directory.",
+    ),
+    docs_section: str = typer.Option(
+        "",
+        "--docs-section",
+        "-s",
+        help=(
+            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
+        ),
+    ),
+    openai_model: str = typer.Option(
+        "gpt-4o-mini",
+        "--openai-model",
+        "-m",
+        help=(
+            "A few parts of the documentation are generated using OpenAI API. "
+            "This argument controls which OpenAI model to use. "
+            "E.g. 'gpt-4o', 'gpt-4o-mini'."
+        ),
+        show_default=True,
+    ),
+    openai_api_key: str = typer.Option(
+        None,
+        "--openai-api-key",
+        "-o",
+        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
+    ),
+    tool_call_examples: bool = typer.Option(
+        False,
+        "--tool-call-examples",
+        "-e",
+        help="Whether to generate tool call examples",
+        show_default=True,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    toolkit_docs.generate_toolkit_docs(
+        console=console,
+        toolkit_name=toolkit_name,
+        toolkit_dir=toolkit_dir,
+        docs_dir=docs_dir,
+        docs_section=docs_section,
+        openai_model=openai_model,
+        openai_api_key=openai_api_key,
+        tool_call_examples=tool_call_examples,
+        debug=debug,
+    )
+
+    console.print(
+        f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
+        style="bold green",
+    )
 
 
 @cli.callback()

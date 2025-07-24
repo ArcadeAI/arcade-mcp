@@ -1,6 +1,6 @@
 import pytest
 
-from arcade_notion_toolkit.utils import simplify_search_result
+from arcade_notion_toolkit.utils import is_page_id, simplify_search_result
 
 
 @pytest.mark.parametrize(
@@ -84,3 +84,16 @@ def test_simplify_search_result(item, expected_title):
     assert simplified["last_edited_time"] == item.get("last_edited_time")
     assert simplified["url"] == item.get("url")
     assert simplified["public_url"] == item.get("public_url")
+
+
+@pytest.mark.parametrize(
+    "candidate, expected_result",
+    [
+        ("1ae7a62b04d480cd8f30fe64b5354cc0", True),
+        ("1b37a62b-04d4-8079-a902-ce69ed7e7240", True),
+        ("1b37a62b04d48079ad7e7240", False),
+        ("OAuth 2 In Plain English", False),
+    ],
+)
+def test_is_page_id(candidate, expected_result):
+    assert is_page_id(candidate) == expected_result

@@ -14,6 +14,7 @@ from arcade_jira.utils import (
     clean_sprint_dict,
     create_error_entry,
     create_sprint_result_dict,
+    resolve_cloud_id,
     validate_sprint_limit,
     validate_sprint_state,
 )
@@ -98,6 +99,11 @@ async def list_sprints_for_boards(
         "Do NOT use for current status - use the 'state' parameter instead for "
         "current/running sprints. Cannot be used together with start_date or end_date.",
     ] = None,
+    atlassian_cloud_id: Annotated[
+        str | None,
+        "The ID of the Atlassian Cloud to use (defaults to None). If not provided and the user has "
+        "a single cloud authorized, the tool will use that. Otherwise, an error will be raised.",
+    ] = None,
 ) -> Annotated[
     dict[str, Any],
     "A comprehensive dictionary containing sprint data for the specified boards. "
@@ -133,7 +139,8 @@ async def list_sprints_for_boards(
     _validate_parameters(board_ids, specific_date, start_date, end_date, state)
 
     sprints_per_board = validate_sprint_limit(sprints_per_board)
-    client = JiraClient(context.get_auth_token_or_empty(), client_type=APIType.AGILE)
+    atlassian_cloud_id = await resolve_cloud_id(context, atlassian_cloud_id)
+    client = JiraClient(context, atlassian_cloud_id, client_type=APIType.AGILE)
 
     results: dict[str, Any] = {
         "boards": [],
@@ -142,7 +149,7 @@ async def list_sprints_for_boards(
     }
 
     # Get boards by ID or name using the boards tool
-    board_response = await get_boards(context, board_ids)
+    board_response = await get_boards(context, board_ids, atlassian_cloud_id=atlassian_cloud_id)
 
     # Process each board ID
     for board_id in board_ids:

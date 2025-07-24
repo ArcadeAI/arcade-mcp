@@ -34,7 +34,6 @@ async def test_paginate_all_items_with_one_page(
     mock_httpx_response: Callable,
     build_project_dict: Callable,
     build_project_search_response_dict: Callable,
-    fake_cloud_name: str,
 ):
     projects = [build_project_dict(), build_project_dict()]
     response = mock_httpx_response(200, build_project_search_response_dict(projects, is_last=True))
@@ -46,7 +45,7 @@ async def test_paginate_all_items_with_one_page(
         response_items_key="projects",
         scheme_id="123",
     )
-    assert response == [clean_project_dict(project, fake_cloud_name) for project in projects]
+    assert response == [clean_project_dict(project) for project in projects]
 
 
 @pytest.mark.asyncio
@@ -56,7 +55,6 @@ async def test_paginate_all_items_with_multiple_pages(
     mock_httpx_response: Callable,
     build_project_dict: Callable,
     build_project_search_response_dict: Callable,
-    fake_cloud_name: str,
 ):
     page1 = [build_project_dict(), build_project_dict()]
     page2 = [build_project_dict(), build_project_dict()]
@@ -75,9 +73,7 @@ async def test_paginate_all_items_with_multiple_pages(
         scheme_id="123",
         limit=2,
     )
-    assert response == [
-        clean_project_dict(project, fake_cloud_name) for project in page1 + page2 + page3
-    ]
+    assert response == [clean_project_dict(project) for project in page1 + page2 + page3]
 
 
 @pytest.mark.asyncio

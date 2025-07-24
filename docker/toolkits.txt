@@ -6,6 +6,7 @@ arcade-github
 arcade-google
 arcade-hubspot
 arcade-jira
+arcade-linear
 arcade-linkedin
 arcade-math
 arcade-microsoft

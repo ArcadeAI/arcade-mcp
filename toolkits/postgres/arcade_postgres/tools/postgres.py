@@ -29,7 +29,7 @@ async def discover_tables(
 ) -> list[str]:
     """Discover all the tables in the postgres database when the list of tables is not known.
 
-    THIS TOOL SHOULD ALWAYS BE USED BEFORE ANY OTHER TOOL THAT REQUIRES A TABLE NAME.
+    ALWAYS use this tool before any other tool that requires a table name.
     """
     async with await DatabaseEngine.get_engine(
         context.get_secret("DATABASE_CONNECTION_STRING")
@@ -47,7 +47,7 @@ async def get_table_schema(
     """
     Get the schema/structure of a postgres table in the postgres database when the schema is not known, and the name of the table is provided.
 
-    THIS TOOL SHOULD ALWAYS BE USED BEFORE EXECUTING ANY QUERY.  ALL TABLES IN THE QUERY MUST BE DISCOVERED FIRST USING THE <DiscoverTables> TOOL.
+    This tool should ALWAYS be used before executing any query.  All tables in the query must be discovered first using the <DiscoverTables> tool.
     """
     async with await DatabaseEngine.get_engine(
         context.get_secret("DATABASE_CONNECTION_STRING")
@@ -56,35 +56,86 @@ async def get_table_schema(
 
 
 @tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
-async def execute_query(
+async def execute_select_query(
     context: ToolContext,
-    query: Annotated[str, "The postgres SQL query to execute.  Only SELECT queries are allowed."],
+    select_clause: Annotated[
+        str,
+        "This is the part of the SQL query that comes after the SELECT keyword wish a comma separated list of columns you wish to return.  Do not include the SELECT keyword.",
+    ],
+    from_clause: Annotated[
+        str,
+        "This is the part of the SQL query that comes after the FROM keyword.  Do not include the FROM keyword.",
+    ],
+    limit: Annotated[
+        int,
+        "The maximum number of rows to return.  This is the LIMIT clause of the query.  Default: 100.",
+    ] = 100,
+    offset: Annotated[
+        int, "The number of rows to skip.  This is the OFFSET clause of the query.  Default: 0."
+    ] = 0,
+    join_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the JOIN keyword.  Do not include the JOIN keyword.  If no join is needed, leave this blank.",
+    ] = None,
+    where_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the WHERE keyword.  Do not include the WHERE keyword.  If no where clause is needed, leave this blank.",
+    ] = None,
+    having_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the HAVING keyword.  Do not include the HAVING keyword.  If no having clause is needed, leave this blank.",
+    ] = None,
+    group_by_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the GROUP BY keyword.  Do not include the GROUP BY keyword.  If no group by clause is needed, leave this blank.",
+    ] = None,
+    order_by_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the ORDER BY keyword.  Do not include the ORDER BY keyword.  If no order by clause is needed, leave this blank.",
+    ] = None,
+    with_clause: Annotated[
+        str | None,
+        "This is the part of the SQL query that comes after the WITH keyword when basing the query on a virtual table.  If no WITH clause is needed, leave this blank.",
+    ] = None,
 ) -> list[str]:
     """
     You have a connection to a postgres database.
-    Execute a query and return the results against the postgres database.
+    Execute a SELECT query and return the results against the postgres database.  No other queries (INSERT, UPDATE, DELETE, etc.) are allowed.
 
-    ONLY USE THIS TOOL IF YOU HAVE ALREADY LOADED THE SCHEMA OF THE TABLES YOU NEED TO QUERY.  USE THE <GetTableSchema> TOOL TO LOAD THE SCHEMA IF NOT ALREADY KNOWN.
+    ONLY use this tool if you have already loaded the schema of the tables you need to query.  Use the <GetTableSchema> tool to load the schema if not already known.
+
+    The final query will be constructed as follows:
+    SELECT {select_query_part} FROM {from_clause} JOIN {join_clause} WHERE {where_clause} HAVING {having_clause} ORDER BY {order_by_clause} LIMIT {limit} OFFSET {offset}
 
     When running queries, follow these rules which will help avoid errors:
+    * Never "select *" from a table.  Always select the columns you need.
+    * Always order your results by the most important columns first.  If you aren't sure, order by the primary key.
     * Always use case-insensitive queries to match strings in the query.
     * Always trim strings in the query.
     * Prefer LIKE queries over direct string matches or regex queries.
     * Only join on columns that are indexed or the primary key.  Do not join on arbitrary columns.
-
-    Only SELECT queries are allowed.  Do not use INSERT, UPDATE, DELETE, or other DML statements.  This tool will reject them.
-
-    Unless otherwise specified, ensure that query has a LIMIT of 100 for all results.  This tool will enforce that no more than 1000 rows are returned at maximum.
     """
     async with await DatabaseEngine.get_engine(
         context.get_secret("DATABASE_CONNECTION_STRING")
     ) as engine:
         try:
-            return await _execute_query(engine, query)
+            return await _execute_query(
+                engine,
+                select_clause=select_clause,
+                from_clause=from_clause,
+                limit=limit,
+                offset=offset,
+                join_clause=join_clause,
+                where_clause=where_clause,
+                having_clause=having_clause,
+                group_by_clause=group_by_clause,
+                order_by_clause=order_by_clause,
+                with_clause=with_clause,
+            )
         except Exception as e:
             raise RetryableToolError(
                 f"Query failed: {e}",
-                developer_message=f"Query '{query}' failed.",
+                developer_message=f"Query failed with parameters: select_clause={select_clause}, from_clause={from_clause}, limit={limit}, offset={offset}, join_clause={join_clause}, where_clause={where_clause}, having_clause={having_clause}, order_by_clause={order_by_clause}, with_clause={with_clause}.",
                 additional_prompt_content="Load the database schema <GetTableSchema> or use the <DiscoverTables> tool to discover the tables and try again.",
                 retry_after_ms=10,
             ) from e
@@ -168,11 +219,35 @@ async def _get_table_schema(engine: AsyncEngine, schema_name: str, table_name: s
 
 
 async def _execute_query(
-    engine: AsyncEngine, query: str, params: dict[str, Any] | None = None
+    engine: AsyncEngine,
+    select_clause: str,
+    from_clause: str,
+    limit: int,
+    offset: int,
+    join_clause: str | None,
+    where_clause: str | None,
+    having_clause: str | None,
+    group_by_clause: str | None,
+    order_by_clause: str | None,
+    with_clause: str | None,
 ) -> list[str]:
     """Execute a query and return the results."""
     async with engine.connect() as connection:
-        result = await connection.execute(text(DatabaseEngine.sanitize_query(query)), params)
+        query, parameters = DatabaseEngine.sanitize_query(
+            select_clause=select_clause,
+            from_clause=from_clause,
+            limit=limit,
+            offset=offset,
+            join_clause=join_clause,
+            where_clause=where_clause,
+            having_clause=having_clause,
+            group_by_clause=group_by_clause,
+            order_by_clause=order_by_clause,
+            with_clause=with_clause,
+        )
+        print(f"Query: {query}")
+        print(f"Parameters: {parameters}")
+        result = await connection.execute(text(query), parameters)
         rows = result.fetchall()
         results = [str(row) for row in rows]
         return results[:MAX_ROWS_RETURNED]

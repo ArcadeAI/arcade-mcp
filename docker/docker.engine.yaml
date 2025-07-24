@@ -133,6 +133,14 @@ auth:
       client_id: ${env:LINKEDIN_CLIENT_ID}
       client_secret: ${env:LINKEDIN_CLIENT_SECRET}
 
+    - id: arcade-linear
+      description: "The Linear provider for Arcade"
+      enabled: false
+      type: oauth2
+      provider_id: linear
+      client_id: ${env:LINEAR_CLIENT_ID}
+      client_secret: ${env:LINEAR_CLIENT_SECRET}
+
     - id: default-microsoft
       description: "The default Microsoft provider"
       enabled: false
