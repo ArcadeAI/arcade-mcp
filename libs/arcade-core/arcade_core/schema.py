@@ -401,6 +401,16 @@ class ToolCallError(BaseModel):
     traceback_info: str | None = None
     """The traceback information for the tool call."""
 
+    # New fields
+    origin: Literal["WORKER", "UPSTREAM", "ENGINE"]
+    """The origin of the error."""
+    retryable: bool
+    """Whether the tool call can be retried."""
+    code: str
+    """The code of the error."""
+    extra: dict[str, Any]
+    """Additional information about the error."""
+
 
 class ToolCallRequiresAuthorization(BaseModel):
     """The authorization requirements for the tool invocation."""

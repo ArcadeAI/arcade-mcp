@@ -75,10 +75,21 @@ class ToolExecutor:
                 developer_message=e.developer_message,
                 additional_prompt_content=e.additional_prompt_content,
                 retry_after_ms=e.retry_after_ms,
+                origin=e.origin,
+                retryable=e.retryable,
+                code=e.code,
+                extra=e.extra,
             )
 
         except ToolSerializationError as e:
-            return output_factory.fail(message=e.message, developer_message=e.developer_message)
+            return output_factory.fail(
+                message=e.message,
+                developer_message=e.developer_message,
+                origin=e.origin,
+                retryable=e.retryable,
+                code=e.code,
+                extra=e.extra,
+            )
 
         # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolRuntimeError as e:
@@ -86,6 +97,10 @@ class ToolExecutor:
                 message=e.message,
                 developer_message=e.developer_message,
                 traceback_info=e.traceback_info(),
+                origin=e.origin,
+                retryable=e.retryable,
+                code=e.code,
+                extra=e.extra,
             )
 
         # if we get here we're in trouble
@@ -94,6 +109,10 @@ class ToolExecutor:
                 message="Error in execution",
                 developer_message=str(e),
                 traceback_info=traceback.format_exc(),
+                origin="WORKER",
+                retryable=False,
+                code="BUG",
+                extra={},
             )
 
     @staticmethod

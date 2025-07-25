@@ -1,5 +1,5 @@
 import traceback
-from typing import Optional
+from typing import Any, Literal, Optional
 
 
 class ToolkitError(Exception):
@@ -7,7 +7,37 @@ class ToolkitError(Exception):
     Base class for all errors related to toolkits.
     """
 
-    pass
+    origin: Literal["WORKER", "UPSTREAM", "ENGINE"]
+    retryable: bool
+    code: str
+    extra: dict[str, Any]
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        developer_message: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ):
+        super().__init__(message)
+        self.message = message
+        self.developer_message = developer_message
+        self.extra = extra or {}
+
+    def traceback_info(self) -> str | None:
+        if self.__cause__:
+            return "\n".join(traceback.format_exception(self.__cause__))
+        return None
+
+    # wire-format helper
+    def to_payload(self) -> dict[str, Any]:
+        return {
+            "origin": self.origin,
+            "retryable": self.retryable,
+            "code": self.code,
+            "message": self.message,
+            **self.extra,
+        }
 
 
 class ToolkitLoadError(ToolkitError):
@@ -54,12 +84,22 @@ class ToolRuntimeError(RuntimeError):
         return None
 
 
-class ToolExecutionError(ToolRuntimeError):
+# class ToolExecutionError(ToolRuntimeError):
+#     """
+#     Raised when there is an error executing a tool.
+#     """
+
+#     pass
+
+
+class ToolExecutionError(ToolkitError):
     """
     Raised when there is an error executing a tool.
     """
 
-    pass
+    origin = "WORKER"
+    retryable = False
+    code = "BUG"
 
 
 class RetryableToolError(ToolExecutionError):

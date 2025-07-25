@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, Literal, TypeVar
 
 from pydantic import BaseModel
 
@@ -50,6 +50,10 @@ class ToolOutputFactory:
         developer_message: str | None = None,
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
+        origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
+        retryable: bool = False,
+        code: str = "BUG",
+        extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -57,6 +61,10 @@ class ToolOutputFactory:
                 developer_message=developer_message,
                 can_retry=False,
                 traceback_info=traceback_info,
+                origin=origin,
+                retryable=retryable,
+                code=code,
+                extra=extra,
             ),
             logs=coerce_empty_list_to_none(logs),
         )
@@ -70,6 +78,10 @@ class ToolOutputFactory:
         retry_after_ms: int | None = None,
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
+        origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
+        retryable: bool = False,
+        code: str = "BUG",
+        extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
@@ -79,6 +91,10 @@ class ToolOutputFactory:
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
                 traceback_info=traceback_info,
+                origin=origin,
+                retryable=retryable,
+                code=code,
+                extra=extra,
             ),
             logs=coerce_empty_list_to_none(logs),
         )
