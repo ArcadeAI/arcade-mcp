@@ -7,9 +7,9 @@ from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
     RetryableToolError,
+    ToolExecutionError,
     ToolInputError,
     ToolOutputError,
-    ToolRuntimeError,
     ToolSerializationError,
 )
 from arcade_core.output import output_factory
@@ -92,7 +92,7 @@ class ToolExecutor:
             )
 
         # should catch all tool exceptions due to the try/except in the tool decorator
-        except ToolRuntimeError as e:
+        except ToolExecutionError as e:
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
