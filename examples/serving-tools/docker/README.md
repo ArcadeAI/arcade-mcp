@@ -23,8 +23,8 @@ docker run -p 8002:8002 custom-worker:0.1.0
 To change the toolkits, edit the `toolkits.txt` file.
 
 ```
-arcade-google==0.1.0
-arcade-web==0.1.0
+arcade-gmail==0.1.0
+arcade-firecrawl==0.1.0
 arcade-zoom==0.1.2
 ...
 ```

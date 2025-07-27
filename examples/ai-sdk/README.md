@@ -52,7 +52,7 @@ pnpm install
 
 ## Basic Usage
 
-This example demonstrates how to use Arcade's Google toolkit to create an AI agent that can read and summarize emails. The agent will access your Gmail account (after authorization) and process your most recent email.
+This example demonstrates how to use Arcade's Gmail toolkit to create an AI agent that can read and summarize emails. The agent will access your Gmail account (after authorization) and process your most recent email.
 
 To get started, run the development server:
 
@@ -79,7 +79,7 @@ To modify or extend the functionality:
 
 1. Update the `USER_ID` constant in `index.js` with your application's user identification
 2. Modify the `toolkit` parameter in `getArcadeTools` to access different tools. Available toolkits include:
-   - `"google"` - Gmail, Google Calendar, Google Drive
+   - `"gmail"` - Gmail
    - `"slack"` - Slack messaging and channels
    - `"github"` - GitHub repositories and issues
    - And more in [Arcade Integrations](https://docs.arcade.dev/toolkits) documentation

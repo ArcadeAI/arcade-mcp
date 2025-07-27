@@ -6,11 +6,11 @@ import { streamText } from "ai"
 const arcade = new Arcade()
 
 /**
- * Get the Google toolkit.
+ * Get the Gmail toolkit.
  */
-const googleToolkit = await arcade.tools.list({
+const gmailToolkit = await arcade.tools.list({
     limit: 25,
-    toolkit: "google",
+    toolkit: "gmail",
 })
 
 /**
@@ -30,8 +30,8 @@ const googleToolkit = await arcade.tools.list({
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-const googleTools = toZodToolSet({
-    tools: googleToolkit.items,
+const gmailTools = toZodToolSet({
+    tools: gmailToolkit.items,
     client: arcade,
     userId: "<YOUR_USER_ID>", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
     executeFactory: executeOrAuthorizeZodTool,
@@ -40,7 +40,7 @@ const googleTools = toZodToolSet({
 const { textStream } = streamText({
     model: openai("gpt-4o-mini"),
     prompt: "Read my last email and summarize it in a few sentences",
-    tools: googleTools,
+    tools: gmailTools,
     maxSteps: 5,
 })
 

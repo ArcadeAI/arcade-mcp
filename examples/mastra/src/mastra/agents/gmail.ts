@@ -11,8 +11,8 @@ import { LibSQLStore } from "@mastra/libsql";
 // Initialize Arcade
 const arcade = new Arcade();
 
-// Get Google tools
-const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
+// Get Gmail tools
+const gmailToolkit = await arcade.tools.list({ toolkit: "gmail", limit: 30 });
 
 /**
  * Mastra requires tools to be defined using Zod, a TypeScript-first schema validation library
@@ -31,8 +31,8 @@ const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-export const googleTools = toZodToolSet({
-	tools: googleToolkit.items,
+export const gmailTools = toZodToolSet({
+	tools: gmailToolkit.items,
 	client: arcade,
 	userId: "<YOUR_USER_ID>", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
 	executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
@@ -45,10 +45,10 @@ const memory = new Memory({
   }),
 });
 
-// Create an agent with Google tools
-export const googleAgent = new Agent({
-	name: "googleAgent",
-	instructions: `You are a Google assistant that helps users manage their Google services (Gmail, Calendar, Sheets, Drive, and Contacts).
+// Create an agent with Gmail tools
+export const gmailAgent = new Agent({
+	name: "gmailAgent",
+	instructions: `You are a Gmail assistant that helps users manage their Gmail services.
 
 When helping users:
 - Always verify their intent before performing actions
@@ -57,8 +57,8 @@ When helping users:
 - Respect user privacy and data security
 - Specify which Google service you're working with
 
-Use the googleTools to interact with various Google services and perform related tasks.`,
+Use the gmailTools to interact with various Gmail services and perform related tasks.`,
 	model: openai("gpt-4o-mini"),
 	memory,
-	tools: googleTools,
+	tools: gmailTools,
 });

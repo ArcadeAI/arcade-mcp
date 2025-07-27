@@ -13,8 +13,8 @@ const arcade = new Arcade();
 
 // Replace this with your application's user ID (e.g. email address, UUID, etc.)
 const USER_ID = "user@example.com";
-// Get the Arcade tools, you can customize the toolkit (e.g. "github", "notion", "google", etc.)
-const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
+// Get the Arcade tools, you can customize the toolkit (e.g. "github", "notion", "gmail", etc.)
+const gmailToolkit = await arcade.tools.list({ toolkit: "gmail", limit: 30 });
 
 /**
  * LangGraph requires tools to be defined using Zod, a TypeScript-first schema validation library
@@ -34,7 +34,7 @@ const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
 const arcadeTools = toZod({
-	tools: googleToolkit.items,
+	tools: gmailToolkit.items,
 	client: arcade,
 	userId: USER_ID,
 	executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed

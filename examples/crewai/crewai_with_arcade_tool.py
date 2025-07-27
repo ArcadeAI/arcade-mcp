@@ -101,7 +101,7 @@ def main() -> CrewOutput:
     manager = ArcadeToolManager(
         executor=custom_tool_executor,
     )
-    tools = manager.get_tools(tools=["Google.ListEmails"])
+    tools = manager.get_tools(tools=["Gmail.ListEmails"])
 
     crew_agent = Agent(
         role="Main Agent",

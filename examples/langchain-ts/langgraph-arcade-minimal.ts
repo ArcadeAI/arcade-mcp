@@ -8,10 +8,10 @@ import { ChatOpenAI } from "@langchain/openai";
 // 1) Initialize Arcade
 const arcade = new Arcade();
 
-// 2) Fetch Google toolkit from Arcade and prepare tools for LangGraph integration
-const googleToolkit = await arcade.tools.list({ toolkit: "google", limit: 30 });
+// 2) Fetch Gmail toolkit from Arcade and prepare tools for LangGraph integration
+const gmailToolkit = await arcade.tools.list({ toolkit: "gmail", limit: 30 });
 const arcadeTools = toZod({
-	tools: googleToolkit.items,
+	tools: gmailToolkit.items,
 	client: arcade,
 	userId: "<YOUR_SYSTEM_USER_ID>", // Replace this with your application's user ID (e.g. email address, UUID, etc.)
 	executeFactory: executeOrAuthorizeZodTool,
