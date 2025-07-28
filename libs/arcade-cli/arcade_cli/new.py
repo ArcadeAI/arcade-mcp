@@ -99,7 +99,7 @@ def create_ignore_pattern(
         patterns.append("evals")
 
     if not is_community_or_official_toolkit:
-        patterns.extend([".ruff.toml", ".pre-commit-config.yaml"])
+        patterns.extend([".ruff.toml", ".pre-commit-config.yaml", "LICENSE"])
     else:
         patterns.extend(["README.md"])
 
