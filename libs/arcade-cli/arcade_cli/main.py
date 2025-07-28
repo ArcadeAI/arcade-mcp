@@ -845,22 +845,36 @@ def docs(
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
-    generate_toolkit_docs(
-        console=console,
-        toolkit_name=toolkit_name,
-        toolkit_dir=toolkit_dir,
-        docs_dir=docs_dir,
-        docs_section=docs_section,
-        openai_model=openai_model,
-        openai_api_key=openai_api_key,
-        tool_call_examples=not skip_tool_call_examples,
-        debug=debug,
-    )
+    try:
+        success = generate_toolkit_docs(
+            console=console,
+            toolkit_name=toolkit_name,
+            toolkit_dir=toolkit_dir,
+            docs_dir=docs_dir,
+            docs_section=docs_section,
+            openai_model=openai_model,
+            openai_api_key=openai_api_key,
+            tool_call_examples=not skip_tool_call_examples,
+            debug=debug,
+        )
+    except Exception as error:
+        handle_cli_error(
+            message=f"Failed to generate documentation for '{toolkit_name}' in '{docs_dir}'",
+            error=error,
+            debug=debug,
+        )
+        success = False
 
-    console.print(
-        f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
-        style="bold green",
-    )
+    if success:
+        console.print(
+            f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
+            style="bold green",
+        )
+    else:
+        console.print(
+            f"Failed to generate documentation for '{toolkit_name}' in '{docs_dir}'",
+            style="bold red",
+        )
 
 
 @cli.callback()

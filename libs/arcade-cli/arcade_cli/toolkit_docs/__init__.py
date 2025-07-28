@@ -31,7 +31,7 @@ def generate_toolkit_docs(
     openai_api_key: str | None = None,
     tool_call_examples: bool = True,
     debug: bool = False,
-) -> None:
+) -> bool:
     openai.api_key = resolve_api_key(openai_api_key, "OPENAI_API_KEY")
 
     if not openai.api_key:
@@ -39,7 +39,7 @@ def generate_toolkit_docs(
             "❌ Provide --openai-api-key argument or set the OPENAI_API_KEY environment variable",
             style="red",
         )
-        return
+        return False
 
     print_debug = partial(print_debug_func, debug, console)
 
@@ -85,3 +85,5 @@ def generate_toolkit_docs(
             write_file(example_path, example)
 
     print_debug(f"Done generating docs for {toolkit_name}")
+
+    return True
