@@ -18,7 +18,6 @@ from rich.text import Text
 from tqdm import tqdm
 
 import arcade_cli.worker as worker
-from arcade_cli import toolkit_docs
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
@@ -33,6 +32,7 @@ from arcade_cli.display import (
     display_tool_messages,
 )
 from arcade_cli.show import show_logic
+from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.utils import (
     OrderCommands,
     compute_base_url,
@@ -782,8 +782,15 @@ def dashboard(
         handle_cli_error("Failed to open dashboard", e, debug)
 
 
-@cli.command(help="Generate Toolkit documentation", rich_help_panel="Tool Development")
-def generate_toolkit_docs(
+@cli.command(
+    help=(
+        "Generate documentation for a toolkit. "
+        "Note: make sure to have the toolkit installed in your current Python environment "
+        "before running this command."
+    ),
+    rich_help_panel="Tool Development",
+)
+def docs(
     toolkit_name: str = typer.Option(
         ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
     ),
@@ -791,13 +798,16 @@ def generate_toolkit_docs(
         ...,
         "--toolkit-dir",
         "-t",
-        help="The path to the toolkit root directory.",
+        help=(
+            "The path to the toolkit root directory (where the toolkit code is implemented). "
+            "Works with relative and absolute paths."
+        ),
     ),
     docs_dir: str = typer.Option(
         ...,
         "--docs-dir",
         "-r",
-        help="The path to the documentation root directory.",
+        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
     ),
     docs_section: str = typer.Option(
         "",
@@ -805,6 +815,7 @@ def generate_toolkit_docs(
         "-s",
         help=(
             "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "This should be the name of the folder in /pages/toolkits. "
             "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
         ),
     ),
@@ -825,16 +836,16 @@ def generate_toolkit_docs(
         "-o",
         help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
     ),
-    tool_call_examples: bool = typer.Option(
+    skip_tool_call_examples: bool = typer.Option(
         False,
-        "--tool-call-examples",
-        "-e",
-        help="Whether to generate tool call examples",
+        "--skip-tool-call-examples",
+        "-se",
+        help="Whether to skip generating tool call examples in Python and Javascript.",
         show_default=True,
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
-    toolkit_docs.generate_toolkit_docs(
+    generate_toolkit_docs(
         console=console,
         toolkit_name=toolkit_name,
         toolkit_dir=toolkit_dir,
@@ -842,7 +853,7 @@ def generate_toolkit_docs(
         docs_section=docs_section,
         openai_model=openai_model,
         openai_api_key=openai_api_key,
-        tool_call_examples=tool_call_examples,
+        tool_call_examples=not skip_tool_call_examples,
         debug=debug,
     )
 
