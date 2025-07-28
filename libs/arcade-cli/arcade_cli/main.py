@@ -877,6 +877,85 @@ def docs(
         )
 
 
+@cli.command(
+    name="generate-toolkit-docs",
+    help=(
+        "Generate documentation for a toolkit. "
+        "Note: make sure to have the toolkit installed in your current Python environment "
+        "before running this command. "
+        "Obs.: this command is here for backwards compatibility, use `arcade docs` instead."
+    ),
+    rich_help_panel="Tool Development",
+    hidden=True,
+)
+def generate_toolkit_docs_command(
+    toolkit_name: str = typer.Option(
+        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+    ),
+    toolkit_dir: str = typer.Option(
+        ...,
+        "--toolkit-dir",
+        "-t",
+        help=(
+            "The path to the toolkit root directory (where the toolkit code is implemented). "
+            "Works with relative and absolute paths."
+        ),
+    ),
+    docs_dir: str = typer.Option(
+        ...,
+        "--docs-dir",
+        "-r",
+        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
+    ),
+    docs_section: str = typer.Option(
+        "",
+        "--docs-section",
+        "-s",
+        help=(
+            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "This should be the name of the folder in /pages/toolkits. "
+            "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
+        ),
+    ),
+    openai_model: str = typer.Option(
+        "gpt-4o-mini",
+        "--openai-model",
+        "-m",
+        help=(
+            "A few parts of the documentation are generated using OpenAI API. "
+            "This argument controls which OpenAI model to use. "
+            "E.g. 'gpt-4o', 'gpt-4o-mini'."
+        ),
+        show_default=True,
+    ),
+    openai_api_key: str = typer.Option(
+        None,
+        "--openai-api-key",
+        "-o",
+        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
+    ),
+    tool_call_examples: bool = typer.Option(
+        True,
+        "--tool-call-examples",
+        "-e",
+        help="Whether to generate tool call examples in Python and Javascript.",
+        show_default=True,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    skip_tool_call_examples = not tool_call_examples
+    docs(
+        toolkit_name=toolkit_name,
+        toolkit_dir=toolkit_dir,
+        docs_dir=docs_dir,
+        docs_section=docs_section,
+        openai_model=openai_model,
+        openai_api_key=openai_api_key,
+        skip_tool_call_examples=skip_tool_call_examples,
+        debug=debug,
+    )
+
+
 @cli.callback()
 def main_callback(
     ctx: typer.Context,
