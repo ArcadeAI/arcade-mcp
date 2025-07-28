@@ -221,7 +221,7 @@ class Toolkit(BaseModel):
         """
         # Get all python files in the package directory
         try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
+            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and valid_path(f)]
         except OSError as e:
             raise ToolkitLoadError(
                 f"Failed to locate Python files in package directory for '{package_name}'."
@@ -260,11 +260,11 @@ class Toolkit(BaseModel):
         if not path.suffix == ".py":
             raise ValueError(f"❌ Not a Python file: {path}")
 
-        # Try to compile the code to check for syntax errors
-        with open(path, encoding="utf-8") as f:
-            source = f.read()
-
         try:
+            # Try to compile the code to check for syntax errors
+            with open(path, encoding="utf-8") as f:
+                source = f.read()
+
             compile(source, str(path), "exec")
         except Exception as e:
             raise ValueError(f"{path}: {e}")
@@ -287,3 +287,21 @@ def get_package_directory(package_name: str) -> str:
         return spec.submodule_search_locations[0]
     else:
         raise ImportError(f"Package {package_name} does not have a file path associated with it")
+
+
+def valid_path(path: str) -> bool:
+    """
+    Validate if a path is valid to be served or deployed.
+    """
+    basename = os.path.basename(path)
+
+    # Exclude all hidden directories/files
+    if basename.startswith("."):
+        return False
+
+    # Exclude specific directories/files
+    if basename in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
+        return False
+
+    # Exclude lock files
+    return not basename.endswith(".lock")
