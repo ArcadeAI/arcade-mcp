@@ -75,7 +75,9 @@ def write_template(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def create_ignore_pattern(include_evals: bool, community_toolkit: bool) -> re.Pattern[str]:
+def create_ignore_pattern(
+    include_evals: bool, is_community_or_official_toolkit: bool
+) -> re.Pattern[str]:
     """Create an ignore pattern based on user preferences."""
     patterns = [
         "__pycache__",
@@ -96,8 +98,10 @@ def create_ignore_pattern(include_evals: bool, community_toolkit: bool) -> re.Pa
     if not include_evals:
         patterns.append("evals")
 
-    if not community_toolkit:
-        patterns.extend([".ruff.toml", ".pre-commit-config.yaml", "README.md"])
+    if not is_community_or_official_toolkit:
+        patterns.extend([".ruff.toml", ".pre-commit-config.yaml"])
+    else:
+        patterns.extend(["README.md"])
 
     return re.compile(f"({'|'.join(patterns)})$")
 
@@ -182,7 +186,9 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
             "Is your toolkit a community contribution (to be merged into "
             "\x1b]8;;https://github.com/ArcadeAI/arcade-ai\x1b\\ArcadeAI/arcade-ai\x1b]8;;\x1b\\ repo)?"
         )
-        is_community_toolkit = ask_yes_no_question(prompt, default=False)
+        is_community_toolkit = ask_yes_no_question(prompt, default=True)
+
+    is_official_toolkit = cwd.name == "toolkits" and cwd.parent.name == "tools"
 
     context = {
         "package_name": "arcade_" + toolkit_name if is_community_toolkit else toolkit_name,
@@ -198,6 +204,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
         "is_community_toolkit": is_community_toolkit,
+        "is_official_toolkit": is_official_toolkit,
     }
     template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
@@ -207,7 +214,9 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     )
 
     # Create dynamic ignore pattern based on user preferences
-    ignore_pattern = create_ignore_pattern(include_evals, is_community_toolkit)
+    ignore_pattern = create_ignore_pattern(
+        include_evals, is_community_toolkit or is_official_toolkit
+    )
 
     try:
         create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
