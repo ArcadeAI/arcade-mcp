@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_core.errors import ToolkitLoadError
-from arcade_core.toolkit import Toolkit
+from arcade_core.toolkit import Toolkit, valid_path
 
 
 class TestToolkit:
@@ -397,3 +397,170 @@ class TestValidateFile:
 
         with pytest.raises(SyntaxError):
             Toolkit.validate_file(invalid_file)
+
+
+class TestValidPath:
+    """Test the valid_path function for path validation during deployment and serving."""
+
+    @pytest.mark.parametrize(
+        "path_input",
+        [
+            # Simple valid paths
+            "file.py",
+            "module.py",
+            "utils.py",
+            "main.py",
+            "README.md",
+            "config.json",
+            # Valid nested paths
+            "src/main.py",
+            "lib/utils/helper.py",
+            "package/subpackage/module.py",
+            "tools/scripts/deploy.py",
+            "docs/api/reference.md",
+            "tests/unit/test_module.py",
+            # Deep nested paths
+            "very/deep/nested/directory/structure/file.py",
+            "a/b/c/d/e/f/g/module.py",
+            # Edge cases
+            "",  # Path("") creates current directory path "."
+            "a",
+            "1",
+            # Files containing but not matching restricted patterns
+            "my_dist_file.py",  # contains "dist" but doesn't match exactly
+            "build_utils.py",  # contains "build" but doesn't match exactly
+            "lockfile.py",  # contains "lock" but doesn't end with .lock
+            "unlock.py",  # contains "lock" but doesn't end with .lock
+            # Case sensitivity - these should be valid because case doesn't match exactly
+            "DIST/file.py",  # "DIST" != "dist"
+            "Build/file.py",  # "Build" != "build"
+            "VENV/file.py",  # "VENV" != "venv"
+            "Package.LOCK",  # ".LOCK" != ".lock"
+            # Windows-style paths
+            "src\\module.py",
+            "lib\\utils\\helper.py",
+            # Absolute paths that should be valid
+            "/home/user/project/file.py",
+            # Unicode and special characters
+            "файл.py",  # Cyrillic
+            "文件.py",  # Chinese
+            "módulo.py",  # Accented characters
+            "file with spaces.py",
+            "file-with-dashes.py",
+            "file_with_underscores.py",
+            # Path objects
+            Path("file.py"),
+            Path("src/module.py"),
+        ],
+        ids=[
+            "simple_file_py",
+            "simple_module_py",
+            "simple_utils_py",
+            "simple_main_py",
+            "simple_readme_md",
+            "simple_config_json",
+            "nested_src_main",
+            "nested_lib_utils",
+            "nested_package_subpackage",
+            "nested_tools_scripts",
+            "nested_docs_api",
+            "nested_tests_unit",
+            "deep_nested_very_deep",
+            "deep_nested_a_b_c",
+            "edge_case_empty_string",
+            "edge_case_single_a",
+            "edge_case_single_1",
+            "contains_dist_but_valid",
+            "contains_build_but_valid",
+            "contains_lock_but_valid",
+            "contains_unlock_valid",
+            "case_sensitive_DIST",
+            "case_sensitive_Build",
+            "case_sensitive_VENV",
+            "case_sensitive_LOCK",
+            "windows_src_module",
+            "windows_lib_utils",
+            "absolute_home_user",
+            "unicode_cyrillic",
+            "unicode_chinese",
+            "unicode_accented",
+            "spaces_in_filename",
+            "dashes_in_filename",
+            "underscores_in_filename",
+            "path_object_file",
+            "path_object_nested",
+        ],
+    )
+    def test_valid_paths(self, path_input):
+        """Test that valid paths are accepted."""
+        assert valid_path(path_input) is True
+
+    @pytest.mark.parametrize(
+        "path_input",
+        [
+            # Hidden files (starting with .)
+            ".hidden",
+            ".gitignore",
+            ".env",
+            ".DS_Store",
+            ".vscode",
+            ".pytest_cache",
+            # Paths containing hidden directories
+            ".hidden/file.py",
+            "src/.cache/data.py",
+            "lib/.git/config",
+            ".vscode/settings.json",
+            "deep/.hidden/nested/file.py",
+            "normal/.DS_Store",
+            # Excluded directories (exact matches)
+            "dist",
+            "build",
+            "__pycache__",
+            "venv",
+            "coverage.xml",
+            # Paths containing excluded directories
+            "dist/bundle.js",
+            "build/output/file.py",
+            "src/__pycache__/module.cpython-39.pyc",
+            "venv/lib/python3.9/site-packages/module.py",
+            "project/build/artifacts/file.py",
+            "lib/dist/package/module.py",
+            "tools/venv/bin/python",
+            # Lock files (ending with .lock)
+            "package.lock",
+            "poetry.lock",
+            "requirements.lock",
+            "Pipfile.lock",
+            "yarn.lock",
+            "npm.lock",
+            "custom.lock",
+            # Lock files in nested paths
+            "src/package.lock",
+            "frontend/yarn.lock",
+            "backend/poetry.lock",
+            "deep/nested/path/file.lock",
+            # Multiple violations
+            ".hidden/dist/file.py",  # hidden + excluded dir
+            "build/.cache/file.py",  # excluded dir + hidden
+            "venv/package.lock",  # excluded dir + lock file
+            ".git/hooks/file.lock",  # hidden + lock file
+            # Windows-style paths that should be invalid
+            "dist\\bundle.js",
+            ".hidden\\file.py",
+            "src\\package.lock",
+            # Absolute paths that should be invalid
+            "/home/user/project/.hidden/file.py",
+            "/home/user/project/dist/file.py",
+            "/opt/project/package.lock",
+            # Unicode with exclusion patterns
+            ".файл",  # Hidden Cyrillic file
+            "文件.lock",  # Chinese lock file
+            # Path objects
+            Path(".hidden/file.py"),
+            Path("dist/bundle.js"),
+            Path("package.lock"),
+        ],
+    )
+    def test_invalid_paths(self, path_input):
+        """Test that invalid paths are rejected."""
+        assert valid_path(path_input) is False

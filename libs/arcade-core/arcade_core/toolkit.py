@@ -4,7 +4,7 @@ import logging
 import os
 import types
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -293,15 +293,19 @@ def valid_path(path: str) -> bool:
     """
     Validate if a path is valid to be served or deployed.
     """
-    basename = os.path.basename(path)
+    # Check both POSIX and Windows interpretations
+    posix_path = PurePosixPath(path)
+    windows_path = PureWindowsPath(path)
 
-    # Exclude all hidden directories/files
-    if basename.startswith("."):
-        return False
+    # Get all possible parts from both interpretations
+    all_parts = set(posix_path.parts) | set(windows_path.parts)
 
-    # Exclude specific directories/files
-    if basename in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
-        return False
+    for part in all_parts:
+        if part.startswith("."):
+            return False
+        if part in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
+            return False
+        if part.endswith(".lock"):
+            return False
 
-    # Exclude lock files
-    return not basename.endswith(".lock")
+    return True
