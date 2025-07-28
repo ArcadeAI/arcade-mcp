@@ -267,7 +267,7 @@ class Toolkit(BaseModel):
 
             compile(source, str(path), "exec")
         except Exception as e:
-            raise ValueError(f"{path}: {e}")
+            raise SyntaxError(f"{path}: {e}")
 
 
 def get_package_directory(package_name: str) -> str:
