@@ -264,7 +264,10 @@ class Toolkit(BaseModel):
         with open(path, encoding="utf-8") as f:
             source = f.read()
 
-        compile(source, str(path), "exec")
+        try:
+            compile(source, str(path), "exec")
+        except Exception as e:
+            raise ValueError(f"{path}: {e}")
 
 
 def get_package_directory(package_name: str) -> str:
