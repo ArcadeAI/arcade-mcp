@@ -289,7 +289,7 @@ def get_package_directory(package_name: str) -> str:
         raise ImportError(f"Package {package_name} does not have a file path associated with it")
 
 
-def valid_path(path: str) -> bool:
+def valid_path(path: str | Path) -> bool:
     """
     Validate if a path is valid to be served or deployed.
     """
