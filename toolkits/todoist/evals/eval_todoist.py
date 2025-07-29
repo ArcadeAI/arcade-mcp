@@ -166,4 +166,31 @@ def todoist_eval_suite() -> EvalSuite:
         additional_messages=[],
     )
 
+    # Pagination test cases
+    suite.add_case(
+        name="Getting limited number of all tasks",
+        user_message="Get only 10 of my tasks from across the board",
+        expected_tool_calls=[ExpectedToolCall(func=get_all_tasks, args={"limit": 10})],
+        rubric=rubric,
+        critics=[SimilarityCritic(critic_field="limit", weight=1)],
+        additional_messages=[],
+    )
+
+    suite.add_case(
+        name="Getting limited tasks from specific project",
+        user_message="Show me only 5 tasks from the 'Work' project",
+        expected_tool_calls=[
+            ExpectedToolCall(
+                func=get_tasks_by_project_name, 
+                args={"project_name": "Work", "limit": 5}
+            )
+        ],
+        rubric=rubric,
+        critics=[
+            SimilarityCritic(critic_field="project_name", weight=0.5),
+            SimilarityCritic(critic_field="limit", weight=0.5)
+        ],
+        additional_messages=[],
+    )
+
     return suite

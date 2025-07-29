@@ -9,6 +9,47 @@ from arcade_todoist.tools.projects import get_projects
 from arcade_todoist.utils import get_headers, get_url, parse_task, parse_tasks
 
 
+async def _get_tasks_with_pagination(
+    context: ToolContext,
+    limit: int = 50,
+    next_page_token: str | None = None,
+    project_id: str | None = None,
+) -> dict:
+    """
+    Utility function to get tasks with pagination support.
+    
+    Args:
+        context: ToolContext for API access
+        limit: Number of tasks to return (min: 1, default: 50, max: 200)
+        next_page_token: Token for pagination, use None for first page  
+        project_id: Optional project ID to filter tasks by project
+        
+    Returns:
+        Dict containing tasks and next_page_token for pagination
+    """
+    async with httpx.AsyncClient() as client:
+        url = get_url(context=context, endpoint="tasks")
+        headers = get_headers(context=context)
+        
+        params = {"limit": limit}
+        if next_page_token:
+            params["cursor"] = next_page_token
+        if project_id:
+            params["project_id"] = project_id
+            
+        response = await client.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        tasks = parse_tasks(data["results"])
+        next_cursor = data.get("next_cursor")
+        
+        return {
+            "tasks": tasks,
+            "next_page_token": next_cursor
+        }
+
+
 class ProjectNotFoundError(ToolExecutionError):
     """Raised when a project is not found."""
 
@@ -61,24 +102,30 @@ class TaskNotFoundError(ToolExecutionError):
 )
 async def get_all_tasks(
     context: ToolContext,
-) -> Annotated[dict, "The tasks object returned by the Todoist API."]:
+    limit: Annotated[
+        int, 
+        "Number of tasks to return (min: 1, default: 50, max: 200). "
+        "Default is 50 which should be sufficient for most use cases."
+    ] = 50,
+    next_page_token: Annotated[
+        str | None, 
+        "Token for pagination. Use None for the first page, or the token returned "
+        "from a previous call to get the next page of results."
+    ] = None,
+) -> Annotated[dict, "The tasks object with pagination info returned by the Todoist API."]:
     """
-    Get all tasks from the Todoist API. Use this when the user wants to see, list, view, or
+    Get all tasks from the Todoist API with pagination support. Use this when the user wants to see, list, view, or
     browse all their existing tasks. For getting tasks from a specific project, use
     get_tasks_by_project_name or get_tasks_by_project_id instead.
+    
+    The response includes both tasks and a next_page_token. If next_page_token is not None,
+    there are more tasks available and you can call this function again with that token.
     """
-
-    async with httpx.AsyncClient() as client:
-        url = get_url(context=context, endpoint="tasks")
-        headers = get_headers(context=context)
-
-        response = await client.get(url, headers=headers)
-
-        response.raise_for_status()
-
-        tasks = parse_tasks(response.json()["results"])
-
-        return {"tasks": tasks}
+    return await _get_tasks_with_pagination(
+        context=context,
+        limit=limit,
+        next_page_token=next_page_token
+    )
 
 
 @tool(
@@ -90,25 +137,30 @@ async def get_all_tasks(
 async def get_tasks_by_project_id(
     context: ToolContext,
     project_id: Annotated[str, "The ID of the project to get tasks from."],
-) -> Annotated[dict, "The tasks object returned by the Todoist API."]:
+    limit: Annotated[
+        int, 
+        "Number of tasks to return (min: 1, default: 50, max: 200). "
+        "Default is 50 which should be sufficient for most use cases."
+    ] = 50,
+    next_page_token: Annotated[
+        str | None, 
+        "Token for pagination. Use None for the first page, or the token returned "
+        "from a previous call to get the next page of results."
+    ] = None,
+) -> Annotated[dict, "The tasks object with pagination info returned by the Todoist API."]:
     """
-    Get tasks from a specific project by project ID. Use this when you already have the project ID.
+    Get tasks from a specific project by project ID with pagination support. Use this when you already have the project ID.
     For getting tasks by project name, use get_tasks_by_project_name instead.
+    
+    The response includes both tasks and a next_page_token. If next_page_token is not None,
+    there are more tasks available and you can call this function again with that token.
     """
-
-    async with httpx.AsyncClient() as client:
-        url = get_url(context=context, endpoint="tasks")
-        headers = get_headers(context=context)
-
-        params = {"project_id": project_id}
-
-        response = await client.get(url, headers=headers, params=params)
-
-        response.raise_for_status()
-
-        tasks = parse_tasks(response.json()["results"])
-
-        return {"tasks": tasks}
+    return await _get_tasks_with_pagination(
+        context=context,
+        limit=limit,
+        next_page_token=next_page_token,
+        project_id=project_id
+    )
 
 
 @tool(
@@ -120,10 +172,23 @@ async def get_tasks_by_project_id(
 async def get_tasks_by_project_name(
     context: ToolContext,
     project_name: Annotated[str, "The name of the project to get tasks from."],
-) -> Annotated[dict, "The tasks object returned by the Todoist API."]:
+    limit: Annotated[
+        int, 
+        "Number of tasks to return (min: 1, default: 50, max: 200). "
+        "Default is 50 which should be sufficient for most use cases."
+    ] = 50,
+    next_page_token: Annotated[
+        str | None, 
+        "Token for pagination. Use None for the first page, or the token returned "
+        "from a previous call to get the next page of results."
+    ] = None,
+) -> Annotated[dict, "The tasks object with pagination info returned by the Todoist API."]:
     """
-    Get tasks from a specific project by project name. Use this when the user wants to see
+    Get tasks from a specific project by project name with pagination support. Use this when the user wants to see
     tasks from a specific project.
+    
+    The response includes both tasks and a next_page_token. If next_page_token is not None,
+    there are more tasks available and you can call this function again with that token.
     """
 
     projects = await get_projects(context=context)
@@ -146,7 +211,12 @@ async def get_tasks_by_project_name(
         else:
             raise ProjectNotFoundError(project_name)
 
-    return await get_tasks_by_project_id(context=context, project_id=project_id)
+    return await get_tasks_by_project_id(
+        context=context, 
+        project_id=project_id, 
+        limit=limit, 
+        next_page_token=next_page_token
+    )
 
 
 @tool(

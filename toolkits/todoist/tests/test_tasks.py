@@ -29,7 +29,8 @@ fake_tasks_response = {
             "checked": True,
             "description": "Description of the task",
         }
-    ]
+    ],
+    "next_cursor": None
 }
 
 faked_parsed_tasks = {
@@ -41,7 +42,36 @@ faked_parsed_tasks = {
             "project_id": "project id",
             "checked": True,
         }
-    ]
+    ],
+    "next_page_token": None
+}
+
+fake_paginated_tasks_response = {
+    "results": [
+        {
+            "id": "1",
+            "content": "Task 1",
+            "added_at": "2021-01-01",
+            "priority": 1,
+            "project_id": "project id",
+            "checked": True,
+            "description": "Description of the task",
+        }
+    ],
+    "next_cursor": "next_page_cursor_123"
+}
+
+faked_parsed_paginated_tasks = {
+    "tasks": [
+        {
+            "id": "1",
+            "content": "Task 1",
+            "added_at": "2021-01-01",
+            "project_id": "project id",
+            "checked": True,
+        }
+    ],
+    "next_page_token": "next_page_cursor_123"
 }
 
 fake_create_task_response = {
@@ -228,7 +258,8 @@ fake_multiple_tasks_response = {
             "project_id": "project_123",
             "checked": False,
         },
-    ]
+    ],
+    "next_page_token": None
 }
 
 
@@ -399,7 +430,8 @@ async def test_get_tasks_by_project_id_success(tool_context, httpx_mock) -> None
                 "checked": False,
                 "description": "Description of the task",
             },
-        ]
+        ],
+        "next_cursor": None
     }
 
     mock_response = MagicMock()
@@ -426,7 +458,8 @@ async def test_get_tasks_by_project_id_success(tool_context, httpx_mock) -> None
                 "project_id": "project_123",
                 "checked": False,
             },
-        ]
+        ],
+        "next_page_token": None
     }
 
     assert result == expected_filtered_tasks
@@ -434,13 +467,13 @@ async def test_get_tasks_by_project_id_success(tool_context, httpx_mock) -> None
 
     # Verify the API was called with the correct query parameter
     call_args = httpx_mock.get.call_args
-    assert call_args[1]["params"] == {"project_id": "project_123"}
+    assert call_args[1]["params"] == {"limit": 50, "project_id": "project_123"}
 
 
 @pytest.mark.asyncio
 async def test_get_tasks_by_project_id_empty_result(tool_context, httpx_mock) -> None:
     # Mock API response with no tasks for the project
-    empty_tasks_response = {"results": []}
+    empty_tasks_response = {"results": [], "next_cursor": None}
 
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -450,14 +483,14 @@ async def test_get_tasks_by_project_id_empty_result(tool_context, httpx_mock) ->
     result = await get_tasks_by_project_id(context=tool_context, project_id="empty_project")
 
     # Should return empty tasks list
-    expected_empty_result = {"tasks": []}
+    expected_empty_result = {"tasks": [], "next_page_token": None}
 
     assert result == expected_empty_result
     httpx_mock.get.assert_called_once()
 
     # Verify the API was called with the correct query parameter
     call_args = httpx_mock.get.call_args
-    assert call_args[1]["params"] == {"project_id": "empty_project"}
+    assert call_args[1]["params"] == {"limit": 50, "project_id": "empty_project"}
 
 
 @pytest.mark.asyncio
@@ -499,7 +532,8 @@ async def test_get_tasks_by_project_name_success(tool_context, mocker) -> None:
                 "project_id": "project_123",
                 "checked": False,
             },
-        ]
+        ],
+        "next_page_token": None
     }
     mock_get_tasks_by_project_id = mocker.patch(
         "arcade_todoist.tools.tasks.get_tasks_by_project_id"
@@ -511,7 +545,7 @@ async def test_get_tasks_by_project_name_success(tool_context, mocker) -> None:
     assert result == expected_filtered_tasks
     mock_get_projects.assert_called_once_with(context=tool_context)
     mock_get_tasks_by_project_id.assert_called_once_with(
-        context=tool_context, project_id="project_123"
+        context=tool_context, project_id="project_123", limit=50, next_page_token=None
     )
 
 
@@ -537,3 +571,180 @@ async def test_get_tasks_by_project_name_partial_match(tool_context, mocker) -> 
         await get_tasks_by_project_name(context=tool_context, project_name="Work")
 
     assert "Project not found" in str(exc_info.value)
+
+
+# Pagination-specific tests
+@pytest.mark.asyncio
+async def test_get_all_tasks_with_custom_limit(tool_context, httpx_mock) -> None:
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = fake_tasks_response
+    httpx_mock.get.return_value = mock_response
+
+    result = await get_all_tasks(context=tool_context, limit=25)
+
+    assert result == faked_parsed_tasks
+    httpx_mock.get.assert_called_once()
+
+    # Verify the API was called with the correct limit parameter
+    call_args = httpx_mock.get.call_args
+    assert call_args[1]["params"] == {"limit": 25}
+
+
+@pytest.mark.asyncio
+async def test_get_all_tasks_with_pagination(tool_context, httpx_mock) -> None:
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = fake_paginated_tasks_response
+    httpx_mock.get.return_value = mock_response
+
+    result = await get_all_tasks(context=tool_context, next_page_token="page_token_123")
+
+    assert result == faked_parsed_paginated_tasks
+    httpx_mock.get.assert_called_once()
+
+    # Verify the API was called with the cursor parameter
+    call_args = httpx_mock.get.call_args
+    assert call_args[1]["params"] == {"limit": 50, "cursor": "page_token_123"}
+
+
+@pytest.mark.asyncio
+async def test_get_tasks_by_project_id_with_custom_limit(tool_context, httpx_mock) -> None:
+    project_tasks_response = {
+        "results": [
+            {
+                "id": "1",
+                "content": "Task 1",
+                "added_at": "2021-01-01",
+                "priority": 1,
+                "project_id": "project_123",
+                "checked": False,
+                "description": "Description",
+            },
+        ],
+        "next_cursor": None
+    }
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = project_tasks_response
+    httpx_mock.get.return_value = mock_response
+
+    result = await get_tasks_by_project_id(
+        context=tool_context, project_id="project_123", limit=100
+    )
+
+    expected_result = {
+        "tasks": [
+            {
+                "id": "1",
+                "content": "Task 1",
+                "added_at": "2021-01-01",
+                "project_id": "project_123",
+                "checked": False,
+            },
+        ],
+        "next_page_token": None
+    }
+
+    assert result == expected_result
+    httpx_mock.get.assert_called_once()
+
+    # Verify the API was called with custom limit and project_id
+    call_args = httpx_mock.get.call_args
+    assert call_args[1]["params"] == {"limit": 100, "project_id": "project_123"}
+
+
+@pytest.mark.asyncio
+async def test_get_tasks_by_project_id_with_pagination(tool_context, httpx_mock) -> None:
+    project_tasks_response = {
+        "results": [
+            {
+                "id": "1",
+                "content": "Task 1",
+                "added_at": "2021-01-01",
+                "priority": 1,
+                "project_id": "project_123",
+                "checked": False,
+                "description": "Description",
+            },
+        ],
+        "next_cursor": "next_page_token_456"
+    }
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = project_tasks_response
+    httpx_mock.get.return_value = mock_response
+
+    result = await get_tasks_by_project_id(
+        context=tool_context, 
+        project_id="project_123", 
+        limit=25,
+        next_page_token="previous_page_token"
+    )
+
+    expected_result = {
+        "tasks": [
+            {
+                "id": "1",
+                "content": "Task 1",
+                "added_at": "2021-01-01",
+                "project_id": "project_123",
+                "checked": False,
+            },
+        ],
+        "next_page_token": "next_page_token_456"
+    }
+
+    assert result == expected_result
+    httpx_mock.get.assert_called_once()
+
+    # Verify the API was called with all pagination parameters
+    call_args = httpx_mock.get.call_args
+    assert call_args[1]["params"] == {
+        "limit": 25, 
+        "cursor": "previous_page_token",
+        "project_id": "project_123"
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_tasks_by_project_name_with_pagination(tool_context, mocker) -> None:
+    # Mock get_projects
+    mock_get_projects = mocker.patch("arcade_todoist.tools.tasks.get_projects")
+    mock_get_projects.return_value = fake_projects_response
+
+    # Mock get_tasks_by_project_id
+    expected_result = {
+        "tasks": [
+            {
+                "id": "1",
+                "content": "Task 1",
+                "added_at": "2021-01-01",
+                "project_id": "project_123",
+                "checked": False,
+            },
+        ],
+        "next_page_token": "next_token_789"
+    }
+    mock_get_tasks_by_project_id = mocker.patch(
+        "arcade_todoist.tools.tasks.get_tasks_by_project_id"
+    )
+    mock_get_tasks_by_project_id.return_value = expected_result
+
+    result = await get_tasks_by_project_name(
+        context=tool_context, 
+        project_name="Work Project",
+        limit=10,
+        next_page_token="some_token"
+    )
+
+    assert result == expected_result
+    mock_get_projects.assert_called_once_with(context=tool_context)
+    mock_get_tasks_by_project_id.assert_called_once_with(
+        context=tool_context, 
+        project_id="project_123", 
+        limit=10, 
+        next_page_token="some_token"
+    )
