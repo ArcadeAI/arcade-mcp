@@ -88,7 +88,6 @@ def build_toolkit_mdx(
     toolkit_name = sample_tool.toolkit.name
     toolkit_version = sample_tool.toolkit.version
     auth_type = get_toolkit_auth_type(sample_tool.requirements.authorization)
-    toolkit_dirname = os.path.basename(os.path.dirname(toolkit_dir))
 
     header = toolkit_header_template.format(
         toolkit_title=toolkit_name,
@@ -98,7 +97,6 @@ def build_toolkit_mdx(
             openai_model,
         ),
         pip_package_name=pip_package_name,
-        toolkit_dirname=toolkit_dirname,
         auth_type=auth_type,
         version=toolkit_version,
     )
