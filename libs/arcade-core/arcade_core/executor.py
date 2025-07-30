@@ -77,7 +77,7 @@ class ToolExecutor:
                 retry_after_ms=e.retry_after_ms,
                 origin=e.origin,
                 retryable=e.retryable,
-                code=e.code,
+                status_code=e.status_code,
                 extra=e.extra,
             )
 
@@ -87,7 +87,7 @@ class ToolExecutor:
                 developer_message=e.developer_message,
                 origin=e.origin,
                 retryable=e.retryable,
-                code=e.code,
+                status_code=e.status_code,
                 extra=e.extra,
             )
 
@@ -99,7 +99,7 @@ class ToolExecutor:
                 traceback_info=e.traceback_info(),
                 origin=e.origin,
                 retryable=e.retryable,
-                code=e.code,
+                status_code=e.status_code,
                 extra=e.extra,
             )
 
@@ -111,7 +111,7 @@ class ToolExecutor:
                 traceback_info=traceback.format_exc(),
                 origin="WORKER",
                 retryable=False,
-                code="BUG",
+                status_code=500,
                 extra={},
             )
 

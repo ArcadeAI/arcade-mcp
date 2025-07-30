@@ -406,8 +406,8 @@ class ToolCallError(BaseModel):
     """The origin of the error."""
     retryable: bool
     """Whether the tool call can be retried."""
-    code: str
-    """The code of the error."""
+    status_code: int
+    """The status code of the error."""
     extra: dict[str, Any]
     """Additional information about the error."""
 

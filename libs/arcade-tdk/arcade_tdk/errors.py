@@ -1,6 +1,12 @@
-from arcade_core.errors import RetryableToolError, ToolExecutionError, ToolRuntimeError
+from arcade_core.errors import (
+    NonRetryableToolError,
+    RetryableToolError,
+    ToolExecutionError,
+    ToolRuntimeError,
+)
 
 __all__ = [
+    "NonRetryableToolError",
     "RetryableToolError",
     "SDKError",
     "ToolExecutionError",
