@@ -11,6 +11,7 @@ from arcade_tdk.errors import (
     NonRetryableToolError,
     RetryableToolError,
     ToolExecutionError,
+    UpstreamRateLimitError,
 )
 from arcade_tdk.utils import snake_to_pascal_case
 
@@ -53,6 +54,10 @@ def tool(
                     #     developer_message=f"Error in {func_name}: {e!s}",
                     # ) from e
                     _raise_mapped(e, adapter)
+                    raise NonRetryableToolError(
+                        message=f"Error in execution of {tool_name}",
+                        developer_message=f"Error in {func_name}: {e!s}",
+                    ) from e
 
         else:
 
@@ -73,10 +78,6 @@ def tool(
                 raise err
             if err := GenericHTTPAdapter().from_exception(e):
                 raise err
-            raise ToolExecutionError(
-                message=f"Error in execution of {tool_name}",
-                developer_message=f"Error in {func_name}: {e!s}",
-            ) from e
 
         return func_with_error_handling
 
@@ -117,10 +118,9 @@ class GenericHTTPAdapter:
 
     def _map(self, status: int, headers, msg: str):
         if status == 429:
-            return RetryableToolError(
-                message=msg,
-                status_code=status,
+            return UpstreamRateLimitError(
                 retry_after_ms=_parse_retry_ms(headers),
+                message=msg,
             )
             # return UpstreamRateLimitError(_parse_retry_ms(headers), msg)
         if status in (401, 403):

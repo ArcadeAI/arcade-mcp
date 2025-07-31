@@ -6,11 +6,11 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
-    RetryableToolError,
     ToolExecutionError,
     ToolInputError,
     ToolOutputError,
     ToolSerializationError,
+    UpstreamError,
 )
 from arcade_core.output import output_factory
 from arcade_core.schema import (
@@ -69,36 +69,44 @@ class ToolExecutor:
             # return the output
             return output_factory.success(data=output, logs=tool_call_logs)
 
-        except RetryableToolError as e:
-            return output_factory.fail_retry(
-                message=e.message,
-                developer_message=e.developer_message,
-                additional_prompt_content=e.additional_prompt_content,
-                retry_after_ms=e.retry_after_ms,
-                origin=e.origin,
-                retryable=e.retryable,
-                status_code=e.status_code,
-                extra=e.extra,
-            )
-
-        except ToolSerializationError as e:
-            return output_factory.fail(
-                message=e.message,
-                developer_message=e.developer_message,
-                origin=e.origin,
-                retryable=e.retryable,
-                status_code=e.status_code,
-                extra=e.extra,
-            )
-
-        # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolExecutionError as e:
+            # TODO: some are retryable, some are not. Also, some retryable
+            # do not specify retry_after_ms.
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
                 traceback_info=e.traceback_info(),
                 origin=e.origin,
                 retryable=e.retryable,
+                code=e.code,
+                status_code=e.status_code,
+                extra=e.extra,
+            )
+
+        except UpstreamError as e:
+            # TODO: some are retryable, some are not. Also, some retryable
+            # do not specify retry_after_ms.
+            return output_factory.fail(
+                message=e.message,
+                developer_message=e.developer_message,
+                traceback_info=e.traceback_info(),
+                origin=e.origin,
+                retryable=e.retryable,
+                code=e.code,
+                status_code=e.status_code,
+                extra=e.extra,
+            )
+
+        except ToolSerializationError as e:
+            # TODO: some are retryable, some are not. Also, some retryable
+            # do not specify retry_after_ms.
+            return output_factory.fail(
+                message=e.message,
+                developer_message=e.developer_message,
+                traceback_info=e.traceback_info(),
+                origin=e.origin,
+                retryable=e.retryable,
+                code=e.code,
                 status_code=e.status_code,
                 extra=e.extra,
             )
@@ -109,9 +117,10 @@ class ToolExecutor:
                 message="Error in execution",
                 developer_message=str(e),
                 traceback_info=traceback.format_exc(),
-                origin="WORKER",
+                origin="TOOL",
                 retryable=False,
-                status_code=500,
+                code="BUG",
+                status_code=500,  # TODO: what status code should we use here?
                 extra={},
             )
 

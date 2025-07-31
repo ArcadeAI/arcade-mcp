@@ -650,7 +650,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     elif len(str_annotations) == 2:
         new_name = str_annotations[0]
         if not new_name.isidentifier():
-            raise ToolDefinitionError(
+            raise ToolDefinitionError(  # TODO: ToolInputError?
                 f"Invalid parameter name: '{new_name}' is not a valid identifier. "
                 "Identifiers must start with a letter or underscore, "
                 "and can only contain letters, digits, or underscores."
@@ -658,7 +658,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
         param_info.name = new_name
         param_info.description = str_annotations[1]
     else:
-        raise ToolDefinitionError(
+        raise ToolDefinitionError(  # TODO: ToolInputError?
             f"Parameter {param} has too many string annotations. Expected 0, 1, or 2, got {len(str_annotations)}."
         )
 

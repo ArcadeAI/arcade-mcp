@@ -3,6 +3,7 @@ from arcade_core.errors import (
     RetryableToolError,
     ToolExecutionError,
     ToolRuntimeError,
+    UpstreamRateLimitError,
 )
 
 __all__ = [
@@ -11,6 +12,7 @@ __all__ = [
     "SDKError",
     "ToolExecutionError",
     "ToolRuntimeError",
+    "UpstreamRateLimitError",
     "WeightError",
 ]
 

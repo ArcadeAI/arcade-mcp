@@ -52,6 +52,7 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
         origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
         retryable: bool = False,
+        code: str | None = None,
         status_code: int = 500,
         extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
@@ -63,6 +64,7 @@ class ToolOutputFactory:
                 traceback_info=traceback_info,
                 origin=origin,
                 retryable=retryable,
+                code=code,
                 status_code=status_code,
                 extra=extra,
             ),
@@ -80,6 +82,7 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
         origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
         retryable: bool = False,
+        code: str | None = None,
         status_code: int = 500,
         extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
@@ -93,6 +96,7 @@ class ToolOutputFactory:
                 traceback_info=traceback_info,
                 origin=origin,
                 retryable=retryable,
+                code=code,
                 status_code=status_code,
                 extra=extra,
             ),
