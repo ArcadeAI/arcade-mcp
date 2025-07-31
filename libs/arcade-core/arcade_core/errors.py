@@ -1,5 +1,6 @@
 import traceback
-from typing import Any, Literal
+from enum import Enum
+from typing import Any
 
 # TODO: break out into separate files
 # TODO: determine which errors should be abstract. (can't break backwards compatibility)
@@ -7,15 +8,52 @@ from typing import Any, Literal
 # TODO: remove "extra" entirely?
 
 
+class ErrorOrigin(str, Enum):
+    """Origin of the error."""
+
+    TOOLKIT = "TOOLKIT"
+    TOOL = "TOOL"
+    UPSTREAM = "UPSTREAM"
+
+
+class ErrorPhase(str, Enum):
+    """Phase when the error occurred."""
+
+    LOAD = "LOAD"
+    DEFINITION = "DEFINITION"
+    RUNTIME = "RUNTIME"
+
+
+class ErrorCode(str, Enum):
+    """Common error codes."""
+
+    LOAD_FAILED = "LOAD_FAILED"
+    BAD_INPUT_SCHEMA = "BAD_INPUT_SCHEMA"
+    BAD_OUTPUT_SCHEMA = "BAD_OUTPUT_SCHEMA"
+    BAD_INPUT_VALUE = "BAD_INPUT_VALUE"
+    BAD_OUTPUT_VALUE = "BAD_OUTPUT_VALUE"
+    TOOL_RETRY = "TOOL_RETRY"
+    BUG = "BUG"
+    BAD_REQUEST = "BAD_REQUEST"
+    AUTH_ERROR = "AUTH_ERROR"
+    NOT_FOUND = "NOT_FOUND"
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    RATE_LIMIT = "RATE_LIMIT"
+    SERVER_ERROR = "SERVER_ERROR"
+
+
 class ToolkitError(Exception):
     """
     Base class for all Arcade errors.
 
+    Note: This class is not intended to be instantiated directly.
+
     Common (not enforced) attributes expected from subclasses:
-      origin      : Literal['TOOL', 'UPSTREAM']
+      origin      : ErrorOrigin
+      phase       : ErrorPhase
       retryable   : bool
-      code        : str                # machine-readable subtype
-      status_code : int | None         # HTTP-ish status when relevant
+      code        : str                # machine-readable subtype of the error
+      status_code : int | None         # HTTP status code when relevant
       extra       : dict[str, Any]     # arbitrary structured metadata
     """
 
@@ -26,13 +64,18 @@ class ToolkitLoadError(ToolkitError):
     (e.g. missing dependency, SyntaxError in module top-level code).
     """
 
-    origin = "TOOL"
-    retryable = False
-    code = "LOAD_FAILED"
+    origin: ErrorOrigin = ErrorOrigin.TOOLKIT
+    phase: ErrorPhase = ErrorPhase.LOAD
+    retryable: bool = False
+    code: str = ErrorCode.LOAD_FAILED
 
 
 class ToolError(ToolkitError):
-    """Any error related to an Arcade tool."""
+    """
+    Any error related to an Arcade tool.
+
+    Note: This class is not intended to be instantiated directly.
+    """
 
 
 # ------  definition-time errors (tool developer's responsibility) ------
@@ -40,24 +83,26 @@ class ToolDefinitionError(ToolError):
     """
     Raised when there is an error in the definition/signature of a tool.
 
-    This is raised at the time of tool load/registration (when building the schema for the tool)
+    Note: This class is not intended to be instantiated directly.
     """
 
 
 class ToolInputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's input parameter."""
 
-    origin = "TOOL"
-    retryable = False
-    code = "BAD_INPUT_SCHEMA"
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.DEFINITION
+    retryable: bool = False
+    code: str = ErrorCode.BAD_INPUT_SCHEMA
 
 
 class ToolOutputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's output parameter."""
 
-    origin = "TOOL"
-    retryable = False
-    code = "BAD_OUTPUT_SCHEMA"
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.DEFINITION
+    retryable: bool = False
+    code: str = ErrorCode.BAD_OUTPUT_SCHEMA
 
 
 # ------  runtime errors ------
@@ -66,12 +111,17 @@ class ToolOutputSchemaError(ToolDefinitionError):
 class ToolRuntimeError(
     ToolError, RuntimeError
 ):  # TODO: does it matter if this is a subclass of RuntimeError?
-    """Any failure starting from when the tool call begins until the tool call returns."""
+    """
+    Any failure starting from when the tool call begins until the tool call returns.
 
-    origin: Literal["TOOL", "UPSTREAM"]
-    retryable: bool
-    code: str  # the semantic code of the error
-    status_code: int | None = None  # the HTTP status code of the error
+    Note: This class is not intended to be instantiated directly.
+    """
+
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.RUNTIME
+    retryable: bool = False
+    code: ErrorCode = ErrorCode.BUG
+    status_code: int | None = None
     extra: dict[str, Any]
 
     def __init__(
@@ -106,10 +156,15 @@ class ToolRuntimeError(
 
 # 1. ------  serialization errors ------
 class ToolSerializationError(ToolRuntimeError):  # TODO: probably make this abstract
-    """Raised when there is an error serializing/marshalling the tool call arguments or return value."""
+    """
+    Raised when there is an error serializing/marshalling the tool call arguments or return value.
 
-    origin = "TOOL"
-    retryable = False
+    Note: This class is not intended to be instantiated directly.
+    """
+
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.RUNTIME
+    retryable: bool = False
 
 
 class ToolInputError(ToolSerializationError):
@@ -117,7 +172,8 @@ class ToolInputError(ToolSerializationError):
     Raised when there is an error parsing a tool call argument.
     """
 
-    code = "BAD_INPUT_VALUE"
+    code: str = ErrorCode.BAD_INPUT_VALUE
+    status_code: int = 400
 
 
 class ToolOutputError(ToolSerializationError):
@@ -125,7 +181,8 @@ class ToolOutputError(ToolSerializationError):
     Raised when there is an error serializing a tool call return value.
     """
 
-    code = "BAD_OUTPUT_VALUE"
+    code: str = ErrorCode.BAD_OUTPUT_VALUE
+    status_code: int = 500
 
 
 # 2. ------  tool-body errors ------
@@ -134,9 +191,12 @@ class ToolExecutionError(
 ):  # TODO: I'd love to make this abstract, but can't break backwards compatibility
     """
     Raised when there is an error executing a tool.
+
+    Note: This class is not intended to be instantiated directly.
     """
 
-    origin = "TOOL"
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.RUNTIME
 
 
 class RetryableToolError(ToolExecutionError):
@@ -144,8 +204,8 @@ class RetryableToolError(ToolExecutionError):
     Raised when a tool execution error is retryable.
     """
 
-    retryable = True
-    code = "TOOL_RETRY"
+    retryable: bool = True
+    code: str = ErrorCode.TOOL_RETRY
 
     def __init__(
         self,
@@ -164,8 +224,8 @@ class NonRetryableToolError(ToolExecutionError):
     Raised when there is an error executing a tool.
     """
 
-    retryable = False
-    code = "BUG"
+    retryable: bool = False
+    code: str = ErrorCode.BUG
 
     def __init__(
         self,
@@ -179,17 +239,22 @@ class NonRetryableToolError(ToolExecutionError):
 
 # 3. ------  upstream errors in tool body------
 class UpstreamError(ToolRuntimeError):  # TODO: probably make this abstract
-    """Parent error for all failures from the upstream provider."""
+    """
+    Parent error for all failures from the upstream provider.
 
-    origin = "UPSTREAM"
+    Note: This class is not intended to be instantiated directly.
+    """
+
+    origin: ErrorOrigin = ErrorOrigin.UPSTREAM
+    phase: ErrorPhase = ErrorPhase.RUNTIME
 
 
 class UpstreamBadRequestError(UpstreamError):
     """Raised when an upstream provider returns a bad request error."""
 
-    retryable = False
-    code = "BAD_REQUEST"
-    status_code = 400
+    retryable: bool = False
+    code: str = ErrorCode.BAD_REQUEST
+    status_code: int = 400
 
 
 class UpstreamAuthError(UpstreamError):
@@ -199,8 +264,8 @@ class UpstreamAuthError(UpstreamError):
     This covers both missing/invalid credentials (401) and insufficient permissions (403).
     """
 
-    retryable = False
-    code = "AUTH_ERROR"
+    retryable: bool = False
+    code: str = ErrorCode.AUTH_ERROR
 
     def __init__(
         self,
@@ -216,17 +281,17 @@ class UpstreamAuthError(UpstreamError):
 class UpstreamNotFoundError(UpstreamError):
     """Raised when an upstream provider returns a not found error."""
 
-    retryable = False
-    code = "NOT_FOUND"
-    status_code = 404
+    retryable: bool = False
+    code: str = ErrorCode.NOT_FOUND
+    status_code: int = 404
 
 
 class UpstreamValidationError(UpstreamError):
     """Raised when upstream provider rejects request due to validation errors."""
 
-    retryable = False
-    code = "VALIDATION_ERROR"
-    status_code = 422
+    retryable: bool = False
+    code: str = ErrorCode.VALIDATION_ERROR
+    status_code: int = 422
 
 
 class UpstreamRateLimitError(UpstreamError):
@@ -234,9 +299,9 @@ class UpstreamRateLimitError(UpstreamError):
     Raised when an upstream provider is rate limiting a request in a tool.
     """
 
-    retryable = True
-    code = "RATE_LIMIT"
-    status_code = 429
+    retryable: bool = True
+    code: str = ErrorCode.RATE_LIMIT
+    status_code: int = 429
 
     def __init__(
         self,
@@ -252,8 +317,9 @@ class UpstreamRateLimitError(UpstreamError):
 class UpstreamServerError(UpstreamError):
     """Raised when an upstream provider returns a server error (5xx)."""
 
-    retryable = True
-    code = "SERVER_ERROR"
+    retryable: bool = True
+    code: str = ErrorCode.SERVER_ERROR
+    status_code: int = 500
 
     def __init__(
         self,

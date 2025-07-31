@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from arcade_core.errors import ErrorCode, ErrorOrigin
+
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
 
@@ -402,13 +404,13 @@ class ToolCallError(BaseModel):
     """The traceback information for the tool call."""
 
     # New fields
-    origin: Literal["TOOL", "UPSTREAM"]
+    origin: ErrorOrigin
     """The origin of the error."""
     retryable: bool
     """Whether the tool call can be retried."""
-    code: str | None = None
+    code: ErrorCode | None = None
     """The semantic code of the error."""
-    status_code: int
+    status_code: int | None = None
     """The status code of the error."""
     extra: dict[str, Any]
     """Additional information about the error."""

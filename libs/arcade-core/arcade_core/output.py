@@ -1,7 +1,8 @@
-from typing import Any, Literal, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
+from arcade_core.errors import ErrorCode, ErrorOrigin
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -52,9 +53,9 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
-        origin: Literal["TOOL", "UPSTREAM"] = "TOOL",
+        origin: ErrorOrigin = ErrorOrigin.TOOL,
         retryable: bool = False,
-        code: str | None = None,
+        code: ErrorCode | None = None,
         status_code: int = 500,
         extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
@@ -84,9 +85,9 @@ class ToolOutputFactory:
         retry_after_ms: int | None = None,
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
-        origin: Literal["TOOL", "UPSTREAM"] = "TOOL",
+        origin: ErrorOrigin = ErrorOrigin.TOOL,
         retryable: bool = True,
-        code: str | None = None,
+        code: ErrorCode | None = None,
         status_code: int = 500,
         extra: dict[str, Any] = {},
     ) -> ToolCallOutput:

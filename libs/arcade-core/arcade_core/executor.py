@@ -6,12 +6,11 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
-    ToolExecutionError,
+    ErrorCode,
+    ErrorOrigin,
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
-    ToolSerializationError,
-    UpstreamError,
 )
 from arcade_core.output import output_factory
 from arcade_core.schema import (
@@ -87,13 +86,13 @@ class ToolExecutor:
         # if we get here we're in trouble
         except Exception as e:
             return output_factory.fail(
-                message="Error in execution",
+                message=f"Error in execution of '{func.__name__}'",
                 developer_message=str(e),
                 traceback_info=traceback.format_exc(),
-                origin="TOOL",
+                origin=ErrorOrigin.TOOL,
                 retryable=False,
-                code="BUG",
-                status_code=500,  # TODO: what status code should we use here?
+                code=ErrorCode.BUG,
+                status_code=500,
                 extra={},
             )
 
