@@ -25,14 +25,27 @@ class ToolOutputFactory:
 
         The executor guarantees that `data` is either a string, a dict, or None.
         """
-        value: str | int | float | bool | dict | list[str] | None
+        value: str | int | float | bool | dict | list | None
         if data is None:
             value = ""
         elif hasattr(data, "result"):
-            value = getattr(data, "result", "")
+            result = getattr(data, "result", "")
+            # Handle None result the same way as None data
+            if result is None:
+                value = ""
+            # If the result is a BaseModel (e.g., from TypedDict conversion), convert to dict
+            elif isinstance(result, BaseModel):
+                value = result.model_dump()
+            # If the result is a list, check if it contains BaseModel objects
+            elif isinstance(result, list):
+                value = [
+                    item.model_dump() if isinstance(item, BaseModel) else item for item in result
+                ]
+            else:
+                value = result
         elif isinstance(data, BaseModel):
             value = data.model_dump()
-        elif isinstance(data, (str, int, float, bool, list)):
+        elif isinstance(data, (str, int, float, bool, list, dict)):
             value = data
         else:
             raise ValueError(f"Unsupported data output type: {type(data)}")

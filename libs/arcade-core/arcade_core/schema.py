@@ -418,7 +418,7 @@ class ToolCallRequiresAuthorization(BaseModel):
 class ToolCallOutput(BaseModel):
     """The output of a tool invocation."""
 
-    value: str | int | float | bool | dict | list[str] | None = None
+    value: str | int | float | bool | dict | list | None = None
     """The value returned by the tool."""
     logs: list[ToolCallLog] | None = None
     """The logs that occurred during the tool invocation."""
