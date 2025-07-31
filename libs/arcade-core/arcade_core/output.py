@@ -50,7 +50,9 @@ class ToolOutputFactory:
         developer_message: str | None = None,
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
-        origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
+        additional_prompt_content: str | None = None,
+        retry_after_ms: int | None = None,
+        origin: Literal["TOOL", "UPSTREAM"] = "TOOL",
         retryable: bool = False,
         code: str | None = None,
         status_code: int = 500,
@@ -60,7 +62,9 @@ class ToolOutputFactory:
             error=ToolCallError(
                 message=message,
                 developer_message=developer_message,
-                can_retry=False,
+                can_retry=retryable,
+                additional_prompt_content=additional_prompt_content,
+                retry_after_ms=retry_after_ms,
                 traceback_info=traceback_info,
                 origin=origin,
                 retryable=retryable,
@@ -80,12 +84,17 @@ class ToolOutputFactory:
         retry_after_ms: int | None = None,
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
-        origin: Literal["WORKER", "UPSTREAM", "ENGINE"] = "WORKER",
-        retryable: bool = False,
+        origin: Literal["TOOL", "UPSTREAM"] = "TOOL",
+        retryable: bool = True,
         code: str | None = None,
         status_code: int = 500,
         extra: dict[str, Any] = {},
     ) -> ToolCallOutput:
+        """
+        DEPRECATED: Use ToolOutputFactory.fail instead.
+        This method will be removed in version 3.0.0
+        """
+
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,

@@ -9,6 +9,7 @@ from arcade_core.errors import (
     ToolExecutionError,
     ToolInputError,
     ToolOutputError,
+    ToolRuntimeError,
     ToolSerializationError,
     UpstreamError,
 )
@@ -69,41 +70,13 @@ class ToolExecutor:
             # return the output
             return output_factory.success(data=output, logs=tool_call_logs)
 
-        except ToolExecutionError as e:
-            # TODO: some are retryable, some are not. Also, some retryable
-            # do not specify retry_after_ms.
+        except ToolRuntimeError as e:
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
                 traceback_info=e.traceback_info(),
-                origin=e.origin,
-                retryable=e.retryable,
-                code=e.code,
-                status_code=e.status_code,
-                extra=e.extra,
-            )
-
-        except UpstreamError as e:
-            # TODO: some are retryable, some are not. Also, some retryable
-            # do not specify retry_after_ms.
-            return output_factory.fail(
-                message=e.message,
-                developer_message=e.developer_message,
-                traceback_info=e.traceback_info(),
-                origin=e.origin,
-                retryable=e.retryable,
-                code=e.code,
-                status_code=e.status_code,
-                extra=e.extra,
-            )
-
-        except ToolSerializationError as e:
-            # TODO: some are retryable, some are not. Also, some retryable
-            # do not specify retry_after_ms.
-            return output_factory.fail(
-                message=e.message,
-                developer_message=e.developer_message,
-                traceback_info=e.traceback_info(),
+                additional_prompt_content=getattr(e, "additional_prompt_content", None),
+                retry_after_ms=getattr(e, "retry_after_ms", None),
                 origin=e.origin,
                 retryable=e.retryable,
                 code=e.code,

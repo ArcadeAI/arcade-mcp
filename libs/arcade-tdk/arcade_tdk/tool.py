@@ -9,7 +9,6 @@ import httpx
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.errors import (
     NonRetryableToolError,
-    RetryableToolError,
     ToolExecutionError,
     UpstreamRateLimitError,
 )

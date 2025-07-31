@@ -402,7 +402,7 @@ class ToolCallError(BaseModel):
     """The traceback information for the tool call."""
 
     # New fields
-    origin: Literal["WORKER", "UPSTREAM", "ENGINE"]
+    origin: Literal["TOOL", "UPSTREAM"]
     """The origin of the error."""
     retryable: bool
     """Whether the tool call can be retried."""
