@@ -18,7 +18,6 @@ import ToolFooter from "@/components/ToolFooter";
 <ToolInfo
   description="Enable agents to interact with {toolkit_title}"
   author="Arcade"
-  codeLink="https://github.com/ArcadeAI/arcade-ai/tree/main/toolkits/{toolkit_dirname}"
   {auth_type}
   versions={{["{version}"]}}
 />
