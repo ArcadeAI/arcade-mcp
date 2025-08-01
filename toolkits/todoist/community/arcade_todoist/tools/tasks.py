@@ -18,7 +18,7 @@ from arcade_todoist.utils import (
 @tool(
     requires_auth=OAuth2(
         id="todoist",
-        scopes=["data:read_write"],
+        scopes=["data:read"],
     ),
 )
 async def get_all_tasks(
