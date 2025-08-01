@@ -221,7 +221,7 @@ class Toolkit(BaseModel):
         """
         # Get all python files in the package directory
         try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and valid_path(f)]
+            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)]
         except OSError as e:
             raise ToolkitLoadError(
                 f"Failed to locate Python files in package directory for '{package_name}'."
@@ -289,23 +289,30 @@ def get_package_directory(package_name: str) -> str:
         raise ImportError(f"Package {package_name} does not have a file path associated with it")
 
 
-def valid_path(path: str | Path) -> bool:
-    """
-    Validate if a path is valid to be served or deployed.
-    """
-    # Check both POSIX and Windows interpretations
-    posix_path = PurePosixPath(path)
-    windows_path = PureWindowsPath(path)
+class Validate:
+    warn = True
 
-    # Get all possible parts from both interpretations
-    all_parts = set(posix_path.parts) | set(windows_path.parts)
+    @classmethod
+    def path(cls, path: str | Path) -> bool:
+        """
+        Validate if a path is valid to be served or deployed.
+        """
+        # Check both POSIX and Windows interpretations
+        posix_path = PurePosixPath(path)
+        windows_path = PureWindowsPath(path)
 
-    for part in all_parts:
-        if part.startswith("."):
-            return False
-        if part in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
-            return False
-        if part.endswith(".lock"):
-            return False
+        # Get all possible parts from both interpretations
+        all_parts = set(posix_path.parts) | set(windows_path.parts)
 
-    return True
+        for part in all_parts:
+            if (part == "venv" or part.startswith(".")) and cls.warn:
+                print(
+                    "⚠️ You're package may contain a venv directory. This may cause issues when deploying."
+                )
+                cls.warn = False
+            if part in {"dist", "build", "__pycache__", "coverage.xml"}:
+                return False
+            if part.endswith(".lock"):
+                return False
+
+        return True

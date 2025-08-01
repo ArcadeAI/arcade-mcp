@@ -10,7 +10,7 @@ from typing import Any
 
 import toml
 from arcade_core import Toolkit
-from arcade_core.toolkit import valid_path
+from arcade_core.toolkit import Validate
 from arcadepy import Arcade, NotFoundError
 from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
 from packaging.requirements import Requirement
@@ -230,7 +230,7 @@ class Worker(BaseModel):
 
         def exclude_filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
             """Filter for files/directories to exclude from the compressed package"""
-            if not valid_path(tarinfo.name):
+            if not Validate.path(tarinfo.name):
                 return None
 
             return tarinfo
