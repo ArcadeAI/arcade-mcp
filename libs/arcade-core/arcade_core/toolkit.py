@@ -307,7 +307,7 @@ class Validate:
         for part in all_parts:
             if (part == "venv" or part.startswith(".")) and cls.warn:
                 print(
-                    f"⚠️ Your package may contain a venv directory or hidden files. We suggest moving these out of the toolkit directory to avoid deployment issues: {part}"
+                    f"⚠️ Your package may contain a venv directory or hidden files. We suggest moving these out of the toolkit directory to avoid deployment issues: {path}"
                 )
                 cls.warn = False
             if part in {"dist", "build", "__pycache__", "coverage.xml"}:
