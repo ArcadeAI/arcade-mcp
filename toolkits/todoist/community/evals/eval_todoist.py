@@ -112,45 +112,45 @@ def todoist_eval_suite() -> EvalSuite:
     suite.add_case(
         name="Close a task by ID",
         user_message="Mark task with ID '12345' as completed",
-        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task": "12345"})],
+        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task_id": "12345"})],
         rubric=rubric,
-        critics=[SimilarityCritic(critic_field="task", weight=1)],
+        critics=[SimilarityCritic(critic_field="task_id", weight=1)],
         additional_messages=[],
     )
 
     suite.add_case(
-        name="Close a task by Name",
-        user_message="I'm done with the task 'Buy groceries'",
-        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task": "Buy groceries"})],
+        name="Close a task by ID",
+        user_message="I'm done with task ID 'task_456'",
+        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task_id": "task_456"})],
         rubric=rubric,
-        critics=[SimilarityCritic(critic_field="task", weight=1)],
+        critics=[SimilarityCritic(critic_field="task_id", weight=1)],
         additional_messages=[],
     )
 
     suite.add_case(
         name="Complete a task by id",
         user_message="Please close task with id abc123, I finished it",
-        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task": "abc123"})],
+        expected_tool_calls=[ExpectedToolCall(func=close_task, args={"task_id": "abc123"})],
         rubric=rubric,
-        critics=[SimilarityCritic(critic_field="task", weight=1)],
+        critics=[SimilarityCritic(critic_field="task_id", weight=1)],
         additional_messages=[],
     )
 
     suite.add_case(
         name="Delete a task by ID",
         user_message="Delete task with ID 'task_456'",
-        expected_tool_calls=[ExpectedToolCall(func=delete_task, args={"task": "task_456"})],
+        expected_tool_calls=[ExpectedToolCall(func=delete_task, args={"task_id": "task_456"})],
         rubric=rubric,
-        critics=[SimilarityCritic(critic_field="task", weight=1)],
+        critics=[SimilarityCritic(critic_field="task_id", weight=1)],
         additional_messages=[],
     )
 
     suite.add_case(
-        name="Remove a task by name",
-        user_message="I want to remove task Wash car completely",
-        expected_tool_calls=[ExpectedToolCall(func=delete_task, args={"task": "Wash car"})],
+        name="Remove a task by ID",
+        user_message="I want to remove task with ID task_789 completely",
+        expected_tool_calls=[ExpectedToolCall(func=delete_task, args={"task_id": "task_789"})],
         rubric=rubric,
-        critics=[SimilarityCritic(critic_field="task", weight=1)],
+        critics=[SimilarityCritic(critic_field="task_id", weight=1)],
         additional_messages=[],
     )
 

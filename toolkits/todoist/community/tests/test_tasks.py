@@ -4,7 +4,7 @@ import httpx
 import pytest
 from arcade_tdk.errors import ToolExecutionError
 
-from arcade_todoist.errors import ProjectNotFoundError, TaskNotFoundError
+from arcade_todoist.errors import ProjectNotFoundError
 from arcade_todoist.tools.tasks import (
     _close_task_by_task_id,
     _create_task_in_project,
@@ -26,14 +26,11 @@ from tests.fakes import (
     DELETE_TASK_SUCCESS_RESPONSE,
     EMPTY_TASKS_API_RESPONSE,
     EMPTY_TASKS_PARSED_RESPONSE,
-    MULTIPLE_TASKS_PARSED_RESPONSE,
     PAGINATED_TASKS_API_RESPONSE,
     PAGINATED_TASKS_PARSED_RESPONSE,
-    PARTIAL_MATCH_TASKS_PARSED_RESPONSE,
     PROJECT_SPECIFIC_TASKS_API_RESPONSE,
     PROJECT_SPECIFIC_TASKS_PARSED_RESPONSE,
     PROJECTS_PARSED_RESPONSE,
-    SINGLE_MATCH_TASK_PARSED_RESPONSE,
     SINGLE_TASK_API_RESPONSE,
     SINGLE_TASK_PARSED_RESPONSE,
     TASKS_WITH_PAGINATION_API_RESPONSE,
@@ -215,89 +212,22 @@ async def test_create_task_project_not_found(tool_context, mocker) -> None:
 
 
 @pytest.mark.asyncio
-async def test_close_task_success_exact_match(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = MULTIPLE_TASKS_PARSED_RESPONSE
-
+async def test_close_task_success_with_id(tool_context, mocker) -> None:
     mock_close_task_by_task_id = mocker.patch("arcade_todoist.tools.tasks._close_task_by_task_id")
     mock_close_task_by_task_id.return_value = CLOSE_TASK_SUCCESS_RESPONSE
 
-    result = await close_task(context=tool_context, task="Buy groceries")
+    result = await close_task(context=tool_context, task_id="1")
 
     assert result == CLOSE_TASK_SUCCESS_RESPONSE
-    mock_get_tasks_by_filter.assert_called_once_with(
-        context=tool_context, filter_query="search: Buy groceries"
-    )
     mock_close_task_by_task_id.assert_called_once_with(context=tool_context, task_id="1")
 
 
 @pytest.mark.asyncio
-async def test_close_task_not_found(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = {"tasks": [], "next_page_token": None}
-
-    with pytest.raises(TaskNotFoundError) as exc_info:
-        await close_task(context=tool_context, task="Nonexistent task")
-
-    assert "Task not found" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-async def test_close_task_partial_match(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = PARTIAL_MATCH_TASKS_PARSED_RESPONSE
-
-    with pytest.raises(ToolExecutionError) as exc_info:
-        await close_task(context=tool_context, task="task")
-
-    error = exc_info.value
-    error_text = str(error)
-    if hasattr(error, "developer_message") and error.developer_message:
-        error_text += " " + error.developer_message
-
-    if error.__cause__:
-        error_text += " " + str(error.__cause__)
-
-    assert "Multiple tasks found" in error_text
-
-
-@pytest.mark.asyncio
-async def test_delete_task_success_exact_match(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = MULTIPLE_TASKS_PARSED_RESPONSE
-
+async def test_delete_task_success_with_id(tool_context, mocker) -> None:
     mock_delete_task_by_task_id = mocker.patch("arcade_todoist.tools.tasks._delete_task_by_task_id")
     mock_delete_task_by_task_id.return_value = DELETE_TASK_SUCCESS_RESPONSE
 
-    result = await delete_task(context=tool_context, task="Meeting notes")
-
-    assert result == DELETE_TASK_SUCCESS_RESPONSE
-    mock_get_tasks_by_filter.assert_called_once_with(
-        context=tool_context, filter_query="search: Meeting notes"
-    )
-    mock_delete_task_by_task_id.assert_called_once_with(context=tool_context, task_id="3")
-
-
-@pytest.mark.asyncio
-async def test_delete_task_not_found(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = {"tasks": [], "next_page_token": None}
-
-    with pytest.raises(TaskNotFoundError) as exc_info:
-        await delete_task(context=tool_context, task="Nonexistent task")
-
-    assert "Task not found" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-async def test_delete_task_partial_match(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = SINGLE_MATCH_TASK_PARSED_RESPONSE
-
-    mock_delete_task_by_task_id = mocker.patch("arcade_todoist.tools.tasks._delete_task_by_task_id")
-    mock_delete_task_by_task_id.return_value = DELETE_TASK_SUCCESS_RESPONSE
-
-    result = await delete_task(context=tool_context, task="notes")
+    result = await delete_task(context=tool_context, task_id="3")
 
     assert result == DELETE_TASK_SUCCESS_RESPONSE
     mock_delete_task_by_task_id.assert_called_once_with(context=tool_context, task_id="3")
@@ -551,31 +481,23 @@ async def test_create_task_with_project_id(tool_context, mocker) -> None:
 
 @pytest.mark.asyncio
 async def test_close_task_with_task_id(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = MULTIPLE_TASKS_PARSED_RESPONSE
-
     mock_close_task_by_task_id = mocker.patch("arcade_todoist.tools.tasks._close_task_by_task_id")
     mock_close_task_by_task_id.return_value = CLOSE_TASK_SUCCESS_RESPONSE
 
-    result = await close_task(context=tool_context, task="1")
+    result = await close_task(context=tool_context, task_id="1")
 
     assert result == CLOSE_TASK_SUCCESS_RESPONSE
-    mock_get_tasks_by_filter.assert_called_once_with(context=tool_context, filter_query="search: 1")
     mock_close_task_by_task_id.assert_called_once_with(context=tool_context, task_id="1")
 
 
 @pytest.mark.asyncio
 async def test_delete_task_with_task_id(tool_context, mocker) -> None:
-    mock_get_tasks_by_filter = mocker.patch("arcade_todoist.tools.tasks.get_tasks_by_filter")
-    mock_get_tasks_by_filter.return_value = MULTIPLE_TASKS_PARSED_RESPONSE
-
     mock_delete_task_by_task_id = mocker.patch("arcade_todoist.tools.tasks._delete_task_by_task_id")
     mock_delete_task_by_task_id.return_value = DELETE_TASK_SUCCESS_RESPONSE
 
-    result = await delete_task(context=tool_context, task="3")
+    result = await delete_task(context=tool_context, task_id="3")
 
     assert result == DELETE_TASK_SUCCESS_RESPONSE
-    mock_get_tasks_by_filter.assert_called_once_with(context=tool_context, filter_query="search: 3")
     mock_delete_task_by_task_id.assert_called_once_with(context=tool_context, task_id="3")
 
 

@@ -11,7 +11,6 @@ from arcade_todoist.utils import (
     parse_task,
     parse_tasks,
     resolve_project_id,
-    resolve_task_id,
 )
 
 
@@ -82,7 +81,7 @@ async def _get_tasks_by_project_id(
 @tool(
     requires_auth=OAuth2(
         id="todoist",
-        scopes=["data:read_write"],
+        scopes=["data:read"],
     ),
 )
 async def get_tasks_by_project(
@@ -222,17 +221,14 @@ async def _close_task_by_task_id(
 )
 async def close_task(
     context: ToolContext,
-    task: Annotated[str, "The ID or description/content of the task to be closed."],
+    task_id: Annotated[str, "The exact ID of the task to be closed."],
 ) -> Annotated[dict, "The task object returned by the Todoist API."]:
     """
-    Close a task by its ID or description/content. Use this whenever the user wants to
+    Close a task by its exact ID. Use this whenever the user wants to
     mark a task as completed, done, or closed.
 
-    The function will first try to find a task with the given ID, and if that doesn't exist,
-    it will search for a task with the given description/content.
     """
 
-    task_id = await resolve_task_id(context=context, task=task)
     return await _close_task_by_task_id(context=context, task_id=task_id)
 
 
@@ -270,24 +266,20 @@ async def _delete_task_by_task_id(
 )
 async def delete_task(
     context: ToolContext,
-    task: Annotated[str, "The ID or description/content of the task to be deleted."],
+    task_id: Annotated[str, "The exact ID of the task to be deleted."],
 ) -> Annotated[dict, "The task object returned by the Todoist API."]:
     """
-    Delete a task by its ID or description/content. Use this whenever the user wants to
+    Delete a task by its exact ID. Use this whenever the user wants to
     delete a task.
-
-    The function will first try to find a task with the given ID, and if that doesn't exist,
-    it will search for a task with the given description/content.
     """
 
-    task_id = await resolve_task_id(context=context, task=task)
     return await _delete_task_by_task_id(context=context, task_id=task_id)
 
 
 @tool(
     requires_auth=OAuth2(
         id="todoist",
-        scopes=["data:read_write"],
+        scopes=["data:read"],
     ),
 )
 async def get_tasks_by_filter(
