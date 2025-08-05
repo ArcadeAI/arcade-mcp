@@ -165,6 +165,7 @@ async def _get_databases(client: Any) -> list[str]:
         "temporary_tables_metadata",
     }
     databases = [db for db in databases if db not in system_databases]
+    databases.sort()
 
     return databases
 
@@ -174,6 +175,8 @@ async def _get_tables(client: Any, database_name: str) -> list[str]:
     # ClickHouse uses SHOW TABLES FROM database_name
     result = client.query(f"SHOW TABLES FROM {database_name}")
     tables = [row[0] for row in result.result_rows]
+    tables.sort()
+
     return tables
 
 

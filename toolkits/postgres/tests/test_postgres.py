@@ -68,7 +68,7 @@ async def test_discover_schemas(mock_context) -> None:
 
 @pytest.mark.asyncio
 async def test_discover_tables(mock_context) -> None:
-    assert await discover_tables(mock_context) == ["users", "messages"]
+    assert await discover_tables(mock_context) == ["messages", "users"]
 
 
 @pytest.mark.asyncio

@@ -171,6 +171,8 @@ async def _get_tables(engine: AsyncEngine, schema_name: str) -> list[str]:
 
                 these_tables = await conn.run_sync(get_table_names)
                 tables.extend(these_tables)
+
+        tables.sort()
         return tables
 
 
