@@ -64,7 +64,7 @@ def _build_adapter_chain(
     return deduplicated_chain
 
 
-def _raise_mapped_error(
+def _raise_as_arcade_error(
     exception: Exception, adapter_chain: list[ErrorAdapter], tool_name: str, func_name: str
 ) -> None:
     """
@@ -72,7 +72,7 @@ def _raise_mapped_error(
     If no adapter can translate the exception, a NonRetryableToolError is raised.
 
     Args:
-        exception: The exception to translate
+        exception: The exception to translate to an Arcade Error
         adapter_chain: List of error adapters to try
         tool_name: The tool's display name for error messages
         func_name: The function name for developer messages
@@ -87,7 +87,7 @@ def _raise_mapped_error(
             mapped.developer_message = (
                 f"[{func_name}] {mapped.developer_message}" if mapped.developer_message else None
             )
-            raise mapped
+            raise mapped from exception
 
     raise NonRetryableToolError(
         message=f"Error in execution of {tool_name}",
@@ -127,7 +127,7 @@ def tool(
                     # re-raise as-is if it is already an Arcade Error
                     raise
                 except Exception as e:
-                    _raise_mapped_error(e, adapter_chain, tool_name, func_name)
+                    _raise_as_arcade_error(e, adapter_chain, tool_name, func_name)
 
         else:
 
@@ -139,7 +139,7 @@ def tool(
                     # re-raise as-is if it is already an Arcade Error
                     raise
                 except Exception as e:
-                    _raise_mapped_error(e, adapter_chain, tool_name, func_name)
+                    _raise_as_arcade_error(e, adapter_chain, tool_name, func_name)
 
         return func_with_error_handling
 

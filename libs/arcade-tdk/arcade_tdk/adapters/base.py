@@ -1,7 +1,7 @@
 # arcade_tdk/adapters/base.py
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from arcade_tdk.errors import ToolRuntimeError
 
@@ -19,12 +19,5 @@ class ErrorAdapter(Protocol):
         """
         Translate an exception raised by an SDK, HTTP client, etc.
         into a `ToolRuntimeError` subclass.
-        """
-        ...
-
-    def from_response(self, resp: Any) -> ToolRuntimeError | None:
-        """
-        Translate a successful response from a SDK, HTTP client, etc.
-        that encloses an error into a `ToolRuntimeError` subclass.
         """
         ...

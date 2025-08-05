@@ -1,16 +1,13 @@
 import datetime
 import logging
 from typing import Any
+from urllib.parse import urlparse
 
 from arcade_core.errors import (
     NonRetryableToolError,
     ToolRuntimeError,
-    UpstreamAuthError,
-    UpstreamBadRequestError,
-    UpstreamNotFoundError,
+    UpstreamError,
     UpstreamRateLimitError,
-    UpstreamServerError,
-    UpstreamValidationError,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,6 +17,12 @@ class GoogleErrorAdapter:
     """Error adapter for Google's API Python Client library."""
 
     slug = "_google_api_client"
+
+    def _sanitize_uri(self, uri: str) -> str:
+        """Strip query params and fragments from URI for privacy."""
+
+        parsed = urlparse(uri)
+        return f"{parsed.scheme}://{parsed.netloc.strip('/')}/{parsed.path.strip('/')}"
 
     def _parse_retry_after(self, error: Any) -> int:
         """
@@ -67,34 +70,32 @@ class GoogleErrorAdapter:
                 # structured error details are added to the developer message
                 developer_message = f"Upstream Google API error details: {error.error_details}"
 
-        if status_code == 400:
-            return UpstreamBadRequestError(message=message, developer_message=developer_message)
-        elif status_code in (401, 403):
-            return UpstreamAuthError(
-                message=message, status_code=status_code, developer_message=developer_message
-            )
-        elif status_code == 404:
-            return UpstreamNotFoundError(message=message, developer_message=developer_message)
-        elif status_code == 422:
-            return UpstreamValidationError(message=message, developer_message=developer_message)
-        elif status_code == 429:
+        # Build extra metadata
+        extra = {
+            "service": self.slug,
+        }
+
+        # Try to extract request details if available
+        if hasattr(error, "uri"):
+            extra["endpoint"] = self._sanitize_uri(error.uri)
+        if hasattr(error, "method_"):
+            extra["http_method"] = error.method_.upper()
+
+        # Special case for rate limiting
+        if status_code == 429:
             return UpstreamRateLimitError(
                 retry_after_ms=self._parse_retry_after(error),
                 message=message,
                 developer_message=developer_message,
+                extra=extra,
             )
-        elif 500 <= status_code < 600:
-            return UpstreamServerError(
-                message=message, status_code=status_code, developer_message=developer_message
-            )
-        else:
-            # For other 4xx errors, treat as bad request
-            if 400 <= status_code < 500:
-                return UpstreamBadRequestError(message=message, developer_message=developer_message)
-            # For any other status codes
-            return UpstreamServerError(
-                message=message, status_code=status_code, developer_message=developer_message
-            )
+
+        return UpstreamError(
+            message=message,
+            status_code=status_code,
+            developer_message=developer_message,
+            extra=extra,
+        )
 
     def _handle_http_errors(self, exc: Exception, errors_module: Any) -> ToolRuntimeError | None:
         """Handle HttpError and its subclasses."""
@@ -108,37 +109,61 @@ class GoogleErrorAdapter:
                 return self._map_http_error(exc)
             else:
                 # No status code available, treat as server error
-                return UpstreamServerError(
+                extra = {
+                    "service": "google_api",
+                    "error_type": "BatchError",
+                }
+                return UpstreamError(
                     message=f"Upstream Google API batch operation failed: {exc.reason}",
                     status_code=500,
+                    extra=extra,
                 )
         return None
 
     def _handle_other_errors(self, exc: Exception, errors_module: Any) -> ToolRuntimeError | None:
         """Handle non-HTTP Google API errors."""
         if isinstance(exc, errors_module.InvalidJsonError):
-            return UpstreamServerError(
+            return UpstreamError(
                 message="Upstream Google API returned invalid JSON response",
-                status_code=502,  # Bad Gateway - upstream returned invalid response
+                status_code=502,
                 developer_message=str(exc),
+                extra={
+                    "service": self.slug,
+                    "error_type": "InvalidJsonError",
+                },
             )
 
         if isinstance(exc, errors_module.UnknownApiNameOrVersion):
-            return UpstreamNotFoundError(
+            return UpstreamError(
                 message="Upstream Google API error: Unknown API name or version",
+                status_code=404,
                 developer_message=str(exc),
+                extra={
+                    "service": self.slug,
+                    "error_type": "UnknownApiNameOrVersion",
+                },
             )
 
         if isinstance(exc, errors_module.UnacceptableMimeTypeError):
-            return UpstreamBadRequestError(
+            return UpstreamError(
                 message="Upstream Google API error: Unacceptable MIME type for this operation",
+                status_code=400,
                 developer_message=str(exc),
+                extra={
+                    "service": self.slug,
+                    "error_type": "UnacceptableMimeTypeError",
+                },
             )
 
         if isinstance(exc, errors_module.MediaUploadSizeError):
-            return UpstreamBadRequestError(
+            return UpstreamError(
                 message="Upstream Google API error: Media file size exceeds allowed limit",
+                status_code=400,
                 developer_message=str(exc),
+                extra={
+                    "service": self.slug,
+                    "error_type": "MediaUploadSizeError",
+                },
             )
 
         if isinstance(exc, errors_module.InvalidChunkSizeError):
@@ -146,6 +171,10 @@ class GoogleErrorAdapter:
                 message="Upstream Google API error: Invalid chunk size specified",
                 developer_message=str(exc),
                 status_code=400,
+                extra={
+                    "service": self.slug,
+                    "error_type": "InvalidChunkSizeError",
+                },
             )
 
         if isinstance(exc, errors_module.InvalidNotificationError):
@@ -153,6 +182,10 @@ class GoogleErrorAdapter:
                 message="Upstream Google API error: Invalid notification configuration",
                 developer_message=str(exc),
                 status_code=400,
+                extra={
+                    "service": self.slug,
+                    "error_type": "InvalidNotificationError",
+                },
             )
 
         return None
@@ -183,14 +216,14 @@ class GoogleErrorAdapter:
 
         # Failsafe for any unhandled Google API client errors that are not mapped above
         if hasattr(exc, "__module__") and exc.__module__ == "googleapiclient.errors":
-            return UpstreamServerError(message=f"Upstream Google API error: {exc}", status_code=500)
+            return UpstreamError(
+                message=f"Upstream Google API error: {exc}",
+                status_code=500,
+                extra={
+                    "service": self.slug,
+                    "error_type": exc.__class__.__name__,
+                },
+            )
 
         # Not a Google API client error
-        return None
-
-    def from_response(self, resp: Any) -> ToolRuntimeError | None:
-        """
-        Google API client raises exceptions for errors, so this method
-        typically won't be needed. It's here for ErrorAdapter protocol compliance.
-        """
         return None

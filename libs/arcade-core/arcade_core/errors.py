@@ -5,7 +5,6 @@ from typing import Any
 # TODO: break out into separate files
 # TODO: determine which errors should be abstract. (can't break backwards compatibility)
 # TODO: should classes help build up the message/developer_message?
-# TODO: remove "extra" entirely?
 
 
 class ErrorOrigin(str, Enum):
@@ -186,13 +185,9 @@ class ToolOutputError(ToolSerializationError):
 
 
 # 2. ------  tool-body errors ------
-class ToolExecutionError(
-    ToolRuntimeError
-):  # TODO: I'd love to make this abstract, but can't break backwards compatibility
+class ToolExecutionError(ToolRuntimeError):
     """
     Raised when there is an error executing a tool.
-
-    Note: This class is not intended to be instantiated directly.
     """
 
     origin: ErrorOrigin = ErrorOrigin.TOOL
@@ -213,8 +208,9 @@ class RetryableToolError(ToolExecutionError):
         developer_message: str | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
+        extra: dict[str, Any] | None = None,
     ):
-        super().__init__(message, developer_message=developer_message)
+        super().__init__(message, developer_message=developer_message, extra=extra)
         self.additional_prompt_content = additional_prompt_content
         self.retry_after_ms = retry_after_ms
 
@@ -232,101 +228,68 @@ class NonRetryableToolError(ToolExecutionError):
         message: str,
         status_code: int,
         developer_message: str | None = None,
+        extra: dict[str, Any] | None = None,
     ):
-        super().__init__(message, developer_message=developer_message)
+        super().__init__(message, developer_message=developer_message, extra=extra)
         self.status_code = status_code
 
 
 # 3. ------  upstream errors in tool body------
-class UpstreamError(ToolRuntimeError):  # TODO: probably make this abstract
+class UpstreamError(ToolExecutionError):
     """
-    Parent error for all failures from the upstream provider.
+    Error from an upstream service/API during tool execution.
 
-    Note: This class is not intended to be instantiated directly.
+    This class handles all upstream failures except rate limiting.
+    The status_code and extra dict provide details about the specific error type.
     """
 
     origin: ErrorOrigin = ErrorOrigin.UPSTREAM
     phase: ErrorPhase = ErrorPhase.RUNTIME
 
-
-class UpstreamBadRequestError(UpstreamError):
-    """Raised when an upstream provider returns a bad request error."""
-
-    retryable: bool = False
-    code: str = ErrorCode.BAD_REQUEST
-    status_code: int = 400
-
-
-class UpstreamAuthError(UpstreamError):
-    """
-    Raised when an upstream provider returns an authentication or authorization error.
-
-    This covers both missing/invalid credentials (401) and insufficient permissions (403).
-    """
-
-    retryable: bool = False
-    code: str = ErrorCode.AUTH_ERROR
-
     def __init__(
         self,
         message: str,
-        status_code: int,  # must be 401 or 403
+        status_code: int,
         *,
         developer_message: str | None = None,
+        extra: dict[str, Any] | None = None,
     ):
-        super().__init__(message, developer_message=developer_message)
+        super().__init__(message, developer_message=developer_message, extra=extra)
         self.status_code = status_code
-
-
-class UpstreamNotFoundError(UpstreamError):
-    """Raised when an upstream provider returns a not found error."""
-
-    retryable: bool = False
-    code: str = ErrorCode.NOT_FOUND
-    status_code: int = 404
-
-
-class UpstreamValidationError(UpstreamError):
-    """Raised when upstream provider rejects request due to validation errors."""
-
-    retryable: bool = False
-    code: str = ErrorCode.VALIDATION_ERROR
-    status_code: int = 422
+        # Determine retryability based on status code
+        self.retryable = status_code >= 500 or status_code == 429
+        # Set appropriate error code based on status
+        if status_code in (401, 403):
+            self.code = ErrorCode.AUTH_ERROR
+        elif status_code == 404:
+            self.code = ErrorCode.NOT_FOUND
+        elif status_code == 429:
+            self.code = ErrorCode.RATE_LIMIT
+        elif status_code >= 500:
+            self.code = ErrorCode.SERVER_ERROR
+        elif 400 <= status_code < 500:
+            self.code = ErrorCode.BAD_REQUEST
+        else:
+            self.code = ErrorCode.BUG
 
 
 class UpstreamRateLimitError(UpstreamError):
     """
-    Raised when an upstream provider is rate limiting a request in a tool.
+    Rate limit error from an upstream service.
+
+    Special case of UpstreamError that includes retry_after_ms information.
     """
 
     retryable: bool = True
     code: str = ErrorCode.RATE_LIMIT
-    status_code: int = 429
 
     def __init__(
         self,
+        message: str,
         retry_after_ms: int,
-        message: str,
         *,
         developer_message: str | None = None,
+        extra: dict[str, Any] | None = None,
     ):
-        super().__init__(message, developer_message=developer_message)
+        super().__init__(message, status_code=429, developer_message=developer_message, extra=extra)
         self.retry_after_ms = retry_after_ms
-
-
-class UpstreamServerError(UpstreamError):
-    """Raised when an upstream provider returns a server error (5xx)."""
-
-    retryable: bool = True
-    code: str = ErrorCode.SERVER_ERROR
-    status_code: int = 500
-
-    def __init__(
-        self,
-        message: str,
-        status_code: int,  # must be 5xx
-        *,
-        developer_message: str | None = None,
-    ):
-        super().__init__(message, developer_message=developer_message)
-        self.status_code = status_code
