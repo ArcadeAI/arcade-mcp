@@ -15,7 +15,7 @@ from arcade_tdk.errors import RetryableToolError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-DATABASE_CONNECTION_STRING = (
+POSTGRES_DATABASE_CONNECTION_STRING = (
     environ.get("TEST_POSTGRES_DATABASE_CONNECTION_STRING")
     or "postgresql://evan@localhost:5432/postgres"
 )
@@ -26,7 +26,9 @@ def mock_context():
     context = ToolContext()
     context.secrets = []
     context.secrets.append(
-        ToolSecretItem(key="DATABASE_CONNECTION_STRING", value=DATABASE_CONNECTION_STRING)
+        ToolSecretItem(
+            key="POSTGRES_DATABASE_CONNECTION_STRING", value=POSTGRES_DATABASE_CONNECTION_STRING
+        )
     )
 
     return context
@@ -37,7 +39,9 @@ def mock_context():
 async def restore_database():
     with open(f"{os.path.dirname(__file__)}/dump.sql") as f:
         engine = create_async_engine(
-            DATABASE_CONNECTION_STRING.replace("postgresql", "postgresql+asyncpg").split("?")[0]
+            POSTGRES_DATABASE_CONNECTION_STRING.replace("postgresql", "postgresql+asyncpg").split(
+                "?"
+            )[0]
         )
         async with engine.connect() as c:
             queries = f.read().split(";")

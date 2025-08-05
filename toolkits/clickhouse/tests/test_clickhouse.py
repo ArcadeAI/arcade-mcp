@@ -13,7 +13,7 @@ from arcade_clickhouse.tools.clickhouse import (
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
 
-DATABASE_CONNECTION_STRING = (
+CLICKHOUSE_DATABASE_CONNECTION_STRING = (
     environ.get("TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING")
     or "clickhouse+native://localhost:9000/default"
 )
@@ -24,7 +24,9 @@ def mock_context():
     context = ToolContext()
     context.secrets = []
     context.secrets.append(
-        ToolSecretItem(key="DATABASE_CONNECTION_STRING", value=DATABASE_CONNECTION_STRING)
+        ToolSecretItem(
+            key="CLICKHOUSE_DATABASE_CONNECTION_STRING", value=CLICKHOUSE_DATABASE_CONNECTION_STRING
+        )
     )
 
     return context

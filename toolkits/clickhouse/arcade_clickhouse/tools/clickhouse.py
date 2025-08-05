@@ -6,7 +6,7 @@ from arcade_tdk.errors import RetryableToolError
 from ..database_engine import MAX_ROWS_RETURNED, DatabaseEngine
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["CLICKHOUSE_DATABASE_CONNECTION_STRING"])
 async def discover_schemas(
     context: ToolContext,
 ) -> list[str]:
@@ -18,19 +18,19 @@ async def discover_schemas(
     return ["default"]
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["CLICKHOUSE_DATABASE_CONNECTION_STRING"])
 async def discover_databases(
     context: ToolContext,
 ) -> list[str]:
     """Discover all the databases in the ClickHouse database."""
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("CLICKHOUSE_DATABASE_CONNECTION_STRING")
     ) as client:
         databases = await _get_databases(client)
         return databases
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["CLICKHOUSE_DATABASE_CONNECTION_STRING"])
 async def discover_tables(
     context: ToolContext,
 ) -> list[str]:
@@ -39,13 +39,13 @@ async def discover_tables(
     ALWAYS use this tool before any other tool that requires a table name.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("CLICKHOUSE_DATABASE_CONNECTION_STRING")
     ) as client:
         tables = await _get_tables(client, "default")
         return tables
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["CLICKHOUSE_DATABASE_CONNECTION_STRING"])
 async def get_table_schema(
     context: ToolContext,
     schema_name: Annotated[str, "The schema to get the table schema of"],
@@ -57,12 +57,12 @@ async def get_table_schema(
     This tool should ALWAYS be used before executing any query.  All tables in the query must be discovered first using the <DiscoverTables> tool.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("CLICKHOUSE_DATABASE_CONNECTION_STRING")
     ) as client:
         return await _get_table_schema(client, "default", table_name)
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["CLICKHOUSE_DATABASE_CONNECTION_STRING"])
 async def execute_select_query(
     context: ToolContext,
     select_clause: Annotated[
@@ -124,7 +124,7 @@ async def execute_select_query(
     * ClickHouse is case-sensitive, so be careful with table and column names.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("CLICKHOUSE_DATABASE_CONNECTION_STRING")
     ) as client:
         try:
             return await _execute_query(
