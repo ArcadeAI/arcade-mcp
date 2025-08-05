@@ -1,3 +1,4 @@
+import arcade_todoist
 from arcade_evals import (
     EvalRubric,
     EvalSuite,
@@ -6,8 +7,6 @@ from arcade_evals import (
 )
 from arcade_evals.critic import BinaryCritic, SimilarityCritic
 from arcade_tdk import ToolCatalog
-
-import arcade_todoist
 from arcade_todoist.tools.projects import get_projects
 from arcade_todoist.tools.tasks import (
     close_task,

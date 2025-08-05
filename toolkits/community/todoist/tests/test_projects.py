@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-
 from arcade_todoist.tools.projects import get_projects
+
 from tests.fakes import PROJECTS_API_RESPONSE, PROJECTS_PARSED_RESPONSE
 
 

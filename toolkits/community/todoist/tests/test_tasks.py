@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 from arcade_tdk.errors import ToolExecutionError
-
 from arcade_todoist.errors import ProjectNotFoundError
 from arcade_todoist.tools.tasks import (
     _close_task_by_task_id,
@@ -17,6 +16,7 @@ from arcade_todoist.tools.tasks import (
     get_tasks_by_filter,
     get_tasks_by_project,
 )
+
 from tests.fakes import (
     CLOSE_TASK_SUCCESS_RESPONSE,
     CREATE_TASK_API_RESPONSE,
