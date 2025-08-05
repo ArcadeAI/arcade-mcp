@@ -88,7 +88,6 @@ def build_toolkit_mdx(
     toolkit_name = sample_tool.toolkit.name
     toolkit_version = sample_tool.toolkit.version
     auth_type = get_toolkit_auth_type(sample_tool.requirements.authorization)
-    toolkit_dirname = os.path.basename(os.path.dirname(toolkit_dir))
 
     header = toolkit_header_template.format(
         toolkit_title=toolkit_name,
@@ -98,7 +97,6 @@ def build_toolkit_mdx(
             openai_model,
         ),
         pip_package_name=pip_package_name,
-        toolkit_dirname=toolkit_dirname,
         auth_type=auth_type,
         version=toolkit_version,
     )
@@ -123,8 +121,12 @@ def build_reference_mdx(
     enum_mdx_template: str = ENUM_MDX,
 ) -> str:
     enum_items = ""
+    enum_names_seen = set()
 
     for enum_name, enum_class in referenced_enums:
+        if enum_name in enum_names_seen:
+            continue
+        enum_names_seen.add(enum_name)
         enum_items += enum_item_template.format(
             enum_name=enum_name,
             enum_values=build_enum_values(
@@ -247,6 +249,9 @@ def build_tool_spec(
         enums=enums,
         tool_parameter_template=tool_parameter_template,
     )
+
+    if not parameters:
+        parameters = "This tool does not take any parameters."
 
     secrets = (
         build_tool_secrets(

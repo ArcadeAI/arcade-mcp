@@ -1,5 +1,7 @@
 from typing import TypeVar
 
+from pydantic import BaseModel
+
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -17,9 +19,29 @@ class ToolOutputFactory:
         data: T | None = None,
         logs: list[ToolCallLog] | None = None,
     ) -> ToolCallOutput:
-        value = getattr(data, "result", "") if data else ""
+        # Extract the result value
+        """
+        Extracts the result value for the tool output.
+
+        The executor guarantees that `data` is either a string, a dict, or None.
+        """
+        value: str | int | float | bool | dict | list[str] | None
+        if data is None:
+            value = ""
+        elif hasattr(data, "result"):
+            value = getattr(data, "result", "")
+        elif isinstance(data, BaseModel):
+            value = data.model_dump()
+        elif isinstance(data, (str, int, float, bool, list)):
+            value = data
+        else:
+            raise ValueError(f"Unsupported data output type: {type(data)}")
+
         logs = coerce_empty_list_to_none(logs)
-        return ToolCallOutput(value=value, logs=logs)
+        return ToolCallOutput(
+            value=value,
+            logs=logs,
+        )
 
     def fail(
         self,
@@ -56,6 +78,7 @@ class ToolOutputFactory:
                 can_retry=True,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
+                traceback_info=traceback_info,
             ),
             logs=coerce_empty_list_to_none(logs),
         )

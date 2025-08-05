@@ -36,9 +36,13 @@ def display_tools_table(tools: list[ToolDefinition]) -> None:
     console.print(table)
 
 
-def display_tool_details(tool: ToolDefinition) -> None:
+def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  # noqa: C901
     """
     Display detailed information about a specific tool using multiple panels.
+
+    Args:
+        tool: The tool definition to display
+        worker: If True, show full worker response structure. If False, show only value structure.
     """
     # Description Panel
     description_panel = Panel(
@@ -80,31 +84,147 @@ def display_tool_details(tool: ToolDefinition) -> None:
             border_style="green",
         )
 
-    # Output Panel
+    # Output Panel - Show different levels based on worker flag
     output = tool.output
-    if output:
-        output_description = output.description or "No description available."
-        output_types = ", ".join(output.available_modes)
-        output_val_type = output.value_schema.val_type if output.value_schema else "N/A"
-        output_details = Text.assemble(
-            ("Description: ", "bold"),
-            (output_description, ""),
-            "\n",
-            ("Available Modes: ", "bold"),
-            (output_types, ""),
-            "\n",
-            ("Value Type: ", "bold"),
-            (output_val_type, ""),
-        )
+    if output and output.value_schema:
+        output_table = Table(show_header=True, header_style="bold blue")
+        output_table.add_column("Field", style="cyan")
+        output_table.add_column("Type", style="magenta")
+        output_table.add_column("Description", style="white")
+
+        if worker:
+            # Show full worker response structure
+            output_table.add_row(
+                "[bold]Response Structure[/bold]",
+                "",
+                "[dim]The tool response follows this structure:[/dim]",
+            )
+
+            # Available modes determine which fields can be present
+            modes = output.available_modes
+
+            if "value" in modes:
+                # Show the value field with its schema
+                value_type: str = output.value_schema.val_type
+                display_type: str = value_type  # Separate variable for display string
+                if value_type == "array" and output.value_schema.inner_val_type:
+                    display_type = rf"array\[{output.value_schema.inner_val_type}]"
+                elif output.value_schema.enum:
+                    display_type = f"{value_type} (enum: {', '.join(output.value_schema.enum)})"
+
+                output_table.add_row(
+                    "  value",
+                    display_type,
+                    output.description or "The successful result from the tool",
+                )
+
+                # If the value is a json type with properties, show them
+                if (
+                    output.value_schema.val_type == "json"
+                    and hasattr(output.value_schema, "properties")
+                    and output.value_schema.properties
+                ):
+                    _add_nested_properties(output_table, output.value_schema.properties, indent=2)
+
+            if "error" in modes:
+                output_table.add_row(
+                    "  error", "object", "[dim]Error details if the tool fails[/dim]"
+                )
+                output_table.add_row(
+                    "    message", "string", "[dim]User-facing error message[/dim]"
+                )
+                output_table.add_row(
+                    "    developer_message",
+                    "string?",
+                    "[dim]Technical error details (optional)[/dim]",
+                )
+
+            if "null" in modes:
+                output_table.add_row("  value", "null", "[dim]Tool can return null/None[/dim]")
+
+            # Additional fields that may be present
+            output_table.add_row("", "", "")
+            output_table.add_row(
+                "[bold]Additional Fields[/bold]",
+                "",
+                "[dim]May be present in any response:[/dim]",
+            )
+            output_table.add_row(
+                "  logs", "array?", "[dim]Optional warnings or info messages[/dim]"
+            )
+            output_table.add_row(
+                "  requires_authorization",
+                "object?",
+                "[dim]OAuth flow details if auth needed[/dim]",
+            )
+        else:
+            # Show only the value structure (simplified view)
+            # Show the value type and description
+            display_type = _format_type_string(output.value_schema)
+            if output.value_schema.enum:
+                display_type = (
+                    f"{output.value_schema.val_type} (enum: {', '.join(output.value_schema.enum)})"
+                )
+
+            output_table.add_row(
+                "[bold]Value[/bold]",
+                display_type,
+                output.description or "The return value from the tool",
+            )
+
+            # If the value is a json type with properties, show them
+            if (
+                output.value_schema.val_type == "json"
+                and hasattr(output.value_schema, "properties")
+                and output.value_schema.properties
+            ):
+                _add_nested_properties(output_table, output.value_schema.properties, indent=1)
+
+        # Create subtitle with modes info
+        modes_text = Text()
+        modes_text.append("Response Modes: ", style="bold")
+        modes_text.append("One of { ", style="dim")
+        for i, mode in enumerate(output.available_modes):
+            if i > 0:
+                modes_text.append(", ", style="dim")
+            if mode == "value":
+                modes_text.append(mode, style="green")
+            elif mode == "error":
+                modes_text.append(mode, style="red")
+            elif mode == "null":
+                modes_text.append(mode, style="yellow")
+            else:
+                modes_text.append(mode, style="magenta")
+        modes_text.append(" }", style="dim")
+
         output_panel = Panel(
-            output_details,
-            title="Expected Output",
+            output_table,
+            title="Output Schema",
             border_style="blue",
+            subtitle=modes_text,
         )
     else:
+        # No schema defined
+        no_schema_table = Table(show_header=False)
+        no_schema_table.add_column()
+
+        if worker:
+            no_schema_table.add_row(
+                "[dim]No output schema defined. The tool response will follow this structure:[/dim]"
+            )
+            no_schema_table.add_row("")
+            no_schema_table.add_row("[cyan]Response Structure:[/cyan]")
+            no_schema_table.add_row("  • [bold]value[/bold]: null (when successful)")
+            no_schema_table.add_row("  • [bold]error[/bold]: object (when failed)")
+            no_schema_table.add_row("  • [bold]logs[/bold]: array? (optional warnings/info)")
+        else:
+            no_schema_table.add_row("[dim]No output schema defined.[/dim]")
+            no_schema_table.add_row("")
+            no_schema_table.add_row("The tool returns: [bold]null[/bold]")
+
         output_panel = Panel(
-            "No output information available.",
-            title="Expected Output",
+            no_schema_table,
+            title="Output Schema",
             border_style="blue",
         )
 
@@ -112,6 +232,80 @@ def display_tool_details(tool: ToolDefinition) -> None:
     console.print(description_panel)
     console.print(inputs_panel)
     console.print(output_panel)
+
+
+def _add_nested_properties(
+    table: Table,
+    properties: dict[str, Any],
+    indent: int = 0,
+    is_array_item: bool = False,
+) -> None:
+    """
+    Recursively add nested properties to the output table.
+
+    Args:
+        table: The Rich table to add rows to
+        properties: Dictionary of property names to ValueSchema objects
+        indent: Current indentation level
+        is_array_item: Whether these properties are for array items
+    """
+    indent_prefix = "  " * indent
+
+    # Show array item indicator if needed
+    if is_array_item and indent > 0:
+        table.add_row(
+            f"{indent_prefix[:-2]}[item]",
+            "",
+            "[dim]Each item in array:[/dim]",
+        )
+
+    for prop_name, prop_schema in properties.items():
+        # Format the type string
+        type_str = _format_type_string(prop_schema)
+
+        # Add the property row with better descriptions
+        description = ""
+        # For nested properties, we don't have descriptions yet, but we could add them
+        if hasattr(prop_schema, "description") and prop_schema.description:
+            description = prop_schema.description
+
+        table.add_row(
+            f"{indent_prefix}{prop_name}",
+            type_str,
+            f"[dim]{description}[/dim]" if description else "",
+        )
+
+        # Recursively add nested properties if this is a json type with properties
+        if (
+            prop_schema.val_type == "json"
+            and hasattr(prop_schema, "properties")
+            and prop_schema.properties
+        ):
+            _add_nested_properties(table, prop_schema.properties, indent + 1)
+        # Handle arrays with inner properties
+        elif (
+            prop_schema.val_type == "array"
+            and hasattr(prop_schema, "inner_properties")
+            and prop_schema.inner_properties
+        ):
+            _add_nested_properties(
+                table, prop_schema.inner_properties, indent + 1, is_array_item=True
+            )
+
+
+def _format_type_string(schema: Any) -> str:
+    """Format type string for display."""
+    type_str: str = schema.val_type
+
+    if schema.val_type == "array":
+        if hasattr(schema, "inner_properties") and schema.inner_properties:
+            type_str = r"array\[object]"
+        elif schema.inner_val_type:
+            type_str = rf"array\[{schema.inner_val_type}]"
+    elif schema.enum:
+        type_str = f"{type_str} (enum)"
+
+    return type_str
 
 
 def display_tool_messages(tool_messages: list[dict]) -> None:
@@ -124,7 +318,8 @@ def display_tool_messages(tool_messages: list[dict]) -> None:
                 )
         elif message["role"] == "tool":
             console.print(
-                f"[bold]'{message['name']}' tool returned:[/bold] {message['content']}", style="dim"
+                f"[bold]'{message['name']}' tool returned:[/bold] {message['content']}",
+                style="dim",
             )
 
 

@@ -51,7 +51,7 @@ This approach creates a flexible agent that can interact with multiple services 
 
 The core logic is defined in `src/graph.ts`
 
-1. Loads Arcade tools for multiple toolkits (e.g., Google)
+1. Loads Arcade tools for multiple toolkits (e.g., Gmail)
 2. Creates a model with the tools bound to it
 3. Routes messages between tool calls and model reasoning
 4. Compiles everything into a graph you can invoke and deploy
@@ -66,20 +66,20 @@ The core logic is defined in `src/graph.ts`
 
 To use different Arcade toolkits or queries:
 
-1. Modify the `toolkit` string in `arcade.tools.list` in `src/graph.ts` to include the desired toolkit (e.g., `["google", "github", "notion"]`)
+1. Modify the `toolkit` string in `arcade.tools.list` in `src/graph.ts` to include the desired toolkit (e.g., `["gmail", "github", "notion"]`)
 2. Change the default model in `src/configuration.ts`
 3. Update the system prompt in `src/prompts.ts`
 
 Currently supported Arcade toolkits:
 
 - GitHub
-- Google
+- Gmail
 - Notion
 - Reddit
 - X
-- And more
+- And many more
 
-You can check out our [Integrations](https://docs.arcade.dev/integrations) documentation for more information on how to integrate with other tools.
+You can check out our [Integrations](https://docs.arcade.dev/toolkits) documentation for more information on how to integrate with other tools.
 
 You can also create your own custom tools and integrate them with LangGraph. Check out our [Custom Tools](https://docs.arcade.dev/home/custom-tools) documentation for more information.
 

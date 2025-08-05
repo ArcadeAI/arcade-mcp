@@ -5,7 +5,7 @@ from modal import App, Image, asgi_app
 # Define the FastAPI app
 app = App("arcade-worker")
 
-toolkits = ["arcade_google", "arcade_slack"]
+toolkits = ["arcade_gmail", "arcade_slack"]
 
 image = (
     Image.debian_slim().pip_install("arcade_tdk").pip_install("arcade_serve").pip_install(toolkits)

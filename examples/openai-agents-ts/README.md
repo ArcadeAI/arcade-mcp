@@ -21,11 +21,11 @@
 
 # OpenAI Agents + Arcade AI
 
-This TypeScript project demonstrates how to integrate [Arcade AI](https://docs.arcade.dev) with [OpenAI Agents](https://openai.github.io/openai-agents-js/) to create powerful AI agents that can interact with external services. Arcade provides access to a wide range of tools including Gmail, Slack, LinkedIn, and more through its Google toolkit and other integrations.
+This TypeScript project demonstrates how to integrate [Arcade AI](https://docs.arcade.dev) with [OpenAI Agents](https://openai.github.io/openai-agents-js/) to create powerful AI agents that can interact with external services. Arcade provides access to a wide range of tools including Gmail, Slack, LinkedIn, and more through its Gmail toolkit and other integrations.
 
 The project showcases two approaches:
 
-- **Basic integration** (`src/index.ts`): Simple one-time execution with Google toolkit
+- **Basic integration** (`src/index.ts`): Simple one-time execution with Gmail toolkit
 - **Authorization handling** (`src/waitForCompletion.ts`): Manual authorization flow management
 
 For a list of all hosted tools and auth providers, see the [Arcade Integrations](https://docs.arcade.dev/toolkits) documentation.
@@ -60,7 +60,7 @@ npm install
 
 ## Basic Usage
 
-This example creates an AI agent that can read and process your Gmail emails using Arcade's Google toolkit.
+This example creates an AI agent that can read and process your Gmail emails using Arcade's Gmail toolkit.
 
 ### Simple Execution
 
@@ -73,9 +73,9 @@ npm run dev
 This script will:
 
 1. Initialize the Arcade client
-2. Fetch available Google toolkit tools (up to 30)
+2. Fetch available Gmail toolkit tools (up to 30)
 3. Convert them to OpenAI Agents compatible format
-4. Create an agent that can assist with Google API calls
+4. Create an agent that can assist with Gmail API calls
 5. Ask "What are my latest emails?" and display the result
 
 ### Authorization Flow Example
@@ -116,7 +116,7 @@ openai-ts/
 
 You can modify the `toolkit` parameter to access different integrations:
 
-- `"google"` - Gmail, Google Calendar, Google Drive, Google Docs
+- `"gmail"` - Gmail
 - `"slack"` - Slack messaging and channels
 - `"github"` - GitHub repositories and issues
 - `"linkedin"` - LinkedIn posts and connections

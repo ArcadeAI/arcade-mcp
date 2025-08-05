@@ -74,7 +74,10 @@ def get_list_of_tools(toolkit_name: str) -> list[ToolDefinition]:
                     tools.append(tool)
 
     if not tools:
-        raise ValueError(f"Tools not found for toolkit {toolkit_name}")
+        raise ValueError(
+            f"Tools not found for the toolkit '{toolkit_name}'. Make sure to have the toolkit "
+            "installed in your current Python environment."
+        )
 
     return tools
 

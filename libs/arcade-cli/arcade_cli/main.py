@@ -18,7 +18,6 @@ from rich.text import Text
 from tqdm import tqdm
 
 import arcade_cli.worker as worker
-from arcade_cli import toolkit_docs
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
@@ -33,6 +32,7 @@ from arcade_cli.display import (
     display_tool_messages,
 )
 from arcade_cli.show import show_logic
+from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.utils import (
     OrderCommands,
     compute_base_url,
@@ -55,7 +55,7 @@ cli = typer.Typer(
     cls=OrderCommands,
     add_completion=False,
     no_args_is_help=True,
-    pretty_exceptions_enable=False,
+    pretty_exceptions_enable=True,
     pretty_exceptions_show_locals=False,
     pretty_exceptions_short=True,
     rich_markup_mode="markdown",
@@ -68,11 +68,16 @@ cli.add_typer(
     help="Manage deployments of tool servers (logs, list, etc)",
     rich_help_panel="Deployment",
 )
+
+
 console = Console()
 
 
 def handle_cli_error(
-    message: str, error: Exception | None = None, debug: bool = True, should_exit: bool = True
+    message: str,
+    error: Optional[Exception] = None,
+    debug: bool = True,
+    should_exit: bool = True,
 ) -> None:
     """Handle CLI error reporting with optional debug traceback and exit."""
     if error and debug:
@@ -225,12 +230,34 @@ def show(
         "--no-tls",
         help="Whether to disable TLS for the connection to the Arcade Engine.",
     ),
+    worker: bool = typer.Option(
+        False,
+        "--worker",
+        "-w",
+        help="Show full worker response structure including error, logs, and authorization fields (only applies when used with -t/--tool).",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Show the available toolkits or detailed information about a specific tool.
     """
-    show_logic(toolkit, tool, host, local, port, force_tls, force_no_tls, debug)
+    if worker and not tool:
+        console.print(
+            "⚠️  The -w/--worker flag only affects output when used with -t/--tool flag",
+            style="bold yellow",
+        )
+
+    show_logic(
+        toolkit=toolkit,
+        tool=tool,
+        host=host,
+        local=local,
+        port=port,
+        force_tls=force_tls,
+        force_no_tls=force_no_tls,
+        worker=worker,
+        debug=debug,
+    )
 
 
 @cli.command(
@@ -250,7 +277,7 @@ def chat(
         "--host",
         help="The Arcade Engine address to send chat requests to.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -388,7 +415,7 @@ def evals(
         "--cloud",
         help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "-p",
         "--port",
@@ -509,10 +536,14 @@ def serve(
         show_default=True,
     ),
     port: int = typer.Option(
-        "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
     ),
     disable_auth: bool = typer.Option(
-        False,
+        True,
         "--no-auth",
         help="Disable authentication for the worker. Not recommended for production.",
         show_default=True,
@@ -559,7 +590,9 @@ def serve(
 
 
 @cli.command(
-    help="Start a server with locally installed Arcade tools", rich_help_panel="Launch", hidden=True
+    help="Start a server with locally installed Arcade tools",
+    rich_help_panel="Launch",
+    hidden=True,
 )
 def workerup(
     host: str = typer.Option(
@@ -568,7 +601,11 @@ def workerup(
         show_default=True,
     ),
     port: int = typer.Option(
-        "8002", "-p", "--port", help="Port for the app, defaults to ", show_default=True
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
     ),
     disable_auth: bool = typer.Option(
         False,
@@ -610,7 +647,10 @@ def workerup(
 @cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Deployment")
 def deploy(
     deployment_file: str = typer.Option(
-        "worker.toml", "--deployment-file", "-d", help="The deployment file to deploy."
+        "worker.toml",
+        "--deployment-file",
+        "-d",
+        help="The deployment file to deploy.",
     ),
     cloud_host: str = typer.Option(
         PROD_CLOUD_HOST,
@@ -619,7 +659,7 @@ def deploy(
         help="The Arcade Cloud host to deploy to.",
         hidden=True,
     ),
-    cloud_port: int = typer.Option(
+    cloud_port: Optional[int] = typer.Option(
         None,
         "--cloud-port",
         "-cp",
@@ -632,7 +672,7 @@ def deploy(
         "-h",
         help="The Arcade Engine host to register the worker to.",
     ),
-    port: int = typer.Option(
+    port: Optional[int] = typer.Option(
         None,
         "--port",
         "-p",
@@ -674,7 +714,10 @@ def deploy(
             try:
                 # Attempt to deploy worker
                 worker.request().execute(cloud_client, engine_client)
-                console.log(f"✅ Worker '{worker.config.id}' deployed successfully.", style="dim")
+                console.log(
+                    f"✅ Worker '{worker.config.id}' deployed successfully.",
+                    style="dim",
+                )
             except Exception as e:
                 handle_cli_error(f"Failed to deploy worker '{worker.config.id}'", e, debug)
 
@@ -739,8 +782,15 @@ def dashboard(
         handle_cli_error("Failed to open dashboard", e, debug)
 
 
-@cli.command(help="Generate Toolkit documentation", rich_help_panel="Tool Development")
-def generate_toolkit_docs(
+@cli.command(
+    help=(
+        "Generate documentation for a toolkit. "
+        "Note: make sure to have the toolkit installed in your current Python environment "
+        "before running this command."
+    ),
+    rich_help_panel="Tool Development",
+)
+def docs(
     toolkit_name: str = typer.Option(
         ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
     ),
@@ -748,13 +798,16 @@ def generate_toolkit_docs(
         ...,
         "--toolkit-dir",
         "-t",
-        help="The path to the toolkit root directory.",
+        help=(
+            "The path to the toolkit root directory (where the toolkit code is implemented). "
+            "Works with relative and absolute paths."
+        ),
     ),
     docs_dir: str = typer.Option(
         ...,
         "--docs-dir",
         "-r",
-        help="The path to the documentation root directory.",
+        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
     ),
     docs_section: str = typer.Option(
         "",
@@ -762,6 +815,105 @@ def generate_toolkit_docs(
         "-s",
         help=(
             "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "This should be the name of the folder in /pages/toolkits. "
+            "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
+        ),
+    ),
+    openai_model: str = typer.Option(
+        "gpt-4o-mini",
+        "--openai-model",
+        "-m",
+        help=(
+            "A few parts of the documentation are generated using OpenAI API. "
+            "This argument controls which OpenAI model to use. "
+            "E.g. 'gpt-4o', 'gpt-4o-mini'."
+        ),
+        show_default=True,
+    ),
+    openai_api_key: str = typer.Option(
+        None,
+        "--openai-api-key",
+        "-o",
+        help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
+    ),
+    skip_tool_call_examples: bool = typer.Option(
+        False,
+        "--skip-tool-call-examples",
+        "-se",
+        help="Whether to skip generating tool call examples in Python and Javascript.",
+        show_default=True,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    try:
+        success = generate_toolkit_docs(
+            console=console,
+            toolkit_name=toolkit_name,
+            toolkit_dir=toolkit_dir,
+            docs_dir=docs_dir,
+            docs_section=docs_section,
+            openai_model=openai_model,
+            openai_api_key=openai_api_key,
+            tool_call_examples=not skip_tool_call_examples,
+            debug=debug,
+        )
+    except Exception as error:
+        handle_cli_error(
+            message=f"Failed to generate documentation for '{toolkit_name}' in '{docs_dir}'",
+            error=error,
+            debug=debug,
+        )
+        success = False
+
+    if success:
+        console.print(
+            f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
+            style="bold green",
+        )
+    else:
+        console.print(
+            f"Failed to generate documentation for '{toolkit_name}' in '{docs_dir}'",
+            style="bold red",
+        )
+
+
+@cli.command(
+    name="generate-toolkit-docs",
+    help=(
+        "Generate documentation for a toolkit. "
+        "Note: make sure to have the toolkit installed in your current Python environment "
+        "before running this command. "
+        "Obs.: this command is here for backwards compatibility, use `arcade docs` instead."
+    ),
+    rich_help_panel="Tool Development",
+    hidden=True,
+)
+def generate_toolkit_docs_command(
+    toolkit_name: str = typer.Option(
+        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+    ),
+    toolkit_dir: str = typer.Option(
+        ...,
+        "--toolkit-dir",
+        "-t",
+        help=(
+            "The path to the toolkit root directory (where the toolkit code is implemented). "
+            "Works with relative and absolute paths."
+        ),
+    ),
+    docs_dir: str = typer.Option(
+        ...,
+        "--docs-dir",
+        "-r",
+        help="The path to the root of the Arcade docs repository. Works with relative and absolute paths.",
+    ),
+    docs_section: str = typer.Option(
+        "",
+        "--docs-section",
+        "-s",
+        help=(
+            "The section of the docs to generate documentation for. E.g. 'productivity', 'sales'. "
+            "This should be the name of the folder in /pages/toolkits. "
             "Defaults to an empty string (generate the docs in the root of /pages/toolkits)"
         ),
     ),
@@ -783,29 +935,24 @@ def generate_toolkit_docs(
         help="The OpenAI API key. If not provided, will get it from the `OPENAI_API_KEY` env var.",
     ),
     tool_call_examples: bool = typer.Option(
-        False,
+        True,
         "--tool-call-examples",
         "-e",
-        help="Whether to generate tool call examples",
+        help="Whether to generate tool call examples in Python and Javascript.",
         show_default=True,
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
-    toolkit_docs.generate_toolkit_docs(
-        console=console,
+    skip_tool_call_examples = not tool_call_examples
+    docs(
         toolkit_name=toolkit_name,
         toolkit_dir=toolkit_dir,
         docs_dir=docs_dir,
         docs_section=docs_section,
         openai_model=openai_model,
         openai_api_key=openai_api_key,
-        tool_call_examples=tool_call_examples,
+        skip_tool_call_examples=skip_tool_call_examples,
         debug=debug,
-    )
-
-    console.print(
-        f"Generated documentation for '{toolkit_name}' in '{docs_dir}'",
-        style="bold green",
     )
 
 

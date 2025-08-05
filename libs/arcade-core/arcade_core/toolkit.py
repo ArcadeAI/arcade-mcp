@@ -4,7 +4,7 @@ import logging
 import os
 import types
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -87,14 +87,6 @@ class Toolkit(BaseModel):
         except (ImportError, AttributeError) as e:
             raise ToolkitLoadError(f"Failed to locate package directory for '{package}'.") from e
 
-        # Get all python files in the package directory
-        try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file()]
-        except OSError as e:
-            raise ToolkitLoadError(
-                f"Failed to locate Python files in package directory for '{package}'."
-            ) from e
-
         toolkit = cls(
             name=name,
             package_name=package_name,
@@ -105,14 +97,7 @@ class Toolkit(BaseModel):
             repository=repo,
         )
 
-        for module_path in modules:
-            relative_path = module_path.relative_to(package_dir)
-            import_path = ".".join(relative_path.with_suffix("").parts)
-            import_path = f"{package_name}.{import_path}"
-            toolkit.tools[import_path] = get_tools_from_file(str(module_path))
-
-        if not toolkit.tools:
-            raise ToolkitLoadError(f"No tools found in package {package}")
+        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
 
         return toolkit
 
@@ -229,6 +214,61 @@ class Toolkit(BaseModel):
 
         return all_toolkits
 
+    @classmethod
+    def tools_from_directory(cls, package_dir: Path, package_name: str) -> dict[str, list[str]]:
+        """
+        Load a Toolkit from a directory.
+        """
+        # Get all python files in the package directory
+        try:
+            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)]
+        except OSError as e:
+            raise ToolkitLoadError(
+                f"Failed to locate Python files in package directory for '{package_name}'."
+            ) from e
+
+        tools: dict[str, list[str]] = {}
+
+        for module_path in modules:
+            relative_path = module_path.relative_to(package_dir)
+            cls.validate_file(module_path)
+            import_path = ".".join(relative_path.with_suffix("").parts)
+            import_path = f"{package_name}.{import_path}"
+            tools[import_path] = get_tools_from_file(str(module_path))
+
+        if not tools:
+            raise ToolkitLoadError(f"No tools found in package {package_name}")
+
+        return tools
+
+    @classmethod
+    def validate_file(cls, file_path: str | Path) -> None:
+        """
+        Validate that the Python code in the given file is syntactically correct.
+
+        Args:
+            file_path: Path to the Python file to validate
+        """
+        # Convert string path to Path object if needed
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+
+        # Check if file exists
+        if not path.exists():
+            raise ValueError(f"❌ File not found: {path}")
+
+        # Check if it's a Python file
+        if not path.suffix == ".py":
+            raise ValueError(f"❌ Not a Python file: {path}")
+
+        try:
+            # Try to compile the code to check for syntax errors
+            with open(path, encoding="utf-8") as f:
+                source = f.read()
+
+            compile(source, str(path), "exec")
+        except Exception as e:
+            raise SyntaxError(f"{path}: {e}")
+
 
 def get_package_directory(package_name: str) -> str:
     """
@@ -247,3 +287,32 @@ def get_package_directory(package_name: str) -> str:
         return spec.submodule_search_locations[0]
     else:
         raise ImportError(f"Package {package_name} does not have a file path associated with it")
+
+
+class Validate:
+    warn = True
+
+    @classmethod
+    def path(cls, path: str | Path) -> bool:
+        """
+        Validate if a path is valid to be served or deployed.
+        """
+        # Check both POSIX and Windows interpretations
+        posix_path = PurePosixPath(path)
+        windows_path = PureWindowsPath(path)
+
+        # Get all possible parts from both interpretations
+        all_parts = set(posix_path.parts) | set(windows_path.parts)
+
+        for part in all_parts:
+            if (part == "venv" or part.startswith(".")) and cls.warn:
+                print(
+                    f"⚠️ Your package may contain a venv directory or hidden files. We suggest moving these out of the toolkit directory to avoid deployment issues: {path}"
+                )
+                cls.warn = False
+            if part in {"dist", "build", "__pycache__", "coverage.xml"}:
+                return False
+            if part.endswith(".lock"):
+                return False
+
+        return True

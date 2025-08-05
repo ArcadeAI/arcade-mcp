@@ -18,12 +18,20 @@ from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
-from arcadepy import NOT_GIVEN, APIConnectionError, APIStatusError, APITimeoutError, Arcade
+from arcadepy import (
+    NOT_GIVEN,
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    Arcade,
+)
 from arcadepy.types import AuthorizationResponse
 from openai import OpenAI, Stream
 from openai.types.chat.chat_completion import Choice as ChatCompletionChoice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
-from openai.types.chat.chat_completion_chunk import Choice as ChatCompletionChunkChoice
+from openai.types.chat.chat_completion_chunk import (
+    Choice as ChatCompletionChunkChoice,
+)
 from pydantic import ValidationError
 from rich.console import Console
 from rich.live import Live
@@ -231,7 +239,8 @@ def get_tools_from_engine(
                 continue
     except APIConnectionError:
         console.print(
-            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)", style="bold red"
+            f"❌ Can't connect to Arcade Engine at {base_url}. (Is it running?)",
+            style="bold red",
         )
 
     return tools
@@ -326,7 +335,8 @@ def validate_and_get_config(
 
     if validate_user and (not config.user or not config.user.email):
         console.print(
-            "❌ User email not found in configuration. Please run `arcade login`.", style="bold red"
+            "❌ User email not found in configuration. Please run `arcade login`.",
+            style="bold red",
         )
         raise typer.Exit(code=1)
 
@@ -371,7 +381,11 @@ class ChatInteractionResult:
 
 
 def handle_chat_interaction(
-    client: OpenAI, model: str, history: list[dict], user_email: str | None, stream: bool = False
+    client: OpenAI,
+    model: str,
+    history: list[dict],
+    user_email: str | None,
+    stream: bool = False,
 ) -> ChatInteractionResult:
     """
     Handle a single chat-request/chat-response interaction for both streamed and non-streamed responses.
@@ -418,7 +432,8 @@ def handle_chat_interaction(
         elif role == "assistant":
             message_content = markdownify_urls(message_content)
             console.print(
-                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ", Markdown(message_content)
+                f"\n[blue][bold]Assistant[/bold] ({model}):[/blue] ",
+                Markdown(message_content),
             )
         else:
             console.print(f"\n[bold]{role}:[/bold] {message_content}")
@@ -575,7 +590,10 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
         ]
 
         if not eval_suite_funcs:
-            console.print(f"No @tool_eval functions found in {eval_file_path}", style="bold yellow")
+            console.print(
+                f"No @tool_eval functions found in {eval_file_path}",
+                style="bold yellow",
+            )
             continue
 
         eval_suites.extend(eval_suite_funcs)
@@ -628,7 +646,7 @@ def handle_user_command(
     user_input: str,
     history: list,
     host: str,
-    port: int,
+    port: int | None,
     force_tls: bool,
     force_no_tls: bool,
     show: Callable,
@@ -658,6 +676,7 @@ def handle_user_command(
             force_tls=force_tls,
             force_no_tls=force_no_tls,
             debug=False,
+            worker=False,
         )
         return True
     return False

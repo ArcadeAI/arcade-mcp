@@ -1,6 +1,5 @@
 import ast
 from pathlib import Path
-from typing import Optional, Union
 
 
 def load_ast_tree(filepath: str | Path) -> ast.AST:
@@ -16,8 +15,8 @@ def load_ast_tree(filepath: str | Path) -> ast.AST:
 
 
 def get_function_name_if_decorated(
-    node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
-) -> Optional[str]:
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> str | None:
     """
     Check if a function has a decorator.
     """

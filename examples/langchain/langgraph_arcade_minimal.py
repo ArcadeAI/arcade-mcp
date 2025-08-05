@@ -13,7 +13,7 @@ openai_api_key = os.environ.get("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY")
 manager = ToolManager(api_key=arcade_api_key)
 
 # Tool names follow the format "ToolkitName.ToolName"
-tools = manager.init_tools(tools=["Web.ScrapeUrl"])
+tools = manager.init_tools(tools=["Firecrawl.ScrapeUrl"])
 print(manager.tools)
 
 # Get all tools from a toolkit
@@ -21,11 +21,11 @@ tools = manager.init_tools(toolkits=["github"])
 print(manager.tools)
 
 # add a tool
-manager.add_tool("Search.SearchGoogle")
+manager.add_tool("GoogleSearch.Search")
 print(manager.tools)
 
 # add a toolkit
-manager.add_toolkit("Search")
+manager.add_toolkit("GoogleSearch")
 print(manager.tools)
 
 # 3) Get StructuredTool objects for langchain

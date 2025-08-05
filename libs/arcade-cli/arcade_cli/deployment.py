@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import toml
+from arcade_core import Toolkit
+from arcade_core.toolkit import Validate
 from arcadepy import Arcade, NotFoundError
 from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
 from packaging.requirements import Requirement
@@ -228,18 +230,7 @@ class Worker(BaseModel):
 
         def exclude_filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
             """Filter for files/directories to exclude from the compressed package"""
-            basename = os.path.basename(tarinfo.name)
-
-            # Exclude all hidden directories/files
-            if basename.startswith("."):
-                return None
-
-            # Exclude specific directories/files
-            if basename in {"dist", "build", "__pycache__", "venv", "coverage.xml"}:
-                return None
-
-            # Exclude lock files
-            if basename.endswith(".lock"):
+            if not Validate.path(tarinfo.name):
                 return None
 
             return tarinfo
@@ -261,6 +252,9 @@ class Worker(BaseModel):
                 raise ValueError(
                     f"package '{package_path}' must contain a pyproject.toml or setup.py file"
                 )
+
+            # Validate that we are able to load the package
+            Toolkit.tools_from_directory(package_dir=package_path, package_name=package_path.name)
 
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()

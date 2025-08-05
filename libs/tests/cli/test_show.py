@@ -14,6 +14,7 @@ def test_show_logic_local_false():
             port=None,
             force_tls=False,
             force_no_tls=False,
+            worker=False,
             debug=False,
         )
 
@@ -33,6 +34,7 @@ def test_show_logic_local_true():
             port=None,
             force_tls=False,
             force_no_tls=False,
+            worker=False,
             debug=False,
         )
 

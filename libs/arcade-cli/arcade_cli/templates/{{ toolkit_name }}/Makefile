@@ -11,12 +11,14 @@ install: ## Install the uv environment and install all packages with dependencie
 	@if [ -f .pre-commit-config.yaml ]; then uv run --no-sources pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
 
+{% if is_community_toolkit or is_official_toolkit -%}
 .PHONY: install-local
 install-local: ## Install the uv environment and install all packages with dependencies with local Arcade sources
 	@echo "🚀 Creating virtual environment and installing all packages using uv"
 	@uv sync --active --all-extras
 	@if [ -f .pre-commit-config.yaml ]; then uv run pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
+{% endif -%}
 
 .PHONY: build
 build: clean-build ## Build wheel file using poetry

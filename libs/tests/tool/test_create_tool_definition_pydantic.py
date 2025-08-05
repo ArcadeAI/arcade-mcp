@@ -1,4 +1,4 @@
-from typing import Annotated, Optional, Union
+from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
@@ -12,15 +12,33 @@ from arcade_tdk import tool
 from pydantic import BaseModel, Field
 
 
-class ProductOutput(BaseModel):
-    product_name: str = Field(..., description="The name of the product")
-    price: int = Field(..., description="The price of the product")
-    stock_quantity: int = Field(..., description="The stock quantity of the product")
+class ProductOutputModel(BaseModel):
+    product_name: str
+    """The name of the product"""
+    price: int
+    """The price of the product"""
+    stock_quantity: int
+    """The stock quantity of the product"""
+
+    class Config:
+        extra = "forbid"
 
 
 @tool(desc="A function that returns a Pydantic model")
-def func_returns_pydantic_model() -> Annotated[ProductOutput, "The product, price, and quantity"]:
-    return ProductOutput(
+def func_returns_pydantic_model() -> Annotated[
+    ProductOutputModel, "The product, price, and quantity"
+]:
+    """
+    Returns a ProductOutput Pydantic model with sample data.
+
+    Returns:
+        ProductOutput: The product, price, and quantity.
+
+    Example:
+        >>> func_returns_pydantic_model()
+        ProductOutput(product_name='Product 1', price=100, stock_quantity=1000)
+    """
+    return ProductOutputModel(
         product_name="Product 1",
         price=100,
         stock_quantity=1000,
@@ -36,23 +54,23 @@ def func_takes_pydantic_field_with_description(
 
 @tool(desc="A function that accepts an optional Pydantic Field")
 def func_takes_pydantic_field_optional(
-    product_name: Optional[str] = Field(None, description="The name of the product"),
+    product_name: str | None = Field(None, description="The name of the product"),
 ) -> str:
-    return product_name
+    return product_name if product_name is not None else "Product 1"
 
 
 @tool(desc="A function that accepts an optional Pydantic Field with bar syntax")
 def func_takes_pydantic_field_optional_bar_syntax(
     product_name: str | None = Field(None, description="The name of the product"),
-) -> str:
-    return product_name
+) -> str | None:
+    return product_name if product_name is not None else None
 
 
 @tool(desc="A function that accepts an optional Pydantic Field with union syntax")
 def func_takes_pydantic_field_optional_union_syntax(
-    product_name: Union[str, None] = Field(None, description="The name of the product"),
+    product_name: str | None = Field(None, description="The name of the product"),
 ) -> str:
-    return product_name
+    return product_name if product_name is not None else "Product 1"
 
 
 # Annotated[] takes precedence over Field() properties
@@ -85,9 +103,22 @@ def func_takes_pydantic_field_default(
 @tool(desc="A function that accepts a Pydantic Field with a default value factory")
 def func_takes_pydantic_field_default_factory(
     product_name: str = Field(
-        ..., description="The name of the product", default_factory=lambda: "Product 1"
+        default_factory=lambda: "Product 1", description="The name of the product"
     ),
 ) -> str:
+    """
+    Accepts a product name with a default value provided by a factory.
+
+    Parameters:
+        product_name: The name of the product. Defaults to "Product 1" if not provided.
+
+    Returns:
+        str: The product name.
+
+    Example:
+        >>> func_takes_pydantic_field_default_factory()
+        'Product 1'
+    """
     return product_name
 
 
@@ -114,9 +145,18 @@ class FilterPriceLessThan(ProductFilter):
 
 
 class ProductSearch(BaseModel):
-    column: str = Field("Product Name", description="The column to search in")
+    column: str = Field(..., description="The column to search in")
     query: str = Field(..., description="The query to search for")
-    filter_operation: Union[FilterRating, FilterPriceGreaterThan, FilterPriceLessThan] = None
+    filter_operation: FilterRating | None = Field(
+        default=None,
+        description="The filter operation to apply (rating or price filter).",
+    )
+    highest_price: FilterPriceGreaterThan | None = Field(
+        default=None, description="The highest price to filter by"
+    )
+    lowest_price: FilterPriceLessThan | None = Field(
+        default=None, description="The lowest price to filter by"
+    )
 
 
 class ProductOutput(BaseModel):
@@ -129,14 +169,31 @@ class ProductOutput(BaseModel):
 def read_products(
     action: Annotated[ProductSearch, "The search query to perform"],
     cols: list[str] = Field(
-        ...,
-        description="The columns to return",
         default_factory=lambda: ["Product Name", "Price", "Stock Quantity"],
+        description="The columns to return",
     ),
 ) -> Annotated[list[ProductOutput], "Data with the selected columns"]:
-    """Used to search through products by name and filter by rating or price."""
+    """
+    Used to search through products by name and filter by rating or price.
 
-    pass
+    Parameters:
+        action: The search query to perform, as a ProductSearch model.
+        cols: The columns to return. Defaults to ["Product Name", "Price", "Stock Quantity"].
+
+    Returns:
+        list[ProductOutput]: Data with the selected columns.
+
+    Raises:
+        None
+
+    Example:
+        >>> await read_products(ProductSearch(query="Widget"), ["Product Name", "Price"])
+    """
+    # This is a stub implementation for testing; in real code, this would query a database or service.
+    return [
+        ProductOutput(product_name="Widget", price=100, stock_quantity=50),
+        ProductOutput(product_name="Gadget", price=150, stock_quantity=20),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -146,7 +203,15 @@ def read_products(
             func_returns_pydantic_model,
             {
                 "output": ToolOutput(
-                    value_schema=ValueSchema(val_type="json", enum=None),
+                    value_schema=ValueSchema(
+                        val_type="json",
+                        enum=None,
+                        properties={
+                            "product_name": ValueSchema(val_type="string", enum=None),
+                            "price": ValueSchema(val_type="integer", enum=None),
+                            "stock_quantity": ValueSchema(val_type="integer", enum=None),
+                        },
+                    ),
                     available_modes=["value", "error"],
                     description="The product, price, and quantity",
                 )
@@ -299,12 +364,46 @@ def read_products(
                             description="The search query to perform",
                             required=True,
                             inferrable=True,
-                            value_schema=ValueSchema(val_type="json", enum=None),
+                            value_schema=ValueSchema(
+                                val_type="json",
+                                enum=None,
+                                properties={
+                                    "column": ValueSchema(val_type="string", enum=None),
+                                    "query": ValueSchema(val_type="string", enum=None),
+                                    "filter_operation": ValueSchema(
+                                        val_type="json",
+                                        enum=None,
+                                        properties={
+                                            "column": ValueSchema(val_type="string", enum=None),
+                                            "greater_than": ValueSchema(
+                                                val_type="integer", enum=None
+                                            ),
+                                        },
+                                    ),
+                                    "highest_price": ValueSchema(
+                                        val_type="json",
+                                        enum=None,
+                                        properties={
+                                            "column": ValueSchema(val_type="string", enum=None),
+                                            "price": ValueSchema(val_type="integer", enum=None),
+                                        },
+                                    ),
+                                    "lowest_price": ValueSchema(
+                                        val_type="json",
+                                        enum=None,
+                                        properties={
+                                            "column": ValueSchema(val_type="string", enum=None),
+                                            "price": ValueSchema(val_type="integer", enum=None),
+                                        },
+                                    ),
+                                },
+                            ),
                         ),
                         InputParameter(
                             name="cols",
                             description="The columns to return",
                             required=False,
+                            inferrable=True,
                             value_schema=ValueSchema(
                                 val_type="array", inner_val_type="string", enum=None
                             ),
@@ -312,7 +411,16 @@ def read_products(
                     ]
                 ),
                 "output": ToolOutput(
-                    value_schema=ValueSchema(val_type="array", inner_val_type="json", enum=None),
+                    value_schema=ValueSchema(
+                        val_type="array",
+                        inner_val_type="json",
+                        enum=None,
+                        inner_properties={
+                            "product_name": ValueSchema(val_type="string", enum=None),
+                            "price": ValueSchema(val_type="integer", enum=None),
+                            "stock_quantity": ValueSchema(val_type="integer", enum=None),
+                        },
+                    ),
                     available_modes=["value", "error"],
                     description="Data with the selected columns",
                 ),

@@ -82,17 +82,17 @@ class HealthCheckComponent(WorkerComponent):
             "health",
             self,
             method="GET",
-            require_auth=False,
             response_type=HealthCheckResponse,
             operation_id="health_check",
-            description="Check the health of the worker",
-            summary="Check the health of the worker",
+            description="Health check",
+            summary="Health check",
             tags=["Arcade"],
+            require_auth=False,
         )
 
     async def __call__(self, request: RequestData) -> HealthCheckResponse:
         """
-        Handle the request for a health check.
+        Handle the request to check the health of the worker.
         """
         tracer = trace.get_tracer(__name__)
         with tracer.start_as_current_span("HealthCheck"):

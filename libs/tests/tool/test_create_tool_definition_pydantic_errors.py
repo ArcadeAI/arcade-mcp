@@ -1,4 +1,4 @@
-from typing import Annotated, Union
+from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
@@ -29,7 +29,7 @@ def func_takes_pydantic_field_non_strict_optional_bar_syntax(
 
 @tool(desc="A function that accepts an optional Pydantic Field with non-strict optional syntax")
 def func_takes_pydantic_field_non_strict_optional_union_syntax(
-    product_name: Union[str, int, None] = Field(None, description="The name of the product"),
+    product_name: str | int | None = Field(None, description="The name of the product"),
 ) -> str:
     return product_name
 
