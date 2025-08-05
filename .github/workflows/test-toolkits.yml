@@ -22,7 +22,7 @@ jobs:
         run: |
           # Find all directories in toolkits/ that have a pyproject.toml
           TOOLKITS=$(find toolkits -maxdepth 1 -type d -not -name "toolkits" -exec test -f {}/pyproject.toml \; -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
-          TOOLKITS_WITH_GHA_SECRETS='["postgres"]'
+          TOOLKITS_WITH_GHA_SECRETS='["postgres", "clickhouse"]'
           TOOLKITS_WITHOUT_GHA_SECRETS=$(echo "$TOOLKITS" | jq -c --argjson with "$TOOLKITS_WITH_GHA_SECRETS" '[.[] | select(. as $t | $with | index($t) | not)]')
           echo "Found toolkits: $TOOLKITS"
           echo "Found toolkits without GHA secrets: $TOOLKITS_WITHOUT_GHA_SECRETS"
@@ -97,7 +97,14 @@ jobs:
         working-directory: toolkits/${{ matrix.toolkit }}
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
+          TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING }}
         run: |
+          # If there's a custom test_setup.sh file, run it
+          if [ -f tests/test_setup.sh ]; then
+            echo "Running custom test setup for ${{ matrix.toolkit }}..."
+            ./tests/test_setup.sh
+          fi
+
           # Run pytest and capture exit code
           uv run --active pytest -W ignore -v --cov=arcade_${{ matrix.toolkit }} --cov-report=xml || EXIT_CODE=$?
 
