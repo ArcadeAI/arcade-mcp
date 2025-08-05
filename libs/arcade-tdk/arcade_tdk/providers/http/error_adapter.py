@@ -1,61 +1,74 @@
 import datetime
-import re
 from typing import Any
 
 import httpx
-
-from arcade_tdk.errors import (
-    NonRetryableToolError,
+from arcade_core.errors import (
+    UpstreamAuthError,
+    UpstreamBadRequestError,
+    UpstreamNotFoundError,
     UpstreamRateLimitError,
+    UpstreamServerError,
+    UpstreamValidationError,
 )
 
 RATE_HEADERS = ("retry-after", "x-ratelimit-reset", "x-ratelimit-reset-ms")
 
 
-def _parse_retry_ms(headers: dict[str, str]) -> int:
-    val = next((headers.get(h) for h in RATE_HEADERS if headers.get(h)), None)
-    if val is None:
-        return 1_000
-    if re.fullmatch(r"\d+", val):  # seconds (int)
-        return int(val) * 1_000
-    try:  # HTTP-date
-        dt = datetime.datetime.strptime(val, "%a, %d %b %Y %H:%M:%S %Z")
-        return int((dt - datetime.datetime.utcnow()).total_seconds() * 1_000)
-    except Exception:
-        return 1_000
-
-
 class HTTPErrorAdapter:
-    slug = "_generic_http"
+    slug = "_http"
+
+    def _parse_retry_ms(self, headers: dict[str, str]) -> int:
+        """
+        Parses a rate limit header and returns the number
+        of milliseconds until the rate limit resets.
+
+        Args:
+            headers: A dictionary of HTTP headers.
+
+        Returns:
+            The number of milliseconds until the rate limit resets.
+            Defaults to 1000ms if a rate limit header is not found or cannot be parsed.
+        """
+        val = next((headers.get(h) for h in RATE_HEADERS if headers.get(h)), None)
+        # No rate limit header found
+        if val is None:
+            return 1_000
+        # Rate limit header is a number of seconds
+        if val.isdigit():
+            return int(val) * 1_000
+        # Rate limit header is an absolute date
+        try:
+            dt = datetime.datetime.strptime(val, "%a, %d %b %Y %H:%M:%S %Z")
+            return int((dt - datetime.datetime.now(datetime.UTC)).total_seconds() * 1_000)
+        except Exception:
+            return 1_000
 
     def _map(self, status: int, headers, msg: str):
+        if status == 400:
+            return UpstreamBadRequestError(message=msg, status_code=status)
+        if status in (401, 403):
+            return UpstreamAuthError(message=msg, status_code=status)
+        if status == 404:
+            return UpstreamNotFoundError(message=msg, status_code=status)
+        if status == 422:
+            return UpstreamValidationError(message=msg, status_code=status)
         if status == 429:
             return UpstreamRateLimitError(
-                retry_after_ms=_parse_retry_ms(headers),
+                retry_after_ms=self._parse_retry_ms(headers),
                 message=msg,
             )
-            # return UpstreamRateLimitError(_parse_retry_ms(headers), msg)
-        if status in (401, 403):
-            return NonRetryableToolError(message=msg, status_code=status)
-            # return AuthError(msg)
-        if 500 <= status < 600:
-            return NonRetryableToolError(message=msg, status_code=status)
-            # return TransientUpstreamError(msg)
-        if 400 <= status < 500:
-            return NonRetryableToolError(status_code=status, message=msg)
-            # return NonRetryableError(origin="UPSTREAM", code=f"HTTP_{status}", message=msg)
-        return None
+        return UpstreamServerError(message=msg, status_code=status)
 
-    # httpx exceptions
     def from_exception(self, exc: Exception):
         if isinstance(exc, httpx.HTTPStatusError):
-            r = exc.response
-            return self._map(r.status_code, r.headers, str(exc))
-        # TODO: Add support for requests
+            response = exc.response
+            # TODO: Should we get the method & url from the request for the error message?
+            return self._map(response.status_code, response.headers, str(exc))
+        # TODO: Add support for requests library
         return None
 
-    # raw Response objects
     def from_response(self, r: Any):
+        # TODO: Either update or just return None. Don't think we need this for raw HTTP?
         status = getattr(r, "status_code", None)
         headers = getattr(r, "headers", {})
         if status and status >= 400:
