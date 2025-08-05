@@ -45,7 +45,7 @@ class DatabaseEngine:
         if key not in cls._clients:
             try:
                 # Create ClickHouse client
-                client_args = {
+                client_args: dict[str, Any] = {
                     "host": host,
                     "port": port,
                     "database": database,
