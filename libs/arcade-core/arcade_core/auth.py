@@ -54,7 +54,7 @@ class Atlassian(OAuth2):
 class ClickUp(OAuth2):
     """Marks a tool as requiring ClickUp authorization."""
 
-    provider_id: str = "clickup"
+    provider_id: str = "default-clickup"
 
     def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
         super().__init__(id=id, scopes=scopes)
