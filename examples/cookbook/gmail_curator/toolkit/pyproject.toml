@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade_gmail_curator"
+version = "0.1.0"
+description = "Gmail Curator toolkit for Arcade"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=2.0.0,<3.0.0",
+    "google-api-python-client>=2.100.0",
+    "google-auth-httplib2>=0.1.0",
+]
+
+[[project.authors]]
+name = "Arcade"
+email = "dev@arcade.dev"

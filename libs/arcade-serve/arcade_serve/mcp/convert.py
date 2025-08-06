@@ -26,10 +26,19 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
         An MCP tool definition or None if the tool cannot be converted
     """
     try:
-        name = getattr(tool.definition, "fully_qualified_name", None) or getattr(
-            tool.definition, "name", "unknown"
-        )
+        # Get the tool name from the definition
+        tool_name = getattr(tool.definition, "name", "unknown")
+        fully_qualified_name = getattr(tool.definition, "fully_qualified_name", None)
+
+        # Use fully qualified name for MCP tool name (replacing dots with underscores)
+        name = str(fully_qualified_name).replace(".", "_") if fully_qualified_name else tool_name
+
         description = getattr(tool.definition, "description", "No description available")
+
+        # Check for deprecation
+        deprecation_msg = getattr(tool.definition, "deprecation_message", None)
+        if deprecation_msg:
+            description = f"[DEPRECATED: {deprecation_msg}] {description}"
 
         # Extract parameters from the input model
         parameters = {}
@@ -118,36 +127,82 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
         if required:
             input_schema["required"] = required
 
-        # Add annotations based on tool metadata
+        # Create output schema if available
+        output_schema = None
+        if hasattr(tool.definition, "output") and tool.definition.output:
+            output_def = tool.definition.output
+            if output_def.value_schema:
+                # Convert Arcade value schema to JSON schema
+                output_schema = {
+                    "type": "object",
+                    "description": output_def.description or "Tool output",
+                }
+                # Note: Full value_schema conversion would require more complex mapping
+                # For now, we indicate that the tool has structured output
+
+        # Add annotations based on tool metadata and requirements
         annotations = {}
 
-        # Use tool name as title if available
-        annotations["title"] = getattr(tool.definition, "title", str(name).replace(".", "_"))
+        # Use the raw tool name (in PascalCase) as the title
+        annotations["title"] = tool_name
 
-        # Determine hints based on tool properties
+        # Add requirement-based hints
+        if hasattr(tool.definition, "requirements") and tool.definition.requirements:
+            reqs = tool.definition.requirements
+
+            # If tool has no auth/secrets/metadata requirements, it's likely read-only
+            has_requirements = bool(reqs.authorization or reqs.secrets or reqs.metadata)
+            annotations["readOnlyHint"] = not has_requirements
+
+            # Tools with auth requirements often interact with external systems
+            if reqs.authorization:
+                annotations["openWorldHint"] = True
+
+        # Check for explicit metadata hints
         if hasattr(tool.definition, "metadata"):
             metadata = tool.definition.metadata or {}
-            annotations["readOnlyHint"] = metadata.get("read_only", False)
-            annotations["destructiveHint"] = metadata.get("destructive", False)
-            annotations["idempotentHint"] = metadata.get("idempotent", True)
-            annotations["openWorldHint"] = metadata.get("open_world", False)
+            if "read_only" in metadata:
+                annotations["readOnlyHint"] = metadata["read_only"]
+            if "destructive" in metadata:
+                annotations["destructiveHint"] = metadata["destructive"]
+            if "idempotent" in metadata:
+                annotations["idempotentHint"] = metadata["idempotent"]
+            if "open_world" in metadata:
+                annotations["openWorldHint"] = metadata["open_world"]
 
         # Create the final tool definition
         tool_def: MCPTool = {
-            "name": str(name).replace(".", "_"),
+            "name": name,
+            "title": tool_name,  # Human-friendly name without toolkit prefix
             "description": str(description),
             "inputSchema": input_schema,
-            "annotations": annotations,
         }
 
+        # Add output schema if available
+        if output_schema:
+            tool_def["outputSchema"] = output_schema
+
+        # Only add annotations if we have any
+        if annotations:
+            tool_def["annotations"] = annotations
+
+        # Add toolkit information to description if available
+        if hasattr(tool.definition, "toolkit") and tool.definition.toolkit:
+            toolkit = tool.definition.toolkit
+            toolkit_info = f" (from {toolkit.name}"
+            if toolkit.version:
+                toolkit_info += f" v{toolkit.version}"
+            toolkit_info += ")"
+            tool_def["description"] += toolkit_info
+
         logger.debug(f"Created tool definition for {name}")
+        return tool_def
 
     except Exception:
         logger.exception(
             f"Error creating MCP tool definition for {getattr(tool, 'name', str(tool))}"
         )
         return None
-    return tool_def
 
 
 def convert_to_mcp_content(value: Any) -> list[dict[str, Any]]:

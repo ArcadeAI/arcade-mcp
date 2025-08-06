@@ -530,6 +530,18 @@ def evals(
     rich_help_panel="Launch",
 )
 def serve(
+    file: Path = typer.Option(
+        "worker.toml",
+        "--file",
+        "-f",
+        help="The deployment file to serve.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        writable=False,
+        readable=True,
+        resolve_path=True,
+    ),
     host: str = typer.Option(
         "127.0.0.1",
         help="Host for the app, from settings by default.",
@@ -543,16 +555,29 @@ def serve(
         show_default=True,
     ),
     disable_auth: bool = typer.Option(
-        True,
+        False,
         "--no-auth",
         help="Disable authentication for the worker. Not recommended for production.",
-        show_default=True,
+        is_flag=True,
+        flag_value=True,
     ),
     otel_enable: bool = typer.Option(
         False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
     ),
-    mcp: bool = typer.Option(
-        False, "--mcp", help="Run as a local MCP server over stdio", show_default=True
+    local: bool = typer.Option(
+        False,
+        "--local",
+        help="Run as a local MCP server over stdio",
+        show_default=True,
+    ),
+    sse: bool = typer.Option(
+        False, "--sse", help="Run as a local MCP server over SSE", show_default=True
+    ),
+    stream: bool = typer.Option(
+        False,
+        "--stream",
+        help="Run as a local MCP server over HTTPS stream",
+        show_default=True,
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
     reload: bool = typer.Option(
@@ -575,12 +600,15 @@ def serve(
 
     try:
         serve_default_worker(
-            host,
-            port,
+            file=file,
+            host=host,
+            port=port,
             disable_auth=disable_auth,
             enable_otel=otel_enable,
             debug=debug,
-            mcp=mcp,
+            local=local,
+            sse=sse,
+            stream=stream,
             reload=reload,
         )
     except KeyboardInterrupt:
@@ -712,6 +740,25 @@ def deploy(
         for worker in deployment.worker:
             console.log(f"Deploying '{worker.config.id}...'", style="dim")
             try:
+                # Discover and upload secrets
+                required_secrets = worker.get_required_secrets()
+                for secret_key in required_secrets:
+                    secret_value = os.getenv(secret_key)
+                    if not secret_value:
+                        console.log(
+                            f"⚠️ Secret '{secret_key}' not found in environment, skipping.",
+                            style="yellow",
+                        )
+                        continue
+
+                    console.log(f"  - Uploading secret '{secret_key}'...", style="dim")
+                    try:
+                        engine_client.secrets.upsert(
+                            secret_key, value=secret_value, binding={"type": "static"}
+                        )
+                    except Exception as e:
+                        handle_cli_error(f"Failed to upload secret '{secret_key}'", e, debug)
+
                 # Attempt to deploy worker
                 worker.request().execute(cloud_client, engine_client)
                 console.log(
@@ -792,7 +839,10 @@ def dashboard(
 )
 def docs(
     toolkit_name: str = typer.Option(
-        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+        ...,
+        "--toolkit-name",
+        "-n",
+        help="The name of the toolkit to generate documentation for.",
     ),
     toolkit_dir: str = typer.Option(
         ...,
@@ -897,7 +947,10 @@ def docs(
 )
 def generate_toolkit_docs_command(
     toolkit_name: str = typer.Option(
-        ..., "--toolkit-name", "-n", help="The name of the toolkit to generate documentation for."
+        ...,
+        "--toolkit-name",
+        "-n",
+        help="The name of the toolkit to generate documentation for.",
     ),
     toolkit_dir: str = typer.Option(
         ...,

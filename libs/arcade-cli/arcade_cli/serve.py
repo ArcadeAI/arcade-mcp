@@ -15,15 +15,26 @@ import uvicorn
 # Watchfiles is used under the hood by Uvicorn's reload feature.
 # Importing watchfiles here is an explicit acknowledgement that it needs to be installed
 import watchfiles  # noqa: F401
+from arcade_core.catalog import ToolCatalog
 from arcade_core.telemetry import OTELHandler
 from arcade_core.toolkit import Toolkit, get_package_directory
+from arcade_serve.core.components import (
+    CallToolComponent,
+    CatalogComponent,
+    HealthCheckComponent,
+    LocalContextCallToolComponent,
+    WorkerComponent,
+)
+from arcade_serve.fastapi.sse import SSEComponent
+from arcade_serve.fastapi.stream import StreamComponent
 from arcade_serve.fastapi.worker import FastAPIWorker
+from arcade_serve.mcp.stdio import StdioServer
 from loguru import logger
 from rich.console import Console
 
 from arcade_cli.constants import ARCADE_CONFIG_PATH
+from arcade_cli.deployment import Deployment
 from arcade_cli.utils import (
-    build_tool_catalog,
     discover_toolkits,
     load_dotenv,
 )
@@ -34,9 +45,10 @@ console = Console(width=70, color_system="auto")
 # App factory for Uvicorn reload
 def create_arcade_app() -> fastapi.FastAPI:
     # TODO: Find a better way to pass these configs to factory used for reload
-    debug_mode = os.environ.get("ARCADE_WORKER_SECRET", "dev") == "dev"
+    debug_mode = os.environ.get("ARCADE_DEBUG_MODE", "False").lower() == "true"
     otel_enabled = os.environ.get("ARCADE_OTEL_ENABLE", "False").lower() == "true"
     auth_for_reload = not debug_mode
+    deployment_file = os.environ.get("ARCADE_DEPLOYMENT_FILE")
 
     # Call setup_logging here to ensure Uvicorn worker processes also get Loguru formatting
     # for all standard library loggers.
@@ -46,7 +58,26 @@ def create_arcade_app() -> fastapi.FastAPI:
 
     logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
     version = get_pkg_version("arcade-ai")
-    toolkits = discover_toolkits()
+
+    # Load toolkits and local context
+    local_context = None
+    if deployment_file:
+        toolkits = load_toolkits_from_deployment(Path(deployment_file))
+        # Load local context from deployment file
+        try:
+            deployment = Deployment.from_toml(Path(deployment_file))
+            if deployment.worker:
+                worker_config = deployment.worker[0].config
+                local_context = worker_config.local_context or {}
+                # Include auth providers in the context
+                if worker_config.local_auth_providers:
+                    local_context["local_auth_providers"] = [
+                        provider.model_dump() for provider in worker_config.local_auth_providers
+                    ]
+        except Exception as e:
+            logger.warning(f"Could not load local context from deployment: {e}")
+    else:
+        toolkits = discover_toolkits()
 
     logger.info("Registered toolkits:")
     for toolkit in toolkits:
@@ -70,18 +101,39 @@ def create_arcade_app() -> fastapi.FastAPI:
         openapi_url="/openapi.json" if debug_mode else None,
         lifespan=custom_lifespan,
     )
-    otel_handler.instrument_app(app)
 
+    disable_auth = not auth_for_reload
     secret = os.getenv("ARCADE_WORKER_SECRET", "dev")
     if secret == "dev" and not os.environ.get("ARCADE_WORKER_SECRET"):  # noqa: S105
         logger.warning("Using default 'dev' for ARCADE_WORKER_SECRET. Set this in production.")
 
+    # Determine which components to use
+    components: list[type[WorkerComponent]] = [CatalogComponent, HealthCheckComponent]
+
+    # Use LocalContextCallToolComponent if we have local context, otherwise use standard
+    if local_context:
+        # We'll need to register this component with the local_context
+        # But FastAPIWorker doesn't support passing kwargs to components yet
+        # So we'll register it manually after creating the worker
+        components.append(CallToolComponent)  # Will replace this below
+    else:
+        components.append(CallToolComponent)
+
     worker = FastAPIWorker(
         app=app,
         secret=secret,
-        disable_auth=not debug_mode,  # TODO (Sam): possible unexpected behavior on reload here?
+        disable_auth=disable_auth,
         otel_meter=otel_handler.get_meter(),
+        components=components,
     )
+
+    # If we have local context, replace the CallToolComponent with LocalContextCallToolComponent
+    if local_context:
+        # Remove the default CallToolComponent
+        worker.components = [c for c in worker.components if not isinstance(c, CallToolComponent)]
+        # Add LocalContextCallToolComponent with local context
+        worker.register_component(LocalContextCallToolComponent, local_context=local_context)
+
     for tk in toolkits:
         worker.register_toolkit(tk)
 
@@ -89,32 +141,47 @@ def create_arcade_app() -> fastapi.FastAPI:
 
 
 def _run_mcp_stdio(
-    toolkits: list[Toolkit], *, logging_enabled: bool, env_file: str | None = None
+    toolkits: list[Toolkit],
+    *,
+    logging_enabled: bool,
+    env_file: str | None = None,
+    deployment_file: Path | None = None,
 ) -> None:
     """Launch an MCP stdio server; blocks until it exits."""
-
-    from arcade_serve.mcp.stdio import StdioServer
-
-    # Load env vars before launching server (explicit path, config path, cwd)
     if env_file:
         load_dotenv(env_file, override=False)
     else:
-        for candidate in [Path(ARCADE_CONFIG_PATH) / "arcade.env", Path.cwd() / "arcade.env"]:
+        # Load arcade.env from standard locations
+        for candidate in [
+            Path(ARCADE_CONFIG_PATH) / "arcade.env",
+            Path.cwd() / "arcade.env",
+        ]:
             if candidate.is_file():
                 load_dotenv(candidate, override=False)
                 break
 
-    # Set up middleware configuration for stdio mode
-    middleware_config = {
-        "stdio_mode": True,  # Ensure logs go to stderr
-    }
+    # Get local context from deployment file if available
+    local_context = None
+    if deployment_file:
+        try:
+            deployment = Deployment.from_toml(deployment_file)
+            if deployment.worker:
+                worker_config = deployment.worker[0].config
+                local_context = worker_config.local_context or {}
+                # Include auth providers in the context
+                if worker_config.local_auth_providers:
+                    local_context["local_auth_providers"] = [
+                        provider.model_dump() for provider in worker_config.local_auth_providers
+                    ]
+        except Exception as e:
+            logger.warning(f"Could not load local context from deployment: {e}")
 
-    catalog = build_tool_catalog(toolkits)
-    server = StdioServer(
-        catalog,
-        enable_logging=logging_enabled,
-        middleware_config=middleware_config,
-    )
+    catalog = ToolCatalog()
+    for tk in toolkits:
+        catalog.add_toolkit(tk)
+
+    # Create and run the server
+    server = StdioServer(catalog, auth_disabled=True, local_context=local_context)
 
     try:
         asyncio.run(server.run())
@@ -127,6 +194,157 @@ def _run_mcp_stdio(
         logger.info("Shutting down Server")
         logger.complete()
         logger.remove()
+
+
+def _run_mcp_sse(
+    toolkits: list[Toolkit],
+    host: str,
+    port: int,
+    *,
+    logging_enabled: bool,
+    env_file: str | None = None,
+    disable_auth: bool,
+    deployment_file: Path | None = None,
+) -> None:
+    """Launch an MCP SSE server; blocks until it exits."""
+    if env_file:
+        load_dotenv(env_file, override=False)
+    else:
+        for candidate in [
+            Path(ARCADE_CONFIG_PATH) / "arcade.env",
+            Path.cwd() / "arcade.env",
+        ]:
+            if candidate.is_file():
+                load_dotenv(candidate, override=False)
+                break
+
+    # Get local context from deployment file if available
+    local_context = None
+    if deployment_file:
+        try:
+            deployment = Deployment.from_toml(deployment_file)
+            if deployment.worker and deployment.worker[0].config.local_context:
+                local_context = deployment.worker[0].config.local_context
+        except Exception as e:
+            logger.warning(f"Could not load local context from deployment: {e}")
+
+    app = fastapi.FastAPI(
+        title="Arcade Worker (MCP SSE)",
+        description="A worker for the Arcade platform running in MCP SSE mode.",
+        version=get_pkg_version("arcade-ai"),
+    )
+
+    worker = FastAPIWorker(
+        app=app,
+        disable_auth=disable_auth,
+    )
+
+    # Register component with local context
+    worker.register_component(SSEComponent, local_context=local_context)
+
+    for tk in toolkits:
+        worker.register_toolkit(tk)
+
+    log_level = "debug" if logging_enabled else "info"
+
+    @asynccontextmanager
+    async def sse_lifespan(app: fastapi.FastAPI):
+        # Components already registered, just manage lifecycle
+        for component in worker.components:
+            if hasattr(component, "startup"):
+                component.startup()
+        yield
+        for component in worker.components:
+            if hasattr(component, "shutdown"):
+                await component.shutdown()
+
+    app.router.lifespan_context = sse_lifespan
+    uvicorn.run(app, host=host, port=port, log_level=log_level)
+
+
+def _run_mcp_stream(
+    toolkits: list[Toolkit],
+    host: str,
+    port: int,
+    *,
+    logging_enabled: bool,
+    env_file: str | None = None,
+    disable_auth: bool,
+    deployment_file: Path | None = None,
+) -> None:
+    """Launch an MCP HTTPS stream server; blocks until it exits."""
+    if env_file:
+        load_dotenv(env_file, override=False)
+    else:
+        for candidate in [
+            Path(ARCADE_CONFIG_PATH) / "arcade.env",
+            Path.cwd() / "arcade.env",
+        ]:
+            if candidate.is_file():
+                load_dotenv(candidate, override=False)
+                break
+
+    # Get local context from deployment file if available
+    local_context = None
+    if deployment_file:
+        try:
+            deployment = Deployment.from_toml(deployment_file)
+            if deployment.worker:
+                worker_config = deployment.worker[0].config
+                local_context = worker_config.local_context or {}
+                # Include auth providers in the context
+                if worker_config.local_auth_providers:
+                    local_context["local_auth_providers"] = [
+                        provider.model_dump() for provider in worker_config.local_auth_providers
+                    ]
+        except Exception as e:
+            logger.warning(f"Could not load local context from deployment: {e}")
+
+    app = fastapi.FastAPI(
+        title="Arcade Worker (MCP Stream)",
+        description="A worker for the Arcade platform running in MCP Stream mode.",
+        version=get_pkg_version("arcade-ai"),
+    )
+
+    worker = FastAPIWorker(
+        app=app,
+        disable_auth=disable_auth,
+    )
+
+    # Register component with local context
+    worker.register_component(StreamComponent, local_context=local_context)
+
+    for tk in toolkits:
+        worker.register_toolkit(tk)
+
+    log_level = "debug" if logging_enabled else "info"
+
+    @asynccontextmanager
+    async def stream_lifespan(app: fastapi.FastAPI):
+        # Components already registered, just manage lifecycle
+        for component in worker.components:
+            if hasattr(component, "startup"):
+                component.startup()
+        yield
+        for component in worker.components:
+            if hasattr(component, "shutdown"):
+                await component.shutdown()
+
+    app.router.lifespan_context = stream_lifespan
+    uvicorn.run(app, host=host, port=port, log_level=log_level)
+
+
+def load_toolkits_from_deployment(file: Path) -> list[Toolkit]:
+    """Load toolkits from a deployment file."""
+    deployment = Deployment.from_toml(file)
+    toolkits = []
+    for worker in deployment.worker:
+        if worker.local_source:
+            for package_path_str in worker.local_source.packages:
+                package_path = file.parent / package_path_str
+                toolkit = Toolkit.from_directory(package_path)
+                toolkits.append(toolkit)
+    return toolkits
 
 
 def _run_fastapi_server(
@@ -233,7 +451,9 @@ def setup_logging(log_level: int = logging.INFO, mcp_mode: bool = False) -> None
 
 @asynccontextmanager
 async def lifespan(
-    app: fastapi.FastAPI, otel_handler: OTELHandler | None = None, enable_otel: bool = False
+    app: fastapi.FastAPI,
+    otel_handler: OTELHandler | None = None,
+    enable_otel: bool = False,
 ) -> AsyncGenerator[None, None]:
     try:
         logger.debug(f"Server lifespan startup. OTEL enabled: {enable_otel}")
@@ -251,6 +471,7 @@ async def lifespan(
 
 
 def serve_default_worker(
+    file: Path,
     host: str = "127.0.0.1",
     port: int = 8002,
     disable_auth: bool = False,
@@ -258,19 +479,51 @@ def serve_default_worker(
     timeout_keep_alive: int = 5,
     enable_otel: bool = False,
     debug: bool = False,
-    mcp: bool = False,
+    local: bool = False,
     reload: bool = False,
+    sse: bool = False,
+    stream: bool = False,
     **kwargs: Any,
 ) -> None:
     # Initial logging setup for the main `arcade serve` process itself.
     # The Uvicorn worker processes will call setup_logging() again via create_arcade_app().
-    setup_logging(log_level=logging.DEBUG if debug else logging.INFO, mcp_mode=mcp)
+    setup_logging(log_level=logging.DEBUG if debug else logging.INFO, mcp_mode=local)
 
-    if mcp:
+    toolkits = load_toolkits_from_deployment(file)
+
+    if local:
         logger.info("MCP mode selected.")
-        toolkits_for_mcp = discover_toolkits()
         _run_mcp_stdio(
-            toolkits_for_mcp, logging_enabled=not debug, env_file=kwargs.pop("env_file", None)
+            toolkits,
+            logging_enabled=not debug,
+            env_file=kwargs.pop("env_file", None),
+            deployment_file=file,
+        )
+        return
+
+    if sse:
+        logger.info("MCP SSE mode selected.")
+        _run_mcp_sse(
+            toolkits,
+            host=host,
+            port=port,
+            logging_enabled=not debug,
+            env_file=kwargs.pop("env_file", None),
+            disable_auth=disable_auth,
+            deployment_file=file,
+        )
+        return
+
+    if stream:
+        logger.info("MCP Stream mode selected.")
+        _run_mcp_stream(
+            toolkits,
+            host=host,
+            port=port,
+            logging_enabled=not debug,
+            env_file=kwargs.pop("env_file", None),
+            disable_auth=disable_auth,
+            deployment_file=file,
         )
         return
 
@@ -278,12 +531,13 @@ def serve_default_worker(
     os.environ["ARCADE_DEBUG_MODE"] = str(debug)
     os.environ["ARCADE_OTEL_ENABLE"] = str(enable_otel)
     os.environ["ARCADE_DISABLE_AUTH"] = str(disable_auth)
+    os.environ["ARCADE_DEPLOYMENT_FILE"] = str(file)
 
     toolkits_for_reload_dirs: list[Toolkit] | None = None
     if reload:
         # This discovery is only to tell the main Uvicorn reloader process which project dirs to watch.
         # The actual app running in the worker will do its own discovery via create_arcade_app.
-        toolkits_for_reload_dirs = discover_toolkits()
+        toolkits_for_reload_dirs = toolkits
         logger.debug(
             f"Reload mode: Uvicorn to watch {len(toolkits_for_reload_dirs) if toolkits_for_reload_dirs else 0} directories."
         )

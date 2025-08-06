@@ -10,6 +10,7 @@ from typing import Any
 
 import toml
 from arcade_core import Toolkit
+from arcade_core.catalog import ToolCatalog
 from arcade_core.toolkit import Validate
 from arcadepy import Arcade, NotFoundError
 from httpx import Client, ConnectError, HTTPStatusError, TimeoutException
@@ -29,7 +30,9 @@ class Package(BaseModel):
     @classmethod
     def from_requirement(cls, requirement_str: str) -> "Package":
         req = Requirement(requirement_str)
-        return cls(name=req.name, specifier=str(req.specifier) if req.specifier else None)
+        return cls(
+            name=req.name, specifier=str(req.specifier) if req.specifier else None
+        )
 
 
 # Base class for a list of packages
@@ -75,17 +78,83 @@ class Secret(BaseModel):
     pattern: str | None = None
 
 
+class AuthProvider(BaseModel):
+    """Configuration for a local auth provider."""
+
+    provider_id: str
+    """The provider ID (e.g., 'google', 'github', 'custom-oauth')"""
+
+    provider_type: str = "oauth2"
+    """The type of provider, usually 'oauth2'"""
+
+    client_id: str
+    """OAuth client ID for this provider"""
+
+    client_secret: str
+    """OAuth client secret for this provider"""
+
+    # Mock tokens for local development
+    mock_tokens: dict[str, str] | None = None
+    """
+    Mock access tokens by user ID for local development.
+    Example: {"user-123": "mock-google-token-abc", "user-456": "mock-google-token-def"}
+    """
+
+    scopes: list[str] | None = None
+    """Default scopes for this provider"""
+
+
 class Config(BaseModel):
+    """The configuration for an Arcade worker deployment."""
+
     id: str
+    """The unique id for the worker deployment."""
+
     enabled: bool = True
-    timeout: int = 30
-    retries: int = 3
-    secret: Secret | None = None
+    """Whether the worker is enabled. Defaults to True."""
+
+    secret: str | None = None
+    """The shared secret between the worker and Arcade Engine server."""
+
+    timeout: int = 120
+    """The maximum execution time in seconds for a tool in this worker."""
+
+    retries: int = 1
+    """The number of times to retry a failed tool invocation. Defaults to 1."""
+
+    # Local development context - only used when running locally
+    local_context: dict[str, Any] | None = None
+    """
+    Local context configuration for development. This section is only used when running
+    'arcade serve' locally and is ignored during deployment. It can include:
+    - user_id: Default user ID for local testing
+    - user_info: Dictionary of user metadata
+    - metadata: Additional metadata fields
+    Example:
+      [worker.config.local_context]
+      user_id = "test-user-123"
+      user_info = { email = "test@example.com", name = "Test User" }
+    """
+
+    # Local auth providers - only used when running locally
+    local_auth_providers: list[AuthProvider] | None = None
+    """
+    Local auth provider configurations for development. These are only used when running
+    'arcade serve' locally and are ignored during deployment. They define mock OAuth
+    providers and tokens for testing tools that require authentication.
+    Example:
+      [[worker.config.local_auth_providers]]
+      provider_id = "google"
+      client_id = "mock-google-client"
+      client_secret = "mock-google-secret"
+      [worker.config.local_auth_providers.mock_tokens]
+      "test-user-123" = "mock-google-access-token"
+    """
 
     # Validate and parse the secret if required
     @field_validator("secret", mode="before")
     @classmethod
-    def valid_secret(cls, v: str | Secret | None) -> Secret:
+    def valid_secret(cls, v: str | Secret | None) -> str:
         # If the secret is a string, attempt to parse it as an environment variable or return the secret
         if isinstance(v, str):
             secret = get_env_secret(v)
@@ -94,10 +163,10 @@ class Config(BaseModel):
             secret = v
         else:
             raise TypeError("Secret must be a string or a Secret object")
-        # Check that the secret is not the default dev secret or empty
-        if secret.value.strip() == "" or secret.value == "dev":
-            raise ValueError("Secret must be a non-empty string and not 'dev'")
-        return secret
+        # Check that the secret is not empty
+        if secret.value.strip() == "":
+            raise ValueError("Secret must be a non-empty string")
+        return secret.value
 
     @field_serializer("secret")
     def serialize_secret(self, secret: Secret) -> str:
@@ -144,7 +213,9 @@ class Request(BaseModel):
             if status == "Running":
                 return worker_resp.json()["data"]
             if status == "Failed":
-                raise ValueError(f"Worker failed to start: {worker_resp.json()['data']['error']}")
+                raise ValueError(
+                    f"Worker failed to start: {worker_resp.json()['data']['error']}"
+                )
 
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:
         # Attempt to deploy worker to the cloud
@@ -242,7 +313,9 @@ class Worker(BaseModel):
             if not package_path.exists():
                 raise FileNotFoundError(f"Local package not found: {package_path}")
             if not package_path.is_dir():
-                raise FileNotFoundError(f"Local package is not a directory: {package_path}")
+                raise FileNotFoundError(
+                    f"Local package is not a directory: {package_path}"
+                )
 
             # Check that the package is a valid python package
             if (
@@ -254,12 +327,16 @@ class Worker(BaseModel):
                 )
 
             # Validate that we are able to load the package
-            Toolkit.tools_from_directory(package_dir=package_path, package_name=package_path.name)
+            Toolkit.tools_from_directory(
+                package_dir=package_path, package_name=package_path.name
+            )
 
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()
             with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
-                tar.add(package_path, arcname=package_path.name, filter=exclude_filter)
+                tar.add(
+                    package_path, arcname=package_path.name, filter=exclude_filter
+                )
 
             byte_stream.seek(0)
             package_bytes = byte_stream.read()
@@ -286,6 +363,25 @@ class Worker(BaseModel):
         dupes = [x for n, x in enumerate(packages) if x in packages[:n]]
         if dupes:
             raise ValueError(f"Duplicate packages: {dupes}")
+
+    def get_required_secrets(self) -> set[str]:
+        """Inspect local toolkits and return a set of required secret keys."""
+        all_secrets = set()
+        if self.local_source:
+            catalog = ToolCatalog()
+            for package_path_str in self.local_source.packages:
+                package_path = self.toml_path.parent / package_path_str
+                toolkit = Toolkit.from_directory(package_path)
+                catalog.add_toolkit(toolkit)
+
+            for tool in catalog:
+                if (
+                    tool.definition.requirements
+                    and tool.definition.requirements.secrets
+                ):
+                    for secret in tool.definition.requirements.secrets:
+                        all_secrets.add(secret.key)
+        return all_secrets
 
 
 class Deployment(BaseModel):
@@ -361,7 +457,9 @@ def update_deployment_with_local_packages(toml_path: Path, toolkit_name: str) ->
     """Update a deployment from a toml file."""
     deployment = Deployment.from_toml(toml_path)
     if deployment.worker[0].local_source is None:
-        deployment.worker[0].local_source = LocalPackages(packages=[f"./{toolkit_name}"])
+        deployment.worker[0].local_source = LocalPackages(
+            packages=[f"./{toolkit_name}"]
+        )
     else:
         deployment.worker[0].local_source.packages.append(f"./{toolkit_name}")
     deployment.save()

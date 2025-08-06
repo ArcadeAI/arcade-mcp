@@ -1,0 +1,10 @@
+[[worker]]
+[worker.config]
+id = "simple-tools"
+
+# Local context for development
+[worker.config.local_context]
+user_id = "dev-user"
+
+[worker.local]
+packages = ["./toolkit"]

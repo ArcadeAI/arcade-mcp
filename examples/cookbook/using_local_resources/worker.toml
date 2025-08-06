@@ -1,0 +1,22 @@
+[[worker]]
+[worker.config]
+id = "local-resources"
+
+[worker.config.local_context]
+user_id = "dev-user"
+
+[worker.config.local_context.metadata]
+workspace_path = "./workspace"
+cache_dir = "./cache"
+
+[worker.local]
+packages = ["./toolkit"]
+
+# Dependencies
+[[worker.pypi]]
+package = "aiofiles"
+version = "^23.2.1"
+
+[[worker.pypi]]
+package = "httpx"
+version = "^0.25.0"

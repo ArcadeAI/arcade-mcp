@@ -23,6 +23,7 @@ dependencies = [
     "fastapi>=0.115.3",
     "uvicorn>=0.30.0",
     "watchfiles>=1.0.5",
+    "sse-starlette>=2.0.0",
 ]
 
 [project.optional-dependencies]

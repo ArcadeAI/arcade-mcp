@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 if TYPE_CHECKING:
     pass
 
+from arcade_core.catalog import ToolCatalog
+
 from arcade_serve.mcp.server import MCPServer
 
 logger = logging.getLogger("arcade.mcp")
@@ -49,16 +51,14 @@ class StdioServer(MCPServer):
 
     def __init__(
         self,
-        tool_catalog: Any,
-        enable_logging: bool = True,
-        **client_kwargs: dict[str, Any],
+        catalog: ToolCatalog,
+        auth_disabled: bool = False,
+        local_context: dict[str, Any] | None = None,
     ):
-        # Set up stdio-specific middleware configuration
-        middleware_config = client_kwargs.get("middleware_config", {})
-        middleware_config["stdio_mode"] = True
-        client_kwargs["middleware_config"] = middleware_config
-
-        super().__init__(tool_catalog, enable_logging, **client_kwargs)
+        """Initialize the stdio server."""
+        super().__init__(catalog, auth_disabled=auth_disabled, local_context=local_context)
+        self.input_stream = sys.stdin.buffer
+        self.output_stream = sys.stdout.buffer
         self.read_q: queue.Queue[str | None] = queue.Queue()
         self.write_q: queue.Queue[str | None] = queue.Queue()
         self.reader_thread: threading.Thread | None = None
@@ -124,7 +124,7 @@ class StdioServer(MCPServer):
         self.running = False
 
         # Signal shutdown to MCP server
-        await self.shutdown()
+        await super().shutdown()
 
         # Clean up IO queues and threads
         try:

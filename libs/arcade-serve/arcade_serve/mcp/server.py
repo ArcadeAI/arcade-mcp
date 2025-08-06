@@ -7,14 +7,19 @@ from typing import Any, Callable, Union
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
-from arcade_core.schema import ToolAuthorizationContext, ToolContext
+from arcade_core.schema import ToolAuthorizationContext, ToolContext, ToolMetadataItem
 from arcadepy import ArcadeError, AsyncArcade
-from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
+from arcadepy.types.auth_authorize_params import (
+    AuthRequirement,
+    AuthRequirementOauth2,
+)
 from arcadepy.types.shared import AuthorizationResponse
 
 from arcade_serve.mcp.convert import convert_to_mcp_content, create_mcp_tool
-from arcade_serve.mcp.logging import create_mcp_logging_middleware
-from arcade_serve.mcp.message_processor import MCPMessageProcessor, create_message_processor
+from arcade_serve.mcp.local_auth import MockArcadeClient
+from arcade_serve.mcp.message_processor import (
+    create_message_processor,
+)
 from arcade_serve.mcp.types import (
     CallToolRequest,
     CallToolResponse,
@@ -37,6 +42,8 @@ from arcade_serve.mcp.types import (
     PingResponse,
     ProgressNotification,
     ServerCapabilities,
+    SetLevelRequest,
+    SetLevelResponse,
     ShutdownRequest,
     ShutdownResponse,
     Tool,
@@ -59,6 +66,7 @@ class MessageMethod(str, Enum):
     SHUTDOWN = "shutdown"
     LIST_RESOURCES = "resources/list"
     LIST_PROMPTS = "prompts/list"
+    SET_LOG_LEVEL = "logging/setLevel"
 
 
 class MCPServer:
@@ -69,38 +77,33 @@ class MCPServer:
 
     def __init__(
         self,
-        tool_catalog: Any,
-        enable_logging: bool = True,
-        **client_kwargs: dict[str, Any],
-    ) -> None:
+        catalog: ToolCatalog,
+        auth_disabled: bool = False,
+        local_context: dict[str, Any] | None = None,
+        arcade_api_key: str | None = None,
+        arcade_api_url: str | None = None,
+    ):
         """
         Initialize the MCP server.
 
         Args:
-            tool_catalog: Catalog of available tools
-            **client_kwargs: Additional arguments to pass to the AsyncArcade client
+            catalog: The tool catalog to use
+            auth_disabled: Whether authentication is disabled for this server
+            local_context: Local context configuration from worker.toml
+            arcade_api_key: API key for Arcade (if using real client)
+            arcade_api_url: API URL for Arcade (if using real client)
         """
-        self.tool_catalog: ToolCatalog = tool_catalog
-        self.message_processor: MCPMessageProcessor = create_message_processor()
+        self.tool_catalog = catalog
+        self.auth_disabled = auth_disabled
+        self.local_context = local_context or {}
 
-        # Pop middleware_config from client_kwargs regardless of logging state,
-        # as it's internal config not meant for AsyncArcade.
-        middleware_config = client_kwargs.pop("middleware_config", {})
+        # Initialize message processor for middleware handling
+        self.message_processor = create_message_processor()
 
-        if enable_logging:
-            # Create and add the logging middleware if logging is enabled.
-            # Note: enable_logging must be True for this middleware (and its stdio_mode behavior)
-            # to be activated.
-            self.message_processor.add_middleware(
-                create_mcp_logging_middleware(**middleware_config)
-            )
+        # Initialize arcade client (real or mock)
+        self._init_arcade_client(arcade_api_key, arcade_api_url)
 
-        self._shutdown: bool = False
-        # Initialize AsyncArcade with the *remaining* client_kwargs
-        self.arcade = AsyncArcade(**client_kwargs)  # type: ignore[arg-type]
-
-        # Initialize handler dispatch table
-        self._method_handlers: dict[str, Callable] = {
+        self.dispatch_table: dict[str, Callable] = {
             MessageMethod.PING: self._handle_ping,
             MessageMethod.INITIALIZE: self._handle_initialize,
             MessageMethod.LIST_TOOLS: self._handle_list_tools,
@@ -110,7 +113,45 @@ class MCPServer:
             MessageMethod.SHUTDOWN: self._handle_shutdown,
             MessageMethod.LIST_RESOURCES: self._handle_list_resources,
             MessageMethod.LIST_PROMPTS: self._handle_list_prompts,
+            MessageMethod.SET_LOG_LEVEL: self._handle_set_log_level,
         }
+
+    def _init_arcade_client(self, arcade_api_key: str | None, arcade_api_url: str | None) -> None:
+        """
+        Initialize the arcade client (real or mock based on configuration).
+
+        Args:
+            arcade_api_key: API key for real Arcade client
+            arcade_api_url: API URL for real Arcade client
+        """
+        # Check if we have local auth providers configured
+        local_auth_providers = self.local_context.get("local_auth_providers")
+
+        if local_auth_providers and not arcade_api_key:
+            # Use mock client for local development
+            logger.info("Using mock Arcade client with local auth providers")
+            self.arcade = MockArcadeClient(auth_providers=local_auth_providers)
+        else:
+            # Use real Arcade client
+            if not arcade_api_key:
+                arcade_api_key = os.environ.get("ARCADE_API_KEY")
+            if not arcade_api_url:
+                arcade_api_url = os.environ.get("ARCADE_API_URL", "https://api.arcade.ai")
+
+            if arcade_api_key:
+                logger.info(f"Using real Arcade client with API URL: {arcade_api_url}")
+                self.arcade = AsyncArcade(
+                    api_key=arcade_api_key,
+                    base_url=arcade_api_url,
+                )
+            else:
+                logger.warning(
+                    "No Arcade API key found and no local auth providers configured. "
+                    "Auth-required tools will fail. Set ARCADE_API_KEY or configure "
+                    "local_auth_providers in worker.toml"
+                )
+                # Use mock client with no providers as fallback
+                self.arcade = MockArcadeClient()
 
     async def run_connection(
         self,
@@ -246,31 +287,51 @@ class MCPServer:
                 # Not parseable JSON, continue with normal processing
                 pass
 
-        # Check if it's a notification
-        if hasattr(processed, "method"):
+        # Get method from processed message (handle both dict and object)
+        method = None
+        if isinstance(processed, dict):
+            method = processed.get("method")
+        elif hasattr(processed, "method"):
             method = getattr(processed, "method", None)
 
-            # Handle notifications (methods starting with "notifications/")
-            if method and method.startswith("notifications/"):
-                await self._handle_notification(method, processed)
-                return None
+        # Handle notifications (methods starting with "notifications/")
+        if method and method.startswith("notifications/"):
+            await self._handle_notification(method, processed)
+            return None
 
-            # Handle regular methods using the dispatch table
-            if method in self._method_handlers:
-                # If it's a call_tool request, we need to pass the user_id
-                if method == MessageMethod.CALL_TOOL:
-                    return await self._method_handlers[method](processed, user_id=user_id)
-                # For other methods, just pass the processed message
-                return await self._method_handlers[method](processed)
+        # Handle regular methods using the dispatch table
+        if method in self.dispatch_table:
+            # Convert dict to appropriate request type if needed
+            if isinstance(processed, dict):
+                # Convert based on method type
+                if method == MessageMethod.INITIALIZE:
+                    processed = InitializeRequest(**processed)
+                elif method == MessageMethod.CALL_TOOL:
+                    processed = CallToolRequest(**processed)
+                elif method == MessageMethod.LIST_TOOLS:
+                    processed = ListToolsRequest(**processed)
+                elif method == MessageMethod.PING:
+                    processed = PingRequest(**processed)
+                # Add other conversions as needed
 
-            # Unknown method
-            return JSONRPCError(
-                id=getattr(processed, "id", None),
-                error={
-                    "code": -32601,
-                    "message": f"Method not found: {method}",
-                },
-            )
+            # If it's a call_tool request, we need to pass the user_id
+            if method == MessageMethod.CALL_TOOL:
+                return await self.dispatch_table[method](processed, user_id=user_id)
+            # For other methods, just pass the processed message
+            return await self.dispatch_table[method](processed)
+
+        # Unknown method
+        return JSONRPCError(
+            id=getattr(processed, "id", None)
+            if hasattr(processed, "id")
+            else processed.get("id")
+            if isinstance(processed, dict)
+            else None,
+            error={
+                "code": -32601,
+                "message": f"Method not found: {method}",
+            },
+        )
 
         # If it's not a method request, just pass it through
         return processed
@@ -313,9 +374,16 @@ class MCPServer:
         # Create the result data
         result = InitializeResult(
             protocolVersion=MCP_PROTOCOL_VERSION,
-            capabilities=ServerCapabilities(),
-            serverInfo=Implementation(name="Arcade MCP Worker", version="0.1.0"),
-            instructions="Arcade MCP Worker initialized.",
+            capabilities=ServerCapabilities(
+                tools={"listChanged": False},  # Server supports tools
+                logging={},  # Server supports logging
+            ),
+            serverInfo=Implementation(
+                name="Arcade MCP Worker",
+                version="0.1.0",
+                title="Arcade Model Context Protocol Worker",
+            ),
+            instructions="The Arcade MCP Worker provides access to tools defined in Arcade toolkits. Use 'tools/list' to see available tools and 'tools/call' to execute them.",
         )
 
         # Construct proper response with result field
@@ -337,6 +405,9 @@ class MCPServer:
             A properly formatted tools/list response or error
         """
         try:
+            # Check for cursor parameter (pagination)
+            cursor = message.params.get("cursor") if message.params else None
+
             # Get all tools from the catalog
             tools = []
             tool_conversion_errors = []
@@ -364,13 +435,17 @@ class MCPServer:
                     # Make input schema optional if missing
                     tool_dict = dict(t)
                     if "inputSchema" not in tool_dict:
-                        tool_dict["inputSchema"] = {"type": "object", "properties": {}}
+                        tool_dict["inputSchema"] = {
+                            "type": "object",
+                            "properties": {},
+                        }
 
                     tool_objects.append(Tool(**tool_dict))
                 except Exception:
                     logger.exception(f"Error creating Tool object for {t.get('name', 'unknown')}")
 
-            # Return successful response with the tools we were able to convert
+            # For now, we don't implement pagination, so return all tools
+            # and don't set nextCursor
             result = ListToolsResult(tools=tool_objects)
             response = ListToolsResponse(id=message.id, result=result)
 
@@ -399,10 +474,8 @@ class MCPServer:
             A properly formatted tools/call response
         """
         tool_name: str = message.params["name"]
-        # Extract input from the correct field
-        input_params: dict[str, Any] = message.params.get("input", {})
-        if not input_params:
-            input_params = message.params.get("arguments", {})
+        # According to MCP spec, arguments come in params.arguments
+        input_params: dict[str, Any] = message.params.get("arguments", {})
 
         logger.info(f"Handling tool call for {tool_name}")
 
@@ -410,14 +483,20 @@ class MCPServer:
             tool = self.tool_catalog.get_tool_by_name(tool_name, separator="_")
             tool_context = ToolContext()
 
+            # Apply local context from worker.toml or environment
+            self._apply_local_context(tool_context, user_id)
+
             # Set up context with secrets
             if tool.definition.requirements and tool.definition.requirements.secrets:
                 self._setup_tool_secrets(tool, tool_context)
 
             # Handle authorization if needed
             requirement = self._get_auth_requirement(tool)
-            if requirement:
-                auth_result = await self._check_authorization(requirement, user_id=user_id)
+            if requirement and not self.auth_disabled:
+                # Use the arcade client (real or mock) for authorization
+                auth_result = await self._check_authorization(
+                    requirement, user_id=user_id or self.local_context.get("user_id")
+                )
                 if auth_result.status != "completed":
                     return CallToolResponse(
                         id=message.id,
@@ -440,28 +519,48 @@ class MCPServer:
                 **input_params,
             )
             logger.debug(f"Tool result: {result}")
-            if result.value:
-                return CallToolResponse(
+            if result.value is not None or (result.value is not None and not result.error):
+                # Handle structured content for dict/list values
+                content = convert_to_mcp_content(result.value)
+                structured_content = None
+
+                # If the value is a dict or list, also provide it as structured content
+                if isinstance(result.value, (dict, list)):
+                    structured_content = result.value
+
+                response = CallToolResponse(
                     id=message.id,
-                    result=CallToolResult(content=convert_to_mcp_content(result.value)),
+                    result=CallToolResult(
+                        content=content,
+                        structuredContent=structured_content,
+                        isError=False,
+                    ),
                 )
+
+                # Include logs if any
+                if result.logs:
+                    for log in result.logs:
+                        logger.log(
+                            getattr(logging, log.level.upper(), logging.INFO),
+                            f"Tool log: {log.message}",
+                        )
+
+                return response
             else:
                 error = result.error or "Error calling tool"
                 logger.error(f"Tool {tool_name} returned error: {error}")
                 return CallToolResponse(
                     id=message.id,
                     result=CallToolResult(
-                        content=[{"type": "text", "text": convert_to_mcp_content(error)}]
+                        content=[{"type": "text", "text": str(error)}], isError=True
                     ),
                 )
         except Exception as e:
             logger.exception(f"Error calling tool {tool_name}")
-            error = f"Error calling tool {tool_name}: {e!s}"
+            error_msg = f"Error calling tool {tool_name}: {e!s}"
             return CallToolResponse(
                 id=message.id,
-                result=CallToolResult(
-                    content=[{"type": "text", "text": convert_to_mcp_content(error)}]
-                ),
+                result=CallToolResult(content=[{"type": "text", "text": error_msg}], isError=True),
             )
 
     def _setup_tool_secrets(self, tool: Any, tool_context: ToolContext) -> None:
@@ -476,6 +575,45 @@ class MCPServer:
             value = os.environ.get(secret.key)
             if value is not None:
                 tool_context.set_secret(secret.key, value)
+
+    def _apply_local_context(self, tool_context: ToolContext, user_id: str | None = None) -> None:
+        """
+        Apply local context configuration to the tool context.
+
+        This method sets up user IDs and metadata for local development.
+        Priority order:
+        1. Environment variables (ARCADE_USER_ID, ARCADE_USER_EMAIL, etc.)
+        2. worker.toml local_context configuration
+        3. Method parameters
+
+        Args:
+            tool_context: The tool context to update
+            user_id: Optional user ID passed from the request
+        """
+        # Set user_id (priority: parameter > env > config)
+        final_user_id = (
+            user_id or os.environ.get("ARCADE_USER_ID") or self.local_context.get("user_id")
+        )
+        if final_user_id:
+            tool_context.user_id = final_user_id
+
+        # Additional metadata from environment
+        if os.environ.get("ARCADE_USER_EMAIL"):
+            if not tool_context.metadata:
+                tool_context.metadata = []
+            tool_context.metadata.append(
+                ToolMetadataItem(key="user_email", value=os.environ.get("ARCADE_USER_EMAIL"))
+            )
+
+        # Apply any additional metadata from local_context
+        local_metadata = self.local_context.get("metadata", {})
+        for key, value in local_metadata.items():
+            if not tool_context.metadata:
+                tool_context.metadata = []
+            # Check if metadata key already exists
+            existing = next((m for m in tool_context.metadata if m.key == key), None)
+            if not existing:
+                tool_context.metadata.append(ToolMetadataItem(key=key, value=str(value)))
 
     async def _handle_progress(self, message: ProgressNotification) -> JSONRPCResponse:
         """
@@ -539,6 +677,41 @@ class MCPServer:
             A properly formatted prompts/list response
         """
         return ListPromptsResponse(id=message.id, result={"prompts": []})
+
+    async def _handle_set_log_level(self, message: SetLevelRequest) -> SetLevelResponse:
+        """
+        Handle a logging/setLevel request.
+
+        Args:
+            message: The logging/setLevel request
+
+        Returns:
+            A response acknowledging the log level change
+        """
+        level = message.params.get("level")
+        if level is None:
+            return SetLevelResponse(id=message.id, result={})
+
+        # Map MCP log levels to Python log levels
+        level_mapping = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "notice": logging.INFO,  # Python doesn't have notice, map to info
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL,
+            "alert": logging.CRITICAL,  # Python doesn't have alert, map to critical
+            "emergency": logging.CRITICAL,  # Python doesn't have emergency, map to critical
+        }
+
+        numeric_level = level_mapping.get(level.lower())
+        if numeric_level is None:
+            # Invalid level, but we still return success per spec
+            return SetLevelResponse(id=message.id, result={})
+
+        logger.setLevel(numeric_level)
+        logger.info(f"Log level set to {level}")
+        return SetLevelResponse(id=message.id, result={})
 
     def _get_auth_requirement(self, tool: MaterializedTool) -> AuthRequirement | None:
         """

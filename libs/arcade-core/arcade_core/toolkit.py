@@ -6,6 +6,7 @@ import types
 from collections import defaultdict
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+import toml
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from arcade_core.errors import ToolkitLoadError
@@ -58,6 +59,52 @@ class Toolkit(BaseModel):
         >>> toolkit = Toolkit.from_module(arcade_math)
         """
         return cls.from_package(module.__name__)
+
+    @classmethod
+    def from_directory(cls, directory: Path) -> "Toolkit":
+        """
+        Load a Toolkit from a directory.
+        """
+        pyproject_path = directory / "pyproject.toml"
+        if not pyproject_path.exists():
+            raise ToolkitLoadError(f"pyproject.toml not found in {directory}")
+
+        try:
+            with open(pyproject_path) as f:
+                pyproject_data = toml.load(f)
+
+            project_data = pyproject_data.get("project", {})
+            name = project_data.get("name")
+            if not name:
+                raise ToolkitLoadError("name not found in pyproject.toml")
+
+            package_name = name
+            version = project_data.get("version", "0.0.0")
+            description = project_data.get("description", "")
+            authors = project_data.get("authors", [])
+            author_names = [author.get("name", "") for author in authors]
+
+            # For homepage and repository, you might need to look under project.urls
+            urls = project_data.get("urls", {})
+            homepage = urls.get("Homepage")
+            repo = urls.get("Repository")
+
+        except Exception as e:
+            raise ToolkitLoadError(f"Failed to load metadata from {pyproject_path}: {e}")
+
+        toolkit = cls(
+            name=name,
+            package_name=package_name,
+            version=version,
+            description=description,
+            author=author_names,
+            homepage=homepage,
+            repository=repo,
+        )
+
+        toolkit.tools = cls.tools_from_directory(directory, package_name)
+
+        return toolkit
 
     @classmethod
     def from_package(cls, package: str) -> "Toolkit":

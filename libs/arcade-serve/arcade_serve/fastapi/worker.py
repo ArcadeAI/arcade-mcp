@@ -26,24 +26,45 @@ class FastAPIWorker(BaseWorker):
         *,
         disable_auth: bool = False,
         otel_meter: Meter | None = None,
+        components: list[type[WorkerComponent]] | None = None,
     ) -> None:
         """
         Initialize the FastAPIWorker with a FastAPI app instance.
         If no secret is provided, the worker will use the ARCADE_WORKER_SECRET environment variable.
-
         Args:
             app: The FastAPI app to host the worker in
             secret: Optional secret for authorization
             disable_auth: Whether to disable authorization
             otel_meter: Optional OpenTelemetry meter
+            components: Optional list of components to register
         """
+        print(f"DEBUG: FastAPIWorker init - disable_auth = {disable_auth}")
         super().__init__(secret, disable_auth, otel_meter)
         self.app = app
         self.router = FastAPIRouter(app, self)
-        self.register_routes(self.router)
 
-        # Initialize components
+        # Initialize components list
         self.components: list[WorkerComponent] = []
+
+        # If no components specified, register the default routes from BaseWorker
+        if components is None:
+            self.register_routes(self.router)
+        else:
+            # Register the provided components
+            for component_cls in components:
+                self.register_component(component_cls)
+
+    def register_component(self, component_cls: type[WorkerComponent], **kwargs: Any) -> None:
+        """
+        Register a component with the worker.
+
+        Args:
+            component_cls: The component class to register
+            **kwargs: Additional keyword arguments to pass to the component constructor
+        """
+        component = component_cls(self, **kwargs)
+        component.register(self.router)
+        self.components.append(component)
 
 
 security = HTTPBearer()  # Authorization: Bearer <xxx>

@@ -151,10 +151,11 @@ class EmptyResult(Result):
 
 
 class Implementation(BaseModel):
-    """Describes the server or client implementation."""
+    """Describes the name and version of an MCP implementation, with an optional title for UI representation."""
 
     name: str
     version: str
+    title: str | None = None
     model_config = ConfigDict(extra="allow")
 
 
@@ -248,7 +249,7 @@ class ProgressNotification(JSONRPCMessage):
 
 
 class PingResponse(JSONRPCResponse):
-    result: dict[str, Any] = Field(default_factory=lambda: {"pong": True})
+    result: dict[str, Any] = Field(default_factory=lambda: {})
 
 
 class ShutdownRequest(JSONRPCRequest):
@@ -308,13 +309,16 @@ class ToolAnnotations(BaseModel):
 
 class Tool(BaseModel):
     """
-    Represents an MCP tool definition.
+    Definition for a tool the client can call.
     """
 
     name: str
-    description: str
-    inputSchema: dict[str, Any] | None = None
+    title: str | None = None
+    description: str | None = None
+    inputSchema: dict[str, Any]
+    outputSchema: dict[str, Any] | None = None
     annotations: ToolAnnotations | None = None
+    meta_: dict[str, Any] | None = Field(alias="_meta", default=None)
 
     model_config = ConfigDict(extra="allow")
 
@@ -333,7 +337,12 @@ class CallToolRequest(JSONRPCRequest):
 
 
 class CallToolResult(BaseModel):
-    content: Any
+    """The server's response to a tool call."""
+
+    content: list[dict[str, Any]]  # List of content blocks
+    isError: bool | None = None  # Whether the tool call ended in an error
+    structuredContent: dict[str, Any] | None = None  # Optional structured result
+    meta_: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
 class CallToolResponse(JSONRPCResponse):
@@ -357,6 +366,25 @@ class ListPromptsRequest(JSONRPCRequest):
 
 class ListPromptsResponse(JSONRPCResponse):
     result: dict[str, Any]
+
+
+# Logging types
+LoggingLevel = Literal[
+    "emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"
+]
+
+
+class SetLevelRequest(JSONRPCRequest):
+    """A request from the client to the server, to enable or adjust logging."""
+
+    method: str = Field(default="logging/setLevel", frozen=True)
+    params: dict[str, Any]  # Should contain 'level' field
+
+
+class SetLevelResponse(JSONRPCResponse):
+    """Response to a logging/setLevel request."""
+
+    result: dict[str, Any] = Field(default_factory=lambda: {})
 
 
 # Utility type alias for all MCP protocol messages

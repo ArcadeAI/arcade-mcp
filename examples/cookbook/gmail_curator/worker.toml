@@ -1,0 +1,35 @@
+[[worker]]
+[worker.config]
+id = "gmail-curator"
+
+# User context
+[worker.config.local_context]
+user_id = "test-user"
+
+# Mock Google OAuth for local development
+[[worker.config.local_auth_providers]]
+provider_id = "google"
+provider_type = "oauth2"
+client_id = "mock-google-client-id"
+client_secret = "mock-google-client-secret"
+scopes = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.labels",
+    "https://www.googleapis.com/auth/gmail.modify"
+]
+
+# Define mock tokens by user ID
+[worker.config.local_auth_providers.mock_tokens]
+"test-user" = "mock-google-oauth-token"
+
+[worker.local_source]
+packages = ["./toolkit"]
+
+# Dependencies
+[[worker.pypi]]
+package = "google-api-python-client"
+version = "^2.100.0"
+
+[[worker.pypi]]
+package = "google-auth-httplib2"
+version = "^0.1.0"
