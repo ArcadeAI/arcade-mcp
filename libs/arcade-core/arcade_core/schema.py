@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from arcade_core.errors import ErrorCode, ErrorOrigin
+from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
@@ -392,6 +392,12 @@ class ToolCallError(BaseModel):
 
     message: str
     """The user-facing error message."""
+    origin: ErrorOrigin
+    """The origin of the error."""
+    phase: ErrorPhase
+    """The phase of the error."""
+    code: ErrorCode
+    """The machine-readable code of the error."""
     developer_message: str | None = None
     """The developer-facing error details."""
     can_retry: bool = False
@@ -402,17 +408,9 @@ class ToolCallError(BaseModel):
     """The number of milliseconds (if any) to wait before retrying the tool call."""
     traceback_info: str | None = None
     """The traceback information for the tool call."""
-
-    # New fields
-    origin: ErrorOrigin
-    """The origin of the error."""
-    retryable: bool
-    """Whether the tool call can be retried."""
-    code: ErrorCode | None = None
-    """The semantic code of the error."""
     status_code: int | None = None
-    """The status code of the error."""
-    extra: dict[str, Any]
+    """The HTTP status code of the error."""
+    extra: dict[str, Any] | None = None
     """Additional information about the error."""
 
 

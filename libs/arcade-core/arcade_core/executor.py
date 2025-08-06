@@ -6,8 +6,6 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
-    ErrorCode,
-    ErrorOrigin,
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
@@ -77,8 +75,9 @@ class ToolExecutor:
                 additional_prompt_content=getattr(e, "additional_prompt_content", None),
                 retry_after_ms=getattr(e, "retry_after_ms", None),
                 origin=e.origin,
-                retryable=e.retryable,
+                phase=e.phase,
                 code=e.code,
+                can_retry=e.can_retry,
                 status_code=e.status_code,
                 extra=e.extra,
             )
@@ -89,11 +88,6 @@ class ToolExecutor:
                 message=f"Error in execution of '{func.__name__}'",
                 developer_message=str(e),
                 traceback_info=traceback.format_exc(),
-                origin=ErrorOrigin.TOOL,
-                retryable=False,
-                code=ErrorCode.BUG,
-                status_code=500,
-                extra={},
             )
 
     @staticmethod

@@ -1,18 +1,22 @@
 from arcade_core.errors import (
-    NonRetryableToolError,
+    ContextRequiredToolError,
+    FatalToolError,
     RetryableToolError,
     ToolExecutionError,
     ToolRuntimeError,
+    UpstreamError,
     UpstreamRateLimitError,
 )
 
 __all__ = [
-    "NonRetryableToolError",
+    "FatalToolError",
     "RetryableToolError",
     "SDKError",
     "ToolExecutionError",
     "ToolRuntimeError",
+    "UpstreamError",
     "UpstreamRateLimitError",
+    "ContextRequiredToolError",
     "WeightError",
 ]
 

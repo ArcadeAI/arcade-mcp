@@ -2,7 +2,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from arcade_core.errors import ErrorCode, ErrorOrigin
+from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -54,21 +54,22 @@ class ToolOutputFactory:
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
         origin: ErrorOrigin = ErrorOrigin.TOOL,
-        retryable: bool = False,
-        code: ErrorCode | None = None,
+        phase: ErrorPhase = ErrorPhase.RUNTIME,
+        can_retry: bool = False,
+        code: ErrorCode = ErrorCode.FATAL,
         status_code: int = 500,
-        extra: dict[str, Any] = {},
+        extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,
                 developer_message=developer_message,
-                can_retry=retryable,
+                can_retry=can_retry,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
                 traceback_info=traceback_info,
                 origin=origin,
-                retryable=retryable,
+                phase=phase,
                 code=code,
                 status_code=status_code,
                 extra=extra,
@@ -86,10 +87,9 @@ class ToolOutputFactory:
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
         origin: ErrorOrigin = ErrorOrigin.TOOL,
-        retryable: bool = True,
-        code: ErrorCode | None = None,
+        code: ErrorCode = ErrorCode.RETRY_TOOL,
         status_code: int = 500,
-        extra: dict[str, Any] = {},
+        extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
         """
         DEPRECATED: Use ToolOutputFactory.fail instead.
@@ -105,7 +105,6 @@ class ToolOutputFactory:
                 retry_after_ms=retry_after_ms,
                 traceback_info=traceback_info,
                 origin=origin,
-                retryable=retryable,
                 code=code,
                 status_code=status_code,
                 extra=extra,

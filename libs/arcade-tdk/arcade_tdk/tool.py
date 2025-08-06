@@ -6,7 +6,7 @@ from arcade_tdk.adapters import ErrorAdapter
 from arcade_tdk.adapters.utils import get_adapter_for_auth_provider
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.errors import (
-    NonRetryableToolError,
+    FatalToolError,
     ToolRuntimeError,
 )
 from arcade_tdk.providers.http import HTTPErrorAdapter
@@ -83,16 +83,17 @@ def _raise_as_arcade_error(
     for adapter in adapter_chain:
         mapped = adapter.from_exception(exception)
         if isinstance(mapped, ToolRuntimeError):
-            mapped.message = f"[{tool_name}] {mapped.message}"
+            prefix = f"[{mapped.origin.value}/{mapped.phase.value}/{mapped.code.value}] {type(mapped).__name__} in execution of '{func_name}': "
+            mapped.message = f"{prefix} {mapped.message}"
             mapped.developer_message = (
-                f"[{func_name}] {mapped.developer_message}" if mapped.developer_message else None
+                f"{prefix} {mapped.developer_message}" if mapped.developer_message else None
             )
             raise mapped from exception
 
-    raise NonRetryableToolError(
-        message=f"Error in execution of {tool_name}",
-        developer_message=f"Error in {func_name}: {exception!s}",
-        status_code=500,
+    prefix = f"[{FatalToolError.origin.value}/{FatalToolError.phase.value}/{FatalToolError.code.value}] {type(exception).__name__} in execution of '{func_name}': "
+    raise FatalToolError(
+        message=f"{prefix} {exception!s}",
+        developer_message=f"{prefix} {exception!s}",
     ) from exception
 
 

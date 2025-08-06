@@ -4,7 +4,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 from arcade_core.errors import (
-    NonRetryableToolError,
     ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
@@ -167,7 +166,7 @@ class GoogleErrorAdapter:
             )
 
         if isinstance(exc, errors_module.InvalidChunkSizeError):
-            return NonRetryableToolError(
+            return UpstreamError(
                 message="Upstream Google API error: Invalid chunk size specified",
                 developer_message=str(exc),
                 status_code=400,
@@ -178,7 +177,7 @@ class GoogleErrorAdapter:
             )
 
         if isinstance(exc, errors_module.InvalidNotificationError):
-            return NonRetryableToolError(
+            return UpstreamError(
                 message="Upstream Google API error: Invalid notification configuration",
                 developer_message=str(exc),
                 status_code=400,
