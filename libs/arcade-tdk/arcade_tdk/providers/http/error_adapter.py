@@ -1,5 +1,5 @@
-import datetime
 import logging
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
@@ -37,8 +37,8 @@ class BaseHTTPErrorMapper:
             return int(val) * 1_000
         # Rate limit header is an absolute date
         try:
-            dt = datetime.datetime.strptime(val, "%a, %d %b %Y %H:%M:%S %Z")
-            return int((dt - datetime.datetime.now(datetime.UTC)).total_seconds() * 1_000)
+            dt = datetime.strptime(val, "%a, %d %b %Y %H:%M:%S %Z")
+            return int((dt - datetime.now(timezone.utc)).total_seconds() * 1_000)
         except Exception:
             return 1_000
 
@@ -53,7 +53,7 @@ class BaseHTTPErrorMapper:
     ) -> dict[str, str]:
         """Build extra metadata for error reporting."""
         extra = {
-            "service": self.slug,
+            "service": HTTPErrorAdapter.slug,
         }
 
         if request_url:
@@ -71,7 +71,7 @@ class BaseHTTPErrorMapper:
         msg: str,
         request_url: str | None = None,
         request_method: str | None = None,
-    ):
+    ) -> UpstreamError:
         """Map HTTP status code to appropriate Arcade error."""
         extra = self._build_extra_metadata(request_url, request_method)
 
@@ -89,7 +89,7 @@ class BaseHTTPErrorMapper:
 class _HTTPXExceptionHandler:
     """Handler for httpx-specific exceptions."""
 
-    def handle_httpx_exception(self, exc: Any, mapper: BaseHTTPErrorMapper):
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
         """Handle httpx HTTPStatusError exceptions.
 
         Args:
@@ -117,7 +117,7 @@ class _HTTPXExceptionHandler:
 
         return mapper._map_status_to_error(
             response.status_code,
-            response.headers,
+            dict(response.headers),
             str(exc),
             request_url=request_url,
             request_method=request_method,
@@ -127,7 +127,7 @@ class _HTTPXExceptionHandler:
 class _RequestsExceptionHandler:
     """Handler for requests-specific exceptions."""
 
-    def handle_requests_exception(self, exc, mapper: BaseHTTPErrorMapper):
+    def handle_exception(self, exc: Any, mapper: BaseHTTPErrorMapper) -> UpstreamError | None:
         """Handle requests library exceptions.
 
         Args:
@@ -172,17 +172,18 @@ class HTTPErrorAdapter(BaseHTTPErrorMapper):
 
     slug = "_http"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._httpx_handler = _HTTPXExceptionHandler()
         self._requests_handler = _RequestsExceptionHandler()
 
-    def from_exception(self, exc: Exception):
-        """Convert HTTP library exceptions to Arcade errors."""
-        httpx_result = self._httpx_handler.handle_httpx_exception(exc, self)
+    def from_exception(self, exc: Exception) -> UpstreamError | None:
+        """Convert HTTP library exceptions into Arcade errors."""
+
+        httpx_result = self._httpx_handler.handle_exception(exc, self)
         if httpx_result is not None:
             return httpx_result
 
-        requests_result = self._requests_handler.handle_requests_exception(exc, self)
+        requests_result = self._requests_handler.handle_exception(exc, self)
         if requests_result is not None:
             return requests_result
 

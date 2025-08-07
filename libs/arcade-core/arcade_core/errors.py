@@ -178,7 +178,7 @@ class ToolInputError(ToolSerializationError):
     Raised when there is an error parsing a tool call argument.
     """
 
-    code: str = ErrorCode.BAD_INPUT_VALUE
+    code: ErrorCode = ErrorCode.BAD_INPUT_VALUE
     status_code: int = 400
 
 
@@ -187,7 +187,7 @@ class ToolOutputError(ToolSerializationError):
     Raised when there is an error serializing a tool call return value.
     """
 
-    code: str = ErrorCode.BAD_OUTPUT_VALUE
+    code: ErrorCode = ErrorCode.BAD_OUTPUT_VALUE
     status_code: int = 500
 
 

@@ -57,7 +57,7 @@ class ToolOutputFactory:
         phase: ErrorPhase = ErrorPhase.RUNTIME,
         can_retry: bool = False,
         code: ErrorCode = ErrorCode.FATAL,
-        status_code: int = 500,
+        status_code: int | None = None,
         extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
@@ -87,6 +87,7 @@ class ToolOutputFactory:
         traceback_info: str | None = None,
         logs: list[ToolCallLog] | None = None,
         origin: ErrorOrigin = ErrorOrigin.TOOL,
+        phase: ErrorPhase = ErrorPhase.RUNTIME,
         code: ErrorCode = ErrorCode.RETRY_TOOL,
         status_code: int = 500,
         extra: dict[str, Any] | None = None,
@@ -105,6 +106,7 @@ class ToolOutputFactory:
                 retry_after_ms=retry_after_ms,
                 traceback_info=traceback_info,
                 origin=origin,
+                phase=phase,
                 code=code,
                 status_code=status_code,
                 extra=extra,

@@ -1,5 +1,5 @@
-import datetime
 import logging
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
@@ -45,8 +45,8 @@ class GoogleErrorAdapter:
                     if retry_after.isdigit():
                         return int(retry_after) * 1000
                     # Otherwise try to parse as date
-                    dt = datetime.datetime.strptime(retry_after, "%a, %d %b %Y %H:%M:%S %Z")
-                    return int((dt - datetime.datetime.now(datetime.UTC)).total_seconds() * 1000)
+                    dt = datetime.strptime(retry_after, "%a, %d %b %Y %H:%M:%S %Z")
+                    return int((dt - datetime.now(timezone.utc)).total_seconds() * 1000)
                 except Exception:
                     # TODO: Log?
                     return 1000
