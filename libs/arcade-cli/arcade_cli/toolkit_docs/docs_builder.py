@@ -54,17 +54,6 @@ def build_toolkit_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: 
     )
 
 
-def build_reference_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
-    return os.path.join(
-        docs_root_dir,
-        "pages",
-        "toolkits",
-        docs_section,
-        toolkit_name.lower(),
-        "reference.mdx",
-    )
-
-
 def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: str) -> str:
     return os.path.join(
         docs_root_dir,
@@ -78,7 +67,6 @@ def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: 
 
 
 def build_toolkit_mdx(
-    toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -105,15 +93,19 @@ def build_toolkit_mdx(
     )
     table_of_contents = build_table_of_contents(tools)
     footer = build_footer(toolkit_name, pip_package_name, sample_tool.requirements.authorization)
+
     referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
-    return reference_mdx, toolkit_page_template.format(
+    toolkit_mdx = toolkit_page_template.format(
         header=header,
         table_of_contents=table_of_contents,
         tools_specs=tools_specs,
+        reference_mdx=reference_mdx,
         footer=footer,
     )
+
+    return toolkit_mdx.strip()
 
 
 def build_reference_mdx(
@@ -379,70 +371,64 @@ def generate_toolkit_description(
     tools: list[tuple[str, str]],
     openai_model: str,
 ) -> str:
-    response = openai.chat.completions.create(
-        model=openai_model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant. "
-                    "When given a toolkit name and a list of tools, you will generate a "
-                    "short, yet descriptive of the toolkit and the main actions a user "
-                    "or LLM can perform with it.\n\n"
-                    "As an example, here is the Asana toolkit description:\n\n"
-                    "The Arcade Asana toolkit provides a pre-built set of tools for "
-                    "interacting with Asana. These tools make it easy to build agents "
-                    "and AI apps that can:\n\n"
-                    "- Manage teams, projects, and workspaces.\n"
-                    "- Create, update, and search for tasks.\n"
-                    "- Retrieve data about tasks, projects, workspaces, users, etc.\n"
-                    "- Manage task attachments.\n\n"
-                    "And here is a JSON string with the list of tools in the Asana toolkit:\n\n"
-                    "```json\n\n"
-                    '[["AttachFileToTask", "Attaches a file to an Asana task\n\nProvide exactly '
-                    "one of file_content_str, file_content_base64, or file_content_url, never "
-                    "more\nthan one.\n\n- Use file_content_str for text files (will be encoded "
-                    "using file_encoding)\n- Use file_content_base64 for binary files like images, "
-                    'PDFs, etc.\n- Use file_content_url if the file is hosted on an external URL"], '
-                    '["CreateTag", "Create a tag in Asana"], ["CreateTask", "Creates a task in '
-                    "Asana\n\nThe task must be associated to at least one of the following: "
-                    "parent_task_id, project, or\nworkspace_id. If none of these are provided and "
-                    "the account has only one workspace, the task\nwill be associated to that "
-                    "workspace. If the account has multiple workspaces, an error will\nbe raised "
-                    'with a list of available workspaces."], ["GetProjectById", "Get an Asana '
-                    'project by its ID"], ["GetSubtasksFromATask", "Get the subtasks of a task"], '
-                    '["GetTagById", "Get an Asana tag by its ID"], ["GetTaskById", "Get a task by '
-                    'its ID"], ["GetTasksWithoutId", "Search for tasks"], ["GetTeamById", "Get an '
-                    'Asana team by its ID"], ["GetUserById", "Get a user by ID"], ["GetWorkspaceById", '
-                    '"Get an Asana workspace by its ID"], ["ListProjects", "List projects in Asana"], '
-                    '["ListTags", "List tags in an Asana workspace"], ["ListTeams", "List teams in '
-                    'an Asana workspace"], ["ListTeamsTheCurrentUserIsAMemberOf", "List teams in '
-                    'Asana that the current user is a member of"], ["ListUsers", "List users in '
-                    'Asana"], ["ListWorkspaces", "List workspaces in Asana that are visible to the '
-                    'authenticated user"], ["MarkTaskAsCompleted", "Mark a task in Asana as '
-                    'completed"], ["UpdateTask", "Updates a task in Asana"]]\n\n```\n\n'
-                    "Keep the description concise and to the point. The user will provide you with "
-                    "the toolkit name and the list of tools. Generate the description according to "
-                    "the instructions above."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"The toolkit name is {toolkit_name} and the list of tools is:\n\n"
-                    "```json\n\n"
-                    f"{json.dumps(tools, ensure_ascii=False)}\n\n"
-                    "```\n\n"
-                    "Please generate a description for the toolkit."
-                ),
-            },
-        ],
-        temperature=0.0,
-        max_tokens=2048,
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful assistant. "
+                "When given a toolkit name and a list of tools, you will generate a "
+                "short, yet descriptive of the toolkit and the main actions a user "
+                "or LLM can perform with it.\n\n"
+                "As an example, here is the Asana toolkit description:\n\n"
+                "The Arcade Asana toolkit provides a pre-built set of tools for "
+                "interacting with Asana. These tools make it easy to build agents "
+                "and AI apps that can:\n\n"
+                "- Manage teams, projects, and workspaces.\n"
+                "- Create, update, and search for tasks.\n"
+                "- Retrieve data about tasks, projects, workspaces, users, etc.\n"
+                "- Manage task attachments.\n\n"
+                "And here is a JSON string with the list of tools in the Asana toolkit:\n\n"
+                "```json\n\n"
+                '[["AttachFileToTask", "Attaches a file to an Asana task\n\nProvide exactly '
+                "one of file_content_str, file_content_base64, or file_content_url, never "
+                "more\nthan one.\n\n- Use file_content_str for text files (will be encoded "
+                "using file_encoding)\n- Use file_content_base64 for binary files like images, "
+                'PDFs, etc.\n- Use file_content_url if the file is hosted on an external URL"], '
+                '["CreateTag", "Create a tag in Asana"], ["CreateTask", "Creates a task in '
+                "Asana\n\nThe task must be associated to at least one of the following: "
+                "parent_task_id, project, or\nworkspace_id. If none of these are provided and "
+                "the account has only one workspace, the task\nwill be associated to that "
+                "workspace. If the account has multiple workspaces, an error will\nbe raised "
+                'with a list of available workspaces."], ["GetProjectById", "Get an Asana '
+                'project by its ID"], ["GetSubtasksFromATask", "Get the subtasks of a task"], '
+                '["GetTagById", "Get an Asana tag by its ID"], ["GetTaskById", "Get a task by '
+                'its ID"], ["GetTasksWithoutId", "Search for tasks"], ["GetTeamById", "Get an '
+                'Asana team by its ID"], ["GetUserById", "Get a user by ID"], ["GetWorkspaceById", '
+                '"Get an Asana workspace by its ID"], ["ListProjects", "List projects in Asana"], '
+                '["ListTags", "List tags in an Asana workspace"], ["ListTeams", "List teams in '
+                'an Asana workspace"], ["ListTeamsTheCurrentUserIsAMemberOf", "List teams in '
+                'Asana that the current user is a member of"], ["ListUsers", "List users in '
+                'Asana"], ["ListWorkspaces", "List workspaces in Asana that are visible to the '
+                'authenticated user"], ["MarkTaskAsCompleted", "Mark a task in Asana as '
+                'completed"], ["UpdateTask", "Updates a task in Asana"]]\n\n```\n\n'
+                "Keep the description concise and to the point. The user will provide you with "
+                "the toolkit name and the list of tools. Generate the description according to "
+                "the instructions above."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"The toolkit name is {toolkit_name} and the list of tools is:\n\n"
+                "```json\n\n"
+                f"{json.dumps(tools, ensure_ascii=False)}\n\n"
+                "```\n\n"
+                "Please generate a description for the toolkit."
+            ),
+        },
+    ]
 
-    response_str = cast(str, response.choices[0].message.content)
-    return response_str.strip()
+    return request_openai_generation(model=openai_model, max_tokens=512, messages=messages)
 
 
 def generate_tool_input_map(
@@ -488,36 +474,7 @@ def generate_tool_input_map(
         },
     ]
 
-    if openai_model.startswith("gpt-5"):
-        response = openai.responses.create(
-            model=openai_model,
-            input=messages,
-            max_output_tokens=512,
-            reasoning={
-                "effort": "minimal",
-            },
-            text={
-                "verbosity": "low",
-            },
-        )
-        response_str = response.output_text
-
-    elif openai_model.startswith("gpt-4o"):
-        response = openai.chat.completions.create(
-            model=openai_model,
-            messages=messages,
-            temperature=0.0,
-            max_tokens=512,
-            stop=["\n\n"],
-        )
-        response_str = cast(str, response.choices[0].message.content)
-
-    else:
-        raise ValueError(
-            f"Unsupported OpenAI model: {openai_model}. Choose a model from the 'gpt-4o' or 'gpt-5' series."
-        )
-
-    text = response_str.strip()
+    text = request_openai_generation(model=openai_model, max_tokens=512, messages=messages)
 
     try:
         return cast(dict[str, Any], json.loads(text))
@@ -560,3 +517,40 @@ def build_tool_interface_signature(tool: ToolDefinition) -> dict[str, Any]:
         "tool_description": tool.description,
         "tool_args": args,
     }
+
+
+def request_openai_generation(
+    model: str,
+    max_tokens: int,
+    messages: list[dict[str, Any]],
+) -> str:
+    if model.startswith("gpt-5"):
+        response = openai.responses.create(
+            model=model,
+            input=messages,
+            max_output_tokens=max_tokens,
+            reasoning={
+                "effort": "minimal",
+            },
+            text={
+                "verbosity": "low",
+            },
+        )
+        response_str = cast(str, response.output_text)
+
+    elif model.startswith("gpt-4o"):
+        response = openai.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.0,
+            max_completion_tokens=max_tokens,
+            stop=["\n\n"],
+        )
+        response_str = cast(str, response.choices[0].message.content)
+
+    else:
+        raise ValueError(
+            f"Unsupported OpenAI model: {model}. Choose a model from the 'gpt-4o' or 'gpt-5' series."
+        )
+
+    return response_str.strip()
