@@ -820,13 +820,12 @@ def docs(
         ),
     ),
     openai_model: str = typer.Option(
-        "gpt-4o-mini",
+        "gpt-5-mini",
         "--openai-model",
         "-m",
         help=(
             "A few parts of the documentation are generated using OpenAI API. "
-            "This argument controls which OpenAI model to use. "
-            "E.g. 'gpt-4o', 'gpt-4o-mini'."
+            "Choose one of the 'gpt-4o' and 'gpt-5' series models."
         ),
         show_default=True,
     ),
@@ -845,6 +844,14 @@ def docs(
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
+    if not openai_model.startswith("gpt-4o") and not openai_model.startswith("gpt-5"):
+        console.print(
+            f"Attention: '{openai_model}' is not a valid OpenAI model. "
+            "Please choose one of the 'gpt-4o' and 'gpt-5' series models.",
+            style="bold red",
+        )
+        raise typer.Exit()
+
     try:
         success = generate_toolkit_docs(
             console=console,

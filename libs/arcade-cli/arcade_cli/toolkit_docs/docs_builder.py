@@ -12,6 +12,7 @@ from arcade_core.schema import (
     ToolInput,
     ToolSecretRequirement,
 )
+from rich.console import Console
 
 from arcade_cli.toolkit_docs.templates import (
     ENUM_ITEM,
@@ -39,6 +40,8 @@ from arcade_cli.toolkit_docs.utils import (
     is_well_known_provider,
     pascal_to_snake_case,
 )
+
+console = Console()
 
 
 def build_toolkit_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
@@ -327,7 +330,8 @@ def build_examples(
     examples = []
     for tool in tools:
         print_debug(f"Generating tool-call examples for {tool.name}")
-        input_map = generate_tool_input_map(tool, openai_model)
+        interface_signature = build_tool_interface_signature(tool)
+        input_map = generate_tool_input_map(interface_signature, openai_model)
         fully_qualified_name = tool.fully_qualified_name.split("@")[0]
         examples.append((
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
@@ -442,67 +446,99 @@ def generate_toolkit_description(
 
 
 def generate_tool_input_map(
-    tool: ToolDefinition,
+    interface_signature: dict[str, Any],
     openai_model: str,
     retries: int = 0,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    interface_signature = build_tool_interface_signature(tool)
-    response = openai.chat.completions.create(
-        model=openai_model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant expert in generating data for documenting "
-                    "sample scripts to calling tools. A tool is a function that is used in "
-                    "context of LLM tool-calling / function-calling.\n\n"
-                    "When given a tool signature with typed arguments, "
-                    "you must return exactly one JSON object (no markdown, no extra text) "
-                    "where each key is an argument name, and each value is a sample value "
-                    "for that argument that would make sense in a sample script to showcase "
-                    "human software engineers how the tool may be called. Generate the "
-                    "argument sample value based on its name and description\n\n"
-                    "Not every single argument must always be present in the input map. "
-                    "In some cases, the tool may require only one of two arguments to be "
-                    "provided, for example. In such cases, an indication will be present "
-                    "either/or in the tool description or the argument description. "
-                    "Always follow such instructions when present in the tool interface.\n\n"
-                    "Keep argument values as short as possible. Values don't have to always "
-                    "be valid. For instance, for file content base64-encoded arguments, "
-                    "you can use a short text or a placeholder like `[file_content]`, it is "
-                    "not necessary that the value is a valid base64-encoded string.\n\n"
-                    "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
-                    "TEXT. Your response will be json.load'ed, so it must be a valid JSON "
-                    "string."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    "Here is a tool interface:\n\n"
-                    f"{interface_signature}\n\n"
-                    "Please provide a sample input map as a JSON object."
-                ),
-            },
-        ],
-        temperature=0.0,
-        max_tokens=1024,
-        stop=["\n\n"],
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful assistant expert in generating data for documenting "
+                "sample scripts to calling tools. A tool is a function that is used in "
+                "context of LLM tool-calling / function-calling.\n\n"
+                "When given a tool signature with typed arguments, "
+                "you must return exactly one JSON object (no markdown, no extra text) "
+                "where each key is an argument name, and each value is a sample value "
+                "for that argument that would make sense in a sample script to showcase "
+                "human software engineers how the tool may be called. Generate the "
+                "argument sample value based on its name and description\n\n"
+                "Not every single argument must always be present in the input map. "
+                "In some cases, the tool may require only one of two arguments to be "
+                "provided, for example. In such cases, an indication will be present "
+                "either/or in the tool description or the argument description. "
+                "Always follow such instructions when present in the tool interface.\n\n"
+                "Keep argument values as short as possible. Values don't have to always "
+                "be valid. For instance, for file content base64-encoded arguments, "
+                "you can use a short text or a placeholder like `[file_content]`, it is "
+                "not necessary that the value is a valid base64-encoded string.\n\n"
+                "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
+                "TEXT. Your response will be json.load'ed, so it must be a valid JSON "
+                "string."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "Here is a tool interface:\n\n"
+                f"{json.dumps(interface_signature, ensure_ascii=False)}\n\n"
+                "Please provide a sample input map as a JSON object."
+            ),
+        },
+    ]
 
-    response_str = cast(str, response.choices[0].message.content)
+    if openai_model.startswith("gpt-5"):
+        response = openai.responses.create(
+            model=openai_model,
+            input=messages,
+            max_output_tokens=512,
+            reasoning={
+                "effort": "minimal",
+            },
+            text={
+                "verbosity": "low",
+            },
+        )
+        response_str = response.output_text
+
+    elif openai_model.startswith("gpt-4o"):
+        response = openai.chat.completions.create(
+            model=openai_model,
+            messages=messages,
+            temperature=0.0,
+            max_tokens=512,
+            stop=["\n\n"],
+        )
+        response_str = cast(str, response.choices[0].message.content)
+
+    else:
+        raise ValueError(
+            f"Unsupported OpenAI model: {openai_model}. Choose a model from the 'gpt-4o' or 'gpt-5' series."
+        )
+
     text = response_str.strip()
 
     try:
         return cast(dict[str, Any], json.loads(text))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
         if retries < max_retries:
-            return generate_tool_input_map(tool, openai_model, retries + 1, max_retries)
-        raise ValueError(f"Failed to generate input map for tool {tool.name}: {text}")
+            return generate_tool_input_map(
+                interface_signature=interface_signature,
+                openai_model=openai_model,
+                retries=retries + 1,
+                max_retries=max_retries,
+            )
+        tool_name = interface_signature["tool_name"]
+        console.print(
+            f"Attention: {openai_model} failed to generate a valid inputs JSON for the tool '{tool_name}'. "
+            "Please check the Python & Javascript example scripts generated and enter a sample input manually.",
+            style="red",
+        )
+        return {}
 
 
-def build_tool_interface_signature(tool: ToolDefinition) -> str:
+def build_tool_interface_signature(tool: ToolDefinition) -> dict[str, Any]:
     args = []
     for arg in tool.input.parameters:
         data: dict[str, Any] = {
@@ -519,8 +555,8 @@ def build_tool_interface_signature(tool: ToolDefinition) -> str:
 
         args.append(data)
 
-    return json.dumps({
+    return {
         "tool_name": tool.name,
         "tool_description": tool.description,
         "tool_args": args,
-    })
+    }
