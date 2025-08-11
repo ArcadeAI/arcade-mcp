@@ -6,7 +6,6 @@ from rich.console import Console
 from arcade_cli.toolkit_docs.docs_builder import (
     build_example_path,
     build_examples,
-    build_reference_mdx_path,
     build_toolkit_mdx,
     build_toolkit_mdx_path,
 )
@@ -58,8 +57,7 @@ def generate_toolkit_docs(
     enums = get_all_enumerations(toolkit_dir)
 
     print_debug(f"Building /{toolkit_name.lower()}.mdx file")
-    reference_mdx, toolkit_mdx = build_toolkit_mdx(
-        toolkit_dir=toolkit_dir,
+    toolkit_mdx = build_toolkit_mdx(
         tools=tools,
         docs_section=docs_section,
         enums=enums,
@@ -68,13 +66,6 @@ def generate_toolkit_docs(
     )
     toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_dir, toolkit_name)
     write_file(toolkit_mdx_path, toolkit_mdx)
-
-    if reference_mdx:
-        print_debug(f"Building /{toolkit_name.lower()}/reference.mdx file")
-        reference_mdx_path = build_reference_mdx_path(docs_section, docs_dir, toolkit_name)
-        write_file(reference_mdx_path, reference_mdx)
-    else:
-        print_debug("No Enums referenced by tool interfaces. Skipping reference.mdx file")
 
     if tool_call_examples:
         print_debug("Building tool-call examples in Python and JavaScript")

@@ -12,6 +12,7 @@ from arcade_core.schema import (
     ToolInput,
     ToolSecretRequirement,
 )
+from rich.console import Console
 
 from arcade_cli.toolkit_docs.templates import (
     ENUM_ITEM,
@@ -40,6 +41,8 @@ from arcade_cli.toolkit_docs.utils import (
     pascal_to_snake_case,
 )
 
+console = Console()
+
 
 def build_toolkit_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
     return os.path.join(
@@ -48,17 +51,6 @@ def build_toolkit_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: 
         "toolkits",
         docs_section,
         f"{toolkit_name.lower()}.mdx",
-    )
-
-
-def build_reference_mdx_path(docs_section: str, docs_root_dir: str, toolkit_name: str) -> str:
-    return os.path.join(
-        docs_root_dir,
-        "pages",
-        "toolkits",
-        docs_section,
-        toolkit_name.lower(),
-        "reference.mdx",
     )
 
 
@@ -75,7 +67,6 @@ def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: 
 
 
 def build_toolkit_mdx(
-    toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -102,15 +93,19 @@ def build_toolkit_mdx(
     )
     table_of_contents = build_table_of_contents(tools)
     footer = build_footer(toolkit_name, pip_package_name, sample_tool.requirements.authorization)
+
     referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
-    return reference_mdx, toolkit_page_template.format(
+    toolkit_mdx = toolkit_page_template.format(
         header=header,
         table_of_contents=table_of_contents,
         tools_specs=tools_specs,
+        reference_mdx=reference_mdx,
         footer=footer,
     )
+
+    return toolkit_mdx.strip()
 
 
 def build_reference_mdx(
@@ -327,7 +322,8 @@ def build_examples(
     examples = []
     for tool in tools:
         print_debug(f"Generating tool-call examples for {tool.name}")
-        input_map = generate_tool_input_map(tool, openai_model)
+        interface_signature = build_tool_interface_signature(tool)
+        input_map = generate_tool_input_map(interface_signature, openai_model)
         fully_qualified_name = tool.fully_qualified_name.split("@")[0]
         examples.append((
             f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
@@ -375,134 +371,131 @@ def generate_toolkit_description(
     tools: list[tuple[str, str]],
     openai_model: str,
 ) -> str:
-    response = openai.chat.completions.create(
-        model=openai_model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant. "
-                    "When given a toolkit name and a list of tools, you will generate a "
-                    "short, yet descriptive of the toolkit and the main actions a user "
-                    "or LLM can perform with it.\n\n"
-                    "As an example, here is the Asana toolkit description:\n\n"
-                    "The Arcade Asana toolkit provides a pre-built set of tools for "
-                    "interacting with Asana. These tools make it easy to build agents "
-                    "and AI apps that can:\n\n"
-                    "- Manage teams, projects, and workspaces.\n"
-                    "- Create, update, and search for tasks.\n"
-                    "- Retrieve data about tasks, projects, workspaces, users, etc.\n"
-                    "- Manage task attachments.\n\n"
-                    "And here is a JSON string with the list of tools in the Asana toolkit:\n\n"
-                    "```json\n\n"
-                    '[["AttachFileToTask", "Attaches a file to an Asana task\n\nProvide exactly '
-                    "one of file_content_str, file_content_base64, or file_content_url, never "
-                    "more\nthan one.\n\n- Use file_content_str for text files (will be encoded "
-                    "using file_encoding)\n- Use file_content_base64 for binary files like images, "
-                    'PDFs, etc.\n- Use file_content_url if the file is hosted on an external URL"], '
-                    '["CreateTag", "Create a tag in Asana"], ["CreateTask", "Creates a task in '
-                    "Asana\n\nThe task must be associated to at least one of the following: "
-                    "parent_task_id, project, or\nworkspace_id. If none of these are provided and "
-                    "the account has only one workspace, the task\nwill be associated to that "
-                    "workspace. If the account has multiple workspaces, an error will\nbe raised "
-                    'with a list of available workspaces."], ["GetProjectById", "Get an Asana '
-                    'project by its ID"], ["GetSubtasksFromATask", "Get the subtasks of a task"], '
-                    '["GetTagById", "Get an Asana tag by its ID"], ["GetTaskById", "Get a task by '
-                    'its ID"], ["GetTasksWithoutId", "Search for tasks"], ["GetTeamById", "Get an '
-                    'Asana team by its ID"], ["GetUserById", "Get a user by ID"], ["GetWorkspaceById", '
-                    '"Get an Asana workspace by its ID"], ["ListProjects", "List projects in Asana"], '
-                    '["ListTags", "List tags in an Asana workspace"], ["ListTeams", "List teams in '
-                    'an Asana workspace"], ["ListTeamsTheCurrentUserIsAMemberOf", "List teams in '
-                    'Asana that the current user is a member of"], ["ListUsers", "List users in '
-                    'Asana"], ["ListWorkspaces", "List workspaces in Asana that are visible to the '
-                    'authenticated user"], ["MarkTaskAsCompleted", "Mark a task in Asana as '
-                    'completed"], ["UpdateTask", "Updates a task in Asana"]]\n\n```\n\n'
-                    "Keep the description concise and to the point. The user will provide you with "
-                    "the toolkit name and the list of tools. Generate the description according to "
-                    "the instructions above."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"The toolkit name is {toolkit_name} and the list of tools is:\n\n"
-                    "```json\n\n"
-                    f"{json.dumps(tools, ensure_ascii=False)}\n\n"
-                    "```\n\n"
-                    "Please generate a description for the toolkit."
-                ),
-            },
-        ],
-        temperature=0.0,
-        max_tokens=2048,
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful assistant. "
+                "When given a toolkit name and a list of tools, you will generate a "
+                "short, yet descriptive of the toolkit and the main actions a user "
+                "or LLM can perform with it.\n\n"
+                "As an example, here is the Asana toolkit description:\n\n"
+                "The Arcade Asana toolkit provides a pre-built set of tools for "
+                "interacting with Asana. These tools make it easy to build agents "
+                "and AI apps that can:\n\n"
+                "- Manage teams, projects, and workspaces.\n"
+                "- Create, update, and search for tasks.\n"
+                "- Retrieve data about tasks, projects, workspaces, users, etc.\n"
+                "- Manage task attachments.\n\n"
+                "And here is a JSON string with the list of tools in the Asana toolkit:\n\n"
+                "```json\n\n"
+                '[["AttachFileToTask", "Attaches a file to an Asana task\n\nProvide exactly '
+                "one of file_content_str, file_content_base64, or file_content_url, never "
+                "more\nthan one.\n\n- Use file_content_str for text files (will be encoded "
+                "using file_encoding)\n- Use file_content_base64 for binary files like images, "
+                'PDFs, etc.\n- Use file_content_url if the file is hosted on an external URL"], '
+                '["CreateTag", "Create a tag in Asana"], ["CreateTask", "Creates a task in '
+                "Asana\n\nThe task must be associated to at least one of the following: "
+                "parent_task_id, project, or\nworkspace_id. If none of these are provided and "
+                "the account has only one workspace, the task\nwill be associated to that "
+                "workspace. If the account has multiple workspaces, an error will\nbe raised "
+                'with a list of available workspaces."], ["GetProjectById", "Get an Asana '
+                'project by its ID"], ["GetSubtasksFromATask", "Get the subtasks of a task"], '
+                '["GetTagById", "Get an Asana tag by its ID"], ["GetTaskById", "Get a task by '
+                'its ID"], ["GetTasksWithoutId", "Search for tasks"], ["GetTeamById", "Get an '
+                'Asana team by its ID"], ["GetUserById", "Get a user by ID"], ["GetWorkspaceById", '
+                '"Get an Asana workspace by its ID"], ["ListProjects", "List projects in Asana"], '
+                '["ListTags", "List tags in an Asana workspace"], ["ListTeams", "List teams in '
+                'an Asana workspace"], ["ListTeamsTheCurrentUserIsAMemberOf", "List teams in '
+                'Asana that the current user is a member of"], ["ListUsers", "List users in '
+                'Asana"], ["ListWorkspaces", "List workspaces in Asana that are visible to the '
+                'authenticated user"], ["MarkTaskAsCompleted", "Mark a task in Asana as '
+                'completed"], ["UpdateTask", "Updates a task in Asana"]]\n\n```\n\n'
+                "Keep the description concise and to the point. The user will provide you with "
+                "the toolkit name and the list of tools. Generate the description according to "
+                "the instructions above."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"The toolkit name is {toolkit_name} and the list of tools is:\n\n"
+                "```json\n\n"
+                f"{json.dumps(tools, ensure_ascii=False)}\n\n"
+                "```\n\n"
+                "Please generate a description for the toolkit."
+            ),
+        },
+    ]
 
-    response_str = cast(str, response.choices[0].message.content)
-    return response_str.strip()
+    return request_openai_generation(model=openai_model, max_tokens=512, messages=messages)
 
 
 def generate_tool_input_map(
-    tool: ToolDefinition,
+    interface_signature: dict[str, Any],
     openai_model: str,
     retries: int = 0,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    interface_signature = build_tool_interface_signature(tool)
-    response = openai.chat.completions.create(
-        model=openai_model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant expert in generating data for documenting "
-                    "sample scripts to calling tools. A tool is a function that is used in "
-                    "context of LLM tool-calling / function-calling.\n\n"
-                    "When given a tool signature with typed arguments, "
-                    "you must return exactly one JSON object (no markdown, no extra text) "
-                    "where each key is an argument name, and each value is a sample value "
-                    "for that argument that would make sense in a sample script to showcase "
-                    "human software engineers how the tool may be called. Generate the "
-                    "argument sample value based on its name and description\n\n"
-                    "Not every single argument must always be present in the input map. "
-                    "In some cases, the tool may require only one of two arguments to be "
-                    "provided, for example. In such cases, an indication will be present "
-                    "either/or in the tool description or the argument description. "
-                    "Always follow such instructions when present in the tool interface.\n\n"
-                    "Keep argument values as short as possible. Values don't have to always "
-                    "be valid. For instance, for file content base64-encoded arguments, "
-                    "you can use a short text or a placeholder like `[file_content]`, it is "
-                    "not necessary that the value is a valid base64-encoded string.\n\n"
-                    "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
-                    "TEXT. Your response will be json.load'ed, so it must be a valid JSON "
-                    "string."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    "Here is a tool interface:\n\n"
-                    f"{interface_signature}\n\n"
-                    "Please provide a sample input map as a JSON object."
-                ),
-            },
-        ],
-        temperature=0.0,
-        max_tokens=1024,
-        stop=["\n\n"],
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful assistant expert in generating data for documenting "
+                "sample scripts to calling tools. A tool is a function that is used in "
+                "context of LLM tool-calling / function-calling.\n\n"
+                "When given a tool signature with typed arguments, "
+                "you must return exactly one JSON object (no markdown, no extra text) "
+                "where each key is an argument name, and each value is a sample value "
+                "for that argument that would make sense in a sample script to showcase "
+                "human software engineers how the tool may be called. Generate the "
+                "argument sample value based on its name and description\n\n"
+                "Not every single argument must always be present in the input map. "
+                "In some cases, the tool may require only one of two arguments to be "
+                "provided, for example. In such cases, an indication will be present "
+                "either/or in the tool description or the argument description. "
+                "Always follow such instructions when present in the tool interface.\n\n"
+                "Keep argument values as short as possible. Values don't have to always "
+                "be valid. For instance, for file content base64-encoded arguments, "
+                "you can use a short text or a placeholder like `[file_content]`, it is "
+                "not necessary that the value is a valid base64-encoded string.\n\n"
+                "Remember that you MUST RESPOND ONLY WITH A VALID JSON STRING, NO ADDED "
+                "TEXT. Your response will be json.load'ed, so it must be a valid JSON "
+                "string."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "Here is a tool interface:\n\n"
+                f"{json.dumps(interface_signature, ensure_ascii=False)}\n\n"
+                "Please provide a sample input map as a JSON object."
+            ),
+        },
+    ]
 
-    response_str = cast(str, response.choices[0].message.content)
-    text = response_str.strip()
+    text = request_openai_generation(model=openai_model, max_tokens=512, messages=messages)
 
     try:
         return cast(dict[str, Any], json.loads(text))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
         if retries < max_retries:
-            return generate_tool_input_map(tool, openai_model, retries + 1, max_retries)
-        raise ValueError(f"Failed to generate input map for tool {tool.name}: {text}")
+            return generate_tool_input_map(
+                interface_signature=interface_signature,
+                openai_model=openai_model,
+                retries=retries + 1,
+                max_retries=max_retries,
+            )
+        tool_name = interface_signature["tool_name"]
+        console.print(
+            f"Attention: {openai_model} failed to generate a valid inputs JSON for the tool '{tool_name}'. "
+            "Please check the Python & Javascript example scripts generated and enter a sample input manually.",
+            style="red",
+        )
+        return {}
 
 
-def build_tool_interface_signature(tool: ToolDefinition) -> str:
+def build_tool_interface_signature(tool: ToolDefinition) -> dict[str, Any]:
     args = []
     for arg in tool.input.parameters:
         data: dict[str, Any] = {
@@ -519,8 +512,45 @@ def build_tool_interface_signature(tool: ToolDefinition) -> str:
 
         args.append(data)
 
-    return json.dumps({
+    return {
         "tool_name": tool.name,
         "tool_description": tool.description,
         "tool_args": args,
-    })
+    }
+
+
+def request_openai_generation(
+    model: str,
+    max_tokens: int,
+    messages: list[dict[str, Any]],
+) -> str:
+    if model.startswith("gpt-5"):
+        response = openai.responses.create(
+            model=model,
+            input=messages,
+            max_output_tokens=max_tokens,
+            reasoning={
+                "effort": "minimal",
+            },
+            text={
+                "verbosity": "low",
+            },
+        )
+        response_str = cast(str, response.output_text)
+
+    elif model.startswith("gpt-4o"):
+        response = openai.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.0,
+            max_completion_tokens=max_tokens,
+            stop=["\n\n"],
+        )
+        response_str = cast(str, response.choices[0].message.content)
+
+    else:
+        raise ValueError(
+            f"Unsupported OpenAI model: {model}. Choose a model from the 'gpt-4o' or 'gpt-5' series."
+        )
+
+    return response_str.strip()

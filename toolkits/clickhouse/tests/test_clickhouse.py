@@ -3,7 +3,7 @@ from os import environ
 
 import pytest
 import pytest_asyncio
-from arcade_postgres.tools.postgres import (
+from arcade_clickhouse.tools.clickhouse import (
     DatabaseEngine,
     discover_schemas,
     discover_tables,
@@ -12,12 +12,10 @@ from arcade_postgres.tools.postgres import (
 )
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 
-POSTGRES_DATABASE_CONNECTION_STRING = (
-    environ.get("TEST_POSTGRES_DATABASE_CONNECTION_STRING")
-    or "postgresql://evan@localhost:5432/postgres"
+CLICKHOUSE_DATABASE_CONNECTION_STRING = (
+    environ.get("TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING")
+    or "clickhouse+native://localhost:9000/default"
 )
 
 
@@ -27,7 +25,7 @@ def mock_context():
     context.secrets = []
     context.secrets.append(
         ToolSecretItem(
-            key="POSTGRES_DATABASE_CONNECTION_STRING", value=POSTGRES_DATABASE_CONNECTION_STRING
+            key="CLICKHOUSE_DATABASE_CONNECTION_STRING", value=CLICKHOUSE_DATABASE_CONNECTION_STRING
         )
     )
 
@@ -37,20 +35,23 @@ def mock_context():
 # before the tests, restore the database from the dump
 @pytest_asyncio.fixture(autouse=True)
 async def restore_database():
+    import clickhouse_connect
+
+    # Create client for database setup
+    client = clickhouse_connect.get_client(host="localhost", port=8123)
+
+    # Clear existing tables first to avoid duplicates
+    client.command("DROP TABLE IF EXISTS default.messages")
+    client.command("DROP TABLE IF EXISTS default.users")
+
+    # Read and execute the dump file
     with open(f"{os.path.dirname(__file__)}/dump.sql") as f:
-        engine = create_async_engine(
-            POSTGRES_DATABASE_CONNECTION_STRING.replace("postgresql", "postgresql+asyncpg").split(
-                "?"
-            )[0]
-        )
-        async with engine.connect() as c:
-            queries = f.read().split(";")
-            await c.execute(text("BEGIN"))
-            for query in queries:
-                if query.strip():
-                    await c.execute(text(query))
-            await c.commit()
-        await engine.dispose()
+        queries = f.read().split(";")
+        for query in queries:
+            if query.strip():
+                client.command(query)
+
+    client.close()
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -63,85 +64,90 @@ async def cleanup_engines():
 
 @pytest.mark.asyncio
 async def test_discover_schemas(mock_context) -> None:
-    assert await discover_schemas(mock_context) == ["public"]
+    assert await discover_schemas(mock_context) == ["default"]
 
 
 @pytest.mark.asyncio
 async def test_discover_tables(mock_context) -> None:
-    assert await discover_tables(mock_context) == ["messages", "users"]
+    tables = await discover_tables(mock_context)
+    assert sorted(tables) == ["messages", "users"]
 
 
 @pytest.mark.asyncio
 async def test_get_table_schema(mock_context) -> None:
-    assert await get_table_schema(mock_context, "public", "users") == [
-        "id: int (PRIMARY KEY)",
-        "name: str (INDEXED)",
-        "email: str (INDEXED)",
-        "password_hash: str",
-        "created_at: datetime",
-        "updated_at: datetime",
-        "status: str",
+    users_schema = await get_table_schema(mock_context, "default", "users")
+    expected_users = [
+        "id: UInt32 (PRIMARY KEY)",
+        "name: String",
+        "email: String",
+        "password_hash: String",
+        "created_at: DateTime (PRIMARY KEY)",
+        "updated_at: DateTime",
+        "status: String",
     ]
+    assert users_schema == expected_users
 
-    assert await get_table_schema(mock_context, "public", "messages") == [
-        "id: int (PRIMARY KEY)",
-        "body: str",
-        "user_id: int",
-        "created_at: datetime",
-        "updated_at: datetime",
+    messages_schema = await get_table_schema(mock_context, "default", "messages")
+    expected_messages = [
+        "id: UInt32 (PRIMARY KEY)",
+        "body: String",
+        "user_id: UInt32",
+        "created_at: DateTime (PRIMARY KEY)",
+        "updated_at: DateTime",
     ]
+    assert messages_schema == expected_messages
 
 
 @pytest.mark.asyncio
 async def test_execute_select_query(mock_context) -> None:
-    assert await execute_select_query(
+    # Test specific user query with limit
+    result1 = await execute_select_query(
         mock_context,
         select_clause="id, name, email",
         from_clause="users",
         where_clause="id = 1",
-    ) == [
-        "(1, 'Alice', 'alice@example.com')",
-    ]
-    assert await execute_select_query(
+        limit=1,
+    )
+    assert result1 == ["(1, 'Alice', 'alice@example.com')"]
+
+    # Test query with offset
+    result2 = await execute_select_query(
         mock_context,
         select_clause="id, name, email",
         from_clause="users",
         order_by_clause="id",
         limit=1,
         offset=1,
-    ) == [
-        "(2, 'Bob', 'bob@example.com')",
-    ]
+    )
+    assert result2 == ["(2, 'Bob', 'bob@example.com')"]
 
 
 @pytest.mark.asyncio
 async def test_execute_select_query_with_keywords(mock_context) -> None:
-    assert await execute_select_query(
+    result = await execute_select_query(
         mock_context,
         select_clause="SELECT id, name, email",
         from_clause="FROM users",
         limit=1,
-    ) == [
-        "(1, 'Alice', 'alice@example.com')",
-    ]
+    )
+    assert result == ["(1, 'Alice', 'alice@example.com')"]
 
 
 @pytest.mark.asyncio
 async def test_execute_select_query_with_join(mock_context) -> None:
-    assert await execute_select_query(
+    result = await execute_select_query(
         mock_context,
         select_clause="u.id, u.name, u.email, m.id, m.body",
         from_clause="users u",
         join_clause="messages m ON u.id = m.user_id",
         limit=1,
-    ) == [
-        "(1, 'Alice', 'alice@example.com', 1, 'Hello everyone!')",
-    ]
+    )
+    assert result == ["(1, 'Alice', 'alice@example.com', 1, 'Hello everyone!')"]
 
 
 @pytest.mark.asyncio
 async def test_execute_select_query_with_group_by(mock_context) -> None:
-    assert await execute_select_query(
+    result = await execute_select_query(
         mock_context,
         select_clause="u.name, COUNT(m.id) AS message_count",
         from_clause="messages m",
@@ -149,7 +155,8 @@ async def test_execute_select_query_with_group_by(mock_context) -> None:
         group_by_clause="u.name",
         order_by_clause="message_count DESC",
         limit=2,
-    ) == [
+    )
+    assert result == [
         "('Evan', 13)",
         "('Alice', 3)",
     ]

@@ -8,19 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from ..database_engine import MAX_ROWS_RETURNED, DatabaseEngine
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
 async def discover_schemas(
     context: ToolContext,
 ) -> list[str]:
     """Discover all the schemas in the postgres database."""
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("POSTGRES_DATABASE_CONNECTION_STRING")
     ) as engine:
         schemas = await _get_schemas(engine)
         return schemas
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
 async def discover_tables(
     context: ToolContext,
     schema_name: Annotated[
@@ -32,13 +32,13 @@ async def discover_tables(
     ALWAYS use this tool before any other tool that requires a table name.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("POSTGRES_DATABASE_CONNECTION_STRING")
     ) as engine:
         tables = await _get_tables(engine, schema_name)
         return tables
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
 async def get_table_schema(
     context: ToolContext,
     schema_name: Annotated[str, "The database schema to get the table schema of"],
@@ -50,12 +50,12 @@ async def get_table_schema(
     This tool should ALWAYS be used before executing any query.  All tables in the query must be discovered first using the <DiscoverTables> tool.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("POSTGRES_DATABASE_CONNECTION_STRING")
     ) as engine:
         return await _get_table_schema(engine, schema_name, table_name)
 
 
-@tool(requires_secrets=["DATABASE_CONNECTION_STRING"])
+@tool(requires_secrets=["POSTGRES_DATABASE_CONNECTION_STRING"])
 async def execute_select_query(
     context: ToolContext,
     select_clause: Annotated[
@@ -116,7 +116,7 @@ async def execute_select_query(
     * Only join on columns that are indexed or the primary key.  Do not join on arbitrary columns.
     """
     async with await DatabaseEngine.get_engine(
-        context.get_secret("DATABASE_CONNECTION_STRING")
+        context.get_secret("POSTGRES_DATABASE_CONNECTION_STRING")
     ) as engine:
         try:
             return await _execute_query(
@@ -171,6 +171,8 @@ async def _get_tables(engine: AsyncEngine, schema_name: str) -> list[str]:
 
                 these_tables = await conn.run_sync(get_table_names)
                 tables.extend(these_tables)
+
+        tables.sort()
         return tables
 
 

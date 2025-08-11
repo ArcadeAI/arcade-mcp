@@ -3,7 +3,7 @@ TOOLKIT_PAGE = """{header}
 {table_of_contents}
 
 {tools_specs}
-
+{reference_mdx}
 {footer}
 """
 
@@ -143,9 +143,9 @@ response = client.tools.execute(
 print(json.dumps(response.output.value, indent=2))
 """
 
-ENUM_MDX = """# {toolkit_name} Reference
+ENUM_MDX = """## Reference
 
-Below is a reference of enumerations used by some tools in the {toolkit_name} toolkit:
+Below is a reference of enumerations used by some of the tools in the {toolkit_name} toolkit:
 
 {enum_items}
 """
