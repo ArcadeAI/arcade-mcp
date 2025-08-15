@@ -8,9 +8,11 @@ from arcade_core.schema import (
 )
 from arcade_core.toolkit import Toolkit
 
+from arcade_tdk.model import BaseHttpClient
 from arcade_tdk.tool import tool
 
 __all__ = [
+    "BaseHttpClient",
     "ToolAuthorizationContext",
     "ToolCatalog",
     "ToolContext",
