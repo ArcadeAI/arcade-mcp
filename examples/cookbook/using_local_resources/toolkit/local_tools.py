@@ -10,8 +10,7 @@ from pathlib import Path
 
 import aiofiles
 import httpx
-from arcade_sdk import tool
-from arcade_sdk.context import ToolContext
+from arcade_tdk import ToolContext, tool
 
 
 @tool(requires_secrets=["DATABASE_URL", "REDIS_URL"])
@@ -95,10 +94,10 @@ async def analyze_document(
 
     # Read file content
     try:
-        async with aiofiles.open(full_path, "r") as f:
+        async with aiofiles.open(full_path) as f:
             content = await f.read()
     except Exception as e:
-        return {"error": f"Failed to read file: {str(e)}"}
+        return {"error": f"Failed to read file: {e!s}"}
 
     # Get API key
     try:
@@ -175,7 +174,7 @@ async def cache_resource(
     # Check if already cached
     if cache_file.exists() and not refresh:
         try:
-            async with aiofiles.open(cache_file, "r") as f:
+            async with aiofiles.open(cache_file) as f:
                 cached_data = json.loads(await f.read())
 
             age_seconds = (
@@ -223,7 +222,7 @@ async def cache_resource(
             return cache_data
 
     except Exception as e:
-        return {"error": f"Failed to download resource: {str(e)}", "url": url}
+        return {"error": f"Failed to download resource: {e!s}", "url": url}
 
 
 @tool

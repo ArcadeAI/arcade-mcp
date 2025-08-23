@@ -339,11 +339,22 @@ def load_toolkits_from_deployment(file: Path) -> list[Toolkit]:
     deployment = Deployment.from_toml(file)
     toolkits = []
     for worker in deployment.worker:
-        if worker.local_source:
+        if worker.local_source and worker.local_source.packages:
             for package_path_str in worker.local_source.packages:
                 package_path = file.parent / package_path_str
                 toolkit = Toolkit.from_directory(package_path)
                 toolkits.append(toolkit)
+        else:
+            # Auto-detect a local toolkit in the same directory as the deployment file
+            # when packages are not explicitly specified.
+            try:
+                candidate_dir = file.parent
+                if (candidate_dir / "pyproject.toml").is_file():
+                    toolkit = Toolkit.from_directory(candidate_dir)
+                    toolkits.append(toolkit)
+            except Exception:
+                # Best-effort: fall back silently if no local toolkit is present
+                pass
     return toolkits
 
 

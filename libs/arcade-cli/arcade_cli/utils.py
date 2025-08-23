@@ -98,6 +98,27 @@ def create_cli_catalog(
     return catalog
 
 
+def create_cli_catalog_local() -> ToolCatalog:
+    """
+    Load a local toolkit from the current working directory if a pyproject.toml is present.
+    Fallback to environment discovery if not present.
+    """
+    cwd = Path.cwd()
+    catalog = ToolCatalog()
+    try:
+        if (cwd / "pyproject.toml").is_file():
+            tk = Toolkit.from_directory(cwd)
+            catalog.add_toolkit(tk)
+            return catalog
+    except Exception:
+        # If local loading fails, fall back to environment discovery below
+        pass
+    # Fallback: discover installed toolkits
+    for tk in Toolkit.find_all_arcade_toolkits():
+        catalog.add_toolkit(tk)
+    return catalog
+
+
 def compute_base_url(
     force_tls: bool,
     force_no_tls: bool,

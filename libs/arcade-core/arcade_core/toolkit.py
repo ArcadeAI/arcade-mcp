@@ -92,6 +92,21 @@ class Toolkit(BaseModel):
         except Exception as e:
             raise ToolkitLoadError(f"Failed to load metadata from {pyproject_path}: {e}")
 
+        # Determine the actual package directory (supports src/ layout and flat layout)
+        package_dir = directory
+        try:
+            src_candidate = directory / "src" / package_name
+            flat_candidate = directory / package_name
+            if src_candidate.is_dir():
+                package_dir = src_candidate
+            elif flat_candidate.is_dir():
+                package_dir = flat_candidate
+            else:
+                # Fallback to the provided directory; tools_from_directory will de-duplicate prefixes
+                package_dir = directory
+        except Exception:
+            package_dir = directory
+
         toolkit = cls(
             name=name,
             package_name=package_name,
@@ -102,7 +117,7 @@ class Toolkit(BaseModel):
             repository=repo,
         )
 
-        toolkit.tools = cls.tools_from_directory(directory, package_name)
+        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
 
         return toolkit
 
@@ -279,9 +294,14 @@ class Toolkit(BaseModel):
         for module_path in modules:
             relative_path = module_path.relative_to(package_dir)
             cls.validate_file(module_path)
-            import_path = ".".join(relative_path.with_suffix("").parts)
-            import_path = f"{package_name}.{import_path}"
-            tools[import_path] = get_tools_from_file(str(module_path))
+            # Build import path and avoid duplicating the package prefix if it already exists
+            relative_parts = relative_path.with_suffix("").parts
+            import_path = ".".join(relative_parts)
+            if relative_parts and relative_parts[0] == package_name:
+                full_import_path = import_path
+            else:
+                full_import_path = f"{package_name}.{import_path}" if import_path else package_name
+            tools[full_import_path] = get_tools_from_file(str(module_path))
 
         if not tools:
             raise ToolkitLoadError(f"No tools found in package {package_name}")

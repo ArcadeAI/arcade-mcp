@@ -5,7 +5,11 @@ from rich.console import Console
 from rich.markup import escape
 
 from arcade_cli.display import display_tool_details, display_tools_table
-from arcade_cli.utils import create_cli_catalog, get_tools_from_engine
+from arcade_cli.utils import (
+    create_cli_catalog,
+    create_cli_catalog_local,
+    get_tools_from_engine,
+)
 
 
 def show_logic(
@@ -25,7 +29,12 @@ def show_logic(
     console = Console()
     try:
         if local:
-            catalog = create_cli_catalog(toolkit=toolkit)
+            # Prefer loading a toolkit from the current working directory when --local is specified
+            catalog = (
+                create_cli_catalog_local()
+                if toolkit is None
+                else create_cli_catalog(toolkit=toolkit)
+            )
             tools = [t.definition for t in list(catalog)]
         else:
             tools = get_tools_from_engine(host, port, force_tls, force_no_tls, toolkit)

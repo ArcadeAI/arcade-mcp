@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import time
 import uuid
@@ -61,10 +62,8 @@ class SSEComponent(WorkerComponent):
         """Stop the background cleanup task."""
         if self._cleanup_task:
             self._cleanup_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._cleanup_task
-            except asyncio.CancelledError:
-                pass
 
     async def _cleanup_inactive_sessions(self) -> None:
         """Periodically clean up sessions that have timed out."""

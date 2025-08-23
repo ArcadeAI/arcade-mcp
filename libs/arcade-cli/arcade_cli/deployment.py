@@ -30,9 +30,7 @@ class Package(BaseModel):
     @classmethod
     def from_requirement(cls, requirement_str: str) -> "Package":
         req = Requirement(requirement_str)
-        return cls(
-            name=req.name, specifier=str(req.specifier) if req.specifier else None
-        )
+        return cls(name=req.name, specifier=str(req.specifier) if req.specifier else None)
 
 
 # Base class for a list of packages
@@ -213,9 +211,7 @@ class Request(BaseModel):
             if status == "Running":
                 return worker_resp.json()["data"]
             if status == "Failed":
-                raise ValueError(
-                    f"Worker failed to start: {worker_resp.json()['data']['error']}"
-                )
+                raise ValueError(f"Worker failed to start: {worker_resp.json()['data']['error']}")
 
     def execute(self, cloud_client: Client, engine_client: Arcade) -> Any:
         # Attempt to deploy worker to the cloud
@@ -313,9 +309,7 @@ class Worker(BaseModel):
             if not package_path.exists():
                 raise FileNotFoundError(f"Local package not found: {package_path}")
             if not package_path.is_dir():
-                raise FileNotFoundError(
-                    f"Local package is not a directory: {package_path}"
-                )
+                raise FileNotFoundError(f"Local package is not a directory: {package_path}")
 
             # Check that the package is a valid python package
             if (
@@ -327,16 +321,13 @@ class Worker(BaseModel):
                 )
 
             # Validate that we are able to load the package
-            Toolkit.tools_from_directory(
-                package_dir=package_path, package_name=package_path.name
-            )
+            # Use from_directory to properly resolve src/ layouts and avoid double prefixes
+            Toolkit.from_directory(package_path)
 
             # Compress the package into a byte stream and tar
             byte_stream = io.BytesIO()
             with tarfile.open(fileobj=byte_stream, mode="w:gz") as tar:
-                tar.add(
-                    package_path, arcname=package_path.name, filter=exclude_filter
-                )
+                tar.add(package_path, arcname=package_path.name, filter=exclude_filter)
 
             byte_stream.seek(0)
             package_bytes = byte_stream.read()
@@ -375,10 +366,7 @@ class Worker(BaseModel):
                 catalog.add_toolkit(toolkit)
 
             for tool in catalog:
-                if (
-                    tool.definition.requirements
-                    and tool.definition.requirements.secrets
-                ):
+                if tool.definition.requirements and tool.definition.requirements.secrets:
                     for secret in tool.definition.requirements.secrets:
                         all_secrets.add(secret.key)
         return all_secrets
@@ -457,9 +445,7 @@ def update_deployment_with_local_packages(toml_path: Path, toolkit_name: str) ->
     """Update a deployment from a toml file."""
     deployment = Deployment.from_toml(toml_path)
     if deployment.worker[0].local_source is None:
-        deployment.worker[0].local_source = LocalPackages(
-            packages=[f"./{toolkit_name}"]
-        )
+        deployment.worker[0].local_source = LocalPackages(packages=[f"./{toolkit_name}"])
     else:
         deployment.worker[0].local_source.packages.append(f"./{toolkit_name}")
     deployment.save()
