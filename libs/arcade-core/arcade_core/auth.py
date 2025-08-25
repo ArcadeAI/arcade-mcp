@@ -51,6 +51,15 @@ class Atlassian(OAuth2):
         super().__init__(id=id, scopes=scopes)
 
 
+class ClickUp(OAuth2):
+    """Marks a tool as requiring ClickUp authorization."""
+
+    provider_id: str = "clickup"
+
+    def __init__(self, *, id: Optional[str] = None, scopes: Optional[list[str]] = None):  # noqa: A002
+        super().__init__(id=id, scopes=scopes)
+
+
 class Discord(OAuth2):
     """Marks a tool as requiring Discord authorization."""
 

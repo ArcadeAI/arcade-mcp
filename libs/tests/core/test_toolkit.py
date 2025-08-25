@@ -1,8 +1,9 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_core.errors import ToolkitLoadError
-from arcade_core.toolkit import Toolkit
+from arcade_core.toolkit import Toolkit, Validate
 
 
 class TestToolkit:
@@ -342,3 +343,160 @@ class TestToolkitIntegration:
         assert names == {"custom", "utils", "legacy"}
         utils_toolkit = next(t for t in toolkits if t.name == "utils")
         assert utils_toolkit.version == "2.0.0"
+
+
+@pytest.fixture
+def cleanup_test_files():
+    test_files = ["valid.py", "invalid.py", "test.txt"]
+
+    # Run the test
+    yield
+
+    # Clean up test files after the test
+    for file in test_files:
+        try:  # noqa: SIM105
+            Path(file).unlink(missing_ok=True)
+        except Exception:  # noqa: S110
+            pass
+
+
+class TestValidateFile:
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_file(self):
+        """Test validation of Python files with valid syntax."""
+        # Create a temporary valid Python file
+        valid_file = Path("valid.py")
+        valid_file.write_text("def test(): return True")
+
+        # Should not raise any exceptions
+        Toolkit.validate_file(valid_file)
+        # Test with string path
+        Toolkit.validate_file(str(valid_file))
+
+    def test_validate_tools_nonexistent_file(self):
+        """Test validation with non-existent file."""
+        nonexistent = Path("nonexistent.py")
+
+        with pytest.raises(ValueError, match="File not found"):
+            Toolkit.validate_file(nonexistent)
+
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_tools_non_python_file(self):
+        """Test validation with non-Python file."""
+        txt_file = Path("test.txt")
+        txt_file.write_text("Not a Python file")
+
+        with pytest.raises(ValueError, match="Not a Python file"):
+            Toolkit.validate_file(txt_file)
+
+    @pytest.mark.usefixtures("cleanup_test_files")
+    def test_validate_tools_syntax_error(self):
+        """Test validation with Python file containing syntax errors."""
+        invalid_file = Path("invalid.py")
+        invalid_file.write_text("def test(): return True:")  # Invalid syntax
+
+        with pytest.raises(SyntaxError):
+            Toolkit.validate_file(invalid_file)
+
+
+class TestValidPath:
+    """Test the Validate.path function for path validation during deployment and serving."""
+
+    @pytest.mark.parametrize(
+        "path_input",
+        [
+            # Simple valid paths
+            "file.py",
+            "module.py",
+            "utils.py",
+            "main.py",
+            "README.md",
+            "config.json",
+            # Valid nested paths
+            "src/main.py",
+            "lib/utils/helper.py",
+            "package/subpackage/module.py",
+            "tools/scripts/deploy.py",
+            "docs/api/reference.md",
+            "tests/unit/test_module.py",
+            # Deep nested paths
+            "very/deep/nested/directory/structure/file.py",
+            "a/b/c/d/e/f/g/module.py",
+            # Edge cases
+            "",  # Path("") creates current directory path "."
+            "a",
+            "1",
+            # Files containing but not matching restricted patterns
+            "my_dist_file.py",  # contains "dist" but doesn't match exactly
+            "build_utils.py",  # contains "build" but doesn't match exactly
+            "lockfile.py",  # contains "lock" but doesn't end with .lock
+            "unlock.py",  # contains "lock" but doesn't end with .lock
+            # Case sensitivity - these should be valid because case doesn't match exactly
+            "DIST/file.py",  # "DIST" != "dist"
+            "Build/file.py",  # "Build" != "build"
+            "VENV/file.py",  # "VENV" != "venv"
+            "Package.LOCK",  # ".LOCK" != ".lock"
+            # Windows-style paths
+            "src\\module.py",
+            "lib\\utils\\helper.py",
+            # Absolute paths that should be valid
+            "/home/user/project/file.py",
+            # Unicode and special characters
+            "файл.py",  # Cyrillic
+            "文件.py",  # Chinese
+            "módulo.py",  # Accented characters
+            "file with spaces.py",
+            "file-with-dashes.py",
+            "file_with_underscores.py",
+            # Path objects
+            Path("file.py"),
+            Path("src/module.py"),
+        ],
+    )
+    def test_valid_paths(self, path_input):
+        """Test that valid paths are accepted."""
+        assert Validate.path(path_input) is True
+
+    @pytest.mark.parametrize(
+        "path_input",
+        [
+            # Excluded directories (exact matches)
+            "dist",
+            "build",
+            "__pycache__",
+            "coverage.xml",
+            # Paths containing excluded directories
+            "dist/bundle.js",
+            "build/output/file.py",
+            "src/__pycache__/module.cpython-39.pyc",
+            "project/build/artifacts/file.py",
+            "lib/dist/package/module.py",
+            # Lock files (ending with .lock)
+            "package.lock",
+            "poetry.lock",
+            "requirements.lock",
+            "Pipfile.lock",
+            "yarn.lock",
+            "npm.lock",
+            "custom.lock",
+            # Lock files in nested paths
+            "src/package.lock",
+            "frontend/yarn.lock",
+            "backend/poetry.lock",
+            "deep/nested/path/file.lock",
+            # Windows-style paths that should be invalid
+            "dist\\bundle.js",
+            "src\\package.lock",
+            # Absolute paths that should be invalid
+            "/home/user/project/dist/file.py",
+            "/opt/project/package.lock",
+            # Unicode with exclusion patterns
+            "文件.lock",  # Chinese lock file
+            # Path objects
+            Path("dist/bundle.js"),
+            Path("package.lock"),
+        ],
+    )
+    def test_invalid_paths(self, path_input):
+        """Test that invalid paths are rejected."""
+        assert Validate.path(path_input) is False

@@ -1,0 +1,57 @@
+[build-system]
+requires = [ "hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade_linkedin"
+version = "0.1.13"
+description = "Arcade.dev LLM tools for LinkedIn"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-tdk>=2.0.0,<3.0.0",
+    "httpx>=0.27.2,<1.0.0",
+]
+[[project.authors]]
+name = "Arcade"
+email = "dev@arcade.dev"
+
+[project.optional-dependencies]
+dev = [
+    "arcade-ai[evals]>=2.0.0,<3.0.0",
+    "arcade-serve>=2.0.0,<3.0.0",
+    "pytest>=8.3.0,<8.4.0",
+    "pytest-cov>=4.0.0,<4.1.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "pytest-mock>=3.11.1,<3.12.0",
+    "mypy>=1.5.1,<1.6.0",
+    "pre-commit>=3.4.0,<3.5.0",
+    "tox>=4.11.1,<4.12.0",
+    "ruff>=0.7.4,<0.8.0",
+]
+
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-ai = {path = "../../", editable = true}
+arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
+
+[tool.mypy]
+files = [ "arcade_linkedin/**/*.py",]
+python_version = "3.10"
+disallow_untyped_defs = "True"
+disallow_any_unimported = "True"
+no_implicit_optional = "True"
+check_untyped_defs = "True"
+warn_return_any = "True"
+warn_unused_ignores = "True"
+show_error_codes = "True"
+ignore_missing_imports = "True"
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.hatch.build.targets.wheel]
+packages = [ "arcade_linkedin",]

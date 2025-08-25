@@ -17,7 +17,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
     """
     # Start the authorization process
     auth_response = client.tools.authorize(
-        tool_name="Google.ListEmails",
+        tool_name="Gmail.ListEmails",
         user_id=user_id,
     )
 
@@ -33,7 +33,7 @@ def call_auth_tool(client: Arcade, user_id: str) -> None:
 
     # Execute the tool
     response = client.tools.execute(
-        tool_name="Google.ListEmails",
+        tool_name="Gmail.ListEmails",
         input=tool_input,
         user_id=user_id,
     )

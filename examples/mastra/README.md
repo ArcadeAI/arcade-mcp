@@ -49,7 +49,7 @@ pnpm install
 
 ## Basic Usage
 
-This example demonstrates how to use Arcade's Google toolkit with Mastra to create an AI agent that can help users manage their Google services (Gmail, Calendar, Sheets, Drive, and Contacts). The agent will access your Google account (after authorization) and perform various tasks based on user requests.
+This example demonstrates how to use Arcade's Gmail toolkit with Mastra to create an AI agent that can help users manage their email. The agent will access your Google account (after authorization) and perform various tasks based on user requests.
 
 To get started:
 
@@ -80,9 +80,9 @@ This authorization process is handled by the `executeOrAuthorizeZodTool` helper 
 
 To modify or extend the functionality:
 
-1. Update the `userId` in `agents/google.ts` with your application's user identification
+1. Update the `userId` in `agents/gmail.ts` with your application's user identification
 2. Modify the `toolkit` parameter in `arcade.tools.list()` to access different tools. Available toolkits include:
-   - `"google"` - Gmail, Google Calendar, Google Drive
+   - `"gmail"` - Gmail
    - `"slack"` - Slack messaging and channels
    - `"github"` - GitHub repositories and issues
    - And more in [Arcade Integrations](https://docs.arcade.dev/toolkits) documentation

@@ -40,11 +40,20 @@ dev = [
 [project.entry-points.arcade_toolkits]
 toolkit_name = "{{ package_name }}"
 
+{% if is_community_toolkit -%}
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
 arcade-ai = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
+{% endif -%}
+{% if is_official_toolkit -%}
+# Use local path sources for arcade libs when working locally
+[tool.uv.sources]
+arcade-ai = { path = "../../../arcade-ai", editable = true }
+arcade-serve = { path = "../../../arcade-ai/libs/arcade-serve/", editable = true }
+arcade-tdk = { path = "../../../arcade-ai/libs/arcade-tdk/", editable = true }
+{% endif -%}
 
 [tool.mypy]
 files = [ "{{ package_name }}/**/*.py",]
