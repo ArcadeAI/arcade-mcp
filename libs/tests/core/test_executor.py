@@ -162,8 +162,8 @@ def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
         assert output.error.message == expected_output.error.message
         if expected_output.error.developer_message:
             assert output.error.developer_message == expected_output.error.developer_message
-        if expected_output.error.traceback_info:
-            assert output.error.traceback_info == expected_output.error.traceback_info
+        if expected_output.error.stacktrace:
+            assert output.error.stacktrace == expected_output.error.stacktrace
         assert output.error.can_retry == expected_output.error.can_retry
         assert (
             output.error.additional_prompt_content

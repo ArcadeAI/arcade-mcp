@@ -62,7 +62,7 @@ class ToolkitError(Exception):
       status_code               : int | None             # HTTP status code when relevant
       additional_prompt_content : str | None             # content for retry prompts
       retry_after_ms            : int | None             # milliseconds to wait before retry
-      traceback_info            : str | None             # traceback information
+      stacktrace                : str | None             # stacktrace information
       extra                     : dict[str, Any] | None  # arbitrary structured metadata
     """
 
@@ -143,7 +143,7 @@ class ToolRuntimeError(
         self.developer_message = developer_message
         self.extra = extra
 
-    def traceback_info(self) -> str | None:
+    def stacktrace(self) -> str | None:
         if self.__cause__:
             return "\n".join(traceback.format_exception(self.__cause__))
         return None

@@ -406,8 +406,8 @@ class ToolCallError(BaseModel):
     """Additional content to be included in the retry prompt."""
     retry_after_ms: int | None = None
     """The number of milliseconds (if any) to wait before retrying the tool call."""
-    traceback_info: str | None = None
-    """The traceback information for the tool call."""
+    stacktrace: str | None = None
+    """The stacktrace information for the tool call."""
     status_code: int | None = None
     """The HTTP status code of the error."""
     extra: dict[str, Any] | None = None

@@ -71,7 +71,7 @@ class ToolExecutor:
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
-                traceback_info=e.traceback_info(),
+                stacktrace=e.stacktrace(),
                 additional_prompt_content=getattr(e, "additional_prompt_content", None),
                 retry_after_ms=getattr(e, "retry_after_ms", None),
                 origin=e.origin,
@@ -87,7 +87,7 @@ class ToolExecutor:
             return output_factory.fail(
                 message=f"Error in execution of '{func.__name__}'",
                 developer_message=str(e),
-                traceback_info=traceback.format_exc(),
+                stacktrace=traceback.format_exc(),
             )
 
     @staticmethod
