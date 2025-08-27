@@ -797,7 +797,7 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
 
             # Get wire type info recursively
             # field_type cannot be None here due to the check above
-            wire_info = get_wire_type_info(field_type)  # type: ignore[arg-type]
+            wire_info = get_wire_type_info(field_type)
             properties[field_name] = wire_info
 
     # Handle TypedDict
@@ -810,10 +810,10 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
 
         for field_name, field_type in type_hints.items():
             # Handle Optional types (Union[T, None])
-            if is_strict_optional(field_type):  # type: ignore[arg-type]
+            if is_strict_optional(field_type):
                 # Extract the non-None type from Optional
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
-            wire_info = get_wire_type_info(field_type)  # type: ignore[arg-type]
+            wire_info = get_wire_type_info(field_type)
 
             # Add description if available
             if field_name in field_descriptions:

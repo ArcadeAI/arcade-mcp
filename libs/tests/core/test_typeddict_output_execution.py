@@ -97,6 +97,7 @@ class TestTypeDictOutputExecution:
     def context(self):
         return ToolContext()
 
+    @pytest.mark.asyncio
     async def test_returns_typeddict(self, catalog, context):
         """Test executing a tool that returns a TypedDict."""
         # Create tool definition
@@ -120,6 +121,7 @@ class TestTypeDictOutputExecution:
         assert result.error is None
         assert result.value == {"name": "test", "value": 42}
 
+    @pytest.mark.asyncio
     async def test_returns_list_of_typeddict(self, catalog, context):
         """Test executing a tool that returns a list of TypedDict."""
         definition = catalog.create_tool_definition(
@@ -143,6 +145,7 @@ class TestTypeDictOutputExecution:
             {"name": "item3", "value": 3},
         ]
 
+    @pytest.mark.asyncio
     async def test_returns_optional_typeddict(self, catalog, context):
         """Test executing a tool that returns an optional TypedDict."""
         definition = catalog.create_tool_definition(
@@ -177,6 +180,7 @@ class TestTypeDictOutputExecution:
         assert result_none.error is None
         assert result_none.value == ""  # None is converted to empty string
 
+    @pytest.mark.asyncio
     async def test_returns_nested_typeddict(self, catalog, context):
         """Test executing a tool that returns a nested TypedDict."""
         definition = catalog.create_tool_definition(
@@ -200,6 +204,7 @@ class TestTypeDictOutputExecution:
             "tags": ["tag1", "tag2", "tag3"],
         }
 
+    @pytest.mark.asyncio
     async def test_accepts_and_returns_typeddict(self, catalog, context):
         """Test executing a tool that accepts and returns TypedDict."""
         definition = catalog.create_tool_definition(
@@ -220,6 +225,7 @@ class TestTypeDictOutputExecution:
         assert result.error is None
         assert result.value == {"name": "Modified: input", "value": 42}
 
+    @pytest.mark.asyncio
     async def test_returns_dict_list(self, catalog, context):
         """Test executing a tool that returns a list of dicts."""
         definition = catalog.create_tool_definition(
