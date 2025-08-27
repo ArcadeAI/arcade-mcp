@@ -1,4 +1,5 @@
 import traceback
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
@@ -26,9 +27,10 @@ class ErrorPhase(str, Enum):
 
 
 class ErrorCode(str, Enum):
-    """Common error codes."""
+    """Error codes."""
 
     LOAD_FAILED = "LOAD_FAILED"
+    BAD_DEFINITION = "BAD_DEFINITION"
     BAD_INPUT_SCHEMA = "BAD_INPUT_SCHEMA"
     BAD_OUTPUT_SCHEMA = "BAD_OUTPUT_SCHEMA"
     BAD_INPUT_VALUE = "BAD_INPUT_VALUE"
@@ -45,14 +47,14 @@ class ErrorCode(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class ToolkitError(Exception):
+class ToolkitError(Exception, ABC):
     """
     Base class for all Arcade errors.
 
-    Note: This class is not intended to be instantiated directly.
+    Note: This class is an abstract class and cannot be instantiated directly.
 
     These errors are ultimately converted to the ToolCallError schema.
-    Common (not enforced) attributes expected from subclasses:
+    Attributes expected from subclasses:
       message                   : str                    # user-facing error message
       origin                    : ErrorOrigin            # where the error originated
       phase                     : ErrorPhase             # when the error occurred
@@ -66,6 +68,36 @@ class ToolkitError(Exception):
       extra                     : dict[str, Any] | None  # arbitrary structured metadata
     """
 
+    def __new__(cls, *args, **kwargs):
+        abs_methods = getattr(cls, "__abstractmethods__", None)
+        if abs_methods:
+            raise TypeError(f"Can't instantiate abstract class {cls.__name__}")
+        return super().__new__(cls)
+
+    @abstractmethod
+    def create_message_prefix(self, name: str) -> str:
+        pass
+
+    def with_context(self, name: str) -> "ToolkitError":
+        """
+        Add context to the error message.
+
+        Args:
+            name: The name of the tool or toolkit that caused the error.
+
+        Returns:
+            The error with the context added to the message.
+        """
+        prefix = self.create_message_prefix(name)
+        self.message = f"{prefix}{self.message}"
+        if hasattr(self, "developer_message") and self.developer_message:
+            self.developer_message = f"{prefix}{self.developer_message}"
+
+        return self
+
+    def __str__(self) -> str:
+        return self.message
+
 
 class ToolkitLoadError(ToolkitError):
     """
@@ -78,12 +110,19 @@ class ToolkitLoadError(ToolkitError):
     code: ErrorCode = ErrorCode.LOAD_FAILED
     can_retry: bool = False
 
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
+
+    def create_message_prefix(self, toolkit_name: str) -> str:
+        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} when loading toolkit '{toolkit_name}': "
+
 
 class ToolError(ToolkitError):
     """
     Any error related to an Arcade tool.
 
-    Note: This class is not intended to be instantiated directly.
+    Note: This class is an abstract class and cannot be instantiated directly.
     """
 
 
@@ -95,23 +134,28 @@ class ToolDefinitionError(ToolError):
     Note: This class is not intended to be instantiated directly.
     """
 
+    origin: ErrorOrigin = ErrorOrigin.TOOL
+    phase: ErrorPhase = ErrorPhase.DEFINITION
+    code: ErrorCode = ErrorCode.BAD_DEFINITION
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
+
+    def create_message_prefix(self, tool_name: str) -> str:
+        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} in definition of tool '{tool_name}': "
+
 
 class ToolInputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's input parameter."""
 
-    origin: ErrorOrigin = ErrorOrigin.TOOL
-    phase: ErrorPhase = ErrorPhase.DEFINITION
     code: ErrorCode = ErrorCode.BAD_INPUT_SCHEMA
-    can_retry: bool = False
 
 
 class ToolOutputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's output parameter."""
 
-    origin: ErrorOrigin = ErrorOrigin.TOOL
-    phase: ErrorPhase = ErrorPhase.DEFINITION
     code: ErrorCode = ErrorCode.BAD_OUTPUT_SCHEMA
-    can_retry: bool = False
 
 
 # ------  runtime errors ------
@@ -134,14 +178,17 @@ class ToolRuntimeError(
     def __init__(
         self,
         message: str,
-        *,
         developer_message: str | None = None,
+        *,
         extra: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.message = message
         self.developer_message = developer_message
         self.extra = extra
+
+    def create_message_prefix(self, tool_name: str) -> str:
+        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} in execution of tool '{tool_name}': "
 
     def stacktrace(self) -> str | None:
         if self.__cause__:

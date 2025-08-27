@@ -83,17 +83,11 @@ def _raise_as_arcade_error(
     for adapter in adapter_chain:
         mapped = adapter.from_exception(exception)
         if isinstance(mapped, ToolRuntimeError):
-            prefix = f"[{mapped.origin.value}/{mapped.phase.value}/{mapped.code.value}] {type(mapped).__name__} in execution of '{func_name}': "
-            mapped.message = f"{prefix} {mapped.message}"
-            mapped.developer_message = (
-                f"{prefix} {mapped.developer_message}" if mapped.developer_message else None
-            )
             raise mapped from exception
 
-    prefix = f"[{FatalToolError.origin.value}/{FatalToolError.phase.value}/{FatalToolError.code.value}] {type(exception).__name__} in execution of '{func_name}': "
     raise FatalToolError(
-        message=f"{prefix} {exception!s}",
-        developer_message=f"{prefix} {exception!s}",
+        message=f"{exception!s}",
+        developer_message=f"{exception!s}",
     ) from exception
 
 

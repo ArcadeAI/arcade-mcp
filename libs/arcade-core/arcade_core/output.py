@@ -53,10 +53,10 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
-        origin: ErrorOrigin = ErrorOrigin.TOOL,
-        phase: ErrorPhase = ErrorPhase.RUNTIME,
+        origin: ErrorOrigin = ErrorOrigin.UNKNOWN,
+        phase: ErrorPhase = ErrorPhase.UNKNOWN,
         can_retry: bool = False,
-        code: ErrorCode = ErrorCode.FATAL,
+        code: ErrorCode = ErrorCode.UNKNOWN,
         status_code: int | None = None,
         extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:

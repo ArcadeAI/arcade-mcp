@@ -2,10 +2,14 @@ from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
+from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput, ToolContext
 from arcade_tdk import tool
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import (
+    RetryableToolError,
+    ToolExecutionError,
+)
 
 
 @tool
@@ -24,11 +28,11 @@ def simple_deprecated_tool(inp: Annotated[str, "input"]) -> Annotated[str, "outp
 @tool
 def retryable_error_tool() -> Annotated[str, "output"]:
     """Tool that raises a retryable error"""
-    raise RetryableToolError("test", "test", "test", 1000)
+    raise RetryableToolError("test", "test", "additional prompt content", 1000)
 
 
 @tool
-def exec_error_tool() -> Annotated[str, "output"]:
+def tool_execution_error_tool() -> Annotated[str, "output"]:
     """Tool that raises an error"""
     raise ToolExecutionError("test", "test")
 
@@ -51,7 +55,7 @@ catalog = ToolCatalog()
 catalog.add_tool(simple_tool, "simple_toolkit")
 catalog.add_tool(simple_deprecated_tool, "simple_toolkit")
 catalog.add_tool(retryable_error_tool, "simple_toolkit")
-catalog.add_tool(exec_error_tool, "simple_toolkit")
+catalog.add_tool(tool_execution_error_tool, "simple_toolkit")
 catalog.add_tool(unexpected_error_tool, "simple_toolkit")
 catalog.add_tool(bad_output_error_tool, "simple_toolkit")
 
@@ -80,21 +84,28 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="test",
-                    developer_message="test",
-                    additional_prompt_content="test",
+                    message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.RETRY_TOOL,
+                    developer_message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test",
+                    additional_prompt_content="additional prompt content",
                     retry_after_ms=1000,
                     can_retry=True,
                 )
             ),
         ),
         (
-            exec_error_tool,
+            tool_execution_error_tool,
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="test",
-                    developer_message="test",
+                    message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.FATAL,
+                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test",
+                    can_retry=False,
                 )
             ),
         ),
@@ -103,8 +114,12 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="Error in execution of UnexpectedErrorTool",
-                    developer_message="Error in unexpected_error_tool: test",
+                    message="[TOOL_RUNTIME_FATAL] FatalToolError in execution of tool 'unexpected_error_tool': test",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.FATAL,
+                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError in execution of tool 'unexpected_error_tool': test",
+                    can_retry=False,
                 )
             ),
         ),
@@ -113,7 +128,11 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             {"inp": {"test": "test"}},  # takes in a string not a dict
             ToolCallOutput(
                 error=ToolCallError(
-                    message="Error in tool input deserialization",
+                    message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError in execution of tool 'simple_tool': Error in tool input deserialization",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.BAD_INPUT_VALUE,
+                    status_code=400,
                     developer_message=None,  # can't gaurantee this will be the same
                 )
             ),
@@ -123,7 +142,11 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="Failed to serialize tool output",
+                    message="[TOOL_RUNTIME_BAD_OUTPUT_VALUE] ToolOutputError in execution of tool 'bad_output_error_tool': Failed to serialize tool output",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.BAD_OUTPUT_VALUE,
+                    status_code=500,
                     developer_message=None,  # can't gaurantee this will be the same
                 )
             ),
@@ -159,17 +182,23 @@ async def test_tool_executor(tool_func, inputs, expected_output):
 def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
     # execution error in tool
     if output.error:
-        assert output.error.message == expected_output.error.message
+        assert output.error.message == expected_output.error.message, "message mismatch"
         if expected_output.error.developer_message:
-            assert output.error.developer_message == expected_output.error.developer_message
+            assert (
+                output.error.developer_message == expected_output.error.developer_message
+            ), "developer message mismatch"
         if expected_output.error.stacktrace:
-            assert output.error.stacktrace == expected_output.error.stacktrace
-        assert output.error.can_retry == expected_output.error.can_retry
+            assert (
+                output.error.stacktrace == expected_output.error.stacktrace
+            ), "stacktrace mismatch"
+        assert output.error.can_retry == expected_output.error.can_retry, "can retry mismatch"
         assert (
             output.error.additional_prompt_content
             == expected_output.error.additional_prompt_content
-        )
-        assert output.error.retry_after_ms == expected_output.error.retry_after_ms
+        ), "additional prompt content mismatch"
+        assert (
+            output.error.retry_after_ms == expected_output.error.retry_after_ms
+        ), "retry after ms mismatch"
 
     # normal tool execution
     else:

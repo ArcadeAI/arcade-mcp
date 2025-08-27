@@ -68,6 +68,7 @@ class ToolExecutor:
             return output_factory.success(data=output, logs=tool_call_logs)
 
         except ToolRuntimeError as e:
+            e.with_context(func.__name__)
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
