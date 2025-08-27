@@ -478,24 +478,10 @@ def test_add_toolkit_with_invalid_tools(
             catalog.add_toolkit(test_toolkit)
 
         # Check that the error message contains the expected substring
-        assert expected_error_substring in str(exc_info.value)
-
-
-"""
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_missing_description': Tool 'tool_missing_description' is missing a description
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_secret_type': Secret keys must be strings (error in tool ToolWithInvalidSecretType).
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_secret': Secrets must have a non-empty key (error in tool ToolWithEmptySecret).
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_metadata_type': Metadata must be strings (error in tool ToolWithInvalidMetadataType).
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_metadata_requiring_auth_without_auth': Tool ToolWithMetadataRequiringAuthWithoutAuth declares metadata key 'client_id', which requires that the tool has an auth requirement, but no auth requirement was provided. Please specify an auth requirement.
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_metadata': Metadata must have a non-empty key (error in tool ToolWithEmptyMetadata).
-- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_unsupported_param_type': Unsupported parameter type: <class 'test_catalog.MyFancyTestClass'>
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_missing_input_parameter_annotation': Parameter 'input_text' is missing a description
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_no_type_annotation': Parameter param has no type annotation.
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_invalid_param_name': Invalid parameter name: '123invalid' is not a valid identifier. Identifiers must start with a letter or underscore, and can only contain letters, digits, or underscores.
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_too_many_annotations': Parameter param: Annotated[str, 'name', 'desc', 'extra'] has too many string annotations. Expected 0, 1, or 2, got 3.
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_required_union_param': Parameter param is a union type. Only optional types are supported.
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_non_callable_default_factory': Default factory for parameter param: Annotated[str, 'Parameter'] = FieldInfo(annotation=NoneType, required=False, default_factory=str) is not callable.
-- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_multiple_tool_contexts': Only one ToolContext parameter is supported, but tool tool_with_multiple_tool_contexts has multiple.
-- [TOOL_DEFINITION_BAD_OUTPUT_SCHEMA] ToolOutputSchemaError in definition of tool 'tool_missing_return_type_hint': Tool 'ToolMissingReturnTypeHint' must have a return type
-- [TOOL_DEFINITION_BAD_OUTPUT_SCHEMA] ToolOutputSchemaError in definition of tool 'tool_with_unsupported_output_type': Unsupported output type '<class 'test_catalog.MyFancyTestClass'>'. Only built-in Python types, TypedDicts, Pydantic models, and standard collections are supported as tool output types.
-"""
+        actual_error_message = str(exc_info.value)
+        # Adjust for Python 3.11 and below where Annotated is returned as "typing.Annotated"
+        if "typing.Annotated" in actual_error_message:
+            expected_error_substring = expected_error_substring.replace(
+                "Annotated", "typing.Annotated"
+            )
+        assert expected_error_substring in actual_error_message
