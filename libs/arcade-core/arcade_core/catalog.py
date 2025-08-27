@@ -1024,10 +1024,16 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
                 )
 
             if description:
-                return create_model(
-                    output_model_name,
-                    result=(field_type, Field(description=str(description))),
-                )
+                try:
+                    return create_model(
+                        output_model_name,
+                        result=(field_type, Field(description=str(description))),
+                    )
+                except Exception:
+                    raise ToolOutputSchemaError(
+                        f"Unsupported output type '{field_type}'. Only built-in Python types, TypedDicts, "
+                        "Pydantic models, and standard collections are supported as tool output types."
+                    )
         # Handle Union types
         origin = return_annotation.__origin__
         if origin is typing.Union:

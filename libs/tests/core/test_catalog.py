@@ -3,7 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from arcade_core.catalog import ToolCatalog
-from arcade_core.errors import ToolDefinitionError, ToolInputSchemaError, ToolOutputSchemaError
+from arcade_core.errors import (
+    ToolDefinitionError,
+    ToolInputSchemaError,
+    ToolkitLoadError,
+    ToolOutputSchemaError,
+)
 from arcade_core.schema import FullyQualifiedName, ToolContext
 from arcade_core.toolkit import Toolkit
 from arcade_tdk import tool
@@ -140,8 +145,8 @@ def tool_with_multiple_tool_contexts(ctx1: ToolContext, ctx2: ToolContext) -> st
 
 
 @tool
-def tool_missing_return_type(input_text: Annotated[str, "The text to process"]):
-    """A tool without return type."""
+def tool_missing_return_type_hint(input_text: Annotated[str, "The text to process"]):
+    """A tool without return type hint."""
     return f"Processed: {input_text}"
 
 
@@ -233,6 +238,35 @@ def test_add_toolkit_type_error():
         # Assert that ToolDefinitionError is raised
         with pytest.raises(ToolDefinitionError):
             catalog.add_toolkit(mock_toolkit)
+
+
+def test_add_toolkit_import_module_error():
+    catalog = ToolCatalog()
+
+    # Create a mock toolkit with an invalid tool
+
+    mock_toolkit = Toolkit(
+        name="mock_toolkit",
+        description="A mock toolkit",
+        version="0.0.1",
+        package_name="mock_toolkit",
+    )
+    mock_toolkit.tools = {"mock_module": ["sample_tool"]}
+
+    # Mock the import_module and getattr functions
+    with (
+        patch("arcade_core.catalog.import_module") as mock_import,
+    ):
+        mock_import.side_effect = ImportError("Mock import error")
+
+        # Assert that ToolkitLoadError is raised
+        with pytest.raises(ToolkitLoadError) as exc_info:
+            catalog.add_toolkit(mock_toolkit)
+
+        # Check that the error message contains the expected substring
+        assert "Could not import module mock_module. Reason: Mock import error" in str(
+            exc_info.value
+        )
 
 
 def test_get_tool_by_name():
@@ -405,14 +439,14 @@ def test_add_tool_with_disabled_toolkit(monkeypatch):
             "Only one ToolContext parameter is supported, but tool tool_with_multiple_tool_contexts has multiple",
         ),
         (
-            "tool_missing_return_type",
+            "tool_missing_return_type_hint",
             ToolOutputSchemaError,
-            "Tool 'ToolMissingReturnType' must have a return type",
+            "Tool 'ToolMissingReturnTypeHint' must have a return type",
         ),
         (
             "tool_with_unsupported_output_type",
             ToolOutputSchemaError,
-            "placeholder",
+            "Unsupported output type '<class 'test_catalog.MyFancyTestClass'>'",
         ),
     ],
 )
@@ -448,19 +482,20 @@ def test_add_toolkit_with_invalid_tools(
 
 
 """
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_missing_description': Tool 'tool_missing_description' is missing a description
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_missing_return_annotation': Tool ToolMissingReturnAnnotation must have a return type annotation
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_secret_type': Secret keys must be strings (error in tool ToolWithInvalidSecretType).
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_secret': Secrets must have a non-empty key (error in tool ToolWithEmptySecret).
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_metadata_type': Metadata must be strings (error in tool ToolWithInvalidMetadataType).
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_metadata_requiring_auth_without_auth': Tool ToolWithMetadataRequiringAuthWithoutAuth declares metadata key 'client_id', which requires that the tool has an auth requirement, but no auth requirement was provided. Please specify an auth requirement.
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_metadata': Metadata must have a non-empty key (error in tool ToolWithEmptyMetadata).
-[TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_unsupported_param_type': Unsupported parameter type: <class 'test_catalog.MyFancyTestClass'>
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_missing_input_parameter_annotation': Parameter 'input_text' is missing a description
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_no_type_annotation': Parameter param has no type annotation.
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_invalid_param_name': Invalid parameter name: '123invalid' is not a valid identifier. Identifiers must start with a letter or underscore, and can only contain letters, digits, or underscores.
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_too_many_annotations': Parameter param: Annotated[str, 'name', 'desc', 'extra'] has too many string annotations. Expected 0, 1, or 2, got 3.
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_required_union_param': Parameter param is a union type. Only optional types are supported.
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_non_callable_default_factory': Default factory for parameter param: Annotated[str, 'Parameter'] = FieldInfo(annotation=NoneType, required=False, default_factory=str) is not callable.
-[TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_multiple_tool_contexts': Only one ToolContext parameter is supported, but tool tool_with_multiple_tool_contexts has multiple.
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_missing_description': Tool 'tool_missing_description' is missing a description
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_secret_type': Secret keys must be strings (error in tool ToolWithInvalidSecretType).
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_secret': Secrets must have a non-empty key (error in tool ToolWithEmptySecret).
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_invalid_metadata_type': Metadata must be strings (error in tool ToolWithInvalidMetadataType).
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_metadata_requiring_auth_without_auth': Tool ToolWithMetadataRequiringAuthWithoutAuth declares metadata key 'client_id', which requires that the tool has an auth requirement, but no auth requirement was provided. Please specify an auth requirement.
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_empty_metadata': Metadata must have a non-empty key (error in tool ToolWithEmptyMetadata).
+- [TOOL_DEFINITION_BAD_DEFINITION] ToolDefinitionError in definition of tool 'tool_with_unsupported_param_type': Unsupported parameter type: <class 'test_catalog.MyFancyTestClass'>
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_missing_input_parameter_annotation': Parameter 'input_text' is missing a description
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_no_type_annotation': Parameter param has no type annotation.
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_invalid_param_name': Invalid parameter name: '123invalid' is not a valid identifier. Identifiers must start with a letter or underscore, and can only contain letters, digits, or underscores.
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_too_many_annotations': Parameter param: Annotated[str, 'name', 'desc', 'extra'] has too many string annotations. Expected 0, 1, or 2, got 3.
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_required_union_param': Parameter param is a union type. Only optional types are supported.
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_non_callable_default_factory': Default factory for parameter param: Annotated[str, 'Parameter'] = FieldInfo(annotation=NoneType, required=False, default_factory=str) is not callable.
+- [TOOL_DEFINITION_BAD_INPUT_SCHEMA] ToolInputSchemaError in definition of tool 'tool_with_multiple_tool_contexts': Only one ToolContext parameter is supported, but tool tool_with_multiple_tool_contexts has multiple.
+- [TOOL_DEFINITION_BAD_OUTPUT_SCHEMA] ToolOutputSchemaError in definition of tool 'tool_missing_return_type_hint': Tool 'ToolMissingReturnTypeHint' must have a return type
+- [TOOL_DEFINITION_BAD_OUTPUT_SCHEMA] ToolOutputSchemaError in definition of tool 'tool_with_unsupported_output_type': Unsupported output type '<class 'test_catalog.MyFancyTestClass'>'. Only built-in Python types, TypedDicts, Pydantic models, and standard collections are supported as tool output types.
 """
