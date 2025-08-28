@@ -2,7 +2,14 @@ from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
-from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
+from arcade_core.errors import (
+    ContextRequiredToolError,
+    ErrorCode,
+    ErrorOrigin,
+    ErrorPhase,
+    UpstreamError,
+    UpstreamRateLimitError,
+)
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput, ToolContext
 from arcade_tdk import tool
@@ -44,6 +51,28 @@ def unexpected_error_tool() -> Annotated[str, "output"]:
 
 
 @tool
+def context_required_error_tool() -> Annotated[str, "output"]:
+    """Tool that raises a context required error"""
+    raise ContextRequiredToolError(
+        "test", additional_prompt_content="need the user to clarify something"
+    )
+
+
+@tool
+def upstream_error_tool() -> Annotated[str, "output"]:
+    """Tool that raises an upstream error"""
+    # TODO: or test raising a httpx error? Do these types of tests belong in adapter tests?
+    raise UpstreamError("test", status_code=400)
+
+
+@tool
+def upstream_ratelimit_error_tool() -> Annotated[str, "output"]:
+    """Tool that raises an upstream error"""
+    # TODO: or test raising a httpx error? Do these types of tests belong in adapter tests?
+    raise UpstreamRateLimitError("test", 1000)
+
+
+@tool
 def bad_output_error_tool() -> Annotated[str, "output"]:
     """tool that returns a bad output type"""
     return {"output": "test"}
@@ -57,6 +86,9 @@ catalog.add_tool(simple_deprecated_tool, "simple_toolkit")
 catalog.add_tool(retryable_error_tool, "simple_toolkit")
 catalog.add_tool(tool_execution_error_tool, "simple_toolkit")
 catalog.add_tool(unexpected_error_tool, "simple_toolkit")
+catalog.add_tool(context_required_error_tool, "simple_toolkit")
+catalog.add_tool(upstream_error_tool, "simple_toolkit")
+catalog.add_tool(upstream_ratelimit_error_tool, "simple_toolkit")
 catalog.add_tool(bad_output_error_tool, "simple_toolkit")
 
 
@@ -138,6 +170,50 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
             ),
         ),
         (
+            context_required_error_tool,
+            {},
+            ToolCallOutput(
+                error=ToolCallError(
+                    message="[TOOL_RUNTIME_CONTEXT_REQUIRED] ContextRequiredToolError in execution of tool 'context_required_error_tool': test",
+                    origin=ErrorOrigin.TOOL,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.CONTEXT_REQUIRED,
+                    developer_message=None,
+                    additional_prompt_content="need the user to clarify something",
+                )
+            ),
+        ),
+        (
+            upstream_error_tool,
+            {},
+            ToolCallOutput(
+                error=ToolCallError(
+                    message="[UPSTREAM_RUNTIME_BAD_REQUEST] UpstreamError in execution of tool 'upstream_error_tool': test",
+                    origin=ErrorOrigin.UPSTREAM,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.BAD_REQUEST,
+                    status_code=400,
+                    developer_message=None,
+                )
+            ),
+        ),
+        (
+            upstream_ratelimit_error_tool,
+            {},
+            ToolCallOutput(
+                error=ToolCallError(
+                    message="[UPSTREAM_RUNTIME_RATE_LIMIT] UpstreamRateLimitError in execution of tool 'upstream_ratelimit_error_tool': test",
+                    origin=ErrorOrigin.UPSTREAM,
+                    phase=ErrorPhase.RUNTIME,
+                    code=ErrorCode.RATE_LIMIT,
+                    status_code=429,
+                    developer_message=None,
+                    retry_after_ms=1000,
+                    can_retry=True,
+                )
+            ),
+        ),
+        (
             bad_output_error_tool,
             {},
             ToolCallOutput(
@@ -159,6 +235,9 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
         "exec_error_tool",
         "unexpected_error_tool",
         "invalid_input_type",
+        "context_required_error_tool",
+        "upstream_error_tool",
+        "upstream_ratelimit_error_tool",
         "bad_output_type",
     ],
 )
