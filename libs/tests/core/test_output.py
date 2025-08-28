@@ -36,6 +36,64 @@ def test_success(output_factory, data, expected_value):
 
 
 @pytest.mark.parametrize(
+    "data, expected_value",
+    [
+        # Dict types (simulating TypedDict at runtime)
+        ({"name": "test", "value": 123}, {"name": "test", "value": 123}),
+        ({}, {}),
+        ({"nested": {"key": "value"}}, {"nested": {"key": "value"}}),
+        # List types
+        (["a", "b", "c"], ["a", "b", "c"]),
+        ([1, 2, 3], [1, 2, 3]),
+        ([], []),
+        # List of dicts (simulating list[TypedDict])
+        (
+            [{"id": 1, "name": "a"}, {"id": 2, "name": "b"}],
+            [{"id": 1, "name": "a"}, {"id": 2, "name": "b"}],
+        ),
+        ([{}], [{}]),
+        # Mixed lists
+        ([1, "two", 3.0, True], [1, "two", 3.0, True]),
+    ],
+)
+def test_success_complex_types(output_factory, data, expected_value):
+    """Test that dict and list types are properly handled by ToolOutputFactory."""
+    data_obj = SampleOutputModel(result=data)
+    output = output_factory.success(data=data_obj)
+    assert output.value == expected_value
+    assert output.error is None
+
+
+def test_success_with_basemodel_direct(output_factory):
+    """Test that BaseModel instances are converted to dict via model_dump()."""
+
+    class TestModel(BaseModel):
+        name: str
+        value: int
+
+    model = TestModel(name="test", value=42)
+    output = output_factory.success(data=model)
+    assert output.value == {"name": "test", "value": 42}
+    assert output.error is None
+
+
+def test_success_raw_dict(output_factory):
+    """Test that raw dict values (not wrapped in model) are handled correctly."""
+    raw_dict = {"key": "value", "number": 123}
+    output = output_factory.success(data=raw_dict)
+    assert output.value == raw_dict
+    assert output.error is None
+
+
+def test_success_raw_list(output_factory):
+    """Test that raw list values (not wrapped in model) are handled correctly."""
+    raw_list = [{"id": 1}, {"id": 2}, {"id": 3}]
+    output = output_factory.success(data=raw_list)
+    assert output.value == raw_list
+    assert output.error is None
+
+
+@pytest.mark.parametrize(
     "message, developer_message",
     [
         ("Error occurred", None),

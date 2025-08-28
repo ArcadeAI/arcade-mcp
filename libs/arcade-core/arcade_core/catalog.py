@@ -496,7 +496,11 @@ def create_output_definition(func: Callable) -> ToolOutput:
         )
 
     if hasattr(return_type, "__metadata__"):
-        description = return_type.__metadata__[0] if return_type.__metadata__ else None  # type: ignore[assignment]
+        description = (
+            return_type.__metadata__[0]
+            if return_type.__metadata__
+            else "No description provided for return type."
+        )
         return_type = return_type.__origin__
 
     # Unwrap Optional types
@@ -805,6 +809,7 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
                 field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
 
             # Get wire type info recursively
+            # field_type cannot be None here due to the check above
             wire_info = get_wire_type_info(field_type)
             properties[field_name] = wire_info
 
@@ -986,7 +991,9 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
         tool_field_info = extract_field_info(param)
         param_fields = {
             "default": tool_field_info.default,
-            "description": tool_field_info.description,
+            "description": tool_field_info.description
+            if tool_field_info.description
+            else "No description provided.",
             # TODO more here?
         }
         input_fields[name] = (tool_field_info.field_type, Field(**param_fields))
@@ -1003,8 +1010,14 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
     """
     return_annotation = inspect.signature(func).return_annotation
     output_model_name = f"{snake_to_pascal_case(func.__name__)}Output"
+
+    # If the return annotation is empty, create a model with no fields
     if return_annotation is inspect.Signature.empty:
         return create_model(output_model_name)
+
+    # If the return annotation has an __origin__ attribute
+    # and does not have a __metadata__ attribute.
+    # This is the case for TypedDicts.
     elif hasattr(return_annotation, "__origin__"):
         if hasattr(return_annotation, "__metadata__"):
             field_type = return_annotation.__args__[0]
@@ -1020,9 +1033,17 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
                 )
                 return create_model(
                     output_model_name,
-                    result=(typeddict_model, Field(description=str(description))),
+                    result=(
+                        typeddict_model,
+                        Field(
+                            description=str(description)
+                            if description
+                            else "No description provided."
+                        ),
+                    ),
                 )
 
+            # If the return annotation has a description, use it
             if description:
                 try:
                     return create_model(
@@ -1034,7 +1055,8 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
                         f"Unsupported output type '{field_type}'. Only built-in Python types, TypedDicts, "
                         "Pydantic models, and standard collections are supported as tool output types."
                     )
-        # Handle Union types
+
+        # If the return annotation is a Union type
         origin = return_annotation.__origin__
         if origin is typing.Union:
             # For union types, create a model with the first non-None argument
@@ -1055,10 +1077,15 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
                         )
                     return create_model(
                         output_model_name,
-                        result=(arg, Field(description="No description provided.")),
+                        result=(
+                            arg,
+                            Field(description="No description provided."),
+                        ),
                     )
-        # when the return_annotation has an __origin__ attribute
+
+        # If the return annotation has an __origin__ attribute
         # and does not have a __metadata__ attribute.
+        # This is the case for TypedDicts.
         return create_model(
             output_model_name,
             result=(
@@ -1067,7 +1094,7 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
             ),
         )
     else:
-        # Check if return type is TypedDict
+        # If the return annotation is a TypedDict
         if is_typeddict(return_annotation):
             typeddict_model = create_model_from_typeddict(return_annotation, output_model_name)
             return create_model(
@@ -1078,10 +1105,13 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
                 ),
             )
 
-        # Handle simple return types (like str)
+        # If the return annotation is a simple type (like str)
         return create_model(
             output_model_name,
-            result=(return_annotation, Field(description="No description provided.")),
+            result=(
+                return_annotation,
+                Field(description="No description provided."),
+            ),
         )
 
 

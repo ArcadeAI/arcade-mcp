@@ -17,6 +17,7 @@ from arcade_tdk.errors import (
     RetryableToolError,
     ToolExecutionError,
 )
+from typing_extensions import TypedDict
 
 
 @tool
@@ -78,6 +79,36 @@ def bad_output_error_tool() -> Annotated[str, "output"]:
     return {"output": "test"}
 
 
+# TypedDict output tools
+class ResultDict(TypedDict):
+    """Result dictionary."""
+
+    status: str
+    count: int
+    items: list[str]
+
+
+@tool
+def typeddict_output_tool() -> Annotated[ResultDict, "Returns a TypedDict"]:
+    """Tool that returns a TypedDict."""
+    return ResultDict(status="success", count=3, items=["a", "b", "c"])
+
+
+@tool
+def list_typeddict_output_tool() -> Annotated[list[ResultDict], "Returns list of TypedDict"]:
+    """Tool that returns a list of TypedDict."""
+    return [
+        ResultDict(status="first", count=1, items=["x"]),
+        ResultDict(status="second", count=2, items=["y", "z"]),
+    ]
+
+
+@tool
+def dict_output_tool() -> Annotated[dict, "Returns a plain dict"]:
+    """Tool that returns a plain dict."""
+    return {"key": "value", "number": 42, "nested": {"inner": "data"}}
+
+
 # ---- Test Driver ----
 
 catalog = ToolCatalog()
@@ -90,6 +121,9 @@ catalog.add_tool(context_required_error_tool, "simple_toolkit")
 catalog.add_tool(upstream_error_tool, "simple_toolkit")
 catalog.add_tool(upstream_ratelimit_error_tool, "simple_toolkit")
 catalog.add_tool(bad_output_error_tool, "simple_toolkit")
+catalog.add_tool(typeddict_output_tool, "simple_toolkit")
+catalog.add_tool(list_typeddict_output_tool, "simple_toolkit")
+catalog.add_tool(dict_output_tool, "simple_toolkit")
 
 
 @pytest.mark.asyncio
@@ -227,6 +261,26 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
                 )
             ),
         ),
+        (
+            typeddict_output_tool,
+            {},
+            ToolCallOutput(value={"status": "success", "count": 3, "items": ["a", "b", "c"]}),
+        ),
+        (
+            list_typeddict_output_tool,
+            {},
+            ToolCallOutput(
+                value=[
+                    {"status": "first", "count": 1, "items": ["x"]},
+                    {"status": "second", "count": 2, "items": ["y", "z"]},
+                ]
+            ),
+        ),
+        (
+            dict_output_tool,
+            {},
+            ToolCallOutput(value={"key": "value", "number": 42, "nested": {"inner": "data"}}),
+        ),
     ],
     ids=[
         "simple_tool",
@@ -239,6 +293,9 @@ catalog.add_tool(bad_output_error_tool, "simple_toolkit")
         "upstream_error_tool",
         "upstream_ratelimit_error_tool",
         "bad_output_type",
+        "typeddict_output",
+        "list_typeddict_output",
+        "dict_output",
     ],
 )
 async def test_tool_executor(tool_func, inputs, expected_output):

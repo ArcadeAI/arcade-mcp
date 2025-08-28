@@ -59,19 +59,36 @@ def display_tool_details(tool: ToolDefinition, worker: bool = False) -> None:  #
         inputs_table.add_column("Type", style="magenta")
         inputs_table.add_column("Required", style="yellow")
         inputs_table.add_column("Description", style="white")
-        inputs_table.add_column("Default", style="blue")
+
         for param in inputs:
-            # Since InputParameter does not have a default field, we use "N/A"
-            default_value = "N/A"
-            if param.value_schema.enum:
-                default_value = f"One of {param.value_schema.enum}"
+            # Format the type string properly
+            type_str = _format_type_string(param.value_schema)
+
+            # Add the main parameter row
             inputs_table.add_row(
                 param.name,
-                param.value_schema.val_type,
+                type_str,
                 str(param.required),
                 param.description or "",
-                default_value,
             )
+
+            # If this is a json type with properties, show them
+            if (
+                param.value_schema.val_type == "json"
+                and hasattr(param.value_schema, "properties")
+                and param.value_schema.properties
+            ):
+                _add_nested_properties(inputs_table, param.value_schema.properties, indent=1)
+            # Handle arrays with inner properties
+            elif (
+                param.value_schema.val_type == "array"
+                and hasattr(param.value_schema, "inner_properties")
+                and param.value_schema.inner_properties
+            ):
+                _add_nested_properties(
+                    inputs_table, param.value_schema.inner_properties, indent=1, is_array_item=True
+                )
+
         inputs_panel = Panel(
             inputs_table,
             title="Input Parameters",
@@ -241,7 +258,7 @@ def _add_nested_properties(
     is_array_item: bool = False,
 ) -> None:
     """
-    Recursively add nested properties to the output table.
+    Recursively add nested properties to the table.
 
     Args:
         table: The Rich table to add rows to
@@ -253,11 +270,14 @@ def _add_nested_properties(
 
     # Show array item indicator if needed
     if is_array_item and indent > 0:
-        table.add_row(
-            f"{indent_prefix[:-2]}[item]",
-            "",
-            "[dim]Each item in array:[/dim]",
-        )
+        # Get column count from the table
+        num_columns = len(table.columns)
+
+        # Create a row with the array indicator in the first column and empty strings for the rest
+        row_data = [f"{indent_prefix[:-2]}[item]"] + [""] * (num_columns - 1)
+        if num_columns >= 3:
+            row_data[2] = "[dim]Each item in array:[/dim]"
+        table.add_row(*row_data)
 
     for prop_name, prop_schema in properties.items():
         # Format the type string
@@ -269,11 +289,19 @@ def _add_nested_properties(
         if hasattr(prop_schema, "description") and prop_schema.description:
             description = prop_schema.description
 
-        table.add_row(
-            f"{indent_prefix}{prop_name}",
-            type_str,
-            f"[dim]{description}[/dim]" if description else "",
-        )
+        # Create row data based on number of columns
+        num_columns = len(table.columns)
+        row_data = [f"{indent_prefix}{prop_name}", type_str]
+
+        # For input parameter tables (4 columns), add empty required column
+        if num_columns == 4:
+            row_data.append("")  # Empty "Required" column for nested properties
+            row_data.append(f"[dim]{description}[/dim]" if description else "")
+        # For output tables (3 columns), just add description
+        elif num_columns == 3:
+            row_data.append(f"[dim]{description}[/dim]" if description else "")
+
+        table.add_row(*row_data)
 
         # Recursively add nested properties if this is a json type with properties
         if (
