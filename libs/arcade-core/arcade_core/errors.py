@@ -29,21 +29,26 @@ class ErrorPhase(str, Enum):
 class ErrorCode(str, Enum):
     """Error codes."""
 
+    # Toolkit Load error codes
     LOAD_FAILED = "LOAD_FAILED"
+    # Tool Definition error codes
     BAD_DEFINITION = "BAD_DEFINITION"
     BAD_INPUT_SCHEMA = "BAD_INPUT_SCHEMA"
     BAD_OUTPUT_SCHEMA = "BAD_OUTPUT_SCHEMA"
+    # Tool Runtime error codes
     BAD_INPUT_VALUE = "BAD_INPUT_VALUE"
     BAD_OUTPUT_VALUE = "BAD_OUTPUT_VALUE"
     RETRY_TOOL = "RETRY_TOOL"
     CONTEXT_REQUIRED = "CONTEXT_REQUIRED"
     FATAL = "FATAL"
+    # Upstream Runtime error codes
     BAD_REQUEST = "BAD_REQUEST"
     AUTH_ERROR = "AUTH_ERROR"
     NOT_FOUND = "NOT_FOUND"
     VALIDATION_ERROR = "VALIDATION_ERROR"
     RATE_LIMIT = "RATE_LIMIT"
     SERVER_ERROR = "SERVER_ERROR"
+    # Unknown error code
     UNKNOWN = "UNKNOWN"
 
 

@@ -36,13 +36,13 @@ def simple_deprecated_tool(inp: Annotated[str, "input"]) -> Annotated[str, "outp
 @tool
 def retryable_error_tool() -> Annotated[str, "output"]:
     """Tool that raises a retryable error"""
-    raise RetryableToolError("test", "test", "additional prompt content", 1000)
+    raise RetryableToolError("test", "test developer message", "additional prompt content", 1000)
 
 
 @tool
 def tool_execution_error_tool() -> Annotated[str, "output"]:
     """Tool that raises an error"""
-    raise ToolExecutionError("test", "test")
+    raise ToolExecutionError("test", "test developer message")
 
 
 @tool
@@ -110,20 +110,23 @@ def dict_output_tool() -> Annotated[dict, "Returns a plain dict"]:
 
 
 # ---- Test Driver ----
-
+tools = [
+    simple_tool,
+    simple_deprecated_tool,
+    retryable_error_tool,
+    tool_execution_error_tool,
+    unexpected_error_tool,
+    context_required_error_tool,
+    upstream_error_tool,
+    upstream_ratelimit_error_tool,
+    bad_output_error_tool,
+    typeddict_output_tool,
+    list_typeddict_output_tool,
+    dict_output_tool,
+]
 catalog = ToolCatalog()
-catalog.add_tool(simple_tool, "simple_toolkit")
-catalog.add_tool(simple_deprecated_tool, "simple_toolkit")
-catalog.add_tool(retryable_error_tool, "simple_toolkit")
-catalog.add_tool(tool_execution_error_tool, "simple_toolkit")
-catalog.add_tool(unexpected_error_tool, "simple_toolkit")
-catalog.add_tool(context_required_error_tool, "simple_toolkit")
-catalog.add_tool(upstream_error_tool, "simple_toolkit")
-catalog.add_tool(upstream_ratelimit_error_tool, "simple_toolkit")
-catalog.add_tool(bad_output_error_tool, "simple_toolkit")
-catalog.add_tool(typeddict_output_tool, "simple_toolkit")
-catalog.add_tool(list_typeddict_output_tool, "simple_toolkit")
-catalog.add_tool(dict_output_tool, "simple_toolkit")
+for tool_func in tools:
+    catalog.add_tool(tool_func, "simple_toolkit")
 
 
 @pytest.mark.asyncio
@@ -154,7 +157,7 @@ catalog.add_tool(dict_output_tool, "simple_toolkit")
                     origin=ErrorOrigin.TOOL,
                     phase=ErrorPhase.RUNTIME,
                     code=ErrorCode.RETRY_TOOL,
-                    developer_message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test",
+                    developer_message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test developer message",
                     additional_prompt_content="additional prompt content",
                     retry_after_ms=1000,
                     can_retry=True,
@@ -170,7 +173,7 @@ catalog.add_tool(dict_output_tool, "simple_toolkit")
                     origin=ErrorOrigin.TOOL,
                     phase=ErrorPhase.RUNTIME,
                     code=ErrorCode.FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test",
+                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test developer message",
                     can_retry=False,
                 )
             ),
@@ -186,6 +189,7 @@ catalog.add_tool(dict_output_tool, "simple_toolkit")
                     code=ErrorCode.FATAL,
                     developer_message="[TOOL_RUNTIME_FATAL] FatalToolError in execution of tool 'unexpected_error_tool': test",
                     can_retry=False,
+                    status_code=500,
                 )
             ),
         ),
@@ -315,26 +319,30 @@ async def test_tool_executor(tool_func, inputs, expected_output):
     check_output(output, expected_output)
 
 
+def check_output_error(output_error: ToolCallError, expected_error: ToolCallError):
+    assert output_error.message == expected_error.message, "message mismatch"
+    assert output_error.origin == expected_error.origin, "origin mismatch"
+    assert output_error.phase == expected_error.phase, "phase mismatch"
+    assert output_error.code == expected_error.code, "code mismatch"
+    if expected_error.developer_message:
+        assert (
+            output_error.developer_message == expected_error.developer_message
+        ), "developer message mismatch"
+    assert output_error.can_retry == expected_error.can_retry, "can retry mismatch"
+    assert (
+        output_error.additional_prompt_content == expected_error.additional_prompt_content
+    ), "additional prompt content mismatch"
+    assert output_error.retry_after_ms == expected_error.retry_after_ms, "retry after ms mismatch"
+    if expected_error.stacktrace:
+        assert output_error.stacktrace == expected_error.stacktrace, "stacktrace mismatch"
+    assert output_error.status_code == expected_error.status_code, "status code mismatch"
+    assert output_error.extra == expected_error.extra, "extra mismatch"
+
+
 def check_output(output: ToolCallOutput, expected_output: ToolCallOutput):
-    # execution error in tool
+    # error in ToolCallOutput
     if output.error:
-        assert output.error.message == expected_output.error.message, "message mismatch"
-        if expected_output.error.developer_message:
-            assert (
-                output.error.developer_message == expected_output.error.developer_message
-            ), "developer message mismatch"
-        if expected_output.error.stacktrace:
-            assert (
-                output.error.stacktrace == expected_output.error.stacktrace
-            ), "stacktrace mismatch"
-        assert output.error.can_retry == expected_output.error.can_retry, "can retry mismatch"
-        assert (
-            output.error.additional_prompt_content
-            == expected_output.error.additional_prompt_content
-        ), "additional prompt content mismatch"
-        assert (
-            output.error.retry_after_ms == expected_output.error.retry_after_ms
-        ), "retry after ms mismatch"
+        check_output_error(output.error, expected_output.error)
 
     # normal tool execution
     else:

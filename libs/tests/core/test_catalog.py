@@ -485,3 +485,33 @@ def test_add_toolkit_with_invalid_tools(
                 "Annotated", "typing.Annotated"
             )
         assert expected_error_substring in actual_error_message
+
+
+def test_add_toolkit_with_duplicate_tool():
+    """Test that add_toolkit raises ToolkitLoadError when a tool already exists in the catalog."""
+    catalog = ToolCatalog()
+
+    test_toolkit = Toolkit(
+        name="test_toolkit",
+        description="A test toolkit",
+        version="1.0.0",
+        package_name="test_toolkit",
+    )
+    test_toolkit.tools = {"tests.core.test_catalog": ["valid_tool", "valid_tool"]}
+
+    # Mock the import_module to return the current module
+    import sys
+
+    current_module = sys.modules[__name__]
+
+    with patch("arcade_core.catalog.import_module") as mock_import:
+        mock_import.return_value = current_module
+
+        # Adding the toolkit should raise ToolkitLoadError for duplicate tool
+        with pytest.raises(ToolkitLoadError) as exc_info:
+            catalog.add_toolkit(test_toolkit)
+
+        # Check that the error message contains the expected substring
+        assert "Tool 'ValidTool' in toolkit 'test_toolkit' already exists in the catalog." in str(
+            exc_info.value
+        )
