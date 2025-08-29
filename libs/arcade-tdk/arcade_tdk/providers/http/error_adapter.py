@@ -34,6 +34,9 @@ class BaseHTTPErrorMapper:
             return 1_000
         # Rate limit header is a number of seconds
         if val.isdigit():
+            key = next((h for h in RATE_HEADERS if headers.get(h) == val), "")
+            if key.endswith("ms"):
+                return int(val)
             return int(val) * 1_000
         # Rate limit header is an absolute date
         try:

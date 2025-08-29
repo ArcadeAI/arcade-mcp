@@ -5,6 +5,7 @@ from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import (
     ContextRequiredToolError,
     ErrorKind,
+    ToolRuntimeError,
     UpstreamError,
     UpstreamRateLimitError,
 )
@@ -72,6 +73,12 @@ def upstream_ratelimit_error_tool() -> Annotated[str, "output"]:
 
 
 @tool
+def tool_runtime_error_tool() -> Annotated[str, "output"]:
+    """Tool that raises a tool runtime error"""
+    raise ToolRuntimeError("test", "test developer message")
+
+
+@tool
 def bad_output_error_tool() -> Annotated[str, "output"]:
     """tool that returns a bad output type"""
     return {"output": "test"}
@@ -117,6 +124,7 @@ tools = [
     context_required_error_tool,
     upstream_error_tool,
     upstream_ratelimit_error_tool,
+    tool_runtime_error_tool,
     bad_output_error_tool,
     typeddict_output_tool,
     list_typeddict_output_tool,
@@ -236,6 +244,18 @@ for tool_func in tools:
             ),
         ),
         (
+            tool_runtime_error_tool,
+            {},
+            ToolCallOutput(
+                error=ToolCallError(
+                    message="[TOOL_RUNTIME_FATAL] ToolRuntimeError during execution of tool 'tool_runtime_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_FATAL,
+                    developer_message="[TOOL_RUNTIME_FATAL] ToolRuntimeError during execution of tool 'tool_runtime_error_tool': test developer message",
+                    can_retry=False,
+                )
+            ),
+        ),
+        (
             bad_output_error_tool,
             {},
             ToolCallOutput(
@@ -278,6 +298,7 @@ for tool_func in tools:
         "context_required_error_tool",
         "upstream_error_tool",
         "upstream_ratelimit_error_tool",
+        "tool_runtime_error_tool",
         "bad_output_type",
         "typeddict_output",
         "list_typeddict_output",
