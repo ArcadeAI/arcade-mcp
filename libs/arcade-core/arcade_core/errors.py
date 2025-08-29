@@ -1,54 +1,35 @@
 import traceback
+import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
 # TODO: break out into separate files
 # TODO: determine which errors should be abstract. (can't break backwards compatibility)
-# TODO: should classes help build up the message/developer_message?
 
 
-class ErrorOrigin(str, Enum):
-    """Where the error originated."""
+class ErrorKind(str, Enum):
+    """Error kind that is comprised of
+    - the who (toolkit, tool, upstream)
+    - the when (load time, definition parsing time, runtime)
+    - the what (bad_definition, bad_input, bad_output, retry, context_required, fatal, etc.)"""
 
-    TOOLKIT = "TOOLKIT"
-    TOOL = "TOOL"
-    UPSTREAM = "UPSTREAM"
-    UNKNOWN = "UNKNOWN"
-
-
-class ErrorPhase(str, Enum):
-    """When the error occurred."""
-
-    LOAD = "LOAD"
-    DEFINITION = "DEFINITION"
-    RUNTIME = "RUNTIME"
-    UNKNOWN = "UNKNOWN"
-
-
-class ErrorCode(str, Enum):
-    """Error codes."""
-
-    # Toolkit Load error codes
-    LOAD_FAILED = "LOAD_FAILED"
-    # Tool Definition error codes
-    BAD_DEFINITION = "BAD_DEFINITION"
-    BAD_INPUT_SCHEMA = "BAD_INPUT_SCHEMA"
-    BAD_OUTPUT_SCHEMA = "BAD_OUTPUT_SCHEMA"
-    # Tool Runtime error codes
-    BAD_INPUT_VALUE = "BAD_INPUT_VALUE"
-    BAD_OUTPUT_VALUE = "BAD_OUTPUT_VALUE"
-    RETRY_TOOL = "RETRY_TOOL"
-    CONTEXT_REQUIRED = "CONTEXT_REQUIRED"
-    FATAL = "FATAL"
-    # Upstream Runtime error codes
-    BAD_REQUEST = "BAD_REQUEST"
-    AUTH_ERROR = "AUTH_ERROR"
-    NOT_FOUND = "NOT_FOUND"
-    VALIDATION_ERROR = "VALIDATION_ERROR"
-    RATE_LIMIT = "RATE_LIMIT"
-    SERVER_ERROR = "SERVER_ERROR"
-    # Unknown error code
+    TOOLKIT_LOAD_FAILED = "TOOLKIT_LOAD_FAILED"
+    TOOL_DEFINITION_BAD_DEFINITION = "TOOL_DEFINITION_BAD_DEFINITION"
+    TOOL_DEFINITION_BAD_INPUT_SCHEMA = "TOOL_DEFINITION_BAD_INPUT_SCHEMA"
+    TOOL_DEFINITION_BAD_OUTPUT_SCHEMA = "TOOL_DEFINITION_BAD_OUTPUT_SCHEMA"
+    TOOL_RUNTIME_BAD_INPUT_VALUE = "TOOL_RUNTIME_BAD_INPUT_VALUE"
+    TOOL_RUNTIME_BAD_OUTPUT_VALUE = "TOOL_RUNTIME_BAD_OUTPUT_VALUE"
+    TOOL_RUNTIME_RETRY = "TOOL_RUNTIME_RETRY"
+    TOOL_RUNTIME_CONTEXT_REQUIRED = "TOOL_RUNTIME_CONTEXT_REQUIRED"
+    TOOL_RUNTIME_FATAL = "TOOL_RUNTIME_FATAL"
+    UPSTREAM_RUNTIME_BAD_REQUEST = "UPSTREAM_RUNTIME_BAD_REQUEST"
+    UPSTREAM_RUNTIME_AUTH_ERROR = "UPSTREAM_RUNTIME_AUTH_ERROR"
+    UPSTREAM_RUNTIME_NOT_FOUND = "UPSTREAM_RUNTIME_NOT_FOUND"
+    UPSTREAM_RUNTIME_VALIDATION_ERROR = "UPSTREAM_RUNTIME_VALIDATION_ERROR"
+    UPSTREAM_RUNTIME_RATE_LIMIT = "UPSTREAM_RUNTIME_RATE_LIMIT"
+    UPSTREAM_RUNTIME_SERVER_ERROR = "UPSTREAM_RUNTIME_SERVER_ERROR"
+    UPSTREAM_RUNTIME_UNMAPPED = "UPSTREAM_RUNTIME_UNMAPPED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -61,9 +42,7 @@ class ToolkitError(Exception, ABC):
     These errors are ultimately converted to the ToolCallError schema.
     Attributes expected from subclasses:
       message                   : str                    # user-facing error message
-      origin                    : ErrorOrigin            # where the error originated
-      phase                     : ErrorPhase             # when the error occurred
-      code                      : ErrorCode              # machine-readable error code
+      kind                      : ErrorKind              # the error kind
       can_retry                 : bool                   # whether the operation can be retried
       developer_message         : str | None             # developer-facing error details
       status_code               : int | None             # HTTP status code when relevant
@@ -100,6 +79,21 @@ class ToolkitError(Exception, ABC):
 
         return self
 
+    @property
+    def is_toolkit_error(self) -> bool:
+        """Check if this error originated from loading a toolkit."""
+        return hasattr(self, "kind") and self.kind.name.startswith("TOOLKIT_")
+
+    @property
+    def is_tool_error(self) -> bool:
+        """Check if this error originated from a tool."""
+        return hasattr(self, "kind") and self.kind.name.startswith("TOOL_")
+
+    @property
+    def is_upstream_error(self) -> bool:
+        """Check if this error originated from an upstream service."""
+        return hasattr(self, "kind") and self.kind.name.startswith("UPSTREAM_")
+
     def __str__(self) -> str:
         return self.message
 
@@ -110,9 +104,7 @@ class ToolkitLoadError(ToolkitError):
     (e.g. missing dependency, SyntaxError in module top-level code).
     """
 
-    origin: ErrorOrigin = ErrorOrigin.TOOLKIT
-    phase: ErrorPhase = ErrorPhase.LOAD
-    code: ErrorCode = ErrorCode.LOAD_FAILED
+    kind: ErrorKind = ErrorKind.TOOLKIT_LOAD_FAILED
     can_retry: bool = False
 
     def __init__(self, message: str) -> None:
@@ -120,7 +112,7 @@ class ToolkitLoadError(ToolkitError):
         self.message = message
 
     def create_message_prefix(self, toolkit_name: str) -> str:
-        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} when loading toolkit '{toolkit_name}': "
+        return f"[{self.kind.value}] {type(self).__name__} when loading toolkit '{toolkit_name}': "
 
 
 class ToolError(ToolkitError):
@@ -139,43 +131,37 @@ class ToolDefinitionError(ToolError):
     Note: This class is not intended to be instantiated directly.
     """
 
-    origin: ErrorOrigin = ErrorOrigin.TOOL
-    phase: ErrorPhase = ErrorPhase.DEFINITION
-    code: ErrorCode = ErrorCode.BAD_DEFINITION
+    kind: ErrorKind = ErrorKind.TOOL_DEFINITION_BAD_DEFINITION
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
 
     def create_message_prefix(self, tool_name: str) -> str:
-        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} in definition of tool '{tool_name}': "
+        return f"[{self.kind.value}] {type(self).__name__} in definition of tool '{tool_name}': "
 
 
 class ToolInputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's input parameter."""
 
-    code: ErrorCode = ErrorCode.BAD_INPUT_SCHEMA
+    kind: ErrorKind = ErrorKind.TOOL_DEFINITION_BAD_INPUT_SCHEMA
 
 
 class ToolOutputSchemaError(ToolDefinitionError):
     """Raised when there is an error in the schema of a tool's output parameter."""
 
-    code: ErrorCode = ErrorCode.BAD_OUTPUT_SCHEMA
+    kind: ErrorKind = ErrorKind.TOOL_DEFINITION_BAD_OUTPUT_SCHEMA
 
 
 # ------  runtime errors ------
-class ToolRuntimeError(
-    ToolError, RuntimeError
-):  # TODO: does it matter if this is a subclass of RuntimeError?
+class ToolRuntimeError(ToolError, RuntimeError):
     """
     Any failure starting from when the tool call begins until the tool call returns.
 
     Note: This class is not intended to be instantiated directly.
     """
 
-    origin: ErrorOrigin = ErrorOrigin.TOOL
-    phase: ErrorPhase = ErrorPhase.RUNTIME
-    code: ErrorCode = ErrorCode.FATAL
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL
     can_retry: bool = False
     status_code: int | None = None
     extra: dict[str, Any] | None = None
@@ -193,7 +179,7 @@ class ToolRuntimeError(
         self.extra = extra
 
     def create_message_prefix(self, tool_name: str) -> str:
-        return f"[{self.origin.value}_{self.phase.value}_{self.code.value}] {type(self).__name__} in execution of tool '{tool_name}': "
+        return f"[{self.kind.value}] {type(self).__name__} during execution of tool '{tool_name}': "
 
     def stacktrace(self) -> str | None:
         if self.__cause__:
@@ -205,9 +191,7 @@ class ToolRuntimeError(
         return {
             "message": self.message,
             "developer_message": self.developer_message,
-            "origin": self.origin,
-            "code": self.code,
-            "phase": self.phase,
+            "kind": self.kind,
             "can_retry": self.can_retry,
             "status_code": self.status_code,
             **(self.extra or {}),
@@ -230,7 +214,7 @@ class ToolInputError(ToolSerializationError):
     Raised when there is an error parsing a tool call argument.
     """
 
-    code: ErrorCode = ErrorCode.BAD_INPUT_VALUE
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE
     status_code: int = 400
 
 
@@ -239,18 +223,39 @@ class ToolOutputError(ToolSerializationError):
     Raised when there is an error serializing a tool call return value.
     """
 
-    code: ErrorCode = ErrorCode.BAD_OUTPUT_VALUE
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE
     status_code: int = 500
 
 
 # 2. ------  tool-body errors ------
 class ToolExecutionError(ToolRuntimeError):
     """
-    Raised when there is an error executing a tool.
+    DEPRECATED: Raised when there is an error executing a tool.
+
+    ToolExecutionError is deprecated and will be removed in a future major version.
+    Use more specific error types instead:
+    - RetryableToolError for retryable errors
+    - ContextRequiredToolError for errors requiring user context
+    - FatalToolError for fatal/unexpected errors
+    - UpstreamError for upstream service errors
+    - UpstreamRateLimitError for upstream rate limiting errors
     """
 
-    origin: ErrorOrigin = ErrorOrigin.TOOL
-    phase: ErrorPhase = ErrorPhase.RUNTIME
+    def __init__(
+        self,
+        message: str,
+        developer_message: str | None = None,
+        *,
+        extra: dict[str, Any] | None = None,
+    ):
+        warnings.warn(
+            "ToolExecutionError is deprecated and will be removed in a future major version. "
+            "Use more specific error types instead: RetryableToolError, ContextRequiredToolError, "
+            "FatalToolError, UpstreamError, or UpstreamRateLimitError.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(message, developer_message=developer_message, extra=extra)
 
 
 class RetryableToolError(ToolExecutionError):
@@ -258,7 +263,7 @@ class RetryableToolError(ToolExecutionError):
     Raised when a tool execution error is retryable.
     """
 
-    code: ErrorCode = ErrorCode.RETRY_TOOL
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_RETRY
     can_retry: bool = True
 
     def __init__(
@@ -281,14 +286,14 @@ class ContextRequiredToolError(ToolExecutionError):
     additional context from the end-user/orchestrator is required before retrying the tool.
     """
 
-    code: ErrorCode = ErrorCode.CONTEXT_REQUIRED
+    kind: ErrorKind = ErrorKind.TOOL_RUNTIME_CONTEXT_REQUIRED
 
     def __init__(
         self,
         message: str,
-        *,
         developer_message: str | None = None,
-        additional_prompt_content: str | None = None,  # TODO: Should be required?
+        additional_prompt_content: str | None = None,
+        *,
         extra: dict[str, Any] | None = None,
     ):
         super().__init__(message, developer_message=developer_message, extra=extra)
@@ -305,8 +310,8 @@ class FatalToolError(ToolExecutionError):
     def __init__(
         self,
         message: str,
-        *,
         developer_message: str | None = None,
+        *,
         extra: dict[str, Any] | None = None,
     ):
         super().__init__(message, developer_message=developer_message, extra=extra)
@@ -321,34 +326,31 @@ class UpstreamError(ToolExecutionError):
     The status_code and extra dict provide details about the specific error type.
     """
 
-    origin: ErrorOrigin = ErrorOrigin.UPSTREAM
-    phase: ErrorPhase = ErrorPhase.RUNTIME
-
     def __init__(
         self,
         message: str,
+        developer_message: str | None = None,
         *,
         status_code: int,
-        developer_message: str | None = None,
         extra: dict[str, Any] | None = None,
     ):
         super().__init__(message, developer_message=developer_message, extra=extra)
         self.status_code = status_code
         # Determine retryability based on status code
         self.can_retry = status_code >= 500 or status_code == 429
-        # Set appropriate error code based on status
+        # Set appropriate error kind based on status
         if status_code in (401, 403):
-            self.code = ErrorCode.AUTH_ERROR
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_AUTH_ERROR
         elif status_code == 404:
-            self.code = ErrorCode.NOT_FOUND
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_NOT_FOUND
         elif status_code == 429:
-            self.code = ErrorCode.RATE_LIMIT
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT
         elif status_code >= 500:
-            self.code = ErrorCode.SERVER_ERROR
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_SERVER_ERROR
         elif 400 <= status_code < 500:
-            self.code = ErrorCode.BAD_REQUEST
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST
         else:
-            self.code = ErrorCode.FATAL
+            self.kind = ErrorKind.UPSTREAM_RUNTIME_UNMAPPED
 
 
 class UpstreamRateLimitError(UpstreamError):
@@ -358,15 +360,15 @@ class UpstreamRateLimitError(UpstreamError):
     Special case of UpstreamError that includes retry_after_ms information.
     """
 
-    code: ErrorCode = ErrorCode.RATE_LIMIT
+    kind: ErrorKind = ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT
     can_retry: bool = True
 
     def __init__(
         self,
         message: str,
         retry_after_ms: int,
-        *,
         developer_message: str | None = None,
+        *,
         extra: dict[str, Any] | None = None,
     ):
         super().__init__(message, status_code=429, developer_message=developer_message, extra=extra)

@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
+from arcade_core.errors import ErrorKind
 
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
@@ -392,12 +392,8 @@ class ToolCallError(BaseModel):
 
     message: str
     """The user-facing error message."""
-    origin: ErrorOrigin
-    """The origin of the error."""
-    phase: ErrorPhase
-    """The phase of the error."""
-    code: ErrorCode
-    """The machine-readable code of the error."""
+    kind: ErrorKind
+    """The error kind that uniquely identifies the kind of error."""
     developer_message: str | None = None
     """The developer-facing error details."""
     can_retry: bool = False
@@ -412,6 +408,21 @@ class ToolCallError(BaseModel):
     """The HTTP status code of the error."""
     extra: dict[str, Any] | None = None
     """Additional information about the error."""
+
+    @property
+    def is_toolkit_error(self) -> bool:
+        """Check if this error originated from loading a toolkit."""
+        return self.kind.name.startswith("TOOLKIT_")
+
+    @property
+    def is_tool_error(self) -> bool:
+        """Check if this error originated from a tool."""
+        return self.kind.name.startswith("TOOL_")
+
+    @property
+    def is_upstream_error(self) -> bool:
+        """Check if this error originated from an upstream service."""
+        return self.kind.name.startswith("UPSTREAM_")
 
 
 class ToolCallRequiresAuthorization(BaseModel):

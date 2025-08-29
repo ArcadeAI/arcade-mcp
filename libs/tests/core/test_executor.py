@@ -4,9 +4,7 @@ import pytest
 from arcade_core.catalog import ToolCatalog
 from arcade_core.errors import (
     ContextRequiredToolError,
-    ErrorCode,
-    ErrorOrigin,
-    ErrorPhase,
+    ErrorKind,
     UpstreamError,
     UpstreamRateLimitError,
 )
@@ -153,11 +151,9 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.RETRY_TOOL,
-                    developer_message="[TOOL_RUNTIME_RETRY_TOOL] RetryableToolError in execution of tool 'retryable_error_tool': test developer message",
+                    message="[TOOL_RUNTIME_RETRY] RetryableToolError during execution of tool 'retryable_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_RETRY,
+                    developer_message="[TOOL_RUNTIME_RETRY] RetryableToolError during execution of tool 'retryable_error_tool': test developer message",
                     additional_prompt_content="additional prompt content",
                     retry_after_ms=1000,
                     can_retry=True,
@@ -169,11 +165,9 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError in execution of tool 'tool_execution_error_tool': test developer message",
+                    message="[TOOL_RUNTIME_FATAL] ToolExecutionError during execution of tool 'tool_execution_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_FATAL,
+                    developer_message="[TOOL_RUNTIME_FATAL] ToolExecutionError during execution of tool 'tool_execution_error_tool': test developer message",
                     can_retry=False,
                 )
             ),
@@ -183,11 +177,9 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_FATAL] FatalToolError in execution of tool 'unexpected_error_tool': test",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.FATAL,
-                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError in execution of tool 'unexpected_error_tool': test",
+                    message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_FATAL,
+                    developer_message="[TOOL_RUNTIME_FATAL] FatalToolError during execution of tool 'unexpected_error_tool': test",
                     can_retry=False,
                     status_code=500,
                 )
@@ -198,10 +190,8 @@ for tool_func in tools:
             {"inp": {"test": "test"}},  # takes in a string not a dict
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError in execution of tool 'simple_tool': Error in tool input deserialization",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.BAD_INPUT_VALUE,
+                    message="[TOOL_RUNTIME_BAD_INPUT_VALUE] ToolInputError during execution of tool 'simple_tool': Error in tool input deserialization",
+                    kind=ErrorKind.TOOL_RUNTIME_BAD_INPUT_VALUE,
                     status_code=400,
                     developer_message=None,  # can't gaurantee this will be the same
                 )
@@ -212,10 +202,8 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_CONTEXT_REQUIRED] ContextRequiredToolError in execution of tool 'context_required_error_tool': test",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.CONTEXT_REQUIRED,
+                    message="[TOOL_RUNTIME_CONTEXT_REQUIRED] ContextRequiredToolError during execution of tool 'context_required_error_tool': test",
+                    kind=ErrorKind.TOOL_RUNTIME_CONTEXT_REQUIRED,
                     developer_message=None,
                     additional_prompt_content="need the user to clarify something",
                 )
@@ -226,10 +214,8 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[UPSTREAM_RUNTIME_BAD_REQUEST] UpstreamError in execution of tool 'upstream_error_tool': test",
-                    origin=ErrorOrigin.UPSTREAM,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.BAD_REQUEST,
+                    message="[UPSTREAM_RUNTIME_BAD_REQUEST] UpstreamError during execution of tool 'upstream_error_tool': test",
+                    kind=ErrorKind.UPSTREAM_RUNTIME_BAD_REQUEST,
                     status_code=400,
                     developer_message=None,
                 )
@@ -240,10 +226,8 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[UPSTREAM_RUNTIME_RATE_LIMIT] UpstreamRateLimitError in execution of tool 'upstream_ratelimit_error_tool': test",
-                    origin=ErrorOrigin.UPSTREAM,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.RATE_LIMIT,
+                    message="[UPSTREAM_RUNTIME_RATE_LIMIT] UpstreamRateLimitError during execution of tool 'upstream_ratelimit_error_tool': test",
+                    kind=ErrorKind.UPSTREAM_RUNTIME_RATE_LIMIT,
                     status_code=429,
                     developer_message=None,
                     retry_after_ms=1000,
@@ -256,10 +240,8 @@ for tool_func in tools:
             {},
             ToolCallOutput(
                 error=ToolCallError(
-                    message="[TOOL_RUNTIME_BAD_OUTPUT_VALUE] ToolOutputError in execution of tool 'bad_output_error_tool': Failed to serialize tool output",
-                    origin=ErrorOrigin.TOOL,
-                    phase=ErrorPhase.RUNTIME,
-                    code=ErrorCode.BAD_OUTPUT_VALUE,
+                    message="[TOOL_RUNTIME_BAD_OUTPUT_VALUE] ToolOutputError during execution of tool 'bad_output_error_tool': Failed to serialize tool output",
+                    kind=ErrorKind.TOOL_RUNTIME_BAD_OUTPUT_VALUE,
                     status_code=500,
                     developer_message=None,  # can't gaurantee this will be the same
                 )
@@ -321,9 +303,7 @@ async def test_tool_executor(tool_func, inputs, expected_output):
 
 def check_output_error(output_error: ToolCallError, expected_error: ToolCallError):
     assert output_error.message == expected_error.message, "message mismatch"
-    assert output_error.origin == expected_error.origin, "origin mismatch"
-    assert output_error.phase == expected_error.phase, "phase mismatch"
-    assert output_error.code == expected_error.code, "code mismatch"
+    assert output_error.kind == expected_error.kind, "kind mismatch"
     if expected_error.developer_message:
         assert (
             output_error.developer_message == expected_error.developer_message

@@ -2,7 +2,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from arcade_core.errors import ErrorCode, ErrorOrigin, ErrorPhase
+from arcade_core.errors import ErrorKind
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -66,10 +66,8 @@ class ToolOutputFactory:
         logs: list[ToolCallLog] | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
-        origin: ErrorOrigin = ErrorOrigin.UNKNOWN,
-        phase: ErrorPhase = ErrorPhase.UNKNOWN,
+        kind: ErrorKind = ErrorKind.UNKNOWN,
         can_retry: bool = False,
-        code: ErrorCode = ErrorCode.UNKNOWN,
         status_code: int | None = None,
         extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
@@ -81,9 +79,7 @@ class ToolOutputFactory:
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
                 stacktrace=stacktrace,
-                origin=origin,
-                phase=phase,
-                code=code,
+                kind=kind,
                 status_code=status_code,
                 extra=extra,
             ),
@@ -99,9 +95,7 @@ class ToolOutputFactory:
         retry_after_ms: int | None = None,
         stacktrace: str | None = None,
         logs: list[ToolCallLog] | None = None,
-        origin: ErrorOrigin = ErrorOrigin.TOOL,
-        phase: ErrorPhase = ErrorPhase.RUNTIME,
-        code: ErrorCode = ErrorCode.RETRY_TOOL,
+        kind: ErrorKind = ErrorKind.TOOL_RUNTIME_RETRY,
         status_code: int = 500,
         extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
@@ -118,9 +112,7 @@ class ToolOutputFactory:
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
                 stacktrace=stacktrace,
-                origin=origin,
-                phase=phase,
-                code=code,
+                kind=kind,
                 status_code=status_code,
                 extra=extra,
             ),
