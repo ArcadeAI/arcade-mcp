@@ -41,7 +41,9 @@ class Session:
 
 
 class SSEComponent(WorkerComponent):
-    def __init__(self, worker: BaseWorker, local_context: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self, worker: BaseWorker, local_context: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(worker)
         self.sessions: dict[str, Session] = {}
         self.sessions_lock = asyncio.Lock()  # Add lock for thread-safe operations
@@ -100,6 +102,10 @@ class SSEComponent(WorkerComponent):
                     async with self.sessions_lock:
                         self.sessions.pop(session_id, None)
 
+                    # Clean up write stream
+                    if session_id in self.mcp_server.write_streams:
+                        del self.mcp_server.write_streams[session_id]
+
             except asyncio.CancelledError:
                 # Cleanup task cancelled during shutdown
                 break
@@ -134,7 +140,9 @@ class SSEComponent(WorkerComponent):
                 f"{router.worker.base_path}/mcp",
                 self.__call__,
                 methods=["POST"],
-                dependencies=[Depends(auth_dependency)] if not self.worker.disable_auth else [],
+                dependencies=[Depends(auth_dependency)]
+                if not self.worker.disable_auth
+                else [],
                 operation_id="mcp_post",
                 description="MCP POST",
                 summary="MCP POST",
@@ -199,7 +207,9 @@ class SSEComponent(WorkerComponent):
                     while True:
                         try:
                             # Use timeout to periodically check connection health
-                            message = await asyncio.wait_for(session.queue.get(), timeout=30.0)
+                            message = await asyncio.wait_for(
+                                session.queue.get(), timeout=30.0
+                            )
                             if message is None:  # Sentinel value
                                 break
                             yield {"data": json.dumps(message)}
@@ -225,6 +235,10 @@ class SSEComponent(WorkerComponent):
                     async with self.sessions_lock:
                         if session_id in self.sessions:
                             del self.sessions[session_id]
+
+                    # Clean up write stream
+                    if session_id in self.mcp_server.write_streams:
+                        del self.mcp_server.write_streams[session_id]
 
             return EventSourceResponse(event_generator())
         elif request.method == "POST":
@@ -260,15 +274,43 @@ class SSEComponent(WorkerComponent):
                     async with self.sessions_lock:
                         self.sessions[session_id] = session
 
+                    # Create write stream adapter for SSE
+                    class SSEWriteStream:
+                        def __init__(self, session: Session):
+                            self.session = session
+
+                        async def send(self, message: str) -> None:
+                            # Parse message and put in queue
+                            try:
+                                if isinstance(message, str):
+                                    data = json.loads(message)
+                                else:
+                                    data = message
+                                await self.session.queue.put(data)
+                            except Exception:
+                                logger.exception("Error sending SSE notification")
+
+                    # Register write stream with MCP server
+                    self.mcp_server.write_streams[session_id] = SSEWriteStream(
+                        session
+                    )
+
                     try:
-                        response = await self.mcp_server.handle_message(body, user_id=session_id)
+                        response = await self.mcp_server.handle_message(
+                            body, user_id=session_id
+                        )
                         if response:
-                            await session.queue.put(response.model_dump(exclude_none=True))
+                            await session.queue.put(
+                                response.model_dump(exclude_none=True)
+                            )
                     except Exception as e:
                         # Clean up session on error
                         async with self.sessions_lock:
                             if session_id in self.sessions:
                                 del self.sessions[session_id]
+                        # Clean up write stream
+                        if session_id in self.mcp_server.write_streams:
+                            del self.mcp_server.write_streams[session_id]
                         return {
                             "status": "error",
                             "message": f"Failed to initialize: {e!s}",
@@ -288,9 +330,13 @@ class SSEComponent(WorkerComponent):
                 session.touch()
 
                 try:
-                    response = await self.mcp_server.handle_message(body, user_id=session_id)
+                    response = await self.mcp_server.handle_message(
+                        body, user_id=session_id
+                    )
                     if response:
-                        await session.queue.put(response.model_dump(exclude_none=True))
+                        await session.queue.put(
+                            response.model_dump(exclude_none=True)
+                        )
                     return {"status": "ok"}
                 except Exception as e:
                     logger.exception(f"Error processing request: {e}")

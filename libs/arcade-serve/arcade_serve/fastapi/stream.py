@@ -41,7 +41,9 @@ class Session:
 
 
 class StreamComponent(WorkerComponent):
-    def __init__(self, worker: Worker, local_context: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self, worker: Worker, local_context: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(worker)
         self.sessions: dict[str, Session] = {}
         self.sessions_lock = asyncio.Lock()  # Add lock for thread-safe operations
@@ -98,6 +100,10 @@ class StreamComponent(WorkerComponent):
                     async with self.sessions_lock:
                         self.sessions.pop(session_id, None)
 
+                    # Clean up write stream
+                    if session_id in self.mcp_server.write_streams:
+                        del self.mcp_server.write_streams[session_id]
+
             except asyncio.CancelledError:
                 # Cleanup task cancelled during shutdown
                 break
@@ -117,7 +123,9 @@ class StreamComponent(WorkerComponent):
             auth_dependency = self.get_auth_dependency()
             # Register directly with FastAPI to avoid the RequestData wrapper
 
-            dependencies = [Depends(auth_dependency)] if not self.worker.disable_auth else []
+            dependencies = (
+                [Depends(auth_dependency)] if not self.worker.disable_auth else []
+            )
 
             router.app.add_api_route(
                 f"{router.worker.base_path}/mcp",
@@ -196,6 +204,25 @@ class StreamComponent(WorkerComponent):
         async with self.sessions_lock:
             self.sessions[session_id] = session
 
+        # Create write stream adapter for streaming
+        class StreamWriteStream:
+            def __init__(self, session: Session):
+                self.session = session
+
+            async def send(self, message: str) -> None:
+                # Parse message and put in queue
+                try:
+                    if isinstance(message, str):
+                        data = json.loads(message)
+                    else:
+                        data = message
+                    await self.session.queue.put(data)
+                except Exception:
+                    logger.exception("Error sending stream notification")
+
+        # Register write stream with MCP server
+        self.mcp_server.write_streams[session_id] = StreamWriteStream(session)
+
         async def stream_generator():
             # Give the processing task a moment to start
             await asyncio.sleep(0.1)
@@ -203,13 +230,18 @@ class StreamComponent(WorkerComponent):
                 while True:
                     try:
                         # Use timeout to detect stalled connections
-                        message = await asyncio.wait_for(session.queue.get(), timeout=60.0)
+                        message = await asyncio.wait_for(
+                            session.queue.get(), timeout=60.0
+                        )
                         if message is None:  # Sentinel value
                             break
                         yield json.dumps(message) + "\n"
                     except asyncio.TimeoutError:
                         # Send keepalive message
-                        yield (json.dumps({"type": "ping", "timestamp": time.time()}) + "\n")
+                        yield (
+                            json.dumps({"type": "ping", "timestamp": time.time()})
+                            + "\n"
+                        )
                         continue
             except asyncio.CancelledError:
                 # Client disconnected
@@ -222,6 +254,10 @@ class StreamComponent(WorkerComponent):
                 async with self.sessions_lock:
                     if session_id in self.sessions:
                         del self.sessions[session_id]
+
+                # Clean up write stream
+                if session_id in self.mcp_server.write_streams:
+                    del self.mcp_server.write_streams[session_id]
 
         async def process_request(body_bytes: bytes):
             try:
@@ -254,7 +290,9 @@ class StreamComponent(WorkerComponent):
 
                 # Process the request
                 try:
-                    response = await self.mcp_server.handle_message(body, user_id=session_id)
+                    response = await self.mcp_server.handle_message(
+                        body, user_id=session_id
+                    )
                     if response:
                         # Handle both dict and Pydantic model responses
                         if hasattr(response, "model_dump"):
@@ -294,7 +332,9 @@ class StreamComponent(WorkerComponent):
             except Exception:
                 logger.exception("Unexpected error in monitor_disconnect")
 
-        asyncio.run_coroutine_threadsafe(monitor_disconnect(), asyncio.get_running_loop())
+        asyncio.run_coroutine_threadsafe(
+            monitor_disconnect(), asyncio.get_running_loop()
+        )
 
         return StreamingResponse(
             stream_generator(),

@@ -8,6 +8,16 @@ from arcade_core.schema import (
 )
 from arcade_core.toolkit import Toolkit
 
+from arcade_tdk.notifications import (
+    LogLevel,
+    NoOpBackend,
+    NotificationBackend,
+    ProgressContext,
+    ToolLogger,
+    ToolNotifier,
+    create_tool_logger,
+    create_tool_notifier,
+)
 from arcade_tdk.tool import tool
 
 __all__ = [
@@ -19,4 +29,13 @@ __all__ = [
     "ToolSecretItem",
     "Toolkit",
     "tool",
+    # Notifications
+    "LogLevel",
+    "NoOpBackend",
+    "NotificationBackend",
+    "ProgressContext",
+    "ToolLogger",
+    "ToolNotifier",
+    "create_tool_logger",
+    "create_tool_notifier",
 ]
