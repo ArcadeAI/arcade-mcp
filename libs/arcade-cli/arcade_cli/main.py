@@ -808,8 +808,6 @@ def main_callback(
     excluded_commands = {
         login.__name__,
         logout.__name__,
-        serve.__name__,
-        workerup.__name__,
         dashboard.__name__,
     }
     if ctx.invoked_subcommand in excluded_commands:
