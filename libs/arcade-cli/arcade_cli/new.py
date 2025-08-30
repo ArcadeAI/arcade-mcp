@@ -26,8 +26,6 @@ except Exception as e:
 
 ARCADE_TDK_MIN_VERSION = "2.0.0"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.0.0"
-ARCADE_SERVE_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -198,15 +196,19 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "toolkit_author_email": toolkit_author_email,
         "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
-        "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
-        "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
         "is_community_toolkit": is_community_toolkit,
         "is_official_toolkit": is_official_toolkit,
     }
-    template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
+    # Use templates from arcade-mcp package
+    try:
+        from arcade_mcp.templates import get_template_directory
+        template_directory = get_template_directory() / "{{ toolkit_name }}"
+    except ImportError:
+        # Fallback to local templates if arcade-mcp is not installed
+        template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
 
     env = Environment(
         loader=FileSystemLoader(str(template_directory)),
@@ -230,10 +232,6 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
 
 
 def create_deployment(toolkit_directory: Path, toolkit_name: str) -> None:
-    worker_toml = toolkit_directory / "worker.toml"
-    if not worker_toml.exists():
-        create_demo_deployment(worker_toml, toolkit_name)
-    else:
-        pass
-        # Disabled pending bug fix
-        # update_deployment_with_local_packages(worker_toml, toolkit_name)
+    # No longer create worker.toml for MCP servers
+    # The server.py file handles all configuration
+    pass

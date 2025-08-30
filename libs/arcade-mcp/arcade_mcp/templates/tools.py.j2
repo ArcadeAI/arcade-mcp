@@ -1,0 +1,25 @@
+"""Tools for the {{ toolkit_name }} toolkit."""
+
+from arcade_tdk import ToolContext, tool
+
+
+@tool
+def hello(name: str, context: ToolContext) -> str:
+    """
+    Say hello to someone.
+    
+    Args:
+        name: The name to greet
+        context: Tool context (automatically injected)
+        
+    Returns:
+        A greeting message
+    """
+    # Example of using context for logging
+    context.log.info(f"Greeting {name}")
+    
+    return f"Hello, {name}! Welcome to the {{ toolkit_name }} toolkit."
+
+
+# Add more tools below
+# Remember to use the @tool decorator for each tool function

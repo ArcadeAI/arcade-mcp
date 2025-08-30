@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{ package_name }}"
+version = "0.1.0"
+description = "{{ toolkit_description or 'MCP toolkit created with Arcade' }}"
+authors = [
+    {%- if toolkit_author_name and toolkit_author_email %}
+    { name = "{{ toolkit_author_name }}", email = "{{ toolkit_author_email }}" }
+    {%- elif toolkit_author_name %}
+    { name = "{{ toolkit_author_name }}" }
+    {%- else %}
+    { name = "Your Name" }
+    {%- endif %}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-mcp>={{ arcade_ai_min_version }},<{{ arcade_ai_max_version }}",
+    "arcade-tdk>={{ arcade_tdk_min_version }},<{{ arcade_tdk_max_version }}",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["{{ package_name }}*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+disallow_untyped_defs = false

@@ -227,7 +227,7 @@ class CallToolResult(BaseModel):
 
     content: list[dict[str, Any]]
     isError: bool | None = None
-    structuredContent: dict[str, Any] | None = None
+    structuredContent: dict[str, Any] | list[Any] | None = None
     meta_: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 

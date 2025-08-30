@@ -22,6 +22,7 @@ requires-python = ">=3.10"
 dependencies = [
     # CLI dependencies
     "arcade-core>=2.2.2,<3.0.0",
+    "arcade-mcp>=2.0.0,<3.0.0",
     "typer==0.10.0",
     "rich==13.9.4",
     "Jinja2==3.1.6",
@@ -39,8 +40,8 @@ all = [
     "scikit-learn>=1.5.0",
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
-    # serve
-    "arcade-serve>=2.0.0,<3.0.0",
+    # mcp
+    "arcade-mcp>=2.0.0,<3.0.0",
     # tdk
     "arcade-tdk>=2.0.0,<3.0.0",
 ]
@@ -75,6 +76,7 @@ arcade = "arcade_cli.main:cli"
 arcade-core = { workspace = true }
 arcade-tdk = { workspace = true }
 arcade-serve = { workspace = true }
+arcade-mcp = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -91,6 +93,7 @@ members = [
     "libs/arcade-core",
     "libs/arcade-tdk",
     "libs/arcade-serve",
+    "libs/arcade-mcp",
 ]
 
 [tool.mypy]
