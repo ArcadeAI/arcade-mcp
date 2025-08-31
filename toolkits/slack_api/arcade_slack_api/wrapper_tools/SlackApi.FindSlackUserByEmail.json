@@ -11,10 +11,7 @@
     "requires_secrets": null,
     "name": "find_slack_user_by_email",
     "qualified_name": "SlackApi.FindSlackUserByEmail",
-    "description": {
-      "tagline": "Retrieve Slack user details using their email address.",
-      "detailed": "Use this tool to find user information in a Slack workspace by providing an email address. It requires the 'users:read.email' OAuth scope to access the email field in user objects."
-    },
+    "description": "Retrieve Slack user details using their email address.\n\nUse this tool to find user information in a Slack workspace by providing an email address. It requires the 'users:read.email' OAuth scope to access the email field in user objects.",
     "input": {
       "parameters": [
         {

@@ -4,17 +4,12 @@
   "data": {
     "requires_auth": {
       "provider_id": "slack",
-      "scopes": [
-        "chat:write"
-      ]
+      "scopes": ["chat:write"]
     },
     "requires_secrets": null,
     "name": "send_slack_message",
     "qualified_name": "SlackApi.SendSlackMessage",
-    "description": {
-      "tagline": "Send messages to a Slack channel.",
-      "detailed": "This tool sends a message to a specified Slack channel using Slack's chat.postMessage API. It requires appropriate permissions (chat:write scope), and is useful when you need to communicate or alert teams within Slack."
-    },
+    "description": "Send messages to a Slack channel.\n\nThis tool sends a message to a specified Slack channel using Slack's chat.postMessage API. It requires appropriate permissions (chat:write scope), and is useful when you need to communicate or alert teams within Slack.",
     "input": {
       "parameters": [
         {

@@ -12,10 +12,7 @@
     "requires_secrets": null,
     "name": "list_slack_users",
     "qualified_name": "SlackApi.ListSlackUsers",
-    "description": {
-      "tagline": "Retrieve a list of all users in a Slack team.",
-      "detailed": "This tool is used to obtain a comprehensive list of all users within a specific Slack team. It accesses user data, including possible email information if the appropriate scope is granted. The tool is ideal for scenarios where you need to manage or view team member information in Slack."
-    },
+    "description": "Retrieve a list of all users in a Slack team.\n\nThis tool is used to obtain a comprehensive list of all users within a specific Slack team. It accesses user data, including possible email information if the appropriate scope is granted. The tool is ideal for scenarios where you need to manage or view team member information in Slack.",
     "input": {
       "parameters": [
         {
