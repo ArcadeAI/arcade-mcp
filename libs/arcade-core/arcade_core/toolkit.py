@@ -1,5 +1,6 @@
 import importlib.metadata
 import importlib.util
+import json
 import logging
 import os
 import types
@@ -220,14 +221,20 @@ class Toolkit(BaseModel):
         Load a Toolkit from a directory.
         """
         # Get all python files in the package directory
+        tools: dict[str, list[str]] = {}
+
+        wrapper_tools_dir = package_dir / "wrapper_tools"
+        if wrapper_tools_dir.exists():
+            tools[f"{package_name}.wrapper_tools.wrapper_tools"] = (
+                cls._wrapper_tools_from_directory(wrapper_tools_dir)
+            )
+
         try:
             modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)]
         except OSError as e:
             raise ToolkitLoadError(
                 f"Failed to locate Python files in package directory for '{package_name}'."
             ) from e
-
-        tools: dict[str, list[str]] = {}
 
         for module_path in modules:
             relative_path = module_path.relative_to(package_dir)
@@ -239,6 +246,27 @@ class Toolkit(BaseModel):
         if not tools:
             raise ToolkitLoadError(f"No tools found in package {package_name}")
 
+        return tools
+
+    @classmethod
+    def _wrapper_tools_from_directory(cls, package_dir: Path) -> list[str]:
+        """
+        Load a wrapper tools from a directory.
+        """
+        wrapper_tools_dir = package_dir / "wrapper_tools"
+        if not wrapper_tools_dir.exists():
+            return []
+
+        tools: list[str] = []
+
+        for json_file in wrapper_tools_dir.glob("*.json"):
+            with open(json_file) as f:
+                try:
+                    file_contents = json.load(f)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if file_contents.get("object") == "wrapper_tool":
+                    tools.append(file_contents.get("data", {}).get("name"))
         return tools
 
     @classmethod
