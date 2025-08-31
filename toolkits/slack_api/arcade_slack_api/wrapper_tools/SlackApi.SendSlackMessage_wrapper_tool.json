@@ -4,7 +4,9 @@
   "data": {
     "requires_auth": {
       "provider_id": "slack",
-      "scopes": ["chat:write"]
+      "scopes": [
+        "chat:write"
+      ]
     },
     "requires_secrets": null,
     "name": "send_slack_message",
