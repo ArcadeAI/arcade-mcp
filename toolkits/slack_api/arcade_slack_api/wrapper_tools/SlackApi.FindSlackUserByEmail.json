@@ -1,0 +1,40 @@
+{
+  "object": "api_wrapper_tool",
+  "version": "0.1.0",
+  "data": {
+    "requires_auth": {
+      "provider_id": "slack",
+      "scopes": [
+        "users:read.email"
+      ]
+    },
+    "requires_secrets": null,
+    "name": "find_slack_user_by_email",
+    "qualified_name": "SlackApi.FindSlackUserByEmail",
+    "description": {
+      "tagline": "Retrieve Slack user details using their email address.",
+      "detailed": "Use this tool to find user information in a Slack workspace by providing an email address. It requires the 'users:read.email' OAuth scope to access the email field in user objects."
+    },
+    "input": {
+      "parameters": [
+        {
+          "name": "user_email",
+          "description": "The email address of the user in the Slack workspace to be found. This should match a registered user's email.",
+          "inferrable": true,
+          "required": true,
+          "value_schema": {
+            "val_type": "string",
+            "inner_val_type": null
+          },
+          "api_endpoint_argument": {
+            "name": "email"
+          }
+        }
+      ]
+    },
+    "toolkit": {
+      "name": "arcade_slack_api",
+      "version": "0.1.0"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "object": "api_spec",
+  "version": "0.1.0",
+  "data": {
+    "service_name": "Slack",
+    "authorization": "oauth",
+    "default": {
+      "headers": {
+        "Authorization": "Bearer {auth_token}"
+      },
+      "query_strings": {},
+      "body": {}
+    }
+  }
+}

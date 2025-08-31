@@ -1,0 +1,130 @@
+{
+  "object": "api_endpoint_spec",
+  "version": "0.1.0",
+  "data": {
+    "endpoint_name": "chat.postMessage",
+    "http_method": "POST",
+    "url": {
+      "base": "https://slack.com/api",
+      "path": [
+        {
+          "segment_type": "static_path_segment",
+          "name": "chat.postMessage",
+          "description": "",
+          "variable_segment_info": null
+        }
+      ]
+    },
+    "request_content_type": "other",
+    "arguments": [
+      {
+        "name": "token",
+        "is_required": true,
+        "is_auth_token": true,
+        "is_api_key": false
+      },
+      {
+        "name": "channel",
+        "is_required": true,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "as_user",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "attachments",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "blocks",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "icon_emoji",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "icon_url",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "link_names",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "markdown_text",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "metadata",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "mrkdwn",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "parse",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "reply_broadcast",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "text",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "thread_ts",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "unfurl_links",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "unfurl_media",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      },
+      {
+        "name": "username",
+        "is_required": false,
+        "is_auth_token": false,
+        "is_api_key": false
+      }
+    ]
+  }
+}

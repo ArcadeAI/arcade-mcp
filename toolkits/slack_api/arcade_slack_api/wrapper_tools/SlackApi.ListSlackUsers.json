@@ -1,0 +1,80 @@
+{
+  "object": "api_wrapper_tool",
+  "version": "0.1.0",
+  "data": {
+    "requires_auth": {
+      "provider_id": "slack",
+      "scopes": [
+        "users:read",
+        "users:read.email"
+      ]
+    },
+    "requires_secrets": null,
+    "name": "list_slack_users",
+    "qualified_name": "SlackApi.ListSlackUsers",
+    "description": {
+      "tagline": "Retrieve a list of all users in a Slack team.",
+      "detailed": "This tool is used to obtain a comprehensive list of all users within a specific Slack team. It accesses user data, including possible email information if the appropriate scope is granted. The tool is ideal for scenarios where you need to manage or view team member information in Slack."
+    },
+    "input": {
+      "parameters": [
+        {
+          "name": "pagination_cursor",
+          "description": "Use this to paginate through data collections. Set it to the `next_cursor` from a previous response's `response_metadata`.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "string",
+            "inner_val_type": null
+          },
+          "api_endpoint_argument": {
+            "name": "cursor"
+          }
+        },
+        {
+          "name": "include_user_locale",
+          "description": "Set to `true` to include locale information for each user in the response.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "boolean",
+            "inner_val_type": null
+          },
+          "api_endpoint_argument": {
+            "name": "include_locale"
+          }
+        },
+        {
+          "name": "maximum_number_of_users",
+          "description": "The maximum number of user records to return. If not specified, all users may be returned.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "integer",
+            "inner_val_type": null
+          },
+          "api_endpoint_argument": {
+            "name": "limit"
+          }
+        },
+        {
+          "name": "encoded_team_id",
+          "description": "Encoded team ID for listing users. Required if using an organization-level token; ignored with workspace-level tokens.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "string",
+            "inner_val_type": null
+          },
+          "api_endpoint_argument": {
+            "name": "team_id"
+          }
+        }
+      ]
+    },
+    "toolkit": {
+      "name": "arcade_slack_api",
+      "version": "0.1.0"
+    }
+  }
+}
