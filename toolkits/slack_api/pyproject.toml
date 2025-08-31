@@ -5,7 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "arcade_slack_api"
 version = "0.1.0"
+<<<<<<< Updated upstream
 description = "Tools that enable LLMs to interact directly with the Slack API."
+=======
+>>>>>>> Stashed changes
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=2.0.0,<3.0.0",
