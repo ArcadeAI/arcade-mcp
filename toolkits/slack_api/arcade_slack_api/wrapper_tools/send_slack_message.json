@@ -4,19 +4,17 @@
   "data": {
     "requires_auth": {
       "provider_id": "slack",
-      "scopes": [
-        "chat:write"
-      ]
+      "scopes": ["chat:write"]
     },
     "requires_secrets": null,
     "name": "send_slack_message",
     "qualified_name": "SlackApi.SendSlackMessage",
-    "description": "Send messages to a Slack channel.\n\nThis tool sends a message to a specified Slack channel using Slack's chat.postMessage API. It requires appropriate permissions (chat:write scope), and is useful when you need to communicate or alert teams within Slack.",
+    "description": "Send a message to a Slack channel using Slack API.\n\nThis tool sends a message to a specified Slack channel using the Slack API. It should be called when you want to post a message automatically to a channel or direct message within Slack.",
     "input": {
       "parameters": [
         {
-          "name": "target_channel_id_or_name",
-          "description": "An encoded ID or channel name for the target Slack channel, private group, or IM to send the message.",
+          "name": "target_channel",
+          "description": "The encoded ID or name of the Slack channel, private group, or IM to send the message to.",
           "inferrable": true,
           "required": true,
           "value_schema": {
@@ -27,20 +25,8 @@
           }
         },
         {
-          "name": "post_as_authenticated_user",
-          "description": "Set to true to post the message as the authenticated user instead of as a bot. Only applicable for classic apps.",
-          "inferrable": true,
-          "required": false,
-          "value_schema": {
-            "val_type": "boolean"
-          },
-          "api_endpoint_argument": {
-            "name": "as_user"
-          }
-        },
-        {
-          "name": "structured_attachments",
-          "description": "A list of structured attachment objects in JSON format. Each object should contain information such as title, text, and other Slack attachment fields. The list will be URL-encoded.",
+          "name": "message_attachments",
+          "description": "A JSON array of structured attachments, URL-encoded. Use this to include rich content like charts or interactive elements in the Slack message.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -51,8 +37,8 @@
           }
         },
         {
-          "name": "structured_message_blocks",
-          "description": "A URL-encoded JSON array of structured blocks to format the Slack message.",
+          "name": "message_blocks",
+          "description": "A JSON-based array of structured blocks for formatting the message. It should be URL-encoded and follow Slack's Block Kit structure.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -64,7 +50,7 @@
         },
         {
           "name": "message_icon_emoji",
-          "description": "Emoji to use as the icon for the message. This will override the icon_url if provided.",
+          "description": "Emoji to use as the icon for the message. Overrides icon_url. Use a format like ':emoji_name:'.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -76,7 +62,7 @@
         },
         {
           "name": "message_icon_image_url",
-          "description": "URL of an image to use as the icon for the message. Overrides the default icon.",
+          "description": "The URL of the image to be used as the icon for the Slack message.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -87,20 +73,8 @@
           }
         },
         {
-          "name": "find_and_link_user_groups",
-          "description": "Enables linking of user groups within the message. Does not support individual user linking.",
-          "inferrable": true,
-          "required": false,
-          "value_schema": {
-            "val_type": "boolean"
-          },
-          "api_endpoint_argument": {
-            "name": "link_names"
-          }
-        },
-        {
-          "name": "markdown_message_text",
-          "description": "Message text formatted in markdown, not to be used with 'blocks' or 'text'. Limit is 12,000 characters.",
+          "name": "message_markdown_text",
+          "description": "Message content formatted in markdown, up to 12,000 characters. Avoid using with `blocks` or `text`.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -112,7 +86,7 @@
         },
         {
           "name": "event_metadata",
-          "description": "A URL-encoded JSON object with 'event_type' and 'event_payload' fields. Accessible to any app or user in the workspace.",
+          "description": "JSON object with 'event_type' and 'event_payload' fields, URL-encoded. Used for metadata accessible by apps or users in the workspace.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -123,20 +97,8 @@
           }
         },
         {
-          "name": "disable_slack_markup_parsing",
-          "description": "Set to true to disable Slack markup parsing for the message. Enabled by default.",
-          "inferrable": true,
-          "required": false,
-          "value_schema": {
-            "val_type": "boolean"
-          },
-          "api_endpoint_argument": {
-            "name": "mrkdwn"
-          }
-        },
-        {
-          "name": "message_parsing_mode",
-          "description": "Specify how messages are parsed. Options include 'full', 'none', or 'auto'.",
+          "name": "message_treatment",
+          "description": "Specify how the Slack message should be treated for parsing, such as `none` or `full` for different parsing behaviors.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -147,20 +109,8 @@
           }
         },
         {
-          "name": "make_reply_broadcast",
-          "description": "Indicates if the reply should be visible to everyone in the channel, used with 'thread_ts'.",
-          "inferrable": true,
-          "required": false,
-          "value_schema": {
-            "val_type": "boolean"
-          },
-          "api_endpoint_argument": {
-            "name": "reply_broadcast"
-          }
-        },
-        {
           "name": "message_text",
-          "description": "The primary text content of the Slack message. Recommended as a fallback when using 'blocks'.",
+          "description": "The main content of the Slack message. Recommended to provide a fallback when using `blocks`.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -171,8 +121,8 @@
           }
         },
         {
-          "name": "reply_to_message_timestamp",
-          "description": "The timestamp of the parent message to which you want to reply. Avoid using a reply's timestamp; use the parent message's timestamp instead.",
+          "name": "reply_thread_timestamp",
+          "description": "Timestamp of the parent message to make this message a reply. Avoid using a reply's timestamp; use its parent instead.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -183,8 +133,56 @@
           }
         },
         {
-          "name": "enable_unfurling_of_text_links",
-          "description": "Set to true to enable unfurling of primarily text-based content in the message.",
+          "name": "bot_username",
+          "description": "Specify the bot's username to be displayed when the message is sent to the Slack channel.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "string"
+          },
+          "api_endpoint_argument": {
+            "name": "username"
+          }
+        },
+        {
+          "name": "find_and_link_user_groups",
+          "description": "Set to true to find and link user groups in the message. Individual user linking is not supported.",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "boolean"
+          },
+          "api_endpoint_argument": {
+            "name": "link_names"
+          }
+        },
+        {
+          "name": "enable_slack_markup_parsing",
+          "description": "Set to false to disable Slack markup parsing for the message. Parsing is enabled by default (default: true).",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "boolean"
+          },
+          "api_endpoint_argument": {
+            "name": "mrkdwn"
+          }
+        },
+        {
+          "name": "make_reply_visible_to_channel",
+          "description": "Set to true to make the reply visible to everyone in the channel or conversation when used with `thread_ts`. (default: false)",
+          "inferrable": true,
+          "required": false,
+          "value_schema": {
+            "val_type": "boolean"
+          },
+          "api_endpoint_argument": {
+            "name": "reply_broadcast"
+          }
+        },
+        {
+          "name": "enable_unfurling_of_links",
+          "description": "Set to true to enable automatic expansion of primarily text-based links in the message.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -195,8 +193,8 @@
           }
         },
         {
-          "name": "disable_media_unfurling",
-          "description": "Set to true to disable unfurling of media content in the message.",
+          "name": "enable_media_unfurling",
+          "description": "Set to false to prevent the automatic display of media content in Slack messages.",
           "inferrable": true,
           "required": false,
           "value_schema": {
@@ -204,18 +202,6 @@
           },
           "api_endpoint_argument": {
             "name": "unfurl_media"
-          }
-        },
-        {
-          "name": "bot_user_name",
-          "description": "The username to display as the sender of the message in Slack.",
-          "inferrable": true,
-          "required": false,
-          "value_schema": {
-            "val_type": "string"
-          },
-          "api_endpoint_argument": {
-            "name": "username"
           }
         }
       ]
