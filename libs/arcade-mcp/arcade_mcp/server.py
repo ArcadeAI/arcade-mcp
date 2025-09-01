@@ -88,7 +88,7 @@ class Server:
             load_dotenv(env_path, override=False)
             logger.info(f"Loaded environment from {env_path}")
 
-    def _auto_discover_toolkit(self) -> None:
+    def _auto_discover_toolkit(self) -> None:  # noqa: C901
         """Auto-discover toolkits from (1) cwd, (2) pyproject packages, (3) installed."""
         if self._auto_discovered:
             return
@@ -208,9 +208,9 @@ class Server:
                 homepage=None,
             )
             self._check_auth_requirements(tmp_toolkit)
-        except Exception:
+        except Exception as e:
             # Do not block local dev on auth inspection failures
-            pass
+            logger.debug("Auth inspection for local tools skipped: %s", e)
 
     def _check_auth_requirements(self, toolkit: Toolkit) -> None:
         """Check if any tools require authentication."""
@@ -259,7 +259,7 @@ class Server:
     def run(
         self,
         transport: str = "stream",
-        host: str = "0.0.0.0",
+        host: str = "0.0.0.0",  # noqa: S104
         port: int = 8000,
         **kwargs: Any,
     ) -> None:
@@ -282,28 +282,28 @@ class Server:
 
         # Select and run transport
         if transport == "stdio":
-            transport_impl = StdioTransport(
+            stdio = StdioTransport(
                 self.catalog,
                 auth_disabled=self.auth_disabled,
                 local_context=self.local_context,
                 app=self.app,
             )
-            asyncio.run(transport_impl.run())
+            asyncio.run(stdio.run())
         elif transport == "sse":
-            transport_impl = SSETransport(
+            sse = SSETransport(
                 self.catalog,
                 auth_disabled=self.auth_disabled,
                 local_context=self.local_context,
                 app=self.app,
             )
-            transport_impl.run(host=host, port=port, **kwargs)
+            sse.run(host=host, port=port, **kwargs)
         elif transport == "stream":
-            transport_impl = StreamTransport(
+            stream = StreamTransport(
                 self.catalog,
                 auth_disabled=self.auth_disabled,
                 local_context=self.local_context,
                 app=self.app,
             )
-            transport_impl.run(host=host, port=port, **kwargs)
+            stream.run(host=host, port=port, **kwargs)
         else:
             raise ValueError(f"Unknown transport '{transport}'. Choose from: stdio, sse, stream")

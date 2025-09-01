@@ -33,6 +33,7 @@ from arcade_cli.utils import (
     compute_login_url,
     get_eval_files,
     load_eval_suites,
+    log_engine_health,
     require_dependency,
     validate_and_get_config,
     version_callback,

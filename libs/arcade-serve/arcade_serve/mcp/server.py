@@ -32,6 +32,7 @@ from arcade_serve.mcp.types import (
     CallToolResponse,
     CallToolResult,
     CancelRequest,
+    DictResult,
     Implementation,
     InitializeRequest,
     InitializeResponse,
@@ -94,6 +95,7 @@ class MCPServer:
         local_context: dict[str, Any] | None = None,
         arcade_api_key: str | None = None,
         arcade_api_url: str | None = None,
+        enable_logging: bool | None = None,
     ):
         """
         Initialize the MCP server.
@@ -104,6 +106,7 @@ class MCPServer:
             local_context: Local context configuration from worker.toml
             arcade_api_key: API key for Arcade (if using real client)
             arcade_api_url: API URL for Arcade (if using real client)
+            enable_logging: Optional flag to enable or disable extra logging (unused)
         """
         self.tool_catalog = catalog
         self.auth_disabled = auth_disabled
@@ -193,9 +196,9 @@ class MCPServer:
                         if not message.endswith("\n"):
                             message += "\n"
                         await write_stream.send(message)
-                        return True
-                    except Exception:
-                        logger.exception(f"Failed to send notification to client {client_id}")
+                        return True  # noqa: TRY300
+                    except Exception as e:
+                        logger.debug(f"Failed to send notification to client {client_id}: {e}")
                         return False
                 return False
 
@@ -324,7 +327,7 @@ class MCPServer:
             logger.debug(f"Sending raw response type: {type(response)}")
             await write_stream.send(response_str)
 
-    async def handle_message(self, message: Any, user_id: str | None = None) -> Any:
+    async def handle_message(self, message: Any, user_id: str | None = None) -> Any:  # noqa: C901
         """
         Handle an incoming MCP message. Processes it through middleware and dispatches
         to the appropriate handler based on the message method.
@@ -450,7 +453,7 @@ class MCPServer:
         Returns:
             A properly formatted pong response
         """
-        return PingResponse(id=message.id)
+        return PingResponse(id=message.id or 0)
 
     async def _handle_initialize(
         self, message: InitializeRequest, user_id: str | None = None
@@ -511,7 +514,7 @@ class MCPServer:
         )
 
         # Construct proper response with result field
-        response = InitializeResponse(id=message.id, result=result)
+        response = InitializeResponse(id=message.id or 0, result=result)
 
         logger.debug(f"Initialize response: {response.model_dump_json()}")
         return response
@@ -529,9 +532,6 @@ class MCPServer:
             A properly formatted tools/list response or error
         """
         try:
-            # Check for cursor parameter (pagination)
-            cursor = message.params.get("cursor") if message.params else None
-
             # Get all tools from the catalog
             tools = []
             tool_conversion_errors = []
@@ -571,7 +571,7 @@ class MCPServer:
             # For now, we don't implement pagination, so return all tools
             # and don't set nextCursor
             result = ListToolsResult(tools=tool_objects)
-            response = ListToolsResponse(id=message.id, result=result)
+            response = ListToolsResponse(id=message.id or 0, result=result)
 
         except Exception:
             logger.exception("Error listing tools")
@@ -584,7 +584,7 @@ class MCPServer:
             )
         return response
 
-    async def _handle_call_tool(
+    async def _handle_call_tool(  # noqa: C901
         self, message: CallToolRequest, user_id: str | None = None
     ) -> CallToolResponse:
         """
@@ -651,7 +651,7 @@ class MCPServer:
                 )
                 if auth_result.status != "completed":
                     return CallToolResponse(
-                        id=message.id,
+                        id=message.id or 0,
                         result=CallToolResult(content=[{"type": "text", "text": auth_result.url}]),
                     )
                 else:
@@ -699,7 +699,7 @@ class MCPServer:
                     content = convert_to_mcp_content(result.value)
 
                 response = CallToolResponse(
-                    id=message.id,
+                    id=message.id or 0,
                     result=CallToolResult(
                         content=content,
                         structuredContent=structured_content,
@@ -720,7 +720,7 @@ class MCPServer:
                 error = result.error or "Error calling tool"
                 logger.error(f"Tool {tool_name} returned error: {error}")
                 return CallToolResponse(
-                    id=message.id,
+                    id=message.id or 0,
                     result=CallToolResult(
                         content=[{"type": "text", "text": str(error)}], isError=True
                     ),
@@ -729,7 +729,7 @@ class MCPServer:
             logger.exception(f"Error calling tool {tool_name}")
             error_msg = f"Error calling tool {tool_name}: {e!s}"
             return CallToolResponse(
-                id=message.id,
+                id=message.id or 0,
                 result=CallToolResult(content=[{"type": "text", "text": error_msg}], isError=True),
             )
 
@@ -795,7 +795,7 @@ class MCPServer:
         Returns:
             A response acknowledging the cancellation
         """
-        return JSONRPCResponse(id=getattr(message, "id", None), result={"ok": True})
+        return JSONRPCResponse(id=message.id or 0, result={"ok": True})
 
     async def _handle_shutdown(self, message: ShutdownRequest) -> ShutdownResponse:
         """
@@ -810,7 +810,7 @@ class MCPServer:
         # Schedule a task to shutdown the server after sending the response
         proc = asyncio.create_task(self.shutdown())
         proc.add_done_callback(lambda _: logger.info("MCP server shutdown complete"))
-        return ShutdownResponse(id=message.id, result={"ok": True})
+        return ShutdownResponse(id=message.id or 0, result={"ok": True})
 
     async def _handle_list_resources(self, message: ListResourcesRequest) -> ListResourcesResponse:
         """
@@ -822,7 +822,7 @@ class MCPServer:
         Returns:
             A properly formatted resources/list response
         """
-        return ListResourcesResponse(id=message.id, result={"resources": []})
+        return ListResourcesResponse(id=message.id or 0, result=DictResult(data={"resources": []}))
 
     async def _handle_list_prompts(self, message: ListPromptsRequest) -> ListPromptsResponse:
         """
@@ -834,7 +834,7 @@ class MCPServer:
         Returns:
             A properly formatted prompts/list response
         """
-        return ListPromptsResponse(id=message.id, result={"prompts": []})
+        return ListPromptsResponse(id=message.id or 0, result=DictResult(data={"prompts": []}))
 
     async def _handle_set_log_level(
         self, message: SetLevelRequest, user_id: str | None = None
@@ -851,7 +851,7 @@ class MCPServer:
         """
         level = message.params.get("level")
         if level is None:
-            return SetLevelResponse(id=message.id, result={})
+            return SetLevelResponse(id=message.id or 0, result={})
 
         # Store the log level for this client
         if user_id:
@@ -872,11 +872,11 @@ class MCPServer:
         numeric_level = level_mapping.get(level.lower())
         if numeric_level is None:
             # Invalid level, but we still return success per spec
-            return SetLevelResponse(id=message.id, result={})
+            return SetLevelResponse(id=message.id or 0, result={})
 
         logger.setLevel(numeric_level)
         logger.info(f"Log level set to {level}")
-        return SetLevelResponse(id=message.id, result={})
+        return SetLevelResponse(id=message.id or 0, result=DictResult(data={"ok": True}))
 
     async def _handle_subscribe(
         self, message: SubscribeRequest, user_id: str | None = None
@@ -916,12 +916,10 @@ class MCPServer:
             )
 
             # Return response with subscriptions
-            return JSONRPCResponse(
-                id=message.id,
-                result={
-                    "subscriptions": [sub.model_dump(exclude_none=True) for sub in subscriptions]
-                },
-            )
+            result: dict[str, Any] = {
+                "subscriptions": [sub.model_dump(exclude_none=True) for sub in subscriptions]
+            }
+            return SubscribeResponse(id=message.id or 0, result=result)
 
         except ValueError as e:
             return JSONRPCError(
@@ -978,10 +976,8 @@ class MCPServer:
             )
 
             # Return response
-            return JSONRPCResponse(
-                id=message.id,
-                result={"success": success},
-            )
+            result: dict[str, Any] = {"success": success}
+            return UnsubscribeResponse(id=message.id or 0, result=result)
 
         except Exception as e:
             logger.exception("Error handling unsubscribe request")

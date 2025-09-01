@@ -9,7 +9,7 @@ from arcade_tdk import tool
 
 
 @tool
-def test_multiply(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -> int:
+def tool_multiply(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -> int:
     """Multiply two numbers."""
     return a * b
 
@@ -20,7 +20,7 @@ class MockWorker:
     def __init__(self, catalog: ToolCatalog, disable_auth: bool = True):
         self.catalog = catalog
         self.disable_auth = disable_auth
-        self.secret = "test-secret"
+        self.secret = "test-secret"  # noqa: S105
 
 
 class TestRouter:
@@ -37,7 +37,7 @@ class TestRouter:
 def tool_catalog():
     """Create a catalog with test tools."""
     catalog = ToolCatalog()
-    catalog.add_tool(test_multiply, "test_toolkit")
+    catalog.add_tool(tool_multiply, "test_toolkit")
     return catalog
 
 
@@ -121,7 +121,10 @@ class TestStreamComponent:
         # Get the response body
         body = b""
         async for chunk in response.body_iterator:
-            body += chunk
+            if isinstance(chunk, bytes):
+                body += chunk
+            else:
+                body += chunk.encode()
 
         data = json.loads(body.decode().strip())
         assert data["status"] == "error"

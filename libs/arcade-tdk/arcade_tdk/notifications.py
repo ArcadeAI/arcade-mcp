@@ -63,13 +63,13 @@ class NotificationBackend(Protocol):
 class NoOpBackend:
     """No-op notification backend for when notifications are disabled."""
 
-    async def send_log(self, *args, **kwargs) -> None:
+    async def send_log(self, *args: Any, **kwargs: Any) -> None:
         pass
 
-    async def send_progress(self, *args, **kwargs) -> None:
+    async def send_progress(self, *args: Any, **kwargs: Any) -> None:
         pass
 
-    async def send_resource_updated(self, *args, **kwargs) -> None:
+    async def send_resource_updated(self, *args: Any, **kwargs: Any) -> None:
         pass
 
     async def send_resource_list_changed(self) -> None:
@@ -135,7 +135,7 @@ class ProgressContext:
         if self.total:
             await self.update(self.total, message=message or "Complete")
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "ProgressContext":
         """Start tracking progress."""
         # Only send initial progress if we have a token
         if self.progress_token:
@@ -147,7 +147,7 @@ class ProgressContext:
             )
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Complete progress tracking."""
         if exc_type is None and self.progress_token:
             await self.complete()

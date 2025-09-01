@@ -41,7 +41,7 @@ class SSETransport:
 
     def run(
         self,
-        host: str = "0.0.0.0",
+        host: str = "0.0.0.0",  # noqa: S104
         port: int = 8000,
         reload: bool = False,
         **kwargs: Any,

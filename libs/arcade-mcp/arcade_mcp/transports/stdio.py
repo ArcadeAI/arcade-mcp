@@ -6,6 +6,7 @@ from typing import Any
 
 from arcade_core.catalog import ToolCatalog
 from arcade_serve.mcp.stdio import StdioServer
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class StdioTransport:
         catalog: ToolCatalog,
         auth_disabled: bool = False,
         local_context: dict[str, Any] | None = None,
+        app: FastAPI | None = None,
     ):
         """
         Initialize the stdio transport.
@@ -31,7 +33,9 @@ class StdioTransport:
             catalog: Tool catalog to serve
             auth_disabled: Whether authentication is disabled
             local_context: Local context configuration
+            app: Optional FastAPI app to maintain a consistent constructor signature
         """
+        self.app = app
         self.server = StdioServer(
             catalog,
             auth_disabled=auth_disabled,
@@ -48,8 +52,8 @@ class StdioTransport:
             await self.server.run()
         except KeyboardInterrupt:
             logger.info("MCP stdio server stopped by user")
-        except Exception as e:
-            logger.exception(f"Error running MCP stdio server: {e}")
+        except Exception:
+            logger.exception("Error running MCP stdio server")
             raise
         finally:
             logger.info("MCP stdio server shutting down")

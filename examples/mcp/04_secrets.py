@@ -43,4 +43,4 @@ server.add_tool(use_secret)
 
 if __name__ == "__main__":
     transport = sys.argv[1] if len(sys.argv) > 1 else "stream"
-    server.run(transport=transport, host="0.0.0.0", port=8000)
+    server.run(transport=transport, host="0.0.0.0", port=8000)  # noqa: S104

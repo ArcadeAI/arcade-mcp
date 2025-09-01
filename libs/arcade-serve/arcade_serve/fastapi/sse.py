@@ -1,10 +1,21 @@
 import asyncio
+from collections.abc import Coroutine
+from typing import Any, Callable
+
+if not hasattr(asyncio, "coroutine"):
+
+    def _asyncio_coroutine_shim(func) -> Callable:
+        async def _wrapper(*args, **kwargs) -> Coroutine:
+            return func(*args, **kwargs)
+
+        return _wrapper
+
+    asyncio.coroutine = _asyncio_coroutine_shim  # type: ignore[attr-defined]
 import contextlib
 import json
 import time
 import uuid
 from logging import getLogger
-from typing import Any, Callable
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -65,7 +76,7 @@ class SSEComponent(WorkerComponent):
             with contextlib.suppress(asyncio.CancelledError):
                 await self._cleanup_task
 
-    async def _cleanup_inactive_sessions(self) -> None:
+    async def _cleanup_inactive_sessions(self) -> None:  # noqa: C901
         """Periodically clean up sessions that have timed out."""
         while True:
             try:
@@ -108,7 +119,7 @@ class SSEComponent(WorkerComponent):
                 # Cleanup task cancelled during shutdown
                 break
             except Exception as e:
-                logger.exception(f"Error in session cleanup: {e}")
+                logger.debug(f"Error in session cleanup: {e}")
                 # Continue running even if there's an error
 
     def register(self, router: Router) -> None:
@@ -179,7 +190,9 @@ class SSEComponent(WorkerComponent):
 
         return dependency
 
-    async def __call__(self, request: Request) -> EventSourceResponse:
+    async def __call__(  # noqa: C901
+        self, request: Request
+    ) -> EventSourceResponse | dict[str, str]:
         """
         Handle the request to get the catalog.
         """
@@ -216,7 +229,7 @@ class SSEComponent(WorkerComponent):
                     pass
                 except Exception as e:
                     # Log unexpected errors
-                    logger.exception(f"SSE stream error: {e}")
+                    logger.debug(f"SSE stream error: {e}")
                     yield {
                         "event": "error",
                         "data": json.dumps({
@@ -276,7 +289,7 @@ class SSEComponent(WorkerComponent):
                         async def send(self, message: str) -> None:
                             # Parse message and put in queue
                             try:
-                                if isinstance(message, str):
+                                if isinstance(message, str):  # noqa: SIM108
                                     data = json.loads(message)
                                 else:
                                     data = message
@@ -321,14 +334,18 @@ class SSEComponent(WorkerComponent):
                     response = await self.mcp_server.handle_message(body, user_id=session_id)
                     if response:
                         await session.queue.put(response.model_dump(exclude_none=True))
-                    return {"status": "ok"}
                 except Exception as e:
-                    logger.exception(f"Error processing request: {e}")
+                    logger.debug(f"Error processing request: {e}")
                     return {
                         "status": "error",
                         "message": f"Failed to process request: {e!s}",
                     }
 
+                return {"status": "ok"}  # noqa: TRY300
+
             except Exception as e:
-                logger.exception(f"Unexpected error in SSE POST: {e}")
-                return {"status": "error", "message": "Internal server error"}
+                logger.debug(f"Error processing request: {e}")
+                return {
+                    "status": "error",
+                    "message": f"Failed to process request: {e!s}",
+                }

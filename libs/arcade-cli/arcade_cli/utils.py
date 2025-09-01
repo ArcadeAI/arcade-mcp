@@ -112,7 +112,10 @@ def create_cli_catalog_local() -> ToolCatalog:
             return catalog
     except Exception:
         # If local loading fails, fall back to environment discovery below
-        pass
+        console.log(
+            "Local toolkit discovery failed; falling back to installed toolkits",
+            style="dim",
+        )
     # Fallback: discover installed toolkits
     for tk in Toolkit.find_all_arcade_toolkits():
         catalog.add_toolkit(tk)

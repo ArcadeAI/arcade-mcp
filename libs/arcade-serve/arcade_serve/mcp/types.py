@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from enum import Enum
 from typing import (
     Any,
     Generic,
@@ -121,8 +122,20 @@ class PingRequest(JSONRPCRequest):
     params: dict[str, Any] | None = None
 
 
-class PingResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any] = Field(default_factory=lambda: {})
+class PingResult(Result):
+    pass
+
+
+class OkResult(Result):
+    ok: bool = True
+
+
+class DictResult(Result):
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+class PingResponse(JSONRPCResponse[PingResult]):
+    result: PingResult = Field(default_factory=PingResult)
 
 
 class ShutdownRequest(JSONRPCRequest):
@@ -130,8 +143,8 @@ class ShutdownRequest(JSONRPCRequest):
     params: dict[str, Any] | None = None
 
 
-class ShutdownResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any] = Field(default_factory=lambda: {"ok": True})
+class ShutdownResponse(JSONRPCResponse[OkResult]):
+    result: OkResult = Field(default_factory=OkResult)
 
 
 class CancelRequest(JSONRPCRequest):
@@ -160,7 +173,7 @@ class ServerCapabilities(BaseModel):
     notifications: dict[str, Any] | None = None
 
 
-class InitializeResult(BaseModel):
+class InitializeResult(Result):
     protocolVersion: str
     capabilities: ServerCapabilities
     serverInfo: Implementation
@@ -209,7 +222,7 @@ class Tool(BaseModel):
     meta_: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
-class ListToolsResult(BaseModel):
+class ListToolsResult(Result):
     tools: list[Tool]
 
 
@@ -222,7 +235,7 @@ class CallToolRequest(JSONRPCRequest):
     params: dict[str, Any]
 
 
-class CallToolResult(BaseModel):
+class CallToolResult(Result):
     """The server's response to a tool call."""
 
     content: list[dict[str, Any]]
@@ -241,8 +254,8 @@ class ListResourcesRequest(JSONRPCRequest):
     params: dict[str, Any] | None = None
 
 
-class ListResourcesResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any]
+class ListResourcesResponse(JSONRPCResponse[DictResult]):
+    result: DictResult
 
 
 class ListPromptsRequest(JSONRPCRequest):
@@ -250,14 +263,11 @@ class ListPromptsRequest(JSONRPCRequest):
     params: dict[str, Any] | None = None
 
 
-class ListPromptsResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any]
+class ListPromptsResponse(JSONRPCResponse[DictResult]):
+    result: DictResult
 
 
 # Logging level enum used by notifications
-from enum import Enum
-
-
 class LogLevel(str, Enum):
     DEBUG = "debug"
     INFO = "info"
@@ -369,8 +379,8 @@ class SetLevelRequest(JSONRPCRequest):
     params: dict[str, Any]
 
 
-class SetLevelResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any] = Field(default_factory=lambda: {})
+class SetLevelResponse(JSONRPCResponse[DictResult]):
+    result: DictResult = Field(default_factory=DictResult)
 
 
 # Subscription requests

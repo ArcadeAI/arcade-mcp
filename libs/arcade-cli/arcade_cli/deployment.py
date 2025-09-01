@@ -111,7 +111,7 @@ class Config(BaseModel):
     enabled: bool = True
     """Whether the worker is enabled. Defaults to True."""
 
-    secret: str | None = None
+    secret: Secret | None = None
     """The shared secret between the worker and Arcade Engine server."""
 
     timeout: int = 120
@@ -152,26 +152,23 @@ class Config(BaseModel):
     # Validate and parse the secret if required
     @field_validator("secret", mode="before")
     @classmethod
-    def valid_secret(cls, v: str | Secret | None) -> str:
+    def valid_secret(cls, v: str | Secret | None) -> Secret:
         # If the secret is a string, attempt to parse it as an environment variable or return the secret
         if isinstance(v, str):
             secret = get_env_secret(v)
-        # If the secret has been manually set, return it
         elif isinstance(v, Secret):
             secret = v
         else:
             raise TypeError("Secret must be a string or a Secret object")
-        # Check that the secret is not empty
         if secret.value.strip() == "":
             raise ValueError("Secret must be a non-empty string")
-        return secret.value
+        return secret
 
     @field_serializer("secret")
     def serialize_secret(self, secret: Secret) -> str:
         if secret.pattern:
             return f"$env:{secret.pattern}"
-        else:
-            return secret.value
+        return secret.value
 
 
 # Cloud request for deploying a worker

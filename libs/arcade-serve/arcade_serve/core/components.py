@@ -23,7 +23,7 @@ class CatalogComponent(WorkerComponent):
         Register the catalog route with the router.
         """
         router.add_route(
-            "catalog",
+            "tools",
             self,
             method="GET",
             response_type=CatalogResponse,

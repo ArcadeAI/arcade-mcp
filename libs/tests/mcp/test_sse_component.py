@@ -9,7 +9,7 @@ from arcade_tdk import tool
 
 
 @tool
-def test_add(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -> int:
+def tool_add(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -> int:
     """Add two numbers together."""
     return a + b
 
@@ -20,7 +20,7 @@ class MockWorker:
     def __init__(self, catalog: ToolCatalog, disable_auth: bool = True):
         self.catalog = catalog
         self.disable_auth = disable_auth
-        self.secret = "test-secret"
+        self.secret = "test-secret"  # noqa: S105
 
 
 class TestRouter:
@@ -37,7 +37,7 @@ class TestRouter:
 def tool_catalog():
     """Create a catalog with test tools."""
     catalog = ToolCatalog()
-    catalog.add_tool(test_add, "test_toolkit")
+    catalog.add_tool(tool_add, "test_toolkit")
     return catalog
 
 

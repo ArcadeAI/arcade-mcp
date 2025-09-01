@@ -196,7 +196,7 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:  # noqa: C
             tool_def["description"] += toolkit_info
 
         logger.debug(f"Created tool definition for {name}")
-        return tool_def
+        return tool_def  # noqa: TRY300
 
     except Exception:
         logger.exception(

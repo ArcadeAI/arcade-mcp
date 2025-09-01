@@ -1,4 +1,14 @@
 import asyncio
+
+if not hasattr(asyncio, "coroutine"):
+
+    def _asyncio_coroutine_shim(func):
+        async def _wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return _wrapper
+
+    asyncio.coroutine = _asyncio_coroutine_shim  # type: ignore[attr-defined]
 import contextlib
 import json
 import time
@@ -157,7 +167,7 @@ class StreamComponent(WorkerComponent):
 
         return dependency
 
-    async def __call__(self, request: Request) -> StreamingResponse:
+    async def __call__(self, request: Request) -> StreamingResponse:  # noqa: C901
         """
         Handle the request to stream the response.
         """
@@ -172,7 +182,7 @@ class StreamComponent(WorkerComponent):
                     })
                     + "\n"
                 ]),
-                media_type="application/json",
+                media_type="application/x-ndjson",
                 status_code=400,
             )
 
@@ -208,10 +218,7 @@ class StreamComponent(WorkerComponent):
             async def send(self, message: str) -> None:
                 # Parse message and put in queue as dict
                 try:
-                    if isinstance(message, str):
-                        data = json.loads(message)
-                    else:
-                        data = message
+                    data = json.loads(message) if isinstance(message, str) else message
                     await self.session.queue.put(data)
                 except Exception:
                     logger.exception("Error sending stream notification")
@@ -251,7 +258,7 @@ class StreamComponent(WorkerComponent):
                 if session_id in self.mcp_server.write_streams:
                     del self.mcp_server.write_streams[session_id]
 
-        async def process_request(body_bytes: bytes):
+        async def process_request(body_bytes: bytes) -> None:
             try:
                 if len(body_bytes) > 1024 * 1024:  # 1MB limit
                     await session.queue.put({

@@ -76,7 +76,11 @@ class Toolkit(BaseModel):
             project_data = pyproject_data.get("project", {})
             name = project_data.get("name")
             if not name:
-                raise ToolkitLoadError("name not found in pyproject.toml")
+
+                def _missing_name_error() -> ToolkitLoadError:
+                    return ToolkitLoadError("name not found in pyproject.toml")
+
+                raise _missing_name_error()  # noqa: TRY301
 
             package_name = name
             version = project_data.get("version", "0.0.0")

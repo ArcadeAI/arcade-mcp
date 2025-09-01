@@ -138,10 +138,7 @@ def connect_client(
     # Default server name if not provided
     if not server_name:
         # Try to detect from current directory
-        if Path("server.py").exists():
-            server_name = Path.cwd().name
-        else:
-            server_name = "arcade-mcp-server"
+        server_name = Path.cwd().name if Path("server.py").exists() else "arcade-mcp-server"
 
     client_lower = client.lower()
 
