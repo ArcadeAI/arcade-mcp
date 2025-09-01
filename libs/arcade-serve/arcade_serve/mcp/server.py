@@ -45,8 +45,6 @@ from arcade_serve.mcp.types import (
     ListToolsRequest,
     ListToolsResponse,
     ListToolsResult,
-    LogLevel,
-    NotificationSubscription,
     PingRequest,
     PingResponse,
     ServerCapabilities,
@@ -141,9 +139,7 @@ class MCPServer:
             MessageMethod.UNSUBSCRIBE: self._handle_unsubscribe,
         }
 
-    def _init_arcade_client(
-        self, arcade_api_key: str | None, arcade_api_url: str | None
-    ) -> None:
+    def _init_arcade_client(self, arcade_api_key: str | None, arcade_api_url: str | None) -> None:
         """
         Initialize the arcade client (real or mock based on configuration).
 
@@ -163,23 +159,18 @@ class MCPServer:
             if not arcade_api_key:
                 arcade_api_key = os.environ.get("ARCADE_API_KEY")
             if not arcade_api_url:
-                arcade_api_url = os.environ.get(
-                    "ARCADE_API_URL", "https://api.arcade.ai"
-                )
+                arcade_api_url = os.environ.get("ARCADE_API_URL", "https://api.arcade.dev")
 
             if arcade_api_key:
-                logger.info(
-                    f"Using real Arcade client with API URL: {arcade_api_url}"
-                )
+                logger.info(f"Using Arcade client with API URL: {arcade_api_url}")
                 self.arcade = AsyncArcade(
                     api_key=arcade_api_key,
                     base_url=arcade_api_url,
                 )
             else:
                 logger.warning(
-                    "No Arcade API key found and no local auth providers configured. "
-                    "Auth-required tools will fail. Set ARCADE_API_KEY or configure "
-                    "local_auth_providers in worker.toml"
+                    "No Arcade API key found. Auth-required tools will fail. "
+                    "Set ARCADE_API_KEY to enable auth-required tools."
                 )
                 # Use mock client with no providers as fallback
                 self.arcade = MockArcadeClient()
@@ -192,19 +183,19 @@ class MCPServer:
             def __init__(self, server: "MCPServer"):
                 self.server = server
 
-            async def send_notification(
-                self, client_id: str, notification: dict[str, Any]
-            ) -> bool:
+            async def send_notification(self, client_id: str, notification: dict[str, Any]) -> bool:
                 """Send a notification to a specific client."""
                 write_stream = self.server.write_streams.get(client_id)
                 if write_stream:
                     try:
-                        await write_stream.send(json.dumps(notification))
+                        # Ensure each notification is a single NDJSON line
+                        message = json.dumps(notification)
+                        if not message.endswith("\n"):
+                            message += "\n"
+                        await write_stream.send(message)
                         return True
                     except Exception:
-                        logger.exception(
-                            f"Failed to send notification to client {client_id}"
-                        )
+                        logger.exception(f"Failed to send notification to client {client_id}")
                         return False
                 return False
 
@@ -235,9 +226,7 @@ class MCPServer:
         self.write_streams[user_id] = write_stream
 
         # Start notification manager if not already started
-        if self.notification_manager and not hasattr(
-            self, "_notification_manager_started"
-        ):
+        if self.notification_manager and not hasattr(self, "_notification_manager_started"):
             await self.notification_manager.start()
             self._notification_manager_started = True
 
@@ -400,7 +389,16 @@ class MCPServer:
                     processed = SubscribeRequest(**processed)
                 elif method == MessageMethod.UNSUBSCRIBE:
                     processed = UnsubscribeRequest(**processed)
-                # Add other conversions as needed
+                elif method == MessageMethod.LIST_RESOURCES:
+                    processed = ListResourcesRequest(**processed)
+                elif method == MessageMethod.LIST_PROMPTS:
+                    processed = ListPromptsRequest(**processed)
+                elif method == MessageMethod.SET_LOG_LEVEL:
+                    processed = SetLevelRequest(**processed)
+                elif method == MessageMethod.SHUTDOWN:
+                    processed = ShutdownRequest(**processed)
+                elif method == MessageMethod.CANCEL:
+                    processed = CancelRequest(**processed)
 
             # Methods that need user_id
             if method in [
@@ -476,26 +474,20 @@ class MCPServer:
                 if isinstance(notifications, dict):
                     for method, enabled in notifications.items():
                         if enabled:
-                            client_capabilities.append(
-                                NotificationCapability(method=method)
-                            )
+                            client_capabilities.append(NotificationCapability(method=method))
 
         # Register client capabilities with notification manager
         if self.notification_manager and user_id:
             # Update client with their notification capabilities
             async with self.notification_manager.clients_lock:
                 if user_id in self.notification_manager.clients:
-                    self.notification_manager.clients[
-                        user_id
-                    ].capabilities = client_capabilities
+                    self.notification_manager.clients[user_id].capabilities = client_capabilities
 
         # Create the result data with notification support
         result = InitializeResult(
             protocolVersion=MCP_PROTOCOL_VERSION,
             capabilities=ServerCapabilities(
-                tools={
-                    "listChanged": True
-                },  # Server supports tool change notifications
+                tools={"listChanged": True},  # Server supports tool change notifications
                 logging={},  # Server supports logging
                 # Add notification capabilities
                 notifications={
@@ -574,9 +566,7 @@ class MCPServer:
 
                     tool_objects.append(Tool(**tool_dict))
                 except Exception:
-                    logger.exception(
-                        f"Error creating Tool object for {t.get('name', 'unknown')}"
-                    )
+                    logger.exception(f"Error creating Tool object for {t.get('name', 'unknown')}")
 
             # For now, we don't implement pagination, so return all tools
             # and don't set nextCursor
@@ -645,9 +635,7 @@ class MCPServer:
                 )
                 logger_instance = create_tool_logger(backend, tool_name)
                 notifier_instance = create_tool_notifier(backend, progress_token)
-                tool_context.set_notification_support(
-                    logger_instance, notifier_instance
-                )
+                tool_context.set_notification_support(logger_instance, notifier_instance)
                 tool_context.set_min_log_level(min_log_level)
 
             # Set up context with secrets
@@ -664,15 +652,11 @@ class MCPServer:
                 if auth_result.status != "completed":
                     return CallToolResponse(
                         id=message.id,
-                        result=CallToolResult(
-                            content=[{"type": "text", "text": auth_result.url}]
-                        ),
+                        result=CallToolResult(content=[{"type": "text", "text": auth_result.url}]),
                     )
                 else:
                     tool_context.authorization = ToolAuthorizationContext(
-                        token=auth_result.context.token
-                        if auth_result.context
-                        else None,
+                        token=auth_result.context.token if auth_result.context else None,
                         user_info={"user_id": user_id} if user_id else {},
                     )
 
@@ -687,16 +671,32 @@ class MCPServer:
                 **input_params,
             )
             logger.debug(f"Tool result: {result}")
-            if result.value is not None or (
-                result.value is not None and not result.error
-            ):
+            if result.value is not None or (result.value is not None and not result.error):
                 # Handle structured content for dict/list values
-                content = convert_to_mcp_content(result.value)
                 structured_content = None
 
-                # If the value is a dict or list, also provide it as structured content
-                if isinstance(result.value, (dict, list)):
+                # Determine if the tool declared an output schema (clients expect structuredContent)
+                require_structured = bool(
+                    getattr(tool.definition, "output", None)
+                    and getattr(tool.definition.output, "value_schema", None) is not None
+                )
+
+                # If the value is a dict, also provide it as structured content
+                if isinstance(result.value, dict):
                     structured_content = result.value
+                elif require_structured:
+                    # Wrap non-dict results to satisfy clients expecting an object
+                    structured_content = {"result": result.value}
+
+                # Build unstructured content text. If we have structured content, ensure a
+                # matching text block exists so validators can correlate both representations.
+                if structured_content is not None:
+                    try:
+                        content = [{"type": "text", "text": json.dumps(structured_content)}]
+                    except Exception:
+                        content = convert_to_mcp_content(result.value)
+                else:
+                    content = convert_to_mcp_content(result.value)
 
                 response = CallToolResponse(
                     id=message.id,
@@ -730,9 +730,7 @@ class MCPServer:
             error_msg = f"Error calling tool {tool_name}: {e!s}"
             return CallToolResponse(
                 id=message.id,
-                result=CallToolResult(
-                    content=[{"type": "text", "text": error_msg}], isError=True
-                ),
+                result=CallToolResult(content=[{"type": "text", "text": error_msg}], isError=True),
             )
 
     def _setup_tool_secrets(self, tool: Any, tool_context: ToolContext) -> None:
@@ -748,9 +746,7 @@ class MCPServer:
             if value is not None:
                 tool_context.set_secret(secret.key, value)
 
-    def _apply_local_context(
-        self, tool_context: ToolContext, user_id: str | None = None
-    ) -> None:
+    def _apply_local_context(self, tool_context: ToolContext, user_id: str | None = None) -> None:
         """
         Apply local context configuration to the tool context.
 
@@ -766,9 +762,7 @@ class MCPServer:
         """
         # Set user_id (priority: parameter > env > config)
         final_user_id = (
-            user_id
-            or os.environ.get("ARCADE_USER_ID")
-            or self.local_context.get("user_id")
+            user_id or os.environ.get("ARCADE_USER_ID") or self.local_context.get("user_id")
         )
         if final_user_id:
             tool_context.user_id = final_user_id
@@ -778,9 +772,7 @@ class MCPServer:
             if not tool_context.metadata:
                 tool_context.metadata = []
             tool_context.metadata.append(
-                ToolMetadataItem(
-                    key="user_email", value=os.environ.get("ARCADE_USER_EMAIL")
-                )
+                ToolMetadataItem(key="user_email", value=os.environ.get("ARCADE_USER_EMAIL"))
             )
 
         # Apply any additional metadata from local_context
@@ -791,9 +783,7 @@ class MCPServer:
             # Check if metadata key already exists
             existing = next((m for m in tool_context.metadata if m.key == key), None)
             if not existing:
-                tool_context.metadata.append(
-                    ToolMetadataItem(key=key, value=str(value))
-                )
+                tool_context.metadata.append(ToolMetadataItem(key=key, value=str(value)))
 
     async def _handle_cancel(self, message: CancelRequest) -> JSONRPCResponse:
         """
@@ -822,9 +812,7 @@ class MCPServer:
         proc.add_done_callback(lambda _: logger.info("MCP server shutdown complete"))
         return ShutdownResponse(id=message.id, result={"ok": True})
 
-    async def _handle_list_resources(
-        self, message: ListResourcesRequest
-    ) -> ListResourcesResponse:
+    async def _handle_list_resources(self, message: ListResourcesRequest) -> ListResourcesResponse:
         """
         Handle a resources/list request.
 
@@ -836,9 +824,7 @@ class MCPServer:
         """
         return ListResourcesResponse(id=message.id, result={"resources": []})
 
-    async def _handle_list_prompts(
-        self, message: ListPromptsRequest
-    ) -> ListPromptsResponse:
+    async def _handle_list_prompts(self, message: ListPromptsRequest) -> ListPromptsResponse:
         """
         Handle a prompts/list request.
 
@@ -933,9 +919,7 @@ class MCPServer:
             return JSONRPCResponse(
                 id=message.id,
                 result={
-                    "subscriptions": [
-                        sub.model_dump(exclude_none=True) for sub in subscriptions
-                    ]
+                    "subscriptions": [sub.model_dump(exclude_none=True) for sub in subscriptions]
                 },
             )
 
@@ -953,7 +937,7 @@ class MCPServer:
                 id=message.id,
                 error={
                     "code": -32603,
-                    "message": f"Failed to subscribe: {str(e)}",
+                    "message": f"Failed to subscribe: {e!s}",
                 },
             )
 
@@ -1005,7 +989,7 @@ class MCPServer:
                 id=message.id,
                 error={
                     "code": -32603,
-                    "message": f"Failed to unsubscribe: {str(e)}",
+                    "message": f"Failed to unsubscribe: {e!s}",
                 },
             )
 
@@ -1069,9 +1053,7 @@ class MCPServer:
         self._shutdown = True
 
         # Stop notification manager
-        if self.notification_manager and hasattr(
-            self, "_notification_manager_started"
-        ):
+        if self.notification_manager and hasattr(self, "_notification_manager_started"):
             await self.notification_manager.stop()
             self._notification_manager_started = False
 

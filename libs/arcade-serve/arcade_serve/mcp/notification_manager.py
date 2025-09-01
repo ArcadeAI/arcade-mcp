@@ -51,9 +51,7 @@ class NotificationType(str, Enum):
 class NotificationSender(Protocol):
     """Protocol for sending notifications to clients."""
 
-    async def send_notification(
-        self, client_id: str, notification: dict[str, Any]
-    ) -> bool:
+    async def send_notification(self, client_id: str, notification: dict[str, Any]) -> bool:
         """Send a notification to a specific client.
 
         Args:
@@ -133,9 +131,7 @@ class NotificationManager:
             return
 
         self._running = True
-        self._tasks.append(
-            asyncio.create_task(self._process_debounced_notifications())
-        )
+        self._tasks.append(asyncio.create_task(self._process_debounced_notifications()))
         self._tasks.append(asyncio.create_task(self._cleanup_inactive_clients()))
         logger.info("Notification manager started")
 
@@ -213,9 +209,7 @@ class NotificationManager:
             subscriptions = []
             for notification_type in notification_types:
                 # Check if client has capability for this notification type
-                if any(
-                    cap.method == notification_type for cap in client.capabilities
-                ):
+                if any(cap.method == notification_type for cap in client.capabilities):
                     subscription_id = str(uuid.uuid4())
                     subscription = NotificationSubscription(
                         subscription_id=subscription_id,
@@ -225,13 +219,9 @@ class NotificationManager:
                     )
                     client.subscriptions[subscription_id] = subscription
                     subscriptions.append(subscription)
-                    logger.debug(
-                        f"Client {client_id} subscribed to {notification_type}"
-                    )
+                    logger.debug(f"Client {client_id} subscribed to {notification_type}")
                 else:
-                    logger.warning(
-                        f"Client {client_id} lacks capability for {notification_type}"
-                    )
+                    logger.warning(f"Client {client_id} lacks capability for {notification_type}")
 
             return subscriptions
 
@@ -590,9 +580,7 @@ class NotificationManager:
             notification_data: Notification data as dict
         """
         try:
-            success = await self.sender.send_notification(
-                client_id, notification_data
-            )
+            success = await self.sender.send_notification(client_id, notification_data)
             if success:
                 async with self.clients_lock:
                     if client_id in self.clients:

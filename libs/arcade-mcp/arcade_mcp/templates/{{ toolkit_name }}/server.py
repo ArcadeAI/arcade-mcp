@@ -19,7 +19,7 @@ server = Server(
 if __name__ == "__main__":
     # Get transport from command line argument, default to "stream"
     transport = sys.argv[1] if len(sys.argv) > 1 else "stream"
-    
+
     # Run the server
     # - "stream" (default): HTTPS streaming for Claude Desktop, Claude Code, Cursor
     # - "sse": Server-sent events for Cursor

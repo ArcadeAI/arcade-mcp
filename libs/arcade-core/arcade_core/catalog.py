@@ -1131,9 +1131,13 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
 def to_tool_secret_requirements(
     secrets_requirement: list[str],
 ) -> list[ToolSecretRequirement]:
-    # Iterate through the list, de-dupe case-insensitively, and convert each string to a ToolSecretRequirement
-    unique_secrets = {name.lower(): name.lower() for name in secrets_requirement}.values()
-    return [ToolSecretRequirement(key=name) for name in unique_secrets]
+    # De-dupe case-insensitively but preserve the original casing for env var lookup
+    unique_map: dict[str, str] = {}
+    for name in secrets_requirement:
+        lowered = str(name).lower()
+        if lowered not in unique_map:
+            unique_map[lowered] = str(name)
+    return [ToolSecretRequirement(key=orig_name) for orig_name in unique_map.values()]
 
 
 def to_tool_metadata_requirements(

@@ -1,58 +1,48 @@
-# arcade-mcp
+# ``arcade-mcp``
 
-Model Context Protocol (MCP) server framework for Arcade AI.
+A Pythonic library to run MCP servers locally using Arcade's core runtime. Designed for local-first development with simple, explicit Python entrypoints.
 
-## Installation
+## Install
 
 ```bash
-pip install arcade-mcp
-```
-
-## Quick Start
-
-Create a simple MCP server:
-
-```python
-from arcade_mcp import Server
-from arcade_tdk import tool
-
-@tool
-def hello(name: str) -> str:
-    """Say hello to someone."""
-    return f"Hello, {name}!"
-
-server = Server()
-
-if __name__ == "__main__":
-    # Run with different transports
-    server.run(transport="stream")  # Default - works with Claude Desktop, Cursor
-    # server.run(transport="sse")    # Server-sent events for Cursor
-    # server.run(transport="stdio")  # Standard I/O for VS Code
+uv add arcade-ai --all-extras
 ```
 
 ## Usage
 
-Run your server:
+Create a toolkit with templates:
 
 ```bash
-# Default HTTPS stream transport
-python server.py
-
-# Specific transport
-python server.py stdio
-python server.py sse
-python server.py stream
+arcade new my_toolkit
+cd my_toolkit
 ```
 
-## Features
+Run the server with uv:
 
-- Simple, pythonic API
-- Support for all MCP transports (stdio, SSE, HTTPS stream)
-- Automatic .env file loading
-- Built-in auth support with Arcade Cloud
-- Tool discovery and registration
-- Compatible with all major MCP clients
+```bash
+# Default transport (stream)
+uv run server.py
 
-## Documentation
+# Specific transport
+uv run server.py stream
+uv run server.py sse
+uv run server.py stdio
+```
 
-See the [Arcade AI documentation](https://docs.arcade.ai) for more information.
+Connect clients:
+
+```bash
+# Cursor (local)
+arcade connect cursor --from-local
+
+# Cursor (from Arcade cloud)
+arcade connect cursor --from-arcade
+
+# Claude (from Arcade cloud)
+arcade connect claude --from-arcade
+```
+
+Notes:
+- MCP endpoints are served at `/mcp` for HTTP transports (stream, sse).
+- `.env` at the project root is automatically loaded for local runs.
+- Auto-discovery loads the local toolkit in the current directory, or falls back to installed Arcade toolkits.

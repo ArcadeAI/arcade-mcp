@@ -5,13 +5,11 @@ import traceback
 import uuid
 import webbrowser
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import httpx
 import typer
 from arcadepy import Arcade
-from arcadepy.types import AuthorizationResponse
-from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
@@ -429,14 +427,14 @@ def connect(
 ) -> None:
     """
     Configure MCP clients to connect to your server.
-    
+
     Examples:
         arcade connect claude --from-local
         arcade connect cursor --from-local --port 8080
         arcade connect claude --from-arcade --server my-toolkit
     """
     from arcade_cli.connect import connect_client
-    
+
     try:
         connect_client(
             client=client,

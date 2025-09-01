@@ -9,10 +9,6 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
-from arcade_cli.deployment import (
-    create_demo_deployment,
-)
-
 console = Console()
 
 # Retrieve the installed version of arcade-ai
@@ -205,6 +201,7 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     # Use templates from arcade-mcp package
     try:
         from arcade_mcp.templates import get_template_directory
+
         template_directory = get_template_directory() / "{{ toolkit_name }}"
     except ImportError:
         # Fallback to local templates if arcade-mcp is not installed

@@ -41,9 +41,7 @@ class Session:
 
 
 class SSEComponent(WorkerComponent):
-    def __init__(
-        self, worker: BaseWorker, local_context: dict[str, Any] | None = None
-    ) -> None:
+    def __init__(self, worker: BaseWorker, local_context: dict[str, Any] | None = None) -> None:
         super().__init__(worker)
         self.sessions: dict[str, Session] = {}
         self.sessions_lock = asyncio.Lock()  # Add lock for thread-safe operations
@@ -124,7 +122,7 @@ class SSEComponent(WorkerComponent):
         if isinstance(router, FastAPIRouter):
             # Register GET endpoint directly with FastAPI
             router.app.add_api_route(
-                f"{router.worker.base_path}/mcp",
+                "/mcp",
                 self.__call__,
                 methods=["GET"],
                 response_class=EventSourceResponse,
@@ -137,12 +135,10 @@ class SSEComponent(WorkerComponent):
             # Register POST endpoint directly with FastAPI
             auth_dependency = self.get_auth_dependency()
             router.app.add_api_route(
-                f"{router.worker.base_path}/mcp",
+                "/mcp",
                 self.__call__,
                 methods=["POST"],
-                dependencies=[Depends(auth_dependency)]
-                if not self.worker.disable_auth
-                else [],
+                dependencies=[Depends(auth_dependency)] if not self.worker.disable_auth else [],
                 operation_id="mcp_post",
                 description="MCP POST",
                 summary="MCP POST",
@@ -207,9 +203,7 @@ class SSEComponent(WorkerComponent):
                     while True:
                         try:
                             # Use timeout to periodically check connection health
-                            message = await asyncio.wait_for(
-                                session.queue.get(), timeout=30.0
-                            )
+                            message = await asyncio.wait_for(session.queue.get(), timeout=30.0)
                             if message is None:  # Sentinel value
                                 break
                             yield {"data": json.dumps(message)}
@@ -291,18 +285,12 @@ class SSEComponent(WorkerComponent):
                                 logger.exception("Error sending SSE notification")
 
                     # Register write stream with MCP server
-                    self.mcp_server.write_streams[session_id] = SSEWriteStream(
-                        session
-                    )
+                    self.mcp_server.write_streams[session_id] = SSEWriteStream(session)
 
                     try:
-                        response = await self.mcp_server.handle_message(
-                            body, user_id=session_id
-                        )
+                        response = await self.mcp_server.handle_message(body, user_id=session_id)
                         if response:
-                            await session.queue.put(
-                                response.model_dump(exclude_none=True)
-                            )
+                            await session.queue.put(response.model_dump(exclude_none=True))
                     except Exception as e:
                         # Clean up session on error
                         async with self.sessions_lock:
@@ -330,13 +318,9 @@ class SSEComponent(WorkerComponent):
                 session.touch()
 
                 try:
-                    response = await self.mcp_server.handle_message(
-                        body, user_id=session_id
-                    )
+                    response = await self.mcp_server.handle_message(body, user_id=session_id)
                     if response:
-                        await session.queue.put(
-                            response.model_dump(exclude_none=True)
-                        )
+                        await session.queue.put(response.model_dump(exclude_none=True))
                     return {"status": "ok"}
                 except Exception as e:
                     logger.exception(f"Error processing request: {e}")

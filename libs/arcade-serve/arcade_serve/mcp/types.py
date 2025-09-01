@@ -122,7 +122,7 @@ class PingRequest(JSONRPCRequest):
 
 
 class PingResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any] = Field(default_factory=lambda: {"pong": True})
+    result: dict[str, Any] = Field(default_factory=lambda: {})
 
 
 class ShutdownRequest(JSONRPCRequest):
@@ -289,9 +289,7 @@ class EnhancedProgressNotificationParams(NotificationParams):
 
 
 class EnhancedProgressNotification(
-    Notification[
-        EnhancedProgressNotificationParams, Literal["notifications/progress"]
-    ]
+    Notification[EnhancedProgressNotificationParams, Literal["notifications/progress"]]
 ):
     method: Literal["notifications/progress"]
     params: EnhancedProgressNotificationParams

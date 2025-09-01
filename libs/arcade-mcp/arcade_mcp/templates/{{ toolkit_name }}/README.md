@@ -27,14 +27,23 @@
 <br>
 <br>
 
-# Arcade {{ toolkit_name }} Toolkit
-{% if toolkit_description -%}
-{{ toolkit_description }}
-{% endif -%}
-## Features
+# {{ toolkit_name }}
 
-- The {{ toolkit_name }} toolkit does not have any features yet.
+A starter MCP toolkit powered by arcade-mcp.
 
-## Development
+## Run locally
 
-Read the docs on how to create a toolkit [here](https://docs.arcade.dev/home/build-tools/create-a-toolkit)
+```bash
+# Default transport (stream)
+uv run server.py
+
+# Specific transport
+uv run server.py stream
+uv run server.py sse
+uv run server.py stdio
+```
+
+## Develop
+- Define tools in `{{ package_name }}/tools/` using `@tool` from `arcade_tdk`.
+- Environment variables from `.env` are loaded automatically.
+- HTTP transports mount at `/mcp`.

@@ -41,9 +41,7 @@ class Session:
 
 
 class StreamComponent(WorkerComponent):
-    def __init__(
-        self, worker: Worker, local_context: dict[str, Any] | None = None
-    ) -> None:
+    def __init__(self, worker: Worker, local_context: dict[str, Any] | None = None) -> None:
         super().__init__(worker)
         self.sessions: dict[str, Session] = {}
         self.sessions_lock = asyncio.Lock()  # Add lock for thread-safe operations
@@ -123,12 +121,10 @@ class StreamComponent(WorkerComponent):
             auth_dependency = self.get_auth_dependency()
             # Register directly with FastAPI to avoid the RequestData wrapper
 
-            dependencies = (
-                [Depends(auth_dependency)] if not self.worker.disable_auth else []
-            )
+            dependencies = [Depends(auth_dependency)] if not self.worker.disable_auth else []
 
             router.app.add_api_route(
-                f"{router.worker.base_path}/mcp",
+                "/mcp",
                 self.__call__,
                 methods=["POST"],
                 response_class=StreamingResponse,
@@ -210,7 +206,7 @@ class StreamComponent(WorkerComponent):
                 self.session = session
 
             async def send(self, message: str) -> None:
-                # Parse message and put in queue
+                # Parse message and put in queue as dict
                 try:
                     if isinstance(message, str):
                         data = json.loads(message)
@@ -230,18 +226,14 @@ class StreamComponent(WorkerComponent):
                 while True:
                     try:
                         # Use timeout to detect stalled connections
-                        message = await asyncio.wait_for(
-                            session.queue.get(), timeout=60.0
-                        )
+                        message = await asyncio.wait_for(session.queue.get(), timeout=60.0)
                         if message is None:  # Sentinel value
                             break
+                        # Always emit a single JSON object per line
                         yield json.dumps(message) + "\n"
                     except asyncio.TimeoutError:
                         # Send keepalive message
-                        yield (
-                            json.dumps({"type": "ping", "timestamp": time.time()})
-                            + "\n"
-                        )
+                        yield (json.dumps({"type": "ping", "timestamp": time.time()}) + "\n")
                         continue
             except asyncio.CancelledError:
                 # Client disconnected
@@ -290,9 +282,7 @@ class StreamComponent(WorkerComponent):
 
                 # Process the request
                 try:
-                    response = await self.mcp_server.handle_message(
-                        body, user_id=session_id
-                    )
+                    response = await self.mcp_server.handle_message(body, user_id=session_id)
                     if response:
                         # Handle both dict and Pydantic model responses
                         if hasattr(response, "model_dump"):
@@ -332,9 +322,7 @@ class StreamComponent(WorkerComponent):
             except Exception:
                 logger.exception("Unexpected error in monitor_disconnect")
 
-        asyncio.run_coroutine_threadsafe(
-            monitor_disconnect(), asyncio.get_running_loop()
-        )
+        asyncio.run_coroutine_threadsafe(monitor_disconnect(), asyncio.get_running_loop())
 
         return StreamingResponse(
             stream_generator(),

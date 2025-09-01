@@ -6,12 +6,9 @@ Provides concrete implementations of the arcade_core notification protocols.
 """
 
 import time
-import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Protocol
-
-from arcade_core.notifications import ProgressContext as ProgressContextProtocol
 
 
 class LogLevel(str, Enum):
@@ -226,9 +223,7 @@ class ToolNotifier:
     - Resource update notifications
     """
 
-    def __init__(
-        self, backend: NotificationBackend, progress_token: str | None = None
-    ):
+    def __init__(self, backend: NotificationBackend, progress_token: str | None = None):
         """
         Initialize the tool notifier.
 

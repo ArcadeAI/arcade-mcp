@@ -23,13 +23,20 @@ AuthorizationStatus = Literal["not_started", "pending", "completed", "failed"]
 class MockAuthClient:
     """Mock auth client for local development."""
 
-    def __init__(self, auth_providers: list[dict[str, Any]] | None = None):
+    def __init__(
+        self,
+        auth_providers: list[dict[str, Any]] | None = None,
+        host: str = "localhost",
+        port: int = 8002,
+    ):
         """
         Initialize the mock auth client.
 
         Args:
             auth_providers: List of auth provider configurations from worker.toml
         """
+        self.host = host
+        self.port = port
         self.providers = {}
         if auth_providers:
             for provider in auth_providers:
@@ -62,7 +69,7 @@ class MockAuthClient:
             )
             return AuthorizationResponse(
                 status=AuthorizationStatus.PENDING,
-                url=f"http://localhost:8002/mock-auth/{provider_id}",
+                url=f"http://{self.host}:{self.port}/mock-auth/{provider_id}",
                 context=None,
             )
 
@@ -84,7 +91,7 @@ class MockAuthClient:
                 )
                 return AuthorizationResponse(
                     status=AuthorizationStatus.PENDING,
-                    url=f"http://localhost:8002/mock-auth/{provider_id}/{user_id}",
+                    url=f"http://{self.host}:{self.port}/mock-auth/{provider_id}/{user_id}",
                     context=None,
                 )
 
@@ -106,7 +113,12 @@ class MockAuthClient:
 class MockArcadeClient:
     """Mock Arcade client for local development."""
 
-    def __init__(self, auth_providers: list[dict[str, Any]] | None = None):
+    def __init__(
+        self,
+        auth_providers: list[dict[str, Any]] | None = None,
+        host: str = "localhost",
+        port: int = 8002,
+    ):
         """
         Initialize the mock Arcade client.
 
