@@ -183,6 +183,13 @@ class ToolRuntimeError(ToolError, RuntimeError):
             return "\n".join(traceback.format_exception(self.__cause__))
         return None
 
+    def traceback_info(self) -> str | None:
+        """DEPRECATED: Use stacktrace() instead.
+
+        This method is deprecated and will be removed in a future major version.
+        """
+        return self.stacktrace()
+
     # wire-format helper
     def to_payload(self) -> dict[str, Any]:
         return {
