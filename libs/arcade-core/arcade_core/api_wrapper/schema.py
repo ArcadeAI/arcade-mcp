@@ -24,9 +24,7 @@ class HttpValueSchema(BaseModel):
     val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
     """The type of the value."""
 
-    inner_val_type: (
-        Literal["string", "integer", "number", "boolean", "json", "array"] | None
-    ) = None
+    inner_val_type: Literal["string", "integer", "number", "boolean"] | None = None
     """The value schema of the inner value, in case of an array."""
 
 
