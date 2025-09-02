@@ -1,4 +1,5 @@
 from arcade_zendesk.tools.search_articles import search_articles
+from arcade_zendesk.tools.system_context import who_am_i
 from arcade_zendesk.tools.tickets import (
     add_ticket_comment,
     get_ticket_comments,
@@ -12,4 +13,5 @@ __all__ = [
     "get_ticket_comments",
     "mark_ticket_solved",
     "search_articles",
+    "who_am_i",
 ]
