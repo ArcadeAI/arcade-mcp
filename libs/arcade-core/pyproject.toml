@@ -63,3 +63,6 @@ warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
 ignore_missing_imports = true
+
+[tool.ruff.lint.isort]
+known-first-party = ["arcade_core",]
