@@ -127,5 +127,5 @@ class WrapperToolDefinition(ToolDefinition):
     input: WrapperToolInput
     """The inputs of the Wrapper Tool."""
 
-    http_endpoint: HttpEndpointDefinition | None = None
+    http_endpoint: HttpEndpointDefinition = Field(..., exclude=True)
     """The HTTP API endpoint that the Wrapper Tool wraps."""
