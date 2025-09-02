@@ -70,9 +70,9 @@ class ToolkitError(Exception, ABC):
             The error with the context added to the message.
         """
         prefix = self.create_message_prefix(name)
-        self.message = f"{prefix}{self.message}"
-        if hasattr(self, "developer_message") and self.developer_message:
-            self.developer_message = f"{prefix}{self.developer_message}"
+        self.message = f"{prefix}{self.message}"  # type: ignore[has-type]
+        if hasattr(self, "developer_message") and self.developer_message:  # type: ignore[has-type]
+            self.developer_message = f"{prefix}{self.developer_message}"  # type: ignore[has-type]
 
         return self
 
@@ -124,8 +124,6 @@ class ToolError(ToolkitError):
 class ToolDefinitionError(ToolError):
     """
     Raised when there is an error in the definition/signature of a tool.
-
-    Note: This class is not intended to be instantiated directly.
     """
 
     kind: ErrorKind = ErrorKind.TOOL_DEFINITION_BAD_DEFINITION
@@ -172,7 +170,7 @@ class ToolRuntimeError(ToolError, RuntimeError):
     ):
         super().__init__(message)
         self.message = message
-        self.developer_message = developer_message
+        self.developer_message = developer_message  # type: ignore[assignment]
         self.extra = extra
 
     def create_message_prefix(self, tool_name: str) -> str:

@@ -2,9 +2,9 @@ import functools
 import inspect
 from typing import Any, Callable, TypeVar
 
-from arcade_tdk.adapters import ErrorAdapter
-from arcade_tdk.adapters.utils import get_adapter_for_auth_provider
 from arcade_tdk.auth import ToolAuthorization
+from arcade_tdk.error_adapters import ErrorAdapter
+from arcade_tdk.error_adapters.utils import get_adapter_for_auth_provider
 from arcade_tdk.errors import (
     FatalToolError,
     ToolRuntimeError,

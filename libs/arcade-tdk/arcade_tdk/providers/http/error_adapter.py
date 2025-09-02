@@ -142,7 +142,7 @@ class _RequestsExceptionHandler:
         """
         # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
-            from requests.exceptions import HTTPError
+            from requests.exceptions import HTTPError  # type: ignore[import-untyped]
         except ImportError:
             return None
 
