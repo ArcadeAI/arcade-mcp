@@ -4,9 +4,6 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
-# TODO: break out into separate files
-# TODO: determine which errors should be abstract. (can't break backwards compatibility)
-
 
 class ErrorKind(str, Enum):
     """Error kind that is comprised of
@@ -52,7 +49,7 @@ class ToolkitError(Exception, ABC):
       extra                     : dict[str, Any] | None  # arbitrary structured metadata
     """
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> "ToolkitError":
         abs_methods = getattr(cls, "__abstractmethods__", None)
         if abs_methods:
             raise TypeError(f"Can't instantiate abstract class {cls.__name__}")
@@ -158,7 +155,7 @@ class ToolRuntimeError(ToolError, RuntimeError):
     """
     Any failure starting from when the tool call begins until the tool call returns.
 
-    Note: This class is not intended to be instantiated directly.
+    Note: This class should typically not be instantiated directly, but rather subclassed.
     """
 
     kind: ErrorKind = ErrorKind.TOOL_RUNTIME_FATAL
@@ -199,14 +196,12 @@ class ToolRuntimeError(ToolError, RuntimeError):
 
 
 # 1. ------  serialization errors ------
-class ToolSerializationError(ToolRuntimeError):  # TODO: probably make this abstract
+class ToolSerializationError(ToolRuntimeError):
     """
     Raised when there is an error serializing/marshalling the tool call arguments or return value.
 
-    Note: This class is not intended to be instantiated directly.
+    Note: This class is not intended to be instantiated directly, but rather subclassed.
     """
-
-    # TODO: create a new error code and set it here as default?
 
 
 class ToolInputError(ToolSerializationError):
@@ -241,7 +236,6 @@ class ToolExecutionError(ToolRuntimeError):
     - UpstreamRateLimitError for upstream rate limiting errors
     """
 
-    # TODO: this shows deprecation warning when child classes are instantiated
     def __init__(
         self,
         message: str,
@@ -272,8 +266,7 @@ class RetryableToolError(ToolExecutionError):
         self,
         message: str,
         developer_message: str | None = None,
-        additional_prompt_content: str
-        | None = None,  # TODO: Should be required? Would be breaking if I made it required
+        additional_prompt_content: str | None = None,  # TODO: Make required in next major version
         retry_after_ms: int | None = None,
         extra: dict[str, Any] | None = None,
     ):
@@ -286,6 +279,9 @@ class ContextRequiredToolError(ToolExecutionError):
     """
     Raised when the combination of additional content from the tool AND
     additional context from the end-user/orchestrator is required before retrying the tool.
+
+    This is typically used when an argument provided to the tool is invalid in some way,
+    and immediately prompting an LLM to retry the tool call is not desired.
     """
 
     kind: ErrorKind = ErrorKind.TOOL_RUNTIME_CONTEXT_REQUIRED
@@ -293,8 +289,8 @@ class ContextRequiredToolError(ToolExecutionError):
     def __init__(
         self,
         message: str,
+        additional_prompt_content: str,
         developer_message: str | None = None,
-        additional_prompt_content: str | None = None,
         *,
         extra: dict[str, Any] | None = None,
     ):

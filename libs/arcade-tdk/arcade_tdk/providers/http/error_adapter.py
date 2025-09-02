@@ -102,7 +102,7 @@ class _HTTPXExceptionHandler:
         Returns:
             An Arcade error instance or None if not an httpx exception
         """
-        # Import httpx types locally to avoid import errors
+        # Lazy import httpx types locally to avoid import errors for toolkits that don't use httpx
         try:
             import httpx
         except ImportError:
@@ -140,6 +140,7 @@ class _RequestsExceptionHandler:
         Returns:
             An Arcade error instance or None if not a requests exception
         """
+        # Lazy import requests types locally to avoid import errors for toolkits that don't use requests
         try:
             from requests.exceptions import HTTPError
         except ImportError:

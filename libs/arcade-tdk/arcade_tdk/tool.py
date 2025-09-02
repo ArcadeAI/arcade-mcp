@@ -69,7 +69,7 @@ def _raise_as_arcade_error(
 ) -> None:
     """
     Try to translate an exception using the adapter chain, then raise the translated error.
-    If no adapter can translate the exception, a NonRetryableToolError is raised.
+    If no adapter can translate the exception, a FatalToolError is raised.
 
     Args:
         exception: The exception to translate to an Arcade Error

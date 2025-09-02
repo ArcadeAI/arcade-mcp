@@ -1,5 +1,6 @@
 from arcade_core.errors import (
     ContextRequiredToolError,
+    ErrorKind,
     FatalToolError,
     RetryableToolError,
     ToolExecutionError,
@@ -9,6 +10,7 @@ from arcade_core.errors import (
 )
 
 __all__ = [
+    "ErrorKind",
     "FatalToolError",
     "RetryableToolError",
     "SDKError",
@@ -22,7 +24,11 @@ __all__ = [
 
 
 class SDKError(Exception):
-    """Base class for all SDK errors."""
+    """
+    DEPRECATED: Base class for all SDK errors.
+
+    SDKError is deprecated and will be removed in a future major version.
+    """
 
 
 class WeightError(SDKError):

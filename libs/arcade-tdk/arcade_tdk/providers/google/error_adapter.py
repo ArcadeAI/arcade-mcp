@@ -193,7 +193,7 @@ class GoogleErrorAdapter:
         """
         Translate a Google API client exception into a ToolRuntimeError.
         """
-        # Lazy import the Google API client errors module
+        # Lazy import the Google API client errors module to avoid import errors for toolkits that don't use googleapiclient
         try:
             from googleapiclient import errors
         except ImportError:
