@@ -241,6 +241,7 @@ class ToolExecutionError(ToolRuntimeError):
     - UpstreamRateLimitError for upstream rate limiting errors
     """
 
+    # TODO: this shows deprecation warning when child classes are instantiated
     def __init__(
         self,
         message: str,
@@ -248,13 +249,14 @@ class ToolExecutionError(ToolRuntimeError):
         *,
         extra: dict[str, Any] | None = None,
     ):
-        warnings.warn(
-            "ToolExecutionError is deprecated and will be removed in a future major version. "
-            "Use more specific error types instead: RetryableToolError, ContextRequiredToolError, "
-            "FatalToolError, UpstreamError, or UpstreamRateLimitError.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        if type(self) is ToolExecutionError:
+            warnings.warn(
+                "ToolExecutionError is deprecated and will be removed in a future major version. "
+                "Use more specific error types instead: RetryableToolError, ContextRequiredToolError, "
+                "FatalToolError, UpstreamError, or UpstreamRateLimitError.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         super().__init__(message, developer_message=developer_message, extra=extra)
 
 
