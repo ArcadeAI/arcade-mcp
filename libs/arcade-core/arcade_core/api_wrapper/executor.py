@@ -1,2 +1,2 @@
 def call_wrapped_http_endpoint():
-    pass
+    raise NotImplementedError("Not implemented")
