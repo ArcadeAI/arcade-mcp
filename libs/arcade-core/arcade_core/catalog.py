@@ -330,7 +330,7 @@ class ToolCatalog(BaseModel):
                     if module_name.startswith("wrapper://"):
                         self.add_wrapper_tool(
                             wrapper_tool=tool_name,
-                            toolkit=toolkit,
+                            toolkit_or_name=toolkit,
                             wrapper_tools_path=module_name.removeprefix("wrapper://"),
                         )
                     else:
