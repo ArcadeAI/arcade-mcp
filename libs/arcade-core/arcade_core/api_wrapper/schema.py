@@ -1,7 +1,9 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from packaging.version import InvalidVersion, Version
+from pydantic import BaseModel, Field, field_validator
 
+from arcade_core.api_wrapper.errors import InvalidObjectVersionError
 from arcade_core.schema import InputParameter, ToolDefinition, ToolInput
 
 
@@ -16,6 +18,16 @@ class ObjectMetadata(BaseModel):
 
     description: str = ""
     """The description of the object."""
+
+    @field_validator("version")
+    @classmethod
+    def validate_semver(cls, version: str) -> str:
+        """Validate that object version follows semantic versioning format."""
+        try:
+            Version(version)
+            return version
+        except InvalidVersion as e:
+            raise InvalidObjectVersionError(version, cls.__name__) from e
 
 
 class HttpValueSchema(BaseModel):
