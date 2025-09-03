@@ -15,7 +15,9 @@ class ValueSchema(BaseModel):
     val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
     """The type of the value."""
 
-    inner_val_type: Literal["string", "integer", "number", "boolean", "json"] | None = None
+    inner_val_type: Literal["string", "integer", "number", "boolean", "json"] | None = (
+        None
+    )
     """The type of the inner value, if the value is a list."""
 
     enum: list[str] | None = None
@@ -188,15 +190,18 @@ class FullyQualifiedName:
         return (
             self.name.lower() == other.name.lower()
             and self.toolkit_name.lower() == other.toolkit_name.lower()
-            and (self.toolkit_version or "").lower() == (other.toolkit_version or "").lower()
+            and (self.toolkit_version or "").lower()
+            == (other.toolkit_version or "").lower()
         )
 
     def __hash__(self) -> int:
-        return hash((
-            self.name.lower(),
-            self.toolkit_name.lower(),
-            (self.toolkit_version or "").lower(),
-        ))
+        return hash(
+            (
+                self.name.lower(),
+                self.toolkit_name.lower(),
+                (self.toolkit_version or "").lower(),
+            )
+        )
 
     def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
         """Check if two fully-qualified tool names are equal, ignoring the version."""
@@ -206,7 +211,9 @@ class FullyQualifiedName:
         )
 
     @staticmethod
-    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedName":
+    def from_toolkit(
+        tool_name: str, toolkit: ToolkitDefinition
+    ) -> "FullyQualifiedName":
         """Creates a fully-qualified tool name from a tool name and a ToolkitDefinition."""
         return FullyQualifiedName(tool_name, toolkit.name, toolkit.version)
 
@@ -312,7 +319,11 @@ class ToolContext(BaseModel):
 
     def get_auth_token_or_empty(self) -> str:
         """Retrieve the authorization token, or return an empty string if not available."""
-        return self.authorization.token if self.authorization and self.authorization.token else ""
+        return (
+            self.authorization.token
+            if self.authorization and self.authorization.token
+            else ""
+        )
 
     def get_secret(self, key: str) -> str:
         """Retrieve the secret for the tool invocation."""

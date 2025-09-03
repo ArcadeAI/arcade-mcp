@@ -8,6 +8,7 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.parse import get_tools_from_file
 
@@ -77,15 +78,21 @@ class Toolkit(BaseModel):
         except importlib.metadata.PackageNotFoundError as e:
             raise ToolkitLoadError(f"Package '{package}' not found.") from e
         except KeyError as e:
-            raise ToolkitLoadError(f"Metadata key error for package '{package}'.") from e
+            raise ToolkitLoadError(
+                f"Metadata key error for package '{package}'."
+            ) from e
         except Exception as e:
-            raise ToolkitLoadError(f"Failed to load metadata for package '{package}'.") from e
+            raise ToolkitLoadError(
+                f"Failed to load metadata for package '{package}'."
+            ) from e
 
         # Get the package directory
         try:
             package_dir = Path(get_package_directory(package))
         except (ImportError, AttributeError) as e:
-            raise ToolkitLoadError(f"Failed to locate package directory for '{package}'.") from e
+            raise ToolkitLoadError(
+                f"Failed to locate package directory for '{package}'."
+            ) from e
 
         toolkit = cls(
             name=name,
@@ -215,19 +222,40 @@ class Toolkit(BaseModel):
         return all_toolkits
 
     @classmethod
-    def tools_from_directory(cls, package_dir: Path, package_name: str) -> dict[str, list[str]]:
+    def tools_from_directory(
+        cls, package_dir: Path, package_name: str
+    ) -> dict[str, list[str]]:
         """
         Load a Toolkit from a directory.
         """
+        tools: dict[str, list[str]] = {}
+
+        # Get all wrapper tool JSON files in the package directory
+        wrapper_tools_dir = package_dir / "wrapper_tools"
+        wrapper_path = f"wrapper://{wrapper_tools_dir}"
+        wrapper_tool_files = [
+            file
+            for file in wrapper_tools_dir.glob("*.json")
+            if file.is_file() and Validate.path(file)
+        ]
+        if wrapper_tool_files:
+            tools[wrapper_path] = []
+            for wrapper_tool_file in wrapper_tool_files:
+                with open(wrapper_tool_file) as f:
+                    wrapper_tool = WrapperToolDefinition.model_validate_json(f.read())
+                    tools[wrapper_path].append(wrapper_tool)
+
         # Get all python files in the package directory
         try:
-            modules = [f for f in package_dir.glob("**/*.py") if f.is_file() and Validate.path(f)]
+            modules = [
+                f
+                for f in package_dir.glob("**/*.py")
+                if f.is_file() and Validate.path(f)
+            ]
         except OSError as e:
             raise ToolkitLoadError(
                 f"Failed to locate Python files in package directory for '{package_name}'."
             ) from e
-
-        tools: dict[str, list[str]] = {}
 
         for module_path in modules:
             relative_path = module_path.relative_to(package_dir)
@@ -286,7 +314,9 @@ def get_package_directory(package_name: str) -> str:
         # If the package is a namespace package, return the first search location
         return spec.submodule_search_locations[0]
     else:
-        raise ImportError(f"Package {package_name} does not have a file path associated with it")
+        raise ImportError(
+            f"Package {package_name} does not have a file path associated with it"
+        )
 
 
 class Validate:

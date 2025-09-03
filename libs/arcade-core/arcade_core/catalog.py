@@ -26,6 +26,8 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from arcade_core.annotations import Inferrable
+from arcade_core.api_wrapper.executor import call_wrapped_http_endpoint
+from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.auth import OAuth2, ToolAuthorization
 from arcade_core.errors import ToolDefinitionError
 from arcade_core.schema import (
@@ -192,6 +194,32 @@ class ToolCatalog(BaseModel):
         for toolkit in disabled_toolkits:
             self._disabled_toolkits.add(toolkit.lower())
 
+    def _validate_tool(
+        self,
+        fully_qualified_name: FullyQualifiedName,
+        toolkit_name: str,
+        definition: ToolDefinition | WrapperToolDefinition,
+    ) -> bool:
+        """
+        Validate a tool.
+        """
+        if fully_qualified_name in self._tools:
+            raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
+
+        if str(fully_qualified_name).lower() in self._disabled_tools:
+            logger.info(
+                f"Tool '{fully_qualified_name!s}' is disabled and will not be cataloged."
+            )
+            return False
+
+        if str(toolkit_name).lower() in self._disabled_toolkits:
+            logger.info(
+                f"Toolkit '{toolkit_name!s}' is disabled and will not be cataloged."
+            )
+            return False
+
+        return True
+
     def add_tool(
         self,
         tool_func: Callable,
@@ -223,15 +251,7 @@ class ToolCatalog(BaseModel):
 
         fully_qualified_name = definition.get_fully_qualified_name()
 
-        if fully_qualified_name in self._tools:
-            raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
-
-        if str(fully_qualified_name).lower() in self._disabled_tools:
-            logger.info(f"Tool '{fully_qualified_name!s}' is disabled and will not be cataloged.")
-            return
-
-        if str(toolkit_name).lower() in self._disabled_toolkits:
-            logger.info(f"Toolkit '{toolkit_name!s}' is disabled and will not be cataloged.")
+        if not self._validate_tool(fully_qualified_name, toolkit_name, definition):
             return
 
         self._tools[fully_qualified_name] = MaterializedTool(
@@ -242,6 +262,35 @@ class ToolCatalog(BaseModel):
                 toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=module.__file__ if module else None,
+            ),
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+    def add_wrapper_tool(
+        self,
+        wrapper_tool: WrapperToolDefinition,
+        toolkit: Toolkit,
+        wrapper_tools_path: str,
+    ) -> None:
+        """
+        Add a wrapper tool to the catalog.
+        """
+        fully_qualified_name = wrapper_tool.get_fully_qualified_name()
+
+        if not self._validate_tool(fully_qualified_name, toolkit.name, wrapper_tool):
+            return
+
+        input_model, output_model = create_wrapper_tool_models(wrapper_tool)
+
+        self._tools[fully_qualified_name] = MaterializedTool(
+            definition=wrapper_tool,
+            tool=call_wrapped_http_endpoint,
+            meta=ToolMeta(
+                module=call_wrapped_http_endpoint.__module__,
+                toolkit=toolkit.name,
+                package=toolkit.package_name if toolkit else None,
+                path=wrapper_tools_path,
             ),
             input_model=input_model,
             output_model=output_model,
@@ -260,22 +309,33 @@ class ToolCatalog(BaseModel):
         """
 
         if str(toolkit).lower() in self._disabled_toolkits:
-            logger.info(f"Toolkit '{toolkit.name!s}' is disabled and will not be cataloged.")
+            logger.info(
+                f"Toolkit '{toolkit.name!s}' is disabled and will not be cataloged."
+            )
             return
 
         for module_name, tool_names in toolkit.tools.items():
             for tool_name in tool_names:
                 try:
-                    module = import_module(module_name)
-                    tool_func = getattr(module, tool_name)
-                    self.add_tool(tool_func, toolkit, module)
+                    if module_name.startswith("wrapper://"):
+                        self.add_wrapper_tool(
+                            wrapper_tool=tool_name,
+                            toolkit=toolkit,
+                            wrapper_tools_path=module_name.removeprefix("wrapper://"),
+                        )
+                    else:
+                        module = import_module(module_name)
+                        tool_func = getattr(module, tool_name)
+                        self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError as e:
                     raise ToolDefinitionError(
                         f"Could not import tool {tool_name} in module {module_name}. Reason: {e}"
                     )
                 except ImportError as e:
-                    raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
+                    raise ToolDefinitionError(
+                        f"Could not import module {module_name}. Reason: {e}"
+                    )
                 except TypeError as e:
                     raise ToolDefinitionError(
                         f"Type error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
@@ -301,7 +361,9 @@ class ToolCatalog(BaseModel):
         return len(self._tools) == 0
 
     def get_tool_names(self) -> list[FullyQualifiedName]:
-        return [tool.definition.get_fully_qualified_name() for tool in self._tools.values()]
+        return [
+            tool.definition.get_fully_qualified_name() for tool in self._tools.values()
+        ]
 
     def find_tool_by_func(self, func: Callable) -> ToolDefinition:
         """
@@ -345,7 +407,8 @@ class ToolCatalog(BaseModel):
                 if fq_name.name.lower() == name.lower()
                 and (
                     version is None
-                    or (fq_name.toolkit_version or "").lower() == (version or "").lower()
+                    or (fq_name.toolkit_version or "").lower()
+                    == (version or "").lower()
                 )
             ]
             if matching_tools:
@@ -362,7 +425,9 @@ class ToolCatalog(BaseModel):
             try:
                 return self._tools[name]
             except KeyError:
-                raise ValueError(f"Tool {name}@{name.toolkit_version} not found in the catalog.")
+                raise ValueError(
+                    f"Tool {name}@{name.toolkit_version} not found in the catalog."
+                )
 
         for key, tool in self._tools.items():
             if key.equals_ignoring_version(name):
@@ -395,8 +460,13 @@ class ToolCatalog(BaseModel):
             raise ToolDefinitionError(f"Tool {raw_tool_name} is missing a description")
 
         # If the function returns a value, it must have a type annotation
-        if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
-            raise ToolDefinitionError(f"Tool {raw_tool_name} must have a return type annotation")
+        if (
+            does_function_return_value(tool)
+            and tool.__annotations__.get("return") is None
+        ):
+            raise ToolDefinitionError(
+                f"Tool {raw_tool_name} must have a return type annotation"
+            )
 
         auth_requirement = create_auth_requirement(tool)
         secrets_requirement = create_secrets_requirement(tool)
@@ -409,7 +479,9 @@ class ToolCatalog(BaseModel):
         )
 
         tool_name = snake_to_pascal_case(raw_tool_name)
-        fully_qualified_name = FullyQualifiedName.from_toolkit(tool_name, toolkit_definition)
+        fully_qualified_name = FullyQualifiedName.from_toolkit(
+            tool_name, toolkit_definition
+        )
         deprecation_message = getattr(tool, "__tool_deprecation_message__", None)
 
         return ToolDefinition(
@@ -458,7 +530,9 @@ def create_input_definition(func: Callable) -> ToolInput:
                 description=tool_field_info.description,
                 required=is_required,
                 inferrable=tool_field_info.is_inferrable,
-                value_schema=wire_type_info_to_value_schema(tool_field_info.wire_type_info),
+                value_schema=wire_type_info_to_value_schema(
+                    tool_field_info.wire_type_info
+                ),
             )
         )
 
@@ -494,7 +568,9 @@ def create_output_definition(func: Callable) -> ToolOutput:
     # Both Optional[T] and T | None are supported
     is_optional = is_strict_optional(return_type)
     if is_optional:
-        return_type = next(arg for arg in get_args(return_type) if arg is not type(None))
+        return_type = next(
+            arg for arg in get_args(return_type) if arg is not type(None)
+        )
 
     wire_type_info = get_wire_type_info(return_type)
 
@@ -522,7 +598,9 @@ def create_auth_requirement(tool: Callable) -> ToolAuthRequirement | None:
             id=auth_requirement.id,
         )
         if isinstance(auth_requirement, OAuth2):
-            new_auth_requirement.oauth2 = OAuth2Requirement(**auth_requirement.model_dump())
+            new_auth_requirement.oauth2 = OAuth2Requirement(
+                **auth_requirement.model_dump()
+            )
         auth_requirement = new_auth_requirement
 
     return auth_requirement
@@ -541,7 +619,10 @@ def create_secrets_requirement(tool: Callable) -> list[ToolSecretRequirement] | 
             )
 
         secrets_requirement = to_tool_secret_requirements(secrets_requirement)
-        if any(secret.key is None or secret.key.strip() == "" for secret in secrets_requirement):
+        if any(
+            secret.key is None or secret.key.strip() == ""
+            for secret in secrets_requirement
+        ):
             raise ToolDefinitionError(
                 f"Secrets must have a non-empty key (error in tool {raw_tool_name})."
             )
@@ -572,7 +653,8 @@ def create_metadata_requirement(
 
         metadata_requirement = to_tool_metadata_requirements(metadata_requirement)
         if any(
-            metadata.key is None or metadata.key.strip() == "" for metadata in metadata_requirement
+            metadata.key is None or metadata.key.strip() == ""
+            for metadata in metadata_requirement
         ):
             raise ToolDefinitionError(
                 f"Metadata must have a non-empty key (error in tool {raw_tool_name})."
@@ -677,7 +759,9 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
 
     # Final reality check
     if param_info.description is None:
-        raise ToolDefinitionError(f"Parameter {param_info.name} is missing a description")
+        raise ToolDefinitionError(
+            f"Parameter {param_info.name} is missing a description"
+        )
 
     if wire_type_info.wire_type is None:
         raise ToolDefinitionError(f"Unknown parameter type: {param_info.field_type}")
@@ -793,7 +877,9 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
             # Handle Optional types (Union[T, None])
             if is_strict_optional(field_type):
                 # Extract the non-None type from Optional
-                field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+                field_type = next(
+                    arg for arg in get_args(field_type) if arg is not type(None)
+                )
 
             # Get wire type info recursively
             # field_type cannot be None here due to the check above
@@ -812,7 +898,9 @@ def extract_properties(type_to_check: type) -> dict[str, WireTypeInfo] | None:
             # Handle Optional types (Union[T, None])
             if is_strict_optional(field_type):
                 # Extract the non-None type from Optional
-                field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+                field_type = next(
+                    arg for arg in get_args(field_type) if arg is not type(None)
+                )
             wire_info = get_wire_type_info(field_type)
 
             # Add description if available
@@ -863,7 +951,9 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
     annotation = param.annotation
-    original_type = annotation.__args__[0] if get_origin(annotation) is Annotated else annotation
+    original_type = (
+        annotation.__args__[0] if get_origin(annotation) is Annotated else annotation
+    )
     field_type = original_type
 
     # Handle optional types
@@ -889,13 +979,17 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
 
 
 def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
-    default_value = None if param.default.default is PydanticUndefined else param.default.default
+    default_value = (
+        None if param.default.default is PydanticUndefined else param.default.default
+    )
 
     if param.default.default_factory is not None:
         if callable(param.default.default_factory):
             default_value = param.default.default_factory()
         else:
-            raise ToolDefinitionError(f"Default factory for parameter {param} is not callable.")
+            raise ToolDefinitionError(
+                f"Default factory for parameter {param} is not callable."
+            )
 
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
@@ -985,11 +1079,66 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
         }
         input_fields[name] = (tool_field_info.field_type, Field(**param_fields))
 
-    input_model = create_model(f"{snake_to_pascal_case(func.__name__)}Input", **input_fields)  # type: ignore[call-overload]
+    input_model = create_model(
+        f"{snake_to_pascal_case(func.__name__)}Input", **input_fields
+    )  # type: ignore[call-overload]
 
     output_model = determine_output_model(func)
 
     return input_model, output_model
+
+
+def _value_schema_to_python_type(value_schema: ValueSchema) -> type:
+    """
+    Convert a wrapper tool value type to a Python type.
+    """
+    type_map = {
+        "string": str,
+        "integer": int,
+        "number": float,
+        "boolean": bool,
+        "json": dict,
+        "array": list,
+    }
+
+    if value_schema.val_type == "array":
+        if not value_schema.inner_val_type:
+            return list[Any]
+        return list[_value_schema_to_python_type(value_schema.inner_val_type)]
+    elif value_schema.val_type == "json":
+        return dict[str, Any]
+    else:
+        return type_map[value_schema.val_type]
+
+
+def create_wrapper_tool_models(
+    wrapper_tool: WrapperToolDefinition,
+) -> tuple[type[BaseModel], type[BaseModel]]:
+    """
+    Analyze a wrapper tool to create corresponding Pydantic models for its input and output.
+    """
+    input_fields = {}
+    for param in wrapper_tool.input.parameters:
+        input_fields[param.name] = (
+            _value_schema_to_python_type(param.value_schema),
+            Field(
+                default=None,
+                description=param.description,
+            ),
+        )
+
+    input_model = create_model(f"{wrapper_tool.name}Input", **input_fields)
+    output_model = create_model(
+        f"{wrapper_tool.name}Output",
+        result=(
+            _value_schema_to_python_type(wrapper_tool.output.value_schema),
+            Field(
+                description=wrapper_tool.output.description,
+            ),
+        ),
+    )
+
+    return (input_model, output_model)
 
 
 def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
@@ -1010,7 +1159,9 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
         if hasattr(return_annotation, "__metadata__"):
             field_type = return_annotation.__args__[0]
             description = (
-                return_annotation.__metadata__[0] if return_annotation.__metadata__ else ""
+                return_annotation.__metadata__[0]
+                if return_annotation.__metadata__
+                else ""
             )
 
             # Check if the field type is a TypedDict
@@ -1078,7 +1229,9 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
     else:
         # If the return annotation is a TypedDict
         if is_typeddict(return_annotation):
-            typeddict_model = create_model_from_typeddict(return_annotation, output_model_name)
+            typeddict_model = create_model_from_typeddict(
+                return_annotation, output_model_name
+            )
             return create_model(
                 output_model_name,
                 result=(
@@ -1097,7 +1250,9 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
         )
 
 
-def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[BaseModel]:
+def create_model_from_typeddict(
+    typeddict_class: type, model_name: str
+) -> type[BaseModel]:
     """
     Create a Pydantic model from a TypedDict class.
     This enables runtime validation of TypedDict structures.
@@ -1113,7 +1268,9 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
 
         # Handle nested TypedDict
         if is_typeddict(field_type):
-            nested_model = create_model_from_typeddict(field_type, f"{model_name}_{field_name}")
+            nested_model = create_model_from_typeddict(
+                field_type, f"{model_name}_{field_name}"
+            )
             if is_required:
                 field_definitions[field_name] = (nested_model, Field())
             else:
@@ -1132,7 +1289,9 @@ def to_tool_secret_requirements(
     secrets_requirement: list[str],
 ) -> list[ToolSecretRequirement]:
     # Iterate through the list, de-dupe case-insensitively, and convert each string to a ToolSecretRequirement
-    unique_secrets = {name.lower(): name.lower() for name in secrets_requirement}.values()
+    unique_secrets = {
+        name.lower(): name.lower() for name in secrets_requirement
+    }.values()
     return [ToolSecretRequirement(key=name) for name in unique_secrets]
 
 
@@ -1140,5 +1299,7 @@ def to_tool_metadata_requirements(
     metadata_requirement: list[str],
 ) -> list[ToolMetadataRequirement]:
     # Iterate through the list, de-dupe case-insensitively, and convert each string to a ToolMetadataRequirement
-    unique_metadata = {name.lower(): name.lower() for name in metadata_requirement}.values()
+    unique_metadata = {
+        name.lower(): name.lower() for name in metadata_requirement
+    }.values()
     return [ToolMetadataRequirement(key=name) for name in unique_metadata]
