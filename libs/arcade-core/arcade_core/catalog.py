@@ -283,6 +283,9 @@ class ToolCatalog(BaseModel):
             toolkit = None
             toolkit_name = toolkit_or_name
 
+        if not toolkit_name:
+            raise ValueError("A toolkit name or toolkit must be provided.")
+
         fully_qualified_name = wrapper_tool.get_fully_qualified_name()
 
         if not self._validate_tool(fully_qualified_name, toolkit_name, wrapper_tool):
