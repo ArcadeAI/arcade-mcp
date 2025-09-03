@@ -26,7 +26,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from arcade_core.annotations import Inferrable
-from arcade_core.api_wrapper.executor import call_wrapped_http_endpoint
+from arcade_core.api_wrapper.executor import call_wrapper_tool
 from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.auth import OAuth2, ToolAuthorization
 from arcade_core.errors import ToolDefinitionError
@@ -295,9 +295,9 @@ class ToolCatalog(BaseModel):
 
         self._tools[fully_qualified_name] = MaterializedTool(
             definition=wrapper_tool,
-            tool=call_wrapped_http_endpoint,
+            tool=call_wrapper_tool,
             meta=ToolMeta(
-                module=call_wrapped_http_endpoint.__module__,
+                module=call_wrapper_tool.__module__,
                 toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=wrapper_tools_path,

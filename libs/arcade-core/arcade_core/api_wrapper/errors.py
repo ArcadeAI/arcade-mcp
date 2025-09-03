@@ -6,8 +6,6 @@ class WrapperDefinitionError(ToolDefinitionError):
     Raised when there is an error in the definition of a wrapper tool.
     """
 
-    pass
-
 
 class InvalidObjectVersionError(WrapperDefinitionError):
     """
@@ -16,3 +14,9 @@ class InvalidObjectVersionError(WrapperDefinitionError):
 
     def __init__(self, version: str, object_name: str):
         super().__init__(f"Invalid version: '{version}' in {object_name} object.")
+
+
+class HttpEndpointInputError(WrapperDefinitionError):
+    """
+    Raised when there is an error in the input to an HTTP endpoint.
+    """

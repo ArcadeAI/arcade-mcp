@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.errors import (
     RetryableToolError,
     ToolInputError,
@@ -47,24 +48,17 @@ class ToolExecutor:
             )
 
         try:
-            # serialize the input model
-            inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
-
-            # prepare the arguments for the function call
-            func_args = inputs.model_dump()
-
-            # inject ToolContext, if the target function supports it
-            if definition.input.tool_context_parameter_name is not None:
-                func_args[definition.input.tool_context_parameter_name] = context
-
-            # execute the tool function
-            if asyncio.iscoroutinefunction(func):
-                results = await func(**func_args)
-            else:
-                results = func(**func_args)
+            # Get the result from the tool execution
+            tool_response = await ToolExecutor._execute_tool(
+                definition=definition,
+                func=func,
+                input_model=input_model,
+                context=context,
+                **kwargs,
+            )
 
             # serialize the output model
-            output = await ToolExecutor._serialize_output(output_model, results)
+            output = await ToolExecutor._serialize_output(output_model, tool_response)
 
             # return the output
             return output_factory.success(data=output, logs=tool_call_logs)
@@ -78,7 +72,9 @@ class ToolExecutor:
             )
 
         except ToolSerializationError as e:
-            return output_factory.fail(message=e.message, developer_message=e.developer_message)
+            return output_factory.fail(
+                message=e.message, developer_message=e.developer_message
+            )
 
         # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolRuntimeError as e:
@@ -97,7 +93,61 @@ class ToolExecutor:
             )
 
     @staticmethod
-    async def _serialize_input(input_model: type[BaseModel], **kwargs: Any) -> BaseModel:
+    async def _execute_tool(
+        definition: ToolDefinition,
+        func,
+        input_model,
+        context,
+        **kwargs,
+    ):
+        if isinstance(definition, WrapperToolDefinition):
+            return await ToolExecutor._execute_wrapper_tool(
+                definition, func, input_model, context, **kwargs
+            )
+        else:
+            return await ToolExecutor._execute_standard_tool(
+                definition, func, input_model, context, **kwargs
+            )
+
+    @staticmethod
+    async def _execute_standard_tool(
+        definition: ToolDefinition,
+        func,
+        input_model,
+        context,
+        **kwargs,
+    ):
+        # serialize the input model
+        inputs = await ToolExecutor._serialize_input(input_model, **kwargs)
+
+        # prepare the arguments for the function call
+        func_args = inputs.model_dump()
+
+        # inject ToolContext, if the target function supports it
+        if definition.input.tool_context_parameter_name is not None:
+            func_args[definition.input.tool_context_parameter_name] = context
+
+        # execute the tool function
+        if asyncio.iscoroutinefunction(func):
+            return await func(**func_args)
+        else:
+            return func(**func_args)
+
+    @staticmethod
+    async def _execute_wrapper_tool(
+        definition: WrapperToolDefinition,
+        func,
+        input_model,
+        context,
+        **kwargs,
+    ):
+        return await func(wrapper_tool=definition, context=context, **kwargs)
+
+    @staticmethod
+    async def _serialize_input(
+        input_model: type[BaseModel],
+        **kwargs: Any,
+    ) -> BaseModel:
         """
         Serialize the input to a tool function.
         """
@@ -116,7 +166,10 @@ class ToolExecutor:
         return inputs
 
     @staticmethod
-    async def _serialize_output(output_model: type[BaseModel], results: dict) -> BaseModel:
+    async def _serialize_output(
+        output_model: type[BaseModel],
+        tool_response: dict,
+    ) -> BaseModel:
         """
         Serialize the output of a tool function.
         """
@@ -126,7 +179,7 @@ class ToolExecutor:
             # TODO Logging and telemetry
 
             # build the output model
-            output = output_model(**{"result": results})
+            output = output_model(**{"result": tool_response})
 
         except ValidationError as e:
             raise ToolOutputError(

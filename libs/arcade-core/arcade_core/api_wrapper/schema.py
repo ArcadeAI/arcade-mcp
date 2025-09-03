@@ -93,20 +93,8 @@ class HttpEndpointDefinition(BaseModel):
     parameters: list[HttpEndpointParameter]
     """The parameters of the HTTP API endpoint."""
 
-    # Utility to facilitate converting tool inputs to HTTP endpoint parameters
-    # when building the HTTP request.
-    parameters_by_name: dict[str, HttpEndpointParameter] = Field(
-        exclude=True,
-        default_factory=dict,
-        init=False,
-    )
-
     documentation_urls: list[str] = []
     """The URLs to the documentation for the HTTP API endpoint."""
-
-    def model_post_init(self, __context) -> None:
-        """Initialize computed fields after model creation."""
-        self.parameters_by_name = {param.name: param for param in self.parameters}
 
 
 class WrapperToolInputParameter(InputParameter):
