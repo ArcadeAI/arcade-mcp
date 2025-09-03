@@ -10,7 +10,7 @@ from arcade_core.schema import InputParameter, ToolDefinition, ToolInput
 class ObjectMetadata(BaseModel):
     """Object metadata (part of the serialized JSON stored in a Wrapper toolkit package)."""
 
-    object_type: str
+    object_type: Literal["http_endpoint", "api_wrapper_tool"]
     """The type of the object."""
 
     version: str
