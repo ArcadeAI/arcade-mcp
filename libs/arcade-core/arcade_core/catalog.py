@@ -270,15 +270,22 @@ class ToolCatalog(BaseModel):
     def add_wrapper_tool(
         self,
         wrapper_tool: WrapperToolDefinition,
-        toolkit: Toolkit,
+        toolkit_or_name: Toolkit | str,
         wrapper_tools_path: str,
     ) -> None:
         """
         Add a wrapper tool to the catalog.
         """
+        if isinstance(toolkit_or_name, Toolkit):
+            toolkit = toolkit_or_name
+            toolkit_name = toolkit.name
+        elif isinstance(toolkit_or_name, str):
+            toolkit = None
+            toolkit_name = toolkit_or_name
+
         fully_qualified_name = wrapper_tool.get_fully_qualified_name()
 
-        if not self._validate_tool(fully_qualified_name, toolkit.name, wrapper_tool):
+        if not self._validate_tool(fully_qualified_name, toolkit_name, wrapper_tool):
             return
 
         input_model, output_model = create_wrapper_tool_models(wrapper_tool)
@@ -288,7 +295,7 @@ class ToolCatalog(BaseModel):
             tool=call_wrapped_http_endpoint,
             meta=ToolMeta(
                 module=call_wrapped_http_endpoint.__module__,
-                toolkit=toolkit.name,
+                toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
                 path=wrapper_tools_path,
             ),
