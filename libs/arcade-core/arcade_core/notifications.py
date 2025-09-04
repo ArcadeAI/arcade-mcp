@@ -5,6 +5,7 @@ This module defines the base protocols for notifications without
 depending on arcade_tdk, avoiding circular dependencies.
 """
 
+from types import TracebackType
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -59,7 +60,12 @@ class ProgressContext(Protocol):
         """Enter the progress context."""
         ...
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: BaseException | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         """Exit the progress context."""
         ...
 
@@ -103,7 +109,12 @@ class NoOpProgressContext:
     async def __aenter__(self) -> "NoOpProgressContext":
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: BaseException | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         pass
 
 

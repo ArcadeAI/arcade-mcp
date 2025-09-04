@@ -1,18 +1,9 @@
 import asyncio
-
-if not hasattr(asyncio, "coroutine"):
-
-    def _asyncio_coroutine_shim(func):
-        async def _wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return _wrapper
-
-    asyncio.coroutine = _asyncio_coroutine_shim  # type: ignore[attr-defined]
 import contextlib
 import json
 import time
 import uuid
+from collections.abc import AsyncGenerator
 from logging import getLogger
 from typing import Any, Callable
 
@@ -27,6 +18,16 @@ from arcade_serve.core.common import (
 )
 from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.mcp.server import MCPServer
+
+if not hasattr(asyncio, "coroutine"):
+
+    def _asyncio_coroutine_shim(func: Callable) -> Callable:
+        async def _wrapper(*args: Any, **kwargs: Any) -> Any:
+            return func(*args, **kwargs)
+
+        return _wrapper
+
+    asyncio.coroutine = _asyncio_coroutine_shim
 
 logger = getLogger("arcade.mcp")
 
@@ -226,7 +227,7 @@ class StreamComponent(WorkerComponent):
         # Register write stream with MCP server
         self.mcp_server.write_streams[session_id] = StreamWriteStream(session)
 
-        async def stream_generator():
+        async def stream_generator() -> AsyncGenerator[str, None]:
             # Give the processing task a moment to start
             await asyncio.sleep(0.1)
             try:
@@ -321,7 +322,7 @@ class StreamComponent(WorkerComponent):
         processing_task = asyncio.create_task(process_request(body_bytes))
 
         # Monitor for early client disconnection
-        async def monitor_disconnect():
+        async def monitor_disconnect() -> None:
             try:
                 # Wait for client disconnect signal
                 await request.is_disconnected()

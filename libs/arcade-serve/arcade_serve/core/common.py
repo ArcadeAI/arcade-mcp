@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
+from arcade_core.catalog import ToolCatalog
 from arcade_core.schema import ToolCallRequest, ToolCallResponse, ToolDefinition
 from pydantic import BaseModel
 
@@ -51,6 +52,11 @@ class Worker(ABC):
     A Worker represents a collection of tools that is hosted inside a web framework
     and can be called by an Engine.
     """
+
+    # Type annotations for instance attributes
+    disable_auth: bool
+    catalog: ToolCatalog
+    secret: str
 
     @abstractmethod
     def get_catalog(self) -> CatalogResponse:

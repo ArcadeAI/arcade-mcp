@@ -33,11 +33,11 @@ def get_cursor_config_path() -> Path:
     """Get the Cursor configuration directory path."""
     system = platform.system()
     if system == "Darwin":  # macOS
-        return Path.home() / ".cursor" / "mcp"
+        return Path.home() / ".cursor" / "mcp.json"
     elif system == "Windows":
-        return Path(os.environ["APPDATA"]) / "Cursor" / "mcp"
+        return Path(os.environ["APPDATA"]) / "Cursor" / "mcp.json"
     else:  # Linux
-        return Path.home() / ".config" / "Cursor" / "mcp"
+        return Path.home() / ".config" / "Cursor" / "mcp.json"
 
 
 def connect_claude_local(server_name: str, port: int = 8000) -> None:
@@ -69,7 +69,10 @@ def connect_claude_local(server_name: str, port: int = 8000) -> None:
         f"✅ Configured Claude Desktop to connect to local MCP server '{server_name}'",
         style="green",
     )
-    console.print(f"   URL: http://localhost:{port}/mcp", style="dim")
+    console.print(
+        f"   MCP client config file: {config_path.as_posix().replace(' ', '\\ ')}", style="dim"
+    )
+    console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
 
 
@@ -82,31 +85,52 @@ def connect_claude_arcade(server_name: str) -> None:
 
 def connect_cursor_local(server_name: str, port: int = 8000) -> None:
     """Configure Cursor to connect to a local MCP server."""
-    config_dir = get_cursor_config_path()
-    config_dir.mkdir(parents=True, exist_ok=True)
+    config_path = get_cursor_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Create MCP configuration file for Cursor
-    config_file = config_dir / f"{server_name}.json"
+    # Load existing config or create new one
+    config = {}
+    if config_path.exists():
+        with open(config_path) as f:
+            config = json.load(f)
 
-    config = {
+    # Add or update MCP servers configuration
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
+
+    config["mcpServers"][server_name] = {
         "name": server_name,
         "type": "sse",  # Cursor prefers stream
         "url": f"http://localhost:{port}/mcp",
     }
 
-    with open(config_file, "w") as f:
+    # Write updated config
+    with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
 
     console.print(
         f"✅ Configured Cursor to connect to local MCP server '{server_name}'",
         style="green",
     )
-    console.print(f"   URL: http://localhost:{port}/mcp", style="dim")
+    console.print(
+        f"   MCP client config file: {config_path.as_posix().replace(' ', '\\ ')}", style="dim"
+    )
+    console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     console.print("   Restart Cursor for changes to take effect.", style="yellow")
 
 
 def connect_cursor_arcade(server_name: str) -> None:
     """Configure Cursor to connect to an Arcade Cloud MCP server."""
+    console.print("[red]Connecting to Arcade Cloud servers not yet implemented[/red]")
+
+
+def connect_vscode_local(server_name: str, port: int = 8000) -> None:
+    """Configure VS Code to connect to a local MCP server."""
+    console.print("[yellow]Connecting VS Code to local servers is coming soon![/yellow]")
+
+
+def connect_vscode_arcade(server_name: str) -> None:
+    """Configure VS Code to connect to an Arcade Cloud MCP server."""
     console.print("[red]Connecting to Arcade Cloud servers not yet implemented[/red]")
 
 
@@ -153,8 +177,10 @@ def connect_client(
         else:
             connect_cursor_arcade(server_name)
     elif client_lower == "vscode":
-        console.print("[yellow]VS Code MCP configuration coming soon![/yellow]")
-        console.print("For now, configure VS Code manually to use stdio transport.")
+        if from_local:
+            connect_vscode_local(server_name, port)
+        else:
+            connect_vscode_arcade(server_name)
     else:
         console.print(f"[red]Unknown client: {client}[/red]")
         console.print("Supported clients: claude, cursor, vscode")

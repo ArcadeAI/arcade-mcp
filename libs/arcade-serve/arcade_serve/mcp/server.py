@@ -46,6 +46,7 @@ from arcade_serve.mcp.types import (
     ListToolsRequest,
     ListToolsResponse,
     ListToolsResult,
+    OkResult,
     PingRequest,
     PingResponse,
     ServerCapabilities,
@@ -150,6 +151,7 @@ class MCPServer:
             arcade_api_key: API key for real Arcade client
             arcade_api_url: API URL for real Arcade client
         """
+        self.arcade: AsyncArcade | MockArcadeClient
         # Check if we have local auth providers configured
         local_auth_providers = self.local_context.get("local_auth_providers")
 
@@ -768,12 +770,10 @@ class MCPServer:
             tool_context.user_id = final_user_id
 
         # Additional metadata from environment
-        if os.environ.get("ARCADE_USER_EMAIL"):
+        if user_email := os.environ.get("ARCADE_USER_EMAIL"):
             if not tool_context.metadata:
                 tool_context.metadata = []
-            tool_context.metadata.append(
-                ToolMetadataItem(key="user_email", value=os.environ.get("ARCADE_USER_EMAIL"))
-            )
+            tool_context.metadata.append(ToolMetadataItem(key="user_email", value=user_email))
 
         # Apply any additional metadata from local_context
         local_metadata = self.local_context.get("metadata", {})
@@ -810,7 +810,7 @@ class MCPServer:
         # Schedule a task to shutdown the server after sending the response
         proc = asyncio.create_task(self.shutdown())
         proc.add_done_callback(lambda _: logger.info("MCP server shutdown complete"))
-        return ShutdownResponse(id=message.id or 0, result={"ok": True})
+        return ShutdownResponse(id=message.id or 0, result=OkResult())
 
     async def _handle_list_resources(self, message: ListResourcesRequest) -> ListResourcesResponse:
         """
