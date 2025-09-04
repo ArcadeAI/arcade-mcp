@@ -8,17 +8,15 @@ Run:
   python 04_secrets.py [stream|sse|stdio]
 
 Clients or the server will inject secrets into ToolContext. This example declares
-required secrets so the server fetches them from local context/.env.
+required secrets so the server fetches them from local context at ./.env
 """
 
 # standard library
 import sys
 
-from arcade_core.schema import ToolContext
-
 # third-party
 from arcade_mcp import Server
-from arcade_tdk import tool
+from arcade_tdk import ToolContext, tool
 
 
 @tool(
@@ -31,7 +29,7 @@ def use_secret(context: ToolContext) -> str:
     # The server loads .env automatically; secret is accessible via context
     try:
         value = context.get_secret("API_KEY")
-        masked = value[:2] + "***" if len(value) >= 2 else "***"
+        masked = "*" * (len(value) - 4) + value[-4:] if len(value) >= 4 else "*" * len(value)
         return f"Got API_KEY of length {len(value)} -> {masked}"
     except Exception as e:
         return f"Error getting secret: {e}"

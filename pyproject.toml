@@ -74,9 +74,9 @@ arcade = "arcade_cli.main:cli"
 [tool.uv.sources]
 # Workspace member sources
 arcade-core = { workspace = true }
-arcade-tdk = { workspace = true }
 arcade-serve = { workspace = true }
 arcade-mcp = { workspace = true }
+arcade-tdk = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

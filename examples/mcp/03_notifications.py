@@ -13,11 +13,9 @@ import asyncio
 import sys
 from typing import Annotated
 
-from arcade_core.schema import ToolContext
-
 # third-party
 from arcade_mcp import Server
-from arcade_tdk import tool
+from arcade_tdk import ToolContext, tool
 
 
 @tool(desc="Demonstrate progress and log notifications")
@@ -42,8 +40,18 @@ async def demo_progress(
     return "Completed demo"
 
 
+@tool(desc="Echo back the provided text")
+def echo(text: Annotated[str, "The text to echo back"]) -> str:
+    """Return the same text that was provided.
+
+    Minimal example of a tool defined in the same file as the server.
+    """
+    return text
+
+
 server = Server(name="notifications_example", version="0.1.0")
 server.add_tool(demo_progress)
+server.add_tool(echo)
 
 
 if __name__ == "__main__":

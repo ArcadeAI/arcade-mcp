@@ -1,16 +1,16 @@
 import asyncio
-from collections.abc import Coroutine
+from collections.abc import AsyncGenerator
 from typing import Any, Callable
 
 if not hasattr(asyncio, "coroutine"):
 
-    def _asyncio_coroutine_shim(func) -> Callable:
-        async def _wrapper(*args, **kwargs) -> Coroutine:
+    def _asyncio_coroutine_shim(func: Callable) -> Callable:
+        async def _wrapper(*args: Any, **kwargs: Any) -> Any:
             return func(*args, **kwargs)
 
         return _wrapper
 
-    asyncio.coroutine = _asyncio_coroutine_shim  # type: ignore[attr-defined]
+    asyncio.coroutine = _asyncio_coroutine_shim
 import contextlib
 import json
 import time
@@ -142,7 +142,6 @@ class SSEComponent(WorkerComponent):
                 summary="MCP Server-Sent Events",
                 tags=["MCP"],
             )
-
             # Register POST endpoint directly with FastAPI
             auth_dependency = self.get_auth_dependency()
             router.app.add_api_route(
@@ -204,7 +203,7 @@ class SSEComponent(WorkerComponent):
             async with self.sessions_lock:
                 self.sessions[session_id] = session
 
-            async def event_generator():
+            async def event_generator() -> AsyncGenerator[dict[str, Any], None]:
                 try:
                     # Send the session ID as the first event
                     yield {
@@ -248,104 +247,105 @@ class SSEComponent(WorkerComponent):
                         del self.mcp_server.write_streams[session_id]
 
             return EventSourceResponse(event_generator())
-        elif request.method == "POST":
+
+        # Otherwise, it's a POST request
+        try:
+            # Validate content type
+            content_type = request.headers.get("content-type", "")
+            if not content_type.startswith("application/json"):
+                return {
+                    "status": "error",
+                    "message": "Content-Type must be application/json",
+                }
+
+            # Parse request body with size limit
+            body_bytes = await request.body()
+            if len(body_bytes) > 1024 * 1024:  # 1MB limit
+                return {
+                    "status": "error",
+                    "message": "Request body too large (max 1MB)",
+                }
+
             try:
-                # Validate content type
-                content_type = request.headers.get("content-type", "")
-                if not content_type.startswith("application/json"):
-                    return {
-                        "status": "error",
-                        "message": "Content-Type must be application/json",
-                    }
+                body = json.loads(body_bytes)
+            except json.JSONDecodeError as e:
+                return {"status": "error", "message": f"Invalid JSON: {e!s}"}
 
-                # Parse request body with size limit
-                body_bytes = await request.body()
-                if len(body_bytes) > 1024 * 1024:  # 1MB limit
-                    return {
-                        "status": "error",
-                        "message": "Request body too large (max 1MB)",
-                    }
+            session_id = request.headers.get("X-Session-ID")
 
-                try:
-                    body = json.loads(body_bytes)
-                except json.JSONDecodeError as e:
-                    return {"status": "error", "message": f"Invalid JSON: {e!s}"}
+            if body.get("method") == "initialize":
+                session_id = str(uuid.uuid4())
+                session = Session(session_id)
 
-                session_id = request.headers.get("X-Session-ID")
-
-                if body.get("method") == "initialize":
-                    session_id = str(uuid.uuid4())
-                    session = Session(session_id)
-
-                    # Add session with lock
-                    async with self.sessions_lock:
-                        self.sessions[session_id] = session
-
-                    # Create write stream adapter for SSE
-                    class SSEWriteStream:
-                        def __init__(self, session: Session):
-                            self.session = session
-
-                        async def send(self, message: str) -> None:
-                            # Parse message and put in queue
-                            try:
-                                if isinstance(message, str):  # noqa: SIM108
-                                    data = json.loads(message)
-                                else:
-                                    data = message
-                                await self.session.queue.put(data)
-                            except Exception:
-                                logger.exception("Error sending SSE notification")
-
-                    # Register write stream with MCP server
-                    self.mcp_server.write_streams[session_id] = SSEWriteStream(session)
-
-                    try:
-                        response = await self.mcp_server.handle_message(body, user_id=session_id)
-                        if response:
-                            await session.queue.put(response.model_dump(exclude_none=True))
-                    except Exception as e:
-                        # Clean up session on error
-                        async with self.sessions_lock:
-                            if session_id in self.sessions:
-                                del self.sessions[session_id]
-                        # Clean up write stream
-                        if session_id in self.mcp_server.write_streams:
-                            del self.mcp_server.write_streams[session_id]
-                        return {
-                            "status": "error",
-                            "message": f"Failed to initialize: {e!s}",
-                        }
-
-                    return {"status": "ok", "session_id": session_id}
-
-                # Get session with lock
+                # Add session with lock
                 async with self.sessions_lock:
-                    if not session_id or session_id not in self.sessions:
-                        return {
-                            "status": "error",
-                            "message": "Invalid or expired session ID",
-                        }
-                    session = self.sessions[session_id]
+                    self.sessions[session_id] = session
 
-                session.touch()
+                # Create write stream adapter for SSE
+                class SSEWriteStream:
+                    def __init__(self, session: Session):
+                        self.session = session
+
+                    async def send(self, message: str) -> None:
+                        # Parse message and put in queue
+                        try:
+                            if isinstance(message, str):  # noqa: SIM108
+                                data = json.loads(message)
+                            else:
+                                data = message
+                            await self.session.queue.put(data)
+                        except Exception:
+                            logger.exception("Error sending SSE notification")
+
+                # Register write stream with MCP server
+                self.mcp_server.write_streams[session_id] = SSEWriteStream(session)
 
                 try:
                     response = await self.mcp_server.handle_message(body, user_id=session_id)
                     if response:
                         await session.queue.put(response.model_dump(exclude_none=True))
                 except Exception as e:
-                    logger.debug(f"Error processing request: {e}")
+                    # Clean up session on error
+                    async with self.sessions_lock:
+                        if session_id in self.sessions:
+                            del self.sessions[session_id]
+                    # Clean up write stream
+                    if session_id in self.mcp_server.write_streams:
+                        del self.mcp_server.write_streams[session_id]
                     return {
                         "status": "error",
-                        "message": f"Failed to process request: {e!s}",
+                        "message": f"Failed to initialize: {e!s}",
                     }
 
-                return {"status": "ok"}  # noqa: TRY300
+                return {"status": "ok", "session_id": session_id}
 
+            # Get session with lock
+            async with self.sessions_lock:
+                if not session_id or session_id not in self.sessions:
+                    return {
+                        "status": "error",
+                        "message": "Invalid or expired session ID",
+                    }
+                session = self.sessions[session_id]
+
+            session.touch()
+
+            try:
+                response = await self.mcp_server.handle_message(body, user_id=session_id)
+                if response:
+                    await session.queue.put(response.model_dump(exclude_none=True))
             except Exception as e:
                 logger.debug(f"Error processing request: {e}")
                 return {
                     "status": "error",
                     "message": f"Failed to process request: {e!s}",
                 }
+
+            return {"status": "ok"}  # noqa: TRY300
+
+        except Exception as e:
+            logger.debug(f"Error processing request: {e}")
+            return {
+                "status": "error",
+                "message": f"Failed to process request: {e!s}",
+            }

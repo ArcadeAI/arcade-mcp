@@ -59,7 +59,7 @@ class MockAuthClient:
         Returns:
             A mock authorization response
         """
-        provider_id = auth_requirement.provider_id
+        provider_id = auth_requirement["provider_id"]
         provider = self.providers.get(provider_id)
 
         if not provider:
@@ -68,7 +68,7 @@ class MockAuthClient:
                 f"Add it to worker.toml under [[worker.config.local_auth_providers]]"
             )
             return AuthorizationResponse(
-                status=AuthorizationStatus.PENDING,
+                status="pending",
                 url=f"http://{self.host}:{self.port}/mock-auth/{provider_id}",
                 context=None,
             )
@@ -90,7 +90,7 @@ class MockAuthClient:
                     f"Add it to worker.toml under mock_tokens or set {env_key}"
                 )
                 return AuthorizationResponse(
-                    status=AuthorizationStatus.PENDING,
+                    status="pending",
                     url=f"http://{self.host}:{self.port}/mock-auth/{provider_id}/{user_id}",
                     context=None,
                 )
@@ -98,14 +98,16 @@ class MockAuthClient:
         # Return successful authorization with mock token
         logger.info(f"Returning mock token for user '{user_id}' with provider '{provider_id}'")
         return AuthorizationResponse(
-            status=AuthorizationStatus.COMPLETED,
+            status="completed",
             url="",
             context=AuthorizationContext(
                 token=token,
                 # Include any additional context from the provider config
-                user_id=user_id,
-                provider_id=provider_id,
-                scopes=provider.get("scopes", []),
+                user_info={
+                    "user_id": user_id,
+                    "provider_id": provider_id,
+                    "scopes": provider.get("scopes", []),
+                },
             ),
         )
 

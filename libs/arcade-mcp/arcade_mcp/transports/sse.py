@@ -71,7 +71,6 @@ class SSETransport:
 
         # Register SSE component with local context
         worker.register_component(SSEComponent, local_context=self.local_context)
-
         # Set the catalog on the worker directly
         worker.catalog = self.catalog
 
