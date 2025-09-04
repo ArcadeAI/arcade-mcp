@@ -291,7 +291,7 @@ class ToolCatalog(BaseModel):
         if not self._validate_tool(fully_qualified_name, toolkit_name, wrapper_tool):
             return
 
-        input_model, output_model = create_wrapper_tool_models(wrapper_tool)
+        input_model, output_model = _create_wrapper_tool_models(wrapper_tool)
 
         self._tools[fully_qualified_name] = MaterializedTool(
             definition=wrapper_tool,
@@ -1121,7 +1121,7 @@ def _value_schema_to_python_type(value_schema: ValueSchema) -> type:
         return type_map[value_schema.val_type]
 
 
-def create_wrapper_tool_models(
+def _create_wrapper_tool_models(
     wrapper_tool: WrapperToolDefinition,
 ) -> tuple[type[BaseModel], type[BaseModel]]:
     """
