@@ -1,4 +1,4 @@
-from arcade_core.errors import ToolDefinitionError
+from arcade_core.errors import ToolDefinitionError, ToolRuntimeError
 
 
 class WrapperDefinitionError(ToolDefinitionError):
@@ -16,7 +16,13 @@ class InvalidObjectVersionError(WrapperDefinitionError):
         super().__init__(f"Invalid version: '{version}' in {object_name} object.")
 
 
-class HttpEndpointInputError(WrapperDefinitionError):
+class WrapperToolRuntimeError(ToolRuntimeError):
     """
-    Raised when there is an error in the input to an HTTP endpoint.
+    Raised when there is an error in the execution of a wrapper tool.
+    """
+
+
+class WrapperToolExecutionError(WrapperToolRuntimeError):
+    """
+    Raised when there is an error in the execution of a wrapper tool.
     """

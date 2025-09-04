@@ -101,9 +101,20 @@ class ToolExecutor:
         **kwargs,
     ):
         if isinstance(definition, WrapperToolDefinition):
-            return await ToolExecutor._execute_wrapper_tool(
-                definition, func, input_model, context, **kwargs
-            )
+            try:
+                return await ToolExecutor._execute_wrapper_tool(
+                    definition, func, input_model, context, **kwargs
+                )
+            except ToolRuntimeError:
+                raise
+            except Exception as e:
+                raise ToolRuntimeError(
+                    message=f"Error in execution of {definition.qualified_name}",
+                    developer_message=(
+                        f"Error in the execution of {definition.qualified_name}: "
+                        f"{type(e).__name__} {e!s}",
+                    ),
+                ) from e
         else:
             return await ToolExecutor._execute_standard_tool(
                 definition, func, input_model, context, **kwargs

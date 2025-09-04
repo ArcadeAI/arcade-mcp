@@ -129,3 +129,7 @@ class WrapperToolDefinition(ToolDefinition):
 
     http_endpoint: HttpEndpointDefinition = Field(..., exclude=True)
     """The HTTP API endpoint that the Wrapper Tool wraps."""
+
+    @property
+    def qualified_name(self) -> str:
+        return self.fully_qualified_name.split("@")[0]

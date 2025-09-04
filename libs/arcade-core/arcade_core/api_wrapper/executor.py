@@ -2,7 +2,7 @@ from typing import Any
 
 import httpx
 
-from arcade_core.api_wrapper.errors import HttpEndpointInputError
+from arcade_core.api_wrapper.errors import WrapperToolExecutionError
 from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.schema import ToolContext
 
@@ -55,8 +55,8 @@ def build_http_inputs(
         try:
             tool_param = tool_params_by_name[tool_input_name]
         except KeyError:
-            raise HttpEndpointInputError(
-                f"Tool {wrapper_tool.fully_qualified_name} input "
+            raise WrapperToolExecutionError(
+                f"Tool {wrapper_tool.qualified_name} input "
                 f"'{tool_input_name}' not found in wrapper tool parameters"
             )
 
@@ -65,8 +65,8 @@ def build_http_inputs(
         if http_endpoint_input_name:
             http_inputs[http_endpoint_input_name] = tool_input_value
         else:
-            raise HttpEndpointInputError(
-                f"Tool {wrapper_tool.fully_qualified_name} input "
+            raise WrapperToolExecutionError(
+                f"Tool {wrapper_tool.qualified_name} input "
                 f"'{tool_input_name}' does not have an HTTP endpoint parameter name"
             )
 
@@ -102,8 +102,8 @@ def build_endpoint_url(
             continue
 
         if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise HttpEndpointInputError(
-                f"Tool {wrapper_tool.fully_qualified_name}'s HTTP endpoint parameter "
+            raise WrapperToolExecutionError(
+                f"Tool {wrapper_tool.qualified_name}'s HTTP endpoint parameter "
                 f"'{endpoint_param.name}' is required but not found in HTTP endpoint input values"
             )
 
@@ -112,10 +112,10 @@ def build_endpoint_url(
     try:
         return wrapper_tool.http_endpoint.url.format(**url_params)
     except KeyError as e:
-        raise HttpEndpointInputError(
+        raise WrapperToolExecutionError(
             f"Input values do not include an entry for '{e.args[0]}' which is a "
             f"required f-string parameter for the '{wrapper_tool.http_endpoint.url}' URL "
-            f"in {wrapper_tool.fully_qualified_name} tool."
+            f"in {wrapper_tool.qualified_name} tool."
         ) from e
 
 
@@ -131,9 +131,9 @@ def build_http_headers(
             continue
 
         if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise HttpEndpointInputError(
+            raise WrapperToolExecutionError(
                 "Input values do not include an entry for the HTTP header parameter "
-                f"'{endpoint_param.name}' in {wrapper_tool.fully_qualified_name} tool."
+                f"'{endpoint_param.name}' in {wrapper_tool.qualified_name} tool."
             )
 
         header_inputs[endpoint_param.name] = http_inputs[endpoint_param.name]
@@ -142,10 +142,11 @@ def build_http_headers(
         try:
             headers[header_key] = header_value.format(**header_inputs)
         except KeyError as e:
-            raise HttpEndpointInputError(
+            print(f"\n\n\nHeader inputs: {header_inputs}\n\n\n")
+            raise WrapperToolExecutionError(
                 f"Input values do not include an entry for '{e.args[0]}' which is a "
                 f"required f-string parameter for the '{header_key}' HTTP header in "
-                f"{wrapper_tool.fully_qualified_name} tool."
+                f"{wrapper_tool.qualified_name} tool."
             ) from e
 
     return headers
@@ -162,10 +163,10 @@ def build_query_strings(
             continue
 
         if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise HttpEndpointInputError(
+            raise WrapperToolExecutionError(
                 f"The '{endpoint_param.name}' HTTP URL query string parameter is required "
                 "but does not have a corresponding entry in the input values for the "
-                f"{wrapper_tool.fully_qualified_name} tool."
+                f"{wrapper_tool.qualified_name} tool."
             )
 
         query_strings[endpoint_param.name] = http_inputs[endpoint_param.name]
@@ -183,10 +184,10 @@ def build_http_body(
             continue
 
         if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise HttpEndpointInputError(
+            raise WrapperToolExecutionError(
                 f"The '{endpoint_param.name}' HTTP body parameter is required but "
                 "does not have a corresponding entry in the input values for the "
-                f"{wrapper_tool.fully_qualified_name} tool."
+                f"{wrapper_tool.qualified_name} tool."
             )
 
         body[endpoint_param.name] = http_inputs[endpoint_param.name]

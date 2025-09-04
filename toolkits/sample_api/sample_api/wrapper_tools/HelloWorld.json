@@ -71,6 +71,17 @@
     },
     "parameters": [
       {
+        "name": "sample_api_key",
+        "description": "The Sample API key to use for authentication",
+        "value_schema": {
+          "val_type": "string"
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
         "name": "salute",
         "description": "The salutation to say hello to",
         "value_schema": {
