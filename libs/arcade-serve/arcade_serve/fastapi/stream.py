@@ -1,11 +1,12 @@
 import asyncio
 import contextlib
+import functools
 import json
 import time
 import uuid
 from collections.abc import AsyncGenerator
 from logging import getLogger
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar, cast
 
 from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
@@ -20,12 +21,14 @@ from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.mcp.server import MCPServer
 
 if not hasattr(asyncio, "coroutine"):
+    _FunctionT = TypeVar("_FunctionT", bound=Callable[..., Any])
 
-    def _asyncio_coroutine_shim(func: Callable) -> Callable:
+    def _asyncio_coroutine_shim(func: _FunctionT) -> _FunctionT:
+        @functools.wraps(func)
         async def _wrapper(*args: Any, **kwargs: Any) -> Any:
             return func(*args, **kwargs)
 
-        return _wrapper
+        return cast(_FunctionT, _wrapper)
 
     asyncio.coroutine = _asyncio_coroutine_shim
 

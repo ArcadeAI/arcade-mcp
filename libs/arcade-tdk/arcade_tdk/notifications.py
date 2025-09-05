@@ -238,6 +238,7 @@ class ToolNotifier:
         self,
         message: str | None = None,
         total: int | None = None,
+        progress_token: str | None = None,
     ) -> ProgressContext:
         """
         Create a progress tracking context.
@@ -245,7 +246,7 @@ class ToolNotifier:
         Args:
             message: Initial progress message
             total: Total number of items (if known)
-
+            progress_token: Progress token. If not provided, the instance's progress token is used.
         Returns:
             A ProgressContext for tracking progress
 
@@ -257,7 +258,7 @@ class ToolNotifier:
         """
         return ProgressContext(
             backend=self._backend,
-            progress_token=self._progress_token,
+            progress_token=progress_token or self._progress_token,
             message=message,
             start_time=time.time(),
             total=total,
