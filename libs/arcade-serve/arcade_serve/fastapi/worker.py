@@ -1,4 +1,5 @@
 import json
+from logging import getLogger
 from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, Request
@@ -12,6 +13,8 @@ from arcade_serve.core.base import (
 from arcade_serve.core.common import RequestData, ResponseData, WorkerComponent
 from arcade_serve.fastapi.auth import validate_engine_request
 from arcade_serve.utils import is_async_callable
+
+logger = getLogger("arcade.mcp")
 
 
 class FastAPIWorker(BaseWorker):
@@ -38,7 +41,7 @@ class FastAPIWorker(BaseWorker):
             otel_meter: Optional OpenTelemetry meter
             components: Optional list of components to register
         """
-        print(f"DEBUG: FastAPIWorker init - disable_auth = {disable_auth}")
+        logger.debug(f"FastAPIWorker init - disable_auth = {disable_auth}")
         super().__init__(secret, disable_auth, otel_meter)
         self.app = app
         self.router = FastAPIRouter(app, self)

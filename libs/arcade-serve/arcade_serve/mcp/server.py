@@ -851,7 +851,7 @@ class MCPServer:
         """
         level = message.params.get("level")
         if level is None:
-            return SetLevelResponse(id=message.id or 0, result={})
+            return SetLevelResponse(id=message.id or 0, result=DictResult())
 
         # Store the log level for this client
         if user_id:
@@ -872,7 +872,7 @@ class MCPServer:
         numeric_level = level_mapping.get(level.lower())
         if numeric_level is None:
             # Invalid level, but we still return success per spec
-            return SetLevelResponse(id=message.id or 0, result={})
+            return SetLevelResponse(id=message.id or 0, result=DictResult())
 
         logger.setLevel(numeric_level)
         logger.info(f"Log level set to {level}")

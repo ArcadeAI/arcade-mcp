@@ -562,7 +562,7 @@ class NotificationManager:
             if await self._check_rate_limit(client_id):
                 tasks.append(self._send_to_client(client_id, notification_data))
             else:
-                logger.warning(f"Rate limit exceeded for client {client_id}")
+                logger.warning(f"Client {client_id} not registered in notification manager")
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
