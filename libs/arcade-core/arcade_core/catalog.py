@@ -339,9 +339,6 @@ class ToolCatalog(BaseModel):
                         self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError as e:
-                    import traceback
-
-                    traceback.print_exc()
                     raise ToolDefinitionError(
                         f"Could not import tool {tool_name} in module {module_name}. Reason: {e}"
                     )
