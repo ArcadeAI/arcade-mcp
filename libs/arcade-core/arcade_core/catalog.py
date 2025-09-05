@@ -1114,7 +1114,7 @@ def _value_schema_to_python_type(value_schema: ValueSchema) -> type:
     if value_schema.val_type == "array":
         if not value_schema.inner_val_type:
             return list[Any]
-        return list[_value_schema_to_python_type(value_schema)]
+        return list[type_map[value_schema.inner_val_type]]
     elif value_schema.val_type == "json":
         return dict[str, Any]
     else:
