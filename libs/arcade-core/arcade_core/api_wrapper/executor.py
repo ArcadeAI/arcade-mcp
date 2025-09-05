@@ -74,8 +74,9 @@ def build_http_inputs(
     if auth_token:
         http_inputs["auth_token"] = auth_token
 
-    for secret in context.secrets:
-        http_inputs[secret.key.lower()] = secret.value
+    if context.secrets:
+        for secret in context.secrets:
+            http_inputs[secret.key.lower()] = secret.value
 
     return http_inputs
 
