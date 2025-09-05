@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from packaging.version import InvalidVersion, Version
 from pydantic import BaseModel, Field, field_validator
@@ -96,6 +96,13 @@ class HttpEndpointDefinition(BaseModel):
     documentation_urls: list[str] = []
     """The URLs to the documentation for the HTTP API endpoint."""
 
+    def model_dump_full(
+        self, mode: Literal["json", "python"] = "json"
+    ) -> dict[str, Any]:
+        data = self.model_dump(mode=mode)
+        data["metadata"] = self.metadata.model_dump(mode=mode)
+        return data
+
 
 class WrapperToolInputParameter(InputParameter):
     """A parameter that can be passed to an API wrapper tool."""
@@ -104,12 +111,28 @@ class WrapperToolInputParameter(InputParameter):
     http_endpoint_parameter_name: str = Field(..., exclude=True)
     """The name of the HTTP endpoint parameter associated to this Wrapper Tool parameter."""
 
+    def model_dump_full(
+        self, mode: Literal["json", "python"] = "json"
+    ) -> dict[str, Any]:
+        data = self.model_dump(mode=mode)
+        data["http_endpoint_parameter_name"] = self.http_endpoint_parameter_name
+        return data
+
 
 class WrapperToolInput(ToolInput):
     """The inputs of an Wrapper tool."""
 
     parameters: list[WrapperToolInputParameter]
     """The list of parameters that the tool accepts."""
+
+    def model_dump_full(
+        self, mode: Literal["json", "python"] = "json"
+    ) -> dict[str, Any]:
+        data = self.model_dump(mode=mode)
+        data["parameters"] = [
+            param.model_dump_full(mode=mode) for param in self.parameters
+        ]
+        return data
 
 
 class WrapperToolMetadata(ObjectMetadata):
@@ -133,3 +156,12 @@ class WrapperToolDefinition(ToolDefinition):
     @property
     def qualified_name(self) -> str:
         return self.fully_qualified_name.split("@")[0]
+
+    def model_dump_full(
+        self, mode: Literal["json", "python"] = "json"
+    ) -> dict[str, Any]:
+        data = self.model_dump(mode=mode)
+        data["metadata"] = self.metadata.model_dump(mode=mode)
+        data["input"] = self.input.model_dump_full(mode=mode)
+        data["http_endpoint"] = self.http_endpoint.model_dump_full(mode=mode)
+        return data
