@@ -131,10 +131,10 @@ class WrapperToolInput(ToolInput):
         self, mode: Literal["json", "python"] = "json"
     ) -> dict[str, Any]:
         return {
+            **self.model_dump(mode=mode),
             "parameters": [
                 param.model_dump_full(mode=mode) for param in self.parameters
             ],
-            **self.model_dump(mode=mode),
         }
 
 

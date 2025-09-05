@@ -143,7 +143,6 @@ def build_http_headers(
         try:
             headers[header_key] = header_value.format(**header_inputs)
         except KeyError as e:
-            print(f"\n\n\nHeader inputs: {header_inputs}\n\n\n")
             raise WrapperToolExecutionError(
                 f"Input values do not include an entry for '{e.args[0]}' which is a "
                 f"required f-string parameter for the '{header_key}' HTTP header in "
@@ -190,6 +189,9 @@ def build_http_body(
                 "does not have a corresponding entry in the input values for the "
                 f"{wrapper_tool.qualified_name} tool."
             )
+
+        if not endpoint_param.required and endpoint_param.name not in http_inputs:
+            continue
 
         body[endpoint_param.name] = http_inputs[endpoint_param.name]
 
