@@ -339,6 +339,9 @@ class ToolCatalog(BaseModel):
                         self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError as e:
+                    import traceback
+
+                    traceback.print_exc()
                     raise ToolDefinitionError(
                         f"Could not import tool {tool_name} in module {module_name}. Reason: {e}"
                     )
@@ -1114,7 +1117,7 @@ def _value_schema_to_python_type(value_schema: ValueSchema) -> type:
     if value_schema.val_type == "array":
         if not value_schema.inner_val_type:
             return list[Any]
-        return list[_value_schema_to_python_type(value_schema.inner_val_type)]
+        return list[_value_schema_to_python_type(value_schema)]
     elif value_schema.val_type == "json":
         return dict[str, Any]
     else:
