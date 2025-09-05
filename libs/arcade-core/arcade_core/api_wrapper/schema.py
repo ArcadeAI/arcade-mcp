@@ -99,9 +99,10 @@ class HttpEndpointDefinition(BaseModel):
     def model_dump_full(
         self, mode: Literal["json", "python"] = "json"
     ) -> dict[str, Any]:
-        data = self.model_dump(mode=mode)
-        data["metadata"] = self.metadata.model_dump(mode=mode)
-        return data
+        return {
+            "metadata": self.metadata.model_dump(mode=mode),
+            **self.model_dump(mode=mode),
+        }
 
 
 class WrapperToolInputParameter(InputParameter):
@@ -114,9 +115,10 @@ class WrapperToolInputParameter(InputParameter):
     def model_dump_full(
         self, mode: Literal["json", "python"] = "json"
     ) -> dict[str, Any]:
-        data = self.model_dump(mode=mode)
-        data["http_endpoint_parameter_name"] = self.http_endpoint_parameter_name
-        return data
+        return {
+            **self.model_dump(mode=mode),
+            "http_endpoint_parameter_name": self.http_endpoint_parameter_name,
+        }
 
 
 class WrapperToolInput(ToolInput):
@@ -128,11 +130,12 @@ class WrapperToolInput(ToolInput):
     def model_dump_full(
         self, mode: Literal["json", "python"] = "json"
     ) -> dict[str, Any]:
-        data = self.model_dump(mode=mode)
-        data["parameters"] = [
-            param.model_dump_full(mode=mode) for param in self.parameters
-        ]
-        return data
+        return {
+            "parameters": [
+                param.model_dump_full(mode=mode) for param in self.parameters
+            ],
+            **self.model_dump(mode=mode),
+        }
 
 
 class WrapperToolMetadata(ObjectMetadata):
@@ -160,8 +163,10 @@ class WrapperToolDefinition(ToolDefinition):
     def model_dump_full(
         self, mode: Literal["json", "python"] = "json"
     ) -> dict[str, Any]:
-        data = self.model_dump(mode=mode)
-        data["metadata"] = self.metadata.model_dump(mode=mode)
+        data = {
+            "metadata": self.metadata.model_dump(mode=mode),
+            **self.model_dump(mode=mode),
+        }
         data["input"] = self.input.model_dump_full(mode=mode)
         data["http_endpoint"] = self.http_endpoint.model_dump_full(mode=mode)
         return data
