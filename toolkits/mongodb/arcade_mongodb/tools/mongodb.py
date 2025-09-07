@@ -172,7 +172,7 @@ async def find_documents(
                 doc = _serialize_document(doc)
                 documents.append(json.dumps(doc))
 
-        return documents
+            return documents
 
     except RetryableToolError:
         # Re-raise RetryableToolError as-is to preserve JSON validation messages
@@ -209,7 +209,7 @@ async def count_documents(
             collection = db[collection_name]
 
             count = await collection.count_documents(parsed_filter)
-        return count
+            return count
 
     except RetryableToolError:
         # Re-raise RetryableToolError as-is to preserve JSON validation messages
@@ -286,7 +286,7 @@ async def aggregate_documents(
                 doc = _serialize_document(doc)
                 documents.append(json.dumps(doc))
 
-        return documents
+            return documents
 
     except RetryableToolError:
         # Re-raise RetryableToolError as-is to preserve JSON validation messages

@@ -41,7 +41,7 @@ async def test_discover_collections() -> ScoredResponse:
         databases = await discover_databases(mock_context())
         if not databases:
             return ScoredResponse(response="No databases found", score=0.0)
-        
+
         collections = await discover_collections(mock_context(), databases[0])
         return ScoredResponse(
             response=f"Found {len(collections)} collections in {databases[0]}: {collections}",
@@ -56,11 +56,11 @@ async def test_get_collection_schema() -> ScoredResponse:
         databases = await discover_databases(mock_context())
         if not databases:
             return ScoredResponse(response="No databases found", score=0.0)
-        
+
         collections = await discover_collections(mock_context(), databases[0])
         if not collections:
             return ScoredResponse(response="No collections found", score=0.0)
-        
+
         schema = await get_collection_schema(mock_context(), databases[0], collections[0])
         return ScoredResponse(
             response=f"Schema for {databases[0]}.{collections[0]}: {schema}",
@@ -75,11 +75,11 @@ async def test_find_documents() -> ScoredResponse:
         databases = await discover_databases(mock_context())
         if not databases:
             return ScoredResponse(response="No databases found", score=0.0)
-        
+
         collections = await discover_collections(mock_context(), databases[0])
         if not collections:
             return ScoredResponse(response="No collections found", score=0.0)
-        
+
         documents = await find_documents(
             mock_context(), databases[0], collections[0], limit=5
         )
@@ -97,7 +97,7 @@ def main() -> None:
     eval_suite.add_eval("Discover Collections", test_discover_collections)
     eval_suite.add_eval("Get Collection Schema", test_get_collection_schema)
     eval_suite.add_eval("Find Documents", test_find_documents)
-    
+
     asyncio.run(eval_suite.run())
 
 

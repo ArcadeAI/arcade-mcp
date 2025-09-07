@@ -111,13 +111,14 @@ def _parse_json_parameter(
         if validate_read_only and parsed_obj is not None:
             _validate_no_write_operations(parsed_obj, parameter_name)
 
-        return parsed_obj
     except json.JSONDecodeError as e:
         raise RetryableToolError(
             f"Invalid JSON in {parameter_name}: {e}",
             developer_message=f"Failed to parse JSON string for parameter '{parameter_name}': {json_string}. Error: {e}",
             additional_prompt_content=f"Please provide valid JSON for the {parameter_name} parameter. Check for proper escaping of quotes and valid JSON syntax.",
         ) from e
+    else:
+        return parsed_obj
 
 
 def _validate_aggregation_pipeline(pipeline: list[Any], parameter_name: str) -> None:
@@ -144,7 +145,7 @@ def _validate_aggregation_pipeline(pipeline: list[Any], parameter_name: str) -> 
 
     for i, stage in enumerate(pipeline):
         if isinstance(stage, dict):
-            for stage_name in stage.keys():
+            for stage_name in stage:
                 if stage_name in WRITE_STAGES:
                     raise RetryableToolError(
                         f"Write stage '{stage_name}' not allowed in {parameter_name}",
@@ -198,13 +199,14 @@ def _parse_json_list_parameter(
                 for i, item in enumerate(parsed_list):
                     _validate_no_write_operations(item, f"{parameter_name}[{i}]")
 
-        return parsed_list
     except json.JSONDecodeError as e:
         raise RetryableToolError(
             f"Invalid JSON in {parameter_name}: {e}",
             developer_message=f"Failed to parse JSON string list for parameter '{parameter_name}': {json_strings}. Error: {e}",
             additional_prompt_content=f"Please provide valid JSON strings for the {parameter_name} parameter. Each string must be valid JSON with proper escaping of quotes.",
         ) from e
+    else:
+        return parsed_list
 
 
 def _infer_schema_from_docs(docs: list[dict[str, Any]]) -> dict[str, Any]:

@@ -1,11 +1,9 @@
-import json
 import os
 import subprocess
 from os import environ
 
 import pytest
 import pytest_asyncio
-from arcade_core.errors import ToolExecutionError
 from arcade_mongodb.database_engine import DatabaseEngine
 from arcade_mongodb.tools.mongodb import aggregate_documents, count_documents, find_documents
 from arcade_tdk import ToolContext, ToolSecretItem
@@ -67,7 +65,7 @@ async def test_filter_dict_blocks_set_operation(mock_context) -> None:
             filter_dict='{"$set": {"status": "modified"}}',  # Write operation
             limit=1
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$set' not allowed in filter_dict" in error_message
     assert "$set" in exc_info.value.developer_message
@@ -78,7 +76,7 @@ async def test_filter_dict_blocks_set_operation(mock_context) -> None:
 async def test_filter_dict_blocks_update_operations(mock_context) -> None:
     """Test that various update operations in filter_dict are blocked."""
     update_ops = ["$inc", "$unset", "$push", "$pull", "$rename", "$currentDate"]
-    
+
     for op in update_ops:
         with pytest.raises(RetryableToolError) as exc_info:
             await find_documents(
@@ -88,7 +86,7 @@ async def test_filter_dict_blocks_update_operations(mock_context) -> None:
                 filter_dict=f'{{"{op}": {{"field": "value"}}}}',
                 limit=1
             )
-        
+
         error_message = str(exc_info.value)
         assert f"Write operation '{op}' not allowed in filter_dict" in error_message
 
@@ -104,7 +102,7 @@ async def test_projection_blocks_write_operations(mock_context) -> None:
             projection='{"$set": {"modified": true}, "name": 1}',  # Write operation in projection
             limit=1
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$set' not allowed in projection" in error_message
 
@@ -120,7 +118,7 @@ async def test_sort_blocks_write_operations(mock_context) -> None:
             sort=['{"field": "name", "direction": 1, "$inc": {"counter": 1}}'],  # Write op in sort
             limit=1
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$inc' not allowed in sort[0]" in error_message
 
@@ -135,7 +133,7 @@ async def test_count_filter_blocks_write_operations(mock_context) -> None:
             collection_name="users",
             filter_dict='{"status": "active", "$unset": {"password": ""}}'  # Write operation
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$unset' not allowed in filter_dict" in error_message
 
@@ -153,7 +151,7 @@ async def test_aggregation_pipeline_blocks_out_stage(mock_context) -> None:
                 '{"$out": "output_collection"}'  # Write stage
             ]
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write stage '$out' not allowed in pipeline" in error_message
 
@@ -171,7 +169,7 @@ async def test_aggregation_pipeline_blocks_merge_stage(mock_context) -> None:
                 '{"$merge": {"into": "target_collection"}}'  # Write stage
             ]
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write stage '$merge' not allowed in pipeline" in error_message
 
@@ -187,7 +185,7 @@ async def test_where_operator_blocked(mock_context) -> None:
             filter_dict='{"$where": "this.name == \'admin\'"}',  # JavaScript execution
             limit=1
         )
-    
+
     error_message = str(exc_info.value)
     assert "JavaScript execution operator '$where' not allowed in filter_dict" in error_message
     assert "JavaScript execution is not allowed for security reasons" in exc_info.value.developer_message
@@ -204,7 +202,7 @@ async def test_nested_write_operations_blocked(mock_context) -> None:
             filter_dict='{"status": "active", "nested": {"$set": {"field": "value"}}}',  # Nested write op
             limit=1
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$set' not allowed in filter_dict" in error_message
     assert "nested.$set" in exc_info.value.developer_message  # Should show the path
@@ -226,7 +224,7 @@ async def test_valid_read_operations_allowed(mock_context) -> None:
             limit=1
         )
         assert isinstance(result, list)
-        
+
         # Test aggregation pipeline with read-only stages
         pipeline_result = await aggregate_documents(
             mock_context,
@@ -239,7 +237,7 @@ async def test_valid_read_operations_allowed(mock_context) -> None:
             ]
         )
         assert isinstance(pipeline_result, list)
-        
+
     except RetryableToolError as e:
         # If we get an error, it should not be about write operations
         error_message = str(e)
@@ -254,7 +252,7 @@ async def test_valid_read_operations_allowed(mock_context) -> None:
 async def test_array_write_operations_blocked(mock_context) -> None:
     """Test that array write operations are blocked."""
     array_write_ops = ["$addToSet", "$pop", "$pull", "$push", "$pullAll"]
-    
+
     for op in array_write_ops:
         with pytest.raises(RetryableToolError) as exc_info:
             await find_documents(
@@ -264,7 +262,7 @@ async def test_array_write_operations_blocked(mock_context) -> None:
                 filter_dict=f'{{"{op}": {{"tags": "new_tag"}}}}',
                 limit=1
             )
-        
+
         error_message = str(exc_info.value)
         assert f"Write operation '{op}' not allowed in filter_dict" in error_message
 
@@ -281,6 +279,6 @@ async def test_aggregation_stage_content_validated(mock_context) -> None:
                 '{"$match": {"status": "active", "$set": {"modified": true}}}'  # Write op inside $match
             ]
         )
-    
+
     error_message = str(exc_info.value)
     assert "Write operation '$set' not allowed in pipeline[0].$match" in error_message
