@@ -30,14 +30,20 @@ async def call_http_endpoint(
     query_strings: dict[str, str],
     body: dict[str, str],
 ) -> dict[str, Any]:
-    with httpx.Client() as client:
-        response = client.request(
-            method=method,
-            url=url,
-            headers=headers,
-            params=query_strings,
-            json=body,
-        )
+    async with httpx.AsyncClient() as client:
+        request_args = {
+            "method": method,
+            "url": url,
+            "headers": headers,
+            "params": query_strings,
+        }
+
+        if headers.get("Content-Type") == "application/json":
+            request_args["json"] = body
+        else:
+            request_args["data"] = body
+
+        response = await client.request(**request_args)
         response.raise_for_status()
         return response.json()
 
@@ -131,11 +137,14 @@ def build_http_headers(
         if endpoint_param.accepted_as != "header":
             continue
 
-        if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise WrapperToolExecutionError(
-                "Input values do not include an entry for the HTTP header parameter "
-                f"'{endpoint_param.name}' in {wrapper_tool.qualified_name} tool."
-            )
+        if endpoint_param.name not in http_inputs:
+            if endpoint_param.required:
+                raise WrapperToolExecutionError(
+                    "Input values do not include an entry for the HTTP header parameter "
+                    f"'{endpoint_param.name}' in {wrapper_tool.qualified_name} tool."
+                )
+            else:
+                continue
 
         header_inputs[endpoint_param.name] = http_inputs[endpoint_param.name]
 
@@ -162,12 +171,15 @@ def build_query_strings(
         if endpoint_param.accepted_as != "query":
             continue
 
-        if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise WrapperToolExecutionError(
-                f"The '{endpoint_param.name}' HTTP URL query string parameter is required "
-                "but does not have a corresponding entry in the input values for the "
-                f"{wrapper_tool.qualified_name} tool."
-            )
+        if endpoint_param.name not in http_inputs:
+            if endpoint_param.required:
+                raise WrapperToolExecutionError(
+                    f"The '{endpoint_param.name}' HTTP URL query string parameter is required "
+                    "but does not have a corresponding entry in the input values for the "
+                    f"{wrapper_tool.qualified_name} tool."
+                )
+            else:
+                continue
 
         query_strings[endpoint_param.name] = http_inputs[endpoint_param.name]
     return query_strings
@@ -183,12 +195,15 @@ def build_http_body(
         if endpoint_param.accepted_as != "body":
             continue
 
-        if endpoint_param.required and endpoint_param.name not in http_inputs:
-            raise WrapperToolExecutionError(
-                f"The '{endpoint_param.name}' HTTP body parameter is required but "
-                "does not have a corresponding entry in the input values for the "
-                f"{wrapper_tool.qualified_name} tool."
-            )
+        if endpoint_param.name not in http_inputs:
+            if endpoint_param.required:
+                raise WrapperToolExecutionError(
+                    f"The '{endpoint_param.name}' HTTP body parameter is required but "
+                    "does not have a corresponding entry in the input values for the "
+                    f"{wrapper_tool.qualified_name} tool."
+                )
+            else:
+                continue
 
         if not endpoint_param.required and endpoint_param.name not in http_inputs:
             continue
