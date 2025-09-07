@@ -40,9 +40,23 @@ class DatabaseEngine:
                 ) from e
 
     @classmethod
-    async def get_database(cls, connection_string: str, database_name: str) -> AsyncIOMotorDatabase:
+    async def get_database(cls, connection_string: str, database_name: str) -> Any:
         client = await cls.get_instance(connection_string)
-        return client[database_name]
+
+        class DatabaseContextManager:
+            def __init__(self, client: AsyncIOMotorClient, database_name: str) -> None:
+                self.client = client
+                self.database_name = database_name
+                self.database = client[database_name]
+
+            async def __aenter__(self) -> AsyncIOMotorDatabase:
+                return self.database
+
+            async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+                # Connection cleanup is handled by the client cache
+                pass
+
+        return DatabaseContextManager(client, database_name)
 
     @classmethod
     async def cleanup(cls) -> None:

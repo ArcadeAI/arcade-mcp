@@ -34,10 +34,10 @@ async def discover_collections(
 
     ALWAYS use this tool before any other tool that requires a collection name.
     """
-    db = await DatabaseEngine.get_database(
+    async with await DatabaseEngine.get_database(
         context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-    )
-    collections = await db.list_collection_names()
+    ) as db:
+        collections = await db.list_collection_names()
     return collections
 
 
@@ -59,16 +59,16 @@ async def get_collection_schema(
 
     This tool should ALWAYS be used before executing any query. All collections in the query must be discovered first using the <discover_collections> tool.
     """
-    db = await DatabaseEngine.get_database(
+    async with await DatabaseEngine.get_database(
         context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-    )
-    collection = db[collection_name]
+    ) as db:
+        collection = db[collection_name]
 
-    # Sample documents at random to infer schema
-    # Use MongoDB's $sample aggregation to get random documents
-    sample_docs = []
-    async for doc in collection.aggregate([{"$sample": {"size": sample_size}}]):
-        sample_docs.append(doc)
+        # Sample documents at random to infer schema
+        # Use MongoDB's $sample aggregation to get random documents
+        sample_docs = []
+        async for doc in collection.aggregate([{"$sample": {"size": sample_size}}]):
+            sample_docs.append(doc)
 
     if not sample_docs:
         return {"message": "Collection is empty", "schema": {}}
@@ -150,27 +150,27 @@ async def find_documents(
             skip=skip,
         )
 
-        db = await DatabaseEngine.get_database(
+        async with await DatabaseEngine.get_database(
             context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-        )
-        collection = db[collection_name]
+        ) as db:
+            collection = db[collection_name]
 
-        # Build the query
-        cursor = collection.find(parsed_filter, parsed_projection)
+            # Build the query
+            cursor = collection.find(parsed_filter, parsed_projection)
 
-        if parsed_sort:
-            # Convert list of dicts to list of tuples for MongoDB sort
-            sort_tuples = [(str(item["field"]), int(item["direction"])) for item in parsed_sort]
-            cursor = cursor.sort(sort_tuples)
+            if parsed_sort:
+                # Convert list of dicts to list of tuples for MongoDB sort
+                sort_tuples = [(str(item["field"]), int(item["direction"])) for item in parsed_sort]
+                cursor = cursor.sort(sort_tuples)
 
-        cursor = cursor.skip(skip).limit(limit)
+            cursor = cursor.skip(skip).limit(limit)
 
-        # Execute query and collect results
-        documents = []
-        async for doc in cursor:
-            # Convert ObjectId and other non-serializable types to strings
-            doc = _serialize_document(doc)
-            documents.append(json.dumps(doc))
+            # Execute query and collect results
+            documents = []
+            async for doc in cursor:
+                # Convert ObjectId and other non-serializable types to strings
+                doc = _serialize_document(doc)
+                documents.append(json.dumps(doc))
 
         return documents
 
@@ -203,12 +203,12 @@ async def count_documents(
         # Parse JSON string input
         parsed_filter = _parse_json_parameter(filter_dict, "filter_dict") or {}
 
-        db = await DatabaseEngine.get_database(
+        async with await DatabaseEngine.get_database(
             context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-        )
-        collection = db[collection_name]
+        ) as db:
+            collection = db[collection_name]
 
-        count = await collection.count_documents(parsed_filter)
+            count = await collection.count_documents(parsed_filter)
         return count
 
     except RetryableToolError:
@@ -266,25 +266,25 @@ async def aggregate_documents(
                 developer_message="The pipeline parameter is required and cannot be None",
             )
 
-        db = await DatabaseEngine.get_database(
+        async with await DatabaseEngine.get_database(
             context.get_secret("MONGODB_CONNECTION_STRING"), database_name
-        )
-        collection = db[collection_name]
+        ) as db:
+            collection = db[collection_name]
 
-        # Add limit to pipeline if not already present
-        pipeline_with_limit = parsed_pipeline.copy()
-        has_limit = any("$limit" in stage for stage in pipeline_with_limit)
-        if not has_limit:
-            pipeline_with_limit.append({"$limit": limit})
+            # Add limit to pipeline if not already present
+            pipeline_with_limit = parsed_pipeline.copy()
+            has_limit = any("$limit" in stage for stage in pipeline_with_limit)
+            if not has_limit:
+                pipeline_with_limit.append({"$limit": limit})
 
-        # Execute aggregation
-        cursor = collection.aggregate(pipeline_with_limit)
+            # Execute aggregation
+            cursor = collection.aggregate(pipeline_with_limit)
 
-        documents = []
-        async for doc in cursor:
-            # Convert ObjectId and other non-serializable types to strings
-            doc = _serialize_document(doc)
-            documents.append(json.dumps(doc))
+            documents = []
+            async for doc in cursor:
+                # Convert ObjectId and other non-serializable types to strings
+                doc = _serialize_document(doc)
+                documents.append(json.dumps(doc))
 
         return documents
 
