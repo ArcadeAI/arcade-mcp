@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -20,15 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.5
-
-      - uses: actions/setup-python@v5
+      - name: Set up the environment
+        uses: ./.github/actions/setup-uv-env
         with:
           python-version: "3.11"
-          cache: "pip"
+          working-directory: contrib/langchain
 
       - name: Test LangChain Arcade
         working-directory: contrib/langchain
@@ -41,33 +38,38 @@ jobs:
         if: inputs.version != ''
         working-directory: contrib/langchain
         run: |
-          poetry version ${{ inputs.version }}
+          uv version ${{ inputs.version }}
 
-      - name: Publish to PyPI
+      - name: Build release distributions
         working-directory: contrib/langchain
         run: |
-          poetry build
-          # Extract version from pyproject.toml using poetry and save it
-          VERSION=$(poetry version -s)
+          VERSION=$(uv version --short)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          # Attempt to publish the toolkit to PyPI. Skip if the version already exists
-          if poetry publish --skip-existing 2>&1 | grep -q "File exists. Skipping"; then
-            echo "Version already exists on PyPI. Skipping publish."
-            echo "skip_publish=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip_publish=false" >> $GITHUB_OUTPUT
-          fi
+
+          uv build --out-dir dist | tee build.log
+
+          # Verify build artifacts
+          ls -la dist/
+          echo "Built artifacts for langchain_arcade v${{ env.VERSION }}"
+
+      - name: Upload release distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists-langchain_arcade-${{ env.VERSION }}
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Send status to Slack
-        if: steps.Publish_LangChain.outputs.skip_publish != 'true'
+        if: always()
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.PACKAGE_RELEASE_SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
             {
-              "status": "${{ job.status }}",
+              "status": "${{ job.status == 'failure' || job.status == 'cancelled' && 'Failed' || 'Success' }}",
               "package": "langchain_arcade",
               "version": "${{ env.VERSION }}",
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -165,7 +165,9 @@ async def test_init_tools_parameterized(
     client.tools.list.return_value = page_cls(items=[mock_tool])
 
     # Act
-    result = await maybe_await(manager.init_tools(tools=["GoogleSearch_Search"]), is_async)
+    result = await maybe_await(
+        manager.init_tools(tools=["GoogleSearch_Search"]), is_async
+    )
 
     # Assert
     assert "GoogleSearch_Search" in manager.tools
@@ -220,7 +222,9 @@ async def test_deprecated_get_tools_parameterized(
 
     # Act - Check for deprecation warning
     with pytest.warns(DeprecationWarning):
-        result = await maybe_await(manager.get_tools(tools=["GoogleSearch_Search"]), is_async)
+        result = await maybe_await(
+            manager.get_tools(tools=["GoogleSearch_Search"]), is_async
+        )
 
     # Assert - Method should still work
     assert len(result) == 1
@@ -280,7 +284,9 @@ async def test_add_toolkit_parameterized(
 
     # Mock the response for toolkit listing
     page_cls = AsyncOffsetPage if is_async else SyncOffsetPage
-    client.tools.list.return_value = page_cls(items=[mock_tool_list_emails, mock_tool_trash_email])
+    client.tools.list.return_value = page_cls(
+        items=[mock_tool_list_emails, mock_tool_trash_email]
+    )
 
     # Act
     await maybe_await(manager.add_toolkit("Search"), is_async)
@@ -290,7 +296,9 @@ async def test_add_toolkit_parameterized(
     assert "Gmail_SendEmail" in manager.tools
     assert "Gmail_ListEmails" in manager.tools
     assert "Gmail_TrashEmail" in manager.tools
-    client.tools.list.assert_called_once_with(toolkit="Search", limit=NOT_GIVEN, offset=NOT_GIVEN)
+    client.tools.list.assert_called_once_with(
+        toolkit="Search", limit=NOT_GIVEN, offset=NOT_GIVEN
+    )
 
 
 @pytest.mark.asyncio
@@ -339,7 +347,9 @@ async def test_wait_for_auth_with_response_object_parameterized(
     client = async_mock_arcade_client if is_async else mock_arcade_client
 
     completed_response = AuthorizationResponse(
-        id="auth_abc", status="completed", tool_fully_qualified_name="GoogleSearch_Search"
+        id="auth_abc",
+        status="completed",
+        tool_fully_qualified_name="GoogleSearch_Search",
     )
     client.auth.wait_for_completion.return_value = completed_response
 
@@ -409,7 +419,8 @@ async def test_get_tools_with_explicit_parameterized(
     # Act - Check for deprecation warning
     with pytest.warns(DeprecationWarning):
         retrieved_tools = await maybe_await(
-            manager.get_tools(tools=["GoogleSearch_Search", "BingSearch_Search"]), is_async
+            manager.get_tools(tools=["GoogleSearch_Search", "BingSearch_Search"]),
+            is_async,
         )
 
     # Assert
@@ -427,7 +438,9 @@ def test_arcade_tool_manager_deprecation_warning():
     with pytest.warns(DeprecationWarning) as warnings_record:
         ArcadeToolManager(client=MagicMock())
     # Assert
-    assert any("ArcadeToolManager is deprecated" in str(w.message) for w in warnings_record)
+    assert any(
+        "ArcadeToolManager is deprecated" in str(w.message) for w in warnings_record
+    )
 
 
 @pytest.mark.asyncio
@@ -468,7 +481,9 @@ def test_requires_auth_true(manager, make_tool):
     # Arrange
     tool_name = "GoogleSearch_Search"
     # Pass a MagicMock with 'authorization' to ensure it gets converted
-    mock_tool_def = make_tool(tool_name, requirements=MagicMock(authorization="some_required_auth"))
+    mock_tool_def = make_tool(
+        tool_name, requirements=MagicMock(authorization="some_required_auth")
+    )
     manager._tools[tool_name] = mock_tool_def
 
     # Act
@@ -533,7 +548,9 @@ def test_retrieve_tool_definitions_tools_only(manager, mock_arcade_client, make_
     mock_arcade_client.tools.get.return_value = mock_tool
 
     # Act
-    results = manager._retrieve_tool_definitions(tools=["GoogleSearch_Search"], toolkits=None)
+    results = manager._retrieve_tool_definitions(
+        tools=["GoogleSearch_Search"], toolkits=None
+    )
 
     # Assert
     assert len(results) == 1
@@ -541,7 +558,9 @@ def test_retrieve_tool_definitions_tools_only(manager, mock_arcade_client, make_
     mock_arcade_client.tools.get.assert_called_once_with(name="GoogleSearch_Search")
 
 
-def test_retrieve_tool_definitions_toolkits_only(manager, mock_arcade_client, make_tool):
+def test_retrieve_tool_definitions_toolkits_only(
+    manager, mock_arcade_client, make_tool
+):
     """
     Test the internal _retrieve_tool_definitions method by specifying toolkits.
     """
@@ -567,7 +586,9 @@ def test_retrieve_tool_definitions_raise_on_empty(manager):
     """
     # Act & Assert
     with pytest.raises(ValueError) as excinfo:
-        manager._retrieve_tool_definitions(tools=None, toolkits=None, raise_on_empty=True)
+        manager._retrieve_tool_definitions(
+            tools=None, toolkits=None, raise_on_empty=True
+        )
 
     assert "No tools or toolkits provided" in str(excinfo.value)
 
@@ -578,7 +599,9 @@ def test_retrieve_tool_definitions_empty_no_raise(manager):
     are provided and raise_on_empty is False.
     """
     # Act
-    results = manager._retrieve_tool_definitions(tools=None, toolkits=None, raise_on_empty=False)
+    results = manager._retrieve_tool_definitions(
+        tools=None, toolkits=None, raise_on_empty=False
+    )
 
     # Assert
     assert results == []
@@ -601,9 +624,13 @@ async def test_retrieve_tool_definitions_with_limit_offset_parameterized(
 
     # Act
     if is_async:
-        results = await manager._retrieve_tool_definitions(toolkits=["Search"], limit=10, offset=5)
+        results = await manager._retrieve_tool_definitions(
+            toolkits=["Search"], limit=10, offset=5
+        )
     else:
-        results = manager._retrieve_tool_definitions(toolkits=["Search"], limit=10, offset=5)
+        results = manager._retrieve_tool_definitions(
+            toolkits=["Search"], limit=10, offset=5
+        )
 
     # Assert
     assert len(results) > 0
@@ -618,7 +645,9 @@ def test_get_client_config_with_kwargs():
     manager = ToolManager(client=MagicMock())  # Client won't be used here
 
     # Act
-    with patch.dict("os.environ", {"ARCADE_API_KEY": "env_key", "ARCADE_BASE_URL": "env_url"}):
+    with patch.dict(
+        "os.environ", {"ARCADE_API_KEY": "env_key", "ARCADE_BASE_URL": "env_url"}
+    ):
         result = manager._get_client_config(api_key="kwarg_key", base_url="kwarg_url")
 
     # Assert
@@ -634,7 +663,9 @@ def test_get_client_config_with_env_vars():
     manager = ToolManager(client=MagicMock())  # Client won't be used here
 
     # Act
-    with patch.dict("os.environ", {"ARCADE_API_KEY": "env_key", "ARCADE_BASE_URL": "env_url"}):
+    with patch.dict(
+        "os.environ", {"ARCADE_API_KEY": "env_key", "ARCADE_BASE_URL": "env_url"}
+    ):
         result = manager._get_client_config()
 
     # Assert
