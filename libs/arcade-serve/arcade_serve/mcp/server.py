@@ -56,9 +56,11 @@ from arcade_serve.mcp.types import (
     ShutdownResponse,
     SubscribeRequest,
     SubscribeResponse,
+    SubscribeResult,
     Tool,
     UnsubscribeRequest,
     UnsubscribeResponse,
+    UnsubscribeResult,
 )
 
 logger = logging.getLogger("arcade.mcp")
@@ -455,7 +457,7 @@ class MCPServer:
         Returns:
             A properly formatted pong response
         """
-        return PingResponse(id=message.id or 0)
+        return PingResponse(id=message.id or "0")
 
     async def _handle_initialize(
         self, message: InitializeRequest, user_id: str | None = None
@@ -916,9 +918,9 @@ class MCPServer:
             )
 
             # Return response with subscriptions
-            result: dict[str, Any] = {
-                "subscriptions": [sub.model_dump(exclude_none=True) for sub in subscriptions]
-            }
+            result = SubscribeResult(
+                subscriptions=[sub.model_dump(exclude_none=True) for sub in subscriptions]
+            )
             return SubscribeResponse(id=message.id or 0, result=result)
 
         except ValueError as e:
@@ -976,7 +978,7 @@ class MCPServer:
             )
 
             # Return response
-            result: dict[str, Any] = {"success": success}
+            result = UnsubscribeResult(success=success)
             return UnsubscribeResponse(id=message.id or 0, result=result)
 
         except Exception as e:
