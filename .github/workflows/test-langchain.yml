@@ -28,7 +28,7 @@ jobs:
       - name: Install
         run: cd contrib/langchain && make install && make check
 
-  tox:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -46,19 +46,15 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-uv-env
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           working-directory: contrib/langchain
 
       - name: Install dependencies
         run: cd contrib/langchain && make install
 
-      - name: Install tox
+      - name: Test & Coverage
         run: |
-          uv pip install --upgrade pip
-          uv pip install tox tox-gh-actions
-
-      - name: Test with tox
-        run: cd contrib/langchain && tox
+          cd contrib/langchain && make test && make coverage
 
       - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
         uses: codecov/codecov-action@v4.0.1
