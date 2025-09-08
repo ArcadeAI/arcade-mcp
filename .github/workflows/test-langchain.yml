@@ -54,8 +54,8 @@ jobs:
 
       - name: Install tox
         run: |
-          uv python -m pip install --upgrade pip
-          uv python -m pip install tox tox-gh-actions
+          uv pip install --upgrade pip
+          uv pip install tox tox-gh-actions
 
       - name: Test with tox
         run: cd contrib/langchain && tox
