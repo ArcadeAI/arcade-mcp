@@ -389,8 +389,12 @@ class SubscribeRequest(JSONRPCRequest):
     params: dict[str, Any]
 
 
-class SubscribeResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any]
+class SubscribeResult(Result):
+    subscriptions: list[dict[str, Any]]
+
+
+class SubscribeResponse(JSONRPCResponse[SubscribeResult]):
+    result: SubscribeResult
 
 
 class UnsubscribeRequest(JSONRPCRequest):
@@ -398,8 +402,12 @@ class UnsubscribeRequest(JSONRPCRequest):
     params: dict[str, Any]
 
 
-class UnsubscribeResponse(JSONRPCResponse[dict[str, Any]]):
-    result: dict[str, Any]
+class UnsubscribeResult(Result):
+    success: bool
+
+
+class UnsubscribeResponse(JSONRPCResponse[UnsubscribeResult]):
+    result: UnsubscribeResult
 
 
 # Union for all messages (handy for middleware typing)

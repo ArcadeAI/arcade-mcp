@@ -11,6 +11,7 @@ from arcade_serve.mcp.types import (
     InitializeRequest,
     ListToolsRequest,
     PingRequest,
+    PingResult,
 )
 from arcade_tdk import tool
 
@@ -94,11 +95,10 @@ def server(sample_catalog):
 
 
 async def test_handle_ping(server):
-    req = PingRequest(id=123)
+    req = PingRequest(id="123")
     resp = await server._handle_ping(req)  # pylint: disable=protected-access
-    assert resp.id == 123
-    # Accept empty dict or explicit pong
-    assert resp.result in ({"pong": True}, {})
+    assert resp.id == "123"
+    assert resp.result == PingResult()
 
 
 async def test_handle_initialize(server):
