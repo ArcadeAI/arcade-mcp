@@ -28,6 +28,7 @@ runs:
   steps:
     - name: Install uv
       uses: astral-sh/setup-uv@v5
+      working-directory: ${{ inputs.working-directory }}
       with:
         python-version: ${{ inputs.python-version }}
 
