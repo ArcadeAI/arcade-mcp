@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "langchain-arcade"
-version = "1.4.1"
+version = "1.4.2"
 description = "An integration package connecting Arcade and Langchain/LangGraph"
 readme = "README.md"
 repository = "https://github.com/arcadeai/arcade-ai/tree/main/contrib/langchain"
