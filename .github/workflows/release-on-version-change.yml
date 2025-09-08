@@ -81,6 +81,8 @@ jobs:
         with:
           python-version: "3.10"
           is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          is-contrib: ${{ startsWith(matrix.package, 'contrib/') }}
+          is-lib: ${{ startsWith(matrix.package, 'libs/') }}
           working-directory: ${{ matrix.package }}
 
       - name: Run tests
@@ -88,8 +90,6 @@ jobs:
         if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
-          # Install the package
-          make install
           # Run tests if they exist
           if [ -f "Makefile" ] && grep -q "^test:" Makefile; then
             make test
