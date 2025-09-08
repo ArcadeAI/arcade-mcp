@@ -88,6 +88,8 @@ jobs:
         if: ${{ !startsWith(matrix.package, 'toolkits/') }}
         working-directory: ${{ matrix.package }}
         run: |
+          # Install the package
+          make install
           # Run tests if they exist
           if [ -f "Makefile" ] && grep -q "^test:" Makefile; then
             make test
