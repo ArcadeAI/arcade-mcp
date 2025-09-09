@@ -13,7 +13,7 @@ from arcade_mongodb.tools.mongodb import (
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
 
-from .conftest import MONGODB_CONNECTION_STRING
+from .conftest import TEST_MONGODB_CONNECTION_STRING
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def mock_context():
     context = ToolContext()
     context.secrets = []
     context.secrets.append(
-        ToolSecretItem(key="MONGODB_CONNECTION_STRING", value=MONGODB_CONNECTION_STRING)
+        ToolSecretItem(key="MONGODB_CONNECTION_STRING", value=TEST_MONGODB_CONNECTION_STRING)
     )
     return context
 

@@ -6,7 +6,7 @@ from os import environ
 import pytest_asyncio
 from arcade_mongodb.database_engine import DatabaseEngine
 
-MONGODB_CONNECTION_STRING = (
+TEST_MONGODB_CONNECTION_STRING = (
     environ.get("TEST_MONGODB_CONNECTION_STRING") or "mongodb://localhost:27017"
 )
 
@@ -23,7 +23,7 @@ async def restore_database():
         raise RuntimeError("mongosh executable not found in PATH")
 
     result = subprocess.run(
-        [mongosh_path, MONGODB_CONNECTION_STRING, dump_file],
+        [mongosh_path, TEST_MONGODB_CONNECTION_STRING, dump_file],
         check=True,
         capture_output=True,
         text=True,

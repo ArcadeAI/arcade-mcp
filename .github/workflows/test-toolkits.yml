@@ -104,6 +104,7 @@ jobs:
         env:
           TEST_POSTGRES_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_POSTGRES_DATABASE_CONNECTION_STRING }} # TODO: dynamically only load the `TEST_${{ matrix.toolkit }}_DATABASE_CONNECTION_STRING secret`
           TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING: ${{ secrets.TEST_CLICKHOUSE_DATABASE_CONNECTION_STRING }}
+          TEST_MONGODB_CONNECTION_STRING: ${{ secrets.TEST_MONGODB_CONNECTION_STRING }}
         run: |
           # If there's a custom test_setup.sh file, run it
           if [ -f tests/test_setup.sh ]; then
