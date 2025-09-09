@@ -1,17 +1,9 @@
-import os
-import subprocess
-from os import environ
-
 import pytest
-import pytest_asyncio
-from arcade_mongodb.database_engine import DatabaseEngine
 from arcade_mongodb.tools.mongodb import aggregate_documents, count_documents, find_documents
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
 
-MONGODB_CONNECTION_STRING = (
-    environ.get("TEST_MONGODB_CONNECTION_STRING") or "mongodb://localhost:27017"
-)
+from .conftest import MONGODB_CONNECTION_STRING
 
 
 @pytest.fixture
@@ -24,36 +16,6 @@ def mock_context():
     return context
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def restore_database():
-    """Restore the database from the dump before each test."""
-
-    dump_file = f"{os.path.dirname(__file__)}/dump.js"
-
-    # Execute the MongoDB dump script to restore test data
-    result = subprocess.run(
-        ["mongosh", MONGODB_CONNECTION_STRING, dump_file],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    if result.returncode != 0:
-        print(f"Error loading test data: {result.stderr}")
-        raise Exception(f"Failed to load test data: {result.stderr}")
-
-    yield  # This allows tests to run
-
-    # Optional cleanup could go here if needed
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def cleanup_engines():
-    """Clean up database engines after each test to prevent connection leaks."""
-    yield
-    await DatabaseEngine.cleanup()
-
-
 @pytest.mark.asyncio
 async def test_filter_dict_blocks_set_operation(mock_context) -> None:
     """Test that $set operation in filter_dict is blocked."""
@@ -63,7 +25,7 @@ async def test_filter_dict_blocks_set_operation(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             filter_dict='{"$set": {"status": "modified"}}',  # Write operation
-            limit=1
+            limit=1,
         )
 
     error_message = str(exc_info.value)
@@ -84,7 +46,7 @@ async def test_filter_dict_blocks_update_operations(mock_context) -> None:
                 database_name="test_database",
                 collection_name="users",
                 filter_dict=f'{{"{op}": {{"field": "value"}}}}',
-                limit=1
+                limit=1,
             )
 
         error_message = str(exc_info.value)
@@ -100,7 +62,7 @@ async def test_projection_blocks_write_operations(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             projection='{"$set": {"modified": true}, "name": 1}',  # Write operation in projection
-            limit=1
+            limit=1,
         )
 
     error_message = str(exc_info.value)
@@ -116,7 +78,7 @@ async def test_sort_blocks_write_operations(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             sort=['{"field": "name", "direction": 1, "$inc": {"counter": 1}}'],  # Write op in sort
-            limit=1
+            limit=1,
         )
 
     error_message = str(exc_info.value)
@@ -131,7 +93,7 @@ async def test_count_filter_blocks_write_operations(mock_context) -> None:
             mock_context,
             database_name="test_database",
             collection_name="users",
-            filter_dict='{"status": "active", "$unset": {"password": ""}}'  # Write operation
+            filter_dict='{"status": "active", "$unset": {"password": ""}}',  # Write operation
         )
 
     error_message = str(exc_info.value)
@@ -148,8 +110,8 @@ async def test_aggregation_pipeline_blocks_out_stage(mock_context) -> None:
             collection_name="users",
             pipeline=[
                 '{"$match": {"status": "active"}}',
-                '{"$out": "output_collection"}'  # Write stage
-            ]
+                '{"$out": "output_collection"}',  # Write stage
+            ],
         )
 
     error_message = str(exc_info.value)
@@ -166,8 +128,8 @@ async def test_aggregation_pipeline_blocks_merge_stage(mock_context) -> None:
             collection_name="users",
             pipeline=[
                 '{"$match": {"status": "active"}}',
-                '{"$merge": {"into": "target_collection"}}'  # Write stage
-            ]
+                '{"$merge": {"into": "target_collection"}}',  # Write stage
+            ],
         )
 
     error_message = str(exc_info.value)
@@ -183,12 +145,15 @@ async def test_where_operator_blocked(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             filter_dict='{"$where": "this.name == \'admin\'"}',  # JavaScript execution
-            limit=1
+            limit=1,
         )
 
     error_message = str(exc_info.value)
     assert "JavaScript execution operator '$where' not allowed in filter_dict" in error_message
-    assert "JavaScript execution is not allowed for security reasons" in exc_info.value.developer_message
+    assert (
+        "JavaScript execution is not allowed for security reasons"
+        in exc_info.value.developer_message
+    )
 
 
 @pytest.mark.asyncio
@@ -200,7 +165,7 @@ async def test_nested_write_operations_blocked(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             filter_dict='{"status": "active", "nested": {"$set": {"field": "value"}}}',  # Nested write op
-            limit=1
+            limit=1,
         )
 
     error_message = str(exc_info.value)
@@ -221,7 +186,7 @@ async def test_valid_read_operations_allowed(mock_context) -> None:
             filter_dict='{"status": {"$in": ["active", "inactive"]}, "name": {"$regex": "^A"}}',
             projection='{"name": 1, "email": 1, "_id": 0}',
             sort=['{"field": "name", "direction": 1}'],
-            limit=1
+            limit=1,
         )
         assert isinstance(result, list)
 
@@ -233,8 +198,8 @@ async def test_valid_read_operations_allowed(mock_context) -> None:
             pipeline=[
                 '{"$match": {"status": "active"}}',
                 '{"$group": {"_id": "$status", "count": {"$sum": 1}}}',
-                '{"$sort": {"count": -1}}'
-            ]
+                '{"$sort": {"count": -1}}',
+            ],
         )
         assert isinstance(pipeline_result, list)
 
@@ -260,7 +225,7 @@ async def test_array_write_operations_blocked(mock_context) -> None:
                 database_name="test_database",
                 collection_name="users",
                 filter_dict=f'{{"{op}": {{"tags": "new_tag"}}}}',
-                limit=1
+                limit=1,
             )
 
         error_message = str(exc_info.value)
@@ -277,7 +242,7 @@ async def test_aggregation_stage_content_validated(mock_context) -> None:
             collection_name="users",
             pipeline=[
                 '{"$match": {"status": "active", "$set": {"modified": true}}}'  # Write op inside $match
-            ]
+            ],
         )
 
     error_message = str(exc_info.value)

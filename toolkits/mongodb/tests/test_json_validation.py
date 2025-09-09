@@ -1,18 +1,10 @@
-import os
-import subprocess
-from os import environ
-
 import pytest
-import pytest_asyncio
 from arcade_core.errors import ToolExecutionError
-from arcade_mongodb.database_engine import DatabaseEngine
 from arcade_mongodb.tools.mongodb import aggregate_documents, count_documents, find_documents
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
 
-MONGODB_CONNECTION_STRING = (
-    environ.get("TEST_MONGODB_CONNECTION_STRING") or "mongodb://localhost:27017"
-)
+from .conftest import MONGODB_CONNECTION_STRING
 
 
 @pytest.fixture
@@ -25,36 +17,6 @@ def mock_context():
     return context
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def restore_database():
-    """Restore the database from the dump before each test."""
-
-    dump_file = f"{os.path.dirname(__file__)}/dump.js"
-
-    # Execute the MongoDB dump script to restore test data
-    result = subprocess.run(
-        ["mongosh", MONGODB_CONNECTION_STRING, dump_file],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    if result.returncode != 0:
-        print(f"Error loading test data: {result.stderr}")
-        raise Exception(f"Failed to load test data: {result.stderr}")
-
-    yield  # This allows tests to run
-
-    # Optional cleanup could go here if needed
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def cleanup_engines():
-    """Clean up database engines after each test to prevent connection leaks."""
-    yield
-    await DatabaseEngine.cleanup()
-
-
 @pytest.mark.asyncio
 async def test_invalid_json_in_filter_dict(mock_context) -> None:
     """Test that invalid JSON in filter_dict returns a reasonable error message."""
@@ -64,7 +26,7 @@ async def test_invalid_json_in_filter_dict(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             filter_dict='{"status": "active",}',  # Invalid JSON - trailing comma
-            limit=1
+            limit=1,
         )
 
     # Check that this is a JSON validation error
@@ -88,7 +50,7 @@ async def test_invalid_json_in_projection(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             projection='{"name": 1, "email": 1,}',  # Invalid JSON - trailing comma
-            limit=1
+            limit=1,
         )
 
     # Check that this is a JSON validation error
@@ -112,7 +74,7 @@ async def test_invalid_json_in_sort(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             sort=['{"field": "name", "direction": 1,}'],  # Invalid JSON - trailing comma
-            limit=1
+            limit=1,
         )
 
     # Check that this is a JSON validation error
@@ -135,7 +97,7 @@ async def test_invalid_json_in_count_filter(mock_context) -> None:
             mock_context,
             database_name="test_database",
             collection_name="users",
-            filter_dict='{"status": "active",}'  # Invalid JSON - trailing comma
+            filter_dict='{"status": "active",}',  # Invalid JSON - trailing comma
         )
 
     # Check that this is a JSON validation error
@@ -158,7 +120,7 @@ async def test_invalid_json_in_pipeline(mock_context) -> None:
             mock_context,
             database_name="test_database",
             collection_name="users",
-            pipeline=['{"$match": {"status": "active",}}']  # Invalid JSON - trailing comma
+            pipeline=['{"$match": {"status": "active",}}'],  # Invalid JSON - trailing comma
         )
 
     # Check that this is a JSON validation error
@@ -190,7 +152,7 @@ async def test_malformed_json_string(mock_context) -> None:
                 database_name="test_database",
                 collection_name="users",
                 filter_dict=invalid_json,
-                limit=1
+                limit=1,
             )
 
         # Check that this is a JSON validation error
@@ -199,7 +161,10 @@ async def test_malformed_json_string(mock_context) -> None:
 
         # Check that specific error details are included when expected
         if expected_error_fragment:
-            assert expected_error_fragment in error_message or expected_error_fragment in exc_info.value.developer_message
+            assert (
+                expected_error_fragment in error_message
+                or expected_error_fragment in exc_info.value.developer_message
+            )
 
         # Ensure helpful context is provided
         assert "filter_dict" in exc_info.value.developer_message
@@ -222,7 +187,7 @@ async def test_valid_json_does_not_error(mock_context) -> None:
             filter_dict='{"status": "active"}',
             projection='{"name": 1, "_id": 0}',
             sort=['{"field": "name", "direction": 1}'],
-            limit=1
+            limit=1,
         )
         # If we get here, JSON parsing succeeded
         assert isinstance(result, list)
@@ -245,7 +210,7 @@ async def test_duplicate_keys_are_valid_json(mock_context) -> None:
             database_name="test_database",
             collection_name="users",
             filter_dict='{"duplicate": "key", "duplicate": "key"}',  # Valid JSON - last value wins
-            limit=1
+            limit=1,
         )
         # If we get here, JSON parsing succeeded (might get empty results, but no JSON error)
         assert isinstance(result, list)

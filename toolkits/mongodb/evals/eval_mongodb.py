@@ -80,9 +80,7 @@ async def test_find_documents() -> ScoredResponse:
         if not collections:
             return ScoredResponse(response="No collections found", score=0.0)
 
-        documents = await find_documents(
-            mock_context(), databases[0], collections[0], limit=5
-        )
+        documents = await find_documents(mock_context(), databases[0], collections[0], limit=5)
         return ScoredResponse(
             response=f"Found {len(documents)} documents in {databases[0]}.{collections[0]}",
             score=1.0 if isinstance(documents, list) else 0.0,

@@ -38,7 +38,7 @@ async def discover_collections(
         context.get_secret("MONGODB_CONNECTION_STRING"), database_name
     ) as db:
         collections = await db.list_collection_names()
-    return collections
+    return list(collections)
 
 
 @tool(requires_secrets=["MONGODB_CONNECTION_STRING"])
@@ -209,7 +209,7 @@ async def count_documents(
             collection = db[collection_name]
 
             count = await collection.count_documents(parsed_filter)
-            return count
+            return int(count)
 
     except RetryableToolError:
         # Re-raise RetryableToolError as-is to preserve JSON validation messages
@@ -261,7 +261,7 @@ async def aggregate_documents(
         parsed_pipeline = _parse_json_list_parameter(pipeline, "pipeline")
 
         if parsed_pipeline is None:
-            raise RetryableToolError(
+            raise RetryableToolError(  # noqa: TRY301
                 "Pipeline cannot be empty",
                 developer_message="The pipeline parameter is required and cannot be None",
             )

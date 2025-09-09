@@ -1,10 +1,6 @@
 import json
-import os
-import subprocess
-from os import environ
 
 import pytest
-import pytest_asyncio
 from arcade_mongodb.database_engine import DatabaseEngine
 from arcade_mongodb.tools.mongodb import (
     aggregate_documents,
@@ -17,9 +13,7 @@ from arcade_mongodb.tools.mongodb import (
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
 
-MONGODB_CONNECTION_STRING = (
-    environ.get("TEST_MONGODB_CONNECTION_STRING") or "mongodb://localhost:27017"
-)
+from .conftest import MONGODB_CONNECTION_STRING
 
 
 @pytest.fixture
@@ -30,36 +24,6 @@ def mock_context():
         ToolSecretItem(key="MONGODB_CONNECTION_STRING", value=MONGODB_CONNECTION_STRING)
     )
     return context
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def restore_database():
-    """Restore the database from the dump before each test."""
-
-    dump_file = f"{os.path.dirname(__file__)}/dump.js"
-
-    # Execute the MongoDB dump script to restore test data
-    result = subprocess.run(
-        ["mongosh", MONGODB_CONNECTION_STRING, dump_file],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    if result.returncode != 0:
-        print(f"Error loading test data: {result.stderr}")
-        raise Exception(f"Failed to load test data: {result.stderr}")
-
-    yield  # This allows tests to run
-
-    # Optional cleanup could go here if needed
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def cleanup_engines():
-    """Clean up database engines after each test to prevent connection leaks."""
-    yield
-    await DatabaseEngine.cleanup()
 
 
 @pytest.mark.asyncio
