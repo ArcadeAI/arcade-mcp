@@ -388,14 +388,10 @@ def evals(
         handle_cli_error("Failed to run evaluations", e, debug)
 
 
-# Serve command removed - use arcade-mcp package instead
-
-
-# Workerup command removed - use arcade-mcp package instead
-
-
-@cli.command(help="Connect MCP clients to your server", rich_help_panel="Tool Development")
-def connect(
+@cli.command(
+    help="Configure MCP clients to connect to your server", rich_help_panel="Tool Development"
+)
+def configure(
     client: str = typer.Argument(
         ...,
         help="The MCP client to configure (claude, cursor, vscode)",
@@ -424,25 +420,34 @@ def connect(
         "-p",
         help="Port for local servers",
     ),
+    path: Optional[Path] = typer.Option(
+        None,
+        "--path",
+        "-f",
+        exists=False,
+        help="Optional path to a specific MCP client config file (overrides default path)",
+    ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
 ) -> None:
     """
     Configure MCP clients to connect to your server.
 
     Examples:
-        arcade connect claude --from-local
-        arcade connect cursor --from-local --port 8080
-        arcade connect claude --from-arcade --server my-toolkit
+        arcade configure claude --from-local
+        arcade configure cursor --from-local --port 8080
+        arcade configure vscode --from-local --path .vscode/mcp.json
+        arcade configure claude --from-arcade --server my-toolkit
     """
-    from arcade_cli.connect import connect_client
+    from arcade_cli.configure import configure_client
 
     try:
-        connect_client(
+        configure_client(
             client=client,
             server_name=server_name,
             from_local=from_local,
             from_arcade=from_arcade,
             port=port,
+            path=path,
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)
