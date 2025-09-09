@@ -3,7 +3,7 @@
 
 import sys
 from arcade_mcp import Server
-from {{ package_name }}.tools import *
+from {{ toolkit_name }}.tools import *
 
 # Create the server
 server = Server(
