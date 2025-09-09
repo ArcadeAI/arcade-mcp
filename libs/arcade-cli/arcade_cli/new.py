@@ -9,6 +9,8 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
+from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
+
 console = Console()
 
 # Retrieve the installed version of arcade-ai
@@ -198,14 +200,8 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "is_community_toolkit": is_community_toolkit,
         "is_official_toolkit": is_official_toolkit,
     }
-    # Use templates from arcade-mcp package
-    try:
-        from arcade_mcp.templates import get_template_directory
 
-        template_directory = get_template_directory() / "{{ toolkit_name }}"
-    except ImportError:
-        # Fallback to local templates if arcade-mcp is not installed
-        template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
+    template_directory = get_full_template_directory() / "{{ toolkit_name }}"
 
     env = Environment(
         loader=FileSystemLoader(str(template_directory)),
@@ -232,3 +228,46 @@ def create_deployment(toolkit_directory: Path, toolkit_name: str) -> None:
     # No longer create worker.toml for MCP servers
     # The server.py file handles all configuration
     pass
+
+
+def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None:
+    """Create a new toolkit from a template with user input."""
+    toolkit_directory = Path(output_directory)
+
+    # Check for illegal characters in the toolkit name
+    if re.match(r"^[a-z0-9_]+$", toolkit_name):
+        if (toolkit_directory / toolkit_name).exists():
+            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
+            exit(1)
+    else:
+        console.print(
+            "[red]Toolkit name contains illegal characters. "
+            "Only lowercase alphanumeric characters and underscores are allowed. "
+            "Please try again.[/red]"
+        )
+        exit(1)
+
+    context = {
+        "toolkit_name": toolkit_name,
+        "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
+        "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
+        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
+        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
+    }
+    template_directory = get_minimal_template_directory() / "{{ toolkit_name }}"
+
+    env = Environment(
+        loader=FileSystemLoader(str(template_directory)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+    ignore_pattern = create_ignore_pattern(False, False)
+
+    try:
+        create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print(
+            f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
+        )
+    except Exception:
+        remove_toolkit(toolkit_directory, toolkit_name)
+        raise
