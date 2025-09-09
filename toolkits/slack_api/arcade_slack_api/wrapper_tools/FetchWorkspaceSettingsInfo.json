@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0"
+  },
+  "name": "FetchWorkspaceSettingsInfo",
+  "fully_qualified_name": "SlackApi.FetchWorkspaceSettingsInfo@0.1.0",
+  "description": "Retrieve settings information for a Slack workspace.\n\nThis tool calls the Slack API to fetch detailed information about settings in a specific workspace. It is useful for administrators who need to manage team settings. The tool requires appropriate OAuth scopes for access.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "slack_team_id",
+        "required": true,
+        "description": "The unique identifier of the Slack workspace (team) for which to fetch the settings information.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'admin.teams.settings.info'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "admin.teams:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/admin.teams.settings.info",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer {auth_token}"
+    },
+    "parameters": [
+      {
+        "name": "auth_token",
+        "description": "The OAuth token to use for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/admin.teams.settings.info"
+    ]
+  }
+}

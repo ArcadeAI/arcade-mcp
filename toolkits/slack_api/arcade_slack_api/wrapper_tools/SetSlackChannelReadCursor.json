@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0"
+  },
+  "name": "SetSlackChannelReadCursor",
+  "fully_qualified_name": "SlackApi.SetSlackChannelReadCursor@0.1.0",
+  "description": "Update the read cursor in a Slack channel.\n\nUse this tool to mark a specific point in a Slack channel as read. This is useful for keeping track of the latest read messages in channels, groups, or direct messages. Requires appropriate Slack OAuth scopes.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "channel_id",
+        "required": true,
+        "description": "The ID of the Slack channel or conversation where you want to set the read cursor. This should be a valid Slack channel ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "timestamp_of_message_to_mark_as_read",
+        "required": true,
+        "description": "The unique identifier (timestamp) of the message you want to mark as most recently seen in the conversation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ts"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'conversations.mark'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "channels:manage",
+          "channels:write",
+          "groups:write",
+          "im:write",
+          "mpim:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/conversations.mark",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer {auth_token}"
+    },
+    "parameters": [
+      {
+        "name": "auth_token",
+        "description": "The OAuth token to use for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "channel",
+        "description": "Channel or conversation to set the read cursor for.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ts",
+        "description": "Unique identifier of message you want marked as most recently seen in this conversation.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/conversations.mark"
+    ]
+  }
+}

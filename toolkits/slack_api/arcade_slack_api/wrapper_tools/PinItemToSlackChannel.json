@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0"
+  },
+  "name": "PinItemToSlackChannel",
+  "fully_qualified_name": "SlackApi.PinItemToSlackChannel@0.1.0",
+  "description": "Pin an item to a Slack channel.\n\nUse this tool to pin an item to a specific channel in Slack, enhancing visibility for important content.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "channel_id",
+        "required": true,
+        "description": "The ID of the Slack channel where the message will be pinned. A `timestamp` must also be provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "message_timestamp",
+        "required": false,
+        "description": "The timestamp (`ts`) of the message to pin in the Slack channel. Ensure the channel is also specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timestamp"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pins.add'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "pins:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/pins.add",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer {auth_token}"
+    },
+    "parameters": [
+      {
+        "name": "auth_token",
+        "description": "The OAuth token to use for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "channel",
+        "description": "Channel to pin the message to. You must also include a `timestamp` when pinning messages.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "timestamp",
+        "description": "Timestamp of the message to pin. You must also include the `channel`.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/pins.add"
+    ]
+  }
+}

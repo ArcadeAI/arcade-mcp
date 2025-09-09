@@ -1,0 +1,160 @@
+{
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0"
+  },
+  "name": "ListPendingWorkspaceInvites",
+  "fully_qualified_name": "SlackApi.ListPendingWorkspaceInvites@0.1.0",
+  "description": "Retrieve all pending workspace invite requests from Slack.\n\nUse this tool to list all pending workspace invite requests in a Slack workspace. This can be useful for administrators managing team invitations. Requires 'admin.invites:read' OAuth scope.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": false,
+        "description": "The ID of the workspace to list pending invite requests from. Required for multi-workspace enterprises.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "The cursor value for fetching the next set of invite requests. Use the `next_cursor` from the previous response if available.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "The number of invite requests to return per call, must be between 1 and 1000. (default: '100')",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'admin.inviteRequests.list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "admin.invites:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/admin.inviteRequests.list",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer {auth_token}"
+    },
+    "parameters": [
+      {
+        "name": "auth_token",
+        "description": "The OAuth token to use for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "description": "ID for the workspace where the invite requests were made. `team_id` is required if your Enterprise org contains more than one workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "description": "Value of the `next_cursor` field sent as part of the previous API response",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "description": "The number of results that will be returned by the API on each invocation. Must be between 1 - 1000, both inclusive.",
+        "value_schema": {
+          "val_type": "integer",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/admin.inviterequests.list"
+    ]
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0"
+  },
+  "name": "SetWorkspaceDescription",
+  "fully_qualified_name": "SlackApi.SetWorkspaceDescription@0.1.0",
+  "description": "Update the description of a Slack workspace.\n\nThis tool updates the description of a specified workspace in Slack. It requires admin permissions with the 'admin.teams:write' scope. It should be called when there is a need to change or set a new description for a Slack team.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "workspace_id",
+        "required": true,
+        "description": "The unique identifier for the Slack workspace where the description will be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "workspace_description",
+        "required": true,
+        "description": "The new description to set for the Slack workspace. Provide a clear and concise text.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'admin.teams.settings.setDescription'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "admin.teams:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/admin.teams.settings.setDescription",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer {auth_token}"
+    },
+    "parameters": [
+      {
+        "name": "auth_token",
+        "description": "The OAuth token to use for authentication.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "description": "ID for the workspace to set the description for.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "description": "The new description for the workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "array_inner_val_type": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/admin.teams.settings.setdescription"
+    ]
+  }
+}
