@@ -3,19 +3,9 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "{{ package_name }}"
+name = "{{ toolkit_name }}"
 version = "0.1.0"
-description = "{{ toolkit_description or 'MCP toolkit created with Arcade' }}"
-authors = [
-    {%- if toolkit_author_name and toolkit_author_email %}
-    { name = "{{ toolkit_author_name }}", email = "{{ toolkit_author_email }}" }
-    {%- elif toolkit_author_name %}
-    { name = "{{ toolkit_author_name }}" }
-    {%- else %}
-    { name = "Your Name" }
-    {%- endif %}
-]
-readme = "README.md"
+description = "MCP toolkit created with Arcade"
 requires-python = ">=3.10"
 dependencies = [
     "arcade-mcp>={{ arcade_ai_min_version }},<{{ arcade_ai_max_version }}",
@@ -30,8 +20,12 @@ dev = [
     "ruff>=0.1.0",
 ]
 
+# Tell Arcade.dev that this package has Arcade tools
+[project.entry-points.arcade_toolkits]
+toolkit_name = "{{ toolkit_name }}"
+
 [tool.setuptools.packages.find]
-include = ["{{ package_name }}*"]
+include = ["{{ toolkit_name }}*"]
 
 [tool.ruff]
 line-length = 100

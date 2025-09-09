@@ -136,6 +136,8 @@ celerybeat.pid
 
 # Environments
 .env
+# Don't ignore the .env file in the template directory
+!libs/arcade-cli/arcade_cli/templates/minimal/{{ toolkit_name }}/.env
 .venv
 env/
 venv/

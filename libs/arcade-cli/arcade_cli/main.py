@@ -167,14 +167,23 @@ def new(
     ),
     directory: str = typer.Option(os.getcwd(), "--dir", help="tools directory path"),
     debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+    full: bool = typer.Option(
+        False,
+        "--full",
+        "-f",
+        help="Create a toolkit package with a full scaffolding (includes evals, tests, license, etc)",
+    ),
 ) -> None:
     """
     Creates a new toolkit with the given name, description, and result type.
     """
-    from arcade_cli.new import create_new_toolkit
+    from arcade_cli.new import create_new_toolkit, create_new_toolkit_minimal
 
     try:
-        create_new_toolkit(directory, toolkit_name)
+        if not full:
+            create_new_toolkit_minimal(directory, toolkit_name)
+        else:
+            create_new_toolkit(directory, toolkit_name)
     except Exception as e:
         handle_cli_error("Failed to create new Toolkit", e, debug)
 
