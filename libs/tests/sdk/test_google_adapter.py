@@ -412,8 +412,8 @@ class TestGoogleErrorAdapter:
             result = self.adapter.from_exception(mock_exc)
 
             assert result is None
-            mock_logger.warning.assert_called_once()
-            warning_message = mock_logger.warning.call_args[0][0]
+            mock_logger.info.assert_called_once()
+            warning_message = mock_logger.info.call_args[0][0]
             assert "'googleapiclient' is not installed" in warning_message
             assert "_google_api_client" in warning_message
 

@@ -293,7 +293,7 @@ class TestHTTPErrorAdapter:
 
     def test_unhandled_exception_logs_warning(self, caplog):
         """Test that unhandled exceptions log a warning."""
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.INFO):
             unknown_exc = ValueError("Some unrelated error")
             result = self.adapter.from_exception(unknown_exc)
 

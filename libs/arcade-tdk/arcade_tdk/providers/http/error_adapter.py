@@ -43,6 +43,7 @@ class BaseHTTPErrorMapper:
             dt = datetime.strptime(val, "%a, %d %b %Y %H:%M:%S %Z")
             return int((dt - datetime.now(timezone.utc)).total_seconds() * 1_000)
         except Exception:
+            logger.warning(f"Failed to parse rate limit header: {val}. Defaulting to 1000ms.")
             return 1_000
 
     def _sanitize_uri(self, uri: str) -> str:
@@ -191,7 +192,7 @@ class HTTPErrorAdapter(BaseHTTPErrorMapper):
         if requests_result is not None:
             return requests_result
 
-        logger.warning(
+        logger.info(
             f"Exception type '{type(exc).__name__}' was not handled by the '{self.slug}' adapter. "
             f"Either the exception is not from a supported HTTP library (httpx, requests) or "
             f"the required library is not installed in the toolkit's environment."

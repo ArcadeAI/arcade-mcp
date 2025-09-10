@@ -197,7 +197,7 @@ class GoogleErrorAdapter:
         try:
             from googleapiclient import errors
         except ImportError:
-            logger.warning(
+            logger.info(
                 f"'googleapiclient' is not installed in the toolkit's environment, "
                 f"so the '{self.slug}' adapter was not used to handle the upstream error"
             )
