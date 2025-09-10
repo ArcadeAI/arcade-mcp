@@ -85,7 +85,7 @@ class TestBuildWhoAmIResponse:
             assert result["time_zone"] == "America/New_York"
             assert result["organization_id"] == 67890
             assert result["organization_name"] == "Example Corp"
-            assert result["organization_domain"] == "example.com"
+            assert result["organization_domains"] == ["example.com", "example.org"]
             assert result["zendesk_access"] is True
 
             mock_get_user.assert_called_once_with(mock_context)
@@ -110,7 +110,7 @@ class TestBuildWhoAmIResponse:
             assert result["name"] == "John Doe"
             assert result["zendesk_access"] is True
             assert "organization_name" not in result
-            assert "organization_domain" not in result
+            assert "organization_domains" not in result
 
             mock_get_org.assert_called_once_with(mock_context, None)
 
@@ -261,7 +261,7 @@ class TestExtractOrganizationInfo:
         result = _extract_organization_info(sample_organization_data)
 
         assert result["organization_name"] == "Example Corp"
-        assert result["organization_domain"] == "example.com"
+        assert result["organization_domains"] == ["example.com", "example.org"]
 
     def test_extract_organization_info_no_domains(self):
         """Test extracting organization info without domain names."""
@@ -273,7 +273,7 @@ class TestExtractOrganizationInfo:
         result = _extract_organization_info(org_data)
 
         assert result["organization_name"] == "Example Corp"
-        assert "organization_domain" not in result
+        assert "organization_domains" not in result
 
     def test_extract_organization_info_multiple_domains(self):
         """Test extracting organization info with multiple domains."""
@@ -285,13 +285,13 @@ class TestExtractOrganizationInfo:
         result = _extract_organization_info(org_data)
 
         assert result["organization_name"] == "Example Corp"
-        assert result["organization_domain"] == "primary.com"
+        assert result["organization_domains"] == ["primary.com", "secondary.com", "tertiary.com"]
 
     def test_extract_empty_organization_info(self):
         """Test extracting from empty organization data."""
         result = _extract_organization_info({})
         assert "organization_name" not in result
-        assert "organization_domain" not in result
+        assert "organization_domains" not in result
         assert result == {}
 
 
@@ -311,7 +311,7 @@ class TestWhoAmIResponseType:
             "time_zone": "America/New_York",
             "organization_id": 67890,
             "organization_name": "Example Corp",
-            "organization_domain": "example.com",
+            "organization_domains": ["example.com", "example.org"],
             "zendesk_access": True,
         }
 

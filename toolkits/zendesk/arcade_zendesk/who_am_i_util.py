@@ -15,7 +15,7 @@ class WhoAmIResponse(TypedDict, total=False):
     time_zone: str
     organization_id: int
     organization_name: str
-    organization_domain: str
+    organization_domains: list[str]
     zendesk_access: bool
 
 
@@ -114,7 +114,7 @@ def _extract_organization_info(organization_info: dict[str, Any]) -> dict[str, A
 
     if organization_info.get("domain_names"):
         domains = organization_info["domain_names"]
-        if domains and len(domains) > 0:
-            extracted["organization_domain"] = domains[0]
+        if domains:
+            extracted["organization_domains"] = domains
 
     return extracted
