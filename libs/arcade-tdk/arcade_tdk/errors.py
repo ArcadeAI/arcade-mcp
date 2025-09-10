@@ -1,16 +1,34 @@
-from arcade_core.errors import RetryableToolError, ToolExecutionError, ToolRuntimeError
+from arcade_core.errors import (
+    ContextRequiredToolError,
+    ErrorKind,
+    FatalToolError,
+    RetryableToolError,
+    ToolExecutionError,
+    ToolRuntimeError,
+    UpstreamError,
+    UpstreamRateLimitError,
+)
 
 __all__ = [
+    "ErrorKind",
+    "FatalToolError",
     "RetryableToolError",
     "SDKError",
     "ToolExecutionError",
     "ToolRuntimeError",
+    "UpstreamError",
+    "UpstreamRateLimitError",
+    "ContextRequiredToolError",
     "WeightError",
 ]
 
 
 class SDKError(Exception):
-    """Base class for all SDK errors."""
+    """
+    DEPRECATED: Base class for all SDK errors.
+
+    SDKError is deprecated and will be removed in a future major version.
+    """
 
 
 class WeightError(SDKError):

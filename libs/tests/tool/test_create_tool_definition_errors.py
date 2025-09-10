@@ -2,7 +2,7 @@ from typing import Annotated
 
 import pytest
 from arcade_core.catalog import ToolCatalog
-from arcade_core.errors import ToolDefinitionError
+from arcade_core.errors import ToolDefinitionError, ToolInputSchemaError
 from arcade_core.schema import ToolContext, ToolMetadataKey
 from arcade_tdk import tool
 
@@ -149,7 +149,7 @@ def func_with_metadata_and_auth_dependency():
         ),
         pytest.param(
             func_with_invalid_renamed_param,
-            ToolDefinitionError,
+            ToolInputSchemaError,
             id=func_with_invalid_renamed_param.__name__,
         ),
         pytest.param(

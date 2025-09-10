@@ -1,7 +1,8 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
+from arcade_core.errors import ErrorKind
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from arcade_core.utils import coerce_empty_list_to_none
 
@@ -61,15 +62,26 @@ class ToolOutputFactory:
         *,
         message: str,
         developer_message: str | None = None,
-        traceback_info: str | None = None,
+        stacktrace: str | None = None,
         logs: list[ToolCallLog] | None = None,
+        additional_prompt_content: str | None = None,
+        retry_after_ms: int | None = None,
+        kind: ErrorKind = ErrorKind.UNKNOWN,
+        can_retry: bool = False,
+        status_code: int | None = None,
+        extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,
                 developer_message=developer_message,
-                can_retry=False,
-                traceback_info=traceback_info,
+                can_retry=can_retry,
+                additional_prompt_content=additional_prompt_content,
+                retry_after_ms=retry_after_ms,
+                stacktrace=stacktrace,
+                kind=kind,
+                status_code=status_code,
+                extra=extra,
             ),
             logs=coerce_empty_list_to_none(logs),
         )
@@ -81,9 +93,17 @@ class ToolOutputFactory:
         developer_message: str | None = None,
         additional_prompt_content: str | None = None,
         retry_after_ms: int | None = None,
-        traceback_info: str | None = None,
+        stacktrace: str | None = None,
         logs: list[ToolCallLog] | None = None,
+        kind: ErrorKind = ErrorKind.TOOL_RUNTIME_RETRY,
+        status_code: int = 500,
+        extra: dict[str, Any] | None = None,
     ) -> ToolCallOutput:
+        """
+        DEPRECATED: Use ToolOutputFactory.fail instead.
+        This method will be removed in version 3.0.0
+        """
+
         return ToolCallOutput(
             error=ToolCallError(
                 message=message,
@@ -91,7 +111,10 @@ class ToolOutputFactory:
                 can_retry=True,
                 additional_prompt_content=additional_prompt_content,
                 retry_after_ms=retry_after_ms,
-                traceback_info=traceback_info,
+                stacktrace=stacktrace,
+                kind=kind,
+                status_code=status_code,
+                extra=extra,
             ),
             logs=coerce_empty_list_to_none(logs),
         )

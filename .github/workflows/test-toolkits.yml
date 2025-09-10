@@ -43,6 +43,9 @@ jobs:
 
       - name: Set up the environment
         uses: ./.github/actions/setup-uv-env
+        with:
+          is-toolkit: "true"
+          working-directory: toolkits/${{ matrix.toolkit }}
 
       - name: Install toolkit dependencies
         working-directory: toolkits/${{ matrix.toolkit }}
@@ -80,6 +83,9 @@ jobs:
 
       - name: Set up the environment
         uses: ./.github/actions/setup-uv-env
+        with:
+          is-toolkit: "true"
+          working-directory: toolkits/${{ matrix.toolkit }}
 
       - name: Install toolkit dependencies
         working-directory: toolkits/${{ matrix.toolkit }}

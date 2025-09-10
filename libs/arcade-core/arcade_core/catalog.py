@@ -27,7 +27,12 @@ from pydantic_core import PydanticUndefined
 
 from arcade_core.annotations import Inferrable
 from arcade_core.auth import OAuth2, ToolAuthorization
-from arcade_core.errors import ToolDefinitionError
+from arcade_core.errors import (
+    ToolDefinitionError,
+    ToolInputSchemaError,
+    ToolkitLoadError,
+    ToolOutputSchemaError,
+)
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -224,7 +229,9 @@ class ToolCatalog(BaseModel):
         fully_qualified_name = definition.get_fully_qualified_name()
 
         if fully_qualified_name in self._tools:
-            raise KeyError(f"Tool '{definition.name}' already exists in the catalog.")
+            raise ToolkitLoadError(
+                f"Tool '{definition.name}' in toolkit '{toolkit_name}' already exists in the catalog."
+            )
 
         if str(fully_qualified_name).lower() in self._disabled_tools:
             logger.info(f"Tool '{fully_qualified_name!s}' is disabled and will not be cataloged.")
@@ -270,20 +277,26 @@ class ToolCatalog(BaseModel):
                     tool_func = getattr(module, tool_name)
                     self.add_tool(tool_func, toolkit, module)
 
+                except ToolDefinitionError as e:
+                    raise e.with_context(tool_name) from e
+                except ToolkitLoadError as e:
+                    raise e.with_context(toolkit.name) from e
+                except ImportError as e:
+                    raise ToolkitLoadError(
+                        f"Could not import module {module_name}. Reason: {e}"
+                    ).with_context(tool_name)
                 except AttributeError as e:
                     raise ToolDefinitionError(
                         f"Could not import tool {tool_name} in module {module_name}. Reason: {e}"
-                    )
-                except ImportError as e:
-                    raise ToolDefinitionError(f"Could not import module {module_name}. Reason: {e}")
+                    ).with_context(tool_name)
                 except TypeError as e:
                     raise ToolDefinitionError(
                         f"Type error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
-                    )
+                    ).with_context(tool_name)
                 except Exception as e:
                     raise ToolDefinitionError(
                         f"Error encountered while adding tool {tool_name} from {module_name}. Reason: {e}"
-                    )
+                    ).with_context(tool_name)
 
     def __getitem__(self, name: FullyQualifiedName) -> MaterializedTool:
         return self.get_tool(name)
@@ -392,11 +405,11 @@ class ToolCatalog(BaseModel):
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool {raw_tool_name} is missing a description")
+            raise ToolDefinitionError(f"Tool '{raw_tool_name}' is missing a description")
 
         # If the function returns a value, it must have a type annotation
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
-            raise ToolDefinitionError(f"Tool {raw_tool_name} must have a return type annotation")
+            raise ToolOutputSchemaError(f"Tool '{raw_tool_name}' must have a return type")
 
         auth_requirement = create_auth_requirement(tool)
         secrets_requirement = create_secrets_requirement(tool)
@@ -438,7 +451,7 @@ def create_input_definition(func: Callable) -> ToolInput:
     for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
         if param.annotation is ToolContext:
             if tool_context_param_name is not None:
-                raise ToolDefinitionError(
+                raise ToolInputSchemaError(
                     f"Only one ToolContext parameter is supported, but tool {func.__name__} has multiple."
                 )
 
@@ -635,7 +648,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     """
     annotation = param.annotation
     if annotation == inspect.Parameter.empty:
-        raise ToolDefinitionError(f"Parameter {param} has no type annotation.")
+        raise ToolInputSchemaError(f"Parameter {param} has no type annotation.")
 
     # Get the majority of the param info from either the Pydantic Field() or regular inspection
     if isinstance(param.default, FieldInfo):
@@ -654,7 +667,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
     elif len(str_annotations) == 2:
         new_name = str_annotations[0]
         if not new_name.isidentifier():
-            raise ToolDefinitionError(
+            raise ToolInputSchemaError(
                 f"Invalid parameter name: '{new_name}' is not a valid identifier. "
                 "Identifiers must start with a letter or underscore, "
                 "and can only contain letters, digits, or underscores."
@@ -662,7 +675,7 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
         param_info.name = new_name
         param_info.description = str_annotations[1]
     else:
-        raise ToolDefinitionError(
+        raise ToolInputSchemaError(
             f"Parameter {param} has too many string annotations. Expected 0, 1, or 2, got {len(str_annotations)}."
         )
 
@@ -677,10 +690,10 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
 
     # Final reality check
     if param_info.description is None:
-        raise ToolDefinitionError(f"Parameter {param_info.name} is missing a description")
+        raise ToolInputSchemaError(f"Parameter '{param_info.name}' is missing a description")
 
     if wire_type_info.wire_type is None:
-        raise ToolDefinitionError(f"Unknown parameter type: {param_info.field_type}")
+        raise ToolInputSchemaError(f"Unknown parameter type: {param_info.field_type}")
 
     return ToolParamInfo.from_param_info(param_info, wire_type_info, is_inferrable)
 
@@ -875,7 +888,7 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     # Union types are not currently supported
     # (other than optional, which is handled above)
     if is_union(field_type):
-        raise ToolDefinitionError(
+        raise ToolInputSchemaError(
             f"Parameter {param.name} is a union type. Only optional types are supported."
         )
 
@@ -895,7 +908,7 @@ def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
         if callable(param.default.default_factory):
             default_value = param.default.default_factory()
         else:
-            raise ToolDefinitionError(f"Default factory for parameter {param} is not callable.")
+            raise ToolInputSchemaError(f"Default factory for parameter {param} is not callable.")
 
     # If the param is Annotated[], unwrap the annotation to get the "real" type
     # Otherwise, use the literal type
@@ -988,7 +1001,6 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     input_model = create_model(f"{snake_to_pascal_case(func.__name__)}Input", **input_fields)  # type: ignore[call-overload]
 
     output_model = determine_output_model(func)
-
     return input_model, output_model
 
 
@@ -1033,10 +1045,16 @@ def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
 
             # If the return annotation has a description, use it
             if description:
-                return create_model(
-                    output_model_name,
-                    result=(field_type, Field(description=str(description))),
-                )
+                try:
+                    return create_model(
+                        output_model_name,
+                        result=(field_type, Field(description=str(description))),
+                    )
+                except Exception:
+                    raise ToolOutputSchemaError(
+                        f"Unsupported output type '{field_type}'. Only built-in Python types, TypedDicts, "
+                        "Pydantic models, and standard collections are supported as tool output types."
+                    )
 
         # If the return annotation is a Union type
         origin = return_annotation.__origin__

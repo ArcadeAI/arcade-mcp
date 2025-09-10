@@ -53,7 +53,9 @@ def tool_definition_to_pydantic_model(tool_def: ToolDefinition) -> type[BaseMode
         for param in tool_def.input.parameters or []:
             param_type = get_python_type(param.value_schema.val_type)
             if param_type == list and param.value_schema.inner_val_type:  # noqa: E721
-                inner_type: type[Any] = get_python_type(param.value_schema.inner_val_type)
+                inner_type: type[Any] = get_python_type(
+                    param.value_schema.inner_val_type
+                )
                 param_type = list[inner_type]  # type: ignore[valid-type]
             param_description = param.description or "No description provided."
             default = ... if param.required else None
@@ -90,9 +92,14 @@ def process_tool_execution_response(
         "tool": tool_name,
     }
 
-    if execute_response.output is not None and execute_response.output.error is not None:
+    if (
+        execute_response.output is not None
+        and execute_response.output.error is not None
+    ):
         error = execute_response.output.error
-        error_message = str(error.message) if hasattr(error, "message") else "Unknown error"
+        error_message = (
+            str(error.message) if hasattr(error, "message") else "Unknown error"
+        )
         error_details["error"] = error_message
 
         # Add all non-None optional error fields to the details
@@ -133,10 +140,13 @@ def create_tool_function(
         A callable function that executes the tool.
     """
     if langgraph and not LANGGRAPH_ENABLED:
-        raise ImportError("LangGraph is not installed. Please install it to use this feature.")
+        raise ImportError(
+            "LangGraph is not installed. Please install it to use this feature."
+        )
 
     requires_authorization = (
-        tool_def.requirements is not None and tool_def.requirements.authorization is not None
+        tool_def.requirements is not None
+        and tool_def.requirements.authorization is not None
     )
 
     def tool_function(config: RunnableConfig, **kwargs: Any) -> Any:
@@ -161,7 +171,9 @@ def create_tool_function(
             # Authorize the user for the tool
             auth_response = client.tools.authorize(tool_name=tool_name, user_id=user_id)
             if auth_response.status != "completed":
-                auth_message = f"Please use the following link to authorize: {auth_response.url}"
+                auth_message = (
+                    f"Please use the following link to authorize: {auth_response.url}"
+                )
                 if langgraph:
                     raise NodeInterrupt(auth_message)
                 return {"error": auth_message}
@@ -249,10 +261,13 @@ def create_async_tool_function(
         An async callable function that executes the tool.
     """
     if langgraph and not LANGGRAPH_ENABLED:
-        raise ImportError("LangGraph is not installed. Please install it to use this feature.")
+        raise ImportError(
+            "LangGraph is not installed. Please install it to use this feature."
+        )
 
     requires_authorization = (
-        tool_def.requirements is not None and tool_def.requirements.authorization is not None
+        tool_def.requirements is not None
+        and tool_def.requirements.authorization is not None
     )
 
     async def tool_function(config: RunnableConfig, **kwargs: Any) -> Any:
@@ -275,9 +290,13 @@ def create_async_tool_function(
                 return {"error": error_message}
 
             # Authorize the user for the tool
-            auth_response = await client.tools.authorize(tool_name=tool_name, user_id=user_id)
+            auth_response = await client.tools.authorize(
+                tool_name=tool_name, user_id=user_id
+            )
             if auth_response.status != "completed":
-                auth_message = f"Please use the following link to authorize: {auth_response.url}"
+                auth_message = (
+                    f"Please use the following link to authorize: {auth_response.url}"
+                )
                 if langgraph:
                     raise NodeInterrupt(auth_message)
                 return {"error": auth_message}

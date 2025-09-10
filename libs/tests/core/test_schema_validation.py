@@ -3,6 +3,7 @@ Tests for ToolCallOutput schema validation with complex types.
 """
 
 import pytest
+from arcade_core.errors import ErrorKind
 from arcade_core.schema import ToolCallError, ToolCallLog, ToolCallOutput
 from pydantic import ValidationError
 
@@ -139,6 +140,7 @@ class TestToolCallOutputValidation:
                 message="Partial failure",
                 developer_message="Some items failed to process",
                 can_retry=True,
+                kind=ErrorKind.TOOL_RUNTIME_RETRY,
             )
         )
         assert output.error.message == "Partial failure"

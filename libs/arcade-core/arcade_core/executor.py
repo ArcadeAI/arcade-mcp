@@ -6,11 +6,9 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from arcade_core.errors import (
-    RetryableToolError,
     ToolInputError,
     ToolOutputError,
     ToolRuntimeError,
-    ToolSerializationError,
 )
 from arcade_core.output import output_factory
 from arcade_core.schema import (
@@ -69,31 +67,26 @@ class ToolExecutor:
             # return the output
             return output_factory.success(data=output, logs=tool_call_logs)
 
-        except RetryableToolError as e:
-            return output_factory.fail_retry(
-                message=e.message,
-                developer_message=e.developer_message,
-                additional_prompt_content=e.additional_prompt_content,
-                retry_after_ms=e.retry_after_ms,
-            )
-
-        except ToolSerializationError as e:
-            return output_factory.fail(message=e.message, developer_message=e.developer_message)
-
-        # should catch all tool exceptions due to the try/except in the tool decorator
         except ToolRuntimeError as e:
+            e.with_context(func.__name__)
             return output_factory.fail(
                 message=e.message,
                 developer_message=e.developer_message,
-                traceback_info=e.traceback_info(),
+                stacktrace=e.stacktrace(),
+                additional_prompt_content=getattr(e, "additional_prompt_content", None),
+                retry_after_ms=getattr(e, "retry_after_ms", None),
+                kind=e.kind,
+                can_retry=e.can_retry,
+                status_code=e.status_code,
+                extra=e.extra,
             )
 
         # if we get here we're in trouble
         except Exception as e:
             return output_factory.fail(
-                message="Error in execution",
+                message=f"Error in execution of '{func.__name__}'",
                 developer_message=str(e),
-                traceback_info=traceback.format_exc(),
+                stacktrace=traceback.format_exc(),
             )
 
     @staticmethod
