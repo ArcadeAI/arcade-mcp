@@ -15,9 +15,9 @@ class ValueSchema(BaseModel):
     val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
     """The type of the value."""
 
-    inner_val_type: Literal["string", "integer", "number", "boolean", "json"] | None = (
-        None
-    )
+    inner_val_type: (
+        Literal["string", "integer", "number", "boolean", "json"] | None
+    ) = None
     """The type of the inner value, if the value is a list."""
 
     enum: list[str] | None = None
@@ -52,6 +52,13 @@ class InputParameter(BaseModel):
     inferrable: bool = Field(
         True,
         description="Whether a value for this parameter can be inferred by a model. Defaults to `true`.",
+    )
+    http_endpoint_parameter_name: str | None = Field(
+        default=None,
+        description=(
+            "If this tool is HTTP-backed, the corresponding HTTP endpoint parameter name "
+            "that this input maps to (path/query/header/body/form field)."
+        ),
     )
 
 
@@ -168,6 +175,62 @@ class ToolkitDefinition(BaseModel):
     """The version identifier of the toolkit."""
 
 
+class HttpValueSchema(BaseModel):
+    """The schema of the value of an HTTP API endpoint parameter."""
+
+    val_type: Literal["string", "integer", "number", "boolean", "json", "array"]
+    """The type of the value."""
+
+    array_inner_val_type: Literal["string", "integer", "number", "boolean"] | None = (
+        None
+    )
+    """The value schema of the inner value of an array (if applicable)."""
+
+
+class HttpEndpointParameter(BaseModel):
+    """An HTTP API endpoint parameter."""
+
+    name: str
+    """The name of the parameter."""
+
+    description: str = ""
+    """The description of the parameter."""
+
+    value_schema: HttpValueSchema
+    """The schema of the value."""
+
+    accepted_as: Literal["path", "query", "header", "body", "form_data"]
+    """How the parameter is accepted by the HTTP API endpoint."""
+
+    required: bool
+    """Whether the parameter is required."""
+
+    deprecated: bool = False
+    """Whether the parameter is deprecated."""
+
+    documentation_urls: list[str] = []
+    """The URLs to the documentation for the parameter."""
+
+
+class HttpEndpointDefinition(BaseModel):
+    """The definition of an HTTP API endpoint."""
+
+    url: str
+    """The URL of the HTTP API endpoint."""
+
+    http_method: Literal["GET", "POST", "PUT", "DELETE"]
+    """The HTTP method of the HTTP API endpoint."""
+
+    headers: dict[str, str] | None = None
+    """The headers of the HTTP API endpoint. Values can reference parameter names via `{name}`. """
+
+    parameters: list[HttpEndpointParameter]
+    """The parameters of the HTTP API endpoint."""
+
+    documentation_urls: list[str] = []
+    """The URLs to the documentation for the HTTP API endpoint."""
+
+
 @dataclass(frozen=True)
 class FullyQualifiedName:
     """The fully-qualified name of a tool."""
@@ -244,6 +307,14 @@ class ToolDefinition(BaseModel):
 
     deprecation_message: str | None = None
     """The message to display when the tool is deprecated."""
+
+    http_endpoint: HttpEndpointDefinition | None = Field(
+        default=None,
+        description=(
+            "Optional HTTP endpoint binding. If provided, the engine will execute this tool "
+            "by calling the HTTP endpoint instead of a local function."
+        ),
+    )
 
     def get_fully_qualified_name(self) -> FullyQualifiedName:
         return FullyQualifiedName(self.name, self.toolkit.name, self.toolkit.version)

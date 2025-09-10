@@ -8,10 +8,9 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from arcade_core.api_wrapper.errors import WrapperDefinitionError
-from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.parse import get_tools_from_file
+from arcade_core.schema import ToolDefinition
 
 logger = logging.getLogger(__name__)
 
@@ -230,29 +229,6 @@ class Toolkit(BaseModel):
         Load a Toolkit from a directory.
         """
         tools: dict[str, list[str]] = {}
-
-        # Get all wrapper tool JSON files in the package directory
-        wrapper_tools_dir = package_dir / "wrapper_tools"
-        wrapper_path = f"wrapper://{wrapper_tools_dir}"
-        wrapper_tool_files = [
-            file
-            for file in wrapper_tools_dir.glob("*.json")
-            if file.is_file() and Validate.path(file)
-        ]
-        if wrapper_tool_files:
-            tools[wrapper_path] = []
-            for wrapper_tool_file in wrapper_tool_files:
-                with open(wrapper_tool_file) as f:
-                    try:
-                        wrapper_tool = WrapperToolDefinition.model_validate_json(
-                            f.read()
-                        )
-                    except Exception as e:
-                        raise WrapperDefinitionError(
-                            f"Failed to load wrapper tool '{wrapper_tool_file}': "
-                            f"{type(e).__name__}: {e!s}"
-                        ) from e
-                    tools[wrapper_path].append(wrapper_tool)
 
         # Get all python files in the package directory
         try:

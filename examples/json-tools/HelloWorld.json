@@ -1,11 +1,7 @@
 {
-  "metadata": {
-    "object_type": "api_wrapper_tool",
-    "version": "0.1.0"
-  },
   "name": "HelloWorld",
   "fully_qualified_name": "SampleApi.HelloWorld@0.1.0",
-  "description": "A wrapper hello world tool for the Sample API",
+  "description": "A hello world tool for the Sample API",
   "toolkit": {
     "name": "SampleApi",
     "description": "A sample API wrapper toolkit",
@@ -16,9 +12,7 @@
       {
         "name": "salutation",
         "description": "The salutation to say hello to",
-        "value_schema": {
-          "val_type": "string"
-        },
+        "value_schema": { "val_type": "string" },
         "required": true,
         "inferrable": true,
         "http_endpoint_parameter_name": "salute"
@@ -26,9 +20,7 @@
       {
         "name": "name",
         "description": "The name to say hello to",
-        "value_schema": {
-          "val_type": "string"
-        },
+        "value_schema": { "val_type": "string" },
         "required": true,
         "inferrable": true,
         "http_endpoint_parameter_name": "sample_name"
@@ -41,41 +33,29 @@
     "value_schema": {
       "val_type": "json",
       "properties": {
-        "message": {
-          "val_type": "string",
-          "description": "A greeting message to {name}"
-        }
+        "message": { "val_type": "string", "description": "A greeting message to {name}" }
       },
       "description": "The greeting response"
     }
   },
   "requirements": {
     "authorization": null,
-    "secrets": [
-      {
-        "key": "sample_api_key"
-      }
-    ],
+    "secrets": [{ "key": "sample_api_key" }],
     "metadata": null
   },
   "deprecation_message": null,
   "http_endpoint": {
-    "metadata": {
-      "object_type": "http_endpoint",
-      "version": "0.1.0"
-    },
     "url": "http://localhost:9123/hello/{salute}",
     "http_method": "POST",
     "headers": {
-      "Authorization": "Basic {sample_api_key}"
+      "Authorization": "Basic {sample_api_key}",
+      "Content-Type": "application/json"
     },
     "parameters": [
       {
         "name": "sample_api_key",
         "description": "The Sample API key to use for authentication",
-        "value_schema": {
-          "val_type": "string"
-        },
+        "value_schema": { "val_type": "string" },
         "accepted_as": "header",
         "required": true,
         "deprecated": false,
@@ -84,9 +64,7 @@
       {
         "name": "salute",
         "description": "The salutation to say hello to",
-        "value_schema": {
-          "val_type": "string"
-        },
+        "value_schema": { "val_type": "string" },
         "accepted_as": "path",
         "required": true,
         "deprecated": false,
@@ -95,9 +73,7 @@
       {
         "name": "sample_name",
         "description": "The name to say hello to",
-        "value_schema": {
-          "val_type": "string"
-        },
+        "value_schema": { "val_type": "string" },
         "accepted_as": "body",
         "required": true,
         "deprecated": false,

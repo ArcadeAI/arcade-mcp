@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import json
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 from typing import (
     Annotated,
@@ -26,10 +28,9 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from arcade_core.annotations import Inferrable
-from arcade_core.api_wrapper.executor import call_wrapper_tool
-from arcade_core.api_wrapper.schema import WrapperToolDefinition
 from arcade_core.auth import OAuth2, ToolAuthorization
 from arcade_core.errors import ToolDefinitionError
+from arcade_core.executor import call_http_tool
 from arcade_core.schema import (
     TOOL_NAME_SEPARATOR,
     FullyQualifiedName,
@@ -187,7 +188,9 @@ class ToolCatalog(BaseModel):
         The expected format for each disabled toolkit is:
         - [CamelCaseToolkitName]
         """
-        disabled_toolkits = os.getenv("ARCADE_DISABLED_TOOLKITS", "").strip().split(",")
+        disabled_toolkits = (
+            os.getenv("ARCADE_DISABLED_TOOLKITS", "").strip().split(",")
+        )
         if not disabled_toolkits:
             return
 
@@ -198,7 +201,7 @@ class ToolCatalog(BaseModel):
         self,
         fully_qualified_name: FullyQualifiedName,
         toolkit_name: str,
-        definition: ToolDefinition | WrapperToolDefinition,
+        definition: ToolDefinition,
     ) -> bool:
         """
         Validate a tool.
@@ -267,14 +270,14 @@ class ToolCatalog(BaseModel):
             output_model=output_model,
         )
 
-    def add_wrapper_tool(
+    def add_json_tool(
         self,
-        wrapper_tool: WrapperToolDefinition,
+        definition: ToolDefinition,
         toolkit_or_name: Toolkit | str,
-        wrapper_tools_path: str,
+        json_tools_path: str,
     ) -> None:
         """
-        Add a wrapper tool to the catalog.
+        Add a JSON-defined tool (HTTP-backed or otherwise) to the catalog.
         """
         if isinstance(toolkit_or_name, Toolkit):
             toolkit = toolkit_or_name
@@ -286,24 +289,136 @@ class ToolCatalog(BaseModel):
         if not toolkit_name:
             raise ValueError("A toolkit name or toolkit must be provided.")
 
-        fully_qualified_name = wrapper_tool.get_fully_qualified_name()
+        fully_qualified_name = definition.get_fully_qualified_name()
 
-        if not self._validate_tool(fully_qualified_name, toolkit_name, wrapper_tool):
+        if not self._validate_tool(fully_qualified_name, toolkit_name, definition):
             return
 
-        input_model, output_model = _create_wrapper_tool_models(wrapper_tool)
+        # Build input/output models from the definition
+        input_model, output_model = _create_json_tool_models(definition)
+
+        # Choose executor callable
+        tool_callable = (
+            call_http_tool
+            if definition.http_endpoint is not None
+            else (lambda **kwargs: None)
+        )
 
         self._tools[fully_qualified_name] = MaterializedTool(
-            definition=wrapper_tool,
-            tool=call_wrapper_tool,
+            definition=definition,
+            tool=tool_callable,
             meta=ToolMeta(
-                module=call_wrapper_tool.__module__,
+                module=(
+                    call_http_tool.__module__
+                    if definition.http_endpoint
+                    else __name__
+                ),
                 toolkit=toolkit_name,
                 package=toolkit.package_name if toolkit else None,
-                path=wrapper_tools_path,
+                path=json_tools_path,
             ),
             input_model=input_model,
             output_model=output_model,
+        )
+
+    def add_tools_from_json_strings(
+        self,
+        json_strings: list[str],
+        toolkit_or_name: Toolkit | str,
+        json_source_path: str | None = None,
+    ) -> None:
+        """
+        Parse and add JSON-defined tools from already-read JSON strings.
+        """
+        for raw in json_strings:
+            try:
+                data = json.loads(raw)
+                if isinstance(data, dict):
+                    # Strip optional wrapper metadata if present
+                    data.pop("metadata", None)
+                    if isinstance(data.get("http_endpoint"), dict):
+                        data["http_endpoint"].pop("metadata", None)
+                definition = ToolDefinition.model_validate(data)
+            except Exception as e:
+                raise ToolDefinitionError(
+                    f"Failed to parse tool definition from JSON: {type(e).__name__}: {e!s}"
+                ) from e
+
+            # Prefer a meaningful path for traceability
+            json_path = json_source_path or "json://in-memory"
+            self.add_json_tool(definition, toolkit_or_name, json_path)
+
+    def add_tools_from_directory(
+        self,
+        directory: str | Path,
+        toolkit_or_name: Toolkit | str,
+        recursive: bool = True,
+    ) -> None:
+        """
+        Find, parse and add all JSON-defined tools from a directory.
+        """
+        base = Path(directory)
+        if not base.exists() or not base.is_dir():
+            raise ToolDefinitionError(f"JSON tools directory not found: {directory}")
+
+        pattern = "**/*.json" if recursive else "*.json"
+        files = [p for p in base.glob(pattern) if p.is_file()]
+
+        if not files:
+            # No files is not fatal; just nothing to add
+            return
+
+        for fp in files:
+            try:
+                raw = fp.read_text(encoding="utf-8")
+            except Exception as e:
+                raise ToolDefinitionError(
+                    f"Failed reading JSON tool file '{fp}': {type(e).__name__}: {e!s}"
+                ) from e
+
+            try:
+                data = json.loads(raw)
+                if isinstance(data, dict):
+                    data.pop("metadata", None)
+                    if isinstance(data.get("http_endpoint"), dict):
+                        data["http_endpoint"].pop("metadata", None)
+                definition = ToolDefinition.model_validate(data)
+            except Exception as e:
+                raise ToolDefinitionError(
+                    f"Failed parsing JSON tool file '{fp}': {type(e).__name__}: {e!s}"
+                ) from e
+
+            self.add_json_tool(definition, toolkit_or_name, str(fp.parent))
+
+    # Short aliases for loading JSON-defined tools
+    def from_json(
+        self,
+        json_strings: list[str],
+        toolkit_or_name: Toolkit | str,
+        json_source_path: str | None = None,
+    ) -> None:
+        """
+        Load tools from a list of JSON strings. Alias for add_tools_from_json_strings.
+        """
+        self.add_tools_from_json_strings(
+            json_strings=json_strings,
+            toolkit_or_name=toolkit_or_name,
+            json_source_path=json_source_path,
+        )
+
+    def from_directory(
+        self,
+        directory: str | Path,
+        toolkit_or_name: Toolkit | str,
+        recursive: bool = True,
+    ) -> None:
+        """
+        Load tools by discovering JSON files in a directory. Alias for add_tools_from_directory.
+        """
+        self.add_tools_from_directory(
+            directory=directory,
+            toolkit_or_name=toolkit_or_name,
+            recursive=recursive,
         )
 
     def add_module(self, module: ModuleType) -> None:
@@ -327,16 +442,9 @@ class ToolCatalog(BaseModel):
         for module_name, tool_names in toolkit.tools.items():
             for tool_name in tool_names:
                 try:
-                    if module_name.startswith("wrapper://"):
-                        self.add_wrapper_tool(
-                            wrapper_tool=tool_name,
-                            toolkit_or_name=toolkit,
-                            wrapper_tools_path=module_name.removeprefix("wrapper://"),
-                        )
-                    else:
-                        module = import_module(module_name)
-                        tool_func = getattr(module, tool_name)
-                        self.add_tool(tool_func, toolkit, module)
+                    module = import_module(module_name)
+                    tool_func = getattr(module, tool_name)
+                    self.add_tool(tool_func, toolkit, module)
 
                 except AttributeError as e:
                     raise ToolDefinitionError(
@@ -372,7 +480,8 @@ class ToolCatalog(BaseModel):
 
     def get_tool_names(self) -> list[FullyQualifiedName]:
         return [
-            tool.definition.get_fully_qualified_name() for tool in self._tools.values()
+            tool.definition.get_fully_qualified_name()
+            for tool in self._tools.values()
         ]
 
     def find_tool_by_func(self, func: Callable) -> ToolDefinition:
@@ -467,7 +576,9 @@ class ToolCatalog(BaseModel):
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool {raw_tool_name} is missing a description")
+            raise ToolDefinitionError(
+                f"Tool {raw_tool_name} is missing a description"
+            )
 
         # If the function returns a value, it must have a type annotation
         if (
@@ -806,7 +917,9 @@ def get_wire_type_info(_type: type) -> WireTypeInfo:
         inner_wire_type = None
 
     # Get the outer wire type
-    wire_type = get_wire_type(str) if is_string_literal(_type) else get_wire_type(_type)
+    wire_type = (
+        get_wire_type(str) if is_string_literal(_type) else get_wire_type(_type)
+    )
 
     # Handle enums (known/fixed lists of values)
     is_enum = False
@@ -970,7 +1083,9 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
     # Both Optional[T] and T | None are supported
     is_optional = is_strict_optional(field_type)
     if is_optional:
-        field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+        field_type = next(
+            arg for arg in get_args(field_type) if arg is not type(None)
+        )
 
     # Union types are not currently supported
     # (other than optional, which is handled above)
@@ -981,7 +1096,9 @@ def extract_python_param_info(param: inspect.Parameter) -> ParamInfo:
 
     return ParamInfo(
         name=param.name,
-        default=param.default if param.default is not inspect.Parameter.empty else None,
+        default=param.default
+        if param.default is not inspect.Parameter.empty
+        else None,
         is_optional=is_optional,
         original_type=original_type,
         field_type=field_type,
@@ -1014,7 +1131,9 @@ def extract_pydantic_param_info(param: inspect.Parameter) -> ParamInfo:
     # Both Optional[T] and T | None are supported
     is_optional = is_strict_optional(field_type)
     if is_optional:
-        field_type = next(arg for arg in get_args(field_type) if arg is not type(None))
+        field_type = next(
+            arg for arg in get_args(field_type) if arg is not type(None)
+        )
 
     return ParamInfo(
         name=param.name,
@@ -1073,7 +1192,9 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     # TODO figure this out (Sam)
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
-    for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
+    for name, param in inspect.signature(
+        func, follow_wrapped=True
+    ).parameters.items():
         # Skip ToolContext parameters
         if param.annotation is ToolContext:
             continue
@@ -1121,14 +1242,14 @@ def _value_schema_to_python_type(value_schema: ValueSchema) -> type:
         return type_map[value_schema.val_type]
 
 
-def _create_wrapper_tool_models(
-    wrapper_tool: WrapperToolDefinition,
+def _create_json_tool_models(
+    definition: ToolDefinition,
 ) -> tuple[type[BaseModel], type[BaseModel]]:
     """
-    Analyze a wrapper tool to create corresponding Pydantic models for its input and output.
+    Analyze a JSON-defined tool to create corresponding Pydantic models for its input and output.
     """
     input_fields = {}
-    for param in wrapper_tool.input.parameters:
+    for param in definition.input.parameters:
         input_fields[param.name] = (
             _value_schema_to_python_type(param.value_schema),
             Field(
@@ -1137,13 +1258,13 @@ def _create_wrapper_tool_models(
             ),
         )
 
-    input_model = create_model(f"{wrapper_tool.name}Input", **input_fields)
+    input_model = create_model(f"{definition.name}Input", **input_fields)
     output_model = create_model(
-        f"{wrapper_tool.name}Output",
+        f"{definition.name}Output",
         result=(
-            _value_schema_to_python_type(wrapper_tool.output.value_schema),
+            _value_schema_to_python_type(definition.output.value_schema),
             Field(
-                description=wrapper_tool.output.description,
+                description=definition.output.description,
             ),
         ),
     )
@@ -1274,7 +1395,9 @@ def create_model_from_typeddict(
     field_definitions: dict[str, Any] = {}
     for field_name, field_type in type_hints.items():
         # Check if field is required
-        is_required = field_name in getattr(typeddict_class, "__required_keys__", set())
+        is_required = field_name in getattr(
+            typeddict_class, "__required_keys__", set()
+        )
 
         # Handle nested TypedDict
         if is_typeddict(field_type):
