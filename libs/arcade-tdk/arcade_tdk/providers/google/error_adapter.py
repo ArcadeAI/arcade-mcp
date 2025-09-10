@@ -75,9 +75,9 @@ class GoogleErrorAdapter:
         }
 
         # Try to extract request details if available
-        if hasattr(error, "uri"):
+        if hasattr(error, "uri") and error.uri:
             extra["endpoint"] = self._sanitize_uri(error.uri)
-        if hasattr(error, "method_"):
+        if hasattr(error, "method_") and error.method_:
             extra["http_method"] = error.method_.upper()
 
         # Special case for rate limiting

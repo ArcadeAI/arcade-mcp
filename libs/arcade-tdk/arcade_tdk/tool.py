@@ -1,5 +1,6 @@
 import functools
 import inspect
+import logging
 from typing import Any, Callable, TypeVar
 
 from arcade_tdk.auth import ToolAuthorization
@@ -13,6 +14,8 @@ from arcade_tdk.providers.http import HTTPErrorAdapter
 from arcade_tdk.utils import snake_to_pascal_case
 
 T = TypeVar("T")
+
+logger = logging.getLogger(__name__)
 
 
 def _build_adapter_chain(
@@ -81,7 +84,13 @@ def _raise_as_arcade_error(
         ToolRuntimeError or some subclass thereof
     """
     for adapter in adapter_chain:
-        mapped = adapter.from_exception(exception)
+        try:
+            mapped = adapter.from_exception(exception)
+        except Exception as e:
+            logger.warning(
+                f"Failed to map exception to Arcade Error with adapter {adapter.slug}: {e}"
+            )
+            continue
         if isinstance(mapped, ToolRuntimeError):
             raise mapped from exception
 
