@@ -15,6 +15,7 @@ from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
+import arcade_cli.secret as secret
 import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
@@ -55,6 +56,13 @@ cli.add_typer(
     name="worker",
     help="Manage deployments of tool servers (logs, list, etc)",
     rich_help_panel="Deployment",
+)
+
+cli.add_typer(
+    secret.app,
+    name="secret",
+    help="Manage tool secrets in the cloud (upsert, list, delete)",
+    rich_help_panel="Admin",
 )
 
 
