@@ -61,7 +61,7 @@ cli.add_typer(
 cli.add_typer(
     secret.app,
     name="secret",
-    help="Manage tool secrets in the cloud (upsert, list, delete)",
+    help="Manage tool secrets in the cloud (set, unset, list)",
     rich_help_panel="Admin",
 )
 

@@ -57,7 +57,14 @@ def main(
     ),
 ) -> None:
     """
-    Manage secrets in the system.
+    Manage tool secrets in Arcade Cloud.
+
+    Usage:
+        arcade secret set KEY1=value1 KEY2="value 2"
+        arcade secret set --from-env
+        arcade secret set -from-env --env-file /path/to/.env
+        arcade secret list
+        arcade secret unset KEY1 KEY2 KEY3
     """
     engine_url = compute_base_url(force_tls, force_no_tls, host, port)
     state["engine_url"] = engine_url
