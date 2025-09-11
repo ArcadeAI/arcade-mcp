@@ -268,7 +268,7 @@ def _get_secrets_from_engine(engine_url: str, api_key: str) -> list[dict]:
         headers={"Authorization": f"Bearer {api_key}"},
     )
     response.raise_for_status()
-    return response.json()["items"]
+    return response.json()["items"]  # type: ignore[no-any-return]
 
 
 def _delete_secret_from_engine(engine_url: str, api_key: str, secret_id: str) -> None:
