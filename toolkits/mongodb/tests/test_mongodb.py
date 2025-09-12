@@ -3,12 +3,14 @@ import json
 import pytest
 from arcade_mongodb.database_engine import DatabaseEngine
 from arcade_mongodb.tools.mongodb import (
+    # UserStatus,
     aggregate_documents,
     count_documents,
     discover_collections,
     discover_databases,
     find_documents,
     get_collection_schema,
+    # update_user_status,
 )
 from arcade_tdk import ToolContext, ToolSecretItem
 from arcade_tdk.errors import RetryableToolError
@@ -231,3 +233,62 @@ async def test_sanitize_query_params() -> None:
             "test_db", "users", {}, None, None, 2000, 0
         )  # Too high limit
     assert "Limit is too high" in str(e.value)
+
+
+# @pytest.mark.asyncio
+# async def test_update_user_status_success(mock_context) -> None:
+#     """Test successful user status update."""
+#     # First, find a user to update
+#     users = await find_documents(
+#         mock_context, database_name="test_database", collection_name="users", limit=1
+#     )
+#     assert len(users) > 0
+
+#     user_doc = json.loads(users[0])
+#     user_id = user_doc["_id"]
+
+#     # Update user status to inactive
+#     result = await update_user_status(
+#         mock_context,
+#         database_name="test_database",
+#         collection_name="users",
+#         user_id=user_id,
+#         status=UserStatus.INACTIVE,
+#     )
+
+#     assert result["success"] is True
+#     assert result["user_id"] == user_id
+#     assert result["new_status"] == "inactive"
+#     assert result["matched_count"] == 1
+#     assert result["modified_count"] == 1
+
+#     # Verify the update by finding the user again
+#     # Convert user_id to int since the test data uses integer IDs
+#     user_id_int = int(user_id)
+#     updated_users = await find_documents(
+#         mock_context,
+#         database_name="test_database",
+#         collection_name="users",
+#         filter_dict=f'{{"_id": {user_id_int}}}',
+#         limit=1,
+#     )
+#     assert len(updated_users) == 1
+#     updated_user = json.loads(updated_users[0])
+#     assert updated_user["status"] == "inactive"
+
+
+# @pytest.mark.asyncio
+# async def test_update_user_status_user_not_found(mock_context) -> None:
+#     """Test updating status for non-existent user."""
+#     result = await update_user_status(
+#         mock_context,
+#         database_name="test_database",
+#         collection_name="users",
+#         user_id="nonexistent_user_id",
+#         status=UserStatus.BANNED,
+#     )
+
+#     assert result["success"] is False
+#     assert "No user found with _id" in result["message"]
+#     assert result["matched_count"] == 0
+#     assert result["modified_count"] == 0

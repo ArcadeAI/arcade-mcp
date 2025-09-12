@@ -358,6 +358,12 @@ db.messages.insertMany([
     user_id: 10,
     created_at: new Date('2025-01-10T19:35:00.000Z'),
     updated_at: new Date('2025-01-10T19:35:00.000Z')
+  },{
+    _id: 99,
+    body: 'You are a mean jerk, you shithead!',
+    user_id: 10,
+    created_at: new Date('2025-01-10T19:35:00.000Z'),
+    updated_at: new Date('2025-01-10T19:35:00.000Z')
   }
 ]);
 
