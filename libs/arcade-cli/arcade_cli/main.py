@@ -20,7 +20,6 @@ import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
-    LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
@@ -30,12 +29,14 @@ from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.utils import (
     OrderCommands,
+    Provider,
     compute_base_url,
     compute_login_url,
     get_eval_files,
     load_eval_suites,
     log_engine_health,
     require_dependency,
+    resolve_provider_api_key,
     validate_and_get_config,
     version_callback,
 )
@@ -282,34 +283,19 @@ def evals(
         "gpt-4o",
         "--models",
         "-m",
-        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models.",
+        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models. All models must belong to the same provider.",
     ),
-    host: str = typer.Option(
-        LOCALHOST,
-        "-h",
-        "--host",
-        help="The Arcade Engine address to send chat requests to.",
-    ),
-    cloud: bool = typer.Option(
-        False,
-        "--cloud",
-        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
-    ),
-    port: Optional[int] = typer.Option(
-        None,
+    provider: Provider = typer.Option(
+        Provider.OPENAI,
+        "--provider",
         "-p",
-        "--port",
-        help="The port of the Arcade Engine.",
+        help="The provider of the models to use for evaluation.",
     ),
-    force_tls: bool = typer.Option(
-        False,
-        "--tls",
-        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
-    ),
-    force_no_tls: bool = typer.Option(
-        False,
-        "--no-tls",
-        help="Whether to disable TLS for the connection to the Arcade Engine.",
+    provider_api_key: str = typer.Option(
+        None,
+        "--provider-api-key",
+        "-k",
+        help="The model provider API key. If not provided, will look for the appropriate environment variable based on the provider (e.g., OPENAI_API_KEY for openai provider), first in the current environment, then in the current working directory's .env file.",
     ),
     debug: bool = typer.Option(False, "--debug", help="Show debug information"),
 ) -> None:
@@ -331,27 +317,27 @@ def evals(
         install_command=r"pip install arcade-tdk",
     )
 
-    config = validate_and_get_config()
-
-    host = PROD_ENGINE_HOST if cloud else host
-    base_url = compute_base_url(force_tls, force_no_tls, host, port)
-
     models_list = models.split(",")  # Use 'models_list' to avoid shadowing
+
+    # Resolve the API key for the provider
+    resolved_api_key = resolve_provider_api_key(provider, provider_api_key)
+    if not resolved_api_key:
+        provider_env_vars = {
+            Provider.OPENAI: "OPENAI_API_KEY",
+        }
+        env_var_name = provider_env_vars.get(provider, f"{provider.upper()}_API_KEY")
+        handle_cli_error(
+            f"API key not found for provider '{provider.value}'. "
+            f"Please provide it via --provider-api-key argument, set the {env_var_name} environment variable, "
+            f"or add it to a .env file in the current directory.",
+            should_exit=True,
+        )
 
     eval_files = get_eval_files(directory)
     if not eval_files:
         return
 
-    console.print(
-        Text.assemble(
-            ("\nRunning evaluations against Arcade Engine at ", "bold"),
-            (base_url, "bold blue"),
-        )
-    )
-
-    # Try to hit /health endpoint on engine and warn if it is down
-    with Arcade(api_key=config.api.key, base_url=base_url) as client:
-        log_engine_health(client)
+    console.print("\nRunning evaluations", "bold")
 
     # Use the new function to load eval suites
     eval_suites = load_eval_suites(eval_files)
@@ -380,8 +366,7 @@ def evals(
             for model in models_list:
                 task = asyncio.create_task(
                     suite_func(
-                        config=config,
-                        base_url=base_url,
+                        openai_api_key=resolved_api_key,
                         model=model,
                         max_concurrency=max_concurrent,
                     )
@@ -826,12 +811,14 @@ def main_callback(
         help="Print version and exit.",
     ),
 ) -> None:
-    excluded_commands = {
+    # Commands that do not require a logged in user
+    public_commands = {
         login.__name__,
         logout.__name__,
         dashboard.__name__,
+        evals.__name__,
     }
-    if ctx.invoked_subcommand in excluded_commands:
+    if ctx.invoked_subcommand in public_commands:
         return
 
     if not check_existing_login(suppress_message=True):
