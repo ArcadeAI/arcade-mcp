@@ -6,13 +6,14 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
-from arcade_core.config_model import Config
 from arcade_core.schema import TOOL_NAME_SEPARATOR
 from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError
+from arcade_evals.models.openai.converter import convert_materialized_tool_to_openai_schema
+from arcade_evals.models.openai.types import OpenAIToolList
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
@@ -620,7 +621,6 @@ class EvalSuite:
         results: dict[str, Any] = {"model": model, "rubric": self.rubric, "cases": []}
 
         semaphore = asyncio.Semaphore(self.max_concurrent)
-        tool_names = list(self.catalog.get_tool_names())
 
         async def sem_task(case: EvalCase) -> dict[str, Any]:
             async with semaphore:
@@ -634,7 +634,7 @@ class EvalSuite:
                     model=model,
                     messages=messages,
                     tool_choice="auto",
-                    tools=(str(name) for name in tool_names),
+                    tools=get_formatted_tools(self.catalog, tool_format="openai"),
                     user="eval_user",
                     seed=42,
                     stream=False,
@@ -673,6 +673,23 @@ class EvalSuite:
 
         results["cases"] = case_results
         return results
+
+
+def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> OpenAIToolList:
+    """Get the formatted tools from the catalog.
+
+    Args:
+        catalog: The catalog of Arcade tools.
+        tool_format: The format of the tools to return
+
+    Returns:
+        The formatted tools.
+    """
+    if tool_format == "openai":
+        tools = [convert_materialized_tool_to_openai_schema(tool) for tool in catalog]
+        return tools
+    else:
+        raise ValueError(f"Tool format for '{tool_format}' is not supported")
 
 
 def get_tool_args(chat_completion: Any) -> list[tuple[str, dict[str, Any]]]:
@@ -729,8 +746,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(
-            config: Config,
-            base_url: str,
+            openai_api_key: str,
             model: str,
             max_concurrency: int = 1,
         ) -> list[dict[str, Any]]:
@@ -740,8 +756,7 @@ def tool_eval() -> Callable[[Callable], Callable]:
             suite.max_concurrent = max_concurrency
             results = []
             async with AsyncOpenAI(
-                api_key=config.api.key,
-                base_url=base_url + "/v1",
+                api_key=openai_api_key,
             ) as client:
                 result = await suite.run(client, model)
                 results.append(result)
