@@ -61,13 +61,18 @@ def convert_value_schema_to_json_schema(
 
     schema: OpenAIFunctionParameterProperty = {"type": type_mapping[value_schema.val_type]}
 
-    # Handle enum
-    if value_schema.enum:
-        schema["enum"] = value_schema.enum
-
-    # Handle array items
     if value_schema.val_type == "array" and value_schema.inner_val_type:
-        schema["items"] = {"type": type_mapping[value_schema.inner_val_type]}
+        items_schema = {"type": type_mapping[value_schema.inner_val_type]}
+
+        # For arrays, enum should be applied to the items, not the array itself
+        if value_schema.enum:
+            items_schema["enum"] = value_schema.enum
+
+        schema["items"] = items_schema
+    else:
+        # Handle enum for non-array types
+        if value_schema.enum:
+            schema["enum"] = value_schema.enum
 
     # Handle object properties
     if value_schema.val_type == "json" and value_schema.properties:
