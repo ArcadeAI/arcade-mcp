@@ -8,9 +8,10 @@ import { LibSQLStore } from "@mastra/libsql"
 // Initialize Arcade
 const arcade = new Arcade()
 
-// Get Gmail tools
+// Get Arcade Toolkits
 const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
 const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit: 30 })
+const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 30 })
 
 /**
  * Mastra requires tools to be defined using Zod, a TypeScript-first schema validation library
@@ -43,6 +44,13 @@ const flightTools = toZodToolSet({
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
 
+const hotelTools = toZodToolSet({
+    tools: hotelToolkit.items,
+    client: arcade,
+    userId: "rayjsmets@gmail.com", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+    executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
+})
+
 // Initialize memory
 const memory = new Memory({
     storage: new LibSQLStore({
@@ -51,8 +59,8 @@ const memory = new Memory({
 })
 
 // Create an agent with Gmail tools
-export const gmailAgent = new Agent({
-    name: "gmailAgent",
+export const inboxTravelSearchAgent = new Agent({
+    name: "inboxTravelSearchAgent",
     instructions: `You are a Gmail assistant that helps users manage their Gmail services.
 
 When helping users:
@@ -65,5 +73,5 @@ When helping users:
 Use the gmailTools to interact with various Gmail services and perform related tasks.`,
     model: openai("gpt-4o-mini"),
     memory,
-    tools: { ...gmailTools, ...flightTools },
+    tools: { ...gmailTools, ...flightTools, ...hotelTools },
 })
