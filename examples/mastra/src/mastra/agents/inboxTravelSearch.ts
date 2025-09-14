@@ -8,7 +8,7 @@ import { gmailTools } from "../tools/gmailTools"
 
 // Initialize Arcade
 const arcade = new Arcade()
-const arcadeUserId = "rayjsmets@gmail.com" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+const arcadeUserId = "<YOUR_USER_ID>" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
 
 // Get Arcade Toolkits
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit
