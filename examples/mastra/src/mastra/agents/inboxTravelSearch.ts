@@ -7,6 +7,7 @@ import { LibSQLStore } from "@mastra/libsql"
 
 // Initialize Arcade
 const arcade = new Arcade()
+const arcadeUserId = "<YOUR_USER_ID>" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
 
 // Get Arcade Toolkits
 const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
@@ -33,21 +34,21 @@ const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 3
 export const gmailTools = toZodToolSet({
     tools: gmailToolkit.items,
     client: arcade,
-    userId: "rayjsmets@gmail.com", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+    userId: arcadeUserId, // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
 
 const flightTools = toZodToolSet({
     tools: flightToolkit.items,
     client: arcade,
-    userId: "rayjsmets@gmail.com", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+    userId: arcadeUserId, // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
 
 const hotelTools = toZodToolSet({
     tools: hotelToolkit.items,
     client: arcade,
-    userId: "rayjsmets@gmail.com", // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+    userId: arcadeUserId,
     executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
 })
 
