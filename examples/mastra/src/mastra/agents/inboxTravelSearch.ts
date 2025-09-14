@@ -4,14 +4,14 @@ import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 import { LibSQLStore } from "@mastra/libsql"
+import { gmailTools } from "../tools/gmailTools"
 
 // Initialize Arcade
 const arcade = new Arcade()
-const arcadeUserId = "<YOUR_USER_ID>" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
+const arcadeUserId = "rayjsmets@gmail.com" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
 
 // Get Arcade Toolkits
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit
-const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
 const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit: 30 })
 const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 30 })
 
@@ -32,13 +32,6 @@ const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 3
  *
  * Learn more: https://docs.arcade.dev/home/use-tools/get-tool-definitions#get-zod-tool-definitions
  */
-export const gmailTools = toZodToolSet({
-    tools: gmailToolkit.items,
-    client: arcade,
-    userId: arcadeUserId, // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
-    executeFactory: executeOrAuthorizeZodTool, // Checks if tool is authorized and executes it, or returns authorization URL if needed
-})
-
 const flightTools = toZodToolSet({
     tools: flightToolkit.items,
     client: arcade,
