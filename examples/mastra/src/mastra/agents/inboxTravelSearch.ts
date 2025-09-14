@@ -62,7 +62,7 @@ const memory = new Memory({
 // Create an agent with Gmail tools
 export const inboxTravelSearchAgent = new Agent({
     name: "inboxTravelSearchAgent",
-    instructions: `You are a Gmail assistant that helps users manage their Gmail services.
+    instructions: `You are an assistant that helps users manage their Gmail inbox and can help with travel related tasks and planning.
 
 When helping users:
 - Always verify their intent before performing actions
@@ -71,7 +71,9 @@ When helping users:
 - Respect user privacy and data security
 - Specify which Google service you're working with
 
-Use the gmailTools to interact with various Gmail services and perform related tasks.`,
+Use the gmailTools to interact with various Gmail services and perform related tasks.
+Use the flightTools to interact with various flight services and perform related tasks.
+Use the hotelTools to interact with various hotel services and perform related tasks.`,
     model: openai("gpt-4o-mini"),
     memory,
     tools: { ...gmailTools, ...flightTools, ...hotelTools },
