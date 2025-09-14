@@ -1,4 +1,3 @@
-import { openai } from "@ai-sdk/openai"
 import { Arcade } from "@arcadeai/arcadejs"
 import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 
