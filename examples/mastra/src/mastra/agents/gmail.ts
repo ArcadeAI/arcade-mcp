@@ -4,8 +4,8 @@ import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 import { LibSQLStore } from "@mastra/libsql"
-
 import { gmailTools } from "../tools/gmailTools"
+
 // Initialize memory
 const memory = new Memory({
     storage: new LibSQLStore({
