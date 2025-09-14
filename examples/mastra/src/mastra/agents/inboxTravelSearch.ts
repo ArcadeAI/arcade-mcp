@@ -70,7 +70,6 @@ When helping users:
 - Keep responses clear and concise
 - Confirm important actions before executing them
 - Respect user privacy and data security
-- Specify which Google service you're working with
 
 Use the gmailTools to interact with various Gmail services and perform related tasks.
 Use the flightTools to interact with various flight services and perform related tasks.
