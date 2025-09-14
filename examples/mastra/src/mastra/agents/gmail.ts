@@ -9,6 +9,7 @@ import { LibSQLStore } from "@mastra/libsql"
 const arcade = new Arcade()
 
 // Get Arcade Gmail Toolkit
+// Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit
 const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
 
 /**
