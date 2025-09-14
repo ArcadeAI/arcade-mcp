@@ -1,6 +1,4 @@
 import { openai } from "@ai-sdk/openai"
-import { Arcade } from "@arcadeai/arcadejs"
-import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 import { Agent } from "@mastra/core/agent"
 import { Memory } from "@mastra/memory"
 import { LibSQLStore } from "@mastra/libsql"
