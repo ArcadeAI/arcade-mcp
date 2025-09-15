@@ -11,7 +11,7 @@ const arcade = new Arcade()
 const arcadeUserId = "<YOUR_USER_ID>" // Your app's internal ID for the user (an email, UUID, etc). It's used internally to identify your user in Arcade
 
 // Get Arcade Toolkits
-// Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit
+// Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
 const flightToolkit = await arcade.tools.list({ toolkit: "GoogleFlights", limit: 30 })
 const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 30 })
 

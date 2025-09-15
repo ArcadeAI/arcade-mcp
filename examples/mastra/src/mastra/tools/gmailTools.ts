@@ -5,7 +5,7 @@ import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 const arcade = new Arcade()
 
 // Get Arcade Gmail Toolkit
-// Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit
+// Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
 const gmailToolkit = await arcade.tools.list({ toolkit: "Gmail", limit: 30 })
 
 /**
