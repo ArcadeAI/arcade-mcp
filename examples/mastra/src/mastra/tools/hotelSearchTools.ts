@@ -4,7 +4,7 @@ import { executeOrAuthorizeZodTool, toZodToolSet } from "@arcadeai/arcadejs/lib"
 // Initialize Arcade
 const arcade = new Arcade()
 
-// Get Arcade Gmail Toolkit
+// Get Arcade HotelSearch Toolkit
 // Toolkit names can be found in the Arcade dashboard via Tools > view > Toolkit or via the CLI `arcade workers list`
 const hotelToolkit = await arcade.tools.list({ toolkit: "GoogleHotels", limit: 30 })
 
