@@ -13,7 +13,7 @@ const memory = new Memory({
     }),
 })
 
-// Create an agent with Gmail tools
+// Create an agent with Gmail, FlightSearch, and HotelSearch tools
 export const inboxTravelSearchAgent = new Agent({
     name: "inboxTravelSearchAgent",
     instructions: `You are an assistant that helps users manage their Gmail inbox and can help with travel related tasks and planning.
