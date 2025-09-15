@@ -14,7 +14,7 @@ const memory = new Memory({
 // Create an agent with Gmail tools
 export const gmailAgent = new Agent({
     name: "gmailAgent",
-    instructions: `You are a Gmail assistant that helps users manage their Gmail services.
+    instructions: `You are a Gmail assistant that helps users manage their inbox.
 
 When helping users:
 - Always verify their intent before performing actions
