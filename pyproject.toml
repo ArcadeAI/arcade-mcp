@@ -29,6 +29,7 @@ dependencies = [
     "tqdm==4.67.1",
     "openai==1.82.1",
     "click==8.1.8",
+    "posthog==6.7.4",
 ]
 
 [project.optional-dependencies]
