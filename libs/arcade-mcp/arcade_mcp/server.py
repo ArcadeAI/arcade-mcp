@@ -29,7 +29,7 @@ from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequiremen
 
 from arcade_mcp.context import Context, get_current_model_context, set_current_model_context
 from arcade_mcp.convert import convert_to_mcp_content
-from arcade_mcp.exceptions import NotFoundError, ToolError
+from arcade_mcp.exceptions import NotFoundError, ToolRuntimeError
 from arcade_mcp.lifespan import LifespanManager
 from arcade_mcp.managers import PromptManager, ResourceManager, ToolManager
 from arcade_mcp.middleware import (
@@ -625,7 +625,7 @@ class MCPServer:
     ) -> Any:
         """Check tool authorization."""
         if not self.arcade:
-            raise ToolError(
+            raise ToolRuntimeError(
                 "Authorization required but Arcade is not configured. "
                 "Run 'arcade login' or set ARCADE_API_KEY."
             )
@@ -654,7 +654,7 @@ class MCPServer:
             )
         except ArcadeError as e:
             logger.exception("Error authorizing tool")
-            raise ToolError(f"Authorization failed: {e}") from e
+            raise ToolRuntimeError(f"Authorization failed: {e}") from e
         else:
             return response
 

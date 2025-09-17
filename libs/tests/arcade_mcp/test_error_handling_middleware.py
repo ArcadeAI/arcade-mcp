@@ -5,11 +5,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 from arcade_mcp.exceptions import (
+    AuthorizationError,
     MCPError,
     NotFoundError,
-    ToolError,
-    AuthorizationError,
     ServerError,
+    ToolRuntimeError,
 )
 from arcade_mcp.middleware.base import MiddlewareContext
 from arcade_mcp.middleware.error_handling import ErrorHandlingMiddleware
@@ -90,11 +90,11 @@ class TestErrorHandlingMiddleware:
         assert "User not authorized" in result.error["message"]
 
     @pytest.mark.asyncio
-    async def test_tool_error(self, error_middleware, context):
+    async def test_tool_runtime_error(self, error_middleware, context):
         """Test handling of ToolError."""
 
         async def handler(ctx):
-            raise ToolError("Tool execution failed: API rate limit")
+            raise ToolRuntimeError("Tool execution failed: API rate limit")
 
         result = await error_middleware(context, handler)
 
@@ -180,7 +180,7 @@ class TestErrorHandlingMiddleware:
         with patch("arcade_mcp.middleware.error_handling.logger") as mock_logger:
 
             async def handler(ctx):
-                raise ToolError("Tool failed")
+                raise ToolRuntimeError("Tool failed")
 
             await error_middleware(context, handler)
 
@@ -195,7 +195,7 @@ class TestErrorHandlingMiddleware:
         test_cases = [
             (NotFoundError("Not found"), -32601),
             (AuthorizationError("Unauthorized"), -32603),
-            (ToolError("Tool error"), -32603),
+            (ToolRuntimeError("Tool error"), -32603),
             (RuntimeError("Boom"), -32603),
         ]
 
