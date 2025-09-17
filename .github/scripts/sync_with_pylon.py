@@ -13,11 +13,62 @@ Creates Pylon issues for new GitHub issues/discussions and syncs updates.
 import json
 import os
 import re
+from enum import Enum
 from typing import Any, Optional
 
 import httpx
 from github import Github
 from github.Repository import Repository
+
+
+class PylonIssueType(Enum):
+    """Pylon issue types."""
+
+    CONVERSATION = "Conversation"
+    BUG = "Bug"
+    QUESTION = "Question"
+    FEATURE_REQUEST = "Feature Request"
+    INCIDENT = "Incident"
+    TASK = "Task"
+    COMPLAINT = "Complaint"
+    FEEDBACK = "Feedback"
+
+
+class PylonIssueState(Enum):
+    """Pylon issue states."""
+
+    NEW = "new"
+    OPEN = "open"
+    CLOSED = "closed"
+    PENDING = "pending"
+    RESOLVED = "resolved"
+
+
+class GitHubAction(Enum):
+    """GitHub event actions."""
+
+    # Issue actions
+    OPENED = "opened"
+    EDITED = "edited"
+    REOPENED = "reopened"
+    CLOSED = "closed"
+
+    # Discussion actions
+    CREATED = "created"
+    ANSWERED = "answered"
+    LOCKED = "locked"
+    UNLOCKED = "unlocked"
+
+
+class ExternalSource(Enum):
+    """External source types for linking issues."""
+
+    GITHUB = "github"
+    SLACK = "slack"
+    EMAIL = "email"
+    WEB = "web"
+    API = "api"
+
 
 # Configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -56,7 +107,11 @@ def extract_pylon_issue_id_from_comments(comments) -> Optional[str]:
 
 
 def create_pylon_issue(
-    title: str, body: str, external_id: str, external_url: str
+    title: str,
+    body: str,
+    external_id: str,
+    external_url: str,
+    issue_type: PylonIssueType = PylonIssueType.CONVERSATION,
 ) -> dict[str, Any]:
     """Create a new Pylon issue."""
     url = f"{PYLON_API_BASE}/issues"
@@ -67,7 +122,15 @@ def create_pylon_issue(
     data = {
         "title": title,
         "body_html": body_html,
-        "external_issues": [{"external_id": external_id, "source": "github", "link": external_url}],
+        "external_issues": [
+            {
+                "external_id": external_id,
+                "source": ExternalSource.GITHUB.value,
+                "link": external_url,
+            }
+        ],
+        "type": issue_type.value,  # Configurable issue type
+        "state": PylonIssueState.NEW.value,  # Initial state
     }
 
     with httpx.Client() as client:
@@ -95,7 +158,7 @@ def close_pylon_issue(issue_id: str) -> dict[str, Any]:
     """Close a Pylon issue."""
     url = f"{PYLON_API_BASE}/issues/{issue_id}"
 
-    data = {"state": "closed"}
+    data = {"state": PylonIssueState.CLOSED.value}
 
     with httpx.Client() as client:
         response = client.patch(url, headers=PYLON_HEADERS, json=data)
@@ -178,11 +241,15 @@ def handle_github_issue(event: dict[str, Any], g: Github) -> None:
     comments = repo.get_issue(issue_number).get_comments()
     pylon_issue_id = extract_pylon_issue_id_from_comments(comments)
 
-    if action == "opened" and not pylon_issue_id:
+    if action == GitHubAction.OPENED.value and not pylon_issue_id:
         # Create new Pylon issue
         external_id = f"github-issue-{issue_number}"
         pylon_issue = create_pylon_issue(
-            title=issue_title, body=issue_body, external_id=external_id, external_url=issue_url
+            title=issue_title,
+            body=issue_body,
+            external_id=external_id,
+            external_url=issue_url,
+            issue_type=PylonIssueType.BUG,
         )
 
         pylon_issue_id = pylon_issue["data"]["id"]
@@ -193,7 +260,7 @@ def handle_github_issue(event: dict[str, Any], g: Github) -> None:
 
         print(f"Created Pylon issue {pylon_issue_id} for GitHub issue #{issue_number}")
 
-    elif action in ["edited", "reopened"] and pylon_issue_id:
+    elif action in [GitHubAction.EDITED.value, GitHubAction.REOPENED.value] and pylon_issue_id:
         # Update Pylon issue
         update_pylon_issue(pylon_issue_id, issue_title, issue_body)
 
@@ -206,7 +273,7 @@ def handle_github_issue(event: dict[str, Any], g: Github) -> None:
         post_pylon_message(pylon_issue_id, message)
         print(f"Updated Pylon issue {pylon_issue_id} for GitHub issue #{issue_number}")
 
-    elif action == "closed" and pylon_issue_id:
+    elif action == GitHubAction.CLOSED.value and pylon_issue_id:
         # Close Pylon issue
         close_pylon_issue(pylon_issue_id)
 
@@ -235,7 +302,7 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
     comments = repo.get_discussion(discussion_number).get_comments()
     pylon_issue_id = extract_pylon_issue_id_from_comments(comments)
 
-    if action == "created" and not pylon_issue_id:
+    if action == GitHubAction.CREATED.value and not pylon_issue_id:
         # Create new Pylon issue
         external_id = f"github-discussion-{discussion_number}"
         pylon_issue = create_pylon_issue(
@@ -243,6 +310,7 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
             body=discussion_body,
             external_id=external_id,
             external_url=discussion_url,
+            issue_type=PylonIssueType.QUESTION,
         )
 
         pylon_issue_id = pylon_issue["data"]["id"]
@@ -255,7 +323,7 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
 
         print(f"Created Pylon issue {pylon_issue_id} for GitHub discussion #{discussion_number}")
 
-    elif action in ["edited", "answered"] and pylon_issue_id:
+    elif action in [GitHubAction.EDITED.value, GitHubAction.ANSWERED.value] and pylon_issue_id:
         # Update Pylon issue
         update_pylon_issue(pylon_issue_id, discussion_title, discussion_body)
 
@@ -268,7 +336,7 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
         post_pylon_message(pylon_issue_id, message)
         print(f"Updated Pylon issue {pylon_issue_id} for GitHub discussion #{discussion_number}")
 
-    elif action == "locked" and pylon_issue_id:
+    elif action == GitHubAction.LOCKED.value and pylon_issue_id:
         # Close Pylon issue when discussion is locked
         close_pylon_issue(pylon_issue_id)
 
@@ -283,7 +351,7 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
             f"Closed Pylon issue {pylon_issue_id} for locked GitHub discussion #{discussion_number}"
         )
 
-    elif action == "unlocked" and pylon_issue_id:
+    elif action == GitHubAction.UNLOCKED.value and pylon_issue_id:
         # Reopen Pylon issue when discussion is unlocked
         # Note: Pylon doesn't have a direct "reopen" API, so we'll just post a message
         message = f"""GitHub discussion #{discussion_number} has been unlocked.
