@@ -254,11 +254,11 @@ from arcade_core.catalog import ToolCatalog
 async def test_tools():
     # Import your tools
     from tools import my_tools
-    
+
     # Create catalog
     catalog = ToolCatalog()
     catalog.add_tool(my_tools.greet, "test")
-    
+
     # Test tool
     result = await catalog.call_tool(
         "test.greet",

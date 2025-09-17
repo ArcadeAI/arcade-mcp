@@ -198,7 +198,7 @@ def test_tool_via_inspector():
         ["python", "-m", "arcade_mcp"],
         stdout=subprocess.PIPE
     )
-    
+
     # Use inspector's API to test tools
     # ...
 ```

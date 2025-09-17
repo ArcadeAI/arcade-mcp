@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from typing import Annotated
+
+from arcade_tdk import tool
+from typing_extensions import TypedDict
+
 """
 01_tools.py - Tool creation, discovery, and parameter types
 
@@ -47,12 +52,8 @@ Discovery tips:
 - Tools are namespaced by their toolkit name
 """
 
-from typing import Annotated
-from typing_extensions import TypedDict
-from arcade_tdk import tool
-
-
 # === SIMPLE TOOLS ===
+
 
 @tool
 def hello(name: Annotated[str, "Name to greet"]) -> Annotated[str, "Greeting message"]:
@@ -62,8 +63,7 @@ def hello(name: Annotated[str, "Name to greet"]) -> Annotated[str, "Greeting mes
 
 @tool
 def add(
-    a: Annotated[float, "First number"],
-    b: Annotated[float, "Second number"]
+    a: Annotated[float, "First number"], b: Annotated[float, "Second number"]
 ) -> Annotated[float, "Sum of the numbers"]:
     """Add two numbers together."""
     return a + b
@@ -71,9 +71,10 @@ def add(
 
 # === TOOLS WITH LIST PARAMETERS ===
 
+
 @tool
 def calculate_average(
-    numbers: Annotated[list[float], "List of numbers to average"]
+    numbers: Annotated[list[float], "List of numbers to average"],
 ) -> Annotated[float, "Average of all numbers"]:
     """Calculate the average of a list of numbers."""
     if not numbers:
@@ -82,9 +83,7 @@ def calculate_average(
 
 
 @tool
-def factorial(
-    n: Annotated[int, "Non-negative integer"]
-) -> Annotated[int, "Factorial of n"]:
+def factorial(n: Annotated[int, "Non-negative integer"]) -> Annotated[int, "Factorial of n"]:
     """Calculate the factorial of a number."""
     if n < 0:
         raise ValueError("Factorial not defined for negative numbers")
@@ -99,6 +98,7 @@ def factorial(
 
 # === TOOLS WITH COMPLEX TYPES (TypedDict) ===
 
+
 class PersonInfo(TypedDict):
     name: str
     age: int
@@ -108,15 +108,15 @@ class PersonInfo(TypedDict):
 
 @tool
 def create_user_profile(
-    person: Annotated[PersonInfo, "Person's information"]
+    person: Annotated[PersonInfo, "Person's information"],
 ) -> Annotated[str, "Formatted user profile"]:
     """Create a formatted user profile from person information."""
     status = "Active" if person["is_active"] else "Inactive"
     return f"""
 User Profile:
-- Name: {person['name']}
-- Age: {person['age']}
-- Email: {person['email']}
+- Name: {person["name"]}
+- Age: {person["age"]}
+- Email: {person["email"]}
 - Status: {status}
 """.strip()
 
@@ -131,22 +131,16 @@ class CalculationResult(TypedDict):
 
 @tool
 def analyze_numbers(
-    values: Annotated[list[float], "List of numbers to analyze"]
+    values: Annotated[list[float], "List of numbers to analyze"],
 ) -> Annotated[CalculationResult, "Statistical analysis of the numbers"]:
     """Analyze a list of numbers and return statistics."""
     if not values:
-        return {
-            "sum": 0.0,
-            "average": 0.0,
-            "min": 0.0,
-            "max": 0.0,
-            "count": 0
-        }
+        return {"sum": 0.0, "average": 0.0, "min": 0.0, "max": 0.0, "count": 0}
 
     return {
         "sum": sum(values),
         "average": sum(values) / len(values),
         "min": min(values),
         "max": max(values),
-        "count": len(values)
+        "count": len(values),
     }

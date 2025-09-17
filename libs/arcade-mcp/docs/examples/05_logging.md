@@ -19,10 +19,10 @@ Demonstrates MCP logging capabilities with various levels and patterns for debug
 
 MCP supports standard log levels:
 ```python
-await context.mcp.log("debug", "Detailed debugging information")
-await context.mcp.log("info", "General information")
-await context.mcp.log("warning", "Warning messages")
-await context.mcp.log("error", "Error messages")
+await context.log.debug("Detailed debugging information")
+await context.log.info("General information")
+await context.log.warning("Warning messages")
+await context.log.error("Error messages")
 ```
 
 ### 2. Structured Logging
@@ -30,14 +30,12 @@ await context.mcp.log("error", "Error messages")
 Log with context and metadata:
 ```python
 # Include user context
-await context.mcp.log(
-    "info",
+await context.log.info(
     f"Action performed by user: {context.user_id}"
 )
 
 # Add operation details
-await context.mcp.log(
-    "debug",
+await context.log.debug(
     f"Processing {item_count} items with options: {options}"
 )
 ```
@@ -51,14 +49,12 @@ try:
     result = risky_operation()
 except Exception as e:
     # Log error with type and message
-    await context.mcp.log(
-        "error",
+    await context.log.error(
         f"Operation failed: {type(e).__name__}: {str(e)}"
     )
-    
+
     # Log traceback at debug level
-    await context.mcp.log(
-        "debug",
+    await context.log.debug(
         f"Traceback:\n{traceback.format_exc()}"
     )
 ```
@@ -69,11 +65,10 @@ Track long-running operations:
 ```python
 for i, item in enumerate(items):
     # Log progress
-    await context.mcp.log(
-        "debug",
+    await context.log.debug(
         f"Progress: {i+1}/{len(items)} ({(i+1)/len(items)*100:.0f}%)"
     )
-    
+
     # Process item
     process(item)
 ```
@@ -83,15 +78,14 @@ for i, item in enumerate(items):
 Log batch operations effectively:
 ```python
 # Log batch start
-await context.mcp.log("info", f"Starting batch of {count} items")
+await context.log.info(f"Starting batch of {count} items")
 
 # Log individual items at debug level
 for item in items:
-    await context.mcp.log("debug", f"Processing: {item}")
+    await context.log.debug(f"Processing: {item}")
 
 # Log summary
-await context.mcp.log(
-    "info",
+await context.log.info(
     f"Batch complete: {success_count} successful, {fail_count} failed"
 )
 ```

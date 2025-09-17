@@ -13,6 +13,7 @@ For Claude Desktop (stdio transport):
 """
 
 from typing import Annotated
+
 from arcade_tdk import tool
 
 

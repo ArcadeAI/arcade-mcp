@@ -66,14 +66,14 @@ async def context_aware(context: Context, value: str) -> dict:
     """Tool that uses context features."""
     # Access user info
     user_id = context.user_id
-    
+
     # Use MCP features if available
-    if context.mcp:
-        await context.mcp.log("info", f"Processing for user: {user_id}")
-    
+    if context:
+        await context.log.info(f"Processing for user: {user_id}")
+
     # Access secrets
     secret_keys = list(context.secrets.keys())
-    
+
     return {
         "user": user_id,
         "value": value,

@@ -26,14 +26,14 @@ with warnings.catch_warnings():
 
 # Create the MCP application
 app = MCPApp(
-    name="my_mcp_server",
-    version="0.1.0",
-    instructions="Example MCP server built with MCPApp"
+    name="my_mcp_server", version="0.1.0", instructions="Example MCP server built with MCPApp"
 )
 
 
 @app.tool
-def greet(name: Annotated[str, "Name of the person to greet"]) -> Annotated[str, "Greeting message"]:
+def greet(
+    name: Annotated[str, "Name of the person to greet"],
+) -> Annotated[str, "Greeting message"]:
     """Return a friendly greeting.
 
     Parameters:
@@ -54,13 +54,13 @@ async def whoami(context: Context) -> Annotated[dict, "Basic server and user inf
     """
     user_id = context.user_id or "anonymous"
 
-    if context.mcp:
-        await context.mcp.log("info", f"whoami called by: {user_id}")
+    if context:
+        await context.log.info(f"whoami called by: {user_id}")
 
+    secret_keys = [secret.key for secret in context.secrets] if context.secrets else []
     return {
         "user_id": user_id,
-        "has_mcp": context.mcp is not None,
-        "secret_keys": list(context.secrets.keys()),
+        "secret_keys": secret_keys,
     }
 
 
