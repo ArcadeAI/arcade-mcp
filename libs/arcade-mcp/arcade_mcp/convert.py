@@ -7,7 +7,7 @@ from typing import Any, get_args, get_origin
 from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
 
-from arcade_mcp.types import MCPContent, MCPTool, TextContent
+from arcade_mcp.types import MCPContent, MCPTool, TextContent, ToolAnnotations
 
 logger = logging.getLogger("arcade.mcp")
 
@@ -60,32 +60,41 @@ def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
 
         requirements = tool.definition.requirements
 
-        # Build annotations and top-level fields
-        annotations: dict[str, Any] = {
-            "readOnlyHint": not (
+        # Build annotations using model for stricter typing
+        annotations = ToolAnnotations(
+            readOnlyHint=not (
                 requirements.authorization or requirements.secrets or requirements.metadata
             ),
-            "openWorldHint": requirements.authorization,
-        }
-
-        tool_def: dict[str, Any] = {
-            "name": name,
-            "title": tool.definition.toolkit.name + "_" + tool_name,
-            "description": str(description),
-            "inputSchema": input_schema,
-            "outputSchema": output_schema if output_schema else None,
-            "annotations": annotations,
-            "meta": tool.definition.metadata,
-        }
+            openWorldHint=requirements.authorization,
+        )
 
         # Instantiate MCPTool model to ensure shape correctness
-        return MCPTool(**{k: v for k, v in tool_def.items() if v is not None})
+        return MCPTool(
+            name=name,
+            title=tool.definition.toolkit.name + "_" + tool_name,
+            description=str(description),
+            inputSchema=input_schema,
+            outputSchema=output_schema if output_schema else None,
+            annotations=annotations,
+        )
 
     except Exception:
         logger.exception(
             f"Error creating MCP tool definition for {getattr(tool, 'name', str(tool))}"
         )
-        return None
+        try:
+            # Fallback minimal tool to avoid None in callers
+            fallback_name = getattr(tool.definition, "fully_qualified_name", "unknown").replace(
+                ".", "_"
+            )
+            return MCPTool(
+                name=fallback_name,
+                title=fallback_name,
+                description="",
+                inputSchema={"type": "object", "properties": {}, "additionalProperties": False},
+            )
+        except Exception:
+            return None
 
 
 def convert_to_mcp_content(value: Any) -> list[MCPContent]:

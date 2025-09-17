@@ -1,6 +1,7 @@
 """Tests for Tool Manager implementation."""
 
 import pytest
+import pytest_asyncio
 from arcade_mcp.exceptions import NotFoundError
 from arcade_mcp.managers.tool import ToolManager
 from arcade_mcp.types import MCPTool
@@ -9,7 +10,7 @@ from arcade_mcp.types import MCPTool
 class TestToolManager:
     """Test ToolManager class."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def tool_manager(self, materialized_tool):
         """Create a tool manager instance with one tool added."""
         manager = ToolManager()

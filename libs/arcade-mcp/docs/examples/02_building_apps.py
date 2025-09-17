@@ -13,16 +13,10 @@ To run with stdio transport (for Claude Desktop):
 """
 
 import sys
-import warnings
 from typing import Annotated
 
 from arcade_mcp import MCPApp
-
-# Suppress the deprecation warning since we're using the recommended import
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning, module="arcade_tdk")
-    from arcade_tdk import Context
-
+from arcade_tdk import Context
 
 # Create the MCP application
 app = MCPApp(

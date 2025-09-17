@@ -17,13 +17,9 @@ Set environment variables for secrets:
     export DATABASE_URL="postgresql://localhost/mydb"
 """
 
-import warnings
 from typing import Annotated, Any
 
-# Suppress the deprecation warning since we're using the recommended import
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning, module="arcade_tdk")
-    from arcade_tdk import Context, tool
+from arcade_tdk import Context, tool
 
 
 @tool

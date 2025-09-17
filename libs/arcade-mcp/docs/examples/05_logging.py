@@ -15,15 +15,10 @@ To see debug logs:
 import asyncio
 import time
 import traceback
-import warnings
 from typing import Annotated, Optional
 
 from arcade_mcp import MCPApp
-
-# Suppress the deprecation warning since we're using the recommended import
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning, module="arcade_tdk")
-    from arcade_tdk import Context
+from arcade_tdk import Context
 
 # Create the app with debug logging
 app = MCPApp(name="logging_examples", version="0.1.0", log_level="DEBUG")
@@ -110,6 +105,8 @@ async def error_handling_example(
         # Success case
         await context.log.info("Operation completed successfully")
 
+        return {"status": "success", "message": "No errors occurred"}
+
     except Exception as e:
         # Log the error with details
         await context.log.error(f"Operation failed with {type(e).__name__}: {e!s}")
@@ -185,6 +182,7 @@ async def batch_processing_logs(
     # Log summary
     await context.log.info(
         f"Batch processing complete: {len(results['successful'])} successful, "
+        f"{len(results['failed'])} failed",
         f"{len(results['failed'])} failed",
     )
 

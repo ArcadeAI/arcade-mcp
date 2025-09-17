@@ -92,38 +92,36 @@ def get_openapi_routes() -> list[dict]:
                 "tags": ["MCP Protocol"],
                 "summary": "Send MCP message",
                 "description": "Send a JSON-RPC message to the MCP server. This endpoint handles:\n"
-                              "- Method requests (with id) - returns a JSON response\n"
-                              "- Notifications (without id) - returns 202 Accepted\n\n"
-                              "For SSE mode, set Accept: text/event-stream header.\n"
-                              "For JSON mode, set Accept: application/json header.",
+                "- Method requests (with id) - returns a JSON response\n"
+                "- Notifications (without id) - returns 202 Accepted\n\n"
+                "For SSE mode, set Accept: text/event-stream header.\n"
+                "For JSON mode, set Accept: application/json header.",
                 "operationId": "send_mcp_message",
                 "parameters": [
                     {
                         "name": "accept",
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
+                        "schema": {"type": "string"},
                     },
                     {
-                        "name": "content-type", 
+                        "name": "content-type",
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
+                        "schema": {"type": "string"},
                     },
                     {
                         "name": MCP_SESSION_ID_HEADER,
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
-                    }
+                        "schema": {"type": "string"},
+                    },
                 ],
                 "requestBody": {
                     "content": {
-                        "application/json": {
-                            "schema": {"$ref": "#/components/schemas/MCPRequest"}
-                        }
+                        "application/json": {"schema": {"$ref": "#/components/schemas/MCPRequest"}}
                     },
-                    "required": True
+                    "required": True,
                 },
                 "responses": {
                     "200": {
@@ -132,87 +130,93 @@ def get_openapi_routes() -> list[dict]:
                             "application/json": {
                                 "schema": {"$ref": "#/components/schemas/MCPResponse"}
                             }
-                        }
+                        },
                     },
                     "202": {"description": "Notification accepted (no response expected)"},
                     "400": {"description": "Bad Request - Invalid JSON or missing required fields"},
                     "404": {"description": "Not Found - Invalid or expired session ID"},
-                    "406": {"description": "Not Acceptable - Client must accept required content types"},
-                    "415": {"description": "Unsupported Media Type - Content-Type must be application/json"},
-                    "500": {"description": "Internal Server Error"}
-                }
+                    "406": {
+                        "description": "Not Acceptable - Client must accept required content types"
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type - Content-Type must be application/json"
+                    },
+                    "500": {"description": "Internal Server Error"},
+                },
             },
             "get": {
                 "tags": ["MCP Protocol"],
                 "summary": "Establish SSE stream",
                 "description": "Establish a Server-Sent Events (SSE) stream for receiving server-initiated messages.\n\n"
-                              "Only one SSE stream is allowed per session. The stream will remain open until:\n"
-                              "- The client closes the connection\n"
-                              "- The session is terminated\n"
-                              "- An error occurs\n\n"
-                              "Requires Accept: text/event-stream header.",
+                "Only one SSE stream is allowed per session. The stream will remain open until:\n"
+                "- The client closes the connection\n"
+                "- The session is terminated\n"
+                "- An error occurs\n\n"
+                "Requires Accept: text/event-stream header.",
                 "operationId": "establish_sse_stream",
                 "parameters": [
                     {
                         "name": "accept",
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
+                        "schema": {"type": "string"},
                     },
                     {
                         "name": MCP_SESSION_ID_HEADER,
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
+                        "schema": {"type": "string"},
                     },
                     {
                         "name": "Last-Event-ID",
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
-                    }
+                        "schema": {"type": "string"},
+                    },
                 ],
                 "responses": {
                     "200": {
                         "description": "SSE stream established",
                         "content": {
-                            "text/event-stream": {
-                                "example": "data: {\"jsonrpc\":\"2.0\",...}\\n\\n"
-                            }
-                        }
+                            "text/event-stream": {"example": 'data: {"jsonrpc":"2.0",...}\\n\\n'}
+                        },
                     },
                     "409": {"description": "Conflict - Only one SSE stream allowed per session"},
                     "400": {"description": "Bad Request - Invalid JSON or missing required fields"},
                     "404": {"description": "Not Found - Invalid or expired session ID"},
-                    "406": {"description": "Not Acceptable - Client must accept required content types"},
-                    "500": {"description": "Internal Server Error"}
-                }
+                    "406": {
+                        "description": "Not Acceptable - Client must accept required content types"
+                    },
+                    "500": {"description": "Internal Server Error"},
+                },
             },
             "delete": {
                 "tags": ["MCP Protocol"],
                 "summary": "Terminate session",
                 "description": "Terminate the current MCP session. This will:\n"
-                              "- Close all active streams\n"
-                              "- Clean up session resources\n"
-                              "- Return 200 OK on successful termination\n\n"
-                              "Only available in stateful mode (when session IDs are used).",
+                "- Close all active streams\n"
+                "- Clean up session resources\n"
+                "- Return 200 OK on successful termination\n\n"
+                "Only available in stateful mode (when session IDs are used).",
                 "operationId": "terminate_mcp_session",
                 "parameters": [
                     {
                         "name": MCP_SESSION_ID_HEADER,
                         "in": "header",
                         "required": False,
-                        "schema": {"type": "string"}
+                        "schema": {"type": "string"},
                     }
                 ],
                 "responses": {
                     "200": {"description": "Session terminated successfully"},
-                    "405": {"description": "Method Not Allowed - Session termination not supported in stateless mode"},
+                    "405": {
+                        "description": "Method Not Allowed - Session termination not supported in stateless mode"
+                    },
                     "400": {"description": "Bad Request - Invalid JSON or missing required fields"},
-                    "404": {"description": "Not Found - Invalid or expired session ID"}, 
-                    "500": {"description": "Internal Server Error"}
-                }
-            }
+                    "404": {"description": "Not Found - Invalid or expired session ID"},
+                    "500": {"description": "Internal Server Error"},
+                },
+            },
         }
     ]
 
@@ -279,7 +283,7 @@ def create_mcp_router() -> APIRouter:
         responses={
             200: {
                 "description": "SSE stream established",
-                "content": {"text/event-stream": {"example": "data: {\"jsonrpc\":\"2.0\",...}\\n\\n"}},
+                "content": {"text/event-stream": {"example": 'data: {"jsonrpc":"2.0",...}\\n\\n'}},
             },
             409: {"description": "Conflict - Only one SSE stream allowed per session"},
         },
@@ -311,7 +315,9 @@ def create_mcp_router() -> APIRouter:
         """,
         responses={
             200: {"description": "Session terminated successfully"},
-            405: {"description": "Method Not Allowed - Session termination not supported in stateless mode"},
+            405: {
+                "description": "Method Not Allowed - Session termination not supported in stateless mode"
+            },
         },
     )
     async def terminate_session(
