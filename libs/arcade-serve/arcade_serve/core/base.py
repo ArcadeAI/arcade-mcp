@@ -156,8 +156,8 @@ class BaseWorker(Worker):
             logger.debug(
                 f"{execution_id} | duration: {duration_ms}ms | Tool output: {output.value}"
             )
-            if output.error.traceback_info:
-                logger.debug(f"{execution_id} | Tool traceback: {output.error.traceback_info}")
+            if output.error.stacktrace:
+                logger.debug(f"{execution_id} | Tool traceback: {output.error.stacktrace}")
         else:
             logger.info(
                 f"{execution_id} | Tool {tool_fqname} version {tool_request.tool.version} success"

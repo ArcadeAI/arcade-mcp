@@ -24,6 +24,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from arcade_core.errors import ErrorKind
+
 # allow for custom tool name separator
 TOOL_NAME_SEPARATOR = os.getenv("ARCADE_TOOL_NAME_SEPARATOR", ".")
 
@@ -430,6 +432,8 @@ class ToolCallError(BaseModel):
 
     message: str
     """The user-facing error message."""
+    kind: ErrorKind
+    """The error kind that uniquely identifies the kind of error."""
     developer_message: str | None = None
     """The developer-facing error details."""
     can_retry: bool = False
@@ -438,8 +442,27 @@ class ToolCallError(BaseModel):
     """Additional content to be included in the retry prompt."""
     retry_after_ms: int | None = None
     """The number of milliseconds (if any) to wait before retrying the tool call."""
-    traceback_info: str | None = None
-    """The traceback information for the tool call."""
+    stacktrace: str | None = None
+    """The stacktrace information for the tool call."""
+    status_code: int | None = None
+    """The HTTP status code of the error."""
+    extra: dict[str, Any] | None = None
+    """Additional information about the error."""
+
+    @property
+    def is_toolkit_error(self) -> bool:
+        """Check if this error originated from loading a toolkit."""
+        return self.kind.name.startswith("TOOLKIT_")
+
+    @property
+    def is_tool_error(self) -> bool:
+        """Check if this error originated from a tool."""
+        return self.kind.name.startswith("TOOL_")
+
+    @property
+    def is_upstream_error(self) -> bool:
+        """Check if this error originated from an upstream service."""
+        return self.kind.name.startswith("UPSTREAM_")
 
 
 class ToolCallRequiresAuthorization(BaseModel):
@@ -458,7 +481,7 @@ class ToolCallRequiresAuthorization(BaseModel):
 class ToolCallOutput(BaseModel):
     """The output of a tool invocation."""
 
-    value: str | int | float | bool | dict | list[str] | None = None
+    value: str | int | float | bool | dict | list | None = None
     """The value returned by the tool."""
     logs: list[ToolCallLog] | None = None
     """The logs that occurred during the tool invocation."""

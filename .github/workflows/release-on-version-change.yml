@@ -81,6 +81,8 @@ jobs:
         with:
           python-version: "3.10"
           is-toolkit: ${{ startsWith(matrix.package, 'toolkits/') }}
+          is-contrib: ${{ startsWith(matrix.package, 'contrib/') }}
+          is-lib: ${{ startsWith(matrix.package, 'libs/') }}
           working-directory: ${{ matrix.package }}
 
       - name: Run tests

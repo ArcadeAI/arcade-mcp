@@ -188,7 +188,9 @@ class ToolManager(LangChainToolManager):
         """
         tool_map = _create_tool_map(self.definitions, use_underscores=use_underscores)
         return [
-            wrap_arcade_tool(self._client, tool_name, definition, langgraph=use_interrupts)
+            wrap_arcade_tool(
+                self._client, tool_name, definition, langgraph=use_interrupts
+            )
             for tool_name, definition in tool_map.items()
         ]
 
@@ -228,7 +230,9 @@ class ToolManager(LangChainToolManager):
         Raises:
             ValueError: If no tools or toolkits are provided and raise_on_empty is True.
         """
-        tools_list = self._retrieve_tool_definitions(tools, toolkits, raise_on_empty, limit, offset)
+        tools_list = self._retrieve_tool_definitions(
+            tools, toolkits, raise_on_empty, limit, offset
+        )
         self._tools = _create_tool_map(tools_list)
         return self.to_langchain()
 
@@ -332,7 +336,9 @@ class ToolManager(LangChainToolManager):
         # If no specific tools or toolkits are requested, raise an error.
         if not tools and not toolkits:
             if raise_on_empty:
-                raise ValueError("No tools or toolkits provided to retrieve tool definitions.")
+                raise ValueError(
+                    "No tools or toolkits provided to retrieve tool definitions."
+                )
             return []
 
         # Retrieve individual tools if specified
@@ -378,7 +384,10 @@ class ToolManager(LangChainToolManager):
         self._tools.update(_create_tool_map([tool]))
 
     def add_toolkit(
-        self, toolkit_name: str, limit: Optional[int] = None, offset: Optional[int] = None
+        self,
+        toolkit_name: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> None:
         """
         Add all tools from a specific toolkit to the manager.
@@ -584,7 +593,9 @@ class AsyncToolManager(LangChainToolManager):
         """
         tool_map = _create_tool_map(self.definitions, use_underscores=use_underscores)
         return [
-            wrap_arcade_tool(self._client, tool_name, definition, langgraph=use_interrupts)
+            wrap_arcade_tool(
+                self._client, tool_name, definition, langgraph=use_interrupts
+            )
             for tool_name, definition in tool_map.items()
         ]
 
@@ -686,7 +697,9 @@ class AsyncToolManager(LangChainToolManager):
         # If no specific tools or toolkits are requested, raise an error.
         if not tools and not toolkits:
             if raise_on_empty:
-                raise ValueError("No tools or toolkits provided to retrieve tool definitions.")
+                raise ValueError(
+                    "No tools or toolkits provided to retrieve tool definitions."
+                )
             return []
 
         # First, gather single tools if the user specifically requested them.
@@ -734,7 +747,10 @@ class AsyncToolManager(LangChainToolManager):
         self._tools.update(_create_tool_map([tool]))
 
     async def add_toolkit(
-        self, toolkit_name: str, limit: Optional[int] = None, offset: Optional[int] = None
+        self,
+        toolkit_name: str,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> None:
         """
         Add all tools from a specific toolkit to the manager.
