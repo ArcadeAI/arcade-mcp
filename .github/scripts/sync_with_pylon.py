@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = [
+#     "httpx",
+#     "PyGithub",
+# ]
+# ///
 """
 GitHub Action script to sync GitHub issues and discussions with Pylon.
 Creates Pylon issues for new GitHub issues/discussions and syncs updates.

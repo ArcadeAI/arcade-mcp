@@ -23,9 +23,6 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install Dependencies
-        run: uv pip install httpx PyGithub
-
       - name: Sync with Pylon
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,4 +30,4 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: python .github/scripts/sync_with_pylon.py
+        run: uv run .github/scripts/sync_with_pylon.py
