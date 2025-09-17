@@ -299,8 +299,19 @@ def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
 
 def main():
     """Main function to handle GitHub events and sync with Pylon."""
-    if not GITHUB_TOKEN or not PYLON_API_TOKEN:
-        print("Error: Missing required environment variables (GITHUB_TOKEN, PYLON_API_TOKEN)")
+    # Check for required environment variables
+    required_vars = {
+        "GITHUB_TOKEN": GITHUB_TOKEN,
+        "PYLON_API_TOKEN": PYLON_API_TOKEN,
+        "GITHUB_REPO": GITHUB_REPO,
+        "GITHUB_EVENT_PATH": GITHUB_EVENT_PATH,
+        "GITHUB_EVENT_NAME": GITHUB_EVENT_NAME,
+    }
+
+    missing_vars = [var for var, value in required_vars.items() if not value]
+
+    if missing_vars:
+        print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
         return 1
 
     try:
@@ -310,7 +321,7 @@ def main():
 
         # Determine event type from the event payload
         if "issue" in event:
-            event_type = "issues"
+            event_type = "issue"
         elif "discussion" in event:
             event_type = "discussion"
         else:
@@ -318,7 +329,7 @@ def main():
             return 1
 
         # Handle different event types
-        if event_type == "issues":
+        if event_type == "issue":
             handle_github_issue(event, g)
             print("Successfully synced with Pylon")
             return 0
