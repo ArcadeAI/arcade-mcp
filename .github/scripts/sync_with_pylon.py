@@ -13,62 +13,13 @@ Creates Pylon issues for new GitHub issues/discussions and syncs updates.
 import json
 import os
 import re
-from enum import Enum
 from typing import Any, Optional
 
 import httpx
 from github import Github
 from github.Repository import Repository
 
-
-class PylonIssueType(Enum):
-    """Pylon issue types."""
-
-    CONVERSATION = "Conversation"
-    BUG = "Bug"
-    QUESTION = "Question"
-    FEATURE_REQUEST = "Feature Request"
-    INCIDENT = "Incident"
-    TASK = "Task"
-    COMPLAINT = "Complaint"
-    FEEDBACK = "Feedback"
-
-
-class PylonIssueState(Enum):
-    """Pylon issue states."""
-
-    NEW = "new"
-    OPEN = "open"
-    CLOSED = "closed"
-    PENDING = "pending"
-    RESOLVED = "resolved"
-
-
-class GitHubAction(Enum):
-    """GitHub event actions."""
-
-    # Issue actions
-    OPENED = "opened"
-    EDITED = "edited"
-    REOPENED = "reopened"
-    CLOSED = "closed"
-
-    # Discussion actions
-    CREATED = "created"
-    ANSWERED = "answered"
-    LOCKED = "locked"
-    UNLOCKED = "unlocked"
-
-
-class ExternalSource(Enum):
-    """External source types for linking issues."""
-
-    GITHUB = "github"
-    SLACK = "slack"
-    EMAIL = "email"
-    WEB = "web"
-    API = "api"
-
+from .enums import ExternalSource, GitHubAction, PylonIssueState, PylonIssueType
 
 # Configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
