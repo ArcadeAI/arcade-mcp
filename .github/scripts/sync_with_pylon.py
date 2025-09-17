@@ -7,10 +7,11 @@ Creates Pylon issues for new GitHub issues/discussions and syncs updates.
 import json
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
-import requests
+import httpx
 from github import Github
+from github.Repository import Repository
 
 # Configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -29,9 +30,9 @@ GITHUB_HEADERS = {
 }
 
 
-def load_github_event() -> Dict[str, Any]:
+def load_github_event() -> dict[str, Any]:
     """Load the GitHub event payload."""
-    with open(GITHUB_EVENT_PATH, "r") as f:
+    with open(GITHUB_EVENT_PATH) as f:
         return json.load(f)
 
 
@@ -39,6 +40,8 @@ def extract_pylon_issue_id_from_comments(comments) -> Optional[str]:
     """Extract Pylon issue ID from GitHub comments."""
     pylon_id_pattern = r"Pylon Issue ID:\s*([a-zA-Z0-9\-]+)"
 
+    # PyGithub automatically handles pagination when iterating
+    # This will iterate through all pages of comments
     for comment in comments:
         match = re.search(pylon_id_pattern, comment.body)
         if match:
@@ -48,7 +51,7 @@ def extract_pylon_issue_id_from_comments(comments) -> Optional[str]:
 
 def create_pylon_issue(
     title: str, body: str, external_id: str, external_url: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a new Pylon issue."""
     url = f"{PYLON_API_BASE}/issues"
 
@@ -61,12 +64,13 @@ def create_pylon_issue(
         "external_issues": [{"external_id": external_id, "source": "github", "link": external_url}],
     }
 
-    response = requests.post(url, headers=PYLON_HEADERS, json=data)
-    response.raise_for_status()
-    return response.json()
+    with httpx.Client() as client:
+        response = client.post(url, headers=PYLON_HEADERS, json=data)
+        response.raise_for_status()
+        return response.json()
 
 
-def update_pylon_issue(issue_id: str, title: str, body: str) -> Dict[str, Any]:
+def update_pylon_issue(issue_id: str, title: str, body: str) -> dict[str, Any]:
     """Update an existing Pylon issue."""
     url = f"{PYLON_API_BASE}/issues/{issue_id}"
 
@@ -75,31 +79,34 @@ def update_pylon_issue(issue_id: str, title: str, body: str) -> Dict[str, Any]:
 
     data = {"title": title, "body_html": body_html}
 
-    response = requests.patch(url, headers=PYLON_HEADERS, json=data)
-    response.raise_for_status()
-    return response.json()
+    with httpx.Client() as client:
+        response = client.patch(url, headers=PYLON_HEADERS, json=data)
+        response.raise_for_status()
+        return response.json()
 
 
-def close_pylon_issue(issue_id: str) -> Dict[str, Any]:
+def close_pylon_issue(issue_id: str) -> dict[str, Any]:
     """Close a Pylon issue."""
     url = f"{PYLON_API_BASE}/issues/{issue_id}"
 
     data = {"state": "closed"}
 
-    response = requests.patch(url, headers=PYLON_HEADERS, json=data)
-    response.raise_for_status()
-    return response.json()
+    with httpx.Client() as client:
+        response = client.patch(url, headers=PYLON_HEADERS, json=data)
+        response.raise_for_status()
+        return response.json()
 
 
-def post_pylon_message(issue_id: str, content: str) -> Dict[str, Any]:
+def post_pylon_message(issue_id: str, content: str) -> dict[str, Any]:
     """Post a message to a Pylon issue."""
     url = f"{PYLON_API_BASE}/issues/{issue_id}/messages"
 
     data = {"content": content}
 
-    response = requests.post(url, headers=PYLON_HEADERS, json=data)
-    response.raise_for_status()
-    return response.json()
+    with httpx.Client() as client:
+        response = client.post(url, headers=PYLON_HEADERS, json=data)
+        response.raise_for_status()
+        return response.json()
 
 
 def convert_markdown_to_html(markdown: str) -> str:
@@ -133,7 +140,7 @@ def convert_markdown_to_html(markdown: str) -> str:
 
 
 def create_github_comment(
-    repo, item_number: int, pylon_issue_id: str, pylon_issue_url: str, item_type: str
+    repo: Repository, item_number: int, pylon_issue_id: str, pylon_issue_url: str, item_type: str
 ) -> None:
     """Create a comment on GitHub issue/discussion with Pylon issue details."""
     comment_body = f"""## 🔗 Pylon Issue Created
@@ -150,7 +157,7 @@ This {item_type} has been synced with Pylon for tracking and management.
         repo.get_discussion(item_number).create_comment(comment_body)
 
 
-def handle_github_issue(event: Dict[str, Any], g: Github) -> None:
+def handle_github_issue(event: dict[str, Any], g: Github) -> None:
     """Handle GitHub issue events."""
     issue = event["issue"]
     action = event["action"]
@@ -207,7 +214,7 @@ def handle_github_issue(event: Dict[str, Any], g: Github) -> None:
         print(f"Closed Pylon issue {pylon_issue_id} for GitHub issue #{issue_number}")
 
 
-def handle_github_discussion(event: Dict[str, Any], g: Github) -> None:
+def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
     """Handle GitHub discussion events."""
     discussion = event["discussion"]
     action = event["action"]
@@ -295,20 +302,30 @@ def main():
         event = load_github_event()
         g = Github(GITHUB_TOKEN)
 
-        # Handle different event types
-        if GITHUB_EVENT_NAME == "issues":
-            handle_github_issue(event, g)
-        elif GITHUB_EVENT_NAME == "discussion":
-            handle_github_discussion(event, g)
+        # Determine event type from the event payload
+        if "issue" in event:
+            event_type = "issues"
+        elif "discussion" in event:
+            event_type = "discussion"
         else:
-            print(f"Unsupported event type: {GITHUB_EVENT_NAME}")
+            print(f"Unsupported event type. Event keys: {list(event.keys())}")
             return 1
 
-        print("Successfully synced with Pylon")
-        return 0
+        # Handle different event types
+        if event_type == "issues":
+            handle_github_issue(event, g)
+            print("Successfully synced with Pylon")
+            return 0
+        elif event_type == "discussion":
+            handle_github_discussion(event, g)
+            print("Successfully synced with Pylon")
+            return 0
+        else:
+            print(f"Unsupported event type: {event_type}")
+            return 1
 
     except Exception as e:
-        print(f"Error syncing with Pylon: {str(e)}")
+        print(f"Error syncing with Pylon: {e!s}")
         return 1
 
 
