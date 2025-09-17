@@ -377,11 +377,13 @@ class ToolAnnotations(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
-class Tool(BaseMetadata):
+class MCPTool(BaseModel):
+    name: str
     description: str | None = None
     inputSchema: dict[str, Any]
     outputSchema: dict[str, Any] | None = None
     annotations: ToolAnnotations | None = None
+    title: str | None = None
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
@@ -390,7 +392,7 @@ class ListToolsRequest(PaginatedRequest):
 
 
 class ListToolsResult(PaginatedResult):
-    tools: list[Tool]
+    tools: list[MCPTool]
 
 
 class ToolListChangedNotification(JSONRPCMessage, Notification):
@@ -446,12 +448,14 @@ class EmbeddedResource(BaseModel):
     meta: dict[str, Any] | None = Field(alias="_meta", default=None)
 
 
-ContentBlock = TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource
+MCPContent = TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource
 
 
 class CallToolResult(Result):
-    content: list[dict[str, Any]]
-    structuredContent: dict[str, Any] | None = None
+    # For backward compatibility we keep `content`, but align it to list shape
+    content: list[dict[str, Any]] | None = None
+    # Preferred structured content form for MCP
+    structuredContent: list[MCPContent] | None = None
     isError: bool | None = None
 
 

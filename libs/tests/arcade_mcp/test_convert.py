@@ -54,8 +54,8 @@ class TestConvertToMCPContent:
 
         assert isinstance(result, list)
         assert len(result) == 1
-        assert result[0]["type"] == "text"
-        text = result[0]["text"]
+        assert result[0].type == "text"
+        text = result[0].text
 
         if decode_b64:
             decoded = base64.b64decode(text)
@@ -82,9 +82,9 @@ class TestConvertToMCPContent:
         """Parameterize JSON-serializable structures and assert round-trip equality."""
         result = convert_to_mcp_content(data)
         assert len(result) == 1
-        assert result[0]["type"] == "text"
+        assert result[0].type == "text"
 
-        parsed = json.loads(result[0]["text"])
+        parsed = json.loads(result[0].text)
         assert parsed == data
 
     def test_convert_circular_reference(self):
@@ -112,7 +112,7 @@ class TestConvertToMCPContent:
         result = convert_to_mcp_content(obj)
 
         # Should use string representation
-        assert "CustomObject" in result[0]["text"]
+        assert "CustomObject" in result[0].text
 
 
 class TestCreateMCPTool:
@@ -179,13 +179,14 @@ class TestCreateMCPTool:
         """Test creating basic MCP tool."""
         mcp_tool = create_mcp_tool(materialized_tool)
 
-        assert mcp_tool["name"] == "MathToolkit_calculate"
-        assert "inputSchema" in mcp_tool
+        assert mcp_tool.name == "MathToolkit_calculate"
+        # ensure input schema present
+        assert isinstance(mcp_tool.inputSchema, dict)
 
     def test_tool_input_schema(self, materialized_tool):
         """Test tool input schema generation."""
         mcp_tool = create_mcp_tool(materialized_tool)
-        schema = mcp_tool["inputSchema"]
+        schema = mcp_tool.inputSchema
 
         assert schema["type"] == "object"
         assert "properties" in schema
@@ -246,7 +247,7 @@ class TestCreateMCPTool:
         )
 
         mcp_tool = create_mcp_tool(mat_tool)
-        param_schema = mcp_tool["inputSchema"]["properties"]["param"]
+        param_schema = mcp_tool.inputSchema["properties"]["param"]
         assert param_schema["type"] == json_type
 
     def test_array_parameter(self):
@@ -288,7 +289,7 @@ class TestCreateMCPTool:
         )
 
         mcp_tool = create_mcp_tool(mat_tool)
-        param_schema = mcp_tool["inputSchema"]["properties"]["items"]
+        param_schema = mcp_tool.inputSchema["properties"]["items"]
 
         assert param_schema["type"] == "array"
         assert param_schema["items"]["type"] == "string"
@@ -332,7 +333,7 @@ class TestCreateMCPTool:
         )
 
         mcp_tool = create_mcp_tool(mat_tool)
-        param_schema = mcp_tool["inputSchema"]["properties"]["color"]
+        param_schema = mcp_tool.inputSchema["properties"]["color"]
 
         assert param_schema["type"] == "string"
         assert param_schema["enum"] == ["red", "green", "blue"]
@@ -364,7 +365,7 @@ class TestCreateMCPTool:
         )
 
         mcp_tool = create_mcp_tool(mat_tool)
-        schema = mcp_tool["inputSchema"]
+        schema = mcp_tool.inputSchema
 
         assert schema["type"] == "object"
         assert schema["properties"] == {}

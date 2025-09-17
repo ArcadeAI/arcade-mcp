@@ -1,90 +1,135 @@
 """
-Base Registry Class
+Base Async Managers
 
-Provides common functionality for registry managers (tools, resources, prompts).
+Provides async-safe registries with RW locking, versioning, and subscriptions.
 """
 
-import logging
-from collections.abc import Iterator
-from typing import Any, Generic, TypeVar
+from __future__ import annotations
 
-from arcade_mcp.exceptions import NotFoundError
+import asyncio
+from collections.abc import Callable, Iterable
+from typing import Generic, TypeVar, cast
 
-logger = logging.getLogger("arcade.mcp.managers")
-
-# Type variable for registry items - no protocol needed, subclasses define their own types
-T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
-class Registry(Generic[T]):
-    """
-    Base container class for managing MCP registries (tools, resources, prompts).
-    """
+class AsyncRWLock:
+    """Simple async RW lock allowing concurrent readers and exclusive writers."""
 
-    def __init__(
-        self,
-        component: str,
-    ):
-        """
-        Initialize registry manager.
+    def __init__(self) -> None:
+        self._reader_count = 0
+        self._reader_lock = asyncio.Lock()
+        self._gate = asyncio.Lock()
 
-        Args:
-            component: Type of registry (e.g., "tool", "resource", "prompt")
-        """
+    async def read(self):
+        class _ReadCtx:
+            async def __aenter__(_self):
+                async with self._reader_lock:
+                    self._reader_count += 1
+                    if self._reader_count == 1:
+                        await self._gate.acquire()
+
+            async def __aexit__(_self, exc_type, exc, tb):
+                async with self._reader_lock:
+                    self._reader_count -= 1
+                    if self._reader_count == 0:
+                        self._gate.release()
+
+        return _ReadCtx()
+
+    async def write(self):
+        class _WriteCtx:
+            async def __aenter__(_self):
+                await self._gate.acquire()
+
+            async def __aexit__(_self, exc_type, exc, tb):
+                self._gate.release()
+
+        return _WriteCtx()
+
+
+class AsyncRegistry(Generic[K, V]):
+    """Async-safe registry with deterministic listing and change notifications."""
+
+    def __init__(self, component: str) -> None:
         self.component = component
-        self._registries: dict[str, T] = {}
+        self._items: dict[K, V] = {}
+        self._lock = AsyncRWLock()
+        self._version = 0
+        self._subscribers: list[Callable[[str, K | None, V | None, V | None, int], None]] = []
 
-    def add(self, key: str, registry: T) -> None:
-        """
-        Add a registry to the manager.
-        Overwrites existing registry if it exists.
-        """
-        self._registries[key] = registry
+    def subscribe(self, fn: Callable[[str, K | None, V | None, V | None, int], None]) -> None:
+        self._subscribers.append(fn)
 
-    def update(self, registries: dict[str, T]) -> None:
-        """
-        Update multiple registries in the manager.
-        Overwrites existing registries if they exist.
-        """
-        for key, registry in registries.items():
-            self._registries[key] = registry
+    async def get(self, key: K) -> V:
+        async with await self._lock.read():
+            if key not in self._items:
+                raise KeyError(f"{self.component.title()} '{key}' not found")
+            return self._items[key]
 
-    def remove(self, key: str) -> T:
-        """
-        Remove a registry from the manager.
-        """
-        if key not in self._registries:
-            raise NotFoundError(f"{self.component.title()} '{key}' not found")
-        return self._registries.pop(key)
+    async def keys(self) -> list[K]:
+        async with await self._lock.read():
+            return sorted(self._items.keys(), key=lambda k: str(k))
 
-    def get(self, key: str) -> T:
-        """
-        Get a registry from the manager.
-        """
-        if key not in self._registries:
-            raise NotFoundError(f"{self.component.title()} '{key}' not found")
-        return self._registries[key]
+    async def list(self) -> list[V]:
+        async with await self._lock.read():
+            return [self._items[k] for k in sorted(self._items.keys(), key=lambda k: str(k))]
 
-    def keys(self) -> list[str]:
-        """List all registry keys."""
-        return list(self._registries.keys())
+    async def upsert(self, key: K, value: V) -> None:
+        async with await self._lock.write():
+            old = self._items.get(key)
+            self._items[key] = value
+            self._version += 1
+            version = self._version
+        for fn in self._subscribers:
+            fn("upsert", key, old, value, version)
 
-    def __iter__(self) -> Iterator[T]:
-        """Iterate over registries."""
-        return iter(self._registries.values())
+    async def remove(self, key: K) -> V:
+        async with await self._lock.write():
+            if key not in self._items:
+                raise KeyError(f"{self.component.title()} '{key}' not found")
+            old = self._items.pop(key)
+            self._version += 1
+            version = self._version
+        for fn in self._subscribers:
+            fn("remove", key, old, None, version)
+        return old
 
-    def clear(self) -> None:
-        """Clear all registries."""
-        self._registries.clear()
+    async def bulk_load(self, items: Iterable[tuple[K, V]]) -> None:
+        async with await self._lock.write():
+            for k, v in items:
+                self._items[k] = v
+            self._version += 1
+            version = self._version
+        for fn in self._subscribers:
+            fn("bulk_load", cast(K, None), None, None, version)
 
-    def __eq__(self, other: Any) -> bool:
-        """Check if two managers are equal."""
-        return isinstance(other, Registry) and self._registries == other._registries
+    @property
+    def version(self) -> int:
+        return self._version
 
-    def __len__(self) -> int:
-        """Get the number of registries."""
-        return len(self._registries)
 
-    def __contains__(self, key: str) -> bool:
-        """Check if a registry exists in the manager."""
-        return key in self._registries
+class ComponentManager(Generic[K, V]):
+    """Base component manager with lifecycle and async registry."""
+
+    def __init__(self, component: str) -> None:
+        self.registry: AsyncRegistry[K, V] = AsyncRegistry(component)
+        self._started = False
+
+    async def start(self) -> None:
+        if self._started:
+            return
+        self._started = True
+
+    async def stop(self) -> None:
+        if not self._started:
+            return
+        self._started = False
+
+    def subscribe(self, fn: Callable[[str, K | None, V | None, V | None, int], None]) -> None:
+        self.registry.subscribe(fn)
+
+    @property
+    def version(self) -> int:
+        return self.registry.version

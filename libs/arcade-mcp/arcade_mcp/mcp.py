@@ -9,11 +9,12 @@ from __future__ import annotations
 import sys
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
-from arcade_core.catalog import ToolCatalog
+from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 
 from arcade_mcp.exceptions import ServerError
+from arcade_mcp.types import Prompt, PromptMessage, Resource
 from arcade_mcp.worker import run_arcade_mcp
 
 P = ParamSpec("P")
@@ -38,6 +39,12 @@ class MCPApp:
         @app.tool
         def greet(name: str) -> str:
             return f"Hello, {name}!"
+
+        # Runtime CRUD once you have a server bound to the app:
+        # app.server = mcp_server
+        # await app.tools.add(materialized_tool)
+        # await app.prompts.add(prompt, handler)
+        # await app.resources.add(resource)
 
         app.run(host="127.0.0.1", port=7777)
         ```
@@ -82,23 +89,37 @@ class MCPApp:
         self.port = port
         self.reload = reload
 
-        # Tool collection
+        # Tool collection (build-time)
         self._catalog = ToolCatalog()
         self._toolkit_name = name
 
-        # Configure logging
+        # Public handle to the MCPServer (set by caller for runtime ops)
+        self.server: Any | None = None
+
         self._setup_logging()
 
-    def _setup_logging(self) -> None:
-        """Configure loguru logging."""
-        logger.remove()
+    # Properties (exposed below initializer)
+    @property
+    def tools(self) -> _ToolsAPI:
+        """Runtime and build-time tools API: add/update/remove/list."""
+        return _ToolsAPI(self)
 
-        # Use appropriate format based on level
+    @property
+    def prompts(self) -> _PromptsAPI:
+        """Runtime prompts API: add/remove/list."""
+        return _PromptsAPI(self)
+
+    @property
+    def resources(self) -> _ResourcesAPI:
+        """Runtime resources API: add/remove/list."""
+        return _ResourcesAPI(self)
+
+    def _setup_logging(self) -> None:
+        logger.remove()
         if self.log_level == "DEBUG":
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <cyan>{name}:{line}</cyan> | <level>{message}</level>"
         else:
             format_str = "<level>{level: <8}</level> | <green>{time:HH:mm:ss}</green> | <level>{message}</level>"
-
         logger.add(
             sys.stdout,
             format=format_str,
@@ -108,80 +129,15 @@ class MCPApp:
         )
 
     def add_tool(self, func: Callable[P, T]) -> Callable[P, T]:
-        """
-        Add a tool to the server.
-
-        Directly add a tool to the server explicitly without
-        a decorator. This will still require the tool to be annotated
-        with a type and a description and use the docstring as the
-        tool prompt.
-
-        Example:
-            ```python
-            from arcade_mcp import MCPApp
-
-            app = MCPApp(name="my_server", version="1.0.0")
-
-            def greet(name: Annotated[str, "The name to greet"]) -> Annotated[str, "The greeting"]:
-                return f"Hello, {name}!"
-
-            app.add_tool(greet)
-
-            app.run(host="127.0.0.1", port=7777)
-            ```
-        """
-        # Wrap with tool decorator if not already wrapped
+        """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
             func = tool_decorator(func)
-
-        # Add to catalog with toolkit name
         self._catalog.add_tool(func, self._toolkit_name)
         logger.debug(f"Added tool: {func.__name__}")
-
         return func
 
     def tool(self, func: Callable[P, T]) -> Callable[P, T]:
-        """Add a tool to the server from a function.
-
-        Tools must be decorated with @tool to be added to the server.
-        They also need to have all parameters annotated with a type
-        and a description.
-
-        Example:
-            ```python
-            from arcade_mcp import MCPApp
-
-            app = MCPApp(name="my_server", version="1.0.0")
-
-            @app.tool
-            def greet(name: Annotated[str, "The name to greet"]) -> Annotated[str, "The greeting"]:
-                return f"Hello, {name}!"
-
-            app.run(host="127.0.0.1", port=7777)
-            ```
-
-        To allow for both docstrings and function signatures, you can use the
-        'desc' parameter to add a description to the tool which will override
-        the docstring.
-
-        ```python
-        from arcade_mcp import MCPApp
-
-        app = MCPApp(name="my_server", version="1.0.0")
-
-        @app.tool(desc="Greet the user.")
-        def greet(name: Annotated[str, "The name to greet"]) -> Annotated[str, "The greeting"]:
-            '''Greet the user.
-
-            Args:
-                name: The name to greet
-
-            Returns:
-                The greeting
-            '''
-            return f"Hello, {name}!"
-        ```
-        """
+        """Decorator alias for add_tool."""
         return self.add_tool(func)
 
     def run(
@@ -192,24 +148,12 @@ class MCPApp:
         transport: TransportType = "http",
         **kwargs: Any,
     ) -> None:
-        """
-        Run an HTTP Streamable MCP Server
-
-        Args:
-            host: Host for transport
-            port: Port for transport
-            reload: Enable auto-reload for development
-            transport: Transport type ("http" or "stdio")
-            **kwargs: Additional transport-specific options
-        """
-        # Validate tools were added
         if len(self._catalog) == 0:
             logger.error("No tools added to the server. Use @app.tool decorator or app.add_tool().")
             sys.exit(1)
 
         logger.info(f"Starting {self.name} v{self.version} with {len(self._catalog)} tools")
 
-        # Run the appropriate transport
         if transport in ["http", "streamable-http", "streamable"]:
             run_arcade_mcp(
                 catalog=self._catalog,
@@ -234,3 +178,83 @@ class MCPApp:
             )
         else:
             raise ServerError(f"Invalid transport: {transport}")
+
+
+class _ToolsAPI:
+    """Unified tools API for MCPApp (build-time and runtime)."""
+
+    def __init__(self, app: MCPApp) -> None:
+        self._app = app
+
+    async def add(self, tool: MaterializedTool) -> None:
+        """Add or update a tool at runtime if server is bound; otherwise queue via app.add_tool decorator."""
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+        await self._app.server.tools.add_tool(tool)
+
+    async def update(self, tool: MaterializedTool) -> None:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+        await self._app.server.tools.update_tool(tool)
+
+    async def remove(self, name: str) -> MaterializedTool:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+        return await self._app.server.tools.remove_tool(name)
+
+    async def list(self) -> list[Any]:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime tools API.")
+        return await self._app.server.tools.list_tools()
+
+
+class _PromptsAPI:
+    """Unified prompts API for MCPApp (runtime)."""
+
+    def __init__(self, app: MCPApp) -> None:
+        self._app = app
+
+    async def add(
+        self, prompt: Prompt, handler: Callable[[dict[str, str]], list[PromptMessage]] | None = None
+    ) -> None:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+        await self._app.server.prompts.add_prompt(prompt, handler)
+
+    async def remove(self, name: str) -> Prompt:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+        return await self._app.server.prompts.remove_prompt(name)
+
+    async def list(self) -> list[Prompt]:
+        if self._app.server is None:
+            raise ServerError("No server bound to app. Set app.server to use runtime prompts API.")
+        return await self._app.server.prompts.list_prompts()
+
+
+class _ResourcesAPI:
+    """Unified resources API for MCPApp (runtime)."""
+
+    def __init__(self, app: MCPApp) -> None:
+        self._app = app
+
+    async def add(self, resource: Resource, handler: Callable[[str], Any] | None = None) -> None:
+        if self._app.server is None:
+            raise ServerError(
+                "No server bound to app. Set app.server to use runtime resources API."
+            )
+        await self._app.server.resources.add_resource(resource, handler)
+
+    async def remove(self, uri: str) -> Resource:
+        if self._app.server is None:
+            raise ServerError(
+                "No server bound to app. Set app.server to use runtime resources API."
+            )
+        return await self._app.server.resources.remove_resource(uri)
+
+    async def list(self) -> list[Resource]:
+        if self._app.server is None:
+            raise ServerError(
+                "No server bound to app. Set app.server to use runtime resources API."
+            )
+        return await self._app.server.resources.list_resources()

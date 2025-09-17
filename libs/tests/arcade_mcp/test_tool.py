@@ -3,26 +3,23 @@
 import pytest
 from arcade_mcp.exceptions import NotFoundError
 from arcade_mcp.managers.tool import ToolManager
-from arcade_mcp.types import Tool
+from arcade_mcp.types import MCPTool
 
 
 class TestToolManager:
     """Test ToolManager class."""
 
     @pytest.fixture
-    def tool_manager(self, tool_catalog):
-        """Create a tool manager instance."""
-        return ToolManager(
-            catalog=tool_catalog,
-        )
+    async def tool_manager(self, materialized_tool):
+        """Create a tool manager instance with one tool added."""
+        manager = ToolManager()
+        await manager.add_tool(materialized_tool)
+        return manager
 
-    def test_manager_initialization(self, tool_catalog):
+    def test_manager_initialization(self):
         """Test tool manager initialization."""
-        manager = ToolManager(
-            catalog=tool_catalog,
-        )
-
-        assert manager.catalog == tool_catalog
+        manager = ToolManager()
+        assert isinstance(manager, ToolManager)
 
     @pytest.mark.asyncio
     async def test_list_tools(self, tool_manager):
@@ -30,20 +27,13 @@ class TestToolManager:
         tools = await tool_manager.list_tools()
 
         assert isinstance(tools, list)
-        assert all(isinstance(t, Tool) for t in tools)
+        assert all(isinstance(t, MCPTool) for t in tools)
 
         if tools:
             tool = tools[0]
             assert hasattr(tool, "name")
             assert hasattr(tool, "description")
             assert hasattr(tool, "inputSchema")
-
-    @pytest.mark.asyncio
-    async def test_list_tools_before_init(self, tool_catalog):
-        """Passive manager lists from catalog immediately."""
-        manager = ToolManager(catalog=tool_catalog)
-        tools = await manager.list_tools()
-        assert isinstance(tools, list)
 
     @pytest.mark.asyncio
     async def test_get_tool(self, tool_manager, materialized_tool):
@@ -76,11 +66,11 @@ class TestToolManager:
             await tool_manager.remove_tool("NonExistent_tool")
 
     @pytest.mark.asyncio
-    async def test_tool_conversion(self, tool_manager, materialized_tool):
+    async def test_tool_conversion(self, tool_manager):
         """Test conversion of MaterializedTool to MCP Tool format."""
         tools = await tool_manager.list_tools()
         if not tools:
-            pytest.skip("No tools in catalog fixture to validate conversion")
+            pytest.skip("No tools in manager to validate conversion")
         tool = tools[0]
 
         # Check required fields

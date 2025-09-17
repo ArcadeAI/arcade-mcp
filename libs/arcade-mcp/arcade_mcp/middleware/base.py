@@ -16,12 +16,12 @@ from arcade_mcp.types import (
     ListResourcesRequest,
     ListResourceTemplatesRequest,
     ListToolsRequest,
+    MCPTool,
     Prompt,
     ReadResourceParams,
     ReadResourceResult,
     Resource,
     ResourceTemplate,
-    Tool,
 )
 
 T = TypeVar("T")
@@ -159,8 +159,8 @@ class Middleware:
     async def on_list_tools(
         self,
         context: MiddlewareContext[ListToolsRequest],
-        call_next: CallNext[ListToolsRequest, list[Tool]],
-    ) -> list[Tool]:
+        call_next: CallNext[ListToolsRequest, list[MCPTool]],
+    ) -> list[MCPTool]:
         """Handle tool listing. Override to filter or modify tool list."""
         return await call_next(context)
 

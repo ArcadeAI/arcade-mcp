@@ -2,22 +2,17 @@ import base64
 import json
 import logging
 from enum import Enum
-from typing import Any
+from typing import Any, get_args, get_origin
 
 from arcade_core.catalog import MaterializedTool
 from arcade_core.schema import ToolDefinition
 
-# Type aliases for MCP types
-MCPTool = dict[str, Any]
-MCPTextContent = dict[str, Any]
-MCPImageContent = dict[str, Any]
-MCPEmbeddedResource = dict[str, Any]
-MCPContent = MCPTextContent | MCPImageContent | MCPEmbeddedResource
+from arcade_mcp.types import MCPContent, MCPTool, TextContent
 
 logger = logging.getLogger("arcade.mcp")
 
 
-def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:
+def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
     """
     Create an MCP-compatible tool definition from an Arcade tool.
 
@@ -42,197 +37,55 @@ def create_mcp_tool(tool: MaterializedTool) -> dict[str, Any] | None:
         if deprecation_msg:
             description = f"[DEPRECATED: {deprecation_msg}] {description}"
 
-        # Extract parameters from the ToolDefinition first (authoritative),
-        # falling back to the input_model if needed.
-        parameters: dict[str, Any] = {}
-        required: list[str] = []
-
+        # Build input schema using authoritative ToolDefinition when available
         try:
-            tool_input = getattr(tool.definition, "input", None)
-            context_param_name = (
-                getattr(tool_input, "tool_context_parameter_name", None) if tool_input else None
-            )
-            if tool_input and getattr(tool_input, "parameters", None):
-                for param in tool_input.parameters:
-                    # Skip tool context parameter if specified
-                    if context_param_name and param.name == context_param_name:
-                        continue
-
-                    val_schema = getattr(param, "value_schema", None)
-                    json_type = (
-                        _map_type_to_json_schema_type(val_schema.val_type)
-                        if val_schema
-                        else "string"
-                    )
-
-                    prop: dict[str, Any] = {"type": json_type}
-                    prop["description"] = param.description or f"Parameter: {param.name}"
-
-                    # Enum values
-                    if val_schema and val_schema.enum:
-                        prop["enum"] = list(val_schema.enum)
-
-                    # Array item typing
-                    if val_schema and val_schema.val_type == "array":
-                        inner_type = (
-                            _map_type_to_json_schema_type(val_schema.inner_val_type)
-                            if val_schema.inner_val_type
-                            else "string"
-                        )
-                        prop["items"] = {"type": inner_type}
-
-                    parameters[param.name] = prop
-
-                    if getattr(param, "required", False):
-                        required.append(param.name)
-            elif (
-                hasattr(tool, "input_model")
-                and tool.input_model is not None
-                and hasattr(tool.input_model, "model_fields")
-            ):
-                for field_name, field in tool.input_model.model_fields.items():
-                    # Skip internal tool context parameters
-                    if field_name == context_param_name:
-                        continue
-
-                    # Get field type information
-                    field_type = getattr(field, "annotation", None)
-                    field_type_name = "string"  # default
-
-                    # Safety check for field_type
-                    if field_type is int:
-                        field_type_name = "integer"
-                    elif field_type is float:
-                        field_type_name = "number"
-                    elif field_type is bool:
-                        field_type_name = "boolean"
-                    elif field_type is list or str(field_type).startswith("list["):
-                        field_type_name = "array"
-                    elif field_type is dict or str(field_type).startswith("dict["):
-                        field_type_name = "object"
-
-                    # Get description with fallback
-                    field_description = (
-                        getattr(field, "description", None) or f"Parameter: {field_name}"
-                    )
-
-                    # Create parameter definition
-                    param_def: dict[str, Any] = {
-                        "type": field_type_name,
-                        "description": field_description,
-                    }
-
-                    # Enum support: if the field annotation is an Enum, add allowed values
-                    enum_type = None
-                    if hasattr(field, "annotation"):
-                        ann = field.annotation
-                        # Handle typing.Annotated[Enum, ...]
-                        if getattr(ann, "__origin__", None) is not None and hasattr(
-                            ann, "__args__"
-                        ):
-                            for arg in ann.__args__:  # type: ignore[union-attr]
-                                if isinstance(arg, type) and issubclass(arg, Enum):
-                                    enum_type = arg
-                                    break
-                        elif isinstance(ann, type) and issubclass(ann, Enum):
-                            enum_type = ann
-                    if enum_type is not None:
-                        param_def["enum"] = [e.value for e in enum_type]
-
-                    parameters[field_name] = param_def
-
-                    # In Pydantic v2, check if field is required based on default value
-                    try:
-                        if field.is_required():
-                            required.append(field_name)
-                    except (AttributeError, TypeError):
-                        try:
-                            has_default = getattr(field, "default", None) is not None
-                            has_factory = getattr(field, "default_factory", None) is not None
-                            if not (has_default or has_factory):
-                                required.append(field_name)
-                        except Exception:
-                            logger.debug(
-                                f"Could not determine if field {field_name} is required, assuming optional"
-                            )
+            if getattr(tool.definition, "input", None):
+                input_schema = build_input_schema_from_definition(tool.definition)
+            else:
+                # Fallback to input_model if definition input is missing
+                input_schema = _build_input_schema_from_model(tool)
         except Exception:
             logger.exception("Error while constructing input schema; proceeding with empty schema")
-
-        # Create the input schema with explicit properties and required fields
-        input_schema = {
-            "type": "object",
-            "properties": parameters,
-        }
-
-        # Only include required field if we have required parameters
-        if required:
-            input_schema["required"] = required
+            input_schema = {"type": "object", "properties": {}, "additionalProperties": False}
 
         # Create output schema if available
         output_schema = None
-        if hasattr(tool.definition, "output") and tool.definition.output:
-            output_def = tool.definition.output
-            if output_def.value_schema:
-                # Convert Arcade value schema to JSON schema
-                output_schema = {
-                    "type": "object",
-                    "description": output_def.description or "Tool output",
-                }
-                # Note: Full value_schema conversion would require more complex mapping
-                # For now, we indicate that the tool has structured output
+        try:
+            if hasattr(tool.definition, "output") and tool.definition.output:
+                output_def = tool.definition.output
+                if getattr(output_def, "value_schema", None):
+                    output_schema = _build_value_schema_json(output_def.value_schema)
+        except Exception:
+            logger.exception("Error while constructing output schema; omitting output schema")
 
-        # Add annotations based on tool metadata and requirements
-        annotations = {}
+        requirements = tool.definition.requirements
 
-        # Use the raw tool name (in PascalCase) as the title
-        annotations["title"] = tool_name
-
-        # Add requirement-based hints
-        if hasattr(tool.definition, "requirements") and tool.definition.requirements:
-            reqs = tool.definition.requirements
-
-            # If tool has no auth/secrets/metadata requirements, it's likely read-only
-            has_requirements = bool(reqs.authorization or reqs.secrets or reqs.metadata)
-            annotations["readOnlyHint"] = not has_requirements
-
-            # Tools with auth requirements often interact with external systems
-            if reqs.authorization:
-                annotations["openWorldHint"] = True
-
-        # Check for explicit metadata hints
-        if hasattr(tool.definition, "metadata"):
-            metadata = tool.definition.metadata or {}
-            if "read_only" in metadata:
-                annotations["readOnlyHint"] = metadata["read_only"]
-            if "destructive" in metadata:
-                annotations["destructiveHint"] = metadata["destructive"]
-            if "idempotent" in metadata:
-                annotations["idempotentHint"] = metadata["idempotent"]
-            if "open_world" in metadata:
-                annotations["openWorldHint"] = metadata["open_world"]
-
-        # Create the final tool definition
-        tool_def: MCPTool = {
-            "name": name,
-            "title": tool_name,  # Human-friendly name without toolkit prefix
-            "description": str(description),
-            "inputSchema": input_schema,
+        # Build annotations and top-level fields
+        annotations: dict[str, Any] = {
+            "readOnlyHint": not (
+                requirements.authorization or requirements.secrets or requirements.metadata
+            ),
+            "openWorldHint": requirements.authorization,
         }
 
-        # Add output schema if available
-        if output_schema:
-            tool_def["outputSchema"] = output_schema
+        tool_def: dict[str, Any] = {
+            "name": name,
+            "title": tool.definition.toolkit.name + "_" + tool_name,
+            "description": str(description),
+            "inputSchema": input_schema,
+            "outputSchema": output_schema if output_schema else None,
+            "annotations": annotations,
+            "meta": tool.definition.metadata,
+        }
 
-        # Only add annotations if we have any
-        if annotations:
-            tool_def["annotations"] = annotations
+        # Instantiate MCPTool model to ensure shape correctness
+        return MCPTool(**{k: v for k, v in tool_def.items() if v is not None})
 
     except Exception:
         logger.exception(
             f"Error creating MCP tool definition for {getattr(tool, 'name', str(tool))}"
         )
         return None
-    return tool_def
 
 
 def convert_to_mcp_content(value: Any) -> list[MCPContent]:
@@ -243,19 +96,22 @@ def convert_to_mcp_content(value: Any) -> list[MCPContent]:
         return []
 
     if isinstance(value, (str, bool, int, float)):
-        return [{"type": "text", "text": str(value)}]
+        return [TextContent(type="text", text=str(value))]
 
     if isinstance(value, (dict, list)):
-        return [{"type": "text", "text": json.dumps(value)}]
+        try:
+            return [TextContent(type="text", text=json.dumps(value, ensure_ascii=False))]
+        except Exception as exc:
+            raise ValueError("Failed to serialize value to JSON for MCP content") from exc
 
     if isinstance(value, (bytes, bytearray, memoryview)):
         # Encode bytes as base64 text so it can be transmitted safely
         b = bytes(value)
         encoded = base64.b64encode(b).decode("ascii")
-        return [{"type": "text", "text": encoded}]
+        return [TextContent(type="text", text=encoded)]
 
     # Default fallback
-    return [{"type": "text", "text": str(value)}]
+    return [TextContent(type="text", text=str(value))]
 
 
 def _map_type_to_json_schema_type(val_type: str | None) -> str:
@@ -330,7 +186,146 @@ def build_input_schema_from_definition(definition: ToolDefinition) -> dict[str, 
             if getattr(param, "required", False):
                 required.append(param.name)
 
-    input_schema: dict[str, Any] = {"type": "object", "properties": properties}
+    input_schema: dict[str, Any] = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+    }
     if required:
         input_schema["required"] = required
     return input_schema
+
+
+def _build_input_schema_from_model(tool: MaterializedTool) -> dict[str, Any]:
+    """Build input schema from a tool's input_model as a fallback."""
+    properties: dict[str, Any] = {}
+    required: list[str] = []
+
+    context_param_name = None
+    tool_input = getattr(tool.definition, "input", None)
+    if tool_input is not None:
+        context_param_name = getattr(tool_input, "tool_context_parameter_name", None)
+
+    if (
+        hasattr(tool, "input_model")
+        and tool.input_model is not None
+        and hasattr(tool.input_model, "model_fields")
+    ):
+        for field_name, field in tool.input_model.model_fields.items():
+            if field_name == context_param_name:
+                continue
+
+            field_type = getattr(field, "annotation", None)
+            field_type_name = "string"  # default
+
+            if field_type is int:
+                field_type_name = "integer"
+            elif field_type is float:
+                field_type_name = "number"
+            elif field_type is bool:
+                field_type_name = "boolean"
+            elif field_type is list or (getattr(field_type, "__origin__", None) is list):
+                field_type_name = "array"
+            elif field_type is dict or (getattr(field_type, "__origin__", None) is dict):
+                field_type_name = "object"
+
+            field_description = getattr(field, "description", None) or f"Parameter: {field_name}"
+
+            param_def: dict[str, Any] = {
+                "type": field_type_name,
+                "description": field_description,
+            }
+
+            # Enum support: Enum classes or typing.Annotated[...] with Enum
+            enum_type = None
+            ann = getattr(field, "annotation", None)
+            if ann is not None:
+                origin = get_origin(ann)
+                args = get_args(ann)
+                # typing.Annotated[Enum, ...]
+                if origin is not None and args:
+                    for arg in args:
+                        if isinstance(arg, type) and issubclass(arg, Enum):
+                            enum_type = arg
+                            break
+                elif isinstance(ann, type) and issubclass(ann, Enum):
+                    enum_type = ann
+            if enum_type is not None:
+                param_def["enum"] = [e.value for e in enum_type]
+
+            # Literal[...] support for enum-like constraints
+            if ann is not None and get_origin(ann) is None:
+                pass  # no-op, handled above
+            elif ann is not None and get_origin(ann) is Any:
+                pass
+            else:
+                if get_origin(ann) is None:
+                    ...
+
+            # Attempt to infer inner list item types for list[T]
+            if field_type_name == "array":
+                inner = None
+                if get_origin(field_type) is list and get_args(field_type):
+                    inner = get_args(field_type)[0]
+                if inner is int:
+                    param_def["items"] = {"type": "integer"}
+                elif inner is float:
+                    param_def["items"] = {"type": "number"}
+                elif inner is bool:
+                    param_def["items"] = {"type": "boolean"}
+                elif inner is str:
+                    param_def["items"] = {"type": "string"}
+
+            properties[field_name] = param_def
+
+            # Required detection with multiple strategies
+            is_required_attr = getattr(field, "is_required", None)
+            try:
+                if callable(is_required_attr):
+                    if is_required_attr():
+                        required.append(field_name)
+                elif isinstance(is_required_attr, bool) and is_required_attr:
+                    required.append(field_name)
+                else:
+                    has_default = getattr(field, "default", None) is not None
+                    has_factory = getattr(field, "default_factory", None) is not None
+                    if not (has_default or has_factory):
+                        required.append(field_name)
+            except Exception:
+                logger.debug(
+                    f"Could not determine if field {field_name} is required, assuming optional"
+                )
+
+    input_schema: dict[str, Any] = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": False,
+    }
+    if required:
+        input_schema["required"] = required
+    return input_schema
+
+
+def _build_value_schema_json(value_schema: Any) -> dict[str, Any]:
+    """Map a ValueSchema to a JSON schema fragment for outputSchema."""
+    schema: dict[str, Any] = {
+        "type": _map_type_to_json_schema_type(getattr(value_schema, "val_type", None)),
+    }
+    if getattr(value_schema, "enum", None):
+        schema["enum"] = list(value_schema.enum)
+    if getattr(value_schema, "val_type", None) == "array" and getattr(
+        value_schema, "inner_val_type", None
+    ):
+        schema["items"] = {"type": _map_type_to_json_schema_type(value_schema.inner_val_type)}
+    if getattr(value_schema, "val_type", None) == "json" and getattr(
+        value_schema, "properties", None
+    ):
+        schema["type"] = "object"
+        schema["properties"] = {}
+        for prop_name, prop_schema in value_schema.properties.items():
+            schema["properties"][prop_name] = {
+                "type": _map_type_to_json_schema_type(getattr(prop_schema, "val_type", None))
+            }
+            if getattr(prop_schema, "description", None):
+                schema["properties"][prop_name]["description"] = prop_schema.description
+    return schema

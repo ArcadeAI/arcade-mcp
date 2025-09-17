@@ -39,7 +39,7 @@ from arcade_mcp.middleware import (
     Middleware,
     MiddlewareContext,
 )
-from arcade_mcp.session import InitializationState, ServerSession
+from arcade_mcp.session import InitializationState, NotificationManager, ServerSession
 from arcade_mcp.settings import MCPSettings
 from arcade_mcp.types import (
     LATEST_PROTOCOL_VERSION,
@@ -89,6 +89,22 @@ class MCPServer:
     - Component managers for tools, resources, and prompts
     - Bidirectional communication support to MCP clients
     """
+
+    # Public manager properties near top
+    @property
+    def tools(self) -> ToolManager:
+        """Access the ToolManager for runtime tool operations."""
+        return self._tool_manager
+
+    @property
+    def resources(self) -> ResourceManager:
+        """Access the ResourceManager for runtime resource operations."""
+        return self._resource_manager
+
+    @property
+    def prompts(self) -> PromptManager:
+        """Access the PromptManager for runtime prompt operations."""
+        return self._prompt_manager
 
     def __init__(
         self,
@@ -141,9 +157,32 @@ class MCPServer:
         )
 
         # Component managers (passive)
-        self._tool_manager = ToolManager(catalog=catalog)
+        self._tool_manager = ToolManager()
         self._resource_manager = ResourceManager()
         self._prompt_manager = PromptManager()
+
+        # Centralized notifications
+        self.notification_manager = NotificationManager(self)
+
+        # Subscribe to changes -> broadcast
+        self._tool_manager.subscribe(
+            lambda *_: asyncio.get_event_loop().create_task(
+                self.notification_manager.notify_tool_list_changed()
+            )
+        )
+        self._resource_manager.subscribe(
+            lambda *_: asyncio.get_event_loop().create_task(
+                self.notification_manager.notify_resource_list_changed()
+            )
+        )
+        self._prompt_manager.subscribe(
+            lambda *_: asyncio.get_event_loop().create_task(
+                self.notification_manager.notify_prompt_list_changed()
+            )
+        )
+
+        # Defer loading tools from catalog to server start to ensure readiness
+        self._initial_catalog = catalog
 
         # Middleware chain
         self.middleware: list[Middleware] = []
@@ -213,6 +252,14 @@ class MCPServer:
 
     async def _start(self) -> None:
         """Start server components (called by MCPComponent.start)."""
+        await self._tool_manager.start()
+        # Load initial catalog now that manager is started
+        try:
+            await self._tool_manager.load_from_catalog(self._initial_catalog)
+        except Exception:
+            logger.exception("Failed to load tools from initial catalog")
+        await self._resource_manager.start()
+        await self._prompt_manager.start()
         await self.lifespan_manager.startup()
 
     async def _stop(self) -> None:
@@ -224,7 +271,9 @@ class MCPServer:
             # Sessions should handle their own cleanup
             pass
 
-        # Managers are passive; no per-manager stop needed
+        await self._prompt_manager.stop()
+        await self._resource_manager.stop()
+        await self._tool_manager.stop()
 
         # Stop lifespan
         await self.lifespan_manager.shutdown()
@@ -571,9 +620,15 @@ class MCPServer:
             if tool.definition.requirements and tool.definition.requirements.authorization:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
+                    content = convert_to_mcp_content(auth_result.url)
+                    legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
                     return JSONRPCResponse(
                         id=message.id,
-                        result=CallToolResult(content=[{"type": "text", "text": auth_result.url}]),
+                        result=CallToolResult(
+                            content=legacy,
+                            structuredContent=content,
+                            isError=False,
+                        ),
                     )
 
             # Execute tool
@@ -589,25 +644,36 @@ class MCPServer:
             # Convert result
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
-                return JSONRPCResponse(
-                    id=message.id,
-                    result=CallToolResult(content=content, isError=False),
-                )
-            else:
-                error = result.error or "Error calling tool"
+                legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
-                        content=[{"type": "text", "text": str(error)}],
+                        content=legacy,
+                        structuredContent=content,
+                        isError=False,
+                    ),
+                )
+            else:
+                error = result.error or "Error calling tool"
+                content = convert_to_mcp_content(str(error))
+                legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
+                return JSONRPCResponse(
+                    id=message.id,
+                    result=CallToolResult(
+                        content=legacy,
+                        structuredContent=content,
                         isError=True,
                     ),
                 )
         except NotFoundError:
             # Match test expectation: return a normal response with isError=True
+            content = convert_to_mcp_content(f"Unknown tool: {tool_name}")
+            legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
             return JSONRPCResponse(
                 id=message.id,
                 result=CallToolResult(
-                    content=[{"type": "text", "text": f"Unknown tool: {tool_name}"}],
+                    content=legacy,
+                    structuredContent=content,
                     isError=True,
                 ),
             )

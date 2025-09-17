@@ -124,7 +124,50 @@ def create_arcade_mcp(
                 return
             await session_manager.handle_request(scope, receive, send)
 
-    app.mount("/mcp", _MCPASGIProxy(app))
+    # Mount the actual ASGI proxy to handle all /mcp requests
+    app.mount("/mcp", _MCPASGIProxy(app), name="mcp-proxy")
+
+    # Customize OpenAPI to include MCP documentation
+    def custom_openapi():
+        if app.openapi_schema:
+            return app.openapi_schema
+
+        # Get the default OpenAPI schema
+        from fastapi.openapi.utils import get_openapi
+
+        openapi_schema = get_openapi(
+            title=app.title,
+            version=app.version,
+            description=app.description,
+            routes=app.routes,
+        )
+
+        # Add MCP routes to the schema
+        from arcade_mcp.fastapi.routes import MCPError, MCPRequest, MCPResponse, get_openapi_routes
+
+        # Add MCP schemas
+        if "components" not in openapi_schema:
+            openapi_schema["components"] = {}
+        if "schemas" not in openapi_schema["components"]:
+            openapi_schema["components"]["schemas"] = {}
+
+        # Add schema definitions
+        openapi_schema["components"]["schemas"]["MCPRequest"] = MCPRequest.model_json_schema()
+        openapi_schema["components"]["schemas"]["MCPResponse"] = MCPResponse.model_json_schema()
+        openapi_schema["components"]["schemas"]["MCPError"] = MCPError.model_json_schema()
+
+        # Add MCP paths
+        if "paths" not in openapi_schema:
+            openapi_schema["paths"] = {}
+
+        for route_def in get_openapi_routes():
+            path = route_def["path"]
+            openapi_schema["paths"][path] = {k: v for k, v in route_def.items() if k != "path"}
+
+        app.openapi_schema = openapi_schema
+        return app.openapi_schema
+
+    app.openapi = custom_openapi
 
     return app
 

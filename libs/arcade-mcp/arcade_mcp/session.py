@@ -4,6 +4,8 @@ MCP Server Session
 Manages per-session state and provides session-level operations.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -12,7 +14,7 @@ from enum import Enum
 from typing import Any
 
 from arcade_mcp.context import Context
-from arcade_mcp.exceptions import ProtocolError, SessionError
+from arcade_mcp.exceptions import RequestError, SessionError
 from arcade_mcp.types import (
     CancelledNotification,
     CancelledParams,
@@ -140,7 +142,7 @@ class RequestManager:
         if future and not future.done():
             if "error" in message:
                 logger.debug(f"Response id={request_id} contains error; propagating")
-                future.set_exception(ProtocolError(f"Request failed: {message['error']}"))
+                future.set_exception(RequestError(f"Request failed: {message['error']}"))
             else:
                 logger.debug(f"Correlated response id={request_id} -> completing future")
                 future.set_result(message.get("result"))
@@ -189,6 +191,45 @@ class RequestManager:
         for _request_id, future in pending_items:
             if not future.done():
                 future.set_exception(SessionError("Session closed"))
+
+
+class NotificationManager:
+    """Broadcasts server-initiated listChanged notifications to sessions."""
+
+    def __init__(self, server: Any):
+        self._server = server
+
+    async def _broadcast(
+        self, notification: JSONRPCMessage, session_ids: list[str] | None = None
+    ) -> None:
+        # Do not broadcast before server is started
+        if not getattr(self._server, "_started", False):
+            return
+        async with self._server._sessions_lock:
+            if session_ids is None:
+                sessions = list(self._server._sessions.values())
+            else:
+                sessions = [
+                    self._server._sessions.get(sid)
+                    for sid in session_ids
+                    if sid in self._server._sessions
+                ]
+        for s in sessions:
+            if s is None:
+                continue
+            try:
+                await s.send_notification(notification)
+            except Exception:
+                logger.debug("Failed to notify a session", exc_info=True)
+
+    async def notify_tool_list_changed(self, session_ids: list[str] | None = None) -> None:
+        await self._broadcast(ToolListChangedNotification(), session_ids)
+
+    async def notify_resource_list_changed(self, session_ids: list[str] | None = None) -> None:
+        await self._broadcast(ResourceListChangedNotification(), session_ids)
+
+    async def notify_prompt_list_changed(self, session_ids: list[str] | None = None) -> None:
+        await self._broadcast(PromptListChangedNotification(), session_ids)
 
 
 class ServerSession:
