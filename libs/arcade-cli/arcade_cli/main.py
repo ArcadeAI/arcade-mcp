@@ -266,9 +266,6 @@ def show(
     )
 
 
-# Chat command removed - use local MCP clients instead
-
-
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
@@ -388,6 +385,71 @@ def evals(
         asyncio.run(run_evaluations())
     except Exception as e:
         handle_cli_error("Failed to run evaluations", e, debug)
+
+
+@cli.command(
+    help="Start tool server worker with locally installed tools",
+    rich_help_panel="Launch",
+    hidden=True,
+)
+def serve(
+    host: str = typer.Option(
+        "127.0.0.1",
+        help="Host for the app, from settings by default.",
+        show_default=True,
+    ),
+    port: int = typer.Option(
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
+    ),
+    disable_auth: bool = typer.Option(
+        True,
+        "--no-auth",
+        help="Disable authentication for the worker. Not recommended for production.",
+        show_default=True,
+    ),
+    otel_enable: bool = typer.Option(
+        False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
+    ),
+    mcp: bool = typer.Option(
+        False, "--mcp", help="Run as a local MCP server over stdio", show_default=True
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+    reload: bool = typer.Option(
+        False,
+        "--reload",
+        help="Enable auto-reloading when toolkit or server files change.",
+        show_default=True,
+    ),
+) -> None:
+    """
+    Start a local Arcade Worker server.
+    """
+    require_dependency(
+        package_name="arcade_serve",
+        command_name="serve",
+        install_command=r"pip install 'arcade-serve'",
+    )
+
+    from arcade_cli.serve import serve_default_worker
+
+    try:
+        serve_default_worker(
+            host,
+            port,
+            disable_auth=disable_auth,
+            enable_otel=otel_enable,
+            debug=debug,
+            mcp=mcp,
+            reload=reload,
+        )
+    except KeyboardInterrupt:
+        typer.Exit()
+    except Exception as e:
+        handle_cli_error("Failed to start Arcade Worker", e, debug)
 
 
 @cli.command(
