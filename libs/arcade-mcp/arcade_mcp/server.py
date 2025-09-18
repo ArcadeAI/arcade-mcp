@@ -166,17 +166,17 @@ class MCPServer:
 
         # Subscribe to changes -> broadcast
         self._tool_manager.subscribe(
-            lambda *_: asyncio.get_event_loop().create_task(
+            lambda *_: asyncio.get_event_loop().create_task(  # type: ignore[arg-type]
                 self.notification_manager.notify_tool_list_changed()
             )
         )
         self._resource_manager.subscribe(
-            lambda *_: asyncio.get_event_loop().create_task(
+            lambda *_: asyncio.get_event_loop().create_task(  # type: ignore[arg-type]
                 self.notification_manager.notify_resource_list_changed()
             )
         )
         self._prompt_manager.subscribe(
-            lambda *_: asyncio.get_event_loop().create_task(
+            lambda *_: asyncio.get_event_loop().create_task(  # type: ignore[arg-type]
                 self.notification_manager.notify_prompt_list_changed()
             )
         )

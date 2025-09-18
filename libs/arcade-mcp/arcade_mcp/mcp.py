@@ -14,6 +14,7 @@ from arcade_tdk.tool import tool as tool_decorator
 from loguru import logger
 
 from arcade_mcp.exceptions import ServerError
+from arcade_mcp.server import MCPServer
 from arcade_mcp.types import Prompt, PromptMessage, Resource
 from arcade_mcp.worker import run_arcade_mcp
 
@@ -94,7 +95,7 @@ class MCPApp:
         self._toolkit_name = name
 
         # Public handle to the MCPServer (set by caller for runtime ops)
-        self.server: Any | None = None
+        self.server: MCPServer | None = None
 
         self._setup_logging()
 

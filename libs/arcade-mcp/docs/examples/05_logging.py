@@ -105,8 +105,6 @@ async def error_handling_example(
         # Success case
         await context.log.info("Operation completed successfully")
 
-        return {"status": "success", "message": "No errors occurred"}
-
     except Exception as e:
         # Log the error with details
         await context.log.error(f"Operation failed with {type(e).__name__}: {e!s}")
@@ -182,7 +180,6 @@ async def batch_processing_logs(
     # Log summary
     await context.log.info(
         f"Batch processing complete: {len(results['successful'])} successful, "
-        f"{len(results['failed'])} failed",
         f"{len(results['failed'])} failed",
     )
 

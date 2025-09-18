@@ -128,7 +128,7 @@ def create_arcade_mcp(
     app.mount("/mcp", _MCPASGIProxy(app), name="mcp-proxy")
 
     # Customize OpenAPI to include MCP documentation
-    def custom_openapi():
+    def custom_openapi() -> dict[str, Any]:
         if app.openapi_schema:
             return app.openapi_schema
 
@@ -167,7 +167,7 @@ def create_arcade_mcp(
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 
-    app.openapi = custom_openapi
+    app.openapi = custom_openapi  # type: ignore[method-assign]
 
     return app
 

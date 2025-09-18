@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Iterable
-from typing import Generic, TypeVar, cast
+from types import TracebackType
+from typing import Any, Generic, TypeVar, cast
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -22,15 +23,20 @@ class AsyncRWLock:
         self._reader_lock = asyncio.Lock()
         self._gate = asyncio.Lock()
 
-    async def read(self):
+    async def read(self) -> Any:
         class _ReadCtx:
-            async def __aenter__(_self):
+            async def __aenter__(_self) -> None:
                 async with self._reader_lock:
                     self._reader_count += 1
                     if self._reader_count == 1:
                         await self._gate.acquire()
 
-            async def __aexit__(_self, exc_type, exc, tb):
+            async def __aexit__(
+                _self,
+                exc_type: type[BaseException] | None,
+                exc: BaseException | None,
+                tb: TracebackType | None,
+            ) -> None:
                 async with self._reader_lock:
                     self._reader_count -= 1
                     if self._reader_count == 0:
@@ -38,12 +44,17 @@ class AsyncRWLock:
 
         return _ReadCtx()
 
-    async def write(self):
+    async def write(self) -> Any:
         class _WriteCtx:
-            async def __aenter__(_self):
+            async def __aenter__(_self) -> None:
                 await self._gate.acquire()
 
-            async def __aexit__(_self, exc_type, exc, tb):
+            async def __aexit__(
+                _self,
+                exc_type: type[BaseException] | None,
+                exc: BaseException | None,
+                tb: TracebackType | None,
+            ) -> None:
                 self._gate.release()
 
         return _WriteCtx()

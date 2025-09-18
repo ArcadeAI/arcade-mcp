@@ -258,7 +258,7 @@ def create_mcp_router() -> APIRouter:
         accept: str = Header(None),
         content_type: str = Header(None),
         mcp_session_id: Optional[str] = Header(None, alias=MCP_SESSION_ID_HEADER),
-    ):
+    ) -> None:
         """
         Documentation-only endpoint definition.
         """
@@ -293,7 +293,7 @@ def create_mcp_router() -> APIRouter:
         accept: str = Header(None),
         mcp_session_id: Optional[str] = Header(None, alias=MCP_SESSION_ID_HEADER),
         last_event_id: Optional[str] = Header(None, alias="Last-Event-ID"),
-    ):
+    ) -> None:
         """
         Documentation-only endpoint definition.
         """
@@ -323,7 +323,7 @@ def create_mcp_router() -> APIRouter:
     async def terminate_session(
         request: Request,
         mcp_session_id: Optional[str] = Header(None, alias=MCP_SESSION_ID_HEADER),
-    ):
+    ) -> None:
         """
         Documentation-only endpoint definition.
         """

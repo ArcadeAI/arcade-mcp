@@ -65,7 +65,7 @@ def create_mcp_tool(tool: MaterializedTool) -> MCPTool | None:
             readOnlyHint=not (
                 requirements.authorization or requirements.secrets or requirements.metadata
             ),
-            openWorldHint=requirements.authorization,
+            openWorldHint=requirements.authorization is not None,
         )
 
         # Instantiate MCPTool model to ensure shape correctness
