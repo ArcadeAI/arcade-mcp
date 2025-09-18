@@ -9,9 +9,7 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
-from arcade_cli.deployment import (
-    create_demo_deployment,
-)
+from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
 
 console = Console()
 
@@ -26,8 +24,6 @@ except Exception as e:
 
 ARCADE_TDK_MIN_VERSION = "2.0.0"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.0.0"
-ARCADE_SERVE_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -198,15 +194,14 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "toolkit_author_email": toolkit_author_email,
         "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
-        "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
-        "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
         "is_community_toolkit": is_community_toolkit,
         "is_official_toolkit": is_official_toolkit,
     }
-    template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
+
+    template_directory = get_full_template_directory() / "{{ toolkit_name }}"
 
     env = Environment(
         loader=FileSystemLoader(str(template_directory)),
@@ -230,10 +225,49 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
 
 
 def create_deployment(toolkit_directory: Path, toolkit_name: str) -> None:
-    worker_toml = toolkit_directory / "worker.toml"
-    if not worker_toml.exists():
-        create_demo_deployment(worker_toml, toolkit_name)
+    # No longer create worker.toml for MCP servers
+    # The server.py file handles all configuration
+    pass
+
+
+def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None:
+    """Create a new toolkit from a template with user input."""
+    toolkit_directory = Path(output_directory)
+
+    # Check for illegal characters in the toolkit name
+    if re.match(r"^[a-z0-9_]+$", toolkit_name):
+        if (toolkit_directory / toolkit_name).exists():
+            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
+            exit(1)
     else:
-        pass
-        # Disabled pending bug fix
-        # update_deployment_with_local_packages(worker_toml, toolkit_name)
+        console.print(
+            "[red]Toolkit name contains illegal characters. "
+            "Only lowercase alphanumeric characters and underscores are allowed. "
+            "Please try again.[/red]"
+        )
+        exit(1)
+
+    context = {
+        "toolkit_name": toolkit_name,
+        "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
+        "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
+        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
+        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
+    }
+    template_directory = get_minimal_template_directory() / "{{ toolkit_name }}"
+
+    env = Environment(
+        loader=FileSystemLoader(str(template_directory)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+    ignore_pattern = create_ignore_pattern(False, False)
+
+    try:
+        create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print(
+            f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
+        )
+    except Exception:
+        remove_toolkit(toolkit_directory, toolkit_name)
+        raise

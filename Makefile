@@ -71,7 +71,7 @@ check-toolkits: ## Run code quality tools for each toolkit that has a Makefile
 .PHONY: test
 test: ## Test the code with pytest
 	@echo "🚀 Testing libs: Running pytest"
-	@uv run pytest -W ignore -v libs --cov=libs --cov-config=pyproject.toml --cov-report=xml
+	@uv run pytest -W ignore -v libs/tests --cov=libs --cov-config=pyproject.toml --cov-report=xml
 
 .PHONY: test-libs
 test-libs: ## Test each lib package individually

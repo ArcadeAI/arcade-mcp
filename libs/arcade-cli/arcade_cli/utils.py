@@ -16,11 +16,6 @@ import idna
 import typer
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
-from arcade_core.discovery import (
-    build_catalog_from_toolkits,
-    load_all_installed_toolkits,
-    load_toolkits_for_option,
-)
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
 from arcadepy import (
@@ -70,30 +65,67 @@ class ChatCommand(str, Enum):
     EXIT = "/exit"
 
 
+class Provider(str, Enum):
+    """Supported model providers for evaluations."""
+
+    OPENAI = "openai"
+
+
 def create_cli_catalog(
     toolkit: str | None = None,
     show_toolkits: bool = False,
 ) -> ToolCatalog:
     """
-    Load toolkits from the python environment using centralized discovery.
+    Load toolkits from the python environment.
     """
     if toolkit:
-        # Use load_toolkits_for_option from arcade-core
+        toolkit = toolkit.lower().replace("-", "_")
         try:
-            toolkits = load_toolkits_for_option(toolkit, show_packages=show_toolkits)
-        except ToolkitLoadError as e:
-            console.print(f"❌ {e}", style="bold red")
-            raise typer.Exit(code=1)
+            prefixed_toolkit = "arcade_" + toolkit
+            toolkits = [Toolkit.from_package(prefixed_toolkit)]
+        except ToolkitLoadError:
+            try:  # try without prefix
+                toolkits = [Toolkit.from_package(toolkit)]
+            except ToolkitLoadError as e:
+                console.print(f"❌ {e}", style="bold red")
+                typer.Exit(code=1)
     else:
-        # Use load_all_installed_toolkits from arcade-core
-        toolkits = load_all_installed_toolkits(show_packages=show_toolkits)
+        toolkits = Toolkit.find_all_arcade_toolkits()
 
     if not toolkits:
         console.print("❌ No toolkits found or specified", style="bold red")
-        raise typer.Exit(code=1)
+        typer.Exit(code=1)
 
-    # Use build_catalog_from_toolkits from arcade-core
-    return build_catalog_from_toolkits(toolkits)
+    catalog = ToolCatalog()
+    for loaded_toolkit in toolkits:
+        if show_toolkits:
+            console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
+        catalog.add_toolkit(loaded_toolkit)
+    return catalog
+
+
+def create_cli_catalog_local() -> ToolCatalog:
+    """
+    Load a local toolkit from the current working directory if a pyproject.toml is present.
+    Fallback to environment discovery if not present.
+    """
+    cwd = Path.cwd()
+    catalog = ToolCatalog()
+    try:
+        if (cwd / "pyproject.toml").is_file():
+            tk = Toolkit.from_directory(cwd)
+            catalog.add_toolkit(tk)
+            return catalog
+    except Exception:
+        # If local loading fails, fall back to environment discovery below
+        console.log(
+            "Local toolkit discovery failed; falling back to installed toolkits",
+            style="dim",
+        )
+    # Fallback: discover installed toolkits
+    for tk in Toolkit.find_all_arcade_toolkits():
+        catalog.add_toolkit(tk)
+    return catalog
 
 
 def compute_base_url(
@@ -713,7 +745,7 @@ def discover_toolkits() -> list[Toolkit]:
     Raises:
         RuntimeError: If no toolkits are found, mirroring the behaviour of Toolkit discovery elsewhere.
     """
-    toolkits = load_all_installed_toolkits(show_packages=False)
+    toolkits = Toolkit.find_all_arcade_toolkits()
     if not toolkits:
         raise RuntimeError("No toolkits found in Python environment.")
     return toolkits
@@ -729,8 +761,10 @@ def build_tool_catalog(toolkits: list[Toolkit]) -> ToolCatalog:
     Returns:
         ToolCatalog
     """
-    # Use the centralized function from arcade-core
-    return build_catalog_from_toolkits(toolkits)
+    catalog = ToolCatalog()
+    for tk in toolkits:
+        catalog.add_toolkit(tk)
+    return catalog
 
 
 def _parse_line(line: str) -> tuple[str, str] | None:
@@ -781,6 +815,45 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
             loaded[k] = v
 
     return loaded
+
+
+def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = None) -> str | None:
+    """
+    Resolve the API key for a given provider for evals.
+
+    Args:
+        provider: The model provider
+        provider_api_key: API key provided via CLI argument
+
+    Returns:
+        The resolved API key or None if not found
+    """
+    if provider_api_key:
+        return provider_api_key
+
+    # Map providers to their environment variable names
+    provider_env_vars = {
+        Provider.OPENAI: "OPENAI_API_KEY",
+    }
+
+    env_var_name = provider_env_vars.get(provider)
+    if not env_var_name:
+        return None
+
+    # First check current environment
+    api_key = os.getenv(env_var_name)
+    if api_key:
+        return api_key
+
+    # Then check .env file in current working directory
+    env_file_path = Path.cwd() / ".env"
+    if env_file_path.exists():
+        load_dotenv(env_file_path, override=False)
+        api_key = os.getenv(env_var_name)
+        if api_key:
+            return api_key
+
+    return None
 
 
 def require_dependency(
