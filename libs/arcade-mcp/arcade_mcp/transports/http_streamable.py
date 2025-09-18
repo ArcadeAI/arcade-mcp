@@ -67,9 +67,9 @@ from arcade_mcp.types import (
 logger = logging.getLogger(__name__)
 
 # Header names
-MCP_SESSION_ID_HEADER = "mcp-session-id"
-MCP_PROTOCOL_VERSION_HEADER = "mcp-protocol-version"
-LAST_EVENT_ID_HEADER = "last-event-id"
+MCP_SESSION_ID_HEADER = "Mcp-Session-Id"
+MCP_PROTOCOL_VERSION_HEADER = "MCP-Protocol-Version"
+LAST_EVENT_ID_HEADER = "Last-Event-ID"
 
 # Content types
 CONTENT_TYPE_JSON = "application/json"

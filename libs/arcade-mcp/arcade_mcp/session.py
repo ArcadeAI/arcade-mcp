@@ -257,7 +257,6 @@ class ServerSession:
 
         Args:
             server: Parent server instance
-            user_id: User identifier
             session_id: Session identifier (generated if not provided)
             read_stream: Stream for reading messages
             write_stream: Stream for writing messages
