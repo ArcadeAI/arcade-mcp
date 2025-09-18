@@ -3,12 +3,21 @@ name: Sync GitHub Issues and Discussions with Pylon
 on:
   issues:
     types: [opened, edited, reopened, closed]
+  issue_comment:
+    types: [created, edited, deleted]
   discussion:
     types: [created, edited, answered, locked, unlocked]
+  discussion_comment:
+    types: [created, edited, deleted]
 
 jobs:
   sync_with_pylon:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      discussions: write
+      contents: read
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
