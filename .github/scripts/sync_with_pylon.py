@@ -290,6 +290,23 @@ def get_pylon_issue_threads(issue_id: str) -> dict[str, Any]:
         return response.json()
 
 
+def create_pylon_thread(issue_id: str) -> dict[str, Any]:
+    """Create a new thread for a Pylon issue."""
+    url = f"{PYLON_API_BASE}/issues/{issue_id}/threads"
+
+    data = {
+        "type": "internal",  # Assuming internal thread type
+        "name": "GitHub Sync Thread",  # Default name for GitHub sync
+    }
+
+    print(f"Creating Pylon thread for issue {issue_id} with data: {data}")
+
+    with httpx.Client() as client:
+        response = client.post(url, headers=PYLON_HEADERS, json=data)
+        handle_http_response(response)
+        return response.json()
+
+
 def post_pylon_note(
     issue_id: str, body_html: str, thread_id: str, message_id: str
 ) -> dict[str, Any]:
@@ -340,15 +357,21 @@ def post_pylon_message(issue_id: str, content: str, author: dict[str, Any]) -> d
     # Extract the first internal thread ID
     threads = threads_data.get("data", [])
     if not threads:
-        print(f"Warning: No threads found for Pylon issue {issue_id}")
-        return {}
-
-    # Find an internal thread (assuming they have a type field or similar)
-    # For now, use the first thread
-    thread_id = threads[0].get("id")
-    if not thread_id:
-        print("Warning: Could not extract thread_id from threads")
-        return {}
+        print(f"No threads found for Pylon issue {issue_id}, creating one...")
+        try:
+            thread_response = create_pylon_thread(issue_id)
+            thread_id = thread_response["data"]["id"]
+            print(f"Created new thread {thread_id} for Pylon issue {issue_id}")
+        except Exception as e:
+            print(f"Error creating thread for Pylon issue {issue_id}: {e}")
+            return {}
+    else:
+        # Find an internal thread (assuming they have a type field or similar)
+        # For now, use the first thread
+        thread_id = threads[0].get("id")
+        if not thread_id:
+            print("Warning: Could not extract thread_id from threads")
+            return {}
 
     body_html = convert_markdown_to_html(content)
     return post_pylon_note(issue_id, body_html, thread_id, message_id)
@@ -385,13 +408,14 @@ def append_pylon_info_to_body(
     pylon_info = f"""
 
 ---
-
+<!---
 > #### 🔗 Pylon Integration
 >
 > **Pylon Issue ID:** `{pylon_issue_id}`
 > **Pylon Issue URL:** {pylon_issue_url}
 >
 > This {item_type.value} has been synced with Pylon for tracking and management. DO NOT REMOVE THIS COMMENT
+-->
 """
 
     if item_type == ItemType.ISSUE:
