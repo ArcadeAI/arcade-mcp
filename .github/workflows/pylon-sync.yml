@@ -1,0 +1,43 @@
+name: Sync GitHub Issues and Discussions with Pylon
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  issue_comment:
+    types: [created, edited, deleted]
+  # Discussions cannot be edited to add the pylon ID for now, so skipping...
+  # discussion:
+  #   types: [created, edited, answered, locked, unlocked]
+  # discussion_comment:
+  #   types: [created, edited, deleted]
+
+jobs:
+  sync_with_pylon:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      discussions: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Sync with Pylon
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYLON_API_TOKEN: ${{ secrets.PYLON_API_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: uv run .github/scripts/sync_with_pylon.py
