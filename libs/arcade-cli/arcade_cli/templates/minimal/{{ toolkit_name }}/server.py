@@ -1,27 +1,40 @@
 #!/usr/bin/env python3
-"""MCP server for {{ toolkit_name }} toolkit."""
+"""{{ toolkit_name }} MCP server"""
 
 import sys
-from arcade_mcp import Server
-from {{ toolkit_name }}.tools import *
+from typing import Annotated
 
-# Create the server
-server = Server(
-    name="{{ toolkit_name }}",
-    version="0.1.0",
-)
+from arcade_mcp import Context, MCPApp
 
-# The server automatically discovers tools from the imports above
-# You can also explicitly add tools or toolkits:
-# server.add_tool(my_tool)
-# server.add_toolkit(my_toolkit)
+app = MCPApp(name="{{ toolkit_name }}", version="1.0.0", log_level="DEBUG")
 
+
+@app.tool
+def greet(name: Annotated[str, "The name of the person to greet"]) -> str:
+    """Greet a person by name."""
+    return f"Hello, {name}!"
+
+
+@app.tool(requires_secrets=["MY_SECRET_KEY"])
+def whisper_secret(context: Context) -> Annotated[str, "The last 4 characters of the secret"]:
+    """Reveal the last 4 characters of a secret"""
+    # Secrets are injected into the tool context at runtime.
+    # This means that LLMs and MCP clients cannot see or access your secrets
+    # You can define secrets in a .env file.
+    try:
+        secret = context.get_secret("MY_SECRET_KEY")
+    except Exception as e:
+        return str(e)
+
+    return "The last 4 characters of the secret are: " + secret[-4:]
+
+
+# Run with specific transport
 if __name__ == "__main__":
     # Get transport from command line argument, default to "stream"
-    transport = sys.argv[1] if len(sys.argv) > 1 else "stream"
+    transport = sys.argv[1] if len(sys.argv) > 1 else "http"
 
     # Run the server
-    # - "stream" (default): HTTPS streaming for Claude Desktop, Claude Code, Cursor
-    # - "sse": Server-sent events for Cursor
+    # - "https" (default): HTTPS streaming for Claude Desktop, Claude Code, Cursor
     # - "stdio": Standard I/O for VS Code and CLI tools
-    server.run(transport=transport, host="0.0.0.0", port=8000)
+    app.run(transport=transport, host="127.0.0.1", port=8000)

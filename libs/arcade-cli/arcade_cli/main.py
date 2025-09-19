@@ -5,11 +5,13 @@ import traceback
 import uuid
 import webbrowser
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 import typer
 from arcadepy import Arcade
+from arcadepy.types import AuthorizationResponse
+from openai import OpenAI, OpenAIError
 from rich.console import Console
 from rich.markup import escape
 from rich.text import Text
@@ -20,11 +22,16 @@ import arcade_cli.worker as worker
 from arcade_cli.authn import LocalAuthCallbackServer, check_existing_login
 from arcade_cli.constants import (
     CREDENTIALS_FILE_PATH,
+    LOCALHOST,
     PROD_CLOUD_HOST,
     PROD_ENGINE_HOST,
 )
 from arcade_cli.deployment import Deployment
-from arcade_cli.display import display_eval_results
+from arcade_cli.display import (
+    display_arcade_chat_header,
+    display_eval_results,
+    display_tool_messages,
+)
 from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
 from arcade_cli.utils import (
@@ -33,6 +40,12 @@ from arcade_cli.utils import (
     compute_base_url,
     compute_login_url,
     get_eval_files,
+    get_today_context,
+    get_user_input,
+    handle_chat_interaction,
+    handle_tool_authorization,
+    handle_user_command,
+    is_authorization_pending,
     load_eval_suites,
     log_engine_health,
     require_dependency,
@@ -266,8 +279,277 @@ def show(
     )
 
 
+@cli.command(
+    help="Start a chat with a model in the terminal to test tools",
+    rich_help_panel="Tool Development",
+)
+def chat(
+    model: str = typer.Option("gpt-4o", "-m", "--model", help="The model to use for prediction."),
+    stream: bool = typer.Option(
+        False, "-s", "--stream", is_flag=True, help="Stream the tool output."
+    ),
+    prompt: str = typer.Option(None, "--prompt", help="The system prompt to use for the chat."),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+    host: str = typer.Option(
+        PROD_ENGINE_HOST,
+        "-h",
+        "--host",
+        help="The Arcade Engine address to send chat requests to.",
+    ),
+    port: Optional[int] = typer.Option(
+        None,
+        "-p",
+        "--port",
+        help="The port of the Arcade Engine.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to the Arcade Engine.",
+    ),
+) -> None:
+    """
+    Chat with a language model.
+    """
+    console.log(
+        "⚠️ This command is deprecated and will be removed in a future version.", style="yellow"
+    )
+    try:
+        import readline
+    except ImportError:
+        console.print(
+            "Readline is not available on this platform. Command history will be limited.",
+            style="dim",
+        )
+
+    config = validate_and_get_config()
+    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+
+    client = Arcade(api_key=config.api.key, base_url=base_url)
+    user_email = config.user.email if config.user else None
+
+    try:
+        # start messages conversation
+        history: list[dict[str, Any]] = []
+
+        # Ground the LLM with today's date and day of the week to help when calling date-related tools
+        # in case the user refers to relative dates (e.g. next Monday, last month, etc)
+        today_context = get_today_context()
+
+        if prompt:
+            prompt = f"{today_context} {prompt}"
+        else:
+            prompt = today_context
+
+            history.append({"role": "system", "content": prompt})
+
+        display_arcade_chat_header(base_url, stream)
+
+        # Try to hit /health endpoint on engine and warn if it is down
+        log_engine_health(client)
+
+        while True:
+            console.print(
+                f"\n[magenta][bold]User[/bold] {user_email}: [/magenta]"
+                + "([bold][default]/?[/default][/bold] for help)"
+            )
+
+            user_input = get_user_input()
+
+            # Add the input to history
+            readline.add_history(user_input)
+
+            if handle_user_command(
+                user_input, history, host, port, force_tls, force_no_tls, show_logic
+            ):
+                continue
+
+            history.append({"role": "user", "content": user_input})
+
+            try:
+                # TODO fixup configuration to remove this + "/v1" workaround
+                openai_client = OpenAI(api_key=config.api.key, base_url=base_url + "/v1")
+                chat_result = handle_chat_interaction(
+                    openai_client, model, history, user_email, stream
+                )
+
+                history = chat_result.history
+                tool_messages = chat_result.tool_messages
+                tool_authorization = chat_result.tool_authorization
+
+                # wait for tool authorizations to complete, if any
+                if tool_authorization and is_authorization_pending(tool_authorization):
+                    chat_result = handle_tool_authorization(
+                        client,
+                        AuthorizationResponse.model_validate(tool_authorization),
+                        history,
+                        openai_client,
+                        model,
+                        user_email,
+                        stream,
+                    )
+                    history = chat_result.history
+                    tool_messages = chat_result.tool_messages
+
+            except OpenAIError as e:
+                handle_cli_error("Arcade Chat failed", e, debug, should_exit=False)
+                continue
+            if debug:
+                display_tool_messages(tool_messages)
+
+    except KeyboardInterrupt:
+        console.print("Chat stopped by user.", style="bold blue")
+        typer.Exit()
+
+    except RuntimeError as e:
+        handle_cli_error("Failed to run tool", e, debug)
+
+
 @cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
 def evals(
+    directory: str = typer.Argument(".", help="Directory containing evaluation files"),
+    show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
+    max_concurrent: int = typer.Option(
+        1,
+        "--max-concurrent",
+        "-c",
+        help="Maximum number of concurrent evaluations (default: 1)",
+    ),
+    models: str = typer.Option(
+        "gpt-4o",
+        "--models",
+        "-m",
+        help="The models to use for evaluation (default: gpt-4o). Use commas to separate multiple models.",
+    ),
+    host: str = typer.Option(
+        LOCALHOST,
+        "-h",
+        "--host",
+        help="The Arcade Engine address to send chat requests to.",
+    ),
+    cloud: bool = typer.Option(
+        False,
+        "--cloud",
+        help="Whether to run evaluations against the Arcade Cloud Engine. Overrides the 'host' option.",
+    ),
+    port: Optional[int] = typer.Option(
+        None,
+        "-p",
+        "--port",
+        help="The port of the Arcade Engine.",
+    ),
+    force_tls: bool = typer.Option(
+        False,
+        "--tls",
+        help="Whether to force TLS for the connection to the Arcade Engine. If not specified, the connection will use TLS if the engine URL uses a 'https' scheme.",
+    ),
+    force_no_tls: bool = typer.Option(
+        False,
+        "--no-tls",
+        help="Whether to disable TLS for the connection to the Arcade Engine.",
+    ),
+    debug: bool = typer.Option(False, "--debug", help="Show debug information"),
+) -> None:
+    """
+    Find all files starting with 'eval_' in the given directory,
+    execute any functions decorated with @tool_eval, and display the results.
+    """
+    require_dependency(
+        package_name="arcade_evals",
+        command_name="evals",
+        install_command=r"pip install 'arcade-ai\[evals]'",
+    )
+    # Although Evals does not depend on the TDK, some evaluations import the
+    # ToolCatalog class from the TDK instead of from arcade_core, so we require
+    # the TDK to run the evals CLI command to avoid possible import errors.
+    require_dependency(
+        package_name="arcade_tdk",
+        command_name="evals",
+        install_command=r"pip install arcade-tdk",
+    )
+
+    config = validate_and_get_config()
+
+    host = PROD_ENGINE_HOST if cloud else host
+    base_url = compute_base_url(force_tls, force_no_tls, host, port)
+
+    models_list = models.split(",")  # Use 'models_list' to avoid shadowing
+
+    eval_files = get_eval_files(directory)
+    if not eval_files:
+        return
+
+    console.print(
+        Text.assemble(
+            ("\nRunning evaluations against Arcade Engine at ", "bold"),
+            (base_url, "bold blue"),
+        )
+    )
+
+    # Try to hit /health endpoint on engine and warn if it is down
+    with Arcade(api_key=config.api.key, base_url=base_url) as client:
+        log_engine_health(client)
+
+    # Use the new function to load eval suites
+    eval_suites = load_eval_suites(eval_files)
+
+    if not eval_suites:
+        console.print("No evaluation suites to run.", style="bold yellow")
+        return
+
+    if show_details:
+        suite_label = "suite" if len(eval_suites) == 1 else "suites"
+        console.print(
+            f"\nFound {len(eval_suites)} {suite_label} in the evaluation files.",
+            style="bold",
+        )
+
+    async def run_evaluations() -> None:
+        all_evaluations = []
+        tasks = []
+        for suite_func in eval_suites:
+            console.print(
+                Text.assemble(
+                    ("Running evaluations in ", "bold"),
+                    (suite_func.__name__, "bold blue"),
+                )
+            )
+            for model in models_list:
+                task = asyncio.create_task(
+                    suite_func(
+                        config=config,
+                        base_url=base_url,
+                        openai_api_key=None,
+                        model=model,
+                        max_concurrency=max_concurrent,
+                    )
+                )
+                tasks.append(task)
+
+        # Track progress and results as suite functions complete
+        with tqdm(total=len(tasks), desc="Evaluations Progress") as pbar:
+            results = []
+            for f in asyncio.as_completed(tasks):
+                results.append(await f)
+                pbar.update(1)
+
+        # TODO error handling on each eval
+        all_evaluations.extend(results)
+        display_eval_results(all_evaluations, show_details=show_details)
+
+    try:
+        asyncio.run(run_evaluations())
+    except Exception as e:
+        handle_cli_error("Failed to run evaluations", e, debug)
+
+
+@cli.command(help="Run tool calling evaluations", rich_help_panel="Tool Development")
+def local_evals(
     directory: str = typer.Argument(".", help="Directory containing evaluation files"),
     show_details: bool = typer.Option(False, "--details", "-d", help="Show detailed results"),
     max_concurrent: int = typer.Option(
@@ -363,9 +645,12 @@ def evals(
             for model in models_list:
                 task = asyncio.create_task(
                     suite_func(
+                        config=None,
+                        base_url=None,
                         openai_api_key=resolved_api_key,
                         model=model,
                         max_concurrency=max_concurrent,
+                        is_local=True,
                     )
                 )
                 tasks.append(task)
@@ -428,6 +713,9 @@ def serve(
     """
     Start a local Arcade Worker server.
     """
+    console.log(
+        "⚠️ This command is deprecated and will be removed in a future version.", style="yellow"
+    )
     require_dependency(
         package_name="arcade_serve",
         command_name="serve",
@@ -515,6 +803,64 @@ def configure(
         )
     except Exception as e:
         handle_cli_error(f"Failed to configure {client}", e, debug)
+
+
+@cli.command(
+    help="Start a server with locally installed Arcade tools",
+    rich_help_panel="Launch",
+    hidden=True,
+)
+def workerup(
+    host: str = typer.Option(
+        "127.0.0.1",
+        help="Host for the app, from settings by default.",
+        show_default=True,
+    ),
+    port: int = typer.Option(
+        "8002",
+        "-p",
+        "--port",
+        help="Port for the app, defaults to ",
+        show_default=True,
+    ),
+    disable_auth: bool = typer.Option(
+        False,
+        "--no-auth",
+        help="Disable authentication for the worker. Not recommended for production.",
+        show_default=True,
+    ),
+    otel_enable: bool = typer.Option(
+        False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
+) -> None:
+    """
+    Starts the worker with host, port, and reload options. Uses
+    Uvicorn as ASGI worker. Parameters allow runtime configuration.
+    """
+    console.log(
+        "⚠️ This command is deprecated and will be removed in a future version.", style="yellow"
+    )
+    require_dependency(
+        package_name="arcade_serve",
+        command_name="worker",
+        install_command=r"pip install 'arcade-serve'",
+    )
+
+    from arcade_cli.serve import serve_default_worker
+
+    try:
+        serve_default_worker(
+            host,
+            port,
+            disable_auth=disable_auth,
+            enable_otel=otel_enable,
+            debug=debug,
+        )
+    except KeyboardInterrupt:
+        typer.Exit()
+    except Exception as e:
+        handle_cli_error("Failed to start Arcade Toolkit Server", e, debug)
 
 
 @cli.command(help="Deploy toolkits to Arcade Cloud", rich_help_panel="Deployment")
@@ -883,7 +1229,7 @@ def main_callback(
         login.__name__,
         logout.__name__,
         dashboard.__name__,
-        evals.__name__,
+        local_evals.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
