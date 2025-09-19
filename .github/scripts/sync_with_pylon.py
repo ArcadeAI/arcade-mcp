@@ -121,25 +121,79 @@ def load_github_event() -> dict[str, Any]:
         return json.load(f)
 
 
-def extract_pylon_issue_id_from_body(
-    repo: Repository, issue_number: int, item_type: ItemType = ItemType.ISSUE
+def extract_or_create_pylon_issue_id_from_body(
+    repo: Repository,
+    issue_number: int,
+    item_type: ItemType = ItemType.ISSUE,
+    title: Optional[str] = None,
+    body: Optional[str] = None,
+    external_url: Optional[str] = None,
+    author: Optional[dict] = None,
+    issue_type: Optional[PylonIssueType] = None,
 ) -> Optional[str]:
-    """Extract Pylon issue ID from GitHub issue or discussion body."""
+    """Extract Pylon issue ID from GitHub issue or discussion body, or create one if not found."""
     # Updated pattern to match the actual format: **Pylon Issue ID:** `uuid`
     pylon_id_pattern = r"\*\*Pylon Issue ID:\*\*\s*`([a-zA-Z0-9\-]+)`"
 
     # Get the issue or discussion body based on item type
     if item_type == ItemType.ISSUE:
         item = repo.get_issue(issue_number)
-        body = item.body or ""
+        current_body = item.body or ""
+        current_title = item.title
+        current_url = item.html_url
+        current_author = item.user
     else:  # ItemType.DISCUSSION
         item = repo.get_discussion(issue_number)
-        body = item.body or ""
+        current_body = item.body or ""
+        current_title = item.title
+        current_url = item.html_url
+        current_author = item.user
+
+    # Use provided values or fall back to current item values
+    search_body = body if body is not None else current_body
+    item_title = title if title is not None else current_title
+    item_url = external_url if external_url is not None else current_url
+    item_author = author if author is not None else current_author
 
     # Search for Pylon issue ID in the body
-    match = re.search(pylon_id_pattern, body)
+    match = re.search(pylon_id_pattern, search_body)
     if match:
         return match.group(1)
+
+    # If no Pylon issue ID found and we have the required parameters, create one
+    if item_title and item_url and item_author:
+        # Set default issue type based on item type
+        if issue_type is None:
+            issue_type = (
+                PylonIssueType.BUG if item_type == ItemType.ISSUE else PylonIssueType.QUESTION
+            )
+
+        # Create external ID
+        external_id = f"github-{item_type.value}-{issue_number}"
+
+        # Extract requester information
+        requester_email, requester_name = extract_requester_info(item_author)
+
+        # Create Pylon issue
+        pylon_issue = create_pylon_issue(
+            title=item_title,
+            body=search_body,
+            external_id=external_id,
+            external_url=item_url,
+            requester_email=requester_email,
+            requester_name=requester_name,
+            issue_type=issue_type,
+        )
+
+        pylon_issue_id = pylon_issue["data"]["id"]
+        pylon_issue_url = pylon_issue["data"]["link"]
+
+        # Add Pylon info to GitHub issue/discussion body
+        append_pylon_info_to_body(repo, issue_number, pylon_issue_id, pylon_issue_url, item_type)
+
+        print(f"Created Pylon issue {pylon_issue_id} for GitHub {item_type.value} #{issue_number}")
+        return pylon_issue_id
+
     return None
 
 
@@ -362,37 +416,24 @@ def handle_github_issue_created(event: dict[str, Any], g: Github) -> None:
 
     repo = g.get_repo(GITHUB_REPO)
 
-    # Check if Pylon issue already exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
+    # Extract or create Pylon issue
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo,
+        issue_number,
+        ItemType.ISSUE,
+        title=issue_title,
+        body=issue_body,
+        external_url=issue_url,
+        author=issue["user"],
+        issue_type=PylonIssueType.BUG,
+    )
 
-    if not pylon_issue_id:
-        # Create new Pylon issue
-        external_id = f"github-issue-{issue_number}"
-        # Extract author information from GitHub issue
-        author = issue["user"]
-        requester_email, requester_name = extract_requester_info(author)
-
-        pylon_issue = create_pylon_issue(
-            title=issue_title,
-            body=issue_body,
-            external_id=external_id,
-            external_url=issue_url,
-            requester_email=requester_email,
-            requester_name=requester_name,
-            issue_type=PylonIssueType.BUG,
+    if pylon_issue_id:
+        print(
+            f"Pylon issue {pylon_issue_id} exists or was created for GitHub issue #{issue_number}"
         )
-
-        pylon_issue_id = pylon_issue["data"]["id"]
-        pylon_issue_url = pylon_issue["data"]["link"]
-
-        # Add Pylon info to GitHub issue body
-        append_pylon_info_to_body(
-            repo, issue_number, pylon_issue_id, pylon_issue_url, ItemType.ISSUE
-        )
-
-        print(f"Created Pylon issue {pylon_issue_id} for GitHub issue #{issue_number}")
     else:
-        print(f"Pylon issue {pylon_issue_id} already exists for GitHub issue #{issue_number}")
+        print(f"Could not create Pylon issue for GitHub issue #{issue_number}")
 
 
 def handle_github_issue_updated(event: dict[str, Any], g: Github) -> None:
@@ -407,7 +448,7 @@ def handle_github_issue_updated(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
 
     if pylon_issue_id:
         # Update Pylon issue
@@ -435,7 +476,7 @@ def handle_github_issue_closed(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
 
     if pylon_issue_id:
         # Close Pylon issue
@@ -463,8 +504,17 @@ def handle_github_issue_comment(event: dict[str, Any], g: Github) -> None:
 
     repo = g.get_repo(GITHUB_REPO)
 
-    # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, issue_number, ItemType.ISSUE)
+    # Extract or create Pylon issue
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo,
+        issue_number,
+        ItemType.ISSUE,
+        title=issue["title"],
+        body=issue["body"] or "",
+        external_url=issue["html_url"],
+        author=issue["user"],
+        issue_type=PylonIssueType.BUG,
+    )
 
     if pylon_issue_id:
         # Post comment to Pylon issue
@@ -477,7 +527,7 @@ def handle_github_issue_comment(event: dict[str, Any], g: Github) -> None:
         post_pylon_message(pylon_issue_id, message, comment["user"])
         print(f"Posted comment to Pylon issue {pylon_issue_id} for GitHub issue #{issue_number}")
     else:
-        print(f"No Pylon issue found for GitHub issue #{issue_number}")
+        print(f"Could not create or find Pylon issue for GitHub issue #{issue_number}")
 
 
 def handle_github_issue(event: dict[str, Any], g: Github) -> None:
@@ -504,43 +554,24 @@ def handle_github_discussion_created(event: dict[str, Any], g: Github) -> None:
 
     repo = g.get_repo(GITHUB_REPO)
 
-    # Check if Pylon issue already exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    # Extract or create Pylon issue
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo,
+        discussion_number,
+        ItemType.DISCUSSION,
+        title=discussion_title,
+        body=discussion_body,
+        external_url=discussion_url,
+        author=discussion["user"],
+        issue_type=PylonIssueType.QUESTION,
+    )
 
-    if not pylon_issue_id:
-        # Create new Pylon issue
-        external_id = f"github-discussion-{discussion_number}"
-        # Extract author information from GitHub discussion
-        author = discussion["user"]
-        requester_email, requester_name = extract_requester_info(author)
-
-        pylon_issue = create_pylon_issue(
-            title=discussion_title,
-            body=discussion_body,
-            external_id=external_id,
-            external_url=discussion_url,
-            requester_email=requester_email,
-            requester_name=requester_name,
-            issue_type=PylonIssueType.QUESTION,
-        )
-
-        pylon_issue_id = pylon_issue["data"]["id"]
-        pylon_issue_url = pylon_issue["data"]["link"]
-
-        # Add Pylon info to GitHub discussion body
-        append_pylon_info_to_body(
-            repo,
-            discussion_number,
-            pylon_issue_id,
-            pylon_issue_url,
-            ItemType.DISCUSSION,
-        )
-
-        print(f"Created Pylon issue {pylon_issue_id} for GitHub discussion #{discussion_number}")
-    else:
+    if pylon_issue_id:
         print(
-            f"Pylon issue {pylon_issue_id} already exists for GitHub discussion #{discussion_number}"
+            f"Pylon issue {pylon_issue_id} exists or was created for GitHub discussion #{discussion_number}"
         )
+    else:
+        print(f"Could not create Pylon issue for GitHub discussion #{discussion_number}")
 
 
 def handle_github_discussion_updated(event: dict[str, Any], g: Github) -> None:
@@ -555,7 +586,9 @@ def handle_github_discussion_updated(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo, discussion_number, ItemType.DISCUSSION
+    )
 
     if pylon_issue_id:
         # Update Pylon issue
@@ -583,7 +616,9 @@ def handle_github_discussion_answered(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo, discussion_number, ItemType.DISCUSSION
+    )
 
     if pylon_issue_id:
         # Close Pylon issue when discussion is answered
@@ -613,7 +648,9 @@ def handle_github_discussion_locked(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo, discussion_number, ItemType.DISCUSSION
+    )
 
     if pylon_issue_id:
         # Close Pylon issue when discussion is locked
@@ -643,7 +680,9 @@ def handle_github_discussion_unlocked(event: dict[str, Any], g: Github) -> None:
     repo = g.get_repo(GITHUB_REPO)
 
     # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo, discussion_number, ItemType.DISCUSSION
+    )
 
     if pylon_issue_id:
         # Note: Pylon doesn't have a direct "reopen" API, so we'll just post a message
@@ -671,8 +710,17 @@ def handle_github_discussion_comment(event: dict[str, Any], g: Github) -> None:
 
     repo = g.get_repo(GITHUB_REPO)
 
-    # Check if Pylon issue exists
-    pylon_issue_id = extract_pylon_issue_id_from_body(repo, discussion_number, ItemType.DISCUSSION)
+    # Extract or create Pylon issue
+    pylon_issue_id = extract_or_create_pylon_issue_id_from_body(
+        repo,
+        discussion_number,
+        ItemType.DISCUSSION,
+        title=discussion["title"],
+        body=discussion["body"] or "",
+        external_url=discussion["html_url"],
+        author=discussion["user"],
+        issue_type=PylonIssueType.QUESTION,
+    )
 
     if pylon_issue_id:
         # Post comment to Pylon issue
@@ -687,7 +735,7 @@ def handle_github_discussion_comment(event: dict[str, Any], g: Github) -> None:
             f"Posted comment to Pylon issue {pylon_issue_id} for GitHub discussion #{discussion_number}"
         )
     else:
-        print(f"No Pylon issue found for GitHub discussion #{discussion_number}")
+        print(f"Could not create or find Pylon issue for GitHub discussion #{discussion_number}")
 
 
 def handle_github_discussion(event: dict[str, Any], g: Github) -> None:
