@@ -7,10 +7,12 @@ Provides a clean, minimal API for building MCP servers with lazy initialization.
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_tdk.tool import tool as tool_decorator
+from dotenv import load_dotenv
 from loguru import logger
 
 from arcade_mcp.exceptions import ServerError
@@ -97,6 +99,7 @@ class MCPApp:
         # Public handle to the MCPServer (set by caller for runtime ops)
         self.server: MCPServer | None = None
 
+        self._load_env()
         self._setup_logging()
 
     # Properties (exposed below initializer)
@@ -115,6 +118,13 @@ class MCPApp:
         """Runtime resources API: add/remove/list."""
         return _ResourcesAPI(self)
 
+    def _load_env(self) -> None:
+        """Load .env file from the current directory."""
+        env_path = Path.cwd() / ".env"
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+            logger.info(f"Loaded environment from {env_path}")
+
     def _setup_logging(self) -> None:
         logger.remove()
         if self.log_level == "DEBUG":
@@ -129,17 +139,49 @@ class MCPApp:
             diagnose=(self.log_level == "DEBUG"),
         )
 
-    def add_tool(self, func: Callable[P, T]) -> Callable[P, T]:
+    def add_tool(
+        self,
+        func: Callable[P, T],
+        desc: str | None = None,
+        name: str | None = None,
+        requires_secrets: list[str] | None = None,
+        requires_metadata: list[str] | None = None,
+    ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
-            func = tool_decorator(func)
+            func = tool_decorator(
+                func,
+                desc=desc,
+                name=name,
+                requires_secrets=requires_secrets,
+                requires_metadata=requires_metadata,
+            )
         self._catalog.add_tool(func, self._toolkit_name)
         logger.debug(f"Added tool: {func.__name__}")
         return func
 
-    def tool(self, func: Callable[P, T]) -> Callable[P, T]:
-        """Decorator alias for add_tool."""
-        return self.add_tool(func)
+    def tool(
+        self,
+        func: Callable[P, T] | None = None,
+        desc: str | None = None,
+        name: str | None = None,
+        requires_secrets: list[str] | None = None,
+        requires_metadata: list[str] | None = None,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
+        """Decorator for adding tools with optional parameters."""
+
+        def decorator(f: Callable[P, T]) -> Callable[P, T]:
+            return self.add_tool(
+                f,
+                desc=desc,
+                name=name,
+                requires_secrets=requires_secrets,
+                requires_metadata=requires_metadata,
+            )
+
+        if func is not None:
+            return decorator(func)
+        return decorator
 
     def run(
         self,

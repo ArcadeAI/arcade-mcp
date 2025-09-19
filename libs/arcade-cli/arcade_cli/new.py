@@ -19,11 +19,15 @@ try:
     ARCADE_AI_MAX_VERSION = str(int(ARCADE_AI_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
     console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
-    ARCADE_AI_MIN_VERSION = "2.0.0"  # Default version if unable to fetch
-    ARCADE_AI_MAX_VERSION = "3.0.0"
+    ARCADE_AI_MIN_VERSION = "3.0.0"  # Default version if unable to fetch
+    ARCADE_AI_MAX_VERSION = "4.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.0.0"
+ARCADE_TDK_MIN_VERSION = "2.4.0"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
+ARCADE_SERVE_MIN_VERSION = "2.2.0"
+ARCADE_SERVE_MAX_VERSION = "3.0.0"
+ARCADE_MCP_MIN_VERSION = "2.0.0"
+ARCADE_MCP_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -194,6 +198,8 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "toolkit_author_email": toolkit_author_email,
         "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
+        "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
+        "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
         "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
         "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
         "creation_year": datetime.now().year,
@@ -251,8 +257,8 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
         "toolkit_name": toolkit_name,
         "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
-        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
-        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
+        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
+        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
     }
     template_directory = get_minimal_template_directory() / "{{ toolkit_name }}"
 

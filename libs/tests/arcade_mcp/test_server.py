@@ -155,8 +155,8 @@ class TestMCPServer:
         assert response.id == 3
         assert isinstance(response.result, CallToolResult)
         assert response.result.structuredContent is not None
-        assert response.result.structuredContent[0].type == "text"
-        assert "Echo: Hello" in response.result.structuredContent[0].text
+        assert "result" in response.result.structuredContent
+        assert "Echo: Hello" in response.result.structuredContent["result"]
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
@@ -172,8 +172,8 @@ class TestMCPServer:
 
         assert isinstance(response, JSONRPCResponse)
         assert response.result.isError
-        assert response.result.structuredContent is not None
-        assert "Unknown tool" in response.result.structuredContent[0].text
+        assert "error" in response.result.structuredContent
+        assert "Unknown tool" in response.result.structuredContent["error"]
 
     @pytest.mark.asyncio
     async def test_handle_message_routing(self, mcp_server, initialized_server_session):

@@ -452,10 +452,17 @@ MCPContent = TextContent | ImageContent | AudioContent | ResourceLink | Embedded
 
 
 class CallToolResult(Result):
-    # For backward compatibility we keep `content`, but align it to list shape
-    content: list[dict[str, Any]] | None = None
-    # Preferred structured content form for MCP
-    structuredContent: list[MCPContent] | None = None
+    """
+    A list of content objects that represent the unstructured result of the tool call.
+    """
+
+    content: list[MCPContent]
+
+    """
+    An optional JSON object that represents the structured result of the tool call.
+    """
+    structuredContent: dict[str, Any] | None = None
+
     isError: bool | None = None
 
 

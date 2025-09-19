@@ -18,7 +18,7 @@ print(res.model_dump_json())
 
 ```python
 # Building a tools/call request and examining result shape
-from arcade_mcp.types import CallToolRequest, CallToolResult
+from arcade_mcp.types import CallToolRequest, CallToolResult, TextContent
 
 call = CallToolRequest(
     id=2,
@@ -29,5 +29,9 @@ call = CallToolRequest(
     },
 )
 # Result would typically be produced by the server:
-result = CallToolResult(content=[{"type": "text", "text": "Echo: hello"}], isError=False)
+result = CallToolResult(
+    content=[TextContent(type="text", text="Echo: hello")],
+    structuredContent={"result": "Echo: hello"},
+    isError=False
+)
 ```

@@ -123,6 +123,36 @@ def convert_to_mcp_content(value: Any) -> list[MCPContent]:
     return [TextContent(type="text", text=str(value))]
 
 
+def convert_content_to_structured_content(value: Any) -> dict[str, Any] | None:
+    """
+    Convert a Python value to MCP-compatible structured content (JSON object).
+
+    According to the MCP specification, structuredContent should be a JSON object
+    that represents the structured result of the tool call.
+
+    Args:
+        value: The value to convert to structured content
+
+    Returns:
+        A dictionary representing the structured content, or None if value is None
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, dict):
+        # Already a dictionary - use as-is
+        return value
+    elif isinstance(value, list):
+        # List - wrap in a result object
+        return {"result": value}
+    elif isinstance(value, (str, int, float, bool)):
+        # Primitive types - wrap in a result object
+        return {"result": value}
+    else:
+        # For other types, convert to string and wrap
+        return {"result": str(value)}
+
+
 def _map_type_to_json_schema_type(val_type: str | None) -> str:
     """
     Map Arcade value types to JSON schema types.

@@ -586,8 +586,8 @@ def deploy(
             console.log(f"Deploying '{worker.config.id}...'", style="dim")
             try:
                 # Discover and upload secrets
-                required_secrets = worker.get_required_secrets()
-                for secret_key in required_secrets:
+                required_secret_keys = worker.get_required_secrets()
+                for secret_key in required_secret_keys:
                     secret_value = os.getenv(secret_key)
                     if not secret_value:
                         console.log(
@@ -595,14 +595,19 @@ def deploy(
                             style="yellow",
                         )
                         continue
-
-                    console.log(f"  - Uploading secret '{secret_key}'...", style="dim")
                     try:
-                        engine_client.secrets.upsert(
-                            secret_key, value=secret_value, binding={"type": "static"}
+                        secret._upsert_secret_to_engine(
+                            engine_url, config.api.key, secret_key, secret_value
                         )
                     except Exception as e:
-                        handle_cli_error(f"Failed to upload secret '{secret_key}'", e, debug)
+                        handle_cli_error(
+                            f"Failed to upload secret '{secret_key}'", e, debug, should_exit=False
+                        )
+                    else:
+                        console.log(
+                            f"✅ Secret '{secret_key}' uploaded successfully",
+                            style="dim green",
+                        )
 
                 # Attempt to deploy worker
                 worker.request().execute(cloud_client, engine_client)

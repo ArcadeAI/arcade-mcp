@@ -28,7 +28,7 @@ from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
 from arcade_mcp.context import Context, get_current_model_context, set_current_model_context
-from arcade_mcp.convert import convert_to_mcp_content
+from arcade_mcp.convert import convert_content_to_structured_content, convert_to_mcp_content
 from arcade_mcp.exceptions import NotFoundError, ToolRuntimeError
 from arcade_mcp.lifespan import LifespanManager
 from arcade_mcp.managers import PromptManager, ResourceManager, ToolManager
@@ -621,12 +621,12 @@ class MCPServer:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
                     content = convert_to_mcp_content(auth_result.url)
-                    legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
+                    structured_content = convert_content_to_structured_content(auth_result.url)
                     return JSONRPCResponse(
                         id=message.id,
                         result=CallToolResult(
-                            content=legacy,
-                            structuredContent=content,
+                            content=content,
+                            structuredContent=structured_content,
                             isError=False,
                         ),
                     )
@@ -644,36 +644,46 @@ class MCPServer:
             # Convert result
             if result.value is not None:
                 content = convert_to_mcp_content(result.value)
-                legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
+
+                # structuredContent should be the raw result value as a JSON object
+                structured_content = convert_content_to_structured_content(result.value)
+
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
-                        content=legacy,
-                        structuredContent=content,
+                        content=content,
+                        structuredContent=structured_content,
                         isError=False,
                     ),
                 )
             else:
                 error = result.error or "Error calling tool"
                 content = convert_to_mcp_content(str(error))
-                legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
+
+                # structuredContent should be the error as a JSON object
+                structured_content = convert_content_to_structured_content({"error": str(error)})
+
                 return JSONRPCResponse(
                     id=message.id,
                     result=CallToolResult(
-                        content=legacy,
-                        structuredContent=content,
+                        content=content,
+                        structuredContent=structured_content,
                         isError=True,
                     ),
                 )
         except NotFoundError:
             # Match test expectation: return a normal response with isError=True
-            content = convert_to_mcp_content(f"Unknown tool: {tool_name}")
-            legacy = [c.model_dump(by_alias=True, exclude_none=True) for c in content]
+            error_message = f"Unknown tool: {tool_name}"
+            content = convert_to_mcp_content(error_message)
+
+            # structuredContent should be the error as a JSON object
+            structured_content = convert_content_to_structured_content({"error": error_message})
+
             return JSONRPCResponse(
                 id=message.id,
                 result=CallToolResult(
-                    content=legacy,
-                    structuredContent=content,
+                    content=content,
+                    structuredContent=structured_content,
                     isError=True,
                 ),
             )
