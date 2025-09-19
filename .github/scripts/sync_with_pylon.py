@@ -406,8 +406,6 @@ def append_pylon_info_to_body(
 ) -> None:
     """Append Pylon issue info to GitHub issue/discussion body."""
     pylon_info = f"""
-
----
 <!---
 > #### 🔗 Pylon Integration
 >
