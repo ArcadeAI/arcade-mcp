@@ -14,7 +14,7 @@ For Claude Desktop (stdio transport):
 
 from typing import Annotated
 
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 
 @tool

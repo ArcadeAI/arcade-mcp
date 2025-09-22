@@ -1,20 +1,25 @@
 """
 MCP Context System
 
-Provides the runtime implementation of the ModelContext Protocol for MCP.
+Provides the primary Context class for MCP tool development. This module contains
+the Context class that tools should use for both runtime capabilities and
+tool-specific data access.
+
+The Context class combines:
+- Runtime capabilities: logging, resources, prompts, sampling, UI, notifications
+- Tool-specific data: secrets, user_id, authorization, metadata
+- Session management: request/session IDs and MCP protocol handling
 
 Key responsibilities:
 - Manage per-request state and the current model context using a ContextVar
-- Expose namespaced properties bound to the current request session and
-  server managers. Instances should be set as current via
-  `set_current_model_context` for the lifetime of handling a single request.
+- Expose namespaced runtime capabilities (log, resources, etc.)
+- Provide access to tool-specific data (secrets, user_id, etc.)
 - Delegate to the underlying MCP session and server managers
-- Carry the underlying ToolContext via `tool_context`
+- Handle MCP protocol communication and lifecycle management
 
-This module intentionally avoids embedding into ToolContext; the TDK provides
-`arcade_tdk.Context` (a ToolContext subclass) that delegates to the current
-ModelContext so tools can call `context.log.info(...)`, etc., without signature
-changes.
+Note: Context instances are automatically created and managed by the MCP server.
+Tools receive a populated context instance as a parameter and should not
+create Context instances directly.
 """
 
 from __future__ import annotations
@@ -27,7 +32,10 @@ from contextvars import ContextVar, Token
 from typing import Any, cast
 
 from arcade_core.context import ModelContext as ModelContextProtocol
-from arcade_core.schema import ToolCallOutput, ToolContext
+from arcade_core.schema import (
+    ToolCallOutput,
+    ToolContext,
+)
 
 from arcade_mcp.types import (
     ClientCapabilities,
@@ -61,35 +69,72 @@ class _ContextComponent:
         return session
 
 
-class Context:
-    """MCP runtime context implementing the ModelContext protocol.
+class Context(ToolContext):
+    """Primary context interface for MCP tools.
 
-    Exposes namespaced properties bound to the current request session and
-    server managers. Instances should be set as current via
-    `set_current_model_context` for the lifetime of handling a single request.
+    This class provides both runtime capabilities (logging, resources, prompts, etc.)
+    and tool-specific data (secrets, user_id, authorization) in a single interface.
+    Tools should annotate their context parameter with this class.
+
+    Runtime Capabilities:
+        - log: Logging interface (context.log.info(), context.log.error(), etc.)
+        - progress: Progress reporting for long-running operations
+        - resources: Access to MCP resources (files, data sources, etc.)
+        - tools: Call other tools programmatically
+        - prompts: Access to MCP prompts and templates
+        - sampling: Create messages using the client's model
+        - ui: User interaction (elicit input from user)
+        - notifications: Send notifications to the client
+
+    Tool-Specific Data (inherited from ToolContext):
+        - user_id: The user ID for this tool execution
+        - secrets: List of secrets available to this tool
+        - authorization: Authorization context if required
+        - metadata: Additional metadata for the tool execution
+
+    Example:
+        ```python
+        from arcade_mcp import Context, tool
+
+        @tool
+        async def my_tool(context: Context) -> str:
+            '''Example tool'''
+            # Runtime capabilities
+            await context.log.info("Processing request")
+
+            return "result"
+        ```
+
+    Note: Instances are automatically created and managed by the MCP server.
+    Tools receive a populated context instance as a parameter.
     """
 
     # Mark as implementing the protocol
     __protocols__ = (ModelContextProtocol,) if ModelContextProtocol is not object else ()
 
-    def __init__(self, server: Any, session: Any | None = None, request_id: str | None = None):
+    def __init__(
+        self,
+        server: Any,
+        session: Any | None = None,
+        request_id: str | None = None,
+    ):
         """Initialize context with server reference."""
+        super().__init__()
         self._server: weakref.ref[Any] = weakref.ref(server)
         self._session: Any | None = session
         self._tokens: list[Token] = []
         self._notification_queue: set[str] = set()
         self._request_id: str | None = request_id
-        self._tool_context: ToolContext | None = None
 
         # Namespaced adapters
-        self._log = _Logs(self)
-        self._progress = _Progress(self)
-        self._resources = _Resources(self)
-        self._tools = _Tools(self)
-        self._prompts = _Prompts(self)
-        self._sampling = _Sampling(self)
-        self._ui = _UI(self)
-        self._notifications = _Notifications(self)
+        self._log = Logs(self)
+        self._progress = Progress(self)
+        self._resources = Resources(self)
+        self._tools = Tools(self)
+        self._prompts = Prompts(self)
+        self._sampling = Sampling(self)
+        self._ui = UI(self)
+        self._notifications = Notifications(self)
 
     @property
     def server(self) -> Any:
@@ -107,9 +152,15 @@ class Context:
         """Set the request ID for this context."""
         self._request_id = request_id
 
-    def set_tool_context(self, tool_context: ToolContext) -> None:
-        """Attach the underlying ToolContext for this model context."""
-        self._tool_context = tool_context
+    def set_tool_context(
+        self,
+        toolContext: ToolContext,
+    ) -> None:
+        """Populate the tool context fields for this model context."""
+        self.authorization = toolContext.authorization
+        self.secrets = toolContext.secrets
+        self.metadata = toolContext.metadata
+        self.user_id = toolContext.user_id
 
     async def __aenter__(self) -> Context:
         """Enter the context manager and set as current model context."""
@@ -130,52 +181,121 @@ class Context:
 
     # ============ ModelContext protocol properties ============
     @property
-    def tool_context(self) -> ToolContext:
-        if self._tool_context is None:
-            raise RuntimeError("ToolContext not set on ModelContext")
-        return self._tool_context
+    def log(self) -> Logs:
+        """Logging interface for the tool.
 
-    @property
-    def log(self) -> _Logs:
+        Provides methods for different log levels:
+        - log.debug(message): Debug-level logging
+        - log.info(message): Info-level logging
+        - log.warning(message): Warning-level logging
+        - log.error(message): Error-level logging
+        - log.log(level, message): Log at a specific level
+
+        Example:
+            ```python
+            await context.log.info("Processing started")
+            await context.log.error("Something went wrong")
+            ```
+        """
         return self._log
 
     @property
-    def progress(self) -> _Progress:
+    def progress(self) -> Progress:
+        """Progress reporting for long-running operations.
+
+        Use this to report progress back to the client during lengthy operations.
+
+        Example:
+            ```python
+            await context.progress.report(0.5, total=1.0, message="Halfway done")
+            ```
+        """
         return self._progress
 
     @property
-    def resources(self) -> _Resources:
+    def resources(self) -> Resources:
+        """Interface for accessing MCP resources"""
         return self._resources
 
     @property
-    def tools(self) -> _Tools:
+    def tools(self) -> Tools:
+        """Interface for calling other tools programmatically.
+
+        Allows tools to call other tools within the same session.
+
+        Example:
+            ```python
+            result = await context.tools.call_raw("other_tool", {"param": "value"})
+            ```
+        """
         return self._tools
 
     @property
-    def prompts(self) -> _Prompts:
+    def prompts(self) -> Prompts:
+        """Interface for accessing MCP prompts and templates"""
         return self._prompts
 
     @property
-    def sampling(self) -> _Sampling:
+    def sampling(self) -> Sampling:
+        """Create messages using the client's model.
+
+        Allows tools to generate text using the connected model.
+
+        Example:
+            ```python
+            response = await context.sampling.create_message(
+                "Summarize this text: " + text,
+                temperature=0.7
+            )
+            ```
+        """
         return self._sampling
 
     @property
-    def ui(self) -> _UI:
+    def ui(self) -> UI:
+        """User interaction (elicitation) capabilities.
+
+        Provides methods for interacting with the user, such as eliciting input.
+
+        Example:
+            ```python
+            result = await context.ui.elicit(
+                "Please provide your name",
+                schema={"type": "object", "properties": {"name": {"type": "string"}}}
+            )
+            ```
+        """
         return self._ui
 
     @property
-    def notifications(self) -> _Notifications:
+    def notifications(self) -> Notifications:
+        """
+        Interface for sending notifications to the client
+        such as tool list changes.
+
+        Example:
+            ```python
+            await context.notifications.tools.list_changed()
+            ```
+        """
         return self._notifications
 
-    # Properties
     @property
     def request_id(self) -> str | None:
-        """Get the current request ID."""
+        """Get the current request ID.
+
+        Returns:
+            The unique identifier for this MCP request, or None if not available.
+        """
         return self._request_id
 
     @property
     def session_id(self) -> str | None:
-        """Get the current session ID."""
+        """Get the current session ID.
+
+        Returns:
+            The unique identifier for this MCP session, or None if not available.
+        """
         if self._session is None:
             return None
         return getattr(self._session, "session_id", None)
@@ -254,8 +374,9 @@ class Context:
 # Context (e.g., context.log.info(...), context.resources.list()).
 #
 # They delegate all work to the active MCP session and server managers, keeping
-# transport- and server-specific details encapsulated in one place. This design:
-# - avoids leaking MCP internals into the TDK/developer surface
+# transport and server-specific details encapsulated in one place.
+# This design:
+# - avoids leaking MCP internals into the developer surface
 # - preserves a cohesive, testable Context API with clear async boundaries
 # - allows runtime implementations to evolve without breaking tool code
 #
@@ -263,7 +384,7 @@ class Context:
 # implementation remains decoupled and replaceable.
 
 
-class _Logs(_ContextComponent):
+class Logs(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -307,7 +428,7 @@ class _Logs(_ContextComponent):
         await self.log("error", message, **kwargs)
 
 
-class _Progress(_ContextComponent):
+class Progress(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -330,7 +451,7 @@ class _Progress(_ContextComponent):
         )
 
 
-class _Resources(_ContextComponent):
+class Resources(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -363,7 +484,7 @@ class _Resources(_ContextComponent):
         return cast(builtins_list[Any], templates)
 
 
-class _Tools(_ContextComponent):
+class Tools(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -398,7 +519,7 @@ class _Tools(_ContextComponent):
         return cast(ToolCallOutput, result)
 
 
-class _Prompts(_ContextComponent):
+class Prompts(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -410,7 +531,7 @@ class _Prompts(_ContextComponent):
         return await self._ctx.server._prompt_manager.get_prompt(name, arguments)
 
 
-class _Sampling(_ContextComponent):
+class Sampling(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -462,7 +583,7 @@ class _Sampling(_ContextComponent):
         return result.content if hasattr(result, "content") else result
 
 
-class _UI(_ContextComponent):
+class UI(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
 
@@ -543,7 +664,7 @@ class _NotificationsPrompts(_ContextComponent):
         self._ctx._try_flush_notifications()
 
 
-class _Notifications(_ContextComponent):
+class Notifications(_ContextComponent):
     def __init__(self, ctx: Context) -> None:
         super().__init__(ctx)
         self._tools = _NotificationsTools(ctx)

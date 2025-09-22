@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_tdk.auth import ToolAuthorization
+from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
 from dotenv import load_dotenv
 from loguru import logger
@@ -144,8 +146,10 @@ class MCPApp:
         func: Callable[P, T],
         desc: str | None = None,
         name: str | None = None,
+        requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        adapters: list[ErrorAdapter] | None = None,
     ) -> Callable[P, T]:
         """Add a tool for build-time materialization (pre-server)."""
         if not hasattr(func, "__tool_name__"):
@@ -153,8 +157,10 @@ class MCPApp:
                 func,
                 desc=desc,
                 name=name,
+                requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                adapters=adapters,
             )
         self._catalog.add_tool(func, self._toolkit_name)
         logger.debug(f"Added tool: {func.__name__}")
@@ -165,8 +171,10 @@ class MCPApp:
         func: Callable[P, T] | None = None,
         desc: str | None = None,
         name: str | None = None,
+        requires_auth: ToolAuthorization | None = None,
         requires_secrets: list[str] | None = None,
         requires_metadata: list[str] | None = None,
+        adapters: list[ErrorAdapter] | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
         """Decorator for adding tools with optional parameters."""
 
@@ -175,8 +183,10 @@ class MCPApp:
                 f,
                 desc=desc,
                 name=name,
+                requires_auth=requires_auth,
                 requires_secrets=requires_secrets,
                 requires_metadata=requires_metadata,
+                adapters=adapters,
             )
 
         if func is not None:

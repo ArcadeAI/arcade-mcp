@@ -3,7 +3,7 @@ from typing import Annotated
 
 from arcade_core.catalog import ToolCatalog
 from arcade_mcp.convert import convert_to_mcp_content, create_mcp_tool
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 
 @tool

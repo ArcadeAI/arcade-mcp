@@ -17,8 +17,7 @@ import time
 import traceback
 from typing import Annotated, Optional
 
-from arcade_mcp import MCPApp
-from arcade_tdk import Context
+from arcade_mcp import Context, MCPApp
 
 # Create the app with debug logging
 app = MCPApp(name="logging_examples", version="0.1.0", log_level="DEBUG")
@@ -36,7 +35,7 @@ async def demonstrate_log_levels(
 
     for level in levels:
         log_message = f"[{level.upper()}] {message}"
-        await context.log(level, log_message)  # type: ignore[operator]
+        await context.log(level, log_message)
         logged[level] = log_message
 
     return {"logged_messages": logged, "note": "Check your MCP client to see these messages"}

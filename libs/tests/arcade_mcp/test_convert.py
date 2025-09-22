@@ -16,7 +16,7 @@ from arcade_core.schema import (
     ValueSchema,
 )
 from arcade_mcp.convert import convert_to_mcp_content, create_mcp_tool
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 # Small PNG header (1x1 transparent pixel) used for byte-image param tests
 PNG_BYTES = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"

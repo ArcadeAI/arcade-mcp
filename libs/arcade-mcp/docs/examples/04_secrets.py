@@ -12,7 +12,7 @@ Environment:
   #   API_KEY=supersecret
 """
 
-from arcade_tdk import Context, tool
+from arcade_mcp import Context, tool
 
 
 @tool(

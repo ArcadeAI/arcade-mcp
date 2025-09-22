@@ -15,8 +15,7 @@ To run with stdio transport (for Claude Desktop):
 import sys
 from typing import Annotated
 
-from arcade_mcp import MCPApp
-from arcade_tdk import Context
+from arcade_mcp import Context, MCPApp
 
 # Create the MCP application
 app = MCPApp(

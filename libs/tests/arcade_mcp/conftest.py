@@ -21,7 +21,7 @@ from arcade_mcp.context import Context
 from arcade_mcp.server import MCPServer
 from arcade_mcp.session import ServerSession
 from arcade_mcp.settings import MCPSettings
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 
 @pytest.fixture

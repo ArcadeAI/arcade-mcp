@@ -19,7 +19,7 @@ uv run python -m arcade_mcp
 
 
 ```python
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 @tool
 def greet(Annotated[str, "The name to greet"]) -> Annotated[str, "The greeting"]:

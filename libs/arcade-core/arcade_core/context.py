@@ -6,7 +6,7 @@ Defines the developer-facing, transport-agnostic runtime context interfaces
 notifications) and the top-level ModelContext Protocol that aggregates them.
 
 Implementations live in runtime packages (e.g., arcade_mcp); tool authors should
-use `arcade_tdk.Context` for concrete usage.
+use `arcade_mcp.Context` for concrete usage.
 """
 
 from __future__ import annotations

@@ -280,7 +280,7 @@ def test_tool_via_inspector():
 ```bash
 # 1. Start a simple MCP server
 cat > test_tools.py << 'EOF'
-from arcade_tdk import tool
+from arcade_mcp import tool
 from typing import Annotated
 
 @tool

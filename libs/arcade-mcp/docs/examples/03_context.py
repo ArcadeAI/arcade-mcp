@@ -19,7 +19,7 @@ Set environment variables for secrets:
 
 from typing import Annotated, Any
 
-from arcade_tdk import Context, tool
+from arcade_mcp import Context, tool
 
 
 @tool

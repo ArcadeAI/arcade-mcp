@@ -86,7 +86,7 @@ python -m arcade_mcp --discover-installed --show-packages
 Create any Python file with `@tool` decorated functions:
 
 ```python
-from arcade_tdk import tool
+from arcade_mcp import tool
 
 @tool
 def hello(name: str) -> str:

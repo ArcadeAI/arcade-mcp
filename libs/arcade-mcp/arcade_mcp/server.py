@@ -23,7 +23,6 @@ from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
 from arcade_core.schema import ToolContext
-from arcade_tdk.context import Context as TDKContext
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
@@ -151,6 +150,7 @@ class MCPServer:
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
         # Initialize Arcade client
+        # TODO: if user is logged in, then we should fallback to API key in ~/.arcade/credentials.yaml
         self._init_arcade_client(
             arcade_api_key or self.settings.arcade.api_key,
             arcade_api_url or self.settings.arcade.api_url,
@@ -566,12 +566,8 @@ class MCPServer:
     async def _create_tool_context(
         self, tool: MaterializedTool, session: ServerSession | None = None
     ) -> ToolContext:
-        """Create a tool context.
-
-        Returns a TDK Context (subclass of ToolContext) so tools get
-        namespaced runtime APIs at runtime while preserving signatures.
-        """
-        tool_context = TDKContext()
+        """Create a tool context from a tool definition and session"""
+        tool_context = ToolContext()
 
         # secrets
         if tool.definition.requirements and tool.definition.requirements.secrets:

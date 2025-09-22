@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from typing import Annotated
 
-from arcade_tdk import tool
+from arcade_mcp import tool
 from typing_extensions import TypedDict
 
 """

@@ -18,6 +18,8 @@ A FastAPI-like interface for building MCP servers.
 - run with uv or `python -m arcade_mcp`
 """
 
+from arcade_tdk import tool
+
 from arcade_mcp.context import Context
 from arcade_mcp.mcp import MCPApp
 from arcade_mcp.server import MCPServer
@@ -34,6 +36,8 @@ __all__ = [
     # Integrated Factory and Runner
     "create_arcade_mcp",
     "run_arcade_mcp",
+    # Re-exported TDK functionality
+    "tool",
 ]
 
 # Package metadata
