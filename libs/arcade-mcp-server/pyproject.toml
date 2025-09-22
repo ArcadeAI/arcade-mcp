@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arcade-mcp-server"
+version = "2.0.0rc1"
+description = "Model Context Protocol (MCP) server framework for Arcade.dev"
+readme = "README.md"
+authors = [{ name = "Arcade.dev" }]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "arcade-core>=2.5.0rc1,<3.0.0",
+    "arcade-serve>=2.2.0rc1,<3.0.0",
+    "arcade-tdk>=2.4.0rc1,<3.0.0",
+    "arcadepy>=1.5.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.30.0",
+    "sse-starlette>=2.0.0",
+    "starlette>=0.37.0",
+    "anyio>=4.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic-settings>=2.10.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.6.0",
+    "mkdocstrings[python]>=0.28.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["arcade_mcp_server"]

@@ -5,8 +5,8 @@ Defines the developer-facing, transport-agnostic runtime context interfaces
 (namespaced APIs: logs, progress, resources, tools, prompts, sampling, UI,
 notifications) and the top-level ModelContext Protocol that aggregates them.
 
-Implementations live in runtime packages (e.g., arcade_mcp); tool authors should
-use `arcade_mcp.Context` for concrete usage.
+Implementations live in runtime packages (e.g., arcade_mcp_server); tool authors should
+use `arcade_mcp_server.Context` for concrete usage.
 """
 
 from __future__ import annotations

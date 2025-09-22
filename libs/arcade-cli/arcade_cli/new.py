@@ -26,8 +26,8 @@ ARCADE_TDK_MIN_VERSION = "2.4.0"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
 ARCADE_SERVE_MIN_VERSION = "2.2.0"
 ARCADE_SERVE_MAX_VERSION = "3.0.0"
-ARCADE_MCP_MIN_VERSION = "2.0.0"
-ARCADE_MCP_MAX_VERSION = "3.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "2.0.0"
+ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -257,8 +257,8 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
         "toolkit_name": toolkit_name,
         "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
-        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
-        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
+        "arcade_mcp_server_min_version": ARCADE_MCP_SERVER_MIN_VERSION,
+        "arcade_mcp_server_max_version": ARCADE_MCP_SERVER_MAX_VERSION,
     }
     template_directory = get_minimal_template_directory() / "{{ toolkit_name }}"
 

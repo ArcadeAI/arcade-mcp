@@ -2,8 +2,8 @@ import json
 from typing import Annotated
 
 from arcade_core.catalog import ToolCatalog
-from arcade_mcp.convert import convert_to_mcp_content, create_mcp_tool
-from arcade_mcp import tool
+from arcade_mcp_server import tool
+from arcade_mcp_server.convert import convert_to_mcp_content, create_mcp_tool
 
 
 @tool

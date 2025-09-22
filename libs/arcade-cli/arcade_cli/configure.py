@@ -68,7 +68,7 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
 
     config["mcpServers"][server_name] = {
         "command": "python",
-        "args": ["-m", "arcade_mcp", "stream"],
+        "args": ["-m", "arcade_mcp_server", "stream"],
         "url": f"http://localhost:{port}/mcp",
     }
 

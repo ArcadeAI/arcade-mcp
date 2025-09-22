@@ -10,7 +10,7 @@ across Arcade libraries. This includes:
   progress, resources, tools, prompts, sampling, UI, and notifications
 
 Note: ToolContext does not embed runtime capabilities; those are provided by
-implementations of ModelContext (e.g., in arcade-mcp) that subclasses ToolContext
+implementations of ModelContext (e.g., in arcade-mcp-server) that subclasses ToolContext
 to expose the namespaced APIs to tools without changing function signatures.
 """
 
@@ -324,7 +324,7 @@ class ToolContext(BaseModel):
     runtime context that wraps this object.
 
     Recommendation: For new tools, annotate the parameter as
-    `arcade_mcp.Context` to access namespaced runtime APIs directly.
+    `arcade_mcp_server.Context` to access namespaced runtime APIs directly.
     """
 
     authorization: ToolAuthorizationContext | None = None

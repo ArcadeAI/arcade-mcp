@@ -4,7 +4,7 @@
 import sys
 from typing import Annotated
 
-from arcade_mcp import Context, MCPApp
+from arcade_mcp_server import Context, MCPApp
 
 app = MCPApp(name="{{ toolkit_name }}", version="1.0.0", log_level="DEBUG")
 

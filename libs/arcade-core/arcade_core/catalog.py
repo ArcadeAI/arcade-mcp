@@ -985,7 +985,7 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
     for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
-        # Skip ToolContext parameters (including subclasses like arcade_mcp.Context)
+        # Skip ToolContext parameters (including subclasses like arcade_mcp_server.Context)
         ann = param.annotation
         if isinstance(ann, type) and issubclass(ann, ToolContext):
             continue
