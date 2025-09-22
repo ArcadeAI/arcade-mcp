@@ -17,7 +17,7 @@ packages = ["./mock_toolkit"]
 index = "pypi"
 index_url = "https://pypi.org/simple"
 trusted_host = "pypi.org"
-packages = ["arcade-ai>=1.0.0"]
+packages = ["arcade-mcp>=1.0.0"]
 
 [[worker.custom_source]]
 index = "pypi2"

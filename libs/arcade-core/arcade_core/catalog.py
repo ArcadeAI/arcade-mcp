@@ -405,7 +405,9 @@ class ToolCatalog(BaseModel):
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool '{raw_tool_name}' is missing a description")
+            raise ToolDefinitionError(
+                f"Tool '{raw_tool_name}' is missing a description. Tool descriptions are specified as docstrings for the tool function."
+            )
 
         # If the function returns a value, it must have a type annotation
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
@@ -692,7 +694,9 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
 
     # Final reality check
     if param_info.description is None:
-        raise ToolInputSchemaError(f"Parameter '{param_info.name}' is missing a description")
+        raise ToolInputSchemaError(
+            f"Parameter '{param_info.name}' is missing a description. Parameter descriptions are specified as string annotations using the typing.Annotated class."
+        )
 
     if wire_type_info.wire_type is None:
         raise ToolInputSchemaError(f"Unknown parameter type: {param_info.field_type}")

@@ -1,6 +1,6 @@
 VENDOR ?= ArcadeAI
 PROJECT ?= ArcadeAI
-SOURCE ?= https://github.com/ArcadeAI/arcade-ai
+SOURCE ?= https://github.com/ArcadeAI/arcade-mcp
 LICENSE ?= MIT
 DESCRIPTION ?= "Arcade Worker for LLM Tool Serving"
 REPOSITORY ?= arcadeai/worker

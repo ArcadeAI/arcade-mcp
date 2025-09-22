@@ -741,7 +741,7 @@ def version_callback(value: bool) -> None:
     Prints the version of Arcade and exit.
     """
     if value:
-        version = metadata.version("arcade-ai")
+        version = metadata.version("arcade-mcp")
         console.print(f"[bold]Arcade CLI[/bold] (version {version})")
         exit()
 
@@ -880,7 +880,7 @@ def require_dependency(
     Args:
         package_name: The name of the package to import (e.g., 'arcade_serve')
         command_name: The command that requires the package (e.g., 'serve')
-        install_command: The command to install the package (e.g., "pip install 'arcade-ai[evals]'")
+        install_command: The command to install the package (e.g., "pip install 'arcade-mcp[evals]'")
     """
     try:
         importlib.import_module(package_name.replace("-", "_"))

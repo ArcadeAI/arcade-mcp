@@ -108,7 +108,7 @@ graph = create_react_agent(model, tools)
 # Run the agent with the "user_id" field in the config
 # IMPORTANT the "user_id" field is required for tools that require user authorization
 config = {"configurable": {"user_id": "user@lgexample.com"}}
-user_input = {"messages": [("user", "Star the arcadeai/arcade-ai repository on GitHub")]}
+user_input = {"messages": [("user", "Star the arcadeai/arcade-mcp repository on GitHub")]}
 
 for chunk in graph.stream(user_input, config, debug=True):
     if chunk.get("__interrupt__"):
@@ -124,7 +124,7 @@ for chunk in graph.stream(user_input, config, debug=True):
 
 ```
 
-See the Functional examples in the [examples directory](https://github.com/ArcadeAI/arcade-ai/tree/main/examples/langchain) that continue the agent after authorization and handle authorization errors gracefully.
+See the Functional examples in the [examples directory](https://github.com/ArcadeAI/arcade-mcp/tree/main/examples/langchain) that continue the agent after authorization and handle authorization errors gracefully.
 
 ### Async Support
 
@@ -172,4 +172,4 @@ For a complete list, see the [Arcade Toolkits documentation](https://docs.arcade
 
 ## More Examples
 
-For more examples, see the [examples directory](https://github.com/ArcadeAI/arcade-ai/tree/main/examples/langchain).
+For more examples, see the [examples directory](https://github.com/ArcadeAI/arcade-mcp/tree/main/examples/langchain).

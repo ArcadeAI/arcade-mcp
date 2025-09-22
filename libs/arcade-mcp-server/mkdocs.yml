@@ -1,8 +1,8 @@
 site_name: Arcade MCP
 site_description: MCP (Model Context Protocol) support for Arcade.
 site_url: https://docs.arcadeai.dev/arcade-mcp-server/
-repo_url: https://github.com/ArcadeAI/arcade-ai
-repo_name: ArcadeAI/arcade-ai
+repo_url: https://github.com/ArcadeAI/arcade-mcp
+repo_name: ArcadeAI/arcade-mcp
 
 theme:
   palette:
@@ -93,6 +93,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ArcadeAI/arcade-ai
+      link: https://github.com/ArcadeAI/arcade-mcp
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/arcade-ai/
+      link: https://pypi.org/project/arcade-mcp/

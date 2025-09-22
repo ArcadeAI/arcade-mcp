@@ -44,7 +44,7 @@ graph = create_react_agent(model=bound_model, tools=lc_tools, checkpointer=memor
 # 6) Provide basic config and a user query.
 # Note: user_id is required for the tool to be authorized
 config = {"configurable": {"thread_id": "1", "user_id": "user@example.com"}}
-user_input = {"messages": [("user", "star the arcadeai/arcade-ai repo on github")]}
+user_input = {"messages": [("user", "star the arcadeai/arcade-mcp repo on github")]}
 
 # 7) Stream the agent's output. If the tool is unauthorized, it may trigger interrupts
 for chunk in graph.stream(user_input, config, stream_mode="values"):

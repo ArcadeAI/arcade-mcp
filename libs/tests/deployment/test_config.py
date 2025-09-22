@@ -55,7 +55,7 @@ def test_deployment_parsing(test_dir):
     assert repo.index == "pypi"
     assert repo.index_url == "https://pypi.org/simple"
     assert repo.trusted_host == "pypi.org"
-    assert repo.packages == [Package(name="arcade-ai", specifier=">=1.0.0")]
+    assert repo.packages == [Package(name="arcade-mcp", specifier=">=1.0.0")]
 
     repo = deployment.worker[0].custom_source[1]
     assert repo.index == "pypi2"
@@ -67,8 +67,8 @@ def test_deployment_parsing(test_dir):
 def test_specifier():
     from packaging.requirements import Requirement
 
-    req = Requirement("arcade-ai>=1.0.0")
-    assert req.name == "arcade-ai"
+    req = Requirement("arcade-mcp>=1.0.0")
+    assert req.name == "arcade-mcp"
     assert req.specifier == ">=1.0.0"
 
 
@@ -98,7 +98,7 @@ def test_deployment_dict(test_dir):
         {
             "packages": [
                 {
-                    "name": "arcade-ai",
+                    "name": "arcade-mcp",
                     "specifier": ">=1.0.0"
                 }
             ],

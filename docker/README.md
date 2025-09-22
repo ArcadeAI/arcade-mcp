@@ -14,12 +14,12 @@ This guide provides detailed instructions on how to set up and run Arcade using 
 Begin by cloning the Arcade repository:
 
 ```bash
-git clone https://github.com/ArcadeAI/arcade-ai.git
+git clone https://github.com/ArcadeAI/arcade-mcp.git
 ```
 
 ### 2. Build package wheels
 
-From the root of the arcade-ai repository:
+From the root of the arcade-mcp repository:
 
 ```bash
 make full-dist
@@ -30,7 +30,7 @@ make full-dist
 Change to the `docker` directory:
 
 ```bash
-cd arcade-ai/docker
+cd arcade-mcp/docker
 ```
 
 Copy the example environment file to `.env`:

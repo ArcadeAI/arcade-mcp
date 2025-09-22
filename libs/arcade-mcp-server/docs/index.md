@@ -79,8 +79,8 @@ Connect your MCP server with AI assistants and development tools:
 
 ## Community
 
-- [GitHub Repository](https://github.com/ArcadeAI/arcade-ai)
-- [Discord Community](https://discord.gg/arcade-ai)
+- [GitHub Repository](https://github.com/ArcadeAI/arcade-mcp)
+- [Discord Community](https://discord.gg/arcade-mcp)
 - [Documentation](https://docs.arcade.dev)
 
 ## License

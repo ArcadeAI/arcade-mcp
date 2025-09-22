@@ -194,7 +194,7 @@ full-dist: clean-dist ## Build all projects and copy wheels to ./dist
 		(cd libs/$$lib && uv build); \
 	done
 
-	@echo "🛠️ Building arcade-ai package and copying wheel to ./dist"
+	@echo "🛠️ Building arcade-mcp package and copying wheel to ./dist"
 	@uv build
 	@rm -f dist/*.tar.gz
 

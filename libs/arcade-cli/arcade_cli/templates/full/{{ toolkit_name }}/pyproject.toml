@@ -24,7 +24,7 @@ email = "{{ toolkit_author_email }}"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>={{ arcade_ai_min_version }},<{{ arcade_ai_max_version }}",
+    "arcade-mcp[evals]>={{ arcade_mcp_min_version }},<{{ arcade_mcp_max_version }}",
     "arcade-serve>={{ arcade_serve_min_version }},<{{ arcade_serve_max_version }}",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
@@ -43,16 +43,16 @@ toolkit_name = "{{ package_name }}"
 {% if is_community_toolkit -%}
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = { path = "../../", editable = true }
+arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 {% endif -%}
 {% if is_official_toolkit -%}
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = { path = "../../../arcade-ai", editable = true }
-arcade-serve = { path = "../../../arcade-ai/libs/arcade-serve/", editable = true }
-arcade-tdk = { path = "../../../arcade-ai/libs/arcade-tdk/", editable = true }
+arcade-mcp = { path = "../../../arcade-mcp", editable = true }
+arcade-serve = { path = "../../../arcade-mcp/libs/arcade-serve/", editable = true }
+arcade-tdk = { path = "../../../arcade-mcp/libs/arcade-tdk/", editable = true }
 {% endif -%}
 
 [tool.mypy]

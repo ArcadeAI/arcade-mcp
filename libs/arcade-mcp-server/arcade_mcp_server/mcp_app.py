@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Literal, ParamSpec, TypeVar
 
-from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolDefinitionError
 from arcade_tdk.auth import ToolAuthorization
 from arcade_tdk.error_adapters import ErrorAdapter
 from arcade_tdk.tool import tool as tool_decorator
@@ -162,7 +162,10 @@ class MCPApp:
                 requires_metadata=requires_metadata,
                 adapters=adapters,
             )
-        self._catalog.add_tool(func, self._toolkit_name)
+        try:
+            self._catalog.add_tool(func, self._toolkit_name)
+        except ToolDefinitionError as e:
+            raise e.with_context(func.__name__) from e
         logger.debug(f"Added tool: {func.__name__}")
         return func
 

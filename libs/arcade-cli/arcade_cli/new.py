@@ -13,20 +13,20 @@ from arcade_cli.templates import get_full_template_directory, get_minimal_templa
 
 console = Console()
 
-# Retrieve the installed version of arcade-ai
+# Retrieve the installed version of arcade-mcp
 try:
-    ARCADE_AI_MIN_VERSION = get_version("arcade-ai")
-    ARCADE_AI_MAX_VERSION = str(int(ARCADE_AI_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
+    ARCADE_MCP_MIN_VERSION = get_version("arcade-mcp")
+    ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
-    console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
-    ARCADE_AI_MIN_VERSION = "3.0.0"  # Default version if unable to fetch
-    ARCADE_AI_MAX_VERSION = "4.0.0"
+    console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
+    ARCADE_MCP_MIN_VERSION = "2.3.0rc1"  # Default version if unable to fetch
+    ARCADE_MCP_MAX_VERSION = "4.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.4.0"
+ARCADE_TDK_MIN_VERSION = "2.4.0rc1"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.2.0"
+ARCADE_SERVE_MIN_VERSION = "2.2.0rc1"
 ARCADE_SERVE_MAX_VERSION = "3.0.0"
-ARCADE_MCP_SERVER_MIN_VERSION = "2.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "2.0.0rc1"
 ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
 
 
@@ -181,10 +181,10 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     # TODO: this detection mechanism works only for people that didn't change the
     # name of the repo, a better detection method is required here
     is_community_toolkit = False
-    if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
+    if cwd.name == "toolkits" and cwd.parent.name == "arcade-mcp":
         prompt = (
             "Is your toolkit a community contribution (to be merged into "
-            "\x1b]8;;https://github.com/ArcadeAI/arcade-ai\x1b\\ArcadeAI/arcade-ai\x1b]8;;\x1b\\ repo)?"
+            "\x1b]8;;https://github.com/ArcadeAI/arcade-mcp\x1b\\ArcadeAI/arcade-mcp\x1b]8;;\x1b\\ repo)?"
         )
         is_community_toolkit = ask_yes_no_question(prompt, default=True)
 
@@ -200,8 +200,8 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
         "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
         "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
-        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
-        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
+        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
+        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
         "creation_year": datetime.now().year,
         "is_community_toolkit": is_community_toolkit,
         "is_official_toolkit": is_official_toolkit,
@@ -255,8 +255,8 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
 
     context = {
         "toolkit_name": toolkit_name,
-        "arcade_tdk_min_version": ARCADE_TDK_MIN_VERSION,
-        "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
+        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
+        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
         "arcade_mcp_server_min_version": ARCADE_MCP_SERVER_MIN_VERSION,
         "arcade_mcp_server_max_version": ARCADE_MCP_SERVER_MAX_VERSION,
     }

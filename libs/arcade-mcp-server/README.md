@@ -63,8 +63,8 @@ python -m arcade_mcp_server --host 0.0.0.0 --port 8080
 
 ## Community
 
-- [GitHub Repository](https://github.com/ArcadeAI/arcade-ai)
-- [Discord Community](https://discord.gg/arcade-ai)
+- [GitHub Repository](https://github.com/ArcadeAI/arcade-mcp)
+- [Discord Community](https://discord.gg/arcade-mcp)
 - [Documentation](https://docs.arcade.dev)
 
 ## License

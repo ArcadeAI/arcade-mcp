@@ -1,6 +1,6 @@
 [project]
-name = "arcade-ai"
-version = "2.3.rc1"
+name = "arcade-mcp"
+version = "2.3.0rc1"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -72,7 +72,7 @@ dev-dependencies = [
 # CLI entry point
 [project.scripts]
 arcade = "arcade_cli.main:cli"
-arcade-ai = "arcade_cli.main:cli"
+arcade-mcp = "arcade_cli.main:cli"
 
 [tool.uv.sources]
 # Workspace member sources

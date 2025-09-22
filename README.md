@@ -6,15 +6,15 @@
   >
 </h3>
 <div align="center">
-    <a href="https://github.com/arcadeai/arcade-ai/blob/main/LICENSE">
+    <a href="https://github.com/arcadeai/arcade-mcp/blob/main/LICENSE">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
 </a>
-  <img src="https://img.shields.io/github/last-commit/ArcadeAI/arcade-ai" alt="GitHub last commit">
-<a href="https://github.com/arcadeai/arcade-ai/actions?query=branch%3Amain">
-<img src="https://img.shields.io/github/actions/workflow/status/arcadeai/arcade-ai/main.yml?branch=main" alt="GitHub Actions Status">
+  <img src="https://img.shields.io/github/last-commit/ArcadeAI/arcade-mcp" alt="GitHub last commit">
+<a href="https://github.com/arcadeai/arcade-mcp/actions?query=branch%3Amain">
+<img src="https://img.shields.io/github/actions/workflow/status/arcadeai/arcade-mcp/main.yml?branch=main" alt="GitHub Actions Status">
 </a>
-<a href="https://img.shields.io/pypi/pyversions/arcade-ai">
-  <img src="https://img.shields.io/pypi/pyversions/arcade-ai" alt="Python Version">
+<a href="https://img.shields.io/pypi/pyversions/arcade-mcp">
+  <img src="https://img.shields.io/pypi/pyversions/arcade-mcp" alt="Python Version">
 </a>
 </div>
 <div>
@@ -22,7 +22,7 @@
     <a href="https://x.com/TryArcade">
       <img src="https://img.shields.io/badge/Follow%20on%20X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" style="width: 125px;height: 25px; padding-top: .8px; border-radius: 5px;" />
     </a>
-    <a href="https://www.linkedin.com/company/arcade-ai" >
+    <a href="https://www.linkedin.com/company/arcade-mcp" >
       <img src="https://img.shields.io/badge/Follow%20on%20LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="Follow on LinkedIn" style="width: 150px; padding-top: 1.5px;height: 22px; border-radius: 5px;" />
     </a>
     <a href="https://discord.com/invite/GUZEMpEZ9p">
@@ -43,11 +43,12 @@ Arcade is a developer platform that lets you build, deploy, and manage tools for
 
 This repository contains the core Arcade libraries, organized as separate packages for maximum flexibility and modularity:
 
--   **arcade-core** - Core platform functionality and schemas | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-core) | `pip install arcade-core` |
--   **arcade-tdk** - Tool Development Kit with the `@tool` decorator | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-tdk) | `pip install arcade-tdk` |
--   **arcade-serve** - Serving infrastructure for workers and MCP servers | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-serve) | `pip install arcade-serve` |
--   **arcade-evals** - Evaluation framework for testing tool performance | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-evals) | `pip install 'arcade-ai[evals]` |
--   **arcade-cli** - Command-line interface for the Arcade platform | [Source code](https://github.com/ArcadeAI/arcade-ai/tree/main/libs/arcade-cli) | `pip install arcade-ai` |
+-   **arcade-core** - Core platform functionality and schemas | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-core) | `pip install arcade-core` |
+-   **arcade-mcp-server** - MCP Server Development Framework | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-mcp-server) | `pip install arcade-mcp-server` |
+-   **arcade-tdk** - Tool Development Kit with the `@tool` decorator | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-tdk) | `pip install arcade-tdk` |
+-   **arcade-serve** - Serving infrastructure for workers and MCP servers | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-serve) | `pip install arcade-serve` |
+-   **arcade-evals** - Evaluation framework for testing tool performance | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-evals) | `pip install 'arcade-mcp[evals]` |
+-   **arcade-cli** - Command-line interface for the Arcade platform | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-cli) | `pip install arcade-mcp` |
 
 ![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
 
@@ -55,8 +56,8 @@ This repository contains the core Arcade libraries, organized as separate packag
 
 _Pst. hey, you, give us a star if you like it!_
 
-<a href="https://github.com/ArcadeAI/arcade-ai">
-  <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-ai.svg" alt="GitHub stars">
+<a href="https://github.com/ArcadeAI/arcade-mcp">
+  <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-mcp.svg" alt="GitHub stars">
 </a>
 
 ## Quick Start
@@ -76,9 +77,9 @@ make install
 For production use, install individual packages as needed:
 
 ```bash
-pip install arcade-ai          # CLI
-pip install 'arcade-ai[evals]' # CLI + Evaluation framework
-pip install 'arcade-ai[all]'   # CLI + Serving infra + eval framework + TDK
+pip install arcade-mcp          # CLI
+pip install 'arcade-mcp[evals]' # CLI + Evaluation framework
+pip install 'arcade-mcp[all]'   # CLI + Serving infra + eval framework + TDK
 pip install arcade_serve       # Serving infrastructure
 pip install arcade-tdk         # Tool Development Kit
 ```
@@ -115,5 +116,5 @@ make help
 ## Support and Community
 
 -   **Discord:** Join our [Discord community](https://discord.com/invite/GUZEMpEZ9p) for real-time support and discussions.
--   **GitHub:** Contribute or report issues on the [Arcade GitHub repository](https://github.com/ArcadeAI/arcade-ai).
+-   **GitHub:** Contribute or report issues on the [Arcade GitHub repository](https://github.com/ArcadeAI/arcade-mcp).
 -   **Documentation:** Find in-depth guides and API references at [Arcade Documentation](https://docs.arcade.dev).

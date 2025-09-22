@@ -462,7 +462,7 @@ def evals(
     require_dependency(
         package_name="arcade_evals",
         command_name="evals",
-        install_command=r"pip install 'arcade-ai\[evals]'",
+        install_command=r"pip install 'arcade-mcp\[evals]'",
     )
     # Although Evals does not depend on the TDK, some evaluations import the
     # ToolCatalog class from the TDK instead of from arcade_core, so we require
@@ -585,7 +585,7 @@ def local_evals(
     require_dependency(
         package_name="arcade_evals",
         command_name="evals",
-        install_command=r"pip install 'arcade-ai\[evals]'",
+        install_command=r"pip install 'arcade-mcp\[evals]'",
     )
     # Although Evals does not depend on the TDK, some evaluations import the
     # ToolCatalog class from the TDK instead of from arcade_core, so we require

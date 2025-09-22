@@ -381,14 +381,14 @@ class ToolContext(BaseModel):
                 f"{item_name.capitalize()} key passed to get_{item_name} cannot be empty."
             )
         if not items:
-            raise ValueError(f"{item_name.capitalize()}s not found in context.")
+            raise ValueError(f"{item_name.capitalize()} '{key}' not found in context.")
 
         normalized_key = key.lower()
         for item in items:
             if item.key.lower() == normalized_key:
                 return item.value
 
-        raise ValueError(f"{item_name.capitalize()} {key} not found in context.")
+        raise ValueError(f"{item_name.capitalize()} '{key}' not found in context.")
 
 
 class ToolCallRequest(BaseModel):

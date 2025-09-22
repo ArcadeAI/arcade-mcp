@@ -6,7 +6,7 @@ While VSCode doesn't have native MCP support yet, you can integrate Arcade MCP s
 
 - Visual Studio Code installed
 - Python 3.10+ installed
-- `arcade-ai` package installed (`pip install arcade-ai`)
+- `arcade-mcp` package installed (`pip install arcade-mcp`)
 - Python extension for VSCode
 
 ## Integration Methods
