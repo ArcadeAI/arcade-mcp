@@ -370,3 +370,49 @@ class TestCreateMCPTool:
         assert schema["type"] == "object"
         assert schema["properties"] == {}
         assert schema.get("required", []) in ([], None)
+
+    def test_missing_input_attribute_fallback(self):
+        """Test tool with missing input attribute to trigger _build_input_schema_from_model fallback."""
+        # Create a valid ToolDefinition first
+        tool_def = ToolDefinition(
+            name="test_fallback",
+            fully_qualified_name="Test.test_fallback",
+            description="Test fallback to input model",
+            toolkit=ToolkitDefinition(name="Test"),
+            input=ToolInput(parameters=[]),
+            output=ToolOutput(),
+            requirements=ToolRequirements(),
+        )
+
+        @tool
+        def f(name: Annotated[str, "User name"], age: Annotated[int, "User age"] = 25) -> Annotated[str, "greeting"]:
+            return f"Hello {name}, you are {age} years old"
+
+        input_model, output_model = create_func_models(f)
+        meta = ToolMeta(module=f.__module__, toolkit=tool_def.toolkit.name)
+        mat_tool = MaterializedTool(
+            tool=f,
+            definition=tool_def,
+            meta=meta,
+            input_model=input_model,
+            output_model=output_model,
+        )
+
+        # Remove the input attribute from the definition to simulate the missing attribute case
+        delattr(mat_tool.definition, 'input')
+
+        mcp_tool = create_mcp_tool(mat_tool)
+        schema = mcp_tool.inputSchema
+
+        assert schema["type"] == "object"
+        assert "properties" in schema
+        assert "name" in schema["properties"]
+        assert "age" in schema["properties"]
+
+        # Ensure the schema was built from the model and not the definition
+        assert schema["properties"]["name"]["type"] == "string"
+        assert schema["properties"]["age"]["type"] == "integer"
+
+        if "required" in schema:
+            assert "name" in schema["required"]
+            assert "age" not in schema["required"]

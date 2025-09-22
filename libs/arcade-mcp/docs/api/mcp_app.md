@@ -20,7 +20,7 @@ app.run(host="127.0.0.1", port=7777)
 
 #### Class Reference
 
-::: arcade_mcp.mcp.MCPApp
+::: arcade_mcp.mcp_app.MCPApp
 
 #### Examples
 

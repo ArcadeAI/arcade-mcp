@@ -21,7 +21,7 @@ A FastAPI-like interface for building MCP servers.
 from arcade_tdk import tool
 
 from arcade_mcp.context import Context
-from arcade_mcp.mcp import MCPApp
+from arcade_mcp.mcp_app import MCPApp
 from arcade_mcp.server import MCPServer
 from arcade_mcp.settings import MCPSettings
 from arcade_mcp.worker import create_arcade_mcp, run_arcade_mcp

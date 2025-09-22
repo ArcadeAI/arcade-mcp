@@ -338,6 +338,10 @@ class TestMCPServer:
         # Create a tool that requires auth
         from arcade_core.schema import ToolAuthRequirement
 
+        # Ensure the arcade client is not configured in the case that the test environment
+        # unintentionally has the ARCADE_API_KEY set
+        mcp_server.arcade = None
+
         tool = Mock()
         tool.definition.requirements.authorization = ToolAuthRequirement(
             provider_type="oauth2", provider_id="test-provider"

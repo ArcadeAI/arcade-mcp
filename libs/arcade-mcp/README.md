@@ -31,7 +31,7 @@ Arcade MCP (Model Context Protocol) enables AI assistants and development tools 
 pip install arcade-ai
 ```
 
-### Create Your First Tool
+### Create Your First Server
 
 ```python
 from arcade_mcp import MCPApp

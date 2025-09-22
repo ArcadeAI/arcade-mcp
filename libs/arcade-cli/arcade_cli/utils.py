@@ -2,6 +2,7 @@ import importlib.util
 import ipaddress
 import os
 import shlex
+import sys
 import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
@@ -600,33 +601,45 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
         file_path_str = str(eval_file_path)
         module_name_str = module_name
 
-        # Load using importlib
-        spec = importlib.util.spec_from_file_location(module_name_str, file_path_str)
-        if spec is None:
-            console.print(f"Failed to load {eval_file_path}", style="bold red")
-            continue
+        # Add the directory containing the eval file to sys.path temporarily
+        # so that the eval file can import other modules in the same directory
+        eval_dir = str(eval_file_path.parent)
+        original_path = sys.path.copy()
+        if eval_dir not in sys.path:
+            sys.path.insert(0, eval_dir)
 
-        module = importlib.util.module_from_spec(spec)
-        if spec.loader is not None:
-            spec.loader.exec_module(module)
-        else:
-            console.print(f"Failed to load module: {module_name}", style="bold red")
-            continue
+        try:
+            # Load using importlib
+            spec = importlib.util.spec_from_file_location(module_name_str, file_path_str)
+            if spec is None:
+                console.print(f"Failed to load {eval_file_path}", style="bold red")
+                continue
 
-        eval_suite_funcs = [
-            obj
-            for name, obj in module.__dict__.items()
-            if callable(obj) and hasattr(obj, "__tool_eval__")
-        ]
+            module = importlib.util.module_from_spec(spec)
+            if spec.loader is not None:
+                spec.loader.exec_module(module)
+            else:
+                console.print(f"Failed to load module: {module_name}", style="bold red")
+                continue
 
-        if not eval_suite_funcs:
-            console.print(
-                f"No @tool_eval functions found in {eval_file_path}",
-                style="bold yellow",
-            )
-            continue
+            eval_suite_funcs = [
+                obj
+                for name, obj in module.__dict__.items()
+                if callable(obj) and hasattr(obj, "__tool_eval__")
+            ]
 
-        eval_suites.extend(eval_suite_funcs)
+            if not eval_suite_funcs:
+                console.print(
+                    f"No @tool_eval functions found in {eval_file_path}",
+                    style="bold yellow",
+                )
+                continue
+
+            eval_suites.extend(eval_suite_funcs)
+
+        finally:
+            # Restore the original sys.path
+            sys.path[:] = original_path
 
     return eval_suites
 
