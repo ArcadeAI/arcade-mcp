@@ -1,0 +1,173 @@
+{
+  "name": "RemoveSlackBookmark",
+  "fully_qualified_name": "SlackApi.RemoveSlackBookmark@0.1.0",
+  "description": "Remove a bookmark from a Slack channel.\n\nThis tool removes a specified bookmark from a Slack channel. It should be called when a user wants to delete a bookmark that is no longer needed or relevant. Requires appropriate permissions to execute.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "slack_channel_id_to_remove_bookmark",
+        "required": true,
+        "description": "The ID of the Slack channel from which the bookmark should be removed. This ID specifies the target channel and is required to locate and delete the bookmark.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel_id"
+      },
+      {
+        "name": "bookmark_id_to_remove",
+        "required": true,
+        "description": "The ID of the bookmark to be removed from a Slack channel. Ensure it is specified correctly to delete the correct bookmark.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bookmark_id"
+      },
+      {
+        "name": "quip_section_id",
+        "required": false,
+        "description": "The ID of the Quip section to unbookmark. This is required to specify which section's bookmark should be removed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "quip_section_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'bookmarks.remove'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "bookmarks:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/bookmarks.remove",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel_id",
+        "tool_parameter_name": "slack_channel_id_to_remove_bookmark",
+        "description": "Channel to remove bookmark.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "bookmark_id",
+        "tool_parameter_name": "bookmark_id_to_remove",
+        "description": "Bookmark to remove.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "quip_section_id",
+        "tool_parameter_name": "quip_section_id",
+        "description": "Quip section ID to unbookmark",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/bookmarks.remove"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

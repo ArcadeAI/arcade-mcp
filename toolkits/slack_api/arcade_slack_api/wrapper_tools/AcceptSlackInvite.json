@@ -1,0 +1,269 @@
+{
+  "name": "AcceptSlackInvite",
+  "fully_qualified_name": "SlackApi.AcceptSlackInvite@0.1.0",
+  "description": "Accept invitations to a Slack Connect channel.\n\nUse this tool to accept an invitation to a Slack Connect channel, facilitating seamless collaboration across different Slack workspaces.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "channel_name",
+        "required": true,
+        "description": "Provide the desired name for the Slack Connect channel. If the channel doesn't exist in your workspace, this name will be assigned to it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel_name"
+      },
+      {
+        "name": "invite_id",
+        "required": false,
+        "description": "ID of the invitation you want to accept. Must provide either this or channel_id.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "invite_id"
+      },
+      {
+        "name": "slack_channel_id_to_accept",
+        "required": false,
+        "description": "The ID of the channel you would like to accept the invitation for. Either this or `invite_id` is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel_id"
+      },
+      {
+        "name": "workspace_id",
+        "required": false,
+        "description": "The ID of the workspace where the channel should be accepted. Required if using an org-level token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "is_channel_private",
+        "required": false,
+        "description": "True to make the channel private; false to make it public.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_private"
+      },
+      {
+        "name": "use_free_trial",
+        "required": false,
+        "description": "Set to 'True' to use your workspace's free trial to start using Slack Connect.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "free_trial_accepted"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'conversations.acceptSharedInvite'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "conversations.connect:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/conversations.acceptSharedInvite",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel_name",
+        "tool_parameter_name": "channel_name",
+        "description": "Name of the channel. If the channel does not exist already in your workspace, this name is the one that the channel will take.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_private",
+        "tool_parameter_name": "is_channel_private",
+        "description": "Whether the channel should be private.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "free_trial_accepted",
+        "tool_parameter_name": "use_free_trial",
+        "description": "Whether you'd like to use your workspace's free trial to begin using Slack Connect.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "invite_id",
+        "tool_parameter_name": "invite_id",
+        "description": "ID of the invite that you\u2019d like to accept. Must provide either `invite_id` or `channel_id`. See the `shared_channel_invite_received` event payload for more details on how to retrieve the ID of the invitation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "channel_id",
+        "tool_parameter_name": "slack_channel_id_to_accept",
+        "description": "ID of the channel that you'd like to accept. Must provide either `invite_id` or `channel_id`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "workspace_id",
+        "description": "The ID of the workspace to accept the channel in. If an org-level token is used to call this method, the `team_id` argument is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/conversations.acceptsharedinvite"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

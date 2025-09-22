@@ -1,0 +1,619 @@
+{
+  "name": "SendSlackMessage",
+  "fully_qualified_name": "SlackApi.SendSlackMessage@0.1.0",
+  "description": "Sends a message to a Slack channel.\n\nThis tool allows you to send messages to a Slack channel or direct message on behalf of an authenticated user. It is useful for automating communications within Slack workspaces.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_channel_id_or_name",
+        "required": true,
+        "description": "The encoded ID or name of the channel, private group, or IM where the message will be sent. Retrieve using Slack's conversations.list API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "message_attachments",
+        "required": false,
+        "description": "A JSON array of structured attachment objects for the message, provided as a URL-encoded string. Example: `[{\"pretext\": \"pre-hello\", \"text\": \"text-world\"}]`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachments"
+      },
+      {
+        "name": "structured_blocks",
+        "required": false,
+        "description": "A JSON-based array of structured blocks for constructing messages using Block Kit. Provide as a URL-encoded string. Include fallback text if necessary.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "blocks"
+      },
+      {
+        "name": "emoji_icon_for_message",
+        "required": false,
+        "description": "Emoji to display as the icon for the Slack message. Overrides any image URL icon.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "icon_emoji"
+      },
+      {
+        "name": "message_icon_url",
+        "required": false,
+        "description": "URL to an image to use as the icon for the message. Overrides any specified icon emoji.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "icon_url"
+      },
+      {
+        "name": "message_markdown",
+        "required": false,
+        "description": "The message text formatted using markdown, up to 12,000 characters. Cannot be used with `blocks` or `text`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "markdown_text"
+      },
+      {
+        "name": "message_metadata",
+        "required": false,
+        "description": "A JSON object with 'event_type' and 'event_payload' fields, URL-encoded, providing additional metadata for the message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "metadata"
+      },
+      {
+        "name": "parse_mode",
+        "required": false,
+        "description": "Specifies how the message content should be treated. Options are 'none' to remove hyperlinks or 'full' to ignore markdown formatting.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parse"
+      },
+      {
+        "name": "message_text",
+        "required": false,
+        "description": "The main text of the message. Acts as the primary message or a fallback for notifications when using blocks. Supports plain text or markdown.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "text"
+      },
+      {
+        "name": "thread_timestamp",
+        "required": false,
+        "description": "Timestamp of the parent message to which this message will be a reply. Use the parent's `ts` value, not a reply's.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "thread_ts"
+      },
+      {
+        "name": "bot_username",
+        "required": false,
+        "description": "The display name to use for the bot when sending the message to Slack.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "username"
+      },
+      {
+        "name": "post_as_authenticated_user",
+        "required": false,
+        "description": "Set to true to post the message as the authenticated user instead of as a bot. Only applicable for classic apps.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "as_user"
+      },
+      {
+        "name": "link_user_groups",
+        "required": false,
+        "description": "Enable linking of user groups in the message. Individual user linking is not supported.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "link_names"
+      },
+      {
+        "name": "enable_slack_markup_parsing",
+        "required": false,
+        "description": "Set to true to enable Slack markup parsing in the message. Default is enabled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mrkdwn"
+      },
+      {
+        "name": "broadcast_reply_to_channel",
+        "required": false,
+        "description": "Set to true to make the reply visible to everyone in the channel when responding to a thread. Use with 'thread_ts'. Default is false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "reply_broadcast"
+      },
+      {
+        "name": "enable_unfurling_text_content",
+        "required": false,
+        "description": "Set to true to enable unfurling of primarily text-based content in Slack messages.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unfurl_links"
+      },
+      {
+        "name": "disable_media_unfurling",
+        "required": false,
+        "description": "Set to false to enable media unfurling and true to disable it. (default: 'false')",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unfurl_media"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'chat.postMessage'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "chat:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/chat.postMessage",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "channel",
+        "tool_parameter_name": "target_channel_id_or_name",
+        "description": "An encoded ID or channel name that represents a channel, private group, or IM channel to send the message to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "as_user",
+        "tool_parameter_name": "post_as_authenticated_user",
+        "description": "(Legacy) Pass true to post the message as the authed user instead of as a bot. Can only be used by classic apps.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachments",
+        "tool_parameter_name": "message_attachments",
+        "description": "A JSON-based array of structured attachments, presented as a URL-encoded string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "blocks",
+        "tool_parameter_name": "structured_blocks",
+        "description": "A JSON-based array of structured blocks, presented as a URL-encoded string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "icon_emoji",
+        "tool_parameter_name": "emoji_icon_for_message",
+        "description": "Emoji to use as the icon for this message. Overrides `icon_url`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "icon_url",
+        "tool_parameter_name": "message_icon_url",
+        "description": "URL to an image to use as the icon for this message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "link_names",
+        "tool_parameter_name": "link_user_groups",
+        "description": "Find and link user groups. No longer supports linking individual users; use syntax shown in Mentioning Users instead.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "markdown_text",
+        "tool_parameter_name": "message_markdown",
+        "description": "Accepts message text formatted in markdown. This argument should not be used in conjunction with `blocks` or `text`. Limit this field to 12,000 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "metadata",
+        "tool_parameter_name": "message_metadata",
+        "description": "JSON object with event_type and event_payload fields, presented as a URL-encoded string. Metadata you post to Slack is accessible to any app or user who is a member of that workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "mrkdwn",
+        "tool_parameter_name": "enable_slack_markup_parsing",
+        "description": "Disable Slack markup parsing by setting to `false`. Enabled by default.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "parse",
+        "tool_parameter_name": "parse_mode",
+        "description": "Change how messages are treated. By default, URLs will be hyperlinked. Set `parse` to `none` to remove the hyperlinks. The behavior of `parse` is different for text formatted with `mrkdwn`. By default, or when `parse` is set to `none`, `mrkdwn` formatting is implemented. To ignore `mrkdwn` formatting, set `parse` to `full`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "reply_broadcast",
+        "tool_parameter_name": "broadcast_reply_to_channel",
+        "description": "Used in conjunction with `thread_ts` and indicates whether reply should be made visible to everyone in the channel or conversation.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "text",
+        "tool_parameter_name": "message_text",
+        "description": "The main body text of the message. The usage of the `text` field changes depending on whether you're using `blocks`. If you're using `blocks`, this is used as a fallback string to display in notifications. If you aren't, this is the main body text of the message. It can be formatted as plain text or with `mrkdwn`. It's recommended for providing a fallback when using `blocks`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "thread_ts",
+        "tool_parameter_name": "thread_timestamp",
+        "description": "Provide another message's `ts` value to make this message a reply. Avoid using a reply's `ts` value; use its parent instead.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unfurl_links",
+        "tool_parameter_name": "enable_unfurling_text_content",
+        "description": "Pass true to enable unfurling of primarily text-based content.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unfurl_media",
+        "tool_parameter_name": "disable_media_unfurling",
+        "description": "Pass false to disable unfurling of media content.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "username",
+        "tool_parameter_name": "bot_username",
+        "description": "Set your bot's user name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/chat.postmessage"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

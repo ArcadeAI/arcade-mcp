@@ -1,0 +1,141 @@
+{
+  "name": "AddSlackEmojiAlias",
+  "fully_qualified_name": "SlackApi.AddSlackEmojiAlias@0.1.0",
+  "description": "Add an emoji alias in a Slack Enterprise organization.\n\nThis tool calls the Slack API to add an alias for an emoji within a Slack Enterprise organization. It should be used when a user wants to create a new shortcut or name for an existing emoji. Requires appropriate admin permissions.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "emoji_alias_name",
+        "required": true,
+        "description": "The new alias for the specified emoji. Whitespace or colons will be automatically trimmed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "target_emoji_name",
+        "required": true,
+        "description": "The name of the existing emoji to which the new alias is being added. Remove any surrounding whitespace or colons.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "alias_for"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'admin.emoji.addAlias'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "admin.teams:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/admin.emoji.addAlias",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "emoji_alias_name",
+        "description": "The new alias for the specified emoji. Any wrapping whitespace or colons will be automatically trimmed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "alias_for",
+        "tool_parameter_name": "target_emoji_name",
+        "description": "Name of the emoji for which the alias is being made. Any wrapping whitespace or colons will be automatically trimmed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/admin.emoji.addalias"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,461 @@
+{
+  "name": "SendEphemeralMessageSlack",
+  "fully_qualified_name": "SlackApi.SendEphemeralMessageSlack@0.1.0",
+  "description": "Send an ephemeral message to a user in a Slack channel.\n\nThis tool sends an ephemeral message to a user within a specified Slack channel. It's useful for sending temporary messages or notifications that only the specified user can see. Requires the 'chat:write' scope.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_channel",
+        "required": true,
+        "description": "The channel, private group, or IM channel where the ephemeral message will be sent. Accepts an encoded ID or the channel's name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "recipient_user_id",
+        "required": true,
+        "description": "The ID of the user who will receive the ephemeral message. Must be in the specified channel.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "structured_attachments",
+        "required": false,
+        "description": "A JSON-encoded array of structured attachments for the message. Presented as a URL-encoded string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "attachments"
+      },
+      {
+        "name": "structured_blocks",
+        "required": false,
+        "description": "A URL-encoded JSON array of structured Slack block elements. Use for rich message formatting.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "blocks"
+      },
+      {
+        "name": "message_icon_emoji",
+        "required": false,
+        "description": "Emoji to display as the message icon, overriding icon_url. Specify using the emoji name like :smile:.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "icon_emoji"
+      },
+      {
+        "name": "message_icon_url",
+        "required": false,
+        "description": "URL for the image to be used as the icon for the message. It overrides the icon_emoji if provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "icon_url"
+      },
+      {
+        "name": "message_markdown_text",
+        "required": false,
+        "description": "The main text formatted in markdown to be sent as an ephemeral message. Do not use with `blocks` or `text`. Character limit: 12,000.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "markdown_text"
+      },
+      {
+        "name": "message_parse_mode",
+        "required": false,
+        "description": "Specifies how the message text is interpreted. Options are: 'none', 'full', 'mrkdwn', or 'false'. Defaults to 'none'. (default: 'none')",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "parse"
+      },
+      {
+        "name": "ephemeral_message_text",
+        "required": false,
+        "description": "The main text of the ephemeral message for Slack. It acts as a fallback when using blocks; can be formatted as plain text or markdown. Limit to a few thousand bytes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "text"
+      },
+      {
+        "name": "parent_message_timestamp",
+        "required": false,
+        "description": "The timestamp of the parent message to post this ephemeral message in its thread. Ensure there is already an active thread.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "thread_ts"
+      },
+      {
+        "name": "bot_username",
+        "required": false,
+        "description": "The username for the bot sending the ephemeral message. This sets the display name in the Slack message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "username"
+      },
+      {
+        "name": "link_names_auto_link",
+        "required": false,
+        "description": "Set to true to automatically find and link channel names and usernames.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "link_names"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'chat.postEphemeral'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "chat:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/chat.postEphemeral",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel",
+        "tool_parameter_name": "target_channel",
+        "description": "Channel, private group, or IM channel to send message to. Can be an encoded ID, or a name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "recipient_user_id",
+        "description": "ID of the user who will receive the ephemeral message. The user should be in the channel specified by the `channel` argument.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "attachments",
+        "tool_parameter_name": "structured_attachments",
+        "description": "A JSON-based array of structured attachments, presented as a URL-encoded string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "blocks",
+        "tool_parameter_name": "structured_blocks",
+        "description": "A JSON-based array of structured blocks, presented as a URL-encoded string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "icon_emoji",
+        "tool_parameter_name": "message_icon_emoji",
+        "description": "Emoji to use as the icon for this message. Overrides `icon_url`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "icon_url",
+        "tool_parameter_name": "message_icon_url",
+        "description": "URL to an image to use as the icon for this message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "link_names",
+        "tool_parameter_name": "link_names_auto_link",
+        "description": "Find and link channel names and usernames.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "markdown_text",
+        "tool_parameter_name": "message_markdown_text",
+        "description": "Accepts message text formatted in markdown. This argument should not be used in conjunction with `blocks` or `text`. Limit this field to 12,000 characters.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "parse",
+        "tool_parameter_name": "message_parse_mode",
+        "description": "Change how messages are treated. Defaults to `none`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "text",
+        "tool_parameter_name": "ephemeral_message_text",
+        "description": "How this field works and whether it is required depends on other fields you use in your API call. If you're using `blocks`, this is used as a fallback string to display in notifications. If you aren't, this is the main body text of the message. It can be formatted as plain text, or with `mrkdwn`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "thread_ts",
+        "tool_parameter_name": "parent_message_timestamp",
+        "description": "Provide another message's `ts` value to post this message in a thread. Avoid using a reply's `ts` value; use its parent's value instead. Ephemeral messages in threads are only shown if there is already an active thread.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "username",
+        "tool_parameter_name": "bot_username",
+        "description": "Set your bot's user name.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/chat.postephemeral"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

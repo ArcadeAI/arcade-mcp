@@ -1,0 +1,333 @@
+{
+  "name": "RegisterSlackCall",
+  "fully_qualified_name": "SlackApi.RegisterSlackCall@0.1.0",
+  "description": "Registers a new call on Slack.\n\nThis tool registers a new call on Slack using the Slack API. It should be called when you want to create and log a new call event in a Slack workspace. The tool requires appropriate permissions (calls:write scope).",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "unique_call_id",
+        "required": true,
+        "description": "A unique ID for the Call, provided by the 3rd-party Call provider. Ensure it is unique across all calls from your service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "external_unique_id"
+      },
+      {
+        "name": "call_join_url",
+        "required": true,
+        "description": "The URL required for a client to join the Call on Slack.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "join_url"
+      },
+      {
+        "name": "optional_human_readable_display_id",
+        "required": false,
+        "description": "An optional, human-readable ID for the call, supplied by the third-party provider. This ID will be displayed in the Call object if given.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "external_display_id"
+      },
+      {
+        "name": "desktop_app_join_url",
+        "required": false,
+        "description": "The URL used to directly launch the 3rd-party Call from Slack clients, if provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "desktop_app_join_url"
+      },
+      {
+        "name": "call_start_timestamp",
+        "required": false,
+        "description": "Unix timestamp indicating when the call is scheduled to start.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_start"
+      },
+      {
+        "name": "call_title",
+        "required": false,
+        "description": "The name of the Call to be registered on Slack. This title will be used to identify the Call within Slack.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "title"
+      },
+      {
+        "name": "call_creator_user_id",
+        "required": false,
+        "description": "The valid Slack user ID of the creator of this call. Optional if using a user token, which defaults to the authed user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "created_by"
+      },
+      {
+        "name": "participants_info",
+        "required": false,
+        "description": "A list of participants to register for the call, including 'slack_id', 'external_id', 'display_name', and 'avatar_url' for each user.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "users"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'calls.add'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "calls:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/calls.add",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "external_unique_id",
+        "tool_parameter_name": "unique_call_id",
+        "description": "An ID supplied by the 3rd-party Call provider. It must be unique across all Calls from that service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "join_url",
+        "tool_parameter_name": "call_join_url",
+        "description": "The URL required for a client to join the Call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "external_display_id",
+        "tool_parameter_name": "optional_human_readable_display_id",
+        "description": "An optional, human-readable ID supplied by the 3rd-party Call provider. If supplied, this ID will be displayed in the Call object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "desktop_app_join_url",
+        "tool_parameter_name": "desktop_app_join_url",
+        "description": "When supplied, available Slack clients will attempt to directly launch the 3rd-party Call with this URL.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_start",
+        "tool_parameter_name": "call_start_timestamp",
+        "description": "Unix timestamp of the call start time",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "title",
+        "tool_parameter_name": "call_title",
+        "description": "The name of the Call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "created_by",
+        "tool_parameter_name": "call_creator_user_id",
+        "description": "The valid Slack user ID of the user who created this Call. Required unless the method is called with a user token, in which case it defaults to the authed user of the token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "users",
+        "tool_parameter_name": "participants_info",
+        "description": "The list of users to register as participants in the Call.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/calls.add"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
