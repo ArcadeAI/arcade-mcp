@@ -145,6 +145,8 @@ class TestMicrosoftGraphErrorAdapter:
         mock_inner_error.code = "invalidSyntax"
         setattr(mock_inner_error, "request-id", "12345-67890")
         mock_inner_error.date = "2025-09-22T16:08:56Z"
+        # Explicitly set client_request_id to None to avoid Mock object
+        mock_inner_error.client_request_id = None
 
         mock_error = self._create_mock_api_error(
             message="The request is invalid",
@@ -203,6 +205,9 @@ class TestMicrosoftGraphErrorAdapter:
         mock_inner_error.code = None
         setattr(mock_inner_error, "request-id", None)
         mock_inner_error.date = None
+        # Explicitly set all other fields to None
+        mock_inner_error.request_id = None
+        mock_inner_error.client_request_id = None
 
         mock_error = self._create_mock_api_error(
             message="Service temporarily unavailable",
@@ -223,6 +228,8 @@ class TestMicrosoftGraphErrorAdapter:
         mock_inner_error.code = "invalidRange"
         setattr(mock_inner_error, "request-id", "request-id")
         mock_inner_error.date = "date-time"
+        # Explicitly set client_request_id to None to avoid Mock object
+        mock_inner_error.client_request_id = None
 
         mock_error = self._create_mock_api_error(
             message="Uploaded fragment overlaps with existing data.",
@@ -360,10 +367,24 @@ class TestMicrosoftGraphErrorAdapter:
 
     def test_handle_api_errors_with_api_error(self):
         """Test handling APIError exceptions."""
+
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         mock_msgraph = Mock()
-        mock_error = self._create_mock_api_error(
-            status_code=401, message="Unauthorized", code="Unauthorized"
-        )
+        mock_msgraph.APIError = MockAPIError
+
+        mock_error = MockAPIError()
+        # Add the expected attributes
+        mock_error.response = Mock()
+        mock_error.response.status_code = 401
+        mock_error.response.url = "https://graph.microsoft.com/v1.0/me"
+        mock_error.response.headers = {}
+        mock_error.error = Mock()
+        mock_error.error.message = "Unauthorized"
+        mock_error.error.code = "Unauthorized"
+        mock_error.error.inner_error = None
 
         result = self.adapter._handle_api_errors(mock_error, mock_msgraph)
 
@@ -373,7 +394,14 @@ class TestMicrosoftGraphErrorAdapter:
 
     def test_handle_api_errors_non_api_error(self):
         """Test handling non-APIError exceptions returns None."""
+
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
+
         mock_error = ValueError("Not an API error")
 
         result = self.adapter._handle_api_errors(mock_error, mock_msgraph)
@@ -381,45 +409,73 @@ class TestMicrosoftGraphErrorAdapter:
 
     def test_handle_api_errors_wrong_class_name(self):
         """Test handling exception with wrong class name returns None."""
+
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
+
         mock_error = Mock()
         mock_error.__class__.__name__ = "SomeOtherError"
 
         result = self.adapter._handle_api_errors(mock_error, mock_msgraph)
         assert result is None
 
-    def test_from_exception_msgraph_not_installed(self, caplog):
-        """Test handling when msgraph-sdk is not installed."""
+    def test_from_exception_kiota_not_installed(self, caplog):
+        """Test handling when kiota-abstractions is not installed."""
         with (
             patch("arcade_tdk.providers.microsoft.error_adapter.logger") as mock_logger,
-            patch.dict("sys.modules", {"msgraph": None}),
+            patch.dict("sys.modules", {"kiota_abstractions.api_error": None}),
             patch(
                 "builtins.__import__",
-                side_effect=ImportError("No module named 'msgraph'"),
+                side_effect=ImportError("No module named 'kiota_abstractions'"),
             ),
         ):
             mock_exc = Exception("test exception")
             result = self.adapter.from_exception(mock_exc)
 
-            assert result is None
-            mock_logger.info.assert_called_once()
-            warning_message = mock_logger.info.call_args[0][0]
-            assert "'msgraph-sdk' is not installed" in warning_message
-            assert "_microsoft_graph" in warning_message
+        assert result is None
+        mock_logger.info.assert_called_once()
+        warning_message = mock_logger.info.call_args[0][0]
+        assert "'kiota-abstractions' is not installed" in warning_message
+        assert "_microsoft_graph" in warning_message
 
     def test_from_exception_api_error_handling(self):
         """Test full from_exception flow with API error."""
-        mock_error = self._create_mock_api_error(
-            status_code=403,
-            message="Forbidden",
-            code="Forbidden",
-            url="https://graph.microsoft.com/v1.0/me/messages",
-        )
 
-        # Create mock msgraph module
-        mock_msgraph = Mock()
+        # Create mock api_error module with APIError class
+        class MockAPIError:
+            def __init__(self):
+                # Initialize with the same structure as _create_mock_api_error
+                self.response = Mock()
+                self.response.status_code = 403
+                self.response.url = "https://graph.microsoft.com/v1.0/me/messages"
+                self.response.headers = {}
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+                self.error = Mock()
+                self.error.message = "Forbidden"
+                self.error.code = "Forbidden"
+                self.error.inner_error = None
+
+        mock_api_error_module = Mock()
+        mock_api_error_module.APIError = MockAPIError
+
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_api_error_module
+
+        # Create the mock error as an actual instance of MockAPIError
+        mock_error = MockAPIError()
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_api_error_module,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamError)
@@ -436,10 +492,26 @@ class TestMicrosoftGraphErrorAdapter:
         mock_error = MockUnhandledError("Some unhandled Microsoft Graph error")
         mock_error.__module__ = "msgraph.generated.models"
 
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         # Create mock msgraph module
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_msgraph
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "msgraph": Mock(),
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_msgraph,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamError)
@@ -459,10 +531,26 @@ class TestMicrosoftGraphErrorAdapter:
         mock_error = MockCoreError("Core error")
         mock_error.__module__ = "msgraph_core.requests"
 
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         # Create mock msgraph module
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_msgraph
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "msgraph": Mock(),
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_msgraph,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamError)
@@ -475,10 +563,26 @@ class TestMicrosoftGraphErrorAdapter:
         mock_error = ValueError("Not a Microsoft Graph error")
         mock_error.__module__ = "builtins"
 
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         # Create mock msgraph module
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_msgraph
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "msgraph": Mock(),
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_msgraph,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert result is None
@@ -489,28 +593,64 @@ class TestMicrosoftGraphErrorAdapter:
         if hasattr(mock_error, "__module__"):
             del mock_error.__module__
 
+        # Create mock APIError class
+        class MockAPIError:
+            pass
+
         # Create mock msgraph module
         mock_msgraph = Mock()
+        mock_msgraph.APIError = MockAPIError
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_msgraph
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "msgraph": Mock(),
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_msgraph,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert result is None
 
     def test_from_exception_rate_limit_integration(self):
         """Test full integration with rate limit error."""
-        mock_error = self._create_mock_api_error(
-            status_code=429,
-            message="Rate limit exceeded",
-            code="TooManyRequests",
-            url="https://graph.microsoft.com/v1.0/me/messages",
-            headers={"Retry-After": "300"},
-        )
 
-        # Create mock msgraph module
-        mock_msgraph = Mock()
+        # Create mock api_error module with APIError class
+        class MockAPIError:
+            def __init__(self):
+                # Initialize with the same structure as _create_mock_api_error
+                self.response = Mock()
+                self.response.status_code = 429
+                self.response.url = "https://graph.microsoft.com/v1.0/me/messages"
+                self.response.headers = {"Retry-After": "300"}
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+                self.error = Mock()
+                self.error.message = "Rate limit exceeded"
+                self.error.code = "TooManyRequests"
+                self.error.inner_error = None
+
+        mock_api_error_module = Mock()
+        mock_api_error_module.APIError = MockAPIError
+
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_api_error_module
+
+        # Create the mock error as an actual instance of MockAPIError
+        mock_error = MockAPIError()
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_api_error_module,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamRateLimitError)
@@ -521,24 +661,44 @@ class TestMicrosoftGraphErrorAdapter:
 
     def test_from_exception_complex_error_details(self):
         """Test handling error with complex nested error details."""
-        # Create mock inner error with proper Mock structure
-        mock_inner_error = Mock()
-        mock_inner_error.code = "InvalidSyntax"
-        setattr(mock_inner_error, "request-id", "12345-67890")
-        mock_inner_error.date = "2025-09-22T16:08:56Z"
 
-        mock_error = self._create_mock_api_error(
-            status_code=400,
-            message="Invalid request syntax",
-            code="BadRequest",
-            inner_error=mock_inner_error,
-            url="https://graph.microsoft.com/v1.0/me/messages",
-        )
+        # Create mock api_error module with APIError class
+        class MockAPIError:
+            def __init__(self):
+                # Create mock inner error with proper Mock structure
+                mock_inner_error = Mock()
+                mock_inner_error.code = "InvalidSyntax"
+                setattr(mock_inner_error, "request-id", "12345-67890")
+                mock_inner_error.date = "2025-09-22T16:08:56Z"
 
-        # Create mock msgraph module
-        mock_msgraph = Mock()
+                # Initialize with the same structure as _create_mock_api_error
+                self.response = Mock()
+                self.response.status_code = 400
+                self.response.url = "https://graph.microsoft.com/v1.0/me/messages"
+                self.response.headers = {}
 
-        with patch.dict("sys.modules", {"msgraph": mock_msgraph}):
+                self.error = Mock()
+                self.error.message = "Invalid request syntax"
+                self.error.code = "BadRequest"
+                self.error.inner_error = mock_inner_error
+
+        mock_api_error_module = Mock()
+        mock_api_error_module.APIError = MockAPIError
+
+        # Create parent module mock
+        mock_kiota_module = Mock()
+        mock_kiota_module.api_error = mock_api_error_module
+
+        # Create the mock error as an actual instance of MockAPIError
+        mock_error = MockAPIError()
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "kiota_abstractions": mock_kiota_module,
+                "kiota_abstractions.api_error": mock_api_error_module,
+            },
+        ):
             result = self.adapter.from_exception(mock_error)
 
         assert isinstance(result, UpstreamError)

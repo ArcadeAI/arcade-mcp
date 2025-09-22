@@ -21,23 +21,27 @@ class MicrosoftGraphErrorAdapter:
         """
         Translate a Microsoft Graph SDK exception into a ToolRuntimeError.
         """
-        # Lazy import the Microsoft Graph SDK to avoid import errors for toolkits that don't use msgraph-sdk
+        # Lazy import kiota abstractions to avoid import errors for toolkits that don't use msgraph-sdk
         try:
-            import msgraph
+            from kiota_abstractions import api_error
         except ImportError:
             logger.info(
-                f"'msgraph-sdk' is not installed in the toolkit's environment, "
+                f"'kiota-abstractions' is not installed in the toolkit's environment, "
                 f"so the '{self.slug}' adapter was not used to handle the upstream error"
             )
             return None
 
         # Try API errors first
-        result = self._handle_api_errors(exc, msgraph)
+        result = self._handle_api_errors(exc, api_error)
         if result:
             return result
 
         # Failsafe for any unhandled Microsoft Graph SDK errors that are not mapped above
-        if hasattr(exc, "__module__") and exc.__module__ and exc.__module__.startswith("msgraph"):
+        if (
+            hasattr(exc, "__module__")
+            and exc.__module__
+            and ("msgraph" in exc.__module__ or "kiota" in exc.__module__)
+        ):
             return UpstreamError(
                 message=f"Upstream Microsoft Graph error: {exc}",
                 status_code=500,
@@ -110,26 +114,46 @@ class MicrosoftGraphErrorAdapter:
         Returns:
             Tuple of (user_message, developer_message)
         """
-        user_message = f"Upstream Microsoft Graph API error: {error.error.message}"
+        message = "Unknown Microsoft Graph error"
+        code = "UnknownError"
+        inner_error = None
 
-        developer_message = f"Microsoft Graph error code: {error.error.code}"
+        # Extract error details
+        if hasattr(error, "error") and error.error:
+            if hasattr(error.error, "message"):
+                message = error.error.message or message
+            if hasattr(error.error, "code"):
+                code = error.error.code or code
+            if hasattr(error.error, "inner_error"):
+                inner_error = error.error.inner_error
 
-        if error.error.inner_error:
-            inner_error = error.error.inner_error
-            inner_details = []
+        user_message = f"Upstream Microsoft Graph API error: {message}"
+        developer_message = f"Microsoft Graph error code: {code}"
 
-            if inner_error.code:
-                inner_details.append(f"code: {inner_error.code}")
-            if getattr(inner_error, "request-id", None):
-                inner_details.append(f"request-id: {getattr(inner_error, 'request-id')}")
-            if inner_error.date:
-                inner_details.append(f"date: {inner_error.date}")
-
-            if inner_details:
-                inner_error_str = ", ".join(inner_details)
-                developer_message += f" - Inner error: {inner_error_str}"
+        # Add inner error details if present
+        if inner_error:
+            inner_error_details = self._format_inner_error_details(inner_error)
+            if inner_error_details:
+                developer_message += f" - Inner error: {inner_error_details}"
 
         return user_message, developer_message
+
+    def _format_inner_error_details(self, inner_error: Any) -> str:
+        """Format inner error details into a readable string."""
+        inner_details = []
+
+        if hasattr(inner_error, "code") and inner_error.code:
+            inner_details.append(f"code: {inner_error.code}")
+        if getattr(inner_error, "request-id", None):
+            inner_details.append(f"request-id: {getattr(inner_error, 'request-id')}")
+        elif hasattr(inner_error, "request_id") and inner_error.request_id:
+            inner_details.append(f"request-id: {inner_error.request_id}")
+        if hasattr(inner_error, "client_request_id") and inner_error.client_request_id:
+            inner_details.append(f"client-request-id: {inner_error.client_request_id}")
+        if hasattr(inner_error, "date") and inner_error.date:
+            inner_details.append(f"date: {inner_error.date}")
+
+        return ", ".join(inner_details)
 
     def _map_api_error(self, error: Any) -> ToolRuntimeError | None:
         """Map Microsoft Graph APIError to appropriate ToolRuntimeError."""
@@ -157,11 +181,14 @@ class MicrosoftGraphErrorAdapter:
         ):
             extra["endpoint"] = self._sanitize_uri(str(error.response.url))
 
-        extra["error_code"] = error.error.code
+        error_code = "UnknownError"
+        if hasattr(error, "error") and error.error and hasattr(error.error, "code"):
+            error_code = error.error.code
+        extra["error_code"] = error_code
 
         # Special case for rate limiting (429) and quota exceeded (503 with specific error codes)
         if status_code == 429 or (
-            status_code == 503 and error.error.code in ["TooManyRequests", "ServiceUnavailable"]
+            status_code == 503 and error_code in ["TooManyRequests", "ServiceUnavailable"]
         ):
             return UpstreamRateLimitError(
                 retry_after_ms=self._parse_retry_after(error),
@@ -177,10 +204,8 @@ class MicrosoftGraphErrorAdapter:
             extra=extra,
         )
 
-    def _handle_api_errors(self, exc: Exception, msgraph_module: Any) -> ToolRuntimeError | None:
+    def _handle_api_errors(self, exc: Exception, api_error_module: Any) -> ToolRuntimeError | None:
         """Handle APIError and its subclasses."""
-        # Since msgraph-sdk uses Kiota's APIError, we need to check by class name
-        # as we can't directly import the APIError class
-        if exc.__class__.__name__ == "APIError":
+        if isinstance(exc, api_error_module.APIError):
             return self._map_api_error(exc)
         return None
