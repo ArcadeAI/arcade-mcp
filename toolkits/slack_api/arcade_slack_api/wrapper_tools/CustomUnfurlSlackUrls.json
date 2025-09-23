@@ -1,0 +1,365 @@
+{
+  "name": "CustomUnfurlSlackUrls",
+  "fully_qualified_name": "SlackApi.CustomUnfurlSlackUrls@0.1.0",
+  "description": "Provide custom unfurl behavior for user-posted URLs on Slack.\n\nThis tool should be called to customize how URLs posted by users are displayed in Slack by providing a custom unfurl behavior.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "channel_id",
+        "required": true,
+        "description": "ID of the Slack channel where the message is posted. Required with 'ts' for custom unfurl or with 'unfurl_id' and 'source'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "message_timestamp",
+        "required": true,
+        "description": "Timestamp of the message to which unfurl behavior will be added. Ensure it corresponds to a message in the specified channel containing a fully-qualified URL registered with your Slack app.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ts"
+      },
+      {
+        "name": "unfurl_url_map",
+        "required": true,
+        "description": "A URL-encoded JSON map with URLs as keys and their corresponding unfurl data as values. Each URL should point to a single attachment, like message buttons.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unfurls"
+      },
+      {
+        "name": "authentication_invitation_message",
+        "required": false,
+        "description": "A simple formatted string sent as an ephemeral message inviting the user to authenticate for full unfurl behavior. Supports Slack's *bold*, _italics_, and linking formatting. If provided, this takes precedence over `authentication_invitation_url`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_auth_message"
+      },
+      {
+        "name": "custom_authentication_url",
+        "required": false,
+        "description": "A URL to redirect users for app authentication to enable full URL unfurling, requires URL encoding.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_auth_url"
+      },
+      {
+        "name": "user_authentication_blocks",
+        "required": false,
+        "description": "A URL-encoded JSON array of structured blocks to send as an ephemeral message for user authentication invitation.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_auth_blocks"
+      },
+      {
+        "name": "unfurl_link_id",
+        "required": false,
+        "description": "The ID of the link to unfurl. Must be used with 'source'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "unfurl_id"
+      },
+      {
+        "name": "link_source",
+        "required": false,
+        "description": "Specify the source of the link to unfurl as either 'composer' for links inside the message composer or 'conversations_history' for links posted to a conversation. Must be used with 'unfurl_id', or alternatively with 'channel' and 'ts'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "source"
+      },
+      {
+        "name": "require_user_authentication",
+        "required": false,
+        "description": "Set to true if the user must install your Slack app to trigger unfurls for this domain.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_auth_required"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'chat.unfurl'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "links:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/chat.unfurl",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel",
+        "tool_parameter_name": "channel_id",
+        "description": "Channel ID of the message. Both `channel` and `ts` must be provided together, or `unfurl_id` and `source` must be provided together.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ts",
+        "tool_parameter_name": "message_timestamp",
+        "description": "Timestamp of the message to add unfurl behavior to.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unfurls",
+        "tool_parameter_name": "unfurl_url_map",
+        "description": "URL-encoded JSON map with keys set to URLs featured in the message, pointing to their unfurl blocks or message attachments.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_auth_message",
+        "tool_parameter_name": "authentication_invitation_message",
+        "description": "Provide a simply-formatted string to send as an ephemeral message to the user as invitation to authenticate further and enable full unfurling behavior. Provides two buttons, `Not now` or `Never ask me again`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_auth_required",
+        "tool_parameter_name": "require_user_authentication",
+        "description": "Set to `true` or `1` to indicate the user must install your Slack app to trigger unfurls for this domain.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_auth_url",
+        "tool_parameter_name": "custom_authentication_url",
+        "description": "Send users to this custom URL where they will complete authentication in your app to fully trigger unfurling. Value should be properly URL-encoded.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_auth_blocks",
+        "tool_parameter_name": "user_authentication_blocks",
+        "description": "Provide a JSON based array of structured blocks presented as URL-encoded string to send as an ephemeral message to the user as invitation to authenticate further and enable full unfurling behavior",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "unfurl_id",
+        "tool_parameter_name": "unfurl_link_id",
+        "description": "The ID of the link to unfurl. Both `unfurl_id` and `source` must be provided together, or `channel` and `ts` must be provided together.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "source",
+        "tool_parameter_name": "link_source",
+        "description": "The source of the link to unfurl. The source may either be `composer`, when the link is inside the message composer, or `conversations_history`, when the link has been posted to a conversation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/chat.unfurl"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
