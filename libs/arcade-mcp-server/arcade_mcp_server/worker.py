@@ -177,31 +177,115 @@ def create_arcade_mcp(
     return app
 
 
+def create_arcade_mcp_factory() -> FastAPI:
+    """
+    App factory for uvicorn reload support.
+
+    This function is called by uvicorn when using reload mode with an import string.
+    It rediscovers the catalog and reads configuration from environment variables.
+    """
+    import os
+
+    from arcade_core.discovery import discover_tools
+    from arcade_core.toolkit import ToolkitLoadError
+
+    # Read configuration from env vars that were set before running the server
+    debug = os.environ.get("ARCADE_MCP_DEBUG", "false").lower() == "true"
+    tool_package = os.environ.get("ARCADE_MCP_TOOL_PACKAGE")
+    discover_installed = os.environ.get("ARCADE_MCP_DISCOVER_INSTALLED", "false").lower() == "true"
+    show_packages = os.environ.get("ARCADE_MCP_SHOW_PACKAGES", "false").lower() == "true"
+    server_name = os.environ.get("ARCADE_MCP_SERVER_NAME")
+    server_version = os.environ.get("ARCADE_MCP_SERVER_VERSION")
+
+    # Rediscover tools since there have been changes
+    try:
+        catalog = discover_tools(
+            tool_package=tool_package,
+            show_packages=show_packages,
+            discover_installed=discover_installed,
+            server_name=server_name,
+            server_version=server_version,
+        )
+    except ToolkitLoadError as exc:
+        logger.error(str(exc))
+        raise RuntimeError(f"Failed to discover tools: {exc}") from exc
+
+    total_tools = len(catalog)
+    if total_tools == 0:
+        logger.error("No tools found. Create Python files with @tool decorated functions.")
+        raise RuntimeError("No tools found")
+
+    logger.info(f"Total tools loaded: {total_tools}")
+
+    # Build kwargs for server creation
+    kwargs = {}
+    if server_name:
+        kwargs["name"] = server_name
+    if server_version:
+        kwargs["version"] = server_version
+
+    return create_arcade_mcp(
+        catalog=catalog,
+        mcp_settings=None,
+        debug=debug,
+        **kwargs,
+    )
+
+
 def run_arcade_mcp(
     catalog: ToolCatalog,
     host: str = "127.0.0.1",
     port: int = 7777,
     reload: bool = False,
     debug: bool = False,
+    tool_package: str | None = None,
+    discover_installed: bool = False,
+    show_packages: bool = False,
     **kwargs: Any,
 ) -> None:
     """
     Run the integrated Arcade MCP server with uvicorn.
     """
-
-    app = create_arcade_mcp(
-        catalog=catalog,
-        debug=debug,
-        **kwargs,
-    )
+    import os
 
     log_level = "debug" if debug else "info"
 
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        log_level=log_level,
-        reload=reload,
-        lifespan="on",
-    )
+    if reload:
+        # Set env vars for the app factory to read later
+        os.environ["ARCADE_MCP_DEBUG"] = str(debug)
+        if tool_package:
+            os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
+        os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
+        os.environ["ARCADE_MCP_SHOW_PACKAGES"] = str(show_packages)
+        if kwargs.get("name"):
+            os.environ["ARCADE_MCP_SERVER_NAME"] = kwargs["name"]
+        if kwargs.get("version"):
+            os.environ["ARCADE_MCP_SERVER_VERSION"] = kwargs["version"]
+
+        # import string is required for reload mode
+        app_import_string = "arcade_mcp_server.worker:create_arcade_mcp_factory"
+
+        uvicorn.run(
+            app_import_string,
+            factory=True,
+            host=host,
+            port=port,
+            log_level=log_level,
+            reload=reload,
+            lifespan="on",
+        )
+    else:
+        app = create_arcade_mcp(
+            catalog=catalog,
+            debug=debug,
+            **kwargs,
+        )
+
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level=log_level,
+            reload=reload,
+            lifespan="on",
+        )

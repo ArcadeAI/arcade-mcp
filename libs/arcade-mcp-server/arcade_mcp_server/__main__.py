@@ -233,7 +233,7 @@ Auto-discovery looks for Python files with @tool decorated functions in:
     parser.add_argument(
         "--port",
         type=int,
-        default=7777,
+        default=8000,
         help="Port to bind to (HTTP mode only)",
     )
     parser.add_argument(
@@ -336,6 +336,9 @@ Auto-discovery looks for Python files with @tool decorated functions in:
                 port=args.port,
                 reload=args.reload,
                 debug=args.debug,
+                tool_package=args.tool_package,
+                discover_installed=args.discover_installed,
+                show_packages=args.show_packages,
                 **server_kwargs,
             )
     except (KeyboardInterrupt, asyncio.CancelledError):
