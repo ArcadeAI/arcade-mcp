@@ -41,7 +41,7 @@ runs:
       shell: bash
 
     - name: Install contrib dependencies
-      if: iinputs.is-contrib == 'true'
+      if: inputs.is-contrib == 'true'
       working-directory: ${{ inputs.working-directory }}
       run: |
         echo "Installing dependencies for ${{ inputs.working-directory }}"
