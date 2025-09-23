@@ -10,8 +10,7 @@ BE OVERWRITTEN BY THE TRANSPILER.
 from typing import Annotated, Any
 
 import httpx
-
-from arcade_tdk import tool, ToolContext
+from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 
 
@@ -3273,4 +3272,3 @@ async def set_slack_profile_photo(
             return {"response_json": response.json()}
         except Exception:
             return {"response_text": response.text}
-
