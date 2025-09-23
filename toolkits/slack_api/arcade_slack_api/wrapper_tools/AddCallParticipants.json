@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'calls.participants.add'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -59,7 +63,9 @@
       "provider_type": "oauth2",
       "id": null,
       "oauth2": {
-        "scopes": ["calls:write"]
+        "scopes": [
+          "calls:write"
+        ]
       }
     },
     "secrets": null,
@@ -118,7 +124,9 @@
         "documentation_urls": []
       }
     ],
-    "documentation_urls": ["https://docs.slack.dev/reference/methods/calls.participants.add"],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/calls.participants.add"
+    ],
     "secrets": [
       {
         "arcade_key": "auth_token",
