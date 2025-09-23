@@ -616,8 +616,13 @@ class MCPServer:
             if tool.definition.requirements and tool.definition.requirements.authorization:
                 auth_result = await self._check_authorization(tool, tool_context.user_id)
                 if auth_result.status != "completed":
-                    content = convert_to_mcp_content(auth_result.url)
-                    structured_content = convert_content_to_structured_content(auth_result.url)
+                    tool_response = {
+                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
+                        "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
+                        "authorization_url": auth_result.url,
+                    }
+                    content = convert_to_mcp_content(tool_response)
+                    structured_content = convert_content_to_structured_content(tool_response)
                     return JSONRPCResponse(
                         id=message.id,
                         result=CallToolResult(
