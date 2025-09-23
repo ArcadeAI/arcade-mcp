@@ -1,5 +1,7 @@
 import asyncio
 import os
+import subprocess
+import sys
 import threading
 import traceback
 import uuid
@@ -197,6 +199,98 @@ def new(
             create_new_toolkit(directory, toolkit_name)
     except Exception as e:
         handle_cli_error("Failed to create new Toolkit", e, debug)
+
+
+@cli.command(
+    name="mcp",
+    help="Run MCP servers with different transports",
+    rich_help_panel="Launch",
+)
+def mcp(
+    transport: str = typer.Argument("http", help="Transport type: stdio, http"),
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to (HTTP mode only)"),
+    port: int = typer.Option(8000, "--port", help="Port to bind to (HTTP mode only)"),
+    tool_package: Optional[str] = typer.Option(
+        None,
+        "--tool-package",
+        "--package",
+        "-p",
+        help="Specific tool package to load (e.g., 'github' for arcade-github)",
+    ),
+    discover_installed: bool = typer.Option(
+        False, "--discover-installed", "--all", help="Discover all installed arcade tool packages"
+    ),
+    show_packages: bool = typer.Option(
+        False, "--show-packages", help="Show loaded packages during discovery"
+    ),
+    reload: bool = typer.Option(
+        False, "--reload", help="Enable auto-reload on code changes (HTTP mode only)"
+    ),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug mode with verbose logging"),
+    env_file: Optional[str] = typer.Option(None, "--env-file", help="Path to environment file"),
+    name: Optional[str] = typer.Option(None, "--name", help="Server name"),
+    version: Optional[str] = typer.Option(None, "--version", help="Server version"),
+    cwd: Optional[str] = typer.Option(None, "--cwd", help="Working directory to run from"),
+) -> None:
+    """
+    Run Arcade MCP Server (passthrough to arcade_mcp_server).
+
+    This command provides a unified CLI experience by passing through
+    all arguments to the arcade_mcp_server module.
+
+    Examples:
+        arcade mcp stdio
+        arcade mcp http --port 8080
+        arcade mcp --tool-package github
+        arcade mcp --discover-installed --show-packages
+    """
+    # Build the command to pass through to arcade_mcp_server
+    cmd = [sys.executable, "-m", "arcade_mcp_server", transport]
+
+    # Add optional arguments
+    cmd.extend(["--host", host])
+    cmd.extend(["--port", str(port)])
+    cmd.append("--debug")
+    if tool_package:
+        cmd.extend(["--tool-package", tool_package])
+    if discover_installed:
+        cmd.append("--discover-installed")
+    if show_packages:
+        cmd.append("--show-packages")
+    if reload:
+        cmd.append("--reload")
+    if env_file:
+        cmd.extend(["--env-file", env_file])
+    if name:
+        cmd.extend(["--name", name])
+    if version:
+        cmd.extend(["--version", version])
+    if cwd:
+        cmd.extend(["--cwd", cwd])
+
+    try:
+        # Show what command we're running in debug mode
+        if debug:
+            console.print(f"[dim]Running: {' '.join(cmd)}[/dim]")
+
+        # Execute the command and pass through all output
+        result = subprocess.run(cmd, check=False)
+
+        # Exit with the same code as the subprocess
+        if result.returncode != 0:
+            handle_cli_error("Failed to run MCP server")
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]MCP server stopped[/yellow]")
+        raise typer.Exit(0)
+    except FileNotFoundError:
+        console.print(
+            "[red]arcade_mcp_server module not found. Make sure arcade-mcp-server is installed.[/red]"
+        )
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Error running MCP server: {e}[/red]")
+        raise typer.Exit(1)
 
 
 @cli.command(
