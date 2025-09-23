@@ -4,7 +4,7 @@ from typing import Annotated, Any
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_zendesk.enums import ArticleSortBy, SortOrder
 from arcade_zendesk.utils import (
@@ -175,53 +175,26 @@ async def search_articles(
         base_params["sort_order"] = sort_order.value
 
     async with httpx.AsyncClient() as client:
-        try:
-            headers = {
-                "Authorization": f"Bearer {auth_token}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {auth_token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
 
-            data = await fetch_paginated_results(
-                client=client,
-                url=url,
-                headers=headers,
-                params=base_params,
-                offset=offset,
-                limit=limit,
+        data = await fetch_paginated_results(
+            client=client,
+            url=url,
+            headers=headers,
+            params=base_params,
+            offset=offset,
+            limit=limit,
+        )
+
+        if "results" in data:
+            data["results"] = process_search_results(
+                data["results"], include_body=include_body, max_body_length=max_article_length
             )
 
-            if "results" in data:
-                data["results"] = process_search_results(
-                    data["results"], include_body=include_body, max_body_length=max_article_length
-                )
+        logger.info(f"Article search returned {data.get('count', 0)} results")
 
-            logger.info(f"Article search returned {data.get('count', 0)} results")
-
-        except httpx.HTTPStatusError as e:
-            logger.exception(f"HTTP error during article search: {e.response.status_code}")
-            raise ToolExecutionError(
-                message=f"Failed to search articles: HTTP {e.response.status_code}",
-                developer_message=(
-                    f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {url}, base_params: {base_params}"
-                ),
-            ) from e
-        except httpx.TimeoutException as e:
-            logger.exception("Timeout during article search")
-            raise RetryableToolError(
-                message="Request timed out while searching articles.",
-                developer_message=f"Timeout occurred. URL: {url}, base_params: {base_params}",
-                retry_after_ms=5000,
-            ) from e
-        except Exception as e:
-            logger.exception("Unexpected error during article search")
-            raise ToolExecutionError(
-                message=f"Failed to search articles: {e!s}",
-                developer_message=(
-                    f"Unexpected error: {type(e).__name__}: {e!s}. "
-                    f"URL: {url}, base_params: {base_params}"
-                ),
-            ) from e
-        else:
-            return data
+        return data
