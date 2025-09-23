@@ -77,14 +77,14 @@ class TestMicrosoftGraphErrorAdapter:
         """Test parsing retry-after header with seconds value."""
         mock_error = self._create_mock_api_error(headers={"Retry-After": "120"})
 
-        result = self.adapter._parse_retry_after(mock_error)
+        result = self.adapter._get_retry_after_milliseconds(mock_error)
         assert result == 120_000
 
     def test_parse_retry_after_with_lowercase_header(self):
         """Test parsing retry-after header with lowercase key."""
         mock_error = self._create_mock_api_error(headers={"retry-after": "60"})
 
-        result = self.adapter._parse_retry_after(mock_error)
+        result = self.adapter._get_retry_after_milliseconds(mock_error)
         assert result == 60_000
 
     def test_parse_retry_after_with_date_format(self):
@@ -101,14 +101,14 @@ class TestMicrosoftGraphErrorAdapter:
             mock_datetime.now.return_value = current_time
             mock_datetime.timezone = timezone
 
-            result = self.adapter._parse_retry_after(mock_error)
+            result = self.adapter._get_retry_after_milliseconds(mock_error)
             assert result == 120_000  # 2 minute diff
 
     def test_parse_retry_after_no_headers(self):
         """Test parsing retry-after when no headers are present."""
         mock_error = self._create_mock_api_error(headers={})
 
-        result = self.adapter._parse_retry_after(mock_error)
+        result = self.adapter._get_retry_after_milliseconds(mock_error)
         assert result == 1_000
 
     def test_parse_retry_after_no_response_attribute(self):
@@ -117,14 +117,14 @@ class TestMicrosoftGraphErrorAdapter:
         mock_error.__class__.__name__ = "APIError"
         # No response attribute
 
-        result = self.adapter._parse_retry_after(mock_error)
+        result = self.adapter._get_retry_after_milliseconds(mock_error)
         assert result == 1_000  # defaults to 1 second
 
     def test_parse_retry_after_invalid_date(self):
         """Test parsing retry-after with invalid date format falls back to default."""
         mock_error = self._create_mock_api_error(headers={"Retry-After": "invalid-date"})
 
-        result = self.adapter._parse_retry_after(mock_error)
+        result = self.adapter._get_retry_after_milliseconds(mock_error)
         assert result == 1_000
 
     def test_extract_error_details_standard_structure(self):

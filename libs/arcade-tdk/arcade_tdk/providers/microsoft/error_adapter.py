@@ -59,7 +59,7 @@ class MicrosoftGraphErrorAdapter:
         parsed = urlparse(uri)
         return f"{parsed.scheme}://{parsed.netloc.strip('/')}/{parsed.path.strip('/')}"
 
-    def _parse_retry_after(self, error: Any) -> int:
+    def _get_retry_after_milliseconds(self, error: Any) -> int:
         """
         Extract retry-after from Microsoft Graph API errors.
         Returns milliseconds to wait before retry.
@@ -191,7 +191,7 @@ class MicrosoftGraphErrorAdapter:
             status_code == 503 and error_code in ["TooManyRequests", "ServiceUnavailable"]
         ):
             return UpstreamRateLimitError(
-                retry_after_ms=self._parse_retry_after(error),
+                retry_after_ms=self._get_retry_after_milliseconds(error),
                 message=message,
                 developer_message=developer_message,
                 extra=extra,
