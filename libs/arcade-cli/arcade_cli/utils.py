@@ -17,6 +17,12 @@ import idna
 import typer
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
+from arcade_core.discovery import (
+    analyze_files_for_tools,
+    build_minimal_toolkit,
+    collect_tools_from_modules,
+    find_candidate_tool_files,
+)
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
 from arcadepy import (
@@ -105,6 +111,12 @@ def create_cli_catalog(
     return catalog
 
 
+def _discover_installed_toolkits(catalog: ToolCatalog) -> ToolCatalog:
+    for tk in Toolkit.find_all_arcade_toolkits():
+        catalog.add_toolkit(tk)
+    return catalog
+
+
 def create_cli_catalog_local() -> ToolCatalog:
     """
     Load a local toolkit from the current working directory if a pyproject.toml is present.
@@ -112,21 +124,44 @@ def create_cli_catalog_local() -> ToolCatalog:
     """
     cwd = Path.cwd()
     catalog = ToolCatalog()
+
+    if not (cwd / "pyproject.toml").is_file():
+        return _discover_installed_toolkits(catalog)
+
     try:
-        if (cwd / "pyproject.toml").is_file():
-            tk = Toolkit.from_directory(cwd)
-            catalog.add_toolkit(tk)
-            return catalog
-    except Exception:
-        # If local loading fails, fall back to environment discovery below
+        files = find_candidate_tool_files(cwd)
+        if not files:
+            return _discover_installed_toolkits(catalog)
+
+        files_with_tools = analyze_files_for_tools(files)
+        if not files_with_tools:
+            return _discover_installed_toolkits(catalog)
+
+        discovered_tools = collect_tools_from_modules(files_with_tools)
+        if not discovered_tools:
+            return _discover_installed_toolkits(catalog)
+
+        toolkit = build_minimal_toolkit(
+            server_name=cwd.name,
+            server_version="0.1.0dev",
+            description=f"Local toolkit from {cwd.name}",
+        )
+        # Add tools directly to catalog using the discovery approach
+        for tool_func, module in discovered_tools:
+            # Register module in sys.modules so it can be found
+            if module.__name__ not in sys.modules:
+                sys.modules[module.__name__] = module
+            catalog.add_tool(tool_func, toolkit, module)
+    except Exception as e:
         console.log(
-            "Local toolkit discovery failed; falling back to installed toolkits",
+            f"Local file discovery failed: {e}; falling back to installed toolkits",
             style="dim",
         )
+    else:
+        return catalog
+
     # Fallback: discover installed toolkits
-    for tk in Toolkit.find_all_arcade_toolkits():
-        catalog.add_toolkit(tk)
-    return catalog
+    return _discover_installed_toolkits(catalog)
 
 
 def compute_base_url(

@@ -54,8 +54,12 @@ def find_candidate_tool_files(root: Path | None = None) -> list[Path]:
     candidates: list[Path] = []
     for pattern in DISCOVERY_PATTERNS:
         candidates.extend(cwd.glob(pattern))
+    # Deduplicate candidates (same file might match multiple patterns)
+    unique_candidates = list(set(candidates))
     # Filter out private, cache, and tests
-    return [p for p in candidates if not any(p.match(pattern) for pattern in FILTER_PATTERNS)]
+    return [
+        p for p in unique_candidates if not any(p.match(pattern) for pattern in FILTER_PATTERNS)
+    ]
 
 
 def analyze_files_for_tools(files: list[Path]) -> list[tuple[Path, list[str]]]:
@@ -74,21 +78,36 @@ def analyze_files_for_tools(files: list[Path]) -> list[tuple[Path, list[str]]]:
 
 def load_module_from_path(file_path: Path) -> ModuleType:
     """Dynamically import a Python module from a file path."""
-    spec = importlib.util.spec_from_file_location(
-        f"_tools_{file_path.stem}",
-        file_path,
-    )
-    if not spec or not spec.loader:
-        raise ToolkitLoadError(f"Unable to create import spec for {file_path}")
+    import sys
 
-    module = importlib.util.module_from_spec(spec)
+    # Add the directory containing the file to sys.path temporarily
+    # This allows local imports to work
+    file_dir = str(file_path.parent)
+    path_added = False
+    if file_dir not in sys.path:
+        sys.path.insert(0, file_dir)
+        path_added = True
+
     try:
-        spec.loader.exec_module(module)
-    except Exception:
-        logger.exception(f"Failed to load {file_path}")
-        raise ToolkitLoadError(f"Failed to load {file_path}")
+        spec = importlib.util.spec_from_file_location(
+            f"_tools_{file_path.stem}",
+            file_path,
+        )
+        if not spec or not spec.loader:
+            raise ToolkitLoadError(f"Unable to create import spec for {file_path}")
 
-    return module
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception:
+            logger.exception(f"Failed to load {file_path}")
+            raise ToolkitLoadError(f"Failed to load {file_path}")
+
+        return module
+    finally:
+        # Remove the path we added
+        if path_added and file_dir in sys.path:
+            sys.path.remove(file_dir)
 
 
 def collect_tools_from_modules(
