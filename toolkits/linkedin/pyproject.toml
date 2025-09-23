@@ -8,7 +8,7 @@ version = "0.1.13"
 description = "Arcade.dev LLM tools for LinkedIn"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.0.0,<3.0.0",
+    "arcade-tdk>=2.4.0rc1,<3.0.0",
     "httpx>=0.27.2,<1.0.0",
 ]
 [[project.authors]]
@@ -17,8 +17,8 @@ email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-mcp[evals]>=2.0.0,<3.0.0",
-    "arcade-serve>=2.0.0,<3.0.0",
+    "arcade-mcp[evals]>=2.3.0rc1,<3.0.0",
+    "arcade-serve>=2.2.0rc1,<3.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-asyncio>=0.24.0,<0.25.0",
