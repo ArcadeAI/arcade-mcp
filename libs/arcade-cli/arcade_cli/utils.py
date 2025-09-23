@@ -596,7 +596,30 @@ def get_eval_files(directory: str) -> list[Path]:
     directory_path = Path(directory).resolve()
 
     if directory_path.is_dir():
-        eval_files = [f for f in directory_path.rglob("eval_*.py") if f.is_file()]
+        # Directories to exclude from recursive search
+        exclude_dirs = {
+            ".venv",
+            "venv",
+            ".env",
+            "env",
+            "node_modules",
+            "__pycache__",
+            ".git",
+            "build",
+            "dist",
+            ".tox",
+            "htmlcov",
+            "site-packages",
+            ".pytest_cache",
+        }
+
+        eval_files = []
+        for f in directory_path.rglob("eval_*.py"):
+            if f.is_file():
+                # Check if any parent directory is in exclude_dirs
+                should_exclude = any(part in exclude_dirs for part in f.parts)
+                if not should_exclude:
+                    eval_files.append(f)
     elif directory_path.is_file():
         eval_files = (
             [directory_path]
@@ -621,17 +644,14 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
     """
     Load evaluation suites from the given eval_files by importing the modules
     and extracting functions decorated with `@tool_eval`.
-
     Args:
         eval_files: A list of Paths to evaluation files.
-
     Returns:
         A list of callable evaluation suite functions.
     """
     eval_suites = []
     for eval_file_path in eval_files:
         module_name = eval_file_path.stem  # filename without extension
-
         # Now we need to load the module from eval_file_path
         file_path_str = str(eval_file_path)
         module_name_str = module_name
@@ -671,7 +691,9 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
                 continue
 
             eval_suites.extend(eval_suite_funcs)
-
+        except Exception as e:
+            console.print(f"Failed to load {eval_file_path}: {e}", style="bold red")
+            continue
         finally:
             # Restore the original sys.path
             sys.path[:] = original_path
