@@ -1,5 +1,10 @@
-from arcade_tdk.auth import Google, Slack, ToolAuthorization
-from arcade_tdk.error_adapters import ErrorAdapter, GoogleErrorAdapter, SlackErrorAdapter
+from arcade_tdk.auth import Google, Microsoft, Slack, ToolAuthorization
+from arcade_tdk.error_adapters import (
+    ErrorAdapter,
+    GoogleErrorAdapter,
+    MicrosoftGraphErrorAdapter,
+    SlackErrorAdapter,
+)
 
 
 def get_adapter_for_auth_provider(auth_provider: ToolAuthorization | None) -> ErrorAdapter | None:
@@ -11,7 +16,8 @@ def get_adapter_for_auth_provider(auth_provider: ToolAuthorization | None) -> Er
 
     if isinstance(auth_provider, Google):
         return GoogleErrorAdapter()
-
+    if isinstance(auth_provider, Microsoft):
+        return MicrosoftGraphErrorAdapter()
     if isinstance(auth_provider, Slack):
         return SlackErrorAdapter()
 

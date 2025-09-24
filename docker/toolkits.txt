@@ -40,3 +40,4 @@ arcade-outlook-calendar
 arcade-outlook-mail
 arcade-walmart
 arcade-youtube
+arcade-slack_api

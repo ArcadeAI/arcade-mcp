@@ -115,10 +115,25 @@ class ItemType(Enum):
     DISCUSSION = "discussion"
 
 
+class EventType(Enum):
+    """GitHub event types for processing."""
+
+    ISSUE = "issue"
+    ISSUE_COMMENT = "issue_comment"
+    DISCUSSION = "discussion"
+    DISCUSSION_COMMENT = "discussion_comment"
+    UNKNOWN = "unknown"
+
+
 def load_github_event() -> dict[str, Any]:
     """Load the GitHub event payload."""
     with open(GITHUB_EVENT_PATH) as f:
         return json.load(f)
+
+
+def is_pull_request_url(url: str) -> bool:
+    """Check if a URL is for a pull request."""
+    return "/pull/" in url if url else False
 
 
 def extract_or_create_pylon_issue_id_from_body(
@@ -436,6 +451,11 @@ def handle_github_issue_created(event: dict[str, Any], g: Github) -> None:
     issue_body = issue["body"] or ""
     issue_url = issue["html_url"]
 
+    # Skip if this is actually a pull request
+    if is_pull_request_url(issue_url):
+        print(f"Skipping issue creation - URL is for a pull request: {issue_url}")
+        return
+
     repo = g.get_repo(GITHUB_REPO)
 
     # Extract or create Pylon issue
@@ -523,6 +543,11 @@ def handle_github_issue_comment(event: dict[str, Any], g: Github) -> None:
     issue_number = issue["number"]
     comment_body = comment["body"]
     comment_author = comment["user"]["login"]
+
+    # Skip if this is actually a pull request
+    if is_pull_request_url(issue["html_url"]):
+        print(f"Skipping issue comment - URL is for a pull request: {issue['html_url']}")
+        return
 
     repo = g.get_repo(GITHUB_REPO)
 
@@ -797,6 +822,43 @@ def validate_environment() -> int:
     return 0
 
 
+def determine_event_type(event: dict[str, Any]) -> EventType:
+    """Determine the event type from the GitHub event payload."""
+    if "issue" in event and "comment" in event:
+        return EventType.ISSUE_COMMENT
+    elif "discussion" in event and "comment" in event:
+        return EventType.DISCUSSION_COMMENT
+    elif "issue" in event:
+        return EventType.ISSUE
+    elif "discussion" in event:
+        return EventType.DISCUSSION
+    else:
+        return EventType.UNKNOWN
+
+
+def handle_event_by_type(event: dict[str, Any], event_type: EventType, g: Github) -> int:
+    """Handle the GitHub event based on its type."""
+    if event_type == EventType.ISSUE:
+        handle_github_issue(event, g)
+        print("Successfully synced issue with Pylon")
+        return 0
+    elif event_type == EventType.ISSUE_COMMENT:
+        handle_github_issue_comment(event, g)
+        print("Successfully synced issue comment with Pylon")
+        return 0
+    elif event_type == EventType.DISCUSSION:
+        handle_github_discussion(event, g)
+        print("Successfully synced discussion with Pylon")
+        return 0
+    elif event_type == EventType.DISCUSSION_COMMENT:
+        handle_github_discussion_comment(event, g)
+        print("Successfully synced discussion comment with Pylon")
+        return 0
+    else:
+        print(f"Unsupported event type: {event_type.value}")
+        return 1
+
+
 def main():
     """Main function to handle GitHub events and sync with Pylon."""
     if validate_environment() != 0:
@@ -804,41 +866,22 @@ def main():
 
     # Load GitHub event
     event = load_github_event()
+
+    # Filter out pull requests - check if this is a pull request event
+    if "pull_request" in event:
+        print("Skipping pull request event - only processing issues and discussions")
+        return 0
+
     g = Github(auth=Auth.Token(GITHUB_TOKEN))
 
     # Determine event type from the event payload
-    if "issue" in event and "comment" in event:
-        event_type = "issue_comment"
-    elif "discussion" in event and "comment" in event:
-        event_type = "discussion_comment"
-    elif "issue" in event:
-        event_type = "issue"
-    elif "discussion" in event:
-        event_type = "discussion"
-    else:
+    event_type = determine_event_type(event)
+    if event_type == EventType.UNKNOWN:
         print(f"Unsupported event type. Event keys: {list(event.keys())}")
         return 1
 
-    # Handle different event types
-    if event_type == "issue":
-        handle_github_issue(event, g)
-        print("Successfully synced issue with Pylon")
-        return 0
-    elif event_type == "issue_comment":
-        handle_github_issue_comment(event, g)
-        print("Successfully synced issue comment with Pylon")
-        return 0
-    elif event_type == "discussion":
-        handle_github_discussion(event, g)
-        print("Successfully synced discussion with Pylon")
-        return 0
-    elif event_type == "discussion_comment":
-        handle_github_discussion_comment(event, g)
-        print("Successfully synced discussion comment with Pylon")
-        return 0
-    else:
-        print(f"Unsupported event type: {event_type}")
-        return 1
+    # Handle the event based on its type
+    return handle_event_by_type(event, event_type, g)
 
 
 if __name__ == "__main__":

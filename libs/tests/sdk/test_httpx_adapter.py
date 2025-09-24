@@ -331,3 +331,130 @@ class TestHTTPErrorAdapter:
     def test_adapter_slug(self):
         """Test that the adapter has the correct slug."""
         assert HTTPErrorAdapter.slug == "_http"
+
+    def test_map_status_to_error_403_with_rate_limit_headers(self):
+        """Test mapping 403 with rate limit headers to rate limit error."""
+        headers = {
+            "retry-after": "30",
+        }
+        result = self.adapter._map_status_to_error(
+            status=403,
+            headers=headers,
+            msg="Forbidden",
+            request_url="https://api.github.com/user/repos",
+            request_method="GET",
+        )
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 30_000
+        assert result.message == "Forbidden"
+        assert result.extra["service"] == "_http"
+        assert result.extra["endpoint"] == "https://api.github.com/user/repos"
+        assert result.extra["http_method"] == "GET"
+
+    def test_map_status_to_error_403_without_rate_limit_headers(self):
+        """Test mapping 403 without rate limiting headers to regular upstream error."""
+        headers = {}
+        result = self.adapter._map_status_to_error(
+            status=403,
+            headers=headers,
+            msg="Access denied due to insufficient permissions",
+            request_url="https://api.github.com/user/repos",
+            request_method="GET",
+        )
+
+        assert isinstance(result, UpstreamError)
+        assert not isinstance(result, UpstreamRateLimitError)
+        assert result.status_code == 403
+        assert result.message == "Access denied due to insufficient permissions"
+
+    def test_is_rate_limit_403_with_retry_after_header(self):
+        """Test detecting rate limit 403 based on retry-after header."""
+        headers = {"Retry-After": "60"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_x_ratelimit_reset_header(self):
+        """Test detecting rate limit 403 based on x-ratelimit-reset header."""
+        headers = {"x-ratelimit-reset": "1640995200"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_with_x_ratelimit_reset_ms_header(self):
+        """Test detecting rate limit 403 based on x-ratelimit-reset-ms header."""
+        headers = {"X-RateLimit-Reset-Ms": "5000"}
+        msg = "Forbidden"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is True
+
+    def test_is_rate_limit_403_without_headers(self):
+        """Test that 403 without rate limiting headers is not detected as rate limiting."""
+        headers = {}
+        msg = "Access denied due to insufficient permissions"
+
+        result = self.adapter._is_rate_limit_403(headers, msg)
+        assert result is False
+
+    def test_httpx_403_rate_limit_handling(self):
+        """Test handling httpx 403 rate limit with rate limiting headers."""
+
+        # Create a mock HTTPStatusError class
+        class MockHTTPStatusError(Exception):
+            pass
+
+        mock_response = Mock()
+        mock_response.status_code = 403
+        mock_response.headers = {"x-ratelimit-reset": "1640995200", "retry-after": "120"}
+
+        mock_request = Mock()
+        mock_request.url = "https://api.github.com/search/repositories"
+        mock_request.method = "GET"
+
+        mock_exc = MockHTTPStatusError("403 Forbidden")
+        mock_exc.response = mock_response
+        mock_exc.request = mock_request
+
+        with patch("httpx.HTTPStatusError", MockHTTPStatusError):
+            result = self.adapter.from_exception(mock_exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 120_000
+        assert result.message == "403 Forbidden"
+        assert result.extra["service"] == "_http"
+        assert result.extra["endpoint"] == "https://api.github.com/search/repositories"
+        assert result.extra["http_method"] == "GET"
+
+    def test_requests_403_rate_limit_handling(self):
+        """Test handling requests 403 rate limit with rate limiting headers."""
+
+        # Create a mock HTTPError class
+        class MockHTTPError(Exception):
+            pass
+
+        mock_response = Mock()
+        mock_response.status_code = 403
+        mock_response.headers = {"x-ratelimit-reset-ms": "30000"}
+
+        mock_request = Mock()
+        mock_request.url = "https://api.github.com/user/repos"
+        mock_request.method = "POST"
+
+        mock_response.request = mock_request
+
+        mock_exc = MockHTTPError("403 Forbidden")
+        mock_exc.response = mock_response
+
+        with patch("requests.exceptions.HTTPError", MockHTTPError):
+            result = self.adapter.from_exception(mock_exc)
+
+        assert isinstance(result, UpstreamRateLimitError)
+        assert result.retry_after_ms == 30_000
+        assert result.message == "403 Forbidden"
+        assert result.extra["service"] == "_http"
+        assert result.extra["endpoint"] == "https://api.github.com/user/repos"
+        assert result.extra["http_method"] == "POST"

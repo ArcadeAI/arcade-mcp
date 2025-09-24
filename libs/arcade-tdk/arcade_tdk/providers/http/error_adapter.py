@@ -87,7 +87,30 @@ class BaseHTTPErrorMapper:
                 extra=extra,
             )
 
+        if status == 403 and self._is_rate_limit_403(headers, msg):
+            return UpstreamRateLimitError(
+                retry_after_ms=self._parse_retry_ms(headers),
+                message=msg,
+                extra=extra,
+            )
+
         return UpstreamError(message=msg, status_code=status, extra=extra)
+
+    def _is_rate_limit_403(self, headers: dict[str, str], msg: str) -> bool:
+        """
+        Determine if a 403 error is actually a rate limiting error.
+
+        Simply checks if any rate limiting headers are present.
+
+        Args:
+            headers: HTTP response headers
+            msg: Error message (unused, kept for compatibility)
+
+        Returns:
+            True if this 403 should be treated as rate limiting
+        """
+        # Check if any rate limiting headers are present
+        return any(header.lower() in [h.lower() for h in headers] for header in RATE_HEADERS)
 
 
 class _HTTPXExceptionHandler:
