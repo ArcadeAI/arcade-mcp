@@ -22,7 +22,7 @@ except Exception as e:
     ARCADE_MCP_MIN_VERSION = "2.3.0rc1"  # Default version if unable to fetch
     ARCADE_MCP_MAX_VERSION = "4.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.4.0rc1"
+ARCADE_TDK_MIN_VERSION = "2.6.0rc1"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
 ARCADE_SERVE_MIN_VERSION = "2.2.0rc1"
 ARCADE_SERVE_MAX_VERSION = "3.0.0"

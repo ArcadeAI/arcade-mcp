@@ -41,11 +41,11 @@ all = [
     "pytz>=2024.1",
     "python-dateutil>=2.8.2",
     # mcp
-    "arcade-mcp-server>=2.0.0,<3.0.0",
+    "arcade-mcp-server>=2.0.0rc1,<3.0.0",
     # serve
-    "arcade-serve>=2.2.0,<3.0.0",
+    "arcade-serve>=2.2.0rc1,<3.0.0",
     # tdk
-    "arcade-tdk>=2.4.0,<3.0.0",
+    "arcade-tdk>=2.6.0rc1,<3.0.0",
 ]
 # Evals also depends on arcade-core and openai, but they are already required deps
 evals = [
