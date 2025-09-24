@@ -41,6 +41,11 @@ class SlackErrorAdapter:
 
         # Failsafe for any unhandled Slack SDK errors that are not mapped above
         if hasattr(exc, "__module__") and exc.__module__ and "slack_sdk" in exc.__module__:
+            logger.warning(
+                "Unknown Slack SDK error encountered: %r. Falling back to generic UpstreamError.",
+                exc,
+                exc_info=True,
+            )
             return UpstreamError(
                 message=f"Upstream Slack SDK error: {exc}",
                 status_code=500,
