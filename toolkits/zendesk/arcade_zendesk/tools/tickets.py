@@ -3,7 +3,7 @@ from typing import Annotated, Any
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
-from arcade_tdk.errors import RetryableToolError, ToolExecutionError
+from arcade_tdk.errors import RetryableToolError
 
 from arcade_zendesk.enums import SortOrder, TicketStatus
 from arcade_zendesk.utils import fetch_paginated_results, get_zendesk_subdomain
@@ -94,68 +94,40 @@ async def list_tickets(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        try:
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-            # Use the fetch_paginated_results utility
-            data = await fetch_paginated_results(
-                client=client,
-                url=url,
-                headers=headers,
-                params=base_params,
-                offset=offset,
-                limit=limit,
-            )
+        # Use the fetch_paginated_results utility
+        data = await fetch_paginated_results(
+            client=client,
+            url=url,
+            headers=headers,
+            params=base_params,
+            offset=offset,
+            limit=limit,
+        )
 
-            # Process tickets to add html_url and remove api url
-            tickets = data.get("results", [])
-            for ticket in tickets:
-                if "id" in ticket:
-                    ticket["html_url"] = (
-                        f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-                    )
-                # Remove API url to avoid confusion
-                if "url" in ticket:
-                    del ticket["url"]
+        # Process tickets to add html_url and remove api url
+        tickets = data.get("results", [])
+        for ticket in tickets:
+            if "id" in ticket:
+                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+            # Remove API url to avoid confusion
+            if "url" in ticket:
+                del ticket["url"]
 
-            # Build the result with consistent structure
-            result = {
-                "tickets": tickets,
-                "count": data.get("count", len(tickets)),
-            }
+        # Build the result with consistent structure
+        result = {
+            "tickets": tickets,
+            "count": data.get("count", len(tickets)),
+        }
 
-            # Add next_offset if present
-            if "next_offset" in data:
-                result["next_offset"] = data["next_offset"]
-
-        except httpx.HTTPStatusError as e:
-            raise ToolExecutionError(
-                message=f"Failed to list tickets: HTTP {e.response.status_code}",
-                developer_message=(
-                    f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {url}, params: {base_params}"
-                ),
-            ) from e
-        except httpx.TimeoutException as e:
-            raise RetryableToolError(
-                message="Request timed out while listing tickets.",
-                developer_message=f"Timeout occurred. URL: {url}, params: {base_params}",
-                retry_after_ms=5000,
-                additional_prompt_content="Try reducing limit or using more specific filters.",
-            ) from e
-        except Exception as e:
-            raise ToolExecutionError(
-                message=f"Failed to list tickets: {e!s}",
-                developer_message=(
-                    f"Unexpected error: {type(e).__name__}: {e!s}. "
-                    f"URL: {url}, params: {base_params}"
-                ),
-            ) from e
-        else:
-            return result
+        # Add next_offset if present
+        if "next_offset" in data:
+            result["next_offset"] = data["next_offset"]
+        return result
 
 
 @tool(
@@ -190,47 +162,23 @@ async def get_ticket_comments(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        try:
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-            response = await client.get(url, headers=headers)
-            _handle_ticket_not_found(response, ticket_id)
-            response.raise_for_status()
+        response = await client.get(url, headers=headers)
+        _handle_ticket_not_found(response, ticket_id)
+        response.raise_for_status()
 
-            data = response.json()
-            comments = data.get("comments", [])
+        data = response.json()
+        comments = data.get("comments", [])
 
-            return {
-                "ticket_id": ticket_id,
-                "comments": comments,
-                "count": len(comments),
-            }
-
-        except RetryableToolError:
-            # Re-raise our custom errors
-            raise
-        except httpx.HTTPStatusError as e:
-            raise ToolExecutionError(
-                message=f"Failed to get ticket comments: HTTP {e.response.status_code}",
-                developer_message=(
-                    f"HTTP {e.response.status_code} error: {e.response.text}. URL: {url}"
-                ),
-            ) from e
-        except httpx.TimeoutException as e:
-            raise RetryableToolError(
-                message="Request timed out while getting ticket comments.",
-                developer_message=f"Timeout occurred. URL: {url}",
-                retry_after_ms=5000,
-                additional_prompt_content="Try again in a few moments.",
-            ) from e
-        except Exception as e:
-            raise ToolExecutionError(
-                message=f"Failed to get ticket comments: {e!s}",
-                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
-            ) from e
+        return {
+            "ticket_id": ticket_id,
+            "comments": comments,
+            "count": len(comments),
+        }
 
 
 @tool(
@@ -265,56 +213,31 @@ async def add_ticket_comment(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        try:
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-            response = await client.put(url, headers=headers, json=request_body)
-            _handle_ticket_not_found(response, ticket_id)
-            response.raise_for_status()
+        response = await client.put(url, headers=headers, json=request_body)
+        _handle_ticket_not_found(response, ticket_id)
+        response.raise_for_status()
 
-            data = response.json()
-            ticket = data.get("ticket", {})
+        data = response.json()
+        ticket = data.get("ticket", {})
 
-            # Add web interface URL if not present
-            if "id" in ticket and "html_url" not in ticket:
-                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-            # Remove API url to avoid confusion
-            if "url" in ticket:
-                del ticket["url"]
+        # Add web interface URL if not present
+        if "id" in ticket and "html_url" not in ticket:
+            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+        # Remove API url to avoid confusion
+        if "url" in ticket:
+            del ticket["url"]
 
-        except RetryableToolError:
-            # Re-raise our custom errors
-            raise
-        except httpx.HTTPStatusError as e:
-            raise ToolExecutionError(
-                message=f"Failed to add ticket comment: HTTP {e.response.status_code}",
-                developer_message=(
-                    f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {url}, body: {request_body}"
-                ),
-            ) from e
-        except httpx.TimeoutException as e:
-            raise RetryableToolError(
-                message="Request timed out while adding ticket comment.",
-                developer_message=f"Timeout occurred. URL: {url}",
-                retry_after_ms=5000,
-                additional_prompt_content="Try again in a few moments.",
-            ) from e
-        except Exception as e:
-            raise ToolExecutionError(
-                message=f"Failed to add ticket comment: {e!s}",
-                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
-            ) from e
-        else:
-            return {
-                "success": True,
-                "ticket_id": ticket_id,
-                "comment_type": "public" if public else "internal",
-                "ticket": ticket,
-            }
+        return {
+            "success": True,
+            "ticket_id": ticket_id,
+            "comment_type": "public" if public else "internal",
+            "ticket": ticket,
+        }
 
 
 @tool(
@@ -357,58 +280,33 @@ async def mark_ticket_solved(
 
     # Make the API request
     async with httpx.AsyncClient() as client:
-        try:
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
-            response = await client.put(url, headers=headers, json=request_body)
-            _handle_ticket_not_found(response, ticket_id)
-            response.raise_for_status()
+        response = await client.put(url, headers=headers, json=request_body)
+        _handle_ticket_not_found(response, ticket_id)
+        response.raise_for_status()
 
-            data = response.json()
-            ticket = data.get("ticket", {})
+        data = response.json()
+        ticket = data.get("ticket", {})
 
-            # Add web interface URL if not present
-            if "id" in ticket and "html_url" not in ticket:
-                ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
-            # Remove API url to avoid confusion
-            if "url" in ticket:
-                del ticket["url"]
+        # Add web interface URL if not present
+        if "id" in ticket and "html_url" not in ticket:
+            ticket["html_url"] = f"https://{subdomain}.zendesk.com/agent/tickets/{ticket['id']}"
+        # Remove API url to avoid confusion
+        if "url" in ticket:
+            del ticket["url"]
 
-            result = {
-                "success": True,
-                "ticket_id": ticket_id,
-                "status": "solved",
-                "ticket": ticket,
-            }
-            if comment_body:
-                result["comment_added"] = True
-                result["comment_type"] = "public" if comment_public else "internal"
+        result = {
+            "success": True,
+            "ticket_id": ticket_id,
+            "status": "solved",
+            "ticket": ticket,
+        }
+        if comment_body:
+            result["comment_added"] = True
+            result["comment_type"] = "public" if comment_public else "internal"
 
-        except RetryableToolError:
-            # Re-raise our custom errors
-            raise
-        except httpx.HTTPStatusError as e:
-            raise ToolExecutionError(
-                message=f"Failed to mark ticket as solved: HTTP {e.response.status_code}",
-                developer_message=(
-                    f"HTTP {e.response.status_code} error: {e.response.text}. "
-                    f"URL: {url}, body: {request_body}"
-                ),
-            ) from e
-        except httpx.TimeoutException as e:
-            raise RetryableToolError(
-                message="Request timed out while marking ticket as solved.",
-                developer_message=f"Timeout occurred. URL: {url}",
-                retry_after_ms=5000,
-                additional_prompt_content="Try again in a few moments.",
-            ) from e
-        except Exception as e:
-            raise ToolExecutionError(
-                message=f"Failed to mark ticket as solved: {e!s}",
-                developer_message=f"Unexpected error: {type(e).__name__}: {e!s}. URL: {url}",
-            ) from e
-        else:
-            return result
+        return result

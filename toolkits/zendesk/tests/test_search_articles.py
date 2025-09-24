@@ -1,6 +1,3 @@
-from unittest.mock import MagicMock
-
-import httpx
 import pytest
 from arcade_tdk.errors import RetryableToolError, ToolExecutionError
 
@@ -310,66 +307,6 @@ class TestSearchArticlesPagination:
 
         assert result["count"] == 15  # Only returns what's available
         assert "next_offset" not in result  # No more results
-
-
-class TestSearchArticlesErrors:
-    """Test error handling scenarios."""
-
-    @pytest.mark.parametrize(
-        "status_code,error_key",
-        [
-            (400, "HTTP 400"),
-            (401, "HTTP 401"),
-            (403, "HTTP 403"),
-            (404, "HTTP 404"),
-            (500, "HTTP 500"),
-        ],
-    )
-    @pytest.mark.asyncio
-    async def test_http_errors(self, mock_context, mock_httpx_client, status_code, error_key):
-        """Test handling of HTTP errors."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        # Create mock error response
-        error_response = MagicMock()
-        error_response.status_code = status_code
-        error_response.text = f"Error message for {status_code}"
-        error_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            message=f"HTTP {status_code}", request=MagicMock(), response=error_response
-        )
-
-        mock_httpx_client.get.return_value = error_response
-
-        with pytest.raises(ToolExecutionError) as exc_info:
-            await search_articles(context=mock_context, query="test")
-
-        assert "Failed to search articles" in str(exc_info.value.message)
-        assert f"HTTP {status_code}" in str(exc_info.value.message)
-
-    @pytest.mark.asyncio
-    async def test_timeout_error(self, mock_context, mock_httpx_client):
-        """Test handling of timeout errors."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        mock_httpx_client.get.side_effect = httpx.TimeoutException("Request timed out")
-
-        with pytest.raises(RetryableToolError) as exc_info:
-            await search_articles(context=mock_context, query="test")
-
-        assert "timed out" in str(exc_info.value.message)
-        assert exc_info.value.retry_after_ms == 5000
-
-    @pytest.mark.asyncio
-    async def test_unexpected_error(self, mock_context, mock_httpx_client):
-        """Test handling of unexpected errors."""
-        mock_context.get_secret.return_value = "test-subdomain"
-
-        mock_httpx_client.get.side_effect = Exception("Unexpected error occurred")
-
-        with pytest.raises(ToolExecutionError) as exc_info:
-            await search_articles(context=mock_context, query="test")
-
-        assert "Unexpected error occurred" in str(exc_info.value.message)
 
 
 class TestSearchArticlesContentProcessing:
