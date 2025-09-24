@@ -1,0 +1,336 @@
+{
+  "name": "GetSlackThreadMessages",
+  "fully_qualified_name": "SlackApi.GetSlackThreadMessages@0.1.0",
+  "description": "Retrieve messages from a Slack conversation thread.\n\nThis tool fetches a thread of messages posted to a specific conversation in Slack. It should be called when there is a need to review or analyze the message history of a public or private channel, a direct message, or a multi-party direct message. The tool requires appropriate OAuth scopes to access the message history.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "conversation_id",
+        "required": true,
+        "description": "The ID of the Slack conversation from which to fetch the message thread.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "thread_message_timestamp",
+        "required": true,
+        "description": "Unique identifier of a parent message or a thread message (timestamp). Fetches the thread or the single message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ts"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for pagination. Use the `next_cursor` from a previous response to fetch the next page of data.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "latest_message_timestamp",
+        "required": false,
+        "description": "Only include messages posted before this Unix timestamp in the results. (default: 'now')",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "latest"
+      },
+      {
+        "name": "maximum_items_to_return",
+        "required": false,
+        "description": "Specify the maximum number of messages to fetch. The default and maximum are 15 for certain apps, with possible rate limits. (default: '1000')",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "start_time_unix_timestamp",
+        "required": false,
+        "description": "Only include messages after this Unix timestamp in results. (default: '0')",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "oldest"
+      },
+      {
+        "name": "include_all_message_metadata",
+        "required": false,
+        "description": "Set to true to return all metadata associated with this message.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_all_metadata"
+      },
+      {
+        "name": "include_boundary_timestamps",
+        "required": false,
+        "description": "Include messages with 'oldest' or 'latest' timestamps. Ignored unless either timestamp is specified.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "inclusive"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'conversations.replies'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "channels:history",
+          "groups:history",
+          "im:history",
+          "mpim:history"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/conversations.replies",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel",
+        "tool_parameter_name": "conversation_id",
+        "description": "Conversation ID to fetch thread from.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ts",
+        "tool_parameter_name": "thread_message_timestamp",
+        "description": "Unique identifier of either a thread\u2019s parent message or a message in the thread. `ts` must be the timestamp of an existing message with 0 or more replies. If there are no replies then just the single message referenced by `ts` will return - it is just an ordinary, unthreaded message.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Paginate through collections of data by setting the `cursor` parameter to a `next_cursor` attribute returned by a previous request's `response_metadata`. Default value fetches the first \"page\" of the collection.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_all_metadata",
+        "tool_parameter_name": "include_all_message_metadata",
+        "description": "Return all metadata associated with this message.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "inclusive",
+        "tool_parameter_name": "include_boundary_timestamps",
+        "description": "Include messages with `oldest` or `latest` timestamps in results. Ignored unless either timestamp is specified.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "latest",
+        "tool_parameter_name": "latest_message_timestamp",
+        "description": "Only messages before this Unix timestamp will be included in results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_items_to_return",
+        "description": "The maximum number of items to return. Fewer than the requested number of items may be returned, even if the end of the users list hasn't been reached.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "oldest",
+        "tool_parameter_name": "start_time_unix_timestamp",
+        "description": "Only messages after this Unix timestamp will be included in results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/conversations.replies"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

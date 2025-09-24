@@ -1,0 +1,272 @@
+{
+  "name": "ListAccessibleSlackConversations",
+  "fully_qualified_name": "SlackApi.ListAccessibleSlackConversations@0.1.0",
+  "description": "Retrieve a list of conversations the user can access on Slack.\n\nThis tool calls the Slack API to list all conversations (public channels, private channels, direct messages) that a user has access to. It can be used to view information about different types of conversations including public channels, private channels, and direct or group messages.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "A cursor for pagination to continue listing conversations from a specific point. Use the 'next_cursor' from a previous response. Default is the first page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      },
+      {
+        "name": "maximum_items_to_return",
+        "required": false,
+        "description": "The maximum number of conversations to return in the response. Must be an integer with a maximum value of 999. It is recommended to request no more than 200 results at a time for optimal performance. (default: '100')",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "slack_team_id",
+        "required": false,
+        "description": "The encoded ID of the Slack team to list conversations for. Required if using an organization-level token. Ignored if a workspace-level token is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "channel_types",
+        "required": false,
+        "description": "Comma-separated list of channel types to filter conversations. Options: public_channel, private_channel, mpim, im. (default: 'public_channel')",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "types"
+      },
+      {
+        "name": "specific_user_id",
+        "required": false,
+        "description": "Filter conversations by a specific user ID's membership. Only includes conversations shared with the calling user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user"
+      },
+      {
+        "name": "exclude_archived_channels",
+        "required": false,
+        "description": "Set to true to exclude archived channels from the retrieved list of Slack conversations. (default: false)",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "exclude_archived"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'users.conversations'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "channels:read",
+          "groups:read",
+          "im:read",
+          "mpim:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/users.conversations",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Paginate through collections of data by setting the `cursor` parameter to a `next_cursor` attribute returned by a previous request's `response_metadata`. Default value fetches the first \"page\" of the collection. See pagination for more detail.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "exclude_archived",
+        "tool_parameter_name": "exclude_archived_channels",
+        "description": "Set to `true` to exclude archived channels from the list",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_items_to_return",
+        "description": "The maximum number of items to return. Fewer than the requested number of items may be returned, even if the end of the list hasn't been reached. Must be an integer with a max value of 999.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "slack_team_id",
+        "description": "Encoded team id to list conversations in, required if org token is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "types",
+        "tool_parameter_name": "channel_types",
+        "description": "Mix and match channel types by providing a comma-separated list of any combination of `public_channel`, `private_channel`, `mpim`, `im`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user",
+        "tool_parameter_name": "specific_user_id",
+        "description": "Browse conversations by a specific user ID's membership. Non-public channels are restricted to those where the calling user shares membership.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/users.conversations"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

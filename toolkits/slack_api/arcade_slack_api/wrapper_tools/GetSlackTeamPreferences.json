@@ -1,0 +1,75 @@
+{
+  "name": "GetSlackTeamPreferences",
+  "fully_qualified_name": "SlackApi.GetSlackTeamPreferences@0.1.0",
+  "description": "Retrieve a list of a workspace's team preferences.\n\nThis tool fetches team preferences from a Slack workspace. It should be called when there's a need to access or review team settings. Requires appropriate OAuth scope for access.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": []
+  },
+  "output": {
+    "description": "Response from the API endpoint 'team.preferences.list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "team.preferences:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/team.preferences.list",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/team.preferences.list"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

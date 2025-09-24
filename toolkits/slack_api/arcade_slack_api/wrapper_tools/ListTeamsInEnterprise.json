@@ -1,0 +1,141 @@
+{
+  "name": "ListTeamsInEnterprise",
+  "fully_qualified_name": "SlackApi.ListTeamsInEnterprise@0.1.0",
+  "description": "Retrieve all teams in an Enterprise organization on Slack.\n\nThis tool retrieves a list of all teams within an Enterprise organization on Slack, utilizing the admin.teams.list endpoint. It should be called when information about the teams in an Enterprise organization is needed.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "maximum_items_to_return",
+        "required": false,
+        "description": "Specify the maximum number of teams to retrieve. Must be a positive integer, up to 1000. (default: '100')",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Use this to retrieve the next page of results by setting it to the `next_cursor` from the previous response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cursor"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'admin.teams.list'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "admin.teams:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/admin.teams.list",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_items_to_return",
+        "description": "The maximum number of items to return. Must be a positive integer no larger than 1000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cursor",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "Set `cursor` to `next_cursor` returned by the previous call to list items in the next page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/admin.teams.list"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

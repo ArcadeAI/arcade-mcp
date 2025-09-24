@@ -1,0 +1,176 @@
+{
+  "name": "GetConversationInfo",
+  "fully_qualified_name": "SlackApi.GetConversationInfo@0.1.0",
+  "description": "Fetches information about a Slack conversation.\n\nThis tool retrieves details about a specific conversation in Slack, such as its name, members, and other relevant data. It should be used when information about a Slack conversation is needed, and requires appropriate read permissions.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "conversation_id",
+        "required": true,
+        "description": "The unique ID of the Slack conversation to retrieve information for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channel"
+      },
+      {
+        "name": "include_locale",
+        "required": false,
+        "description": "Set to `true` to receive the locale for this conversation. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_locale"
+      },
+      {
+        "name": "include_member_count",
+        "required": false,
+        "description": "Set to true to include the member count for the specified conversation. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_num_members"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'conversations.info'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "channels:read",
+          "groups:read",
+          "im:read",
+          "mpim:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/conversations.info",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channel",
+        "tool_parameter_name": "conversation_id",
+        "description": "Conversation ID to learn more about",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_locale",
+        "tool_parameter_name": "include_locale",
+        "description": "Set this to `true` to receive the locale for this conversation. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_num_members",
+        "tool_parameter_name": "include_member_count",
+        "description": "Set to `true` to include the member count for the specified conversation. Defaults to `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/conversations.info"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

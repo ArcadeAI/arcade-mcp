@@ -1,0 +1,333 @@
+{
+  "name": "CreateSlackUserGroup",
+  "fully_qualified_name": "SlackApi.CreateSlackUserGroup@0.1.0",
+  "description": "Creates a new user group in Slack.\n\nThis tool allows the creation of a new user group in Slack using the Slack API. It should be called when you need to organize users into groups for easier management or communication. Requires 'usergroups:write' scope.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_group_name",
+        "required": true,
+        "description": "A unique name for the user group to be created, distinguishing it from other user groups.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "default_channel_ids",
+        "required": false,
+        "description": "A list of channel IDs to set as default for the User Group. Use comma-separated values.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channels"
+      },
+      {
+        "name": "custom_additional_channels",
+        "required": false,
+        "description": "Comma-separated encoded channel IDs where the User Group can add members.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "additional_channels"
+      },
+      {
+        "name": "user_group_description",
+        "required": false,
+        "description": "A brief text describing the purpose or role of the user group in Slack.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "description"
+      },
+      {
+        "name": "unique_mention_handle",
+        "required": false,
+        "description": "A unique mention handle for the user group. It must not duplicate existing handles of channels, users, or other user groups.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "handle"
+      },
+      {
+        "name": "team_id_for_user_group_creation",
+        "required": false,
+        "description": "Encoded team ID for the user group creation, required if using an org-level token.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "team_id"
+      },
+      {
+        "name": "include_user_count",
+        "required": false,
+        "description": "Set to true to include the number of users in each User Group.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_count"
+      },
+      {
+        "name": "enable_display_as_sidebar_section",
+        "required": false,
+        "description": "Set to true to display the user group as a sidebar section for all group members if the group has one or more default channels.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enable_section"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'usergroups.create'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "usergroups:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/usergroups.create",
+    "http_method": "POST",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "user_group_name",
+        "description": "A name for the User Group. Must be unique among User Groups.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "channels",
+        "tool_parameter_name": "default_channel_ids",
+        "description": "A comma separated string of encoded channel IDs for which the User Group uses as a default.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "additional_channels",
+        "tool_parameter_name": "custom_additional_channels",
+        "description": "A comma separated string of encoded channel IDs for which the User Group can custom add usergroup members too.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "description",
+        "tool_parameter_name": "user_group_description",
+        "description": "A short description of the User Group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "handle",
+        "tool_parameter_name": "unique_mention_handle",
+        "description": "A mention handle. Must be unique among channels, users and User Groups.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_count",
+        "tool_parameter_name": "include_user_count",
+        "description": "Include the number of users in each User Group.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "team_id",
+        "tool_parameter_name": "team_id_for_user_group_creation",
+        "description": "Encoded team id where the user group has to be created, required if org token is used.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "enable_section",
+        "tool_parameter_name": "enable_display_as_sidebar_section",
+        "description": "Configure this user group to show as a sidebar section for all group members. Note: Only relevant if group has 1 or more default channels added.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "body",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/usergroups.create"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

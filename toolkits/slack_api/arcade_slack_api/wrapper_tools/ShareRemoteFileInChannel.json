@@ -1,0 +1,173 @@
+{
+  "name": "ShareRemoteFileInChannel",
+  "fully_qualified_name": "SlackApi.ShareRemoteFileInChannel@0.1.0",
+  "description": "Share a remote file into a Slack channel.\n\nThis tool shares a specified remote file into a selected Slack channel. It utilizes Slack's API to facilitate file sharing across channels.",
+  "toolkit": {
+    "name": "ArcadeSlackApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_channel_ids",
+        "required": true,
+        "description": "Comma-separated list of Slack channel IDs where the remote file will be shared. Ensure IDs are valid and the user has permission to share files in these channels.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "channels"
+      },
+      {
+        "name": "file_external_identifier",
+        "required": false,
+        "description": "The globally unique identifier (GUID) for the file set by the app when registering with Slack. Required if 'file' is not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "external_id"
+      },
+      {
+        "name": "file_id",
+        "required": false,
+        "description": "The ID of a file registered with Slack to be shared. Required if `external_id` is not provided.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'files.remote.share'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-slack",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "remote_files:share"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://slack.com/api/files.remote.share",
+    "http_method": "GET",
+    "headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    "parameters": [
+      {
+        "name": "channels",
+        "tool_parameter_name": "target_channel_ids",
+        "description": "Comma-separated list of channel IDs where the file will be shared.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "external_id",
+        "tool_parameter_name": "file_external_identifier",
+        "description": "The globally unique identifier (GUID) for the file, as set by the app registering the file with Slack. Either this field or `file` or both are required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file",
+        "tool_parameter_name": "file_id",
+        "description": "Specify a file registered with Slack by providing its ID. Either this field or `external_id` or both are required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": null
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [
+      "https://docs.slack.dev/reference/methods/files.remote.share"
+    ],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
