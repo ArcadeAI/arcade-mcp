@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Arcade Wrapper Tools enabling LLMs to interact with low-level Slack API endpoints."
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.0.0,<3.0.0",
+    "arcade-tdk>=2.4.0rc1,<3.0.0",
     "httpx>=0.27.2,<1.0.0",
 ]
 [[project.authors]]
@@ -18,8 +18,8 @@ email = "support@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>=2.2.2,<3.0.0",
-    "arcade-serve>=2.0.0,<3.0.0",
+    "arcade-mcp[evals]>=2.3.0rc1,<3.0.0",
+    "arcade-serve>=2.2.0rc1,<3.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-mock>=3.11.1,<3.12.0",
@@ -36,7 +36,7 @@ toolkit_name = "arcade_slack_api"
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = { path = "../../", editable = true }
+arcade-mcp = { path = "../../", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 [tool.mypy]
