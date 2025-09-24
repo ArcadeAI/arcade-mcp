@@ -59,6 +59,8 @@ class LifespanManager:
         if self._started:
             raise LifespanError("Lifespan already started")
 
+        self._started = True
+
         self._stack = asyncio.create_task(self._run_lifespan())
 
         # Wait for startup to complete
