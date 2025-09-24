@@ -363,7 +363,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 502
-        assert result.extra["error_type"] == "SlackRequestError"
+        assert result.extra["error_type"] == "MockSlackRequestError"
 
     def test_handle_other_errors_slack_token_rotation_error(self):
         """Test handling SlackTokenRotationError."""
@@ -374,7 +374,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 401  # Unauthorized
-        assert result.extra["error_type"] == "SlackTokenRotationError"
+        assert result.extra["error_type"] == "MockSlackTokenRotationError"
 
     def test_handle_other_errors_bot_user_access_error(self):
         """Test handling BotUserAccessError."""
@@ -385,7 +385,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 403  # Forbidden
-        assert result.extra["error_type"] == "BotUserAccessError"
+        assert result.extra["error_type"] == "MockBotUserAccessError"
 
     def test_handle_other_errors_slack_client_configuration_error(self):
         """Test handling SlackClientConfigurationError."""
@@ -396,7 +396,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400  # Bad Request
-        assert result.extra["error_type"] == "SlackClientConfigurationError"
+        assert result.extra["error_type"] == "MockSlackClientConfigurationError"
 
     def test_handle_other_errors_slack_client_not_connected_error(self):
         """Test handling SlackClientNotConnectedError."""
@@ -407,7 +407,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 503
-        assert result.extra["error_type"] == "SlackClientNotConnectedError"
+        assert result.extra["error_type"] == "MockSlackClientNotConnectedError"
 
     def test_handle_other_errors_slack_object_formation_error(self):
         """Test handling SlackObjectFormationError."""
@@ -418,7 +418,7 @@ class TestSlackErrorAdapter:
 
         assert isinstance(result, UpstreamError)
         assert result.status_code == 400  # Bad Request
-        assert result.extra["error_type"] == "SlackObjectFormationError"
+        assert result.extra["error_type"] == "MockSlackObjectFormationError"
 
     def test_handle_other_errors_unknown_error(self):
         """Test handling unknown error type."""

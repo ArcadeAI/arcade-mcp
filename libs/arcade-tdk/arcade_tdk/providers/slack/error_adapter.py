@@ -56,8 +56,11 @@ class SlackErrorAdapter:
     def _sanitize_uri(self, uri: str) -> str:
         """Strip query params and fragments from URI for privacy."""
 
-        parsed = urlparse(uri)
-        return f"{parsed.scheme}://{parsed.netloc.strip('/')}/{parsed.path.strip('/')}"
+        try:
+            parsed = urlparse(uri)
+            return f"{parsed.scheme}://{parsed.netloc.strip('/')}/{parsed.path.strip('/')}"
+        except Exception:
+            return uri
 
     def _parse_retry_after(self, error: Any) -> int:
         """
@@ -84,7 +87,9 @@ class SlackErrorAdapter:
                     dt = datetime.strptime(retry_after, "%a, %d %b %Y %H:%M:%S %Z")
                     return int((dt - datetime.now(timezone.utc)).total_seconds() * 1000)
                 except Exception:
-                    # TODO: Log?
+                    logger.warning(
+                        f"Failed to parse retry-after header: {retry_after}. Defaulting to 1000ms."
+                    )
                     return 1000
 
         return 1000
@@ -104,7 +109,7 @@ class SlackErrorAdapter:
         ):
             status_code = error.response.status_code
 
-        reason = error_code if error_code != "unknown_error" else "Slack API error"
+        reason = error_code if error_code != "unknown_error" else "Unknown Slack SDK error"
 
         message = f"Upstream Slack API error: {reason}"
 
@@ -155,7 +160,7 @@ class SlackErrorAdapter:
             if warnings:
                 developer_details.append(f"warnings: {', '.join(warnings)}")
 
-        return " - ".join(developer_details) if len(developer_details) > 1 else developer_details[0]
+        return " - ".join(developer_details)
 
     def _extract_response_field(self, response: Any, field: str) -> Any:
         """Safely extract a field from Slack API response."""
@@ -184,7 +189,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "SlackRequestError",
+                    "error_type": errors_module.SlackRequestError.__name__,
                 },
             )
 
@@ -195,7 +200,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "SlackTokenRotationError",
+                    "error_type": errors_module.SlackTokenRotationError.__name__,
                 },
             )
 
@@ -206,7 +211,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "BotUserAccessError",
+                    "error_type": errors_module.BotUserAccessError.__name__,
                 },
             )
 
@@ -217,7 +222,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "SlackClientConfigurationError",
+                    "error_type": errors_module.SlackClientConfigurationError.__name__,
                 },
             )
 
@@ -228,7 +233,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "SlackClientNotConnectedError",
+                    "error_type": errors_module.SlackClientNotConnectedError.__name__,
                 },
             )
 
@@ -239,7 +244,7 @@ class SlackErrorAdapter:
                 developer_message=str(exc),
                 extra={
                     "service": self.slug,
-                    "error_type": "SlackObjectFormationError",
+                    "error_type": errors_module.SlackObjectFormationError.__name__,
                 },
             )
 
