@@ -6,14 +6,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
+from arcade_core.converters.openai import OpenAIToolList, to_openai
 from arcade_core.schema import TOOL_NAME_SEPARATOR
 from openai import AsyncOpenAI
 from scipy.optimize import linear_sum_assignment
 
 from arcade_evals.critic import NoneCritic
 from arcade_evals.errors import WeightError
-from arcade_evals.models.openai.converter import convert_materialized_tool_to_openai_schema
-from arcade_evals.models.openai.types import OpenAIToolList
 
 if TYPE_CHECKING:
     from arcade_core import ToolCatalog
@@ -687,7 +686,7 @@ def get_formatted_tools(catalog: "ToolCatalog", tool_format: str = "openai") -> 
         The formatted tools.
     """
     if tool_format == "openai":
-        tools = [convert_materialized_tool_to_openai_schema(tool) for tool in catalog]
+        tools = [to_openai(tool) for tool in catalog]
         return tools
     else:
         raise ValueError(f"Tool format for '{tool_format}' is not supported")
