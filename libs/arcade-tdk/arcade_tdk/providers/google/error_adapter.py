@@ -215,6 +215,12 @@ class GoogleErrorAdapter:
 
         # Failsafe for any unhandled Google API client errors that are not mapped above
         if hasattr(exc, "__module__") and exc.__module__ == "googleapiclient.errors":
+            logger.warning(
+                "Unknown Google API client error encountered: %r. "
+                "Falling back to generic UpstreamError.",
+                exc,
+                exc_info=True,
+            )
             return UpstreamError(
                 message=f"Upstream Google API error: {exc}",
                 status_code=500,

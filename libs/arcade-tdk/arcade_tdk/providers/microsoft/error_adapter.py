@@ -42,6 +42,12 @@ class MicrosoftGraphErrorAdapter:
             and exc.__module__
             and ("msgraph" in exc.__module__ or "kiota" in exc.__module__)
         ):
+            logger.warning(
+                "Unknown Microsoft Graph SDK error encountered: %r. "
+                "Falling back to generic UpstreamError.",
+                exc,
+                exc_info=True,
+            )
             return UpstreamError(
                 message=f"Upstream Microsoft Graph error: {exc}",
                 status_code=500,
