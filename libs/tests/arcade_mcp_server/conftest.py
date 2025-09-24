@@ -10,6 +10,8 @@ import pytest_asyncio
 from arcade_core.catalog import MaterializedTool, ToolCatalog, ToolMeta, create_func_models
 from arcade_core.schema import (
     InputParameter,
+    OAuth2Requirement,
+    ToolAuthRequirement,
     ToolDefinition,
     ToolInput,
     ToolkitDefinition,
@@ -22,6 +24,7 @@ from arcade_mcp_server.context import Context
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import ServerSession
 from arcade_mcp_server.settings import MCPSettings
+from arcade_tdk.auth import OAuth2
 
 
 @pytest.fixture
@@ -56,6 +59,38 @@ def sample_tool_def() -> ToolDefinition:
 
 
 @pytest.fixture
+def sample_tool_def_with_auth() -> ToolDefinition:
+    """Create a sample tool definition."""
+    return ToolDefinition(
+        name="sample_tool_with_auth",
+        fully_qualified_name="TestToolkit.sample_tool_with_auth",
+        description="A test tool",
+        toolkit=ToolkitDefinition(name="TestToolkit", description="Test toolkit", version="1.0.0"),
+        input=ToolInput(
+            parameters=[
+                InputParameter(
+                    name="text",
+                    required=True,
+                    description="Input text",
+                    value_schema=ValueSchema(val_type="string"),
+                )
+            ]
+        ),
+        output=ToolOutput(description="Tool output", value_schema=ValueSchema(val_type="string")),
+        requirements=ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+                id="test-provider",
+                oauth2=OAuth2Requirement(
+                    scopes=["test.scope", "another.scope"],
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.fixture
 def sample_tool_func():
     """Create a sample tool function."""
 
@@ -67,6 +102,25 @@ def sample_tool_func():
         return f"Echo: {text}"
 
     return sample_tool
+
+
+@pytest.fixture
+def sample_tool_func_with_auth():
+    """Create a sample tool function."""
+
+    @tool(
+        requires_auth=OAuth2(
+            id="test-provider",
+            scopes=["test.scope", "another.scope"],
+        ),
+    )
+    def sample_tool_with_auth(
+        text: Annotated[str, "Input text to echo"],
+    ) -> Annotated[str, "Echoed text result"]:
+        """Echo input text back to the caller."""
+        return f"Echo: {text}"
+
+    return sample_tool_with_auth
 
 
 @pytest.fixture
@@ -84,10 +138,33 @@ def materialized_tool(sample_tool_func, sample_tool_def) -> MaterializedTool:
 
 
 @pytest.fixture
-def tool_catalog(materialized_tool: MaterializedTool) -> ToolCatalog:
+def materialized_tool_with_auth(
+    sample_tool_func_with_auth, sample_tool_def_with_auth
+) -> MaterializedTool:
+    """Create a materialized tool with required models and metadata."""
+    input_model, output_model = create_func_models(sample_tool_func_with_auth)
+    meta = ToolMeta(
+        module=sample_tool_func_with_auth.__module__, toolkit=sample_tool_def_with_auth.toolkit.name
+    )
+    return MaterializedTool(
+        tool=sample_tool_func_with_auth,
+        definition=sample_tool_def_with_auth,
+        meta=meta,
+        input_model=input_model,
+        output_model=output_model,
+    )
+
+
+@pytest.fixture
+def tool_catalog(
+    materialized_tool: MaterializedTool, materialized_tool_with_auth: MaterializedTool
+) -> ToolCatalog:
     """Create a tool catalog with sample tools."""
     catalog = ToolCatalog()
     catalog._tools[materialized_tool.definition.get_fully_qualified_name()] = materialized_tool
+    catalog._tools[materialized_tool_with_auth.definition.get_fully_qualified_name()] = (
+        materialized_tool_with_auth
+    )
     return catalog
 
 

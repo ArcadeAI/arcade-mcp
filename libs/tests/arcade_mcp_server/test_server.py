@@ -159,6 +159,35 @@ class TestMCPServer:
         assert "Echo: Hello" in response.result.structuredContent["result"]
 
     @pytest.mark.asyncio
+    async def test_handle_call_tool_with_requires_auth(self, mcp_server):
+        """Test tool call request handling with authorization."""
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "pending"
+        mock_auth_response.url = "https://example.com/auth"
+
+        # Patch the _check_authorization method to return a tool that has unsatisfied authorization
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=3,
+            method="tools/call",
+            params={"name": "TestToolkit.sample_tool_with_auth", "arguments": {"text": "Hello"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert response.id == 3
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.structuredContent is not None
+        assert "authorization_url" in response.result.structuredContent
+        assert response.result.structuredContent["authorization_url"] == "https://example.com/auth"
+        assert "message" in response.result.structuredContent
+        assert "authorization" in response.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
         """Test calling a non-existent tool."""
         message = CallToolRequest(

@@ -33,10 +33,12 @@ class TestMCPApp:
             """Echo input text back to the caller."""
             return f"Echo: {text}"
 
+        previous_tools = len(mcp_app._catalog)
+
         undecorated_tool = mcp_app.add_tool(undecorated_sample_tool)
         decorated_tool = mcp_app.add_tool(decorated_sample_tool)
 
-        assert len(mcp_app._catalog) == 2
+        assert len(mcp_app._catalog) == previous_tools + 2
 
         # Verify tool has the @tool decorator applied
         assert hasattr(undecorated_tool, "__tool_name__")
@@ -83,22 +85,24 @@ class TestMCPApp:
         # Bind server to app (instead of calling mcp_app.run())
         mcp_app.server = mcp_server
 
-        # Test adding a tool at runtime
-        await mcp_app.tools.add(materialized_tool)
-
-        # Test listing tools at runtime
-        tools = await mcp_app.tools.list()
-        assert len(tools) == 1
-
-        # Test updating a tool at runtime
-        await mcp_app.tools.update(materialized_tool)
-
         # Test removing a tool at runtime
         removed_tool = await mcp_app.tools.remove(materialized_tool.definition.fully_qualified_name)
         assert (
             removed_tool.definition.fully_qualified_name
             == materialized_tool.definition.fully_qualified_name
         )
+
+        num_tools_before_add = len(await mcp_app.tools.list())
+
+        # Test adding a tool at runtime
+        await mcp_app.tools.add(materialized_tool)
+
+        # Test listing tools at runtime
+        tools = await mcp_app.tools.list()
+        assert len(tools) == num_tools_before_add + 1
+
+        # Test updating a tool at runtime
+        await mcp_app.tools.update(materialized_tool)
 
     @pytest.mark.asyncio
     async def test_prompts_api(self, mcp_app: MCPApp, mcp_server):
