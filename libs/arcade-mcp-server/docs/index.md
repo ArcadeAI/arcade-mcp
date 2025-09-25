@@ -4,20 +4,20 @@
   <img src="https://docs.arcade.dev/images/logo/arcade-logo.png" alt="Arcade Logo" width="200"/>
 </p>
 
-Arcade MCP (Model Context Protocol) enables AI assistants and development tools to interact with your Arcade tools through a standardized protocol. Build, deploy, and integrate tools seamlessly across different AI platforms.
+Arcade MCP (Model Context Protocol) enables AI assistants and development tools to interact with your Arcade tools through a standardized protocol. Build, deploy, and integrate your MCP servers seamlessly across different AI platforms.
 
 ## Quick Links
 
 - **[Quickstart Guide](getting-started/quickstart.md)** - Get up and running in minutes
 - **[Walkthrough](examples/README.md)** - Learn by example
-- **[API Reference](api/app.md)** - MCPApp API documentation
+- **[API Reference](api/mcp_app.md)** - MCPApp API documentation
 
 ## Features
 
 - 🚀 **FastAPI-like Interface** - Simple, intuitive API with `MCPApp`
 - 🔧 **Tool Discovery** - Automatic discovery of tools in your project
 - 🔌 **Multiple Transports** - Support for stdio and HTTP/SSE
-- 🤖 **Multi-Client Support** - Works with Claude, Cursor, and more
+- 🤖 **Multi-Client Support** - Works with Claude, Cursor, VS Code, and more
 - 📦 **Package Integration** - Load installed Arcade packages
 - 🔐 **Built-in Security** - Environment-based configuration and secrets
 - 🔄 **Hot Reload** - Development mode with automatic reloading
@@ -74,7 +74,7 @@ Connect your MCP server with AI assistants and development tools:
 ## Learn More
 
 - **[Walkthrough](examples/README.md)** - Comprehensive examples and tutorials
-- **[API Reference](api/app.md)** - Detailed API documentation
+- **[API Reference](api/mcp_app.md)** - Detailed API documentation
 - **[Transport Modes](advanced/transports.md)** - stdio and HTTP transport details
 
 ## Community
