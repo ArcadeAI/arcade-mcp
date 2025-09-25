@@ -125,7 +125,10 @@ client = Arcade()  # Automatically finds the `ARCADE_API_KEY` env variable
 USER_ID = "{{arcade_user_id}}"
 TOOL_NAME = "{tool_fully_qualified_name}"
 
-auth_response = client.tools.authorize(tool_name=TOOL_NAME)
+auth_response = client.tools.authorize(
+    tool_name=TOOL_NAME,
+    user_id=USER_ID,
+)
 
 if auth_response.status != "completed":
     print(f"Click this link to authorize: {{auth_response.url}}")

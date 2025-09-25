@@ -38,7 +38,8 @@ RUN ls -la /app/dist/
 # Install the worker and CLI package
 RUN python -m pip install \
     /app/dist/arcade_serve-*.whl \
-    /app/dist/arcade_ai-*.whl
+    /app/dist/arcade_mcp-*.whl
+    /app/dist/arcade_mcp_server-*.whl
 
 # Conditionally install toolkit wheels from dist directory if INSTALL_TOOLKITS is true and the toolkit is in toolkits.txt
 RUN if [ "$INSTALL_TOOLKITS" = "true" ] ; then \
@@ -51,7 +52,8 @@ RUN if [ "$INSTALL_TOOLKITS" = "true" ] ; then \
             # Check if this is not a core package and if the wheel file exists
             if [ "$wheel_name" != "arcade_core" ] && \
                [ "$wheel_name" != "arcade_serve" ] && \
-               [ "$wheel_name" != "arcade_ai" ] && \
+               [ "$wheel_name" != "arcade_mcp" ] && \
+               [ "$wheel_name" != "arcade_mcp_server" ] && \
                [ "$wheel_name" != "arcade_tdk" ]; then \
                 if ls $wheel_file 1> /dev/null 2>&1; then \
                     echo "Installing $toolkit from $wheel_file"; \
