@@ -150,7 +150,7 @@ class MCPServer:
         self.auth_disabled = auth_disabled or self.settings.arcade.auth_disabled
 
         # Initialize Arcade client
-        # TODO: if user is logged in, then we should fallback to API key in ~/.arcade/credentials.yaml
+        # Fallback to API key in ~/.arcade/credentials.yaml if not provided
         self._init_arcade_client(
             arcade_api_key or self.settings.arcade.api_key,
             arcade_api_url or self.settings.arcade.api_url,
@@ -205,9 +205,23 @@ class MCPServer:
         if not api_url:
             api_url = os.environ.get("ARCADE_API_URL", "https://api.arcade.dev")
 
-        if api_key:
+        final_api_key = api_key
+
+        # If no API key provided, try to load from credentials file
+        if not final_api_key:
+            try:
+                from arcade_core.config import get_config
+
+                config = get_config()
+                final_api_key = config.api.key
+                if final_api_key:
+                    logger.info("Loaded Arcade API key from ~/.arcade/credentials.yaml")
+            except Exception as e:
+                logger.debug(f"Could not load credentials from file: {e}")
+
+        if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
-            self.arcade = AsyncArcade(api_key=api_key, base_url=api_url)
+            self.arcade = AsyncArcade(api_key=final_api_key, base_url=api_url)
         else:
             logger.warning(
                 "Arcade API key not configured. Tools requiring auth will return a login instruction."
@@ -579,9 +593,23 @@ class MCPServer:
 
         # user_id selection
         env = (self.settings.arcade.environment or "").lower()
-        if self.settings.arcade.user_id:
-            tool_context.user_id = self.settings.arcade.user_id
-            logger.debug(f"Context user_id set from ARCADE_USER_ID (env={env})")
+        user_id = self.settings.arcade.user_id
+
+        # If no user_id from env, try config file (like we do for API key)
+        if not user_id:
+            try:
+                from arcade_core.config import get_config
+
+                config = get_config()
+                if config.user and config.user.email:
+                    user_id = config.user.email
+                    logger.debug(f"Context user_id set from config file: {user_id}")
+            except Exception:
+                logger.debug("Could not load user_id from config file")
+
+        if user_id:
+            tool_context.user_id = user_id
+            logger.debug(f"Context user_id set: {user_id}")
         elif env in ("development", "dev", "local"):
             tool_context.user_id = session.session_id if session else None
             logger.debug(f"Context user_id set from session (dev env={env})")
@@ -703,8 +731,8 @@ class MCPServer:
         """Check tool authorization."""
         if not self.arcade:
             raise ToolRuntimeError(
-                "Authorization required but Arcade is not configured. "
-                "Run 'arcade login' or set ARCADE_API_KEY."
+                "Authorization required but Arcade API Key is not configured. "
+                "Set ARCADE_API_KEY as environment variable or run 'arcade login'."
             )
 
         req = tool.definition.requirements.authorization
@@ -724,10 +752,18 @@ class MCPServer:
             oauth2=oauth2_req,
         )
 
+        # Log a warning if user_id is not set
+        final_user_id = user_id or "anonymous"
+        if final_user_id == "anonymous":
+            logger.warning(
+                "No user_id available for authorization, defaulting to 'anonymous'. "
+                "Set ARCADE_USER_ID as environment variable or run 'arcade login'."
+            )
+
         try:
             response = await self.arcade.auth.authorize(
                 auth_requirement=auth_req,
-                user_id=user_id or "anonymous",
+                user_id=final_user_id,
             )
         except ArcadeError as e:
             logger.exception("Error authorizing tool")
