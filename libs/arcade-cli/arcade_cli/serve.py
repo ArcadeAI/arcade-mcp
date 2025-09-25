@@ -15,8 +15,8 @@ import uvicorn
 # Watchfiles is used under the hood by Uvicorn's reload feature.
 # Importing watchfiles here is an explicit acknowledgement that it needs to be installed
 import watchfiles  # noqa: F401
-from arcade_core.telemetry import OTELHandler
 from arcade_core.toolkit import Toolkit, get_package_directory
+from arcade_serve.fastapi.telemetry import OTELHandler
 from arcade_serve.fastapi.worker import FastAPIWorker
 from loguru import logger
 from rich.console import Console
@@ -45,7 +45,7 @@ def create_arcade_app() -> fastapi.FastAPI:
     setup_logging(log_level=logging.DEBUG if debug_mode else logging.INFO, mcp_mode=False)
 
     logger.info(f"Debug: {debug_mode}, OTEL: {otel_enabled}, Auth Disabled: {auth_for_reload}")
-    version = get_pkg_version("arcade-ai")
+    version = get_pkg_version("arcade-mcp")
     toolkits = discover_toolkits()
 
     logger.info("Registered toolkits:")

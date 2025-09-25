@@ -1,3 +1,7 @@
+from arcade_core.schema import (
+    ToolCallRequest,
+    ToolCallResponse,
+)
 from opentelemetry import trace
 
 from arcade_serve.core.common import (
@@ -5,8 +9,6 @@ from arcade_serve.core.common import (
     HealthCheckResponse,
     RequestData,
     Router,
-    ToolCallRequest,
-    ToolCallResponse,
     Worker,
     WorkerComponent,
 )

@@ -45,6 +45,20 @@ class Router(ABC):
         """
         pass
 
+    @abstractmethod
+    def add_mount(self, path: str, app: Any, name: str | None = None) -> None:
+        """Mount an ASGI application at the specified path.
+
+        This is optional for routers to implement. If not implemented,
+        MCPComponent will raise NotImplementedError.
+
+        Args:
+            path: The URL path to mount the app at
+            app: The ASGI application to mount
+            name: Optional name for the mount
+        """
+        raise NotImplementedError("This router does not support mounting ASGI applications")
+
 
 class Worker(ABC):
     """

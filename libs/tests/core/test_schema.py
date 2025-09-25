@@ -57,7 +57,7 @@ def test_get_secret_key_not_found():
     tool_context = ToolContext(secrets=secrets)
 
     # When the key is not found, get_secret should raise a ValueError.
-    with pytest.raises(ValueError, match=f"Secret {key} not found in context."):
+    with pytest.raises(ValueError, match=f"Secret '{key}' not found in context."):
         tool_context.get_secret(key)
 
 
@@ -65,7 +65,7 @@ def test_get_secret_when_secrets_is_none():
     tool_context = ToolContext(secrets=None)
 
     # When no secrets dictionary is provided, get_secret should raise a ValueError.
-    with pytest.raises(ValueError, match="Secrets not found in context."):
+    with pytest.raises(ValueError, match="Secret 'missing_key' not found in context."):
         tool_context.get_secret("missing_key")
 
 
@@ -100,14 +100,14 @@ def test_get_metadata_key_not_found():
     metadata = [ToolMetadataItem(key="other_key", value="another_metadata")]
     tool_context = ToolContext(metadata=metadata)
 
-    with pytest.raises(ValueError, match=f"Metadata {key} not found in context."):
+    with pytest.raises(ValueError, match=f"Metadata '{key}' not found in context."):
         tool_context.get_metadata(key)
 
 
 def test_get_metadata_when_metadata_is_none():
     tool_context = ToolContext(metadata=None)
 
-    with pytest.raises(ValueError, match="Metadatas not found in context."):
+    with pytest.raises(ValueError, match="Metadata 'missing_key' not found in context."):
         tool_context.get_metadata("missing_key")
 
 

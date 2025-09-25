@@ -14,7 +14,7 @@ Arcade Evals provides comprehensive evaluation capabilities for Arcade tools:
 ## Installation
 
 ```bash
-pip install 'arcade-ai[evals]'
+pip install 'arcade-mcp[evals]'
 ```
 
 ## Usage

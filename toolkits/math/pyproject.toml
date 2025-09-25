@@ -8,7 +8,7 @@ version = "1.0.4"
 description = "Arcade.dev LLM tools for doing math"
 requires-python = ">=3.10"
 dependencies = [
-    "arcade-tdk>=2.0.0,<3.0.0",
+    "arcade-tdk>=2.6.0rc1,<3.0.0",
 ]
 [[project.authors]]
 name = "Arcade"
@@ -16,8 +16,8 @@ email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>=2.0.0,<3.0.0",
-    "arcade-serve>=2.0.0,<3.0.0",
+    "arcade-mcp[all]>=1.0.0rc1,<3.0.0",
+    "arcade-serve>=2.2.0rc1,<3.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
     "pytest-asyncio>=0.24.0,<0.25.0",
@@ -30,7 +30,7 @@ dev = [
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = {path = "../../", editable = true}
+arcade-mcp = {path = "../../", editable = true}
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 

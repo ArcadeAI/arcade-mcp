@@ -1,5 +1,5 @@
 import pytest
-from arcade_cli.utils import compute_base_url, compute_login_url
+from arcade_cli.utils import Provider, compute_base_url, compute_login_url, resolve_provider_api_key
 
 DEFAULT_CLOUD_HOST = "cloud.arcade.dev"
 DEFAULT_ENGINE_HOST = "api.arcade.dev"
@@ -237,3 +237,14 @@ def test_compute_login_url(inputs: dict, expected_output: str):
     )
 
     assert login_url == expected_output
+
+
+def test_resolve_provider_api_key():
+    resolved_api_key = resolve_provider_api_key(Provider.OPENAI, "123")
+    assert resolved_api_key == "123"
+
+    resolved_api_key = resolve_provider_api_key("not-a-provider", None)
+    assert resolved_api_key is None
+
+    resolved_api_key = resolve_provider_api_key(Provider.OPENAI, None)
+    assert resolved_api_key is None

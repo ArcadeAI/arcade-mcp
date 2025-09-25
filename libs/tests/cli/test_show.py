@@ -23,7 +23,7 @@ def test_show_logic_local_false():
 
 
 def test_show_logic_local_true():
-    with patch("arcade_cli.show.create_cli_catalog") as mock_create_catalog:
+    with patch("arcade_cli.show.create_cli_catalog_local") as mock_create_catalog:
         mock_create_catalog.return_value = []
 
         show_logic(
@@ -38,5 +38,6 @@ def test_show_logic_local_true():
             debug=False,
         )
 
-        # create_cli_catalog should be called when local=True
+        # create_cli_catalog_local should be called when local=True
+        # and toolkit is not provided
         mock_create_catalog.assert_called_once()

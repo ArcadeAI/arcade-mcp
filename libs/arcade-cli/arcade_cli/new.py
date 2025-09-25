@@ -9,25 +9,25 @@ import typer
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from rich.console import Console
 
-from arcade_cli.deployment import (
-    create_demo_deployment,
-)
+from arcade_cli.templates import get_full_template_directory, get_minimal_template_directory
 
 console = Console()
 
-# Retrieve the installed version of arcade-ai
+# Retrieve the installed version of arcade-mcp
 try:
-    ARCADE_AI_MIN_VERSION = get_version("arcade-ai")
-    ARCADE_AI_MAX_VERSION = str(int(ARCADE_AI_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
+    ARCADE_MCP_MIN_VERSION = get_version("arcade-mcp")
+    ARCADE_MCP_MAX_VERSION = str(int(ARCADE_MCP_MIN_VERSION.split(".")[0]) + 1) + ".0.0"
 except Exception as e:
-    console.print(f"[red]Failed to get arcade-ai version: {e}[/red]")
-    ARCADE_AI_MIN_VERSION = "2.0.0"  # Default version if unable to fetch
-    ARCADE_AI_MAX_VERSION = "3.0.0"
+    console.print(f"[red]Failed to get arcade-mcp version: {e}[/red]")
+    ARCADE_MCP_MIN_VERSION = "1.0.0rc1"  # Default version if unable to fetch
+    ARCADE_MCP_MAX_VERSION = "4.0.0"
 
-ARCADE_TDK_MIN_VERSION = "2.0.0"
+ARCADE_TDK_MIN_VERSION = "2.6.0rc1"
 ARCADE_TDK_MAX_VERSION = "3.0.0"
-ARCADE_SERVE_MIN_VERSION = "2.0.0"
+ARCADE_SERVE_MIN_VERSION = "2.2.0rc1"
 ARCADE_SERVE_MAX_VERSION = "3.0.0"
+ARCADE_MCP_SERVER_MIN_VERSION = "1.0.0rc1"
+ARCADE_MCP_SERVER_MAX_VERSION = "3.0.0"
 
 
 def ask_question(question: str, default: Optional[str] = None) -> str:
@@ -181,10 +181,10 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
     # TODO: this detection mechanism works only for people that didn't change the
     # name of the repo, a better detection method is required here
     is_community_toolkit = False
-    if cwd.name == "toolkits" and cwd.parent.name == "arcade-ai":
+    if cwd.name == "toolkits" and cwd.parent.name == "arcade-mcp":
         prompt = (
             "Is your toolkit a community contribution (to be merged into "
-            "\x1b]8;;https://github.com/ArcadeAI/arcade-ai\x1b\\ArcadeAI/arcade-ai\x1b]8;;\x1b\\ repo)?"
+            "\x1b]8;;https://github.com/ArcadeAI/arcade-mcp\x1b\\ArcadeAI/arcade-mcp\x1b]8;;\x1b\\ repo)?"
         )
         is_community_toolkit = ask_yes_no_question(prompt, default=True)
 
@@ -200,13 +200,14 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
         "arcade_tdk_max_version": ARCADE_TDK_MAX_VERSION,
         "arcade_serve_min_version": ARCADE_SERVE_MIN_VERSION,
         "arcade_serve_max_version": ARCADE_SERVE_MAX_VERSION,
-        "arcade_ai_min_version": ARCADE_AI_MIN_VERSION,
-        "arcade_ai_max_version": ARCADE_AI_MAX_VERSION,
+        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
+        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
         "creation_year": datetime.now().year,
         "is_community_toolkit": is_community_toolkit,
         "is_official_toolkit": is_official_toolkit,
     }
-    template_directory = Path(__file__).parent / "templates" / "{{ toolkit_name }}"
+
+    template_directory = get_full_template_directory() / "{{ toolkit_name }}"
 
     env = Environment(
         loader=FileSystemLoader(str(template_directory)),
@@ -230,10 +231,49 @@ def create_new_toolkit(output_directory: str, toolkit_name: str) -> None:
 
 
 def create_deployment(toolkit_directory: Path, toolkit_name: str) -> None:
-    worker_toml = toolkit_directory / "worker.toml"
-    if not worker_toml.exists():
-        create_demo_deployment(worker_toml, toolkit_name)
+    # No longer create worker.toml for MCP servers
+    # The server.py file handles all configuration
+    pass
+
+
+def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None:
+    """Create a new toolkit from a template with user input."""
+    toolkit_directory = Path(output_directory)
+
+    # Check for illegal characters in the toolkit name
+    if re.match(r"^[a-z0-9_]+$", toolkit_name):
+        if (toolkit_directory / toolkit_name).exists():
+            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
+            exit(1)
     else:
-        pass
-        # Disabled pending bug fix
-        # update_deployment_with_local_packages(worker_toml, toolkit_name)
+        console.print(
+            "[red]Toolkit name contains illegal characters. "
+            "Only lowercase alphanumeric characters and underscores are allowed. "
+            "Please try again.[/red]"
+        )
+        exit(1)
+
+    context = {
+        "toolkit_name": toolkit_name,
+        "arcade_mcp_min_version": ARCADE_MCP_MIN_VERSION,
+        "arcade_mcp_max_version": ARCADE_MCP_MAX_VERSION,
+        "arcade_mcp_server_min_version": ARCADE_MCP_SERVER_MIN_VERSION,
+        "arcade_mcp_server_max_version": ARCADE_MCP_SERVER_MAX_VERSION,
+    }
+    template_directory = get_minimal_template_directory() / "{{ toolkit_name }}"
+
+    env = Environment(
+        loader=FileSystemLoader(str(template_directory)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+
+    ignore_pattern = create_ignore_pattern(False, False)
+
+    try:
+        create_package(env, template_directory, toolkit_directory, context, ignore_pattern)
+        console.print(
+            f"[green]Toolkit '{toolkit_name}' created successfully at '{toolkit_directory}'.[/green]"
+        )
+    except Exception:
+        remove_toolkit(toolkit_directory, toolkit_name)
+        raise

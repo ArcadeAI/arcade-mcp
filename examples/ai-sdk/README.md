@@ -22,7 +22,7 @@
 
 # Arcade - AI SDK
 
-This example demonstrates how to integrate [Arcade](https://docs.arcade.dev) with the [Vercel AI SDK](https://sdk.vercel.ai/) to create powerful AI agents. Arcade provides access to a wide range of tools including Gmail, Slack, LinkedIn, and more. You can also develop custom tools using the [Tool SDK](https://github.com/ArcadeAI/arcade-ai).
+This example demonstrates how to integrate [Arcade](https://docs.arcade.dev) with the [Vercel AI SDK](https://sdk.vercel.ai/) to create powerful AI agents. Arcade provides access to a wide range of tools including Gmail, Slack, LinkedIn, and more. You can also develop custom tools using the [Tool SDK](https://github.com/ArcadeAI/arcade-mcp).
 
 For a list of all hosted tools and auth providers, see the [Arcade Integrations](https://docs.arcade.dev/toolkits) documentation.
 

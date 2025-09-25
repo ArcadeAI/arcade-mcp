@@ -1,25 +1,25 @@
 {
-	"name": "arcade-ai-sdk",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"type": "module",
-	"scripts": {
-		"dev": "node --env-file=.env index.js",
-		"generateText": "node --env-file=.env generateText.js"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"packageManager": "pnpm@10.6.5",
-	"dependencies": {
-		"@ai-sdk/openai": "^1.3.22",
-		"@arcadeai/arcadejs": "latest",
-		"ai": "^4.3.15"
-	},
-	"pnpm": {
-		"overrides": {
-			"form-data@>=4.0.0 <4.0.4": ">=4.0.4"
-		}
-	}
+  "name": "arcade-mcp-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env index.js",
+    "generateText": "node --env-file=.env generateText.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.5",
+  "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
+    "@arcadeai/arcadejs": "latest",
+    "ai": "^4.3.15"
+  },
+  "pnpm": {
+    "overrides": {
+      "form-data@>=4.0.0 <4.0.4": ">=4.0.4"
+    }
+  }
 }

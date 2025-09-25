@@ -4,6 +4,7 @@ import ast
 import inspect
 import re
 from collections.abc import Callable, Iterable
+from textwrap import dedent
 from types import UnionType
 from typing import Any, Literal, TypeVar, Union, get_args, get_origin
 
@@ -75,7 +76,9 @@ def does_function_return_value(func: Callable) -> bool:
     if source is None:
         raise ValueError("Source code not found")
 
-    tree = ast.parse(source)
+    # dedent in case the function is an inner function
+    dedented_source = dedent(source)
+    tree = ast.parse(dedented_source)
 
     class ReturnVisitor(ast.NodeVisitor):
         def __init__(self) -> None:
