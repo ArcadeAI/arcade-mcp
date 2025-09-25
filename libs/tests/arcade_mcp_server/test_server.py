@@ -380,4 +380,4 @@ class TestMCPServer:
         with pytest.raises(Exception) as exc_info:
             await mcp_server._check_authorization(tool)
 
-        assert "Authorization required but Arcade is not configured" in str(exc_info.value)
+        assert "Authorization required but Arcade API Key is not configured" in str(exc_info.value)
