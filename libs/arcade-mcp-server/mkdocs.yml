@@ -96,3 +96,6 @@ extra:
       link: https://github.com/ArcadeAI/arcade-mcp
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/arcade-mcp/
+  analytics:
+    provider: google
+    property: G-MG2E60KKVX
