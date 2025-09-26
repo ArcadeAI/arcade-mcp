@@ -20,6 +20,7 @@ from loguru import logger
 from starlette.responses import Response
 from starlette.types import Receive, Scope, Send
 
+from arcade_mcp_server.fastapi.middleware import AddTrailingSlashToPathMiddleware
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.settings import MCPSettings
 from arcade_mcp_server.transports.http_session_manager import HTTPSessionManager
@@ -124,6 +125,7 @@ def create_arcade_mcp(
         **kwargs,
     )
     otel_handler.instrument_app(app)
+    app.add_middleware(AddTrailingSlashToPathMiddleware)
 
     # Worker endpoints
     worker = FastAPIWorker(
@@ -261,7 +263,7 @@ def create_arcade_mcp_factory() -> FastAPI:
 def run_arcade_mcp(
     catalog: ToolCatalog,
     host: str = "127.0.0.1",
-    port: int = 7777,
+    port: int = 8000,
     reload: bool = False,
     debug: bool = False,
     otel_enable: bool = False,

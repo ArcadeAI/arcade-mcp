@@ -39,15 +39,15 @@ INFO     | 03:32:05 | Auto-discovering tools from current directory
 INFO     | 03:32:05 | Found 1 tool(s) in 00_hello_world.py: greet
 INFO:     Started server process
 INFO:     Waiting for application startup.
-INFO     | 03:32:05 | Starting MCP server with HTTP transport on 127.0.0.1:7777
+INFO     | 03:32:05 | Starting MCP server with HTTP transport on 127.0.0.1:8000
 INFO     | 03:32:05 | Starting MCP server: ArcadeMCP
 INFO     | 03:32:05 | HTTP session manager started
 INFO     | 03:32:05 | MCP server started and ready for connections
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:7777 (Press CTRL+C to quit)
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-View the docs at http://127.0.0.1:7777/docs.
+View the docs at http://127.0.0.1:8000/docs.
 
 That's it! You've created an MCP server with a tool.
 
