@@ -79,7 +79,7 @@ nav:
       - clients/vscode.md
       - clients/inspector.md
   - API Reference:
-      - api/app.md
+      - api/mcp_app.md
       - api/cli.md
       - Server:
           - api/server/server.md
