@@ -984,6 +984,7 @@ def main_callback(
         dashboard.__name__,
         evals.__name__,
         serve.__name__,
+        mcp.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
