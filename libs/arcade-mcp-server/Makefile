@@ -31,10 +31,10 @@ docs: ## Build docs
 	uv run mkdocs build
 	uv run mkdocs serve
 
-.PHONY: serve-docs
-serve-docs: ## Serve docs locally
+.PHONY: docs-serve
+docs-serve: ## Serve docs locally
 	uv run mkdocs serve
 
-.PHONY: deploy-docs
-deploy-docs: ## Deploy docs to GitHub Pages
-	uv run mkdocs gh-deploy --force --verbose
+.PHONY: docs-build
+docs-build: ## Build docs
+	uv run mkdocs build
