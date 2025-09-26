@@ -983,6 +983,8 @@ def main_callback(
         logout.__name__,
         dashboard.__name__,
         evals.__name__,
+        serve.__name__,
+        mcp.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
