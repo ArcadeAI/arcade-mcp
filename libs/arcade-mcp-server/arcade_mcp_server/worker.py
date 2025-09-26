@@ -5,12 +5,15 @@ Creates a FastAPI application that exposes both Arcade Worker endpoints and
 MCP Server endpoints over HTTP/SSE. MCP is always enabled in this integrated mode.
 """
 
+import asyncio
+import logging
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
 from arcade_core.catalog import ToolCatalog
+from arcade_serve.fastapi.telemetry import OTELHandler
 from arcade_serve.fastapi.worker import FastAPIWorker
 from fastapi import FastAPI
 from loguru import logger
@@ -74,6 +77,7 @@ def create_arcade_mcp(
     catalog: ToolCatalog,
     mcp_settings: MCPSettings | None = None,
     debug: bool = False,
+    otel_enable: bool = False,
     **kwargs: Any,
 ) -> FastAPI:
     """
@@ -87,12 +91,28 @@ def create_arcade_mcp(
     if secret is None:
         secret = "dev"  # noqa: S105
 
+    otel_handler = OTELHandler(
+        enable=otel_enable,
+        log_level=logging.DEBUG if debug else logging.INFO,
+    )
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        async with create_lifespan(catalog, mcp_settings, **kwargs) as components:
-            app.state.mcp_server = components["mcp_server"]
-            app.state.session_manager = components["session_manager"]
-            yield
+        try:
+            logger.debug(f"Server lifespan startup. OTEL enabled: {otel_enable}")
+            async with create_lifespan(catalog, mcp_settings, **kwargs) as components:
+                app.state.mcp_server = components["mcp_server"]
+                app.state.session_manager = components["session_manager"]
+                yield
+        except (asyncio.CancelledError, KeyboardInterrupt):
+            logger.debug("Server lifespan cancelled.")
+            raise
+        finally:
+            logger.debug(f"Server lifespan shutdown. OTEL enabled: {otel_enable}")
+            if otel_enable and otel_handler:
+                otel_handler.shutdown()
+            await logger.complete()
+            logger.debug("Server lifespan shutdown complete.")
 
     app = FastAPI(
         title=(mcp_settings.server.title or mcp_settings.server.name),
@@ -103,12 +123,14 @@ def create_arcade_mcp(
         lifespan=lifespan,
         **kwargs,
     )
+    otel_handler.instrument_app(app)
 
     # Worker endpoints
     worker = FastAPIWorker(
         app=app,
         secret=secret,
         disable_auth=mcp_settings.arcade.auth_disabled,
+        otel_meter=otel_handler.get_meter(),
     )
     worker.catalog = catalog
 
@@ -191,6 +213,7 @@ def create_arcade_mcp_factory() -> FastAPI:
 
     # Read configuration from env vars that were set before running the server
     debug = os.environ.get("ARCADE_MCP_DEBUG", "false").lower() == "true"
+    otel_enable = os.environ.get("ARCADE_MCP_OTEL_ENABLE", "false").lower() == "true"
     tool_package = os.environ.get("ARCADE_MCP_TOOL_PACKAGE")
     discover_installed = os.environ.get("ARCADE_MCP_DISCOVER_INSTALLED", "false").lower() == "true"
     show_packages = os.environ.get("ARCADE_MCP_SHOW_PACKAGES", "false").lower() == "true"
@@ -216,6 +239,8 @@ def create_arcade_mcp_factory() -> FastAPI:
         raise RuntimeError("No tools found")
 
     logger.info(f"Total tools loaded: {total_tools}")
+    if otel_enable:
+        logger.info("OpenTelemetry is enabled")
 
     # Build kwargs for server creation
     kwargs = {}
@@ -228,6 +253,7 @@ def create_arcade_mcp_factory() -> FastAPI:
         catalog=catalog,
         mcp_settings=None,
         debug=debug,
+        otel_enable=otel_enable,
         **kwargs,
     )
 
@@ -238,6 +264,7 @@ def run_arcade_mcp(
     port: int = 7777,
     reload: bool = False,
     debug: bool = False,
+    otel_enable: bool = False,
     tool_package: str | None = None,
     discover_installed: bool = False,
     show_packages: bool = False,
@@ -253,6 +280,7 @@ def run_arcade_mcp(
     if reload:
         # Set env vars for the app factory to read later
         os.environ["ARCADE_MCP_DEBUG"] = str(debug)
+        os.environ["ARCADE_MCP_OTEL_ENABLE"] = str(otel_enable)
         if tool_package:
             os.environ["ARCADE_MCP_TOOL_PACKAGE"] = tool_package
         os.environ["ARCADE_MCP_DISCOVER_INSTALLED"] = str(discover_installed)
@@ -278,6 +306,7 @@ def run_arcade_mcp(
         app = create_arcade_mcp(
             catalog=catalog,
             debug=debug,
+            otel_enable=otel_enable,
             **kwargs,
         )
 

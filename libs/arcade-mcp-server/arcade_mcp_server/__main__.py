@@ -265,6 +265,11 @@ Auto-discovery looks for Python files with @tool decorated functions in:
         help="Enable debug mode with verbose logging",
     )
     parser.add_argument(
+        "--otel-enable",
+        action="store_true",
+        help="Send logs to OpenTelemetry",
+    )
+    parser.add_argument(
         "--env-file",
         help="Path to environment file",
     )
@@ -336,6 +341,7 @@ Auto-discovery looks for Python files with @tool decorated functions in:
                 port=args.port,
                 reload=args.reload,
                 debug=args.debug,
+                otel_enable=args.otel_enable,
                 tool_package=args.tool_package,
                 discover_installed=args.discover_installed,
                 show_packages=args.show_packages,

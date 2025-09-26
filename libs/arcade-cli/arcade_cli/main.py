@@ -227,6 +227,9 @@ def mcp(
         False, "--reload", help="Enable auto-reload on code changes (HTTP mode only)"
     ),
     debug: bool = typer.Option(False, "--debug", help="Enable debug mode with verbose logging"),
+    otel_enable: bool = typer.Option(
+        False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
+    ),
     env_file: Optional[str] = typer.Option(None, "--env-file", help="Path to environment file"),
     name: Optional[str] = typer.Option(None, "--name", help="Server name"),
     version: Optional[str] = typer.Option(None, "--version", help="Server version"),
@@ -250,7 +253,10 @@ def mcp(
     # Add optional arguments
     cmd.extend(["--host", host])
     cmd.extend(["--port", str(port)])
-    cmd.append("--debug")
+    if debug:
+        cmd.append("--debug")
+    if otel_enable:
+        cmd.append("--otel-enable")
     if tool_package:
         cmd.extend(["--tool-package", tool_package])
     if discover_installed:
