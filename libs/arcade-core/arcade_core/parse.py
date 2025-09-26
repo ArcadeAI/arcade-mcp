@@ -36,6 +36,18 @@ def get_function_name_if_decorated(
                 and isinstance(decorator.func, ast.Name)
                 and decorator.func.id in decorator_ids
             )
+            # Support MCPApp tools. e.g., @app.tool or @app.tool(...)
+            or (
+                isinstance(decorator, ast.Attribute)
+                and decorator.attr == "tool"
+                and isinstance(decorator.value, ast.Name)
+            )
+            or (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Attribute)
+                and decorator.func.attr == "tool"
+                and isinstance(decorator.func.value, ast.Name)
+            )
         ):
             return node.name
     return None

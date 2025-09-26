@@ -32,8 +32,16 @@ runs:
         working-directory: ${{ inputs.working-directory }}
         python-version: ${{ inputs.python-version }}
 
-    - name: Install package dependencies
-      if: inputs.is-toolkit == 'true' || inputs.is-contrib == 'true'
+    - name: Install toolkit dependencies
+      if: inputs.is-toolkit == 'true'
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Installing dependencies for ${{ inputs.working-directory }}"
+        make install-local
+      shell: bash
+
+    - name: Install contrib dependencies
+      if: inputs.is-contrib == 'true'
       working-directory: ${{ inputs.working-directory }}
       run: |
         echo "Installing dependencies for ${{ inputs.working-directory }}"

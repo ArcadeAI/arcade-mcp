@@ -1,4 +1,4 @@
-# Contributing to `arcade-ai`
+# Contributing to `arcade-mcp`
 
 Contributions are welcome, and they are greatly appreciated!
 Every little bit helps, and credit will always be given.
@@ -9,7 +9,7 @@ You can contribute in many ways:
 
 ## Report Bugs
 
-Report bugs at https://github.com/ArcadeAI/arcade-ai/issues
+Report bugs at https://github.com/ArcadeAI/arcade-mcp/issues
 
 If you are reporting a bug, please include:
 
@@ -33,7 +33,7 @@ Arcade could always use more documentation, whether as part of the official docs
 
 ## Submit Feedback
 
-The best way to send feedback is to file an issue at https://github.com/ArcadeAI/arcade-ai/issues.
+The best way to send feedback is to file an issue at https://github.com/ArcadeAI/arcade-mcp/issues.
 
 If you are proposing a new feature:
 
@@ -44,22 +44,22 @@ If you are proposing a new feature:
 
 # Get Started!
 
-Ready to contribute? Here's how to set up `arcade-ai` for local development.
+Ready to contribute? Here's how to set up `arcade-mcp` for local development.
 Please note this documentation assumes you already have `uv` and `Git` installed and ready to go.
 
-1. Fork the `arcade-ai` repo on GitHub.
+1. Fork the `arcade-mcp` repo on GitHub.
 
 2. Clone your fork locally:
 
 ```bash
 cd <directory_in_which_repo_should_be_created>
-git clone git@github.com:YOUR_GITHUB_USERNAME/arcade-ai.git
+git clone git@github.com:YOUR_GITHUB_USERNAME/arcade-mcp.git
 ```
 
 3. Now we need to install the environment. Navigate into the directory
 
 ```bash
-cd arcade-ai
+cd arcade-mcp
 ```
 
 Create your virtual environment

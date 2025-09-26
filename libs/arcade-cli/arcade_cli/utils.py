@@ -2,6 +2,7 @@ import importlib.util
 import ipaddress
 import os
 import shlex
+import sys
 import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,6 +17,12 @@ import idna
 import typer
 from arcade_core import ToolCatalog, Toolkit
 from arcade_core.config_model import Config
+from arcade_core.discovery import (
+    analyze_files_for_tools,
+    build_minimal_toolkit,
+    collect_tools_from_modules,
+    find_candidate_tool_files,
+)
 from arcade_core.errors import ToolkitLoadError
 from arcade_core.schema import ToolDefinition
 from arcadepy import (
@@ -65,6 +72,12 @@ class ChatCommand(str, Enum):
     EXIT = "/exit"
 
 
+class Provider(str, Enum):
+    """Supported model providers for evaluations."""
+
+    OPENAI = "openai"
+
+
 def create_cli_catalog(
     toolkit: str | None = None,
     show_toolkits: bool = False,
@@ -96,6 +109,59 @@ def create_cli_catalog(
             console.print(f"Loading toolkit: {loaded_toolkit.name}", style="bold blue")
         catalog.add_toolkit(loaded_toolkit)
     return catalog
+
+
+def _discover_installed_toolkits(catalog: ToolCatalog) -> ToolCatalog:
+    for tk in Toolkit.find_all_arcade_toolkits():
+        catalog.add_toolkit(tk)
+    return catalog
+
+
+def create_cli_catalog_local() -> ToolCatalog:
+    """
+    Load a local toolkit from the current working directory if a pyproject.toml is present.
+    Fallback to environment discovery if not present.
+    """
+    cwd = Path.cwd()
+    catalog = ToolCatalog()
+
+    if not (cwd / "pyproject.toml").is_file():
+        return _discover_installed_toolkits(catalog)
+
+    try:
+        files = find_candidate_tool_files(cwd)
+        if not files:
+            return _discover_installed_toolkits(catalog)
+
+        files_with_tools = analyze_files_for_tools(files)
+        if not files_with_tools:
+            return _discover_installed_toolkits(catalog)
+
+        discovered_tools = collect_tools_from_modules(files_with_tools)
+        if not discovered_tools:
+            return _discover_installed_toolkits(catalog)
+
+        toolkit = build_minimal_toolkit(
+            server_name=cwd.name,
+            server_version="0.1.0dev",
+            description=f"Local toolkit from {cwd.name}",
+        )
+        # Add tools directly to catalog using the discovery approach
+        for tool_func, module in discovered_tools:
+            # Register module in sys.modules so it can be found
+            if module.__name__ not in sys.modules:
+                sys.modules[module.__name__] = module
+            catalog.add_tool(tool_func, toolkit, module)
+    except Exception as e:
+        console.log(
+            f"Local file discovery failed: {e}; falling back to installed toolkits",
+            style="dim",
+        )
+    else:
+        return catalog
+
+    # Fallback: discover installed toolkits
+    return _discover_installed_toolkits(catalog)
 
 
 def compute_base_url(
@@ -530,7 +596,30 @@ def get_eval_files(directory: str) -> list[Path]:
     directory_path = Path(directory).resolve()
 
     if directory_path.is_dir():
-        eval_files = [f for f in directory_path.rglob("eval_*.py") if f.is_file()]
+        # Directories to exclude from recursive search
+        exclude_dirs = {
+            ".venv",
+            "venv",
+            ".env",
+            "env",
+            "node_modules",
+            "__pycache__",
+            ".git",
+            "build",
+            "dist",
+            ".tox",
+            "htmlcov",
+            "site-packages",
+            ".pytest_cache",
+        }
+
+        eval_files = []
+        for f in directory_path.rglob("eval_*.py"):
+            if f.is_file():
+                # Check if any parent directory is in exclude_dirs
+                should_exclude = any(part in exclude_dirs for part in f.parts)
+                if not should_exclude:
+                    eval_files.append(f)
     elif directory_path.is_file():
         eval_files = (
             [directory_path]
@@ -555,48 +644,59 @@ def load_eval_suites(eval_files: list[Path]) -> list[Callable]:
     """
     Load evaluation suites from the given eval_files by importing the modules
     and extracting functions decorated with `@tool_eval`.
-
     Args:
         eval_files: A list of Paths to evaluation files.
-
     Returns:
         A list of callable evaluation suite functions.
     """
     eval_suites = []
     for eval_file_path in eval_files:
         module_name = eval_file_path.stem  # filename without extension
-
         # Now we need to load the module from eval_file_path
         file_path_str = str(eval_file_path)
         module_name_str = module_name
 
-        # Load using importlib
-        spec = importlib.util.spec_from_file_location(module_name_str, file_path_str)
-        if spec is None:
-            console.print(f"Failed to load {eval_file_path}", style="bold red")
+        # Add the directory containing the eval file to sys.path temporarily
+        # so that the eval file can import other modules in the same directory
+        eval_dir = str(eval_file_path.parent)
+        original_path = sys.path.copy()
+        if eval_dir not in sys.path:
+            sys.path.insert(0, eval_dir)
+
+        try:
+            # Load using importlib
+            spec = importlib.util.spec_from_file_location(module_name_str, file_path_str)
+            if spec is None:
+                console.print(f"Failed to load {eval_file_path}", style="bold red")
+                continue
+
+            module = importlib.util.module_from_spec(spec)
+            if spec.loader is not None:
+                spec.loader.exec_module(module)
+            else:
+                console.print(f"Failed to load module: {module_name}", style="bold red")
+                continue
+
+            eval_suite_funcs = [
+                obj
+                for name, obj in module.__dict__.items()
+                if callable(obj) and hasattr(obj, "__tool_eval__")
+            ]
+
+            if not eval_suite_funcs:
+                console.print(
+                    f"No @tool_eval functions found in {eval_file_path}",
+                    style="bold yellow",
+                )
+                continue
+
+            eval_suites.extend(eval_suite_funcs)
+        except Exception as e:
+            console.print(f"Failed to load {eval_file_path}: {e}", style="bold red")
             continue
-
-        module = importlib.util.module_from_spec(spec)
-        if spec.loader is not None:
-            spec.loader.exec_module(module)
-        else:
-            console.print(f"Failed to load module: {module_name}", style="bold red")
-            continue
-
-        eval_suite_funcs = [
-            obj
-            for name, obj in module.__dict__.items()
-            if callable(obj) and hasattr(obj, "__tool_eval__")
-        ]
-
-        if not eval_suite_funcs:
-            console.print(
-                f"No @tool_eval functions found in {eval_file_path}",
-                style="bold yellow",
-            )
-            continue
-
-        eval_suites.extend(eval_suite_funcs)
+        finally:
+            # Restore the original sys.path
+            sys.path[:] = original_path
 
     return eval_suites
 
@@ -698,7 +798,7 @@ def version_callback(value: bool) -> None:
     Prints the version of Arcade and exit.
     """
     if value:
-        version = metadata.version("arcade-ai")
+        version = metadata.version("arcade-mcp")
         console.print(f"[bold]Arcade CLI[/bold] (version {version})")
         exit()
 
@@ -787,6 +887,45 @@ def load_dotenv(path: str | Path, *, override: bool = False) -> dict[str, str]:
     return loaded
 
 
+def resolve_provider_api_key(provider: Provider, provider_api_key: str | None = None) -> str | None:
+    """
+    Resolve the API key for a given provider for evals.
+
+    Args:
+        provider: The model provider
+        provider_api_key: API key provided via CLI argument
+
+    Returns:
+        The resolved API key or None if not found
+    """
+    if provider_api_key:
+        return provider_api_key
+
+    # Map providers to their environment variable names
+    provider_env_vars = {
+        Provider.OPENAI: "OPENAI_API_KEY",
+    }
+
+    env_var_name = provider_env_vars.get(provider)
+    if not env_var_name:
+        return None
+
+    # First check current environment
+    api_key = os.getenv(env_var_name)
+    if api_key:
+        return api_key
+
+    # Then check .env file in current working directory
+    env_file_path = Path.cwd() / ".env"
+    if env_file_path.exists():
+        load_dotenv(env_file_path, override=False)
+        api_key = os.getenv(env_var_name)
+        if api_key:
+            return api_key
+
+    return None
+
+
 def require_dependency(
     package_name: str,
     command_name: str,
@@ -798,7 +937,7 @@ def require_dependency(
     Args:
         package_name: The name of the package to import (e.g., 'arcade_serve')
         command_name: The command that requires the package (e.g., 'serve')
-        install_command: The command to install the package (e.g., "pip install 'arcade-ai[evals]'")
+        install_command: The command to install the package (e.g., "pip install 'arcade-mcp[evals]'")
     """
     try:
         importlib.import_module(package_name.replace("-", "_"))

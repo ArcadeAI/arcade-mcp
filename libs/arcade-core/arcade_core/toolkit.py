@@ -6,6 +6,7 @@ import types
 from collections import defaultdict
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+import toml
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from arcade_core.errors import ToolkitLoadError
@@ -58,6 +59,71 @@ class Toolkit(BaseModel):
         >>> toolkit = Toolkit.from_module(arcade_math)
         """
         return cls.from_package(module.__name__)
+
+    @classmethod
+    def from_directory(cls, directory: Path) -> "Toolkit":
+        """
+        Load a Toolkit from a directory.
+        """
+        pyproject_path = directory / "pyproject.toml"
+        if not pyproject_path.exists():
+            raise ToolkitLoadError(f"pyproject.toml not found in {directory}")
+
+        try:
+            with open(pyproject_path) as f:
+                pyproject_data = toml.load(f)
+
+            project_data = pyproject_data.get("project", {})
+            name = project_data.get("name")
+            if not name:
+
+                def _missing_name_error() -> ToolkitLoadError:
+                    return ToolkitLoadError("name not found in pyproject.toml")
+
+                raise _missing_name_error()  # noqa: TRY301
+
+            package_name = name
+            version = project_data.get("version", "0.0.0")
+            description = project_data.get("description", "")
+            authors = project_data.get("authors", [])
+            author_names = [author.get("name", "") for author in authors]
+
+            # For homepage and repository, you might need to look under project.urls
+            urls = project_data.get("urls", {})
+            homepage = urls.get("Homepage")
+            repo = urls.get("Repository")
+
+        except Exception as e:
+            raise ToolkitLoadError(f"Failed to load metadata from {pyproject_path}: {e}")
+
+        # Determine the actual package directory (supports src/ layout and flat layout)
+        package_dir = directory
+        try:
+            src_candidate = directory / "src" / package_name
+            flat_candidate = directory / package_name
+            if src_candidate.is_dir():
+                package_dir = src_candidate
+            elif flat_candidate.is_dir():
+                package_dir = flat_candidate
+            else:
+                # Fallback to the provided directory; tools_from_directory will de-duplicate prefixes
+                package_dir = directory
+        except Exception:
+            package_dir = directory
+
+        toolkit = cls(
+            name=name,
+            package_name=package_name,
+            version=version,
+            description=description,
+            author=author_names,
+            homepage=homepage,
+            repository=repo,
+        )
+
+        toolkit.tools = cls.tools_from_directory(package_dir, package_name)
+
+        return toolkit
 
     @classmethod
     def from_package(cls, package: str) -> "Toolkit":
@@ -232,9 +298,14 @@ class Toolkit(BaseModel):
         for module_path in modules:
             relative_path = module_path.relative_to(package_dir)
             cls.validate_file(module_path)
-            import_path = ".".join(relative_path.with_suffix("").parts)
-            import_path = f"{package_name}.{import_path}"
-            tools[import_path] = get_tools_from_file(str(module_path))
+            # Build import path and avoid duplicating the package prefix if it already exists
+            relative_parts = relative_path.with_suffix("").parts
+            import_path = ".".join(relative_parts)
+            if relative_parts and relative_parts[0] == package_name:
+                full_import_path = import_path
+            else:
+                full_import_path = f"{package_name}.{import_path}" if import_path else package_name
+            tools[full_import_path] = get_tools_from_file(str(module_path))
 
         if not tools:
             raise ToolkitLoadError(f"No tools found in package {package_name}")

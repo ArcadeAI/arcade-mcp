@@ -10,7 +10,7 @@ from openai import OpenAI
 def call_tool_with_openai(client: OpenAI) -> dict:
     response = client.chat.completions.create(
         messages=[
-            {"role": "user", "content": "Star the ArcadeAI/arcade-ai repository."},
+            {"role": "user", "content": "Star the ArcadeAI/arcade-mcp repository."},
         ],
         model="gpt-4o-mini",  # TODO: Try "claude-3-5-sonnet-20240620" or other models from our supported model providers. Checkout out our docs for a full list https://docs.arcade.dev
         user="you@example.com",

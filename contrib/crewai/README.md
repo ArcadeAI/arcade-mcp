@@ -6,7 +6,7 @@
 </h3>
 <div align="center">
   <h3>CrewAI Integration</h3>
-    <a href="https://github.com/arcadeai/arcade-ai/blob/main/LICENSE">
+    <a href="https://github.com/arcadeai/arcade-mcp/blob/main/LICENSE">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
 </a>
     <a href="https://pepy.tech/project/crewai-arcade">
@@ -34,4 +34,4 @@ pip install crewai-arcade
 
 ## Usage
 
-See the [examples](https://github.com/ArcadeAI/arcade-ai/tree/main/examples/crewai) for usage examples
+See the [examples](https://github.com/ArcadeAI/arcade-mcp/tree/main/examples/crewai) for usage examples

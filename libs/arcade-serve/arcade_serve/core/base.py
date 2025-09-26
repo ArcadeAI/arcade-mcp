@@ -40,7 +40,10 @@ class BaseWorker(Worker):
     )
 
     def __init__(
-        self, secret: str | None = None, disable_auth: bool = False, otel_meter: Meter | None = None
+        self,
+        secret: str | None = None,
+        disable_auth: bool = False,
+        otel_meter: Meter | None = None,
     ) -> None:
         """
         Initialize the BaseWorker with an empty ToolCatalog.
@@ -181,5 +184,11 @@ class BaseWorker(Worker):
         """
         Register the necessary routes to the application.
         """
+        # Initialize components list if it doesn't exist
+        if not hasattr(self, "components"):
+            self.components = []
+
         for component_cls in self.default_components:
-            component_cls(self).register(router)
+            component = component_cls(self)
+            component.register(router)
+            self.components.append(component)

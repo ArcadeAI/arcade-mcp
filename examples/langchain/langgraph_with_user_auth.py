@@ -93,7 +93,7 @@ if __name__ == "__main__":
         "messages": [
             {
                 "role": "user",
-                "content": "Star arcadeai/arcade-ai on github",
+                "content": "Star arcadeai/arcade-mcp on github",
             }
         ],
     }

@@ -1,0 +1,98 @@
+site_name: Arcade MCP
+site_description: MCP (Model Context Protocol) support for Arcade.
+site_url: https://docs.arcadeai.dev/arcade-mcp-server/
+repo_url: https://github.com/ArcadeAI/arcade-mcp
+repo_name: ArcadeAI/arcade-mcp
+
+theme:
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  name: material
+  logo: https://docs.arcade.dev/images/logo/arcade-logo.png
+  favicon: https://docs.arcade.dev/images/logo/arcade-logo.png
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [../arcade_mcp_server]
+          options:
+            show_source: false
+            show_root_heading: true
+            heading_level: 3
+
+exclude_docs: |
+  /README.md
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/quickstart.md
+  - Walkthrough:
+      - examples/README.md
+      - examples/00_hello_world.md
+      - examples/01_tools.md
+      - examples/02_building_apps.md
+      - examples/03_context.md
+      - examples/04_secrets.md
+      - examples/05_logging.md
+  - Clients:
+      - clients/claude.md
+      - clients/cursor.md
+      - clients/vscode.md
+      - clients/inspector.md
+  - API Reference:
+      - api/app.md
+      - api/cli.md
+      - Server:
+          - api/server/server.md
+          - api/server/middleware.md
+          - api/server/types.md
+          - api/server/errors.md
+          - api/server/settings.md
+  - Advanced:
+      - advanced/transports.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ArcadeAI/arcade-mcp
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/arcade-mcp/

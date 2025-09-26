@@ -8,7 +8,7 @@ retries = 3
 secret = "test-secret"
 
 [worker.pypi_source]
-packages = ["arcade-ai"]
+packages = ["arcade-mcp"]
 
 [worker.local_source]
 packages = ["./missing_toolkit"]
@@ -22,7 +22,7 @@ retries = 3
 secret = "test-secret"
 
 [worker.pypi_source]
-packages = ["arcade-ai"]
+packages = ["arcade-mcp"]
 
 [worker.local_source]
 packages = ["./invalid.localfile.worker.toml"]
@@ -36,7 +36,7 @@ retries = 3
 secret = "test-secret"
 
 [worker.pypi_source]
-packages = ["arcade-ai"]
+packages = ["arcade-mcp"]
 
 [worker.local_source]
 packages = ["./invalid_toolkit"]

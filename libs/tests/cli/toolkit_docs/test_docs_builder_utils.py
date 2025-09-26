@@ -35,7 +35,7 @@ email = "dev@arcade.dev"
 
 [project.optional-dependencies]
 dev = [
-    "arcade-ai[evals]>=2.0.0,<3.0.0",
+    "arcade-mcp[evals]>=2.0.0,<3.0.0",
     "arcade-serve>=2.0.0,<3.0.0",
     "pytest>=8.3.0,<8.4.0",
     "pytest-cov>=4.0.0,<4.1.0",
@@ -49,7 +49,7 @@ dev = [
 
 # Use local path sources for arcade libs when working locally
 [tool.uv.sources]
-arcade-ai = {path = "../../", editable = true}
+arcade-mcp = {path = "../../", editable = true}
 arcade-tdk = { path = "../../libs/arcade-tdk/", editable = true }
 arcade-serve = { path = "../../libs/arcade-serve/", editable = true }
 

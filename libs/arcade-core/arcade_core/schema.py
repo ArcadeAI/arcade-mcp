@@ -1,3 +1,21 @@
+"""
+Arcade Core Schema
+
+Defines transport-agnostic tool schemas and runtime context protocols used
+across Arcade libraries. This includes:
+
+- Tool and toolkit specifications (parameters, outputs, requirements)
+- Transport-agnostic ToolContext carrying authorization, secrets, metadata
+- Runtime ModelContext Protocol and its namespaced sub-protocols for logs,
+  progress, resources, tools, prompts, sampling, UI, and notifications
+
+Note: ToolContext does not embed runtime capabilities; those are provided by
+implementations of ModelContext (e.g., in arcade-mcp-server) that subclasses ToolContext
+to expose the namespaced APIs to tools without changing function signatures.
+"""
+
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -23,10 +41,10 @@ class ValueSchema(BaseModel):
     enum: list[str] | None = None
     """The list of possible values for the value, if it is a closed list."""
 
-    properties: dict[str, "ValueSchema"] | None = None
+    properties: dict[str, ValueSchema] | None = None
     """For object types (json), the schema of nested properties."""
 
-    inner_properties: dict[str, "ValueSchema"] | None = None
+    inner_properties: dict[str, ValueSchema] | None = None
     """For array types with json items, the schema of properties for each array item."""
 
     description: str | None = None
@@ -100,7 +118,7 @@ class ToolAuthRequirement(BaseModel):
     # or
     #    client.auth.authorize(provider=AuthProvider.google, scopes=["profile", "email"])
     #
-    # The Arcade SDK translates these into the appropriate provider ID (Google) and type (OAuth2).
+    # The Arcade TDK translates these into the appropriate provider ID (Google) and type (OAuth2).
     # The only time the developer will set these is if they are using a custom auth provider.
     provider_id: str | None = None
     """The provider ID configured in Arcade that acts as an alias to well-known configuration."""
@@ -200,7 +218,7 @@ class FullyQualifiedName:
             (self.toolkit_version or "").lower(),
         ))
 
-    def equals_ignoring_version(self, other: "FullyQualifiedName") -> bool:
+    def equals_ignoring_version(self, other: FullyQualifiedName) -> bool:
         """Check if two fully-qualified tool names are equal, ignoring the version."""
         return (
             self.name.lower() == other.name.lower()
@@ -208,7 +226,7 @@ class FullyQualifiedName:
         )
 
     @staticmethod
-    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> "FullyQualifiedName":
+    def from_toolkit(tool_name: str, toolkit: ToolkitDefinition) -> FullyQualifiedName:
         """Creates a fully-qualified tool name from a tool name and a ToolkitDefinition."""
         return FullyQualifiedName(tool_name, toolkit.name, toolkit.version)
 
@@ -298,7 +316,16 @@ class ToolMetadataItem(BaseModel):
 
 
 class ToolContext(BaseModel):
-    """The context for a tool invocation."""
+    """The context for a tool invocation.
+
+    This type is transport-agnostic and contains only authorization,
+    secret, and metadata information needed by the tool. Runtime-specific
+    capabilities (logging, resources, etc.) are provided by a separate
+    runtime context that wraps this object.
+
+    Recommendation: For new tools, annotate the parameter as
+    `arcade_mcp_server.Context` to access namespaced runtime APIs directly.
+    """
 
     authorization: ToolAuthorizationContext | None = None
     """The authorization context for the tool invocation that requires authorization."""
@@ -312,16 +339,35 @@ class ToolContext(BaseModel):
     user_id: str | None = None
     """The user ID for the tool invocation (if any)."""
 
+    model_config = {"arbitrary_types_allowed": True}
+
+    def set_secret(self, key: str, value: str) -> None:
+        """Add or update a secret to the tool context."""
+        if self.secrets is None:
+            self.secrets = []
+        # Update existing or add new
+        for secret in self.secrets:
+            if secret.key == key:
+                secret.value = value
+                return
+        self.secrets.append(ToolSecretItem(key=key, value=value))
+
     def get_auth_token_or_empty(self) -> str:
         """Retrieve the authorization token, or return an empty string if not available."""
         return self.authorization.token if self.authorization and self.authorization.token else ""
 
     def get_secret(self, key: str) -> str:
-        """Retrieve the secret for the tool invocation."""
+        """Retrieve the secret for the tool invocation.
+
+        Raises a ValueError if the secret is not found.
+        """
         return self._get_item(key, self.secrets, "secret")
 
     def get_metadata(self, key: str) -> str:
-        """Retrieve the metadata for the tool invocation."""
+        """Retrieve the metadata for the tool invocation.
+
+        Raises a ValueError if the metadata is not found.
+        """
         return self._get_item(key, self.metadata, "metadata")
 
     def _get_item(
@@ -335,21 +381,14 @@ class ToolContext(BaseModel):
                 f"{item_name.capitalize()} key passed to get_{item_name} cannot be empty."
             )
         if not items:
-            raise ValueError(f"{item_name.capitalize()}s not found in context.")
+            raise ValueError(f"{item_name.capitalize()} '{key}' not found in context.")
 
         normalized_key = key.lower()
         for item in items:
             if item.key.lower() == normalized_key:
                 return item.value
 
-        raise ValueError(f"{item_name.capitalize()} {key} not found in context.")
-
-    def set_secret(self, key: str, value: str) -> None:
-        """Set a secret for the tool invocation."""
-        if not self.secrets:
-            self.secrets = []
-        secret = ToolSecretItem(key=str(key), value=str(value))
-        self.secrets.append(secret)
+        raise ValueError(f"{item_name.capitalize()} '{key}' not found in context.")
 
 
 class ToolCallRequest(BaseModel):

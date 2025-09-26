@@ -405,7 +405,9 @@ class ToolCatalog(BaseModel):
         # Hard requirement: tools must have descriptions
         tool_description = getattr(tool, "__tool_description__", None)
         if not tool_description:
-            raise ToolDefinitionError(f"Tool '{raw_tool_name}' is missing a description")
+            raise ToolDefinitionError(
+                f"Tool '{raw_tool_name}' is missing a description. Tool descriptions are specified as docstrings for the tool function."
+            )
 
         # If the function returns a value, it must have a type annotation
         if does_function_return_value(tool) and tool.__annotations__.get("return") is None:
@@ -449,7 +451,9 @@ def create_input_definition(func: Callable) -> ToolInput:
     tool_context_param_name: str | None = None
 
     for _, param in inspect.signature(func, follow_wrapped=True).parameters.items():
-        if param.annotation is ToolContext:
+        ann = param.annotation
+        if isinstance(ann, type) and issubclass(ann, ToolContext):
+            # Soft guidance for developers using legacy ToolContext
             if tool_context_param_name is not None:
                 raise ToolInputSchemaError(
                     f"Only one ToolContext parameter is supported, but tool {func.__name__} has multiple."
@@ -690,7 +694,9 @@ def extract_field_info(param: inspect.Parameter) -> ToolParamInfo:
 
     # Final reality check
     if param_info.description is None:
-        raise ToolInputSchemaError(f"Parameter '{param_info.name}' is missing a description")
+        raise ToolInputSchemaError(
+            f"Parameter '{param_info.name}' is missing a description. Parameter descriptions are specified as string annotations using the typing.Annotated class."
+        )
 
     if wire_type_info.wire_type is None:
         raise ToolInputSchemaError(f"Unknown parameter type: {param_info.field_type}")
@@ -983,8 +989,9 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     if asyncio.iscoroutinefunction(func) and hasattr(func, "__wrapped__"):
         func = func.__wrapped__
     for name, param in inspect.signature(func, follow_wrapped=True).parameters.items():
-        # Skip ToolContext parameters
-        if param.annotation is ToolContext:
+        # Skip ToolContext parameters (including subclasses like arcade_mcp_server.Context)
+        ann = param.annotation
+        if isinstance(ann, type) and issubclass(ann, ToolContext):
             continue
 
         # TODO make this cleaner
@@ -1004,7 +1011,7 @@ def create_func_models(func: Callable) -> tuple[type[BaseModel], type[BaseModel]
     return input_model, output_model
 
 
-def determine_output_model(func: Callable) -> type[BaseModel]:  # noqa: C901
+def determine_output_model(func: Callable) -> type[BaseModel]:
     """
     Determine the output model for a function based on its return annotation.
     """
@@ -1149,9 +1156,13 @@ def create_model_from_typeddict(typeddict_class: type, model_name: str) -> type[
 def to_tool_secret_requirements(
     secrets_requirement: list[str],
 ) -> list[ToolSecretRequirement]:
-    # Iterate through the list, de-dupe case-insensitively, and convert each string to a ToolSecretRequirement
-    unique_secrets = {name.lower(): name.lower() for name in secrets_requirement}.values()
-    return [ToolSecretRequirement(key=name) for name in unique_secrets]
+    # De-dupe case-insensitively but preserve the original casing for env var lookup
+    unique_map: dict[str, str] = {}
+    for name in secrets_requirement:
+        lowered = str(name).lower()
+        if lowered not in unique_map:
+            unique_map[lowered] = str(name)
+    return [ToolSecretRequirement(key=orig_name) for orig_name in unique_map.values()]
 
 
 def to_tool_metadata_requirements(
