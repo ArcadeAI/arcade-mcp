@@ -14,6 +14,9 @@ jobs:
             - name: Check out
               uses: actions/checkout@v4
 
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+
             - name: Test docs
               working-directory: libs/arcade-mcp-server
               run: make sync && make docs
