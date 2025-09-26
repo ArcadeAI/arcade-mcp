@@ -19,4 +19,4 @@ jobs:
 
             - name: Test docs
               working-directory: libs/arcade-mcp-server
-              run: make sync && make docs
+              run: make sync && make docs-build
