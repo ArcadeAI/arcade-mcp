@@ -21,8 +21,8 @@ from typing import Any, Callable, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
 from arcade_core.executor import ToolExecutor
+from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
-from arcade_core.schema import ToolContext
 from arcadepy import ArcadeError, AsyncArcade
 from arcadepy.types.auth_authorize_params import AuthRequirement, AuthRequirementOauth2
 
@@ -635,30 +635,16 @@ class MCPServer:
             # Create tool context
             tool_context = await self._create_tool_context(tool, session)
 
+            # Handle authorization and secrets requirements if required
+            if missing_requirements_response := await self._check_tool_requirements(
+                tool, tool_context, message, tool_name
+            ):
+                return missing_requirements_response
+
             # Attach tool_context to current model context for this request
             mctx = get_current_model_context()
             if mctx is not None:
                 mctx.set_tool_context(tool_context)
-
-            # Handle authorization if required
-            if tool.definition.requirements and tool.definition.requirements.authorization:
-                auth_result = await self._check_authorization(tool, tool_context.user_id)
-                if auth_result.status != "completed":
-                    tool_response = {
-                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
-                        "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
-                        "authorization_url": auth_result.url,
-                    }
-                    content = convert_to_mcp_content(tool_response)
-                    structured_content = convert_content_to_structured_content(tool_response)
-                    return JSONRPCResponse(
-                        id=message.id,
-                        result=CallToolResult(
-                            content=content,
-                            structuredContent=structured_content,
-                            isError=False,
-                        ),
-                    )
 
             # Execute tool
             result = await ToolExecutor.run(
@@ -723,16 +709,108 @@ class MCPServer:
                 error={"code": -32603, "message": "Internal error calling tool"},
             )
 
+    def _create_error_response(
+        self, message: CallToolRequest, tool_response: dict[str, Any]
+    ) -> JSONRPCResponse[CallToolResult]:
+        """Create a consistent error response for tool requirement failures"""
+        content = convert_to_mcp_content(tool_response)
+        structured_content = convert_content_to_structured_content(tool_response)
+        return JSONRPCResponse(
+            id=message.id,
+            result=CallToolResult(
+                content=content,
+                structuredContent=structured_content,
+                isError=True,
+            ),
+        )
+
+    async def _check_tool_requirements(
+        self,
+        tool: MaterializedTool,
+        tool_context: ToolContext,
+        message: CallToolRequest,
+        tool_name: str,
+    ) -> JSONRPCResponse[CallToolResult] | None:
+        """Check tool requirements before executing the tool"""
+        # Check authorization
+        if tool.definition.requirements and tool.definition.requirements.authorization:
+            # First check if Arcade API key is configured
+            if not self.arcade:
+                tool_response = {
+                    "message": f"Tool '{tool_name}' cannot be executed because it requires authorization but no Arcade API key is configured.",
+                    "llm_instructions": (
+                        f"The MCP server cannot execute the '{tool_name}' tool because it requires authorization "
+                        "but the Arcade API key is not configured. The developer needs to: "
+                        "1) Set the ARCADE_API_KEY environment variable with a valid API key, or "
+                        "2) Run 'arcade login' to authenticate. "
+                        "Once the API key is configured, restart the MCP server for the changes to take effect."
+                    ),
+                }
+                return self._create_error_response(message, tool_response)
+
+            # Check authorization status
+            try:
+                auth_result = await self._check_authorization(tool, tool_context.user_id)
+                if auth_result.status != "completed":
+                    tool_response = {
+                        "message": "The tool was not executed because it requires authorization. This is not an error, but the end user must click the link to complete the OAuth2 flow before the tool can be executed.",
+                        "llm_instructions": f"Please show the following link to the end user formatted as markdown: {auth_result.url} \nInform the end user that the tool requires their authorization to be completed before the tool can be executed.",
+                        "authorization_url": auth_result.url,
+                    }
+                    return self._create_error_response(message, tool_response)
+                # Inject the authorization token into the tool context
+                tool_context.authorization = ToolAuthorizationContext(
+                    token=auth_result.context.token,
+                    user_info=auth_result.context.user_info
+                    if auth_result.context.user_info
+                    else {},
+                )
+            except ToolRuntimeError as e:
+                # Handle any other authorization errors
+                tool_response = {
+                    "message": f"Tool '{tool_name}' cannot be executed due to an authorization error: {e}",
+                    "llm_instructions": f"The '{tool_name}' tool failed authorization. Error: {e}",
+                }
+                return self._create_error_response(message, tool_response)
+
+        # Check secrets
+        if tool.definition.requirements and tool.definition.requirements.secrets:
+            missing_secrets = []
+            for secret_requirement in tool.definition.requirements.secrets:
+                try:
+                    tool_context.get_secret(secret_requirement.key)
+                except ValueError:
+                    missing_secrets.append(secret_requirement.key)
+            if missing_secrets:
+                missing_secrets_str = ", ".join(missing_secrets)
+                tool_response = {
+                    "message": f"Tool '{tool_name}' cannot be executed because it requires the following secrets that are not available: {missing_secrets_str}",
+                    "llm_instructions": (
+                        f"The MCP server is missing required secrets for the '{tool_name}' tool. "
+                        f"The developer needs to provide these secrets by either: "
+                        f"1) Adding them to a .env file in the server's working directory (e.g., {missing_secrets[0]}=your_secret_value), "
+                        f"2) Setting them as environment variables before starting the server (e.g., export {missing_secrets[0]}=your_secret_value). "
+                        "Once the secrets are configured, restart the MCP server for the changes to take effect."
+                    ),
+                }
+                return self._create_error_response(message, tool_response)
+
+        return None
+
     async def _check_authorization(
         self,
         tool: MaterializedTool,
         user_id: str | None = None,
     ) -> Any:
-        """Check tool authorization."""
+        """Check tool authorization.
+
+        Note: This method assumes self.arcade is not None. The caller should
+        check for the presence of the Arcade API key before calling this method.
+        """
         if not self.arcade:
             raise ToolRuntimeError(
-                "Authorization required but Arcade API Key is not configured. "
-                "Set ARCADE_API_KEY as environment variable or run 'arcade login'."
+                "Authorization check called without Arcade API key configured. "
+                "This should be checked by the caller."
             )
 
         req = tool.definition.requirements.authorization
