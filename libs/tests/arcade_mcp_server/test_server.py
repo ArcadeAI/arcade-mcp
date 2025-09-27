@@ -169,6 +169,10 @@ class TestMCPServer:
     async def test_handle_call_tool_with_requires_auth(self, mcp_server):
         """Test tool call request handling with authorization."""
 
+        # Mock arcade client so the server thinks API key is configured
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
         mock_auth_response = Mock()
         mock_auth_response.status = "pending"
         mock_auth_response.url = "https://example.com/auth"
@@ -193,6 +197,33 @@ class TestMCPServer:
         assert response.result.structuredContent["authorization_url"] == "https://example.com/auth"
         assert "message" in response.result.structuredContent
         assert "authorization" in response.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_with_requires_auth_no_api_key(self, mcp_server):
+        """Test tool call request handling with authorization when no Arcade API key is configured."""
+
+        # Ensure no arcade client is configured
+        mcp_server.arcade = None
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=3,
+            method="tools/call",
+            params={"name": "TestToolkit.sample_tool_with_auth", "arguments": {"text": "Hello"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert response.id == 3
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.structuredContent is not None
+        assert "message" in response.result.structuredContent
+        assert (
+            "requires authorization but no Arcade API key is configured"
+            in response.result.structuredContent["message"]
+        )
+        assert "ARCADE_API_KEY" in response.result.structuredContent["llm_instructions"]
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
