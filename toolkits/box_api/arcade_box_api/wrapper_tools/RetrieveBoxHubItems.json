@@ -25,23 +25,6 @@
         "http_endpoint_parameter_name": "hub_id"
       },
       {
-        "name": "box_version",
-        "required": true,
-        "description": "Specifies the API version to use. It should be set to '2025.0'.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "box-version"
-      },
-      {
         "name": "pagination_start_marker",
         "required": false,
         "description": "Defines the starting position for results when using marker-based pagination. Requires `usemarker` to be `true`.",
@@ -113,7 +96,9 @@
     },
     "url": "https://api.box.com/2.0/hub_items",
     "http_method": "GET",
-    "headers": null,
+    "headers": {
+      "box-version": "2025.0"
+    },
     "parameters": [
       {
         "name": "hub_id",
@@ -163,25 +148,6 @@
         },
         "accepted_as": "query",
         "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "box-version",
-        "tool_parameter_name": "box_version",
-        "description": "Version header.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "accepted_as": "header",
-        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

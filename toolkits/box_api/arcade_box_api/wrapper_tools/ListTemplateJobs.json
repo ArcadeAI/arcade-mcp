@@ -25,23 +25,6 @@
         "http_endpoint_parameter_name": "template_id"
       },
       {
-        "name": "box_version_header",
-        "required": true,
-        "description": "Specifies the API version header, currently only '2025.0' is supported.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "box-version"
-      },
-      {
         "name": "pagination_start_marker",
         "required": false,
         "description": "Defines the starting position for pagination. Requires 'usemarker' to be set to true.",
@@ -113,7 +96,9 @@
     },
     "url": "https://api.box.com/2.0/docgen_template_jobs/{template_id}",
     "http_method": "GET",
-    "headers": null,
+    "headers": {
+      "box-version": "2025.0"
+    },
     "parameters": [
       {
         "name": "marker",
@@ -162,25 +147,6 @@
           "description": "Id of template to fetch jobs for."
         },
         "accepted_as": "path",
-        "required": true,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "box-version",
-        "tool_parameter_name": "box_version_header",
-        "description": "Version header.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "accepted_as": "header",
         "required": true,
         "deprecated": false,
         "documentation_urls": []

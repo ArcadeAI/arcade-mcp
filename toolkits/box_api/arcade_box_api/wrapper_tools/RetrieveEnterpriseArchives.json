@@ -10,23 +10,6 @@
   "input": {
     "parameters": [
       {
-        "name": "api_version_header",
-        "required": true,
-        "description": "Specifies the API version to use for the request. Use '2025.0' as the version.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "inferrable": true,
-        "http_endpoint_parameter_name": "box-version"
-      },
-      {
         "name": "max_items_per_page",
         "required": false,
         "description": "The maximum number of archive items to return per page when retrieving data.",
@@ -98,7 +81,9 @@
     },
     "url": "https://api.box.com/2.0/archives",
     "http_method": "GET",
-    "headers": null,
+    "headers": {
+      "box-version": "2025.0"
+    },
     "parameters": [
       {
         "name": "limit",
@@ -131,25 +116,6 @@
         },
         "accepted_as": "query",
         "required": false,
-        "deprecated": false,
-        "documentation_urls": []
-      },
-      {
-        "name": "box-version",
-        "tool_parameter_name": "api_version_header",
-        "description": "Version header.",
-        "value_schema": {
-          "val_type": "string",
-          "inner_val_type": null,
-          "enum": [
-            "2025.0"
-          ],
-          "properties": null,
-          "inner_properties": null,
-          "description": "Version header."
-        },
-        "accepted_as": "header",
-        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }
