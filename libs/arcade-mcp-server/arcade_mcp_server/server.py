@@ -20,6 +20,7 @@ import os
 from typing import Any, Callable, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
+from arcade_core.config import get_config
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
@@ -198,6 +199,31 @@ class MCPServer:
         # Handler registration
         self._handlers = self._register_handlers()
 
+    def _load_config_values(self) -> tuple[str | None, str | None]:
+        """Load API key and user_id from credentials file.
+
+        Returns:
+            Tuple of (api_key, user_id) from credentials file, or (None, None) if not available
+        """
+        try:
+            config = get_config()
+            api_key = config.api.key if config.api else None
+            user_id = config.user.email if config.user else None
+
+            if api_key or user_id:
+                config_path = config.get_config_file_path()
+                if api_key:
+                    logger.info(f"Loaded Arcade API key from {config_path}")
+                if user_id:
+                    logger.debug(f"Loaded user_id '{user_id}' from {config_path}")
+                return api_key, user_id
+            else:
+                logger.debug("No API key or user_id found in credentials file")
+                return None, None
+        except Exception as e:
+            logger.debug(f"Could not load values from credentials file: {e}")
+            return None, None
+
     def _init_arcade_client(self, api_key: str | None, api_url: str | None) -> None:
         """Initialize Arcade client for runtime authorization."""
         self.arcade: AsyncArcade | None = None
@@ -209,15 +235,8 @@ class MCPServer:
 
         # If no API key provided, try to load from credentials file
         if not final_api_key:
-            try:
-                from arcade_core.config import get_config
-
-                config = get_config()
-                final_api_key = config.api.key
-                if final_api_key:
-                    logger.info("Loaded Arcade API key from ~/.arcade/credentials.yaml")
-            except Exception as e:
-                logger.debug(f"Could not load credentials from file: {e}")
+            config_api_key, _ = self._load_config_values()
+            final_api_key = config_api_key
 
         if final_api_key:
             logger.info(f"Using Arcade client with API URL: {api_url}")
@@ -595,17 +614,10 @@ class MCPServer:
         env = (self.settings.arcade.environment or "").lower()
         user_id = self.settings.arcade.user_id
 
-        # If no user_id from env, try config file (like we do for API key)
+        # If no user_id from env, try credentials file
         if not user_id:
-            try:
-                from arcade_core.config import get_config
-
-                config = get_config()
-                if config.user and config.user.email:
-                    user_id = config.user.email
-                    logger.debug(f"Context user_id set from config file: {user_id}")
-            except Exception:
-                logger.debug("Could not load user_id from config file")
+            _, config_user_id = self._load_config_values()
+            user_id = config_user_id
 
         if user_id:
             tool_context.user_id = user_id
