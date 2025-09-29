@@ -99,9 +99,10 @@ class Config(BaseConfig):
         config_file_path = cls.get_config_file_path()
 
         if not config_file_path.exists():
-            # Create a file using the default configuration
-            default_config = cls.model_construct(api=ApiConfig.model_construct())
-            default_config.save_to_file()
+            raise FileNotFoundError(
+                f"Configuration file not found at {config_file_path}. "
+                "Please run 'arcade login' to create your configuration."
+            )
 
         config_data = yaml.safe_load(config_file_path.read_text())
 

@@ -3,7 +3,6 @@ import os
 import subprocess
 import sys
 import threading
-import traceback
 import uuid
 import webbrowser
 from pathlib import Path
@@ -13,7 +12,6 @@ import httpx
 import typer
 from arcadepy import Arcade
 from rich.console import Console
-from rich.markup import escape
 from rich.text import Text
 from tqdm import tqdm
 
@@ -37,6 +35,7 @@ from arcade_cli.utils import (
     compute_base_url,
     compute_login_url,
     get_eval_files,
+    handle_cli_error,
     load_eval_suites,
     log_engine_health,
     require_dependency,
@@ -75,24 +74,6 @@ cli.add_typer(
 
 
 console = Console()
-
-
-def handle_cli_error(
-    message: str,
-    error: Optional[Exception] = None,
-    debug: bool = True,
-    should_exit: bool = True,
-) -> None:
-    """Handle CLI error reporting with optional debug traceback and exit."""
-    if error and debug:
-        console.print(f"❌ {message}: {traceback.format_exc()}", style="bold red")
-    elif error:
-        console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
-    else:
-        console.print(f"❌ {message}", style="bold red")
-
-    if should_exit:
-        raise typer.Exit(code=1)
 
 
 @cli.command(help="Log in to Arcade Cloud", rich_help_panel="User")

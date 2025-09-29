@@ -3,6 +3,7 @@ import ipaddress
 import os
 import shlex
 import sys
+import traceback
 import webbrowser
 from dataclasses import dataclass
 from datetime import datetime
@@ -43,6 +44,7 @@ from pydantic import ValidationError
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
+from rich.markup import escape
 from rich.text import Text
 from typer.core import TyperGroup
 from typer.models import Context
@@ -76,6 +78,24 @@ class Provider(str, Enum):
     """Supported model providers for evaluations."""
 
     OPENAI = "openai"
+
+
+def handle_cli_error(
+    message: str,
+    error: Exception | None = None,
+    debug: bool = True,
+    should_exit: bool = True,
+) -> None:
+    """Handle CLI error reporting with optional debug traceback and exit."""
+    if error and debug:
+        console.print(f"❌ {message}: {traceback.format_exc()}", style="bold red")
+    elif error:
+        console.print(f"❌ {message}: {escape(str(error))}", style="bold red")
+    else:
+        console.print(f"❌ {message}", style="bold red")
+
+    if should_exit:
+        raise typer.Exit(code=1)
 
 
 def create_cli_catalog(
@@ -390,7 +410,11 @@ def validate_and_get_config(
     """
     Validates the configuration, user, and returns the Config object
     """
-    from arcade_core.config import config
+
+    try:
+        from arcade_core.config import config
+    except Exception as e:
+        handle_cli_error("Not logged in", e, debug=False)
 
     if validate_api and (not config.api or not config.api.key):
         console.print(
