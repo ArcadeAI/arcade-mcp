@@ -2,7 +2,7 @@
 
 Core Pydantic models and enums for the MCP protocol shapes.
 
-::: _server.types
+::: arcade_mcp_server.types
 
 #### Examples
 

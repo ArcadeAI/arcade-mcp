@@ -1,0 +1,22 @@
+name: Test Docs
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+    test-docs:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out
+              uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+
+            - name: Test docs
+              working-directory: libs/arcade-mcp-server
+              run: make sync && make docs-build
