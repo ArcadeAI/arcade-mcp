@@ -51,7 +51,7 @@ class MCPApp:
         # await app.prompts.add(prompt, handler)
         # await app.resources.add(resource)
 
-        app.run(host="127.0.0.1", port=7777)
+        app.run(host="127.0.0.1", port=8000)
         ```
     """
 
@@ -64,7 +64,7 @@ class MCPApp:
         log_level: str = "INFO",
         transport: TransportType = "http",
         host: str = "127.0.0.1",
-        port: int = 7777,
+        port: int = 8000,
         reload: bool = False,
         **kwargs: Any,
     ):
@@ -199,7 +199,7 @@ class MCPApp:
     def run(
         self,
         host: str = "127.0.0.1",
-        port: int = 7777,
+        port: int = 8000,
         reload: bool = False,
         transport: TransportType = "http",
         **kwargs: Any,

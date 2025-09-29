@@ -5,6 +5,13 @@ import contextlib
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from arcade_core.errors import ToolRuntimeError
+from arcade_core.schema import (
+    ToolAuthRequirement,
+    ToolContext,
+    ToolRequirements,
+    ToolSecretRequirement,
+)
 from arcade_mcp_server.middleware import Middleware
 from arcade_mcp_server.server import MCPServer
 from arcade_mcp_server.session import InitializationState
@@ -162,6 +169,10 @@ class TestMCPServer:
     async def test_handle_call_tool_with_requires_auth(self, mcp_server):
         """Test tool call request handling with authorization."""
 
+        # Mock arcade client so the server thinks API key is configured
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
         mock_auth_response = Mock()
         mock_auth_response.status = "pending"
         mock_auth_response.url = "https://example.com/auth"
@@ -186,6 +197,33 @@ class TestMCPServer:
         assert response.result.structuredContent["authorization_url"] == "https://example.com/auth"
         assert "message" in response.result.structuredContent
         assert "authorization" in response.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_handle_call_tool_with_requires_auth_no_api_key(self, mcp_server):
+        """Test tool call request handling with authorization when no Arcade API key is configured."""
+
+        # Ensure no arcade client is configured
+        mcp_server.arcade = None
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=3,
+            method="tools/call",
+            params={"name": "TestToolkit.sample_tool_with_auth", "arguments": {"text": "Hello"}},
+        )
+
+        response = await mcp_server._handle_call_tool(message)
+
+        assert isinstance(response, JSONRPCResponse)
+        assert response.id == 3
+        assert isinstance(response.result, CallToolResult)
+        assert response.result.structuredContent is not None
+        assert "message" in response.result.structuredContent
+        assert (
+            "requires authorization but no Arcade API key is configured"
+            in response.result.structuredContent["message"]
+        )
+        assert "ARCADE_API_KEY" in response.result.structuredContent["llm_instructions"]
 
     @pytest.mark.asyncio
     async def test_handle_call_tool_not_found(self, mcp_server):
@@ -364,8 +402,6 @@ class TestMCPServer:
     @pytest.mark.asyncio
     async def test_authorization_check(self, mcp_server):
         """Test tool authorization checking."""
-        # Create a tool that requires auth
-        from arcade_core.schema import ToolAuthRequirement
 
         # Ensure the arcade client is not configured in the case that the test environment
         # unintentionally has the ARCADE_API_KEY set
@@ -380,4 +416,395 @@ class TestMCPServer:
         with pytest.raises(Exception) as exc_info:
             await mcp_server._check_authorization(tool)
 
-        assert "Authorization required but Arcade API Key is not configured" in str(exc_info.value)
+        assert "Authorization check called without Arcade API key configured" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_no_requirements(self, mcp_server, materialized_tool):
+        """Test tool requirements checking when tool has no requirements."""
+
+        # Create a tool with no requirements
+        tool = materialized_tool
+        tool.definition.requirements = None
+
+        tool_context = ToolContext()
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.test_tool", "arguments": {"text": "Hello"}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.test_tool"
+        )
+
+        # Should return None when no requirements because this means the tool can be executed
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_auth_no_arcade_client(self, mcp_server):
+        """Test tool requirements checking when tool requires auth but no Arcade client configured."""
+
+        # Ensure no arcade client is configured
+        mcp_server.arcade = None
+
+        # Create a tool that requires authorization
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            )
+        )
+
+        tool_context = ToolContext()
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.auth_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.auth_tool"
+        )
+
+        # Should return error response
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert (
+            "requires authorization but no Arcade API key is configured"
+            in result.result.structuredContent["message"]
+        )
+        assert "ARCADE_API_KEY" in result.result.structuredContent["llm_instructions"]
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_auth_pending(self, mcp_server):
+        """Test tool requirements checking when authorization is pending."""
+
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
+        # Create a tool that requires authorization
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            )
+        )
+
+        mock_auth_response = Mock()
+        mock_auth_response.status = "pending"
+        mock_auth_response.url = "https://example.com/auth"
+
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        tool_context = ToolContext()
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.auth_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.auth_tool"
+        )
+
+        # Should return error response with authorization URL
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert "authorization_url" in result.result.structuredContent
+        assert result.result.structuredContent["authorization_url"] == "https://example.com/auth"
+        assert "requires authorization" in result.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_auth_completed(self, mcp_server):
+        """Test tool requirements checking when authorization is completed."""
+
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
+        # Create a tool that requires authorization
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            )
+        )
+
+        # Mock authorization response as completed
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.user_info = {"user_id": "test-user"}
+
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        tool_context = ToolContext()
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.auth_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.auth_tool"
+        )
+
+        # Should return None (no error) and set authorization context
+        assert result is None
+        assert tool_context.authorization is not None
+        assert tool_context.authorization.token == "test-token"
+        assert tool_context.authorization.user_info == {"user_id": "test-user"}
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_auth_error(self, mcp_server):
+        """Test tool requirements checking when authorization fails."""
+
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
+        # Create a tool that requires authorization
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            )
+        )
+
+        # Mock authorization to raise an error
+        mcp_server._check_authorization = AsyncMock(side_effect=ToolRuntimeError("Auth failed"))
+
+        tool_context = ToolContext()
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.auth_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.auth_tool"
+        )
+
+        # Should return error response
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert "authorization error" in result.result.structuredContent["message"]
+        assert "Auth failed" in result.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_secrets_missing(self, mcp_server):
+        """Test tool requirements checking when required secrets are missing."""
+
+        # Create a tool that requires secrets
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="API_KEY"),
+                ToolSecretRequirement(key="DATABASE_URL"),
+            ]
+        )
+
+        # Mock tool context to raise ValueError for missing secrets
+        tool_context = Mock(spec=ToolContext)
+        tool_context.get_secret = Mock(side_effect=ValueError("Secret not found"))
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.secret_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.secret_tool"
+        )
+
+        # Should return error response
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert "requires the following secrets" in result.result.structuredContent["message"]
+        assert "API_KEY, DATABASE_URL" in result.result.structuredContent["message"]
+        assert ".env file" in result.result.structuredContent["llm_instructions"]
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_secrets_partial_missing(self, mcp_server):
+        """Test tool requirements checking when some required secrets are missing."""
+
+        # Create a tool that requires secrets
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="API_KEY"),
+                ToolSecretRequirement(key="DATABASE_URL"),
+            ]
+        )
+
+        # Mock tool context to return a strict subset of the required secrets
+        tool_context = Mock(spec=ToolContext)
+
+        def mock_get_secret(key):
+            if key == "API_KEY":
+                return "test-api-key"
+            else:
+                raise ValueError("Secret not found")
+
+        tool_context.get_secret = Mock(side_effect=mock_get_secret)
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.secret_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.secret_tool"
+        )
+
+        # Should return error response for missing DATABASE_URL
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert "DATABASE_URL" in result.result.structuredContent["message"]
+        assert "API_KEY" not in result.result.structuredContent["message"]
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_secrets_available(self, mcp_server):
+        """Test tool requirements checking when all required secrets are available."""
+
+        # Create a tool that requires secrets
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            secrets=[
+                ToolSecretRequirement(key="API_KEY"),
+                ToolSecretRequirement(key="DATABASE_URL"),
+            ]
+        )
+
+        # Mock tool context to return all secrets
+        tool_context = Mock(spec=ToolContext)
+
+        def mock_get_secret(key):
+            return f"test-{key.lower()}-value"
+
+        tool_context.get_secret = Mock(side_effect=mock_get_secret)
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.secret_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.secret_tool"
+        )
+
+        # Should return None (no error) when all secrets are available
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_combined_auth_and_secrets(self, mcp_server):
+        """Test tool requirements checking with both auth and secrets requirements."""
+
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
+        # Create a tool that requires both auth and secrets
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            ),
+            secrets=[
+                ToolSecretRequirement(key="API_KEY"),
+            ],
+        )
+
+        # Mock successful authorization
+        mock_auth_response = Mock()
+        mock_auth_response.status = "completed"
+        mock_auth_response.context = Mock()
+        mock_auth_response.context.token = "test-token"
+        mock_auth_response.context.user_info = {"user_id": "test-user"}
+
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        tool_context = ToolContext()
+        tool_context.set_secret("API_KEY", "test-api-key")
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.combined_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.combined_tool"
+        )
+
+        # Should return None (no error) when both requirements are satisfied
+        assert result is None
+        # Authorization context should be set
+        assert tool_context.authorization is not None
+
+    @pytest.mark.asyncio
+    async def test_check_tool_requirements_combined_auth_fails_first(self, mcp_server):
+        """Test tool requirements checking when auth fails before secrets are checked."""
+
+        mock_arcade = Mock()
+        mcp_server.arcade = mock_arcade
+
+        # Create a tool that requires both auth and secrets
+        tool = Mock()
+        tool.definition.requirements = ToolRequirements(
+            authorization=ToolAuthRequirement(
+                provider_type="oauth2",
+                provider_id="test-provider",
+            ),
+            secrets=[
+                ToolSecretRequirement(key="API_KEY"),
+            ],
+        )
+
+        # Mock authorization as pending (should fail before secrets check)
+        mock_auth_response = Mock()
+        mock_auth_response.status = "pending"
+        mock_auth_response.url = "https://example.com/auth"
+
+        mcp_server._check_authorization = AsyncMock(return_value=mock_auth_response)
+
+        # Create real tool context (secrets check shouldn't be reached)
+        tool_context = ToolContext()
+        tool_context.set_secret("API_KEY", "test-api-key")
+
+        message = CallToolRequest(
+            jsonrpc="2.0",
+            id=1,
+            method="tools/call",
+            params={"name": "TestToolkit.combined_tool", "arguments": {}},
+        )
+
+        result = await mcp_server._check_tool_requirements(
+            tool, tool_context, message, "TestToolkit.combined_tool"
+        )
+
+        # Should return auth error (auth is checked first)
+        assert isinstance(result, JSONRPCResponse)
+        assert isinstance(result.result, CallToolResult)
+        assert result.result.isError is True
+        assert "authorization_url" in result.result.structuredContent

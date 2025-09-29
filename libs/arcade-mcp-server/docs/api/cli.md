@@ -1,24 +1,29 @@
-# CLI
+# arcade mcp Command
 
-The `arcade_mcp_server` CLI is a simple tool for running MCP servers.
+The `arcade mcp` command is the recommended way to run MCP servers. It automatically discovers tools in your project, creates a server, and runs it with your chosen transport.
 
-It is used to discover tools and run the server.
+## Installation
 
+```bash
+uv pip install arcade-mcp
+```
 
+The `arcade-mcp` package includes the CLI and the `arcade-mcp-server` library.
 
 ## Command Line Options
 
 ```
-usage: python -m arcade_mcp_server [-h] [--host HOST] [--port PORT]
-                                   [--tool-package PACKAGE] [--discover-installed]
-                                   [--show-packages] [--reload] [--debug]
-                                   [--env-file ENV_FILE] [--name NAME] [--version VERSION]
-                                   [transport]
+usage: arcade mcp [-h] [--host HOST] [--port PORT]
+                  [--tool-package PACKAGE] [--discover-installed]
+                  [--show-packages] [--reload] [--debug]
+                  [--env-file ENV_FILE] [--name NAME] [--version VERSION]
+                  [--cwd CWD]
+                  [transport]
 
 Run Arcade MCP Server
 
 positional arguments:
-  transport             Transport type: stdio, http, streamable-http (default: http)
+  transport             Transport type: stdio, http (default: http)
 
 optional arguments:
   -h, --help           show this help message and exit
@@ -34,6 +39,23 @@ optional arguments:
   --env-file ENV_FILE  Path to environment file
   --name NAME          Server name
   --version VERSION    Server version
+  --cwd CWD            Working directory to run from
+```
+
+## Basic Usage
+
+```bash
+# Run HTTP server (default)
+arcade mcp
+
+# Run stdio server (for Claude Desktop, Cursor, etc.)
+arcade mcp stdio
+
+# Run with debug logging
+arcade mcp --debug
+
+# Run with hot reload (development mode)
+arcade mcp --reload --debug
 ```
 
 ## Tool Discovery
@@ -63,10 +85,10 @@ Load specific arcade packages installed in your environment:
 
 ```bash
 # Load arcade-github package
-python -m arcade_mcp_server --tool-package github
+arcade mcp --tool-package github
 
 # Load custom package (tries arcade_ prefix first)
-python -m arcade_mcp_server -p mycompany_tools
+arcade mcp -p mycompany_tools
 ```
 
 ### 3. Discover All Installed
@@ -75,10 +97,10 @@ Find and load all arcade packages in your Python environment:
 
 ```bash
 # Load all arcade packages
-python -m arcade_mcp_server --discover-installed
+arcade mcp --discover-installed
 
 # Show what's being loaded
-python -m arcade_mcp_server --discover-installed --show-packages
+arcade mcp --discover-installed --show-packages
 ```
 
 ### Example Tool File
@@ -101,5 +123,15 @@ def add(a: int, b: int) -> int:
 
 Then run:
 ```bash
-python -m arcade_mcp_server  # Auto-discovers and loads these tools
+arcade mcp  # Auto-discovers and loads these tools
 ```
+
+## Alternative: Direct Python Usage
+
+While we recommend using `arcade mcp`, you can also run the server module directly:
+
+```bash
+python -m arcade_mcp_server [options]
+```
+
+This provides the same functionality but without the benefits of the Arcade CLI ecosystem (like `arcade configure` for client setup).
