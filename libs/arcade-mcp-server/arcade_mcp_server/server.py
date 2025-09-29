@@ -20,7 +20,6 @@ import os
 from typing import Any, Callable, cast
 
 from arcade_core.catalog import MaterializedTool, ToolCatalog
-from arcade_core.config import get_config
 from arcade_core.executor import ToolExecutor
 from arcade_core.schema import ToolAuthorizationContext, ToolContext
 from arcade_core.schema import ToolAuthRequirement as CoreToolAuthRequirement
@@ -206,7 +205,8 @@ class MCPServer:
             Tuple of (api_key, user_id) from credentials file, or (None, None) if not available
         """
         try:
-            config = get_config()
+            from arcade_core.config import config
+
             api_key = config.api.key if config.api else None
             user_id = config.user.email if config.user else None
 

@@ -107,11 +107,15 @@ class Config(BaseConfig):
 
         if config_data is None:
             raise ValueError(
-                "Invalid credentials.yaml file. Please ensure it is a valid YAML file."
+                "Invalid credentials.yaml file. Please ensure it is a valid YAML file or"
+                "run `arcade logout`, then `arcade login` to start from a clean slate."
             )
 
         if "cloud" not in config_data:
-            raise ValueError("Invalid credentials.yaml file. Expected a 'cloud' key.")
+            raise ValueError(
+                "Invalid credentials.yaml file. Expected a 'cloud' key."
+                "Run `arcade logout`, then `arcade login` to start from a clean slate."
+            )
 
         try:
             return cls(**config_data["cloud"])

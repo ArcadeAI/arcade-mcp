@@ -10,7 +10,7 @@
       "console": "integratedTerminal",
       "jinja": true,
       "justMyCode": true,
-      "cwd": "${workspaceFolder}/toolkits/bug"
+      "cwd": "${workspaceFolder}/toolkits/<your_server_name>"
     }
   ]
 }
