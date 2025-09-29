@@ -824,6 +824,8 @@ def main_callback(
         evals.__name__,
         mcp.__name__,
         new.__name__,
+        show.__name__,
+        configure.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
