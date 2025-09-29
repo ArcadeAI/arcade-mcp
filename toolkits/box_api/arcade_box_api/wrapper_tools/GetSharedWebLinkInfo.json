@@ -1,7 +1,7 @@
 {
-  "name": "GetSharedLinkInfo",
-  "fully_qualified_name": "BoxApi.GetSharedLinkInfo@0.1.0",
-  "description": "Retrieve shared link details for a specific file.\n\nThis tool is used to get information about a shared link for a specified file. It should be called when users need details about the shared link associated with a particular file in the Box2 service.",
+  "name": "GetSharedWebLinkInfo",
+  "fully_qualified_name": "BoxApi.GetSharedWebLinkInfo@0.1.0",
+  "description": "Retrieve shared link information for a web link.\n\nUse this tool to obtain detailed information about a shared link on a specific web link by providing the web link ID.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "include_shared_link_fields",
+        "name": "request_shared_link_fields",
         "required": true,
-        "description": "Specify if the `shared_link` fields should be explicitly returned for the file item.",
+        "description": "Specify the shared link fields to be explicitly returned for the web link.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,24 +25,24 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "file_identifier",
+        "name": "web_link_identifier",
         "required": true,
-        "description": "The unique identifier for a file, found in the URL when accessing a file in the web application (e.g., for the URL `https://*.app.box.com/files/123`, the `file_id` is `123`).",
+        "description": "The ID of the web link for which to retrieve shared link information.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+          "description": "The ID of the web link."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "file_id"
+        "http_endpoint_parameter_name": "web_link_id"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'get_files_id#get_shared_link'.",
+    "description": "Response from the API endpoint 'get_web_links_id#get_shared_link'.",
     "available_modes": [
       "value",
       "error",
@@ -79,7 +79,7 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://api.box.com/2.0/files/{file_id}#get_shared_link",
+    "url": "https://api.box.com/2.0/web_links/{web_link_id}#get_shared_link",
     "http_method": "GET",
     "headers": {
       "box-version": "2024.0"
@@ -87,7 +87,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "include_shared_link_fields",
+        "tool_parameter_name": "request_shared_link_fields",
         "description": "Explicitly request the `shared_link` fields\nto be returned for this item.",
         "value_schema": {
           "val_type": "string",
@@ -103,16 +103,16 @@
         "documentation_urls": []
       },
       {
-        "name": "file_id",
-        "tool_parameter_name": "file_identifier",
-        "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`.",
+        "name": "web_link_id",
+        "tool_parameter_name": "web_link_identifier",
+        "description": "The ID of the web link.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+          "description": "The ID of the web link."
         },
         "accepted_as": "path",
         "required": true,

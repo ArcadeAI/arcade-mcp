@@ -10,7 +10,8 @@ BE OVERWRITTEN BY THE TRANSPILER.
 from typing import Annotated, Any
 
 import httpx
-from arcade_tdk import ToolContext, tool
+
+from arcade_tdk import tool, ToolContext
 from arcade_tdk.auth import OAuth2
 
 
@@ -1520,7 +1521,7 @@ async def remove_file_classification(
 
 
 @tool(requires_auth=OAuth2(id="arcade-box"))
-async def retrieve_file_metadata(
+async def retrieve_file_template_metadata(
     context: ToolContext,
     file_identifier: Annotated[
         str,
@@ -1534,7 +1535,7 @@ async def retrieve_file_metadata(
         str, "The name of the metadata template to retrieve for the specified file."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_files_id_metadata_id_id'."]:
-    """Retrieve metadata for a specific file.
+    """Retrieve metadata for a specific file template.
 
     Use this tool to get the metadata template instance applied to a file. It should be called when metadata information about a file is needed, such as tags, classifications, or other custom data types."""  # noqa: E501
     async with httpx.AsyncClient() as client:
@@ -3473,7 +3474,7 @@ async def retrieve_shared_web_link(
 
 
 @tool(requires_auth=OAuth2(id="arcade-box"))
-async def get_shared_link_info(
+async def get_shared_web_link_info(
     context: ToolContext,
     request_shared_link_fields: Annotated[
         str, "Specify the shared link fields to be explicitly returned for the web link."
@@ -6990,3 +6991,4 @@ async def delete_ai_agent(
             return {"response_json": response.json()}
         except Exception:
             return {"response_text": response.text}
+
