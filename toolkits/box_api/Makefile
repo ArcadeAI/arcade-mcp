@@ -17,6 +17,7 @@ install-local: ## Install the uv environment and install all packages with depen
 	@uv sync --active --all-extras
 	@if [ -f .pre-commit-config.yaml ]; then uv run pre-commit install; fi
 	@echo "✅ All packages and dependencies installed via uv"
+
 .PHONY: build
 build: clean-build ## Build wheel file using poetry
 	@echo "🚀 Creating wheel file"
