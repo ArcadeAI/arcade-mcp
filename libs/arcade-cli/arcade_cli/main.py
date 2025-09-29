@@ -492,74 +492,6 @@ def evals(
         handle_cli_error("Failed to run evaluations", e, debug)
 
 
-@cli.command(
-    help="Start tool server with locally installed tools",
-    rich_help_panel="Launch",
-    hidden=True,
-)
-def serve(
-    host: str = typer.Option(
-        "127.0.0.1",
-        help="Host for the app, from settings by default.",
-        show_default=True,
-    ),
-    port: int = typer.Option(
-        "8002",
-        "-p",
-        "--port",
-        help="Port for the app, defaults to ",
-        show_default=True,
-    ),
-    disable_auth: bool = typer.Option(
-        True,
-        "--no-auth",
-        help="Disable authentication for the server. Not recommended for production.",
-        show_default=True,
-    ),
-    otel_enable: bool = typer.Option(
-        False, "--otel-enable", help="Send logs to OpenTelemetry", show_default=True
-    ),
-    mcp: bool = typer.Option(
-        False, "--mcp", help="Run as a local MCP server over stdio", show_default=True
-    ),
-    debug: bool = typer.Option(False, "--debug", "-d", help="Show debug information"),
-    reload: bool = typer.Option(
-        False,
-        "--reload",
-        help="Enable auto-reloading when server files change (e.g., a tool is edited)",
-        show_default=True,
-    ),
-) -> None:
-    """
-    Start a local Arcade server.
-    """
-    console.log(
-        "⚠️ This command is deprecated and will be removed in a future version.", style="yellow"
-    )
-    require_dependency(
-        package_name="arcade_serve",
-        command_name="serve",
-        install_command=r"pip install 'arcade-serve'",
-    )
-
-    from arcade_cli.serve import serve_default_worker
-
-    try:
-        serve_default_worker(
-            host,
-            port,
-            disable_auth=disable_auth,
-            enable_otel=otel_enable,
-            debug=debug,
-            mcp=mcp,
-            reload=reload,
-        )
-    except KeyboardInterrupt:
-        typer.Exit()
-    except Exception as e:
-        handle_cli_error("Failed to start Arcade Server", e, debug)
-
-
 @cli.command(help="Configure MCP clients to connect to your server", rich_help_panel="Manage")
 def configure(
     client: str = typer.Argument(
@@ -623,7 +555,7 @@ def configure(
         handle_cli_error(f"Failed to configure {client}", e, debug)
 
 
-@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run")
+@cli.command(help="Deploy servers to Arcade Cloud", rich_help_panel="Run", hidden=True)
 def deploy(
     deployment_file: str = typer.Option(
         "worker.toml",
@@ -909,8 +841,8 @@ def main_callback(
         logout.__name__,
         dashboard.__name__,
         evals.__name__,
-        serve.__name__,
         mcp.__name__,
+        new.__name__,
     }
     if ctx.invoked_subcommand in public_commands:
         return
