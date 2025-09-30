@@ -1,0 +1,245 @@
+{
+  "name": "GetTrelloChecklist",
+  "fully_qualified_name": "TrelloApi.GetTrelloChecklist@0.1.0",
+  "description": "Retrieve details of a specific Trello checklist using its ID.\n\nThis tool is used to fetch comprehensive details of a Trello checklist by providing its unique identifier. It is helpful when needing information about specific checklist items and their statuses.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_cards_status",
+        "required": false,
+        "description": "Specify which cards associated with the checklist to include. Options: `all`, `closed`, `none`, `open`, `visible`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open",
+            "visible"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: `all`, `closed`, `none`, `open`, `visible`. Cards is a nested resource. The additional query params available are documented at [Cards Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#cards-nested-resource)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cards"
+      },
+      {
+        "name": "return_check_items",
+        "required": false,
+        "description": "Specify which check items to return: `all` or `none`. Use `all` to get all check items and `none` to exclude them.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The check items on the list to return. One of: `all`, `none`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkItems"
+      },
+      {
+        "name": "check_item_field_selection",
+        "required": false,
+        "description": "Specify which fields of the checkItem to return. Options are `all` or a comma-separated list of `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type",
+            "due",
+            "dueReminder",
+            "idMember"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields on the checkItem to return if checkItems are being returned. `all` or a comma-separated list of: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "checkItem_fields"
+      },
+      {
+        "name": "checklist_fields_to_return",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of specific checklist fields to retrieve, such as 'name', 'pos', etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of checklist [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-checklists-id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/checklists/{id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "cards",
+        "tool_parameter_name": "filter_cards_status",
+        "description": "Valid values: `all`, `closed`, `none`, `open`, `visible`. Cards is a nested resource. The additional query params available are documented at [Cards Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#cards-nested-resource).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open",
+            "visible"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Valid values: `all`, `closed`, `none`, `open`, `visible`. Cards is a nested resource. The additional query params available are documented at [Cards Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#cards-nested-resource)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checkItems",
+        "tool_parameter_name": "return_check_items",
+        "description": "The check items on the list to return. One of: `all`, `none`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "none"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The check items on the list to return. One of: `all`, `none`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "checkItem_fields",
+        "tool_parameter_name": "check_item_field_selection",
+        "description": "The fields on the checkItem to return if checkItems are being returned. `all` or a comma-separated list of: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "name",
+            "nameData",
+            "pos",
+            "state",
+            "type",
+            "due",
+            "dueReminder",
+            "idMember"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields on the checkItem to return if checkItems are being returned. `all` or a comma-separated list of: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "checklist_fields_to_return",
+        "description": "`all` or a comma-separated list of checklist [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of checklist [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

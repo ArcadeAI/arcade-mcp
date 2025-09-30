@@ -1,0 +1,337 @@
+{
+  "name": "GetUserBoardsTrello",
+  "fully_qualified_name": "TrelloApi.GetUserBoardsTrello@0.1.0",
+  "description": "Retrieve the boards a user is a member of in Trello.\n\nUse this tool to get a list of Trello boards that a specific user is a member of by their ID.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_identifier",
+        "required": true,
+        "description": "The Trello member's ID or username to retrieve their boards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "board_filter_options",
+        "required": false,
+        "description": "Specify which types of boards to retrieve: 'all', or a comma-separated list including 'closed', 'members', 'open', 'organization', 'public', 'starred'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "members",
+            "open",
+            "organization",
+            "public",
+            "starred"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `closed`, `members`, `open`, `organization`, `public`, `starred`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "board_fields",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of board fields to retrieve, such as 'id', 'name', 'desc'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name",
+            "desc",
+            "descData",
+            "closed",
+            "idMemberCreator",
+            "idOrganization",
+            "pinned",
+            "url",
+            "shortUrl",
+            "prefs",
+            "labelNames",
+            "starred",
+            "limits",
+            "memberships",
+            "enterpriseOwned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "include_lists",
+        "required": false,
+        "description": "Specify which lists to include with the boards: `all`, `closed`, `none`, or `open`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "lists"
+      },
+      {
+        "name": "organization_fields_to_include",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of organization fields such as 'id' or 'name' to include with the boards.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_fields"
+      },
+      {
+        "name": "include_organization",
+        "required": false,
+        "description": "Set to true to include the Organization object with the boards.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the Organization object with the Boards"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-members-id-boards'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/members/{id}/boards",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "board_filter_options",
+        "description": "`all` or a comma-separated list of: `closed`, `members`, `open`, `organization`, `public`, `starred`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "members",
+            "open",
+            "organization",
+            "public",
+            "starred"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of: `closed`, `members`, `open`, `organization`, `public`, `starred`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "board_fields",
+        "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name",
+            "desc",
+            "descData",
+            "closed",
+            "idMemberCreator",
+            "idOrganization",
+            "pinned",
+            "url",
+            "shortUrl",
+            "prefs",
+            "labelNames",
+            "starred",
+            "limits",
+            "memberships",
+            "enterpriseOwned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "lists",
+        "tool_parameter_name": "include_lists",
+        "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "closed",
+            "none",
+            "open"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization",
+        "tool_parameter_name": "include_organization",
+        "description": "Whether to include the Organization object with the Boards",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the Organization object with the Boards"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_fields",
+        "tool_parameter_name": "organization_fields_to_include",
+        "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "user_identifier",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

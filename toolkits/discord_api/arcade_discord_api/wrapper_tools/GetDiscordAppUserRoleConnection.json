@@ -1,0 +1,112 @@
+{
+  "name": "GetDiscordAppUserRoleConnection",
+  "fully_qualified_name": "DiscordApi.GetDiscordAppUserRoleConnection@0.1.0",
+  "description": "Retrieve Discord app role connection data for a user.\n\nThis tool should be called to fetch the role connection metadata for a user within a Discord application. It provides details on the user's role connection in the specified application.",
+  "toolkit": {
+    "name": "ArcadeDiscordApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": []
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getApplicationUserRoleConnection'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-discord",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "applications.builds.read",
+          "identify",
+          "guilds.members.read",
+          "relationships.read",
+          "rpc.voice.write",
+          "rpc.voice.read",
+          "connections",
+          "email",
+          "bot",
+          "activities.write",
+          "guilds.join",
+          "rpc.screenshare.read",
+          "voice",
+          "applications.builds.upload",
+          "applications.store.update",
+          "applications.commands.permissions.update",
+          "dm_channels.read",
+          "messages.read",
+          "rpc.video.write",
+          "rpc.notifications.read",
+          "gdm.join",
+          "applications.entitlements",
+          "activities.read",
+          "applications.commands",
+          "rpc",
+          "rpc.screenshare.write",
+          "guilds",
+          "rpc.video.read",
+          "rpc.activities.write",
+          "webhook.incoming"
+        ]
+      }
+    },
+    "secrets": [
+      {
+        "key": "DISCORD_AUTHORIZATION"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the discord API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://discord.com/api/v10/users/@me/applications/{application_id}/role-connection",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "DISCORD_AUTHORIZATION",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

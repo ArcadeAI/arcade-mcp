@@ -1,0 +1,207 @@
+{
+  "name": "CreateTrelloList",
+  "fully_qualified_name": "TrelloApi.CreateTrelloList@0.1.0",
+  "description": "Create a new list on a specified Trello board.\n\nUse this tool to add a new list to any board on Trello. Ideal for organizing tasks or projects by creating distinct sections within a board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "list_name",
+        "required": true,
+        "description": "The name for the new list you want to create on the Trello board.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the list"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "name"
+      },
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier of the Trello board where the list will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The long ID of the board the list should be created on"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBoard"
+      },
+      {
+        "name": "copy_from_list_id",
+        "required": false,
+        "description": "The ID of the existing list to copy when creating the new list. If not provided, no copying occurs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the List to copy into the new List"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idListSource"
+      },
+      {
+        "name": "list_position",
+        "required": false,
+        "description": "Specifies the position of the new list on the Trello board. Can be 'top', 'bottom', or a positive floating point number indicating a specific position.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position of the list. `top`, `bottom`, or a positive floating point number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pos"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'post-lists'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/lists",
+    "http_method": "POST",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "name",
+        "tool_parameter_name": "list_name",
+        "description": "Name for the list",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Name for the list"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBoard",
+        "tool_parameter_name": "board_id",
+        "description": "The long ID of the board the list should be created on",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The long ID of the board the list should be created on"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idListSource",
+        "tool_parameter_name": "copy_from_list_id",
+        "description": "ID of the List to copy into the new List",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the List to copy into the new List"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pos",
+        "tool_parameter_name": "list_position",
+        "description": "Position of the list. `top`, `bottom`, or a positive floating point number",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Position of the list. `top`, `bottom`, or a positive floating point number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}
