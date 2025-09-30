@@ -100,7 +100,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the stripe API."
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
   },
   "http_endpoint": {
     "metadata": {
