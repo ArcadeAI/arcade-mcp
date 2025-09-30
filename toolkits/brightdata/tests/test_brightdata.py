@@ -9,7 +9,6 @@ from arcade_tdk.errors import ToolExecutionError
 
 from brightdata.bright_data_client import BrightDataClient
 from brightdata.tools.bright_data_tools import (
-    get_screenshot,
     scrape_as_markdown,
     search_engine,
     web_data_feed,
@@ -114,64 +113,6 @@ class TestScrapeAsMarkdown:
             "format": "raw",
             "data_format": "markdown"
         })
-
-
-
-
-class TestGetScreenshot:
-    @patch('requests.post')
-    @patch('brightdata.tools.bright_data_tools.BrightDataClient')
-    def test_get_screenshot_success(self, mock_engine_class, mock_post, mock_context):
-        mock_client = Mock()
-        mock_client.endpoint = "https://api.brightdata.com/request"
-        mock_client.headers = {"Authorization": "Bearer test_key"}
-        mock_engine_class.create_client.return_value = mock_client
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.content = b"fake_image_data"
-        mock_post.return_value = mock_response
-
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_path = temp_file.name
-
-        try:
-            result = get_screenshot(mock_context, "https://example.com", temp_path)
-
-            assert result == temp_path
-            with open(temp_path, 'rb') as f:
-                assert f.read() == b"fake_image_data"
-
-            mock_engine_class.create_client.assert_called_once_with(
-                api_key=BRIGHTDATA_API_KEY, zone=BRIGHTDATA_ZONE
-            )
-        finally:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-
-    @patch('requests.post')
-    @patch('brightdata.tools.bright_data_tools.BrightDataClient')
-    def test_get_screenshot_failure(self, mock_engine_class, mock_post, mock_context):
-        mock_client = Mock()
-        mock_client.endpoint = "https://api.brightdata.com/request"
-        mock_client.headers = {"Authorization": "Bearer test_key"}
-        mock_engine_class.create_client.return_value = mock_client
-
-        mock_response = Mock()
-        mock_response.status_code = 400
-        mock_response.text = "Bad Request"
-        mock_post.return_value = mock_response
-
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_path = temp_file.name
-
-        try:
-            with pytest.raises(ToolExecutionError):
-                get_screenshot(mock_context, "https://example.com", temp_path)
-        finally:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-
 
 class TestSearchEngine:
     @patch('brightdata.tools.bright_data_tools.BrightDataClient')
