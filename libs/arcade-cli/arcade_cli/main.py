@@ -29,8 +29,8 @@ from arcade_cli.display import (
 )
 from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
+from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    OrderCommands,
     Provider,
     compute_base_url,
     compute_login_url,
@@ -44,8 +44,8 @@ from arcade_cli.utils import (
     version_callback,
 )
 
-cli = typer.Typer(
-    cls=OrderCommands,
+cli = TrackedTyper(
+    cls=TrackedTyperGroup,
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=True,
