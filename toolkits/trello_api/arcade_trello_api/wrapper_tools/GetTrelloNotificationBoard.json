@@ -60,11 +60,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-notifications-id-board'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -78,7 +74,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -157,7 +153,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

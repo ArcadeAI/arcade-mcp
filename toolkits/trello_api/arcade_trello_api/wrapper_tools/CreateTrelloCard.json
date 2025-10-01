@@ -268,12 +268,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "separator",
-            "board",
-            "mirror",
-            "link"
-          ],
+          "enum": ["separator", "board", "mirror", "link"],
           "properties": null,
           "inner_properties": null,
           "description": "For displaying cards in different ways based on the card name. Board cards must have a name that is a link to a Trello board. Mirror cards must have a name that is a link to a Trello card."
@@ -300,11 +295,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-cards'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -318,7 +309,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -650,12 +641,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "separator",
-            "board",
-            "mirror",
-            "link"
-          ],
+          "enum": ["separator", "board", "mirror", "link"],
           "properties": null,
           "inner_properties": null,
           "description": "For displaying cards in different ways based on the card name. Board cards must have a name that is a link to a Trello board. Mirror cards must have a name that is a link to a Trello card."
@@ -669,7 +655,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

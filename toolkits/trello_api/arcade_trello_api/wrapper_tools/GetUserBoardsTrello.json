@@ -31,15 +31,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "members",
-            "open",
-            "organization",
-            "public",
-            "starred"
-          ],
+          "enum": ["all", "closed", "members", "open", "organization", "public", "starred"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `closed`, `members`, `open`, `organization`, `public`, `starred`"
@@ -86,12 +78,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "none",
-            "open"
-          ],
+          "enum": ["all", "closed", "none", "open"],
           "properties": null,
           "inner_properties": null,
           "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`"
@@ -106,10 +93,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "id",
-            "name"
-          ],
+          "enum": ["id", "name"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -136,11 +120,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-boards'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -154,7 +134,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -185,15 +165,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "members",
-            "open",
-            "organization",
-            "public",
-            "starred"
-          ],
+          "enum": ["all", "closed", "members", "open", "organization", "public", "starred"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `closed`, `members`, `open`, `organization`, `public`, `starred`"
@@ -244,12 +216,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "none",
-            "open"
-          ],
+          "enum": ["all", "closed", "none", "open"],
           "properties": null,
           "inner_properties": null,
           "description": "Which lists to include with the boards. One of: `all`, `closed`, `none`, `open`"
@@ -283,10 +250,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "id",
-            "name"
-          ],
+          "enum": ["id", "name"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -317,7 +281,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

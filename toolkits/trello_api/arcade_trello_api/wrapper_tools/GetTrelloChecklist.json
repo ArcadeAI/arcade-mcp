@@ -16,13 +16,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "none",
-            "open",
-            "visible"
-          ],
+          "enum": ["all", "closed", "none", "open", "visible"],
           "properties": null,
           "inner_properties": null,
           "description": "Valid values: `all`, `closed`, `none`, `open`, `visible`. Cards is a nested resource. The additional query params available are documented at [Cards Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#cards-nested-resource)."
@@ -37,10 +31,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "The check items on the list to return. One of: `all`, `none`."
@@ -92,11 +83,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-checklists-id'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -110,7 +97,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -141,13 +128,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "closed",
-            "none",
-            "open",
-            "visible"
-          ],
+          "enum": ["all", "closed", "none", "open", "visible"],
           "properties": null,
           "inner_properties": null,
           "description": "Valid values: `all`, `closed`, `none`, `open`, `visible`. Cards is a nested resource. The additional query params available are documented at [Cards Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#cards-nested-resource)."
@@ -164,10 +145,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "The check items on the list to return. One of: `all`, `none`."
@@ -225,7 +203,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

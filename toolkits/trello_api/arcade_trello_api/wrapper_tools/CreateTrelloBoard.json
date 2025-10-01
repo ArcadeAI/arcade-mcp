@@ -76,10 +76,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "cards",
-            "none"
-          ],
+          "enum": ["cards", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "To keep cards from the original board pass in the value `cards`"
@@ -94,13 +91,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "calendar",
-            "cardAging",
-            "recap",
-            "voting"
-          ],
+          "enum": ["all", "calendar", "cardAging", "recap", "voting"],
           "properties": null,
           "inner_properties": null,
           "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`."
@@ -115,11 +106,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "org",
-            "private",
-            "public"
-          ],
+          "enum": ["org", "private", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "The permissions level of the board. One of: `org`, `private`, `public`."
@@ -134,13 +121,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "disabled",
-            "members",
-            "observers",
-            "org",
-            "public"
-          ],
+          "enum": ["disabled", "members", "observers", "org", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`."
@@ -155,13 +136,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "disabled",
-            "members",
-            "observers",
-            "org",
-            "public"
-          ],
+          "enum": ["disabled", "members", "observers", "org", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`."
@@ -176,10 +151,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "members",
-            "admins"
-          ],
+          "enum": ["members", "admins"],
           "properties": null,
           "inner_properties": null,
           "description": "Determines what types of members can invite users to join. One of: `admins`, `members`."
@@ -194,17 +166,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "blue",
-            "orange",
-            "green",
-            "red",
-            "purple",
-            "pink",
-            "lime",
-            "sky",
-            "grey"
-          ],
+          "enum": ["blue", "orange", "green", "red", "purple", "pink", "lime", "sky", "grey"],
           "properties": null,
           "inner_properties": null,
           "description": "The id of a custom background or one of: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`."
@@ -219,10 +181,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "pirate",
-            "regular"
-          ],
+          "enum": ["pirate", "regular"],
           "properties": null,
           "inner_properties": null,
           "description": "Determines the type of card aging that should take place on the board if card aging is enabled. One of: `pirate`, `regular`."
@@ -294,11 +253,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-boards'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -312,7 +267,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -445,10 +400,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "cards",
-            "none"
-          ],
+          "enum": ["cards", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "To keep cards from the original board pass in the value `cards`"
@@ -465,13 +417,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "calendar",
-            "cardAging",
-            "recap",
-            "voting"
-          ],
+          "enum": ["all", "calendar", "cardAging", "recap", "voting"],
           "properties": null,
           "inner_properties": null,
           "description": "The Power-Ups that should be enabled on the new board. One of: `all`, `calendar`, `cardAging`, `recap`, `voting`."
@@ -488,11 +434,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "org",
-            "private",
-            "public"
-          ],
+          "enum": ["org", "private", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "The permissions level of the board. One of: `org`, `private`, `public`."
@@ -509,13 +451,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "disabled",
-            "members",
-            "observers",
-            "org",
-            "public"
-          ],
+          "enum": ["disabled", "members", "observers", "org", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "Who can vote on this board. One of `disabled`, `members`, `observers`, `org`, `public`."
@@ -532,13 +468,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "disabled",
-            "members",
-            "observers",
-            "org",
-            "public"
-          ],
+          "enum": ["disabled", "members", "observers", "org", "public"],
           "properties": null,
           "inner_properties": null,
           "description": "Who can comment on cards on this board. One of: `disabled`, `members`, `observers`, `org`, `public`."
@@ -555,10 +485,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "members",
-            "admins"
-          ],
+          "enum": ["members", "admins"],
           "properties": null,
           "inner_properties": null,
           "description": "Determines what types of members can invite users to join. One of: `admins`, `members`."
@@ -609,17 +536,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "blue",
-            "orange",
-            "green",
-            "red",
-            "purple",
-            "pink",
-            "lime",
-            "sky",
-            "grey"
-          ],
+          "enum": ["blue", "orange", "green", "red", "purple", "pink", "lime", "sky", "grey"],
           "properties": null,
           "inner_properties": null,
           "description": "The id of a custom background or one of: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`."
@@ -636,10 +553,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "pirate",
-            "regular"
-          ],
+          "enum": ["pirate", "regular"],
           "properties": null,
           "inner_properties": null,
           "description": "Determines the type of card aging that should take place on the board if card aging is enabled. One of: `pirate`, `regular`."
@@ -653,7 +567,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

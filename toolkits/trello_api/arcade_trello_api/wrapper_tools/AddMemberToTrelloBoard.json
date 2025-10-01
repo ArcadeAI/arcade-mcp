@@ -16,11 +16,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "admin",
-            "normal",
-            "observer"
-          ],
+          "enum": ["admin", "normal", "observer"],
           "properties": null,
           "inner_properties": null,
           "description": "One of: admin, normal, observer. Determines the type of member this user will be on the board."
@@ -47,11 +43,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-boards-id-members-idmember'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -65,7 +57,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -96,11 +88,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "admin",
-            "normal",
-            "observer"
-          ],
+          "enum": ["admin", "normal", "observer"],
           "properties": null,
           "inner_properties": null,
           "description": "One of: admin, normal, observer. Determines the type of member this user will be on the board."
@@ -131,7 +119,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,

@@ -17,7 +17,7 @@ def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action(
     context: ToolContext,
     action_fields: Annotated[
@@ -60,7 +60,7 @@ async def get_trello_action(
                 "member_fields": member_fields_list,
                 "memberCreator": include_member_creator,
                 "memberCreator_fields": include_member_creator_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -72,7 +72,7 @@ async def get_trello_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def edit_trello_comment_action(
     context: ToolContext,
     new_comment_text: Annotated[
@@ -88,7 +88,7 @@ async def edit_trello_comment_action(
             url="https://api.trello.com/1/actions/{id}",
             params=remove_none_values({
                 "text": new_comment_text,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -100,7 +100,7 @@ async def edit_trello_comment_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_comment_action(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-actions-id'."]:
@@ -111,7 +111,7 @@ async def delete_trello_comment_action(
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -123,7 +123,7 @@ async def delete_trello_comment_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action_property(
     context: ToolContext,
     action_id: Annotated[
@@ -143,7 +143,7 @@ async def get_trello_action_property(
                 id=action_id, field=action_field_to_retrieve
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -155,7 +155,7 @@ async def get_trello_action_property(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action_board(
     context: ToolContext,
     action_id: Annotated[
@@ -174,7 +174,7 @@ async def get_trello_action_board(
             url="https://api.trello.com/1/actions/{id}/board".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": board_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -186,7 +186,7 @@ async def get_trello_action_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_for_action(
     context: ToolContext,
     action_id: Annotated[
@@ -205,7 +205,7 @@ async def get_trello_card_for_action(
             url="https://api.trello.com/1/actions/{id}/card".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": card_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -217,7 +217,7 @@ async def get_trello_card_for_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action_list(
     context: ToolContext,
     action_id: Annotated[
@@ -237,7 +237,7 @@ async def get_trello_action_list(
             url="https://api.trello.com/1/actions/{id}/list".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": list_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -249,7 +249,7 @@ async def get_trello_action_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_of_action(
     context: ToolContext,
     action_id: Annotated[str, "The ID of the Trello action to retrieve the member details for."],
@@ -266,7 +266,7 @@ async def get_member_of_action(
             url="https://api.trello.com/1/actions/{id}/member".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -278,7 +278,7 @@ async def get_member_of_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action_creator(
     context: ToolContext,
     action_id: Annotated[
@@ -298,7 +298,7 @@ async def get_trello_action_creator(
             url="https://api.trello.com/1/actions/{id}/memberCreator".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -310,7 +310,7 @@ async def get_trello_action_creator(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_organization_of_action(
     context: ToolContext,
     action_id: Annotated[
@@ -329,7 +329,7 @@ async def get_organization_of_action(
             url="https://api.trello.com/1/actions/{id}/organization".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": organization_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -341,7 +341,7 @@ async def get_organization_of_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_car_comment(
     context: ToolContext,
     new_comment_text: Annotated[
@@ -360,7 +360,7 @@ async def update_trello_car_comment(
             url="https://api.trello.com/1/actions/{id}/text".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "value": new_comment_text,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -372,7 +372,7 @@ async def update_trello_car_comment(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_trello_action_reactions(
     context: ToolContext,
     load_member_nested_resource: Annotated[
@@ -392,7 +392,7 @@ async def list_trello_action_reactions(
             params=remove_none_values({
                 "member": load_member_nested_resource,
                 "emoji": load_emoji_as_nested_resource,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -404,7 +404,7 @@ async def list_trello_action_reactions(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_reaction_info(
     context: ToolContext,
     include_member: Annotated[
@@ -426,7 +426,7 @@ async def get_reaction_info(
             params=remove_none_values({
                 "member": include_member,
                 "emoji": load_emoji_as_nested_resource,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -438,7 +438,7 @@ async def get_reaction_info(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_reaction_from_trello_action(
     context: ToolContext,
 ) -> Annotated[
@@ -451,7 +451,7 @@ async def delete_reaction_from_trello_action(
         response = await client.request(
             url="https://api.trello.com/1/actions/{idAction}/reactions/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -463,7 +463,7 @@ async def delete_reaction_from_trello_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_reaction_summary_for_action(
     context: ToolContext,
     action_id: Annotated[
@@ -481,7 +481,7 @@ async def get_reaction_summary_for_action(
                 idAction=action_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -493,7 +493,7 @@ async def get_reaction_summary_for_action(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_application_compliance_data(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'applications-key-compliance'."]:
@@ -504,7 +504,7 @@ async def get_trello_application_compliance_data(
         response = await client.request(
             url="https://api.trello.com/1/applications/{key}/compliance",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -516,7 +516,7 @@ async def get_trello_application_compliance_data(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_batch_requests(
     context: ToolContext,
     api_routes_list: Annotated[
@@ -532,7 +532,7 @@ async def trello_batch_requests(
             url="https://api.trello.com/1/batch",
             params=remove_none_values({
                 "urls": api_routes_list,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -544,7 +544,7 @@ async def trello_batch_requests(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_memberships(
     context: ToolContext,
     board_id: Annotated[
@@ -583,7 +583,7 @@ async def get_trello_board_memberships(
                 "orgMemberType": show_org_member_type,
                 "member": include_nested_member_object,
                 "member_fields": include_member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -595,7 +595,7 @@ async def get_trello_board_memberships(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_board(
     context: ToolContext,
     include_actions: Annotated[
@@ -682,7 +682,7 @@ async def retrieve_trello_board(
                 "organization_pluginData": include_organization_plugin_data,
                 "myPrefs": include_my_preferences,
                 "tags": include_tags,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -694,7 +694,7 @@ async def retrieve_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_board_by_id(
     context: ToolContext,
     new_board_name: Annotated[
@@ -801,7 +801,7 @@ async def update_trello_board_by_id(
                 "labelNames/red": red_label_name,
                 "labelNames/purple": purple_label_name,
                 "labelNames/blue": blue_label_name,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -813,7 +813,7 @@ async def update_trello_board_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_board(
     context: ToolContext,
     board_id_to_delete: Annotated[str, "The ID of the Trello board you want to delete."],
@@ -825,7 +825,7 @@ async def delete_trello_board(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}".format(id=board_id_to_delete),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -837,7 +837,7 @@ async def delete_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_field(
     context: ToolContext,
     board_id: Annotated[
@@ -857,7 +857,7 @@ async def get_trello_board_field(
                 id=board_id, field=trello_board_field_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -869,7 +869,7 @@ async def get_trello_board_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_board_star_information(
     context: ToolContext,
     board_id: Annotated[
@@ -888,7 +888,7 @@ async def get_board_star_information(
             url="https://api.trello.com/1/boards/{boardId}/boardStars".format(boardId=board_id),  # noqa: UP032
             params=remove_none_values({
                 "filter": star_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -900,7 +900,7 @@ async def get_board_star_information(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_checklists(
     context: ToolContext,
     board_id: Annotated[
@@ -914,7 +914,7 @@ async def get_trello_board_checklists(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/checklists".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -926,7 +926,7 @@ async def get_trello_board_checklists(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_open_cards_from_trello_board(
     context: ToolContext,
     board_id: Annotated[
@@ -940,7 +940,7 @@ async def get_open_cards_from_trello_board(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/cards".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -952,7 +952,7 @@ async def get_open_cards_from_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_filtered_trello_board_cards(
     context: ToolContext,
     board_id: Annotated[
@@ -973,7 +973,7 @@ async def get_filtered_trello_board_cards(
                 id=board_id, filter=card_filter
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -985,7 +985,7 @@ async def get_filtered_trello_board_cards(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_custom_fields(
     context: ToolContext,
     board_id: Annotated[
@@ -999,7 +999,7 @@ async def get_trello_board_custom_fields(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/customFields".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1011,7 +1011,7 @@ async def get_trello_board_custom_fields(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_board_label(
     context: ToolContext,
     label_name: Annotated[
@@ -1033,7 +1033,7 @@ async def create_trello_board_label(
             params=remove_none_values({
                 "name": label_name,
                 "color": label_color,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1045,7 +1045,7 @@ async def create_trello_board_label(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_lists(
     context: ToolContext,
     cards_filter: Annotated[
@@ -1075,7 +1075,7 @@ async def get_trello_board_lists(
                 "card_fields": card_fields_list,
                 "filter": list_filter,
                 "fields": list_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1087,7 +1087,7 @@ async def get_trello_board_lists(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_list_on_board(
     context: ToolContext,
     list_name: Annotated[
@@ -1107,7 +1107,7 @@ async def create_trello_list_on_board(
             params=remove_none_values({
                 "name": list_name,
                 "pos": list_position_on_board,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1119,7 +1119,7 @@ async def create_trello_list_on_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_filtered_lists_on_board(
     context: ToolContext,
     board_id: Annotated[str, "The unique identifier of the Trello board to retrieve lists from."],
@@ -1136,7 +1136,7 @@ async def get_filtered_lists_on_board(
                 id=board_id, filter=list_filter
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1148,7 +1148,7 @@ async def get_filtered_lists_on_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_board_members(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-members'."]:
@@ -1159,7 +1159,7 @@ async def get_board_members(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/members",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1171,7 +1171,7 @@ async def get_board_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_member_to_trello_board(
     context: ToolContext,
     member_role_on_board: Annotated[
@@ -1192,7 +1192,7 @@ async def add_member_to_trello_board(
             params=remove_none_values({
                 "type": member_role_on_board,
                 "allowBillableGuest": allow_billable_guest_addition,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1204,7 +1204,7 @@ async def add_member_to_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_member_from_trello_board(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'boardsidmembersidmember'."]:
@@ -1215,7 +1215,7 @@ async def remove_member_from_trello_board(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/members/{idMember}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -1227,7 +1227,7 @@ async def remove_member_from_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_board_membership(
     context: ToolContext,
     membership_type: Annotated[
@@ -1259,7 +1259,7 @@ async def update_trello_board_membership(
             params=remove_none_values({
                 "type": membership_type,
                 "member_fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1271,7 +1271,7 @@ async def update_trello_board_membership(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_board_email_position(
     context: ToolContext,
     email_position_preference: Annotated[
@@ -1292,7 +1292,7 @@ async def update_board_email_position(
             url="https://api.trello.com/1/boards/{id}/myPrefs/emailPosition".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "value": email_position_preference,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1304,7 +1304,7 @@ async def update_board_email_position(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_email_to_board_list_preference(
     context: ToolContext,
     email_list_id: Annotated[
@@ -1327,7 +1327,7 @@ async def update_email_to_board_list_preference(
             ),
             params=remove_none_values({
                 "value": email_list_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1339,7 +1339,7 @@ async def update_email_to_board_list_preference(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_board_sidebar_preference(
     context: ToolContext,
     board_id: Annotated[
@@ -1358,7 +1358,7 @@ async def update_trello_board_sidebar_preference(
             url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebar".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "value": show_sidebar,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1370,7 +1370,7 @@ async def update_trello_board_sidebar_preference(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_sidebar_activity_preference(
     context: ToolContext,
     board_id: Annotated[
@@ -1392,7 +1392,7 @@ async def update_sidebar_activity_preference(
             ),
             params=remove_none_values({
                 "value": show_sidebar_activity,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1404,7 +1404,7 @@ async def update_sidebar_activity_preference(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_sidebar_board_actions_pref(
     context: ToolContext,
     board_id: Annotated[
@@ -1428,7 +1428,7 @@ async def update_sidebar_board_actions_pref(
             ),
             params=remove_none_values({
                 "value": show_sidebar_board_actions,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1440,7 +1440,7 @@ async def update_sidebar_board_actions_pref(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_sidebar_members_display(
     context: ToolContext,
     board_id: Annotated[
@@ -1464,7 +1464,7 @@ async def update_sidebar_members_display(
             ),
             params=remove_none_values({
                 "value": show_sidebar_members,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -1476,7 +1476,7 @@ async def update_sidebar_members_display(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_board(
     context: ToolContext,
     board_name: Annotated[
@@ -1561,7 +1561,7 @@ async def create_trello_board(
                 "prefs_cardCovers": enable_card_covers,
                 "prefs_background": background_color,
                 "prefs_cardAging": card_aging_type,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1573,7 +1573,7 @@ async def create_trello_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def generate_trello_board_calendar_key(
     context: ToolContext,
     board_id_to_update: Annotated[
@@ -1592,7 +1592,7 @@ async def generate_trello_board_calendar_key(
                 id=board_id_to_update
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1604,7 +1604,7 @@ async def generate_trello_board_calendar_key(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def generate_board_email_key(
     context: ToolContext,
     board_id: Annotated[
@@ -1620,7 +1620,7 @@ async def generate_board_email_key(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/emailKey/generate".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1632,7 +1632,7 @@ async def generate_board_email_key(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_board_tag(
     context: ToolContext,
     tag_id: Annotated[
@@ -1651,7 +1651,7 @@ async def create_trello_board_tag(
             url="https://api.trello.com/1/boards/{id}/idTags".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "value": tag_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1663,7 +1663,7 @@ async def create_trello_board_tag(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def mark_trello_board_as_viewed(
     context: ToolContext,
     board_id_to_mark_as_viewed: Annotated[
@@ -1679,7 +1679,7 @@ async def mark_trello_board_as_viewed(
                 id=board_id_to_mark_as_viewed
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1691,7 +1691,7 @@ async def mark_trello_board_as_viewed(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_powerups(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-boardplugins'."]:
@@ -1702,7 +1702,7 @@ async def get_trello_board_powerups(
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/boardPlugins",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1714,7 +1714,7 @@ async def get_trello_board_powerups(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def enable_trello_power_up_on_board(
     context: ToolContext,
     power_up_id_to_enable: Annotated[
@@ -1729,7 +1729,7 @@ async def enable_trello_power_up_on_board(
             url="https://api.trello.com/1/boards/{id}/boardPlugins",
             params=remove_none_values({
                 "idPlugin": power_up_id_to_enable,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1741,7 +1741,7 @@ async def enable_trello_power_up_on_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def disable_powerup_on_board(
     context: ToolContext,
     board_id: Annotated[
@@ -1760,7 +1760,7 @@ async def disable_powerup_on_board(
                 id=board_id, idPlugin=power_up_id_to_disable
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -1772,7 +1772,7 @@ async def disable_powerup_on_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_trello_board_power_ups(
     context: ToolContext,
     board_id: Annotated[
@@ -1790,7 +1790,7 @@ async def list_trello_board_power_ups(
             url="https://api.trello.com/1/boards/{id}/plugins".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "filter": power_up_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -1802,7 +1802,7 @@ async def list_trello_board_power_ups(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_card(
     context: ToolContext,
     list_id: Annotated[str, "The ID of the Trello list where the new card should be created."],
@@ -1893,7 +1893,7 @@ async def create_trello_card(
                 "locationName": map_view_location_name,
                 "coordinates": map_view_coordinates,
                 "cardRole": card_display_role,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -1905,7 +1905,7 @@ async def create_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_by_id(
     context: ToolContext,
     fields_to_retrieve: Annotated[
@@ -2001,7 +2001,7 @@ async def get_trello_card_by_id(
                 "stickers": include_stickers,
                 "sticker_fields": sticker_field_selection,
                 "customFieldItems": include_custom_field_items,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2013,7 +2013,7 @@ async def get_trello_card_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_card(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-cards-id'."]:
@@ -2024,7 +2024,7 @@ async def delete_trello_card(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -2036,7 +2036,7 @@ async def delete_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_property(
     context: ToolContext,
     card_id: Annotated[
@@ -2056,7 +2056,7 @@ async def get_trello_card_property(
                 id=card_id, field=desired_card_field
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2068,7 +2068,7 @@ async def get_trello_card_property(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_actions(
     context: ToolContext,
     card_id: Annotated[
@@ -2091,7 +2091,7 @@ async def get_trello_card_actions(
             params=remove_none_values({
                 "filter": action_types_filter,
                 "page": action_results_page,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2103,7 +2103,7 @@ async def get_trello_card_actions(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_trello_card_attachments(
     context: ToolContext,
     attachment_fields_list: Annotated[
@@ -2123,7 +2123,7 @@ async def list_trello_card_attachments(
             params=remove_none_values({
                 "fields": attachment_fields_list,
                 "filter": restrict_to_cover_attachment,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2135,7 +2135,7 @@ async def list_trello_card_attachments(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_attachment_to_trello_card(
     context: ToolContext,
     attachment_name: Annotated[
@@ -2169,7 +2169,7 @@ async def add_attachment_to_trello_card(
                 "mimeType": attachment_mime_type,
                 "url": attachment_url,
                 "setCover": use_attachment_as_cover,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2181,7 +2181,7 @@ async def add_attachment_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_attachment(
     context: ToolContext,
     attachment_fields: Annotated[
@@ -2199,7 +2199,7 @@ async def get_trello_card_attachment(
             url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}",
             params=remove_none_values({
                 "fields": attachment_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2211,7 +2211,7 @@ async def get_trello_card_attachment(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_card_attachment(
     context: ToolContext,
     card_id: Annotated[str, "The ID of the Trello card from which the attachment will be deleted."],
@@ -2230,7 +2230,7 @@ async def delete_trello_card_attachment(
                 id=card_id, idAttachment=attachment_id_to_delete
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -2242,7 +2242,7 @@ async def delete_trello_card_attachment(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_board_for_card(
     context: ToolContext,
     card_id: Annotated[
@@ -2261,7 +2261,7 @@ async def get_board_for_card(
             url="https://api.trello.com/1/cards/{id}/board".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": retrieve_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2273,7 +2273,7 @@ async def get_board_for_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_completed_checklist_items(
     context: ToolContext,
     card_id: Annotated[
@@ -2292,7 +2292,7 @@ async def get_completed_checklist_items(
             url="https://api.trello.com/1/cards/{id}/checkItemStates".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": checklist_item_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2304,7 +2304,7 @@ async def get_completed_checklist_items(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_checklists(
     context: ToolContext,
     card_id: Annotated[
@@ -2337,7 +2337,7 @@ async def get_trello_card_checklists(
                 "checkItem_fields": checklist_item_fields,
                 "filter": include_all_checklists,
                 "fields": fields_to_retrieve,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2349,7 +2349,7 @@ async def get_trello_card_checklists(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_checklist(
     context: ToolContext,
     card_id: Annotated[
@@ -2376,7 +2376,7 @@ async def create_trello_checklist(
                 "name": checklist_name,
                 "idChecklistSource": source_checklist_id,
                 "pos": checklist_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2388,7 +2388,7 @@ async def create_trello_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_checkitem_from_card(
     context: ToolContext,
     checkitem_fields: Annotated[
@@ -2406,7 +2406,7 @@ async def get_checkitem_from_card(
             url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
             params=remove_none_values({
                 "fields": checkitem_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2418,7 +2418,7 @@ async def get_checkitem_from_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_checklist_item_on_card(
     context: ToolContext,
     new_checklist_item_name: Annotated[
@@ -2462,7 +2462,7 @@ async def update_checklist_item_on_card(
                 "due": due_date_for_checkitem,
                 "dueReminder": due_date_reminder_minutes,
                 "idMember": member_id_to_remove,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -2474,7 +2474,7 @@ async def update_checklist_item_on_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_checklist_item(
     context: ToolContext,
 ) -> Annotated[
@@ -2487,7 +2487,7 @@ async def delete_trello_checklist_item(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -2499,7 +2499,7 @@ async def delete_trello_checklist_item(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_list(
     context: ToolContext,
     card_id: Annotated[
@@ -2518,7 +2518,7 @@ async def get_trello_card_list(
             url="https://api.trello.com/1/cards/{id}/list".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": list_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2530,7 +2530,7 @@ async def get_trello_card_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_members(
     context: ToolContext,
     card_id: Annotated[
@@ -2549,7 +2549,7 @@ async def get_card_members(
             url="https://api.trello.com/1/cards/{id}/members".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2561,7 +2561,7 @@ async def get_card_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_voters(
     context: ToolContext,
     member_fields: Annotated[
@@ -2577,7 +2577,7 @@ async def get_card_voters(
             url="https://api.trello.com/1/cards/{id}/membersVoted",
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2589,7 +2589,7 @@ async def get_card_voters(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def vote_on_trello_card(
     context: ToolContext,
     member_id_to_vote_yes: Annotated[str, "The ID of the member to vote 'yes' on the Trello card."],
@@ -2602,7 +2602,7 @@ async def vote_on_trello_card(
             url="https://api.trello.com/1/cards/{id}/membersVoted",
             params=remove_none_values({
                 "value": member_id_to_vote_yes,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2614,7 +2614,7 @@ async def vote_on_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_plugin_data(
     context: ToolContext,
     card_id: Annotated[
@@ -2629,7 +2629,7 @@ async def get_card_plugin_data(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/pluginData".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2641,7 +2641,7 @@ async def get_card_plugin_data(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_stickers(
     context: ToolContext,
     card_id: Annotated[str, "The Trello card's unique identifier to retrieve its stickers."],
@@ -2658,7 +2658,7 @@ async def get_trello_card_stickers(
             url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": sticker_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2670,7 +2670,7 @@ async def get_trello_card_stickers(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_sticker_to_trello_card(
     context: ToolContext,
     sticker_identifier: Annotated[
@@ -2703,7 +2703,7 @@ async def add_sticker_to_trello_card(
                 "left": sticker_left_position,
                 "zIndex": sticker_z_index,
                 "rotate": sticker_rotation,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2715,7 +2715,7 @@ async def add_sticker_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_specific_sticker_on_card(
     context: ToolContext,
     sticker_fields: Annotated[
@@ -2731,7 +2731,7 @@ async def get_specific_sticker_on_card(
             url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
             params=remove_none_values({
                 "fields": sticker_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2743,7 +2743,7 @@ async def get_specific_sticker_on_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_trello_card_sticker(
     context: ToolContext,
 ) -> Annotated[
@@ -2756,7 +2756,7 @@ async def remove_trello_card_sticker(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -2768,7 +2768,7 @@ async def remove_trello_card_sticker(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_card_sticker(
     context: ToolContext,
     sticker_top_position: Annotated[
@@ -2798,7 +2798,7 @@ async def update_trello_card_sticker(
                 "left": sticker_left_position,
                 "zIndex": sticker_z_index,
                 "rotate": sticker_rotation,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -2810,7 +2810,7 @@ async def update_trello_card_sticker(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_comment(
     context: ToolContext,
     new_comment_text: Annotated[str, "The updated text for the Trello card comment."],
@@ -2825,7 +2825,7 @@ async def update_trello_comment(
             url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments",
             params=remove_none_values({
                 "text": new_comment_text,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -2837,7 +2837,7 @@ async def update_trello_comment(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_card_comment(
     context: ToolContext,
 ) -> Annotated[
@@ -2850,7 +2850,7 @@ async def delete_trello_card_comment(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -2862,7 +2862,7 @@ async def delete_trello_card_comment(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_custom_field_items_for_card(
     context: ToolContext,
     card_id: Annotated[
@@ -2877,7 +2877,7 @@ async def get_custom_field_items_for_card(
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/customFieldItems".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -2889,7 +2889,7 @@ async def get_custom_field_items_for_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_comment_to_trello_card(
     context: ToolContext,
     comment_text: Annotated[
@@ -2908,7 +2908,7 @@ async def add_comment_to_trello_card(
             url="https://api.trello.com/1/cards/{id}/actions/comments".format(id=trello_card_id),  # noqa: UP032
             params=remove_none_values({
                 "text": comment_text,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2920,7 +2920,7 @@ async def add_comment_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_label_to_trello_card(
     context: ToolContext,
     card_id: Annotated[
@@ -2938,7 +2938,7 @@ async def add_label_to_trello_card(
             url="https://api.trello.com/1/cards/{id}/idLabels".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "value": label_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2950,7 +2950,7 @@ async def add_label_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_member_to_trello_card(
     context: ToolContext,
     card_id: Annotated[
@@ -2969,7 +2969,7 @@ async def add_member_to_trello_card(
             url="https://api.trello.com/1/cards/{id}/idMembers".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "value": member_id_to_add,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -2981,7 +2981,7 @@ async def add_member_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_new_label_to_trello_card(
     context: ToolContext,
     label_color: Annotated[
@@ -3004,7 +3004,7 @@ async def add_new_label_to_trello_card(
             params=remove_none_values({
                 "color": label_color,
                 "name": label_name,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -3016,7 +3016,7 @@ async def add_new_label_to_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def mark_trello_card_notifications_read(
     context: ToolContext,
     card_id: Annotated[
@@ -3036,7 +3036,7 @@ async def mark_trello_card_notifications_read(
                 id=card_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -3048,7 +3048,7 @@ async def mark_trello_card_notifications_read(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_label_from_card(
     context: ToolContext,
     card_id: Annotated[
@@ -3067,7 +3067,7 @@ async def remove_label_from_card(
                 id=card_id, idLabel=label_id_to_remove
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3079,7 +3079,7 @@ async def remove_label_from_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_member_from_trello_card(
     context: ToolContext,
     card_id: Annotated[
@@ -3099,7 +3099,7 @@ async def remove_member_from_trello_card(
                 id=card_id, idMember=member_id_to_remove
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3111,7 +3111,7 @@ async def remove_member_from_trello_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_remove_member_vote(
     context: ToolContext,
     card_id: Annotated[
@@ -3133,7 +3133,7 @@ async def trello_remove_member_vote(
                 id=card_id, idMember=member_id_to_remove_vote
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3145,7 +3145,7 @@ async def trello_remove_member_vote(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_checklist_item(
     context: ToolContext,
     card_id: Annotated[
@@ -3172,7 +3172,7 @@ async def update_trello_checklist_item(
             ),
             params=remove_none_values({
                 "pos": position_in_checklist,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -3184,7 +3184,7 @@ async def update_trello_checklist_item(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_checklist_from_card(
     context: ToolContext,
     card_id: Annotated[
@@ -3205,7 +3205,7 @@ async def delete_checklist_from_card(
                 id=card_id, idChecklist=checklist_id_to_delete
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3217,7 +3217,7 @@ async def delete_checklist_from_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_new_checklist(
     context: ToolContext,
     card_id: Annotated[
@@ -3246,7 +3246,7 @@ async def create_trello_new_checklist(
                 "name": checklist_name,
                 "pos": checklist_position_on_card,
                 "idChecklistSource": source_checklist_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -3258,7 +3258,7 @@ async def create_trello_new_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_checklist(
     context: ToolContext,
     filter_cards_status: Annotated[
@@ -3289,7 +3289,7 @@ async def get_trello_checklist(
                 "checkItems": return_check_items,
                 "checkItem_fields": check_item_field_selection,
                 "fields": checklist_fields_to_return,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3301,7 +3301,7 @@ async def get_trello_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_checklist(
     context: ToolContext,
     checklist_name: Annotated[
@@ -3321,7 +3321,7 @@ async def update_trello_checklist(
             params=remove_none_values({
                 "name": checklist_name,
                 "pos": checklist_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -3333,7 +3333,7 @@ async def update_trello_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_checklist(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-checklists-id'."]:
@@ -3344,7 +3344,7 @@ async def delete_trello_checklist(
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3356,7 +3356,7 @@ async def delete_trello_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_get_checklist_field(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id-field'."]:
@@ -3367,7 +3367,7 @@ async def trello_get_checklist_field(
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}/{field}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3379,7 +3379,7 @@ async def trello_get_checklist_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_checklist_field(
     context: ToolContext,
     checklist_name_value: Annotated[
@@ -3395,7 +3395,7 @@ async def update_trello_checklist_field(
             url="https://api.trello.com/1/checklists/{id}/{field}",
             params=remove_none_values({
                 "value": checklist_name_value,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -3407,7 +3407,7 @@ async def update_trello_checklist_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_for_checklist(
     context: ToolContext,
     checklist_id: Annotated[
@@ -3425,7 +3425,7 @@ async def get_trello_board_for_checklist(
             url="https://api.trello.com/1/checklists/{id}/board".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": board_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3437,7 +3437,7 @@ async def get_trello_board_for_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_for_checklist(
     context: ToolContext,
     checklist_id: Annotated[
@@ -3451,7 +3451,7 @@ async def get_card_for_checklist(
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}/cards".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3463,7 +3463,7 @@ async def get_card_for_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_checklist_items(
     context: ToolContext,
     filter_check_items: Annotated[
@@ -3484,7 +3484,7 @@ async def retrieve_checklist_items(
             params=remove_none_values({
                 "filter": filter_check_items,
                 "fields": fields_to_retrieve,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3496,7 +3496,7 @@ async def retrieve_checklist_items(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_checkitem_on_trello_checklist(
     context: ToolContext,
     checkitem_name: Annotated[
@@ -3535,7 +3535,7 @@ async def create_checkitem_on_trello_checklist(
                 "due": due_date_for_checkitem,
                 "dueReminder": due_reminder_minutes_before_due,
                 "idMember": member_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -3547,7 +3547,7 @@ async def create_checkitem_on_trello_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_checkitem_on_checklist(
     context: ToolContext,
     checkitem_fields: Annotated[
@@ -3565,7 +3565,7 @@ async def get_checkitem_on_checklist(
             url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
             params=remove_none_values({
                 "fields": checkitem_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3577,7 +3577,7 @@ async def get_checkitem_on_checklist(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_checklist_item(
     context: ToolContext,
 ) -> Annotated[
@@ -3590,7 +3590,7 @@ async def remove_checklist_item(
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3602,7 +3602,7 @@ async def remove_checklist_item(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_custom_field(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-customfields-id'."]:
@@ -3613,7 +3613,7 @@ async def get_trello_custom_field(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3625,7 +3625,7 @@ async def get_trello_custom_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_custom_field_from_board(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-customfields-id'."]:
@@ -3636,7 +3636,7 @@ async def delete_custom_field_from_board(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3648,7 +3648,7 @@ async def delete_custom_field_from_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_option_to_dropdown_custom_field(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-customfields-id-options'."]:
@@ -3659,7 +3659,7 @@ async def add_option_to_dropdown_custom_field(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}/options",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -3671,7 +3671,7 @@ async def add_option_to_dropdown_custom_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_custom_field_options(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-customfields-id-options'."]:
@@ -3682,7 +3682,7 @@ async def get_custom_field_options(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}/options",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3694,7 +3694,7 @@ async def get_custom_field_options(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_custom_field_option(
     context: ToolContext,
 ) -> Annotated[
@@ -3707,7 +3707,7 @@ async def retrieve_trello_custom_field_option(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3719,7 +3719,7 @@ async def retrieve_trello_custom_field_option(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_delete_customfield_option(
     context: ToolContext,
 ) -> Annotated[
@@ -3733,7 +3733,7 @@ async def trello_delete_customfield_option(
         response = await client.request(
             url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -3745,7 +3745,7 @@ async def trello_delete_customfield_option(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_available_emojis(
     context: ToolContext,
     emoji_locale: Annotated[
@@ -3765,7 +3765,7 @@ async def list_available_emojis(
             params=remove_none_values({
                 "locale": emoji_locale,
                 "spritesheets": include_spritesheet_urls,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3777,7 +3777,7 @@ async def list_available_emojis(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_enterprise_by_id(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -3854,7 +3854,7 @@ async def get_trello_enterprise_by_id(
                 "organization_fields": organization_fields,
                 "organization_paid_accounts": include_paid_account_info,
                 "organization_memberships": organization_memberships_list,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3866,7 +3866,7 @@ async def get_trello_enterprise_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_audit_log(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -3880,7 +3880,7 @@ async def get_enterprise_audit_log(
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/auditlog".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3892,7 +3892,7 @@ async def get_enterprise_audit_log(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_admins(
     context: ToolContext,
     enterprise_id: Annotated[str, "ID of the enterprise to retrieve the admin members from."],
@@ -3909,7 +3909,7 @@ async def get_enterprise_admins(
             url="https://api.trello.com/1/enterprises/{id}/admins".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": admin_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3921,7 +3921,7 @@ async def get_enterprise_admins(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_signup_url(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -3956,7 +3956,7 @@ async def get_enterprise_signup_url(
                 "confirmationAccepted": confirmation_accepted,
                 "returnUrl": return_url,
                 "tosAccepted": user_consented_to_terms_of_service,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -3968,7 +3968,7 @@ async def get_enterprise_signup_url(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_users(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4028,7 +4028,7 @@ async def get_enterprise_users(
                 "inactiveSince": active_since_date,
                 "search": search_value,
                 "cursor": pagination_cursor,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4040,7 +4040,7 @@ async def get_enterprise_users(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_members(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4097,7 +4097,7 @@ async def get_enterprise_members(
                 "count": scim_style_filter,
                 "organization_fields": organization_fields,
                 "board_fields": board_fields_to_include,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4109,7 +4109,7 @@ async def get_enterprise_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_enterprise_member(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4145,7 +4145,7 @@ async def get_trello_enterprise_member(
                 "fields": member_fields_list,
                 "organization_fields": organization_field_value,
                 "board_fields": board_details_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4157,7 +4157,7 @@ async def get_trello_enterprise_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def check_organization_transfer_eligibility(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4180,7 +4180,7 @@ async def check_organization_transfer_eligibility(
                 id=enterprise_id, idOrganization=organization_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4192,7 +4192,7 @@ async def check_organization_transfer_eligibility(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_get_transferrable_organizations(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4216,7 +4216,7 @@ async def trello_get_transferrable_organizations(
                 id=enterprise_id, idOrganizations=organization_ids_array
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4228,7 +4228,7 @@ async def trello_get_transferrable_organizations(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def decline_enterprise_join_requests(
     context: ToolContext,
     organization_ids: Annotated[
@@ -4252,7 +4252,7 @@ async def decline_enterprise_join_requests(
             ),
             params=remove_none_values({
                 "idOrganizations": organization_ids,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4264,7 +4264,7 @@ async def decline_enterprise_join_requests(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_claimable_workspaces_by_enterprise_id(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4304,7 +4304,7 @@ async def get_claimable_workspaces_by_enterprise_id(
                 "name": enterprise_name,
                 "activeSince": active_since_date,
                 "inactiveSince": search_inactive_since_date,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4316,7 +4316,7 @@ async def get_claimable_workspaces_by_enterprise_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_pending_workspaces_for_enterprise(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4343,7 +4343,7 @@ async def get_pending_workspaces_for_enterprise(
             params=remove_none_values({
                 "activeSince": active_since_date,
                 "inactiveSince": inactive_since_date,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4355,7 +4355,7 @@ async def get_pending_workspaces_for_enterprise(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_enterprise_auth_token(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4374,7 +4374,7 @@ async def create_enterprise_auth_token(
             url="https://api.trello.com/1/enterprises/{id}/tokens".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "expiration": token_expiration,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -4386,7 +4386,7 @@ async def create_enterprise_auth_token(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def transfer_organization_to_enterprise(
     context: ToolContext,
     organization_id_to_transfer: Annotated[
@@ -4406,7 +4406,7 @@ async def transfer_organization_to_enterprise(
             url="https://api.trello.com/1/enterprises/{id}/organizations".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "idOrganization": organization_id_to_transfer,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4418,7 +4418,7 @@ async def transfer_organization_to_enterprise(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_member_license(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4445,7 +4445,7 @@ async def update_trello_member_license(
             ),
             params=remove_none_values({
                 "value": grant_enterprise_license,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4457,7 +4457,7 @@ async def update_trello_member_license(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def deactivate_enterprise_member_trello(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4497,7 +4497,7 @@ async def deactivate_enterprise_member_trello(
                 "fields": member_fields_list,
                 "organization_fields": organization_field_value,
                 "board_fields": board_field_values,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4509,7 +4509,7 @@ async def deactivate_enterprise_member_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def make_trello_member_enterprise_admin(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4530,7 +4530,7 @@ async def make_trello_member_enterprise_admin(
                 id=enterprise_id, idMember=member_id_for_admin_promotion
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4542,7 +4542,7 @@ async def make_trello_member_enterprise_admin(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_enterprise_admin(
     context: ToolContext,
     enterprise_id: Annotated[str, "The unique identifier of the Trello enterprise to modify."],
@@ -4562,7 +4562,7 @@ async def remove_enterprise_admin(
                 id=enterprise_id, idMember=member_id_to_remove
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -4574,7 +4574,7 @@ async def remove_enterprise_admin(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_organization_from_enterprise(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4595,7 +4595,7 @@ async def remove_organization_from_enterprise(
                 id=enterprise_id, idOrg=organization_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -4607,7 +4607,7 @@ async def remove_organization_from_enterprise(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_organizations_to_enterprise(
     context: ToolContext,
     enterprise_id: Annotated[
@@ -4631,7 +4631,7 @@ async def add_organizations_to_enterprise(
                 id=enterprise_id, idOrganizations=organization_ids_to_add
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4643,7 +4643,7 @@ async def add_organizations_to_enterprise(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_label_info(
     context: ToolContext,
     fields_details_to_retrieve: Annotated[
@@ -4659,7 +4659,7 @@ async def get_trello_label_info(
             url="https://api.trello.com/1/labels/{id}",
             params=remove_none_values({
                 "fields": fields_details_to_retrieve,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4671,7 +4671,7 @@ async def get_trello_label_info(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_label(
     context: ToolContext,
     new_label_name: Annotated[
@@ -4691,7 +4691,7 @@ async def update_trello_label(
             params=remove_none_values({
                 "name": new_label_name,
                 "color": new_label_color,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4703,7 +4703,7 @@ async def update_trello_label(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_label_by_id(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-labels-id'."]:
@@ -4714,7 +4714,7 @@ async def delete_label_by_id(
         response = await client.request(
             url="https://api.trello.com/1/labels/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -4726,7 +4726,7 @@ async def delete_label_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_label_field(
     context: ToolContext,
     new_value_for_label_field: Annotated[
@@ -4747,7 +4747,7 @@ async def update_trello_label_field(
             ),
             params=remove_none_values({
                 "value": new_value_for_label_field,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4759,7 +4759,7 @@ async def update_trello_label_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_label(
     context: ToolContext,
     label_name: Annotated[str, "The name for the new label to be created on the Trello board."],
@@ -4781,7 +4781,7 @@ async def create_trello_label(
                 "name": label_name,
                 "color": label_color,
                 "idBoard": board_id_for_label_creation,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -4793,7 +4793,7 @@ async def create_trello_label(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_list_info(
     context: ToolContext,
     list_fields: Annotated[
@@ -4809,7 +4809,7 @@ async def get_trello_list_info(
             url="https://api.trello.com/1/lists/{id}",
             params=remove_none_values({
                 "fields": list_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -4821,7 +4821,7 @@ async def get_trello_list_info(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_list_properties(
     context: ToolContext,
     new_list_name: Annotated[str | None, "The new name to assign to the Trello list."] = None,
@@ -4853,7 +4853,7 @@ async def update_trello_list_properties(
                 "idBoard": target_board_id,
                 "pos": new_list_position,
                 "subscribed": is_member_subscribed,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4865,7 +4865,7 @@ async def update_trello_list_properties(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_list(
     context: ToolContext,
     list_name: Annotated[str, "The name for the new list you want to create on the Trello board."],
@@ -4892,7 +4892,7 @@ async def create_trello_list(
                 "idBoard": board_id,
                 "idListSource": copy_from_list_id,
                 "pos": list_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -4904,7 +4904,7 @@ async def create_trello_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def archive_all_cards_in_list(
     context: ToolContext,
     list_id: Annotated[str, "The unique identifier of the Trello list to archive all cards from."],
@@ -4916,7 +4916,7 @@ async def archive_all_cards_in_list(
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/archiveAllCards".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -4928,7 +4928,7 @@ async def archive_all_cards_in_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def move_all_cards_in_list(
     context: ToolContext,
     target_board_id: Annotated[
@@ -4948,7 +4948,7 @@ async def move_all_cards_in_list(
             params=remove_none_values({
                 "idBoard": target_board_id,
                 "idList": target_list_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -4960,7 +4960,7 @@ async def move_all_cards_in_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_list_status(
     context: ToolContext,
     list_id: Annotated[str, "The unique ID of the Trello list to archive or unarchive."],
@@ -4976,7 +4976,7 @@ async def update_trello_list_status(
             url="https://api.trello.com/1/lists/{id}/closed".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
                 "value": archive_list,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -4988,7 +4988,7 @@ async def update_trello_list_status(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def move_list_to_different_board(
     context: ToolContext,
     target_board_id: Annotated[
@@ -5005,7 +5005,7 @@ async def move_list_to_different_board(
             url="https://api.trello.com/1/lists/{id}/idBoard".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
                 "value": target_board_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5017,7 +5017,7 @@ async def move_list_to_different_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def rename_trello_list(
     context: ToolContext,
     list_id: Annotated[str, "The unique identifier of the Trello list to be renamed."],
@@ -5036,7 +5036,7 @@ async def rename_trello_list(
             ),
             params=remove_none_values({
                 "value": new_list_name,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5048,7 +5048,7 @@ async def rename_trello_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_list_actions(
     context: ToolContext,
     list_id: Annotated[str, "The ID of the Trello list to retrieve actions for."],
@@ -5065,7 +5065,7 @@ async def get_list_actions(
             url="https://api.trello.com/1/lists/{id}/actions".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
                 "filter": action_types_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5077,7 +5077,7 @@ async def get_list_actions(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_board_for_list(
     context: ToolContext,
     list_id: Annotated[
@@ -5096,7 +5096,7 @@ async def get_trello_board_for_list(
             url="https://api.trello.com/1/lists/{id}/board".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": board_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5108,7 +5108,7 @@ async def get_trello_board_for_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_trello_cards(
     context: ToolContext,
     list_id: Annotated[
@@ -5123,7 +5123,7 @@ async def list_trello_cards(
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/cards".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5135,7 +5135,7 @@ async def list_trello_cards(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_member(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5246,7 +5246,7 @@ async def get_trello_member(
                 "paid_account": include_paid_account_info,
                 "savedSearches": include_saved_searches,
                 "tokens": include_tokens,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5258,7 +5258,7 @@ async def get_trello_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_member(
     context: ToolContext,
     member_id_or_username: Annotated[str, "The ID or username of the Trello member to update."],
@@ -5306,7 +5306,7 @@ async def update_trello_member(
                 "prefs/colorBlind": enable_color_blind_mode,
                 "prefs/locale": preferences_locale,
                 "prefs/minutesBetweenSummaries": summary_update_frequency,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5318,7 +5318,7 @@ async def update_trello_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_member_property(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5338,7 +5338,7 @@ async def get_trello_member_property(
                 id=member_id_or_username, field=member_property_field
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5350,7 +5350,7 @@ async def get_trello_member_property(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_member_actions(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5369,7 +5369,7 @@ async def get_trello_member_actions(
             url="https://api.trello.com/1/members/{id}/actions".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
                 "filter": action_type_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5381,7 +5381,7 @@ async def get_trello_member_actions(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_board_backgrounds(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5402,7 +5402,7 @@ async def get_member_board_backgrounds(
             ),
             params=remove_none_values({
                 "filter": background_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5414,7 +5414,7 @@ async def get_member_board_backgrounds(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def upload_trello_board_background(
     context: ToolContext,
     board_background_file_path: Annotated[
@@ -5438,7 +5438,7 @@ async def upload_trello_board_background(
             ),
             params=remove_none_values({
                 "file": board_background_file_path,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -5450,7 +5450,7 @@ async def upload_trello_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_board_background(
     context: ToolContext,
     background_fields: Annotated[
@@ -5468,7 +5468,7 @@ async def get_member_board_background(
             url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
             params=remove_none_values({
                 "fields": background_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5480,7 +5480,7 @@ async def get_member_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_board_background(
     context: ToolContext,
     background_brightness: Annotated[
@@ -5502,7 +5502,7 @@ async def update_board_background(
             params=remove_none_values({
                 "brightness": background_brightness,
                 "tile": enable_tile_background,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5514,7 +5514,7 @@ async def update_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_board_background(
     context: ToolContext,
 ) -> Annotated[
@@ -5528,7 +5528,7 @@ async def delete_board_background(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -5540,7 +5540,7 @@ async def delete_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_member_board_stars(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5554,7 +5554,7 @@ async def list_member_board_stars(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5566,7 +5566,7 @@ async def list_member_board_stars(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def star_board_on_trello(
     context: ToolContext,
     board_id_to_star: Annotated[
@@ -5589,7 +5589,7 @@ async def star_board_on_trello(
             params=remove_none_values({
                 "idBoard": board_id_to_star,
                 "pos": board_star_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -5601,7 +5601,7 @@ async def star_board_on_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_specific_board_star(
     context: ToolContext,
 ) -> Annotated[
@@ -5614,7 +5614,7 @@ async def get_specific_board_star(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5626,7 +5626,7 @@ async def get_specific_board_star(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_starred_board_position(
     context: ToolContext,
     new_starred_board_position: Annotated[
@@ -5644,7 +5644,7 @@ async def update_starred_board_position(
             url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
             params=remove_none_values({
                 "pos": new_starred_board_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5656,7 +5656,7 @@ async def update_starred_board_position(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def unstar_board_on_trello(
     context: ToolContext,
 ) -> Annotated[
@@ -5669,7 +5669,7 @@ async def unstar_board_on_trello(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -5681,7 +5681,7 @@ async def unstar_board_on_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_user_boards_trello(
     context: ToolContext,
     user_identifier: Annotated[str, "The Trello member's ID or username to retrieve their boards."],
@@ -5717,7 +5717,7 @@ async def get_user_boards_trello(
                 "lists": include_lists,
                 "organization": include_organization,
                 "organization_fields": organization_fields_to_include,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5729,7 +5729,7 @@ async def get_user_boards_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_invited_boards_for_member(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5750,7 +5750,7 @@ async def get_invited_boards_for_member(
             ),
             params=remove_none_values({
                 "fields": board_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5762,7 +5762,7 @@ async def get_invited_boards_for_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_cards_on_trello(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -5781,7 +5781,7 @@ async def get_member_cards_on_trello(
             url="https://api.trello.com/1/members/{id}/cards".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
                 "filter": card_filter_option,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5793,7 +5793,7 @@ async def get_member_cards_on_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_board_backgrounds(
     context: ToolContext,
 ) -> Annotated[
@@ -5806,7 +5806,7 @@ async def get_member_custom_board_backgrounds(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customBoardBackgrounds",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5818,7 +5818,7 @@ async def get_member_custom_board_backgrounds(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def upload_custom_trello_board_background(
     context: ToolContext,
     background_image_url: Annotated[
@@ -5836,7 +5836,7 @@ async def upload_custom_trello_board_background(
             url="https://api.trello.com/1/members/{id}/customBoardBackgrounds",
             params=remove_none_values({
                 "file": background_image_url,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -5848,7 +5848,7 @@ async def upload_custom_trello_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_custom_board_background(
     context: ToolContext,
 ) -> Annotated[
@@ -5862,7 +5862,7 @@ async def get_custom_board_background(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5874,7 +5874,7 @@ async def get_custom_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_custom_board_background(
     context: ToolContext,
     background_brightness: Annotated[
@@ -5898,7 +5898,7 @@ async def update_custom_board_background(
             params=remove_none_values({
                 "brightness": background_brightness,
                 "tile": tile_background,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -5910,7 +5910,7 @@ async def update_custom_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_board_background(
     context: ToolContext,
 ) -> Annotated[
@@ -5924,7 +5924,7 @@ async def delete_trello_board_background(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -5936,7 +5936,7 @@ async def delete_trello_board_background(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_emojis(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-customemoji'."]:
@@ -5947,7 +5947,7 @@ async def get_member_custom_emojis(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customEmoji",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -5959,7 +5959,7 @@ async def get_member_custom_emojis(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_custom_emoji(
     context: ToolContext,
     emoji_image_file: Annotated[
@@ -5977,7 +5977,7 @@ async def create_custom_emoji(
             params=remove_none_values({
                 "file": emoji_image_file,
                 "name": emoji_name,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -5989,7 +5989,7 @@ async def create_custom_emoji(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_emoji(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -6014,7 +6014,7 @@ async def get_member_custom_emoji(
             ),
             params=remove_none_values({
                 "fields": emoji_details_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6026,7 +6026,7 @@ async def get_member_custom_emoji(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_uploaded_stickers(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-customstickers'."]:
@@ -6037,7 +6037,7 @@ async def get_member_uploaded_stickers(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customStickers",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6049,7 +6049,7 @@ async def get_member_uploaded_stickers(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def upload_custom_sticker_trello(
     context: ToolContext,
     sticker_file_path: Annotated[
@@ -6065,7 +6065,7 @@ async def upload_custom_sticker_trello(
             url="https://api.trello.com/1/members/{id}/customStickers",
             params=remove_none_values({
                 "file": sticker_file_path,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -6077,7 +6077,7 @@ async def upload_custom_sticker_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_sticker(
     context: ToolContext,
     custom_sticker_fields: Annotated[
@@ -6095,7 +6095,7 @@ async def get_member_custom_sticker(
             url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}",
             params=remove_none_values({
                 "fields": custom_sticker_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6107,7 +6107,7 @@ async def get_member_custom_sticker(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_member_custom_sticker(
     context: ToolContext,
 ) -> Annotated[
@@ -6120,7 +6120,7 @@ async def delete_member_custom_sticker(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -6132,7 +6132,7 @@ async def delete_member_custom_sticker(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_notifications(
     context: ToolContext,
     member_identifier: Annotated[
@@ -6195,7 +6195,7 @@ async def get_member_notifications(
                 "since": since_notification_id,
                 "memberCreator": include_member_creator_info,
                 "memberCreator_fields": member_creator_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6207,7 +6207,7 @@ async def get_member_notifications(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_workspaces(
     context: ToolContext,
     member_id_username: Annotated[
@@ -6235,7 +6235,7 @@ async def get_member_workspaces(
                 "filter": workspace_visibility_filter,
                 "fields": organization_fields,
                 "paid_account": include_paid_account_info,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6247,7 +6247,7 @@ async def get_member_workspaces(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_invited_workspaces(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -6271,7 +6271,7 @@ async def get_member_invited_workspaces(
             ),
             params=remove_none_values({
                 "fields": organization_fields_filter,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6283,7 +6283,7 @@ async def get_member_invited_workspaces(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_member_saved_searches(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-savedsearches'."]:
@@ -6294,7 +6294,7 @@ async def list_member_saved_searches(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/savedSearches",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6306,7 +6306,7 @@ async def list_member_saved_searches(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_saved_search(
     context: ToolContext,
     saved_search_name: Annotated[str, "The name of the saved search to be created in Trello."],
@@ -6329,7 +6329,7 @@ async def create_trello_saved_search(
                 "name": saved_search_name,
                 "query": search_query,
                 "pos": saved_search_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -6341,7 +6341,7 @@ async def create_trello_saved_search(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_saved_search_from_trello(
     context: ToolContext,
 ) -> Annotated[
@@ -6354,7 +6354,7 @@ async def retrieve_saved_search_from_trello(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6366,7 +6366,7 @@ async def retrieve_saved_search_from_trello(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_saved_search(
     context: ToolContext,
     new_saved_search_name: Annotated[str | None, "The updated name for the saved search."] = None,
@@ -6390,7 +6390,7 @@ async def update_trello_saved_search(
                 "name": new_saved_search_name,
                 "query": new_search_query,
                 "pos": saved_search_position,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -6402,7 +6402,7 @@ async def update_trello_saved_search(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_delete_saved_search(
     context: ToolContext,
 ) -> Annotated[
@@ -6415,7 +6415,7 @@ async def trello_delete_saved_search(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -6427,7 +6427,7 @@ async def trello_delete_saved_search(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_app_tokens(
     context: ToolContext,
     member_id_or_username: Annotated[
@@ -6445,7 +6445,7 @@ async def get_member_app_tokens(
             url="https://api.trello.com/1/members/{id}/tokens".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
                 "webhooks": include_webhooks,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6457,7 +6457,7 @@ async def get_member_app_tokens(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_member_avatar(
     context: ToolContext,
     avatar_image_file_path: Annotated[
@@ -6475,7 +6475,7 @@ async def create_trello_member_avatar(
             url="https://api.trello.com/1/members/{id}/avatar".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
                 "file": avatar_image_file_path,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -6487,7 +6487,7 @@ async def create_trello_member_avatar(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def dismiss_trello_message(
     context: ToolContext,
     message_to_dismiss: Annotated[
@@ -6509,7 +6509,7 @@ async def dismiss_trello_message(
             ),
             params=remove_none_values({
                 "value": message_to_dismiss,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -6521,7 +6521,7 @@ async def dismiss_trello_message(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_notification_channel_settings(
     context: ToolContext,
 ) -> Annotated[
@@ -6534,7 +6534,7 @@ async def get_member_notification_channel_settings(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/notificationsChannelSettings",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6546,7 +6546,7 @@ async def get_member_notification_channel_settings(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_notification_settings(
     context: ToolContext,
 ) -> Annotated[
@@ -6560,7 +6560,7 @@ async def get_member_notification_settings(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6572,7 +6572,7 @@ async def get_member_notification_settings(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_notification_blocked_keys(
     context: ToolContext,
 ) -> Annotated[
@@ -6586,7 +6586,7 @@ async def update_trello_notification_blocked_keys(
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -6598,7 +6598,7 @@ async def update_trello_notification_blocked_keys(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_notification(
     context: ToolContext,
     notification_id: Annotated[
@@ -6675,7 +6675,7 @@ async def get_trello_notification(
                 "memberCreator_fields": member_creator_fields,
                 "organization": include_organization_object,
                 "organization_fields": organization_fields_to_include,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6687,7 +6687,7 @@ async def get_trello_notification(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_notification_read_status(
     context: ToolContext,
     notification_id: Annotated[str, "The unique identifier for the Trello notification to update."],
@@ -6703,7 +6703,7 @@ async def update_notification_read_status(
             url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "unread": keep_notification_unread,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -6715,7 +6715,7 @@ async def update_notification_read_status(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_notification_field(
     context: ToolContext,
     notification_id: Annotated[
@@ -6735,7 +6735,7 @@ async def get_trello_notification_field(
                 id=notification_id, field=notification_field_to_retrieve
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6747,7 +6747,7 @@ async def get_trello_notification_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def mark_all_trello_notifications_read(
     context: ToolContext,
     notification_ids: Annotated[
@@ -6768,7 +6768,7 @@ async def mark_all_trello_notifications_read(
             params=remove_none_values({
                 "read": mark_as_read,
                 "ids": notification_ids,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -6780,7 +6780,7 @@ async def mark_all_trello_notifications_read(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def mark_notification_unread(
     context: ToolContext,
     notification_id: Annotated[
@@ -6798,7 +6798,7 @@ async def mark_notification_unread(
             url="https://api.trello.com/1/notifications/{id}/unread".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "value": notification_read_status,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -6810,7 +6810,7 @@ async def mark_notification_unread(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_notification_board(
     context: ToolContext,
     notification_id: Annotated[
@@ -6829,7 +6829,7 @@ async def get_trello_notification_board(
             url="https://api.trello.com/1/notifications/{id}/board".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": board_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6841,7 +6841,7 @@ async def get_trello_notification_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_notification_card(
     context: ToolContext,
     notification_id: Annotated[
@@ -6860,7 +6860,7 @@ async def get_trello_notification_card(
             url="https://api.trello.com/1/notifications/{id}/card".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": card_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6872,7 +6872,7 @@ async def get_trello_notification_card(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_notification_associated_list(
     context: ToolContext,
     notification_id: Annotated[
@@ -6891,7 +6891,7 @@ async def get_notification_associated_list(
             url="https://api.trello.com/1/notifications/{id}/list".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": list_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6903,7 +6903,7 @@ async def get_notification_associated_list(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_notification_recipient_member(
     context: ToolContext,
     notification_id: Annotated[
@@ -6922,7 +6922,7 @@ async def get_notification_recipient_member(
             url="https://api.trello.com/1/notifications/{id}/member".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6934,7 +6934,7 @@ async def get_notification_recipient_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_notification_creator(
     context: ToolContext,
     notification_id: Annotated[
@@ -6958,7 +6958,7 @@ async def get_trello_notification_creator(
             ),
             params=remove_none_values({
                 "fields": member_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -6970,7 +6970,7 @@ async def get_trello_notification_creator(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_notification_organization(
     context: ToolContext,
     notification_id: Annotated[
@@ -6994,7 +6994,7 @@ async def get_notification_organization(
             ),
             params=remove_none_values({
                 "fields": organization_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7006,7 +7006,7 @@ async def get_notification_organization(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_workspace(
     context: ToolContext,
     workspace_display_name: Annotated[
@@ -7034,7 +7034,7 @@ async def create_trello_workspace(
                 "desc": workspace_description,
                 "name": workspace_identifier,
                 "website": workspace_website_url,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -7046,7 +7046,7 @@ async def create_trello_workspace(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_organization_details(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id'."]:
@@ -7057,7 +7057,7 @@ async def get_trello_organization_details(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7069,7 +7069,7 @@ async def get_trello_organization_details(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_organization(
     context: ToolContext,
     new_organization_name: Annotated[
@@ -7137,7 +7137,7 @@ async def update_trello_organization(
                 "prefs/boardVisibilityRestrict/public": public_board_visibility_permission,
                 "prefs/orgInviteRestrict": organization_invite_restriction_email,
                 "prefs/permissionLevel": workspace_visibility_permission,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -7149,7 +7149,7 @@ async def update_trello_organization(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_organization(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-organizations-id'."]:
@@ -7160,7 +7160,7 @@ async def delete_trello_organization(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7172,7 +7172,7 @@ async def delete_trello_organization(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_organization_field(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7191,7 +7191,7 @@ async def get_trello_organization_field(
                 id=organization_identifier, field=organization_field_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7203,7 +7203,7 @@ async def get_trello_organization_field(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_workspace_actions(
     context: ToolContext,
     workspace_identifier: Annotated[
@@ -7219,7 +7219,7 @@ async def list_workspace_actions(
                 id=workspace_identifier
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7231,7 +7231,7 @@ async def list_workspace_actions(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_boards_in_workspace(
     context: ToolContext,
     organization_id_or_name: Annotated[
@@ -7257,7 +7257,7 @@ async def list_boards_in_workspace(
             params=remove_none_values({
                 "filter": board_status_filter,
                 "fields": board_fields_to_retrieve,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7269,7 +7269,7 @@ async def list_boards_in_workspace(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def initiate_trello_csv_export(
     context: ToolContext,
     include_attachments: Annotated[
@@ -7285,7 +7285,7 @@ async def initiate_trello_csv_export(
             url="https://api.trello.com/1/organizations/{id}/exports",
             params=remove_none_values({
                 "attachments": include_attachments,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -7297,7 +7297,7 @@ async def initiate_trello_csv_export(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_organization_exports(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-exports'."]:
@@ -7308,7 +7308,7 @@ async def get_trello_organization_exports(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/exports",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7320,7 +7320,7 @@ async def get_trello_organization_exports(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_workspace_members(
     context: ToolContext,
     workspace_id_or_name: Annotated[
@@ -7336,7 +7336,7 @@ async def list_workspace_members(
                 id=workspace_id_or_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7348,7 +7348,7 @@ async def list_workspace_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_organization_members(
     context: ToolContext,
     member_email: Annotated[str, "The email address of the member to update in the organization."],
@@ -7375,7 +7375,7 @@ async def update_organization_members(
                 "email": member_email,
                 "fullName": member_full_name,
                 "type": member_role_type,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -7387,7 +7387,7 @@ async def update_organization_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_workspace_memberships(
     context: ToolContext,
     workspace_identifier: Annotated[
@@ -7415,7 +7415,7 @@ async def get_workspace_memberships(
             params=remove_none_values({
                 "filter": membership_filter,
                 "member": include_member_objects,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7427,7 +7427,7 @@ async def get_workspace_memberships(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_organization_membership_details(
     context: ToolContext,
     organization_id_or_name: Annotated[
@@ -7451,7 +7451,7 @@ async def get_organization_membership_details(
             ),
             params=remove_none_values({
                 "member": include_member_object,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7463,7 +7463,7 @@ async def get_organization_membership_details(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_workspace_plugin_data(
     context: ToolContext,
     organization_id_or_name: Annotated[
@@ -7479,7 +7479,7 @@ async def get_workspace_plugin_data(
                 id=organization_id_or_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7491,7 +7491,7 @@ async def get_workspace_plugin_data(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_organization_collections(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-tags'."]:
@@ -7502,7 +7502,7 @@ async def list_organization_collections(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/tags",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7514,7 +7514,7 @@ async def list_organization_collections(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_organization_tag(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-organizations-id-tags'."]:
@@ -7525,7 +7525,7 @@ async def create_organization_tag(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/tags",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -7537,7 +7537,7 @@ async def create_organization_tag(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_or_update_workspace_member(
     context: ToolContext,
     member_role_type: Annotated[
@@ -7563,7 +7563,7 @@ async def add_or_update_workspace_member(
             ),
             params=remove_none_values({
                 "type": member_role_type,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -7575,7 +7575,7 @@ async def add_or_update_workspace_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_workplace_member(
     context: ToolContext,
     workspace_id_or_name: Annotated[
@@ -7595,7 +7595,7 @@ async def remove_workplace_member(
                 id=workspace_id_or_name, idMember=member_id_to_remove
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7607,7 +7607,7 @@ async def remove_workplace_member(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_workspace_member_status(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7633,7 +7633,7 @@ async def update_workspace_member_status(
             ),
             params=remove_none_values({
                 "value": deactivate_member,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -7645,7 +7645,7 @@ async def update_workspace_member_status(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def set_workspace_logo(
     context: ToolContext,
     workspace_identifier: Annotated[
@@ -7663,7 +7663,7 @@ async def set_workspace_logo(
             url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_identifier),  # noqa: UP032
             params=remove_none_values({
                 "file": logo_image_file,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -7675,7 +7675,7 @@ async def set_workspace_logo(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_workspace_logo(
     context: ToolContext,
     workspace_id: Annotated[
@@ -7689,7 +7689,7 @@ async def remove_workspace_logo(
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_id),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7701,7 +7701,7 @@ async def remove_workspace_logo(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_member_from_workspace(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7723,7 +7723,7 @@ async def remove_member_from_workspace(
                 id=organization_identifier, idMember=member_id_to_remove
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7735,7 +7735,7 @@ async def remove_member_from_workspace(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_workspace_google_domain(
     context: ToolContext,
     organization_id: Annotated[
@@ -7755,7 +7755,7 @@ async def remove_workspace_google_domain(
                 id=organization_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7767,7 +7767,7 @@ async def remove_workspace_google_domain(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_email_domain_restriction(
     context: ToolContext,
     organization_id_or_name: Annotated[
@@ -7787,7 +7787,7 @@ async def remove_email_domain_restriction(
                 id=organization_id_or_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7799,7 +7799,7 @@ async def remove_email_domain_restriction(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_organization_tag(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7818,7 +7818,7 @@ async def delete_trello_organization_tag(
                 id=organization_identifier, idTag=tag_id_to_delete
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -7830,7 +7830,7 @@ async def delete_trello_organization_tag(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def check_new_billable_guests_on_board(
     context: ToolContext,
     organization_id_or_name: Annotated[
@@ -7850,7 +7850,7 @@ async def check_new_billable_guests_on_board(
                 id=organization_id_or_name, idBoard=board_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7862,7 +7862,7 @@ async def check_new_billable_guests_on_board(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_plugin_by_id(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7876,7 +7876,7 @@ async def get_trello_plugin_by_id(
         response = await client.request(
             url="https://api.trello.com/1/plugins/{id}/".format(id=organization_identifier),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7888,7 +7888,7 @@ async def get_trello_plugin_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_plugin(
     context: ToolContext,
     organization_identifier: Annotated[
@@ -7902,7 +7902,7 @@ async def update_trello_plugin(
         response = await client.request(
             url="https://api.trello.com/1/plugins/{id}/".format(id=organization_identifier),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -7914,7 +7914,7 @@ async def update_trello_plugin(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_plugin_member_privacy_compliance(
     context: ToolContext,
     plugin_power_up_id: Annotated[
@@ -7932,7 +7932,7 @@ async def get_plugin_member_privacy_compliance(
                 id=plugin_power_up_id
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -7944,7 +7944,7 @@ async def get_plugin_member_privacy_compliance(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_search(
     context: ToolContext,
     search_query: Annotated[
@@ -8054,7 +8054,7 @@ async def trello_search(
                 "member_fields": member_fields,
                 "members_limit": maximum_members_returned,
                 "partial": enable_partial_search,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8066,7 +8066,7 @@ async def trello_search(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def search_trello_members(
     context: ToolContext,
     search_query: Annotated[
@@ -8099,7 +8099,7 @@ async def search_trello_members(
                 "idBoard": board_id,
                 "idOrganization": organization_id,
                 "onlyOrgMembers": search_only_organization_members,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8111,7 +8111,7 @@ async def search_trello_members(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_token_info(
     context: ToolContext,
     trello_token_value: Annotated[
@@ -8135,7 +8135,7 @@ async def retrieve_trello_token_info(
             params=remove_none_values({
                 "fields": include_fields,
                 "webhooks": include_webhooks,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8147,7 +8147,7 @@ async def retrieve_trello_token_info(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_token_owner_info(
     context: ToolContext,
     api_token: Annotated[
@@ -8167,7 +8167,7 @@ async def retrieve_trello_token_owner_info(
             url="https://api.trello.com/1/tokens/{token}/member".format(token=api_token),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_info_fields,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8179,7 +8179,7 @@ async def retrieve_trello_token_owner_info(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_webhooks(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-tokens-token-webhooks'."]:
@@ -8190,7 +8190,7 @@ async def retrieve_trello_webhooks(
         response = await client.request(
             url="https://api.trello.com/1/tokens/{token}/webhooks",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8202,7 +8202,7 @@ async def retrieve_trello_webhooks(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_webhook(
     context: ToolContext,
     webhook_callback_url: Annotated[
@@ -8226,7 +8226,7 @@ async def create_webhook(
                 "description": webhook_description,
                 "callbackURL": webhook_callback_url,
                 "idModel": object_id_for_webhook,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -8238,7 +8238,7 @@ async def create_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_webhook(
     context: ToolContext,
 ) -> Annotated[
@@ -8251,7 +8251,7 @@ async def retrieve_trello_webhook(
         response = await client.request(
             url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8263,7 +8263,7 @@ async def retrieve_trello_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_delete_webhook(
     context: ToolContext,
 ) -> Annotated[
@@ -8276,7 +8276,7 @@ async def trello_delete_webhook(
         response = await client.request(
             url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -8288,7 +8288,7 @@ async def trello_delete_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_webhook(
     context: ToolContext,
     webhook_description: Annotated[
@@ -8313,7 +8313,7 @@ async def update_webhook(
                 "description": webhook_description,
                 "callbackURL": webhook_callback_url,
                 "idModel": webhook_target_object_id,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -8325,7 +8325,7 @@ async def update_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def trello_delete_token(
     context: ToolContext,
     authorization_token: Annotated[
@@ -8340,7 +8340,7 @@ async def trello_delete_token(
         response = await client.request(
             url="https://api.trello.com/1/tokens/{token}/".format(token=authorization_token),  # noqa: UP032
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -8352,7 +8352,7 @@ async def trello_delete_token(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_webhook(
     context: ToolContext,
     webhook_callback_url: Annotated[
@@ -8381,7 +8381,7 @@ async def create_trello_webhook(
                 "callbackURL": webhook_callback_url,
                 "idModel": model_id,
                 "active": webhook_active,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="POST",
@@ -8393,7 +8393,7 @@ async def create_trello_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_webhook_by_id(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-webhooks-id'."]:
@@ -8404,7 +8404,7 @@ async def get_trello_webhook_by_id(
         response = await client.request(
             url="https://api.trello.com/1/webhooks/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",
@@ -8416,7 +8416,7 @@ async def get_trello_webhook_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_webhook(
     context: ToolContext,
     webhook_description: Annotated[
@@ -8447,7 +8447,7 @@ async def update_trello_webhook(
                 "callbackURL": callback_url,
                 "idModel": model_id_to_monitor,
                 "active": is_webhook_active,
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="PUT",
@@ -8459,7 +8459,7 @@ async def update_trello_webhook(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_webhook_by_id(
     context: ToolContext,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-webhooks-id'."]:
@@ -8470,7 +8470,7 @@ async def delete_trello_webhook_by_id(
         response = await client.request(
             url="https://api.trello.com/1/webhooks/{id}",
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="DELETE",
@@ -8482,7 +8482,7 @@ async def delete_trello_webhook_by_id(
             return {"response_text": response.text}
 
 
-@tool(requires_secrets=["TRELLO_KEY", "TRELLO_TOKEN"])
+@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_webhook_field(
     context: ToolContext,
     webhook_id: Annotated[
@@ -8502,7 +8502,7 @@ async def get_trello_webhook_field(
                 id=webhook_id, field=webhook_field_name
             ),
             params=remove_none_values({
-                "key": context.get_secret("TRELLO_KEY"),
+                "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
             method="GET",

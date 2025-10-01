@@ -31,10 +31,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or `none`"
@@ -49,16 +46,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "name",
-            "nameData",
-            "pos",
-            "state",
-            "type",
-            "due",
-            "dueReminder",
-            "idMember"
-          ],
+          "enum": ["name", "nameData", "pos", "state", "type", "due", "dueReminder", "idMember"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`"
@@ -73,10 +61,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or `none`"
@@ -91,14 +76,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "name",
-            "nameData",
-            "pos",
-            "state",
-            "type"
-          ],
+          "enum": ["all", "name", "nameData", "pos", "state", "type"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`"
@@ -110,11 +88,7 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-checklists'.",
-    "available_modes": [
-      "value",
-      "error",
-      "null"
-    ],
+    "available_modes": ["value", "error", "null"],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -128,7 +102,7 @@
     "authorization": null,
     "secrets": [
       {
-        "key": "TRELLO_KEY"
+        "key": "TRELLO_API_KEY"
       },
       {
         "key": "TRELLO_TOKEN"
@@ -159,10 +133,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or `none`"
@@ -179,16 +150,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "name",
-            "nameData",
-            "pos",
-            "state",
-            "type",
-            "due",
-            "dueReminder",
-            "idMember"
-          ],
+          "enum": ["name", "nameData", "pos", "state", "type", "due", "dueReminder", "idMember"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `name,nameData,pos,state,type,due,dueReminder,idMember`"
@@ -205,10 +167,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "none"
-          ],
+          "enum": ["all", "none"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or `none`"
@@ -225,14 +184,7 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": [
-            "all",
-            "name",
-            "nameData",
-            "pos",
-            "state",
-            "type"
-          ],
+          "enum": ["all", "name", "nameData", "pos", "state", "type"],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `idBoard,idCard,name,pos`"
@@ -263,7 +215,7 @@
     "documentation_urls": [],
     "secrets": [
       {
-        "arcade_key": "TRELLO_KEY",
+        "arcade_key": "TRELLO_API_KEY",
         "parameter_name": "key",
         "accepted_as": "query",
         "formatted_value": null,
