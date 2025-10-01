@@ -1,4 +1,4 @@
-"""API Wrapper Tools for Stripe
+"""Arcade Starter Tools for Stripe
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
