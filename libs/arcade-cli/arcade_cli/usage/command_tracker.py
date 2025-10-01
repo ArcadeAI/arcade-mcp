@@ -53,6 +53,52 @@ class CommandTracker:
             current_ctx = current_ctx.parent
         return ".".join(reversed(command_parts))
 
+    def _handle_successful_login(self) -> None:
+        """Handle a successful login event.
+
+        Upon a successful login, we retrieve and persist the principal_id for the logged in user.
+        We then alias the persisted anon_id to the known person with principal_id.
+        As a result, the previous anonymous events will be attributed to the known person with principal_id.
+        """
+        principal_id = self.identity.get_principal_id()
+        if principal_id:
+            if self.identity.should_alias():
+                # Alias the anon_id to the known person with principal_id
+                self.usage_service.alias(
+                    previous_id=self.identity.anon_id, distinct_id=principal_id
+                )
+            # Always update the linked principal_id on successful login
+            self.identity.set_linked_principal_id(principal_id)
+
+    def _handle_successful_logout(self, duration: float | None = None) -> None:
+        """Handle a successful logout event.
+
+        Upon a successful logout, we rotate the anon_id and clear the linked principal_id.
+        """
+        # Check if user was authenticated before logout (has linked_principal_id)
+        data = self.identity.load_or_create()
+        was_authenticated = data.get("linked_principal_id") is not None
+
+        # Send event with current user_id before rotating
+        event_name = "CLI Command Executed"
+        properties = {
+            "command_name": event_name,
+            "cli_version": self.cli_version,
+            "python_version": self.python_version,
+            "os_type": platform.system(),
+            "os_release": platform.release(),
+        }
+        if duration:
+            properties["duration"] = round(duration, 2)  # milliseconds
+
+        # Check if using anon_id
+        is_anon = self.user_id == self.identity.anon_id
+        self.usage_service.capture(event_name, self.user_id, properties=properties, is_anon=is_anon)
+
+        # Only rotate anon_id if user was actually authenticated
+        if was_authenticated:
+            self.identity.reset_to_anonymous()
+
     def track_command_execution(
         self,
         command_name: str,
@@ -72,48 +118,21 @@ class CommandTracker:
             is_login: Whether this is a login command.
             is_logout: Whether this is a logout command.
         """
-        # Handle login success
         if is_login and success:
-            email = self.identity.get_email()
-            if email and self.identity.should_alias():
-                # Try both methods to ensure linking works for all users:
-                # 1. alias() - works for new users without merge restrictions
-                self.usage_service.alias(previous_id=self.identity.anon_id, distinct_id=email)
-                # 2. merge_dangerously() - works for existing users with merge restrictions
-                self.usage_service.merge_dangerously(
-                    distinct_id=email, anon_distinct_id=self.identity.anon_id
-                )
-                self.identity.set_linked_email(email)
+            self._handle_successful_login()
 
-        # Handle logout success
         elif is_logout and success:
-            # Only rotate anon_id if user was actually authenticated
-            was_authenticated = self.identity.get_email() is not None
-
-            # Send event with current user_id before rotating
-            event_name = "CLI Command Executed" if success else "CLI Command Failed"
-            properties = {
-                "command_name": command_name,
-                "cli_version": self.cli_version,
-                "python_version": self.python_version,
-                "os_type": platform.system(),
-                "os_release": platform.release(),
-            }
-            if duration:
-                properties["duration"] = round(duration, 2)  # milliseconds
-            self.usage_service.capture(event_name, self.user_id, properties=properties)
-
-            # Only rotate anon_id if user was authenticated (prevents unnecessary rotation)
-            if was_authenticated:
-                self.identity.rotate_anon_id()
+            self._handle_successful_logout(duration)
             return
 
         # Edge case: Lazy alias check for other commands (if user authenticated via side path)
         elif not is_login and not is_logout and self.identity.should_alias():
-            self.usage_service.alias(
-                previous_id=self.identity.anon_id, distinct_id=self.identity.get_email()
-            )
-            self.identity.set_linked_email(self.identity.get_email())
+            principal_id = self.identity.get_principal_id()
+            if principal_id:
+                self.usage_service.alias(
+                    previous_id=self.identity.anon_id, distinct_id=principal_id
+                )
+                self.identity.set_linked_principal_id(principal_id)
 
         event_name = "CLI Command Executed" if success else "CLI Command Failed"
 
@@ -131,7 +150,9 @@ class CommandTracker:
         if duration:
             properties["duration"] = round(duration, 2)  # milliseconds
 
-        self.usage_service.capture(event_name, self.user_id, properties=properties)
+        # Check if using anon_id (not authenticated)
+        is_anon = self.user_id == self.identity.anon_id
+        self.usage_service.capture(event_name, self.user_id, properties=properties, is_anon=is_anon)
 
 
 # Global tracker instance

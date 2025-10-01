@@ -6,7 +6,6 @@ supporting pre-login anonymous tracking, post-login identity stitching,
 and logout identity rotation.
 """
 
-import contextlib
 import fcntl
 import json
 import os
@@ -14,6 +13,7 @@ import tempfile
 import uuid
 from typing import Any
 
+import httpx
 import yaml
 from arcade_cli.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
 
@@ -44,7 +44,6 @@ class UsageIdentity:
                         fcntl.flock(f.fileno(), fcntl.LOCK_SH)
                     try:
                         data = json.load(f)
-                        # validate usage file
                         if isinstance(data, dict) and "anon_id" in data:
                             self._data = data
                             return self._data
@@ -55,18 +54,19 @@ class UsageIdentity:
             except Exception:  # noqa: S110
                 pass
 
-        new_data = {"anon_id": str(uuid.uuid4()), "linked_email": None}
+        new_data = {"anon_id": str(uuid.uuid4()), "linked_principal_id": None}
 
         self._write_atomic(new_data)
         self._data = new_data
         return self._data
 
     def _write_atomic(self, data: dict[str, Any]) -> None:
-        """Write data atomically using temp file and rename.
+        """Write data atomically to usage.json file
 
         Args:
             data: The data to write to the usage file
         """
+        # Create temp file in same directory for atomic rename
         temp_fd, temp_path = tempfile.mkstemp(
             dir=ARCADE_CONFIG_PATH, prefix=".usage_", suffix=".tmp"
         )
@@ -87,6 +87,8 @@ class UsageIdentity:
             os.rename(temp_path, self.usage_file_path)
         except Exception:
             # clean up
+            import contextlib
+
             with contextlib.suppress(OSError):
                 os.unlink(temp_path)
             raise
@@ -94,21 +96,31 @@ class UsageIdentity:
     def get_distinct_id(self) -> str:
         """Get distinct_id based on authentication state.
 
+        We use principal_id for authenticated users and anon_id for anonymous users.
+
         Returns:
-            str: Email if authenticated, otherwise anon_id
+            str: Principal ID if authenticated, otherwise anon_id
         """
         data = self.load_or_create()
-        email = self.get_email()
 
-        if email:
-            return email
+        # Check if we have a persisted principal_id first
+        linked_principal_id = data.get("linked_principal_id")
+        if linked_principal_id:
+            return linked_principal_id
+
+        # Try to fetch principal_id from API if not persisted
+        principal_id = self.get_principal_id()
+        if principal_id:
+            return principal_id
+
+        # Fall back to anon_id if not authenticated
         return data["anon_id"]
 
-    def get_email(self) -> str | None:
-        """Read email from credentials.yaml file.
+    def get_principal_id(self) -> str | None:
+        """Fetch principal_id from Arcade Cloud API.
 
         Returns:
-            str | None: User email if authenticated, None otherwise
+            str | None: Principal ID if authenticated and API call succeeds, None otherwise
         """
         if not os.path.exists(CREDENTIALS_FILE_PATH):
             return None
@@ -118,48 +130,61 @@ class UsageIdentity:
                 config = yaml.safe_load(f)
 
             cloud_config = config.get("cloud", {})
-            email = cloud_config.get("user", {}).get("email")
+            api_key = cloud_config.get("api", {}).get("key")
 
-        except Exception:
-            return None
-        else:
-            return email if email else None
+            if not api_key:
+                return None
+
+            response = httpx.get(
+                "https://cloud.arcade.dev/api/v1/auth/validate",
+                headers={"accept": "application/json", "Authorization": f"Bearer {api_key}"},
+                timeout=2.0,
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("data", {}).get("principal_id")
+
+        except Exception:  # noqa: S110
+            # Silent failure - don't disrupt CLI
+            pass
+
+        return None
 
     def should_alias(self) -> bool:
         """Check if PostHog alias is needed.
 
-        Alias is needed is the user is authenticated (has email in credentials.yaml),
-        but the email doesn't match linked_email (in usage.json)
+        Alias is needed when the user is authenticated,
+        but the retrieved principal_id doesn't match the persisted linked_principal_id
 
         Returns:
             bool: True if user is authenticated but not yet aliased
         """
         data = self.load_or_create()
-        email = self.get_email()
+        principal_id = self.get_principal_id()
 
-        return email is not None and email != data.get("linked_email")
+        return principal_id is not None and principal_id != data.get("linked_principal_id")
 
-    def rotate_anon_id(self) -> None:
-        """Generate new anonymous ID and clear linked email.
+    def reset_to_anonymous(self) -> None:
+        """Generate new anonymous ID and clear linked principal_id.
 
         Used after logout to prevent cross-contamination between multiple
         accounts on the same machine
         """
-        data = self.load_or_create()
-        data["anon_id"] = str(uuid.uuid4())
-        data["linked_email"] = None
+        # Create fresh data with only anon_id
+        new_data = {"anon_id": str(uuid.uuid4()), "linked_principal_id": None}
 
-        self._write_atomic(data)
-        self._data = data
+        self._write_atomic(new_data)
+        self._data = new_data
 
-    def set_linked_email(self, email: str) -> None:
-        """Update linked_email in usage.json.
+    def set_linked_principal_id(self, principal_id: str) -> None:
+        """Update linked_principal_id in usage.json.
 
         Args:
-            email: The email to link to the current anon_id
+            principal_id: The principal_id to link to the current anon_id
         """
         data = self.load_or_create()
-        data["linked_email"] = email
+        data["linked_principal_id"] = principal_id
 
         self._write_atomic(data)
         self._data = data

@@ -26,6 +26,9 @@ def main() -> None:
     try:
         event_data = json.loads(os.environ["ARCADE_USAGE_EVENT_DATA"])
 
+        if event_data.get("is_anon", False):
+            event_data["properties"]["$process_person_profile"] = False
+
         posthog = Posthog(
             project_api_key=event_data["api_key"],
             host=event_data["host"],

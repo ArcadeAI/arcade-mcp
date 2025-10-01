@@ -11,6 +11,17 @@
       "jinja": true,
       "justMyCode": true,
       "cwd": "${workspaceFolder}/toolkits/<your_server_name>"
+    },
+    {
+      "name": "Debug `arcade login`",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/libs/arcade-cli/run_cli.py",
+      "args": ["login"],
+      "console": "integratedTerminal",
+      "jinja": true,
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

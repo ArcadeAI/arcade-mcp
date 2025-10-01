@@ -25,53 +25,29 @@ class UsageService:
             posthog = Posthog(
                 project_api_key=self.api_key,
                 host=self.host,
-                timeout=2,
+                timeout=2,  # Short timeout
                 max_retries=1,
             )
 
             posthog.alias(previous_id=previous_id, distinct_id=distinct_id)
             posthog.flush()
-        except Exception:  # noqa: S110
-            # Silent failure - don't disrupt CLI
-            pass
-
-    def merge_dangerously(self, distinct_id: str, anon_distinct_id: str) -> None:
-        """Merge anonymous user into existing user using $merge_dangerously.
-
-        This bypasses merge restrictions for existing users who already have
-        events associated with them. Used when alias would fail due to merge
-        restrictions.
-
-        Args:
-            distinct_id: The authenticated user's ID (email)
-            anon_distinct_id: The anonymous ID to merge into the authenticated user
-        """
-        try:
-            from posthog import Posthog
-
-            posthog = Posthog(
-                project_api_key=self.api_key,
-                host=self.host,
-                timeout=2,  # Short timeout
-                max_retries=1,
-            )
-
-            # Send a special event to force merge the users
-            posthog.capture(
-                distinct_id=distinct_id,
-                event="$merge_dangerously",
-                properties={"alias": anon_distinct_id},
-            )
-            posthog.flush()
         except Exception:
             # Silent failure - don't disrupt CLI
             pass
 
-    def capture(self, event_name: str, distinct_id: str, properties: dict) -> None:
-        """Capture event in a detached subprocess without blocking.
+    def capture(
+        self, event_name: str, distinct_id: str, properties: dict, is_anon: bool = False
+    ) -> None:
+        """Capture event in a detached subprocess that is non-blocking.
 
         Spawns a completely independent subprocess that continues running
         even after the parent CLI process exits. Works cross-platform.
+
+        Args:
+            event_name: Name of the event to capture
+            distinct_id: The distinct_id for the user
+            properties: Event properties
+            is_anon: Whether this is an anonymous user (sets $process_person_profile to false)
         """
         event_data = json.dumps({
             "event_name": event_name,
@@ -79,11 +55,12 @@ class UsageService:
             "distinct_id": distinct_id,
             "api_key": self.api_key,
             "host": self.host,
+            "is_anon": is_anon,
         })
 
         cmd = [sys.executable, "-m", "arcade_cli.usage"]
 
-        # Pass data to subprocess via environment variable
+        # Pass data via environment variable (works on all platforms)
         env = os.environ.copy()
         env["ARCADE_USAGE_EVENT_DATA"] = event_data
 
