@@ -1,4 +1,4 @@
-"""API Wrapper Tools for Trello
+"""Arcade Starter Tools for Trello
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
