@@ -27,6 +27,7 @@ dev = [
     "pre-commit>=3.4.0,<3.5.0",
     "tox>=4.11.1,<4.12.0",
     "ruff>=0.7.4,<0.8.0",
+    "httpx>=0.27.2,<1.0.0",
 ]
 
 # Tell Arcade.dev that this package is a toolkit
