@@ -1,1 +1,2 @@
 arcade-slack-api
+arcade-stripe-api
