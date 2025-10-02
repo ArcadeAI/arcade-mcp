@@ -63,4 +63,4 @@ if __name__ == "__main__":
         app.run(transport="stdio")
     else:
         # Default to HTTP transport
-        app.run(host="127.0.0.1", port=8001)
+        app.run(host="127.0.0.1", port=8000)
