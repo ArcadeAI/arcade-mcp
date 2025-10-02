@@ -829,6 +829,4 @@ def main_callback(
         return
 
     if not check_existing_login(suppress_message=True):
-        # console.print("Not logged in to Arcade CLI. Use ", style="bold red", end="")
-        # console.print("arcade login", style="bold green")
         handle_cli_error("Not logged in to Arcade CLI. Use `arcade login` to log in.")

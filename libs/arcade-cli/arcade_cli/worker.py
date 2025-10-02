@@ -109,7 +109,7 @@ def list_workers(
         response.raise_for_status()
         deployments = response.json()["data"]["workers"]
     except Exception as e:
-        console.log(f"Failed to get cloud deployments: {e}")
+        handle_cli_error(f"Failed to list deployed servers: {e}")
 
     print_worker_table(client, deployments)
 
@@ -343,5 +343,4 @@ def get_toolkits(client: Arcade, worker_id: str | None) -> str:
     except NotFoundError:
         return ""
     except Exception as e:
-        console.print(f"Error getting worker tools: {e}", style="bold red")
-        raise typer.Exit(code=1)
+        handle_cli_error(f"Error getting server tools: {e}")
