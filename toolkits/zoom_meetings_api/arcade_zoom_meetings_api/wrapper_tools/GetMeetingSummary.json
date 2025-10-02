@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingSummary",
-  "fully_qualified_name": "ZoomApi.GetMeetingSummary@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingSummary@0.1.0",
   "description": "Retrieve the summary of a Zoom meeting or webinar.\n\nUse this tool to get a summary of a Zoom meeting or webinar. Suitable for hosts with Pro, Business, or higher subscription plans who have enabled the appropriate settings. Does not support E2EE meetings.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

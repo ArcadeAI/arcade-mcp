@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingParticipantsReport",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingParticipantsReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingParticipantsReport@0.1.0",
   "description": "Get a report of past Zoom meeting participants.\n\nCall this tool to obtain a report of participants from a past Zoom meeting with two or more attendees, including the host. Useful for obtaining details on participant attendance and interaction in meetings that were not limited to a single participant.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -108,7 +108,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

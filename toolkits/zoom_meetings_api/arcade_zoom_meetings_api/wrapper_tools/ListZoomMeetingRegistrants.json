@@ -1,9 +1,9 @@
 {
   "name": "ListZoomMeetingRegistrants",
-  "fully_qualified_name": "ZoomApi.ListZoomMeetingRegistrants@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomMeetingRegistrants@0.1.0",
   "description": "Retrieve registered users for a Zoom meeting.\n\nUse this tool to list all users registered for a specific Zoom meeting. It requires a Pro or higher plan and registration must be enabled for the meeting. Ideal for hosts or users with admin permissions to access detailed registrant information.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -142,7 +142,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

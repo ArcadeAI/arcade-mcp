@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingInvitation",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingInvitation@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingInvitation@0.1.0",
   "description": "Retrieve the invitation note for a Zoom meeting.\n\nUse this tool to get the meeting invitation note for a specified Zoom meeting. It requires that the host user has a Zoom Meetings Basic license or higher.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

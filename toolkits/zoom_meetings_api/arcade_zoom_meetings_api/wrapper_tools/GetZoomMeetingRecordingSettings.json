@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingRecordingSettings",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingRecordingSettings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingRecordingSettings@0.1.0",
   "description": "Retrieve a Zoom meeting's cloud recording settings and access info.\n\nUse this tool to access the cloud recording settings for a specific Zoom meeting. It provides information on recording content access, requiring the 'View the recording content' permission. Useful for managing and reviewing meeting recording configurations.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -64,7 +64,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

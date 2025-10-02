@@ -1,9 +1,9 @@
 {
   "name": "DeleteWebinarVirtualBackground",
-  "fully_qualified_name": "ZoomApi.DeleteWebinarVirtualBackground@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteWebinarVirtualBackground@0.1.0",
   "description": "Delete a webinar's virtual background.\n\nCall this tool to delete the virtual background branding of a specific webinar session on Zoom. Ensure the 'Webinar Session Branding' setting is enabled. Requires appropriate OAuth scopes such as `webinar:write` or `webinar:delete:branding_virtual_background`.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

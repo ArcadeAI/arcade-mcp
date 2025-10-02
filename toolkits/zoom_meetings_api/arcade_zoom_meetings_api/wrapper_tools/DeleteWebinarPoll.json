@@ -1,9 +1,9 @@
 {
   "name": "DeleteWebinarPoll",
-  "fully_qualified_name": "ZoomApi.DeleteWebinarPoll@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteWebinarPoll@0.1.0",
   "description": "Delete a poll from a specific webinar on Zoom.\n\nUse this tool to delete a poll from a Zoom webinar. Requires a Pro or higher plan with a Webinar plan add-on. Ensure you have the necessary OAuth scopes: `webinar:write:admin`, `webinar:write`, `webinar:delete:poll`, or `webinar:delete:poll:admin`. This operation has a LIGHT rate limit.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

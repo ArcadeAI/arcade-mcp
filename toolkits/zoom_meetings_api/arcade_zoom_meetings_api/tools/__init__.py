@@ -1,4 +1,4 @@
-"""API Wrapper Tools for Zoom
+"""API Wrapper Tools for Zoom_Meetings
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 

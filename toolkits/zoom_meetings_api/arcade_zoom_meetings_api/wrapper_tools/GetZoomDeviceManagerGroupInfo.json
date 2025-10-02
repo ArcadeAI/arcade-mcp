@@ -1,9 +1,9 @@
 {
   "name": "GetZoomDeviceManagerGroupInfo",
-  "fully_qualified_name": "ZoomApi.GetZoomDeviceManagerGroupInfo@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomDeviceManagerGroupInfo@0.1.0",
   "description": "Retrieve Zoom Device Manager group information for an account.\n\nUse this tool to obtain detailed information about Zoom Device Manager groups associated with an account. Useful for administrators needing insight into device group configurations.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -77,7 +77,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

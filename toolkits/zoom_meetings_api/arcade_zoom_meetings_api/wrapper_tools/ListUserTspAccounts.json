@@ -1,9 +1,9 @@
 {
   "name": "ListUserTspAccounts",
-  "fully_qualified_name": "ZoomApi.ListUserTspAccounts@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListUserTspAccounts@0.1.0",
   "description": "Retrieve a user's TSP accounts on Zoom.\n\nUse this tool to list all TSP (Telephony Service Provider) accounts for a Zoom user. Requires TSP audio to be enabled and a Pro or higher subscription plan.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

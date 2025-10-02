@@ -1,9 +1,9 @@
 {
   "name": "GetZoomBillingReport",
-  "fully_qualified_name": "ZoomApi.GetZoomBillingReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomBillingReport@0.1.0",
   "description": "Retrieve Zoom account department billing reports.\n\nUse this tool to obtain detailed billing reports for different departments within a Zoom account. Requires a Pro or higher account with Department Billing enabled and appropriate administrative read scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -45,7 +45,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

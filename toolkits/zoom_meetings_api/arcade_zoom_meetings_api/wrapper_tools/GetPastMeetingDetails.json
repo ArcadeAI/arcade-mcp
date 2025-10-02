@@ -1,9 +1,9 @@
 {
   "name": "GetPastMeetingDetails",
-  "fully_qualified_name": "ZoomApi.GetPastMeetingDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetPastMeetingDetails@0.1.0",
   "description": "Fetch details of a past Zoom meeting.\n\nUse this tool to obtain information about a Zoom meeting that has already ended and took place within the last year. It provides essential details about the meeting history.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

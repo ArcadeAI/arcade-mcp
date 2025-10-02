@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingReports",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingReports@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingReports@0.1.0",
   "description": "Retrieve details of past Zoom meetings and webinars.\n\nThis tool retrieves reports on past Zoom meetings and webinars for a specified period within the past six months. It is suitable for meetings with two or more participants and requires a Pro or higher plan. Ensure proper OAuth scopes are set for access.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -140,7 +140,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

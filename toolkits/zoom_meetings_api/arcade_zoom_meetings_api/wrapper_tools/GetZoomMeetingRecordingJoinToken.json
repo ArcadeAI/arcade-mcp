@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingRecordingJoinToken",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingRecordingJoinToken@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingRecordingJoinToken@0.1.0",
   "description": "Retrieve a join token for Zoom meeting local recording.\n\nThis tool fetches the join token required for a recording bot to connect to a Zoom meeting and start local recording. It should be called when you need to enable a bot to record a meeting locally using the Zoom Meeting SDK. Ensure the 'Local recording' setting is enabled in the Zoom web portal before calling this tool.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

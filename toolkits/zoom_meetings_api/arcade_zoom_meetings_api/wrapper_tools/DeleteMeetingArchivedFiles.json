@@ -1,9 +1,9 @@
 {
   "name": "DeleteMeetingArchivedFiles",
-  "fully_qualified_name": "ZoomApi.DeleteMeetingArchivedFiles@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteMeetingArchivedFiles@0.1.0",
   "description": "Deletes all archived files of a specified meeting.\n\nThis tool is used to delete all archived files from a specific meeting in Zoom. It requires the 'Meeting and Webinar Archiving' feature to be enabled and appropriate permissions set. This should be called when there's a need to remove archived meeting data.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

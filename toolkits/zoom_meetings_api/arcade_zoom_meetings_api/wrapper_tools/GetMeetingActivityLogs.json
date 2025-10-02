@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingActivityLogs",
-  "fully_qualified_name": "ZoomApi.GetMeetingActivityLogs@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingActivityLogs@0.1.0",
   "description": "Retrieve a list of meeting activity logs from Zoom.\n\nUse this tool to get a detailed history of meeting activities on Zoom. Ensure the meeting audit trail log feature is enabled on your account before using this tool.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -160,7 +160,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

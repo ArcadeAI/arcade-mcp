@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarRegistrantDetails",
-  "fully_qualified_name": "ZoomApi.GetWebinarRegistrantDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarRegistrantDetails@0.1.0",
   "description": "Retrieve details for a specific Zoom webinar registrant.\n\nThis tool fetches information about a specific user registered for a Zoom webinar. It is useful for hosts or admins to manage and verify registrant details, requiring a Zoom account with a webinar plan.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

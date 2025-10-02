@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarTrackingSources",
-  "fully_qualified_name": "ZoomApi.GetWebinarTrackingSources@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarTrackingSources@0.1.0",
   "description": "List tracking sources for a Zoom webinar.\n\nUse this tool to retrieve information on all tracking sources for a specific Zoom webinar, helping to analyze registrant origins from various platforms. Requires webinar registration to be enabled and a proper webinar license.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

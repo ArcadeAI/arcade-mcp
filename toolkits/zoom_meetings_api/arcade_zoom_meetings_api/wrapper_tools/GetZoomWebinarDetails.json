@@ -1,9 +1,9 @@
 {
   "name": "GetZoomWebinarDetails",
-  "fully_qualified_name": "ZoomApi.GetZoomWebinarDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomWebinarDetails@0.1.0",
   "description": "Retrieve details for a scheduled Zoom webinar.\n\nThis tool fetches detailed information about a scheduled Zoom webinar. It should be called when information about a specific webinar is needed. Requires a Pro or higher plan with a Webinar add-on.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

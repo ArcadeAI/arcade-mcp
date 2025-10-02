@@ -1,9 +1,9 @@
 {
   "name": "ListZoomTrackingFields",
-  "fully_qualified_name": "ZoomApi.ListZoomTrackingFields@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomTrackingFields@0.1.0",
   "description": "Retrieve all tracking fields from your Zoom account.\n\nUse this tool to get a full list of tracking fields available on your Zoom account. Tracking fields are used to analyze and categorize Zoom usage within an organization. This tool requires a Business, Education, API, or higher plan and appropriate admin scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -45,7 +45,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

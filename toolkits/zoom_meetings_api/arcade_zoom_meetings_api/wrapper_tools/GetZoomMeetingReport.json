@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingReport",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingReport@0.1.0",
   "description": "Retrieve a detailed report for a past Zoom meeting.\n\nCall this tool to get a comprehensive report of a previously held Zoom meeting. Requires a Pro or higher plan, with appropriate OAuth scopes (`report:read:admin` or `report:read:meeting:admin`). Be aware of rate limits marked as 'Heavy'.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

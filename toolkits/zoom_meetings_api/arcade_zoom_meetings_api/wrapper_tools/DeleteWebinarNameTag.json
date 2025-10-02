@@ -1,9 +1,9 @@
 {
   "name": "DeleteWebinarNameTag",
-  "fully_qualified_name": "ZoomApi.DeleteWebinarNameTag@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteWebinarNameTag@0.1.0",
   "description": "Delete a Zoom webinar's branding name tag.\n\nThis tool deletes the session branding name tag for a specified Zoom webinar. It should be called when you want to remove an existing name tag linked to a webinar. Prerequisites include enabling the Webinar Session Branding setting and having the necessary scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

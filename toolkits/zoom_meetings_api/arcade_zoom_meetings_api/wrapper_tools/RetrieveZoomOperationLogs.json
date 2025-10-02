@@ -1,9 +1,9 @@
 {
   "name": "RetrieveZoomOperationLogs",
-  "fully_qualified_name": "ZoomApi.RetrieveZoomOperationLogs@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RetrieveZoomOperationLogs@0.1.0",
   "description": "Retrieve Zoom operation logs for auditing admin and user activity.\n\nThis tool retrieves the Zoom operation logs report for a specified period of time. It audits activities like adding users, altering account settings, and deleting recordings. Can be called to monitor and review administration or user operations, ensuring compliance and auditing purposes. Requires a Pro or higher plan.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -134,7 +134,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

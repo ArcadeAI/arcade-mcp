@@ -1,9 +1,9 @@
 {
   "name": "DeleteZoomSipPhone",
-  "fully_qualified_name": "ZoomApi.DeleteZoomSipPhone@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteZoomSipPhone@0.1.0",
   "description": "Delete a SIP phone from a Zoom account.\n\nUse this tool to delete a SIP phone from a Zoom account. Ensure the SIP Phone Integration is enabled and only applicable for Cisco and Avaya PBX systems. Requires appropriate admin scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "DeleteZoomMeetingPoll",
-  "fully_qualified_name": "ZoomApi.DeleteZoomMeetingPoll@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteZoomMeetingPoll@0.1.0",
   "description": "Delete a poll from a Zoom scheduled meeting.\n\nThis tool deletes a poll from a scheduled Zoom meeting. Call it when you need to remove an existing poll. Prerequisites include a Pro host user type, an enabled polling feature, and a scheduled meeting. The tool is appropriate for users with the necessary scopes for managing Zoom meeting polls.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "RemoveWebinarRegistrant",
-  "fully_qualified_name": "ZoomApi.RemoveWebinarRegistrant@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RemoveWebinarRegistrant@0.1.0",
   "description": "Remove a registrant from a Zoom webinar.\n\nThis tool is used to delete a registrant from a specific Zoom webinar. It requires a Pro or higher plan with a Webinar add-on. Appropriate scopes are necessary for execution.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

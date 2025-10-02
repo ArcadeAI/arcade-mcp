@@ -1,9 +1,9 @@
 {
   "name": "RetrieveZoomDeviceDetails",
-  "fully_qualified_name": "ZoomApi.RetrieveZoomDeviceDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RetrieveZoomDeviceDetails@0.1.0",
   "description": "Retrieve a Zoom device's details.\n\nUse this tool to fetch detailed information about a specific device registered in Zoom. Useful for administrators managing Zoom devices.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

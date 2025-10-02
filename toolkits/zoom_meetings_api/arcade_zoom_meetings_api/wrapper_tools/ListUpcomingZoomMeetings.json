@@ -1,9 +1,9 @@
 {
   "name": "ListUpcomingZoomMeetings",
-  "fully_qualified_name": "ZoomApi.ListUpcomingZoomMeetings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListUpcomingZoomMeetings@0.1.0",
   "description": "Fetches upcoming Zoom meetings for a user.\n\nFetches a list of upcoming meetings scheduled or invited to within the next 24 hours for a specified Zoom user. Use 'me' as the user ID for user-level apps. Requires Calendar and Contacts Integration for third-party invites.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

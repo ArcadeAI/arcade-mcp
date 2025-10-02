@@ -1,9 +1,9 @@
 {
   "name": "AssignZoomDeviceToGroup",
-  "fully_qualified_name": "ZoomApi.AssignZoomDeviceToGroup@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.AssignZoomDeviceToGroup@0.1.0",
   "description": "Assign a Zoom device to a specified group.\n\nUse this tool to assign a Zoom device to a specific group. It is useful for managing device organization in Zoom. The tool requires the appropriate OAuth scopes to function and adheres to Zoom's rate limits.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -77,7 +77,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "RemoveZoomDeviceByVendorAndMac",
-  "fully_qualified_name": "ZoomApi.RemoveZoomDeviceByVendorAndMac@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RemoveZoomDeviceByVendorAndMac@0.1.0",
   "description": "Remove a ZPA device from Zoom by vendor and MAC address.\n\nUse this tool to remove a ZPA device from the Zoom device manager by specifying the vendor and MAC address of the device. Applicable for scenarios where device deauthorization is needed.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -77,7 +77,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

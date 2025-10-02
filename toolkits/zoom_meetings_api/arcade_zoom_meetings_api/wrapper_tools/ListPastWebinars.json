@@ -1,9 +1,9 @@
 {
   "name": "ListPastWebinars",
-  "fully_qualified_name": "ZoomApi.ListPastWebinars@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListPastWebinars@0.1.0",
   "description": "Retrieve details of past Zoom webinar instances.\n\nUse this tool to list instances of past webinars conducted via Zoom. It requires a Pro or higher plan with a Webinar plan add-on. It accesses webinar data for specified webinar IDs.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

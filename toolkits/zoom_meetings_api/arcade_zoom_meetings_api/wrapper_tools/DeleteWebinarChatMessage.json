@@ -1,9 +1,9 @@
 {
   "name": "DeleteWebinarChatMessage",
-  "fully_qualified_name": "ZoomApi.DeleteWebinarChatMessage@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteWebinarChatMessage@0.1.0",
   "description": "Delete a message from a live Zoom webinar by ID.\n\nUse this tool to remove a specific message from an ongoing Zoom webinar chat by providing the message ID. Ensure that DLP for in-meeting chat is enabled and the necessary OAuth scopes are granted before calling this tool.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

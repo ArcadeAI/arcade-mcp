@@ -1,9 +1,9 @@
 {
   "name": "ListWebinarQa",
-  "fully_qualified_name": "ZoomApi.ListWebinarQa@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListWebinarQa@0.1.0",
   "description": "Retrieve Q&A from a past webinar on Zoom.\n\nThis tool retrieves the questions and answers from a specific past webinar on Zoom. Useful for reviewing interactions between attendees and panelists. Requires webinar read permissions.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

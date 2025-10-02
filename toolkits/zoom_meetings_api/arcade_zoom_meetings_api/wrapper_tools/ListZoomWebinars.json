@@ -1,9 +1,9 @@
 {
   "name": "ListZoomWebinars",
-  "fully_qualified_name": "ZoomApi.ListZoomWebinars@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomWebinars@0.1.0",
   "description": "Retrieve all scheduled webinars for a Zoom user.\n\nThis tool lists all the webinars scheduled by or on behalf of a webinar host in Zoom. It's useful for users or apps with webinar plans that need to manage or review upcoming webinars. The tool returns only unexpired webinars and requires a Pro or higher plan with the webinar add-on.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -111,7 +111,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarBrandingInfo",
-  "fully_qualified_name": "ZoomApi.GetWebinarBrandingInfo@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarBrandingInfo@0.1.0",
   "description": "Retrieve webinar session branding information.\n\nUse this tool to get information about a webinar's session branding, including wallpaper, virtual backgrounds, and name tags for participants such as hosts and panelists. Ensure your account has the necessary Webinar plan add-on and settings enabled.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

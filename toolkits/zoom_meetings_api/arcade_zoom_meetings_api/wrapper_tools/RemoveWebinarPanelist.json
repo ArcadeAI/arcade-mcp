@@ -1,9 +1,9 @@
 {
   "name": "RemoveWebinarPanelist",
-  "fully_qualified_name": "ZoomApi.RemoveWebinarPanelist@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RemoveWebinarPanelist@0.1.0",
   "description": "Remove a panelist from a Zoom webinar.\n\nThis tool removes a specified panelist from a Zoom webinar. It requires a Pro or higher plan with the webinar add-on. The panelistId must be obtained from the List Panelists API.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

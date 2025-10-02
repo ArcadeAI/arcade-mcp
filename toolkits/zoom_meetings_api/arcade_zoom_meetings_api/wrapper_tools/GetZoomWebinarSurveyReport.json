@@ -1,9 +1,9 @@
 {
   "name": "GetZoomWebinarSurveyReport",
-  "fully_qualified_name": "ZoomApi.GetZoomWebinarSurveyReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomWebinarSurveyReport@0.1.0",
   "description": "Retrieve a report on past webinar survey results.\n\nFetches detailed reports of webinars surveys from Zoom. Useful for analyzing feedback collected during webinars. Requires a Pro or higher plan with the Webinar add-on enabled.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

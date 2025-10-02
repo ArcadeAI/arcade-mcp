@@ -1,9 +1,9 @@
 {
   "name": "GetZoomDailyReport",
-  "fully_qualified_name": "ZoomApi.GetZoomDailyReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomDailyReport@0.1.0",
   "description": "Retrieve daily Zoom usage statistics for account-wide overview.\n\nThis tool retrieves a daily report detailing the account-wide usage of Zoom services, including new users, meetings, participants, and meeting minutes for each day in a specified month. Requires a Pro or higher plan and the `report:read:admin` scope.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -90,7 +90,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

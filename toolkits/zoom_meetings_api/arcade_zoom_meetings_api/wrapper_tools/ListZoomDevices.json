@@ -1,9 +1,9 @@
 {
   "name": "ListZoomDevices",
-  "fully_qualified_name": "ZoomApi.ListZoomDevices@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomDevices@0.1.0",
   "description": "Retrieve a list of devices from Zoom.\n\nUse this tool to obtain a list of all devices associated with a Zoom account. This can help in managing or auditing device usage within an organization.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -201,7 +201,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

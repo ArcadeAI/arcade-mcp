@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingRecordings",
-  "fully_qualified_name": "ZoomApi.GetMeetingRecordings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingRecordings@0.1.0",
   "description": "Retrieve all recordings for a specified Zoom meeting.\n\nUse this tool to get all recordings associated with a Zoom meeting. It provides information necessary to download the recordings, including handling password-protected files with access tokens.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -94,7 +94,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

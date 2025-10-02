@@ -1,9 +1,9 @@
 {
   "name": "ListZoomCloudRecordings",
-  "fully_qualified_name": "ZoomApi.ListZoomCloudRecordings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomCloudRecordings@0.1.0",
   "description": "Retrieve a user's Zoom cloud recordings.\n\nThis tool retrieves all cloud recordings for a specified Zoom user. It requires a Pro plan or higher and cloud recording must be enabled on the user's account. Use the tool to list recordings by providing the user ID or 'me' for current user context. Access to passcode-protected recordings requires an OAuth access token.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -184,7 +184,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

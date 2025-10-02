@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingDetails",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingDetails@0.1.0",
   "description": "Retrieve details of a specified Zoom meeting.\n\nCall this tool to get information about a specific Zoom meeting, such as its host and scheduled times. Ensure the host has a Zoom Meetings Basic license or higher.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

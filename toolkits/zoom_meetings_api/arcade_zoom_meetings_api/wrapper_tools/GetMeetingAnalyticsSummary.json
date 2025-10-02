@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingAnalyticsSummary",
-  "fully_qualified_name": "ZoomApi.GetMeetingAnalyticsSummary@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingAnalyticsSummary@0.1.0",
   "description": "Retrieve analytics summary of a Zoom meeting recording.\n\nUse this tool to retrieve the analytics summary of a Zoom meeting recording, valid for up to one month. Ensure appropriate access scopes are set for reading recording analytics summaries.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -92,7 +92,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

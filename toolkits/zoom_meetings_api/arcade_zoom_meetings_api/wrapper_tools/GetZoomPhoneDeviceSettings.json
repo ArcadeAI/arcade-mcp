@@ -1,9 +1,9 @@
 {
   "name": "GetZoomPhoneDeviceSettings",
-  "fully_qualified_name": "ZoomApi.GetZoomPhoneDeviceSettings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomPhoneDeviceSettings@0.1.0",
   "description": "Retrieve user's Zoom Phone Appliance device settings.\n\nUse this tool to get the device profile settings for a user's Zoom Phone Appliance. Suitable for user-level apps by passing 'me' for userId. Requires appropriate OAuth scopes. Medium rate limit applies.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -62,7 +62,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

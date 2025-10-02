@@ -1,9 +1,9 @@
 {
   "name": "DeleteMeetingRegistrant",
-  "fully_qualified_name": "ZoomApi.DeleteMeetingRegistrant@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteMeetingRegistrant@0.1.0",
   "description": "Remove a registrant from a Zoom meeting.\n\nUse this tool to delete a registrant from a Zoom meeting. It requires the host to have a Pro or higher plan and registration enabled for the meeting. For recurring meetings, the `occurrence_id` field may be required based on the `registration_type`. Ensure the necessary OAuth scopes are present to perform this action.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetTspInfo",
-  "fully_qualified_name": "ZoomApi.GetTspInfo@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetTspInfo@0.1.0",
   "description": "Retrieve Telephony Service Provider (TSP) info for an account.\n\nUse this tool to get information about the Telephony Service Provider (TSP) configured at the account level on Zoom. Ensure that TSP audio is enabled on the Zoom account and that the account has a Pro or higher subscription plan. Requires `tsp:read:admin` scope.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -45,7 +45,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

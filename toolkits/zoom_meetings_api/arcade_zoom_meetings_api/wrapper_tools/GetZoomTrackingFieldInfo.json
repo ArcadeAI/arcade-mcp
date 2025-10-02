@@ -1,9 +1,9 @@
 {
   "name": "GetZoomTrackingFieldInfo",
-  "fully_qualified_name": "ZoomApi.GetZoomTrackingFieldInfo@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomTrackingFieldInfo@0.1.0",
   "description": "Retrieve details about a specific Zoom tracking field.\n\nUse this tool to obtain information about a specific tracking field in a Zoom account. It's ideal for users with a Business, Education, API, or higher plan and appropriate admin permissions. Call this tool when detailed knowledge of a Zoom tracking field is needed.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

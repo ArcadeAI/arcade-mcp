@@ -1,9 +1,9 @@
 {
   "name": "FetchZoomBillingInvoices",
-  "fully_qualified_name": "ZoomApi.FetchZoomBillingInvoices@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.FetchZoomBillingInvoices@0.1.0",
   "description": "Retrieve billing invoices reports for a specific billing period.\n\nUse this tool to obtain department billing invoices reports from Zoom for a specified billing period. Ensure you have the necessary permissions and billing ID. Suitable for accounts with Pro or higher plans that have enabled Department Billing.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

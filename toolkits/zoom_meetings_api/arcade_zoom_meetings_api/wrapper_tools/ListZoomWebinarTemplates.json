@@ -1,9 +1,9 @@
 {
   "name": "ListZoomWebinarTemplates",
-  "fully_qualified_name": "ZoomApi.ListZoomWebinarTemplates@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomWebinarTemplates@0.1.0",
   "description": "Retrieve a list of a user's Zoom webinar templates.\n\nCall this tool to obtain a list of webinar templates for a specific Zoom user. Useful when you want to view or use templates for scheduling future webinars. Requires a Pro or higher account with the Zoom Webinar plan.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

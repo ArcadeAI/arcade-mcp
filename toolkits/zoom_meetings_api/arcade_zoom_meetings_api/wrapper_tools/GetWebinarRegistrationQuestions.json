@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarRegistrationQuestions",
-  "fully_qualified_name": "ZoomApi.GetWebinarRegistrationQuestions@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarRegistrationQuestions@0.1.0",
   "description": "Retrieve registration questions for webinar attendees.\n\nUse this tool to get a list of questions and fields users need to answer when registering for a webinar. This is applicable for webinars set up with registration requirements. Ensure you have a Pro or higher plan with the webinar add-on to access this information.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetZoomHistoryMeetings",
-  "fully_qualified_name": "ZoomApi.GetZoomHistoryMeetings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomHistoryMeetings@0.1.0",
   "description": "Retrieve a list of historical Zoom meetings and webinars.\n\nThis tool is used to fetch historical data of meetings and webinars from Zoom. It requires specific administrative read scopes and is subject to heavy rate limits, making it suitable for retrieving comprehensive reports of past Zoom events.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -247,7 +247,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

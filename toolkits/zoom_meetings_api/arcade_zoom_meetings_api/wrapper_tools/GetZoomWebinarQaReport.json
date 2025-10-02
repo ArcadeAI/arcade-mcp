@@ -1,9 +1,9 @@
 {
   "name": "GetZoomWebinarQaReport",
-  "fully_qualified_name": "ZoomApi.GetZoomWebinarQaReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomWebinarQaReport@0.1.0",
   "description": "Retrieve report on questions and answers from Zoom webinars.\n\nFetches a detailed report of questions asked by participants and the responses given by panelists, co-hosts, and hosts during past webinars. Requires Pro or higher plan with Webinar add-on.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

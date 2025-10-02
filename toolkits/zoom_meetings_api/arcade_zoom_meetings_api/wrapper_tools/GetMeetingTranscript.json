@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingTranscript",
-  "fully_qualified_name": "ZoomApi.GetMeetingTranscript@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingTranscript@0.1.0",
   "description": "Retrieve a Zoom meeting's transcript information.\n\nUse this tool to obtain the transcript information for a specified Zoom meeting. The response includes a download URL to access the full transcript content. Ensure user's OAuth access token is included in the authorization header when accessing the download URL.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -65,7 +65,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

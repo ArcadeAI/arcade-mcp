@@ -1,9 +1,9 @@
 {
   "name": "ListZoomMeetingTemplates",
-  "fully_qualified_name": "ZoomApi.ListZoomMeetingTemplates@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomMeetingTemplates@0.1.0",
   "description": "Retrieve Zoom meeting templates for a user.\n\nFetch the available Zoom meeting templates for a specified user. This requires the user to have at least a Zoom Meetings Basic license. Use the `me` keyword for user-level apps instead of `userId`. Access to this endpoint requires specific Zoom scopes: `meeting:read` or `meeting:read:admin`. Ideal for managing and understanding meeting template configurations.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

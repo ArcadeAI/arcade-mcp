@@ -1,9 +1,9 @@
 {
   "name": "ListSipPhones",
-  "fully_qualified_name": "ZoomApi.ListSipPhones@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListSipPhones@0.1.0",
   "description": "Retrieve a list of SIP phones on a Zoom account.\n\nUse this tool to list all SIP phones integrated with a Zoom account, specifically for Cisco and Avaya PBX systems. This is useful for administrators who need to manage SIP integrations. Ensure SIP Phone Integration is enabled through Zoom's sales team.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -91,7 +91,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

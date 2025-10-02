@@ -1,9 +1,9 @@
 {
   "name": "RemoveZoomDevice",
-  "fully_qualified_name": "ZoomApi.RemoveZoomDevice@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RemoveZoomDevice@0.1.0",
   "description": "Removes a device from a Zoom account via ZMD.\n\nThis tool deletes a device from a Zoom account. It should be called when a device enrolled in Zoom Device Management (ZMD) needs to be removed. Requires the `device:write:admin` scope. Subject to HEAVY rate limits.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -60,7 +60,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

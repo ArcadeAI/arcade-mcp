@@ -1,9 +1,9 @@
 {
   "name": "GetArchivedZoomFiles",
-  "fully_qualified_name": "ZoomApi.GetArchivedZoomFiles@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetArchivedZoomFiles@0.1.0",
   "description": "Retrieve a Zoom account's archived meeting or webinar files.\n\nUse this tool to access archived meeting or webinar files for a Zoom account. Ensure that the Meeting and Webinar Archiving feature is enabled by Zoom Support. Requires appropriate admin scopes: `recording:read:admin`, `archiving:read:list_archived_files:admin`, or `archiving:read:list_archived_files:master`.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -155,7 +155,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

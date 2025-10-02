@@ -1,9 +1,9 @@
 {
   "name": "ListZoomScheduledMeetings",
-  "fully_qualified_name": "ZoomApi.ListZoomScheduledMeetings@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomScheduledMeetings@0.1.0",
   "description": "Retrieve a Zoom user's scheduled meetings.\n\nUse this tool to list a Zoom user's scheduled meetings. It supports only scheduled, unexpired meetings and returns up to 6 months of data for upcoming or previous meetings. Suitable for user-level and admin-level apps using 'meeting:read' scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -174,7 +174,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

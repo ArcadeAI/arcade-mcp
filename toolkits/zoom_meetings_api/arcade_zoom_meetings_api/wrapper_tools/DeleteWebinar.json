@@ -1,9 +1,9 @@
 {
   "name": "DeleteWebinar",
-  "fully_qualified_name": "ZoomApi.DeleteWebinar@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteWebinar@0.1.0",
   "description": "Delete a Zoom webinar.\n\nUse this tool to delete a webinar on Zoom. Requires a Pro or higher plan with the webinar add-on. The necessary OAuth scopes must be authorized, and it adheres to a LIGHT rate limit.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

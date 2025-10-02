@@ -1,9 +1,9 @@
 {
   "name": "GetZoomRecordingAnalytics",
-  "fully_qualified_name": "ZoomApi.GetZoomRecordingAnalytics@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomRecordingAnalytics@0.1.0",
   "description": "Retrieve analytics details for Zoom meeting or webinar recordings.\n\nUse this tool to obtain detailed analytics for a Zoom meeting or webinar recording, covering data up to one month. Requires appropriate permissions.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -140,7 +140,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

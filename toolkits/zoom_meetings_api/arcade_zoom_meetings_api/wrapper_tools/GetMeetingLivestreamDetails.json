@@ -1,9 +1,9 @@
 {
   "name": "GetMeetingLivestreamDetails",
-  "fully_qualified_name": "ZoomApi.GetMeetingLivestreamDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetMeetingLivestreamDetails@0.1.0",
   "description": "Get livestream configuration details for a Zoom meeting.\n\nUse this tool to obtain details about a Zoom meeting's livestream configuration, including Stream URL, Stream Key, and Page URL. This tool is useful for checking livestream settings on a custom platform. The meeting host must be a licensed user with a Pro or higher plan, and livestream details must be pre-configured.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

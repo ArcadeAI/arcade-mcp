@@ -1,9 +1,9 @@
 {
   "name": "GetUserAudioConferences",
-  "fully_qualified_name": "ZoomApi.GetUserAudioConferences@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetUserAudioConferences@0.1.0",
   "description": "Retrieve a list of user's personal audio conference accounts.\n\nCall this tool to obtain a list of a user's personal audio conference (PAC) accounts. It is useful for users with Pro or higher Zoom plans who want to manage or monitor their audio conference capabilities. Use 'me' as the userId for user-level apps.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

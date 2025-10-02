@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarParticipantReport",
-  "fully_qualified_name": "ZoomApi.GetWebinarParticipantReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarParticipantReport@0.1.0",
   "description": "Retrieve detailed report on webinar attendees.\n\nFetches a comprehensive report of each participant in a specified webinar from the last 6 months. Requires a Pro or higher plan with Webinar add-on enabled. Suitable for fetching participant data when analyzing webinar attendance and engagement.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -108,7 +108,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

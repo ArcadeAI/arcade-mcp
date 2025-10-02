@@ -1,9 +1,9 @@
 {
   "name": "ListZoomMeetingPolls",
-  "fully_qualified_name": "ZoomApi.ListZoomMeetingPolls@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomMeetingPolls@0.1.0",
   "description": "Retrieve all polls for a specified Zoom meeting.\n\nUse this tool to list all polls associated with a scheduled Zoom meeting. The meeting host must be of Pro user type or higher, and polls are only available for scheduled, not instant, meetings.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -78,7 +78,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

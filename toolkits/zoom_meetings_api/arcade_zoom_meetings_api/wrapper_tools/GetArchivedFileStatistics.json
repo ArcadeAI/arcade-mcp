@@ -1,9 +1,9 @@
 {
   "name": "GetArchivedFileStatistics",
-  "fully_qualified_name": "ZoomApi.GetArchivedFileStatistics@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetArchivedFileStatistics@0.1.0",
   "description": "Retrieve statistics about archived Zoom meeting files.\n\nUse this tool to obtain statistics regarding archived meeting or webinar files for a Zoom account. This is useful for compliance purposes, such as FINRA requirements. Prerequisites include enabling the Meeting and Webinar Archiving feature and appropriate admin scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -76,7 +76,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingSurveyReport",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingSurveyReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingSurveyReport@0.1.0",
   "description": "Retrieve report details of a Zoom meeting survey.\n\nFetch a detailed report of a past Zoom meeting survey. Requires a Pro or higher Zoom plan and appropriate admin scopes. Useful for administrators who need insights into meeting feedback.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

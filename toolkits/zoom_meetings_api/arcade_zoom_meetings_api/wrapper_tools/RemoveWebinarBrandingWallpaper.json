@@ -1,9 +1,9 @@
 {
   "name": "RemoveWebinarBrandingWallpaper",
-  "fully_qualified_name": "ZoomApi.RemoveWebinarBrandingWallpaper@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.RemoveWebinarBrandingWallpaper@0.1.0",
   "description": "Remove a webinar's branding wallpaper file.\n\nThis tool deletes the branding wallpaper file from a specified webinar. It should be called when you want to update or remove the session branding for a webinar. Make sure the Webinar Session Branding setting is enabled and the correct scopes are authorized.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "DeleteZoomRecording",
-  "fully_qualified_name": "ZoomApi.DeleteZoomRecording@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteZoomRecording@0.1.0",
   "description": "Delete a specific Zoom recording from a meeting or webinar.\n\nUse this tool to delete a specific recording file from a Zoom meeting or webinar. Ensure the setting for allowing the host to delete cloud recordings is enabled in Zoom. This tool requires appropriate recording deletion permissions.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -97,7 +97,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

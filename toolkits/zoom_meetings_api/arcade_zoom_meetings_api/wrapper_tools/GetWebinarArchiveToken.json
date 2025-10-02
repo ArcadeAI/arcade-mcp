@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarArchiveToken",
-  "fully_qualified_name": "ZoomApi.GetWebinarArchiveToken@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarArchiveToken@0.1.0",
   "description": "Get a webinar's archive token for local archiving.\n\nUse this tool to obtain a token that allows local archiving of a Zoom webinar. This is essential for applications or bots needing real-time access to a webinar's raw audio and video streams.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

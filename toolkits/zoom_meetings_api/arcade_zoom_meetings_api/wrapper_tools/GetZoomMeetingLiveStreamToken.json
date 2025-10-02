@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingLiveStreamToken",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingLiveStreamToken@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingLiveStreamToken@0.1.0",
   "description": "Obtain a join token for Zoom meeting live streaming.\n\nUse this tool to get a join token that allows a recording bot to connect to a Zoom meeting for live streaming. Requires a Pro or higher plan and enabled livestreaming settings. Supports both regular and raw streaming.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetZoomMeetingPollReport",
-  "fully_qualified_name": "ZoomApi.GetZoomMeetingPollReport@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomMeetingPollReport@0.1.0",
   "description": "Fetches a report of poll results for a past Zoom meeting.\n\nUse this tool to retrieve the results of polls conducted during a past Zoom meeting. This is useful when you need to access detailed polling data post-meeting. Requires a Pro or higher plan and appropriate admin read permissions.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

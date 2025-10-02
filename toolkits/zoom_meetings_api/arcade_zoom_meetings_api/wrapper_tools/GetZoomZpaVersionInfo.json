@@ -1,9 +1,9 @@
 {
   "name": "GetZoomZpaVersionInfo",
-  "fully_qualified_name": "ZoomApi.GetZoomZpaVersionInfo@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomZpaVersionInfo@0.1.0",
   "description": "Retrieve ZPA firmware and app versions for Zoom devices.\n\nThis tool fetches the list of ZPA firmware and app version information that can be upgraded for Zoom devices within a specified ZDM group. It should be used to check available upgrades and ensures the use of the appropriate OAuth scopes.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -62,7 +62,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

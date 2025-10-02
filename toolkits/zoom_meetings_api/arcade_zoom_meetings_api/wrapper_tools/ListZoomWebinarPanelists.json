@@ -1,9 +1,9 @@
 {
   "name": "ListZoomWebinarPanelists",
-  "fully_qualified_name": "ZoomApi.ListZoomWebinarPanelists@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomWebinarPanelists@0.1.0",
   "description": "Retrieve a list of panelists for a specific Zoom webinar.\n\nFetches all panelists associated with a particular Zoom webinar. Useful for viewing panelists who have access to enhanced capabilities like video sharing and screen annotation. Requires a Pro or higher plan with the Webinar Add-on.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

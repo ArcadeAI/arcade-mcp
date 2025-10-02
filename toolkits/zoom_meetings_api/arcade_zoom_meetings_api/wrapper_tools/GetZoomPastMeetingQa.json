@@ -1,9 +1,9 @@
 {
   "name": "GetZoomPastMeetingQa",
-  "fully_qualified_name": "ZoomApi.GetZoomPastMeetingQa@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetZoomPastMeetingQa@0.1.0",
   "description": "Retrieve Q&A from a specific past Zoom meeting.\n\nThis tool retrieves the questions and answers from a specific Zoom meeting that has already ended. It can only be used if the Q&A feature was enabled for the meeting and the meeting occurred within the last 15 months. Ideal for obtaining detailed meeting insights and follow-ups.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

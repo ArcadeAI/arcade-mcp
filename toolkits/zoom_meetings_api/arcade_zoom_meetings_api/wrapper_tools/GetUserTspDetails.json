@@ -1,9 +1,9 @@
 {
   "name": "GetUserTspDetails",
-  "fully_qualified_name": "ZoomApi.GetUserTspDetails@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetUserTspDetails@0.1.0",
   "description": "Retrieve TSP account details for a specific Zoom user.\n\nFetch details of a Telephony Service Provider (TSP) account linked to a specific user in Zoom. Useful when needing information about TSP configurations for users. Requires TSP audio to be enabled and a Pro or higher Zoom subscription.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -81,7 +81,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

@@ -1,9 +1,9 @@
 {
   "name": "GetPastMeetingParticipants",
-  "fully_qualified_name": "ZoomApi.GetPastMeetingParticipants@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetPastMeetingParticipants@0.1.0",
   "description": "Retrieve participants from a past Zoom meeting.\n\nCall this tool to get information on participants from a past Zoom meeting. Returns data only if there's more than one participant. Ensure to implement a delay if data isn't fully processed, especially for large meetings. Requires a Pro or higher Zoom account.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -93,7 +93,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

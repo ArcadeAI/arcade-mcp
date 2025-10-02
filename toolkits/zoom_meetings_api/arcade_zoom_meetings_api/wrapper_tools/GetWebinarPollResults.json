@@ -1,9 +1,9 @@
 {
   "name": "GetWebinarPollResults",
-  "fully_qualified_name": "ZoomApi.GetWebinarPollResults@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.GetWebinarPollResults@0.1.0",
   "description": "Retrieve poll results from a past webinar.\n\nThis tool fetches the results for polling questions from a specific past webinar. It should be used when you need detailed insights into participant responses during a webinar poll. Ensure the necessary webinar license and scopes are available.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -63,7 +63,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

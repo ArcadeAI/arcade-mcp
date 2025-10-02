@@ -1,9 +1,9 @@
 {
   "name": "DeleteZoomTrackingField",
-  "fully_qualified_name": "ZoomApi.DeleteZoomTrackingField@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.DeleteZoomTrackingField@0.1.0",
   "description": "Delete a tracking field in Zoom.\n\nUse this tool to delete a tracking field in Zoom if you have a Business, Education, API, or higher plan. Ensure the necessary scopes are available for this operation.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -61,7 +61,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {

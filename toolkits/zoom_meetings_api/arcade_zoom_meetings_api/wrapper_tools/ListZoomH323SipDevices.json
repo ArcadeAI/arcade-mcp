@@ -1,9 +1,9 @@
 {
   "name": "ListZoomH323SipDevices",
-  "fully_qualified_name": "ZoomApi.ListZoomH323SipDevices@0.1.0",
+  "fully_qualified_name": "ZoomMeetingsApi.ListZoomH323SipDevices@0.1.0",
   "description": "Retrieve all H.323/SIP devices on a Zoom account.\n\nUse this tool to get a list of all H.323/SIP devices configured in a Zoom account. Ideal for managing or auditing video conferencing infrastructure using Zoom's Room Connector feature.",
   "toolkit": {
-    "name": "ArcadeZoomApi",
+    "name": "ArcadeZoomMeetingsApi",
     "description": null,
     "version": "0.1.0"
   },
@@ -91,7 +91,7 @@
   "metadata": {
     "object_type": "api_wrapper_tool",
     "version": "1.0.0",
-    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+    "description": "Tools that enable LLMs to interact directly with the Zoom Meetings API."
   },
   "http_endpoint": {
     "metadata": {
