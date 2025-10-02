@@ -1,0 +1,245 @@
+{
+  "name": "GetMeetingRecordingRegistrants",
+  "fully_qualified_name": "ZoomApi.GetMeetingRecordingRegistrants@0.1.0",
+  "description": "Fetch registrants of past meeting recordings on Zoom.\n\nUse this tool to get a list of people who registered to view the on-demand recordings of a past Zoom meeting. This is helpful to monitor who has accessed specific recorded content.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The meeting's ID, which can exceed 10 digits. Store as a long format integer to ensure compatibility.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "registrant_status_filter",
+        "required": false,
+        "description": "Filter registrants by status: 'pending', 'approved', or 'denied'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pending",
+            "approved",
+            "denied"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query by the registrant's status. \n* `pending` - The registration is pending. \n* `approved` - The registrant is approved. \n* `denied` - The registration is denied."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specify the number of registrant records to retrieve per API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "use_next_page_token",
+        "required": false,
+        "description": "Indicate whether to use `next_page_token` for pagination instead of `page_number`.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated.** We will no longer support this field in a future release. Instead, use the `next_page_token` for pagination."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_number"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token for paginating through large result sets. Expires in 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingRecordingRegistrants'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "cloud_recording:read:list_recording_registrants:admin",
+          "cloud_recording:read:list_recording_registrants",
+          "recording:read",
+          "cloud_recording:read:list_recording_registrants:master",
+          "recording:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/recordings/registrants",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "status",
+        "tool_parameter_name": "registrant_status_filter",
+        "description": "Query by the registrant's status. \n* `pending` - The registration is pending. \n* `approved` - The registrant is approved. \n* `denied` - The registration is denied.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "pending",
+            "approved",
+            "denied"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query by the registrant's status. \n* `pending` - The registration is pending. \n* `approved` - The registrant is approved. \n* `denied` - The registration is denied."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "records_per_page",
+        "description": "The number of records returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_number",
+        "tool_parameter_name": "use_next_page_token",
+        "description": "**Deprecated.** We will no longer support this field in a future release. Instead, use the `next_page_token` for pagination.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "**Deprecated.** We will no longer support this field in a future release. Instead, use the `next_page_token` for pagination."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

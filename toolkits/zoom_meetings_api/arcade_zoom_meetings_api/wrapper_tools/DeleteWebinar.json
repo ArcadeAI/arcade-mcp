@@ -1,0 +1,172 @@
+{
+  "name": "DeleteWebinar",
+  "fully_qualified_name": "ZoomApi.DeleteWebinar@0.1.0",
+  "description": "Delete a Zoom webinar.\n\nUse this tool to delete a webinar on Zoom. Requires a Pro or higher plan with the webinar add-on. The necessary OAuth scopes must be authorized, and it adheres to a LIGHT rate limit.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webinar_id",
+        "required": true,
+        "description": "The unique identifier for the Zoom webinar to be deleted. This is required to specify which webinar should be removed.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webinarId"
+      },
+      {
+        "name": "webinar_occurrence_id",
+        "required": false,
+        "description": "The ID of the specific webinar occurrence to delete. Required for webinars with multiple occurrences.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting or webinar occurrence ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "occurrence_id"
+      },
+      {
+        "name": "send_cancellation_notifications",
+        "required": false,
+        "description": "Set to true to email panelists and registrants about webinar cancellation. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` - Notify panelists and registrants about the webinar cancellation via email. \n\n`false` - Do not send any email notification to webinar registrants and panelists. \n\nThe default value of this field is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cancel_webinar_reminder"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webinarDelete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webinar:write:admin",
+          "webinar:delete:webinar",
+          "webinar:write",
+          "webinar:delete:webinar:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/webinars/{webinarId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "occurrence_id",
+        "tool_parameter_name": "webinar_occurrence_id",
+        "description": "The meeting or webinar occurrence ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting or webinar occurrence ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cancel_webinar_reminder",
+        "tool_parameter_name": "send_cancellation_notifications",
+        "description": "`true` - Notify panelists and registrants about the webinar cancellation via email. \n\n`false` - Do not send any email notification to webinar registrants and panelists. \n\nThe default value of this field is `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true` - Notify panelists and registrants about the webinar cancellation via email. \n\n`false` - Do not send any email notification to webinar registrants and panelists. \n\nThe default value of this field is `false`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "webinarId",
+        "tool_parameter_name": "webinar_id",
+        "description": "The webinar's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "name": "RemoveZoomDeviceByVendorAndMac",
+  "fully_qualified_name": "ZoomApi.RemoveZoomDeviceByVendorAndMac@0.1.0",
+  "description": "Remove a ZPA device from Zoom by vendor and MAC address.\n\nUse this tool to remove a ZPA device from the Zoom device manager by specifying the vendor and MAC address of the device. Applicable for scenarios where device deauthorization is needed.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "device_vendor",
+        "required": true,
+        "description": "The manufacturer's name of the device to be removed from Zoom's device manager.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The device's manufacturer."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "vendor"
+      },
+      {
+        "name": "device_mac_address",
+        "required": true,
+        "description": "The MAC address of the device to be removed. This identifier is a string and is required for the operation.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The device's mac address."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "macAddress"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'DeleteZpaDeviceByVendorAndMacAddress'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "device:write:admin",
+          "device:delete:zpa_device:admin",
+          "device:delete:zpa_device:master"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/devices/zpa/vendors/{vendor}/mac_addresses/{macAddress}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "vendor",
+        "tool_parameter_name": "device_vendor",
+        "description": "The device's manufacturer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The device's manufacturer."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "macAddress",
+        "tool_parameter_name": "device_mac_address",
+        "description": "The device's mac address.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The device's mac address."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

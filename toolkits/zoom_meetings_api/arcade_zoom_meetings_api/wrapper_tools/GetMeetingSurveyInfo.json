@@ -1,0 +1,108 @@
+{
+  "name": "GetMeetingSurveyInfo",
+  "fully_qualified_name": "ZoomApi.GetMeetingSurveyInfo@0.1.0",
+  "description": "Retrieve details about a Zoom meeting survey.\n\nThis tool retrieves information about a specified Zoom meeting survey. It is useful for Pro users who have the Meeting Survey feature enabled and require insights into scheduled meetings. Note: Instant meetings do not support surveys.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The unique identifier for a Zoom meeting. Should be stored as a long-format integer to accommodate IDs longer than 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, store it as a long-format integer and **not** a simple integer. Meeting IDs can be more than 10 digits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingSurveyGet'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:read",
+          "meeting:read:admin",
+          "meeting:read:survey:admin",
+          "meeting:read:survey"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/survey",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting's ID. \n\n When storing this value in your database, store it as a long-format integer and **not** a simple integer. Meeting IDs can be more than 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, store it as a long-format integer and **not** a simple integer. Meeting IDs can be more than 10 digits."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

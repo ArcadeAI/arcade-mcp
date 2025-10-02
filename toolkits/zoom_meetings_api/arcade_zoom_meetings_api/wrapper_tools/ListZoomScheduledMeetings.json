@@ -1,0 +1,344 @@
+{
+  "name": "ListZoomScheduledMeetings",
+  "fully_qualified_name": "ZoomApi.ListZoomScheduledMeetings@0.1.0",
+  "description": "Retrieve a Zoom user's scheduled meetings.\n\nUse this tool to list a Zoom user's scheduled meetings. It supports only scheduled, unexpired meetings and returns up to 6 months of data for upcoming or previous meetings. Suitable for user-level and admin-level apps using 'meeting:read' scopes.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "zoom_user_identifier",
+        "required": true,
+        "description": "The user's Zoom ID, email, or 'me' for user-level apps to list scheduled meetings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user's user ID or email address. For user-level apps, pass the `me` value."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "userId"
+      },
+      {
+        "name": "meeting_type",
+        "required": false,
+        "description": "Specify the type of meeting to retrieve: 'scheduled', 'live', 'upcoming', 'upcoming_meetings', or 'previous_meetings'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "scheduled",
+            "live",
+            "upcoming",
+            "upcoming_meetings",
+            "previous_meetings"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of meeting. \n* `scheduled` - All valid previous (unexpired) meetings, live meetings, and upcoming scheduled meetings. \n* `live` - All the ongoing meetings. \n* `upcoming` - All upcoming meetings, including live meetings. \n* `upcoming_meetings` - All upcoming meetings, including live meetings. \n* `previous_meetings` - All the previous meetings."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "The number of meeting records to return in each API call. Helps paginate results for larger datasets.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_next_page_token",
+        "required": false,
+        "description": "Token to paginate through large result sets. Expires in 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      },
+      {
+        "name": "current_page_number",
+        "required": false,
+        "description": "The current page number for the returned records when fetching scheduled meetings.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number of the current page in the returned records."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_number"
+      },
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "Specify the start date for listing meetings. Format should be 'YYYY-MM-DD'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date",
+        "required": false,
+        "description": "The end date for retrieving scheduled meetings. Format should be YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "meeting_timezone",
+        "required": false,
+        "description": "Specify the timezone for the 'from' and 'to' date values. Refer to the Zoom API timezone list for supported formats.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone to assign to the `from` and `to` value. For a list of supported timezones and their formats, see our [timezone list](https://developers.zoom.us/docs/api/rest/other-references/abbreviation-lists/#timezones)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "timezone"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:read:list_meetings:admin",
+          "meeting:read",
+          "meeting:read:admin",
+          "meeting:read:list_meetings"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/users/{userId}/meetings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "meeting_type",
+        "description": "The type of meeting. \n* `scheduled` - All valid previous (unexpired) meetings, live meetings, and upcoming scheduled meetings. \n* `live` - All the ongoing meetings. \n* `upcoming` - All upcoming meetings, including live meetings. \n* `upcoming_meetings` - All upcoming meetings, including live meetings. \n* `previous_meetings` - All the previous meetings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "scheduled",
+            "live",
+            "upcoming",
+            "upcoming_meetings",
+            "previous_meetings"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of meeting. \n* `scheduled` - All valid previous (unexpired) meetings, live meetings, and upcoming scheduled meetings. \n* `live` - All the ongoing meetings. \n* `upcoming` - All upcoming meetings, including live meetings. \n* `upcoming_meetings` - All upcoming meetings, including live meetings. \n* `previous_meetings` - All the previous meetings."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "records_per_page",
+        "description": "The number of records returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_next_page_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_number",
+        "tool_parameter_name": "current_page_number",
+        "description": "The page number of the current page in the returned records.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The page number of the current page in the returned records."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date",
+        "description": "The start date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date",
+        "description": "The end date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "timezone",
+        "tool_parameter_name": "meeting_timezone",
+        "description": "The timezone to assign to the `from` and `to` value. For a list of supported timezones and their formats, see our [timezone list](https://developers.zoom.us/docs/api/rest/other-references/abbreviation-lists/#timezones).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The timezone to assign to the `from` and `to` value. For a list of supported timezones and their formats, see our [timezone list](https://developers.zoom.us/docs/api/rest/other-references/abbreviation-lists/#timezones)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "userId",
+        "tool_parameter_name": "zoom_user_identifier",
+        "description": "The user's user ID or email address. For user-level apps, pass the `me` value.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The user's user ID or email address. For user-level apps, pass the `me` value."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

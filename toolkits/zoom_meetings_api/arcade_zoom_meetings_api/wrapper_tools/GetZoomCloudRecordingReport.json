@@ -1,0 +1,169 @@
+{
+  "name": "GetZoomCloudRecordingReport",
+  "fully_qualified_name": "ZoomApi.GetZoomCloudRecordingReport@0.1.0",
+  "description": "Retrieve Zoom cloud recording usage report for a date range.\n\nCall this tool to get cloud recording usage reports from Zoom for a specific date range, subject to certain constraints. Reports can be retrieved for up to 30 days within the most recent six months, and only from one day before the current date. Requires a Pro or higher plan.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date",
+        "required": true,
+        "description": "Start date in 'yyyy-mm-dd' format. It must be up to 30 days before the end date and within the past six months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date in 'yyyy-mm-dd' format. The date range defined by the &quot;from&quot; and &quot;to&quot; parameters should only be one month as the report includes only one month worth of data at once."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "End date in 'yyyy-mm-dd' format. Must be within one month of the start date and within the last six months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "group_identifier",
+        "required": false,
+        "description": "The unique string ID of the group to retrieve cloud recording reports for. Obtainable via the List groups API.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/api-reference/zoom-api/methods#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'reportCloudRecording'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "report:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/report/cloud_recording",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date",
+        "description": "Start date in 'yyyy-mm-dd' format. The date range defined by the &quot;from&quot; and &quot;to&quot; parameters should only be one month as the report includes only one month worth of data at once.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date in 'yyyy-mm-dd' format. The date range defined by the &quot;from&quot; and &quot;to&quot; parameters should only be one month as the report includes only one month worth of data at once."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date",
+        "description": "End date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_id",
+        "tool_parameter_name": "group_identifier",
+        "description": "The group ID. To get a group ID, use the [**List groups**](/api-reference/zoom-api/methods#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/api-reference/zoom-api/methods#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "name": "GetPastZoomMeetings",
+  "fully_qualified_name": "ZoomApi.GetPastZoomMeetings@0.1.0",
+  "description": "Retrieve past instances of Zoom meetings.\n\nUse this tool to get a list of past meeting instances for a specified Zoom meeting ID. It returns instances of meetings that have concluded and are within the past 15 months.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "past_meeting_id",
+        "required": true,
+        "description": "The ID of the past meeting to retrieve instances for. Must be a meeting that has concluded within the past 15 months.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The past meeting's ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'pastMeetings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:read:list_past_instances",
+          "meeting:read",
+          "meeting:read:admin",
+          "meeting:read:list_past_instances:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/past_meetings/{meetingId}/instances",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "past_meeting_id",
+        "description": "The past meeting's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The past meeting's ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

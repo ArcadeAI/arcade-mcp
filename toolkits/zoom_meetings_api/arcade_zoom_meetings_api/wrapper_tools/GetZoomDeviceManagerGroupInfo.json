@@ -1,0 +1,139 @@
+{
+  "name": "GetZoomDeviceManagerGroupInfo",
+  "fully_qualified_name": "ZoomApi.GetZoomDeviceManagerGroupInfo@0.1.0",
+  "description": "Retrieve Zoom Device Manager group information for an account.\n\nUse this tool to obtain detailed information about Zoom Device Manager groups associated with an account. Useful for administrators needing insight into device group configurations.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "The total number of records to return per API call. Default is 30, with a maximum of 100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The total number of records returned from a single API call.\nDefault - 30.\nMax -100."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_next_page_token",
+        "required": false,
+        "description": "Token to retrieve the next set of results for paginated Zoom Device Manager group data. Valid for 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period token is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Getzdmgroupinfo'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "device:read:list_groups:master",
+          "device:read:admin",
+          "device:read:list_groups:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/devices/groups",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page_size",
+        "tool_parameter_name": "records_per_page",
+        "description": "The total number of records returned from a single API call.\nDefault - 30.\nMax -100.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The total number of records returned from a single API call.\nDefault - 30.\nMax -100."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_next_page_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period token is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period token is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

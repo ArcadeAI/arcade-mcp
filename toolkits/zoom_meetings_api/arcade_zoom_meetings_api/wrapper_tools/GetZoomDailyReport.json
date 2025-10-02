@@ -1,0 +1,169 @@
+{
+  "name": "GetZoomDailyReport",
+  "fully_qualified_name": "ZoomApi.GetZoomDailyReport@0.1.0",
+  "description": "Retrieve daily Zoom usage statistics for account-wide overview.\n\nThis tool retrieves a daily report detailing the account-wide usage of Zoom services, including new users, meetings, participants, and meeting minutes for each day in a specified month. Requires a Pro or higher plan and the `report:read:admin` scope.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "report_year",
+        "required": false,
+        "description": "The year for which the Zoom usage report is requested. Must be a valid integer year.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Year for this report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "year"
+      },
+      {
+        "name": "report_month",
+        "required": false,
+        "description": "The month (1-12) for the report. Specify as an integer.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Month for this report"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "month"
+      },
+      {
+        "name": "zoom_group_id",
+        "required": false,
+        "description": "The ID of the Zoom group for which you want to retrieve the usage report. Use the 'List groups' API to find the ID. The report will only include users in this group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/users/#tag/groups/GET/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'reportDaily'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "report:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/report/daily",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "year",
+        "tool_parameter_name": "report_year",
+        "description": "Year for this report",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Year for this report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "month",
+        "tool_parameter_name": "report_month",
+        "description": "Month for this report",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Month for this report"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_id",
+        "tool_parameter_name": "zoom_group_id",
+        "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/users/#tag/groups/GET/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/users/#tag/groups/GET/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

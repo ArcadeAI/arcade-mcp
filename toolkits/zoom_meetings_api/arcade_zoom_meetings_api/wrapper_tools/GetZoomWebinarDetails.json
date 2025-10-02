@@ -1,0 +1,172 @@
+{
+  "name": "GetZoomWebinarDetails",
+  "fully_qualified_name": "ZoomApi.GetZoomWebinarDetails@0.1.0",
+  "description": "Retrieve details for a scheduled Zoom webinar.\n\nThis tool fetches detailed information about a scheduled Zoom webinar. It should be called when information about a specific webinar is needed. Requires a Pro or higher plan with a Webinar add-on.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webinar_id",
+        "required": true,
+        "description": "The Zoom webinar's ID or universally unique identifier (UUID) to fetch the specific webinar details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID or universally unique ID (UUID)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webinarId"
+      },
+      {
+        "name": "recurring_webinar_occurrence_id",
+        "required": false,
+        "description": "Unique identifier for a specific occurrence of a recurring webinar. Used to retrieve details for that occurrence.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an occurrence of a recurring webinar. [Recurring webinars](https://support.zoom.us/hc/en-us/articles/216354763-How-to-Schedule-A-Recurring-Webinar) can have a maximum of 50 occurrences. When you create a recurring Webinar using [**Create a webinar**](/docs/api-reference/zoom-api/methods#operation/webinarCreate) API, you can retrieve the Occurrence ID from the response of the API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "occurrence_id"
+      },
+      {
+        "name": "show_previous_occurrences",
+        "required": false,
+        "description": "Set to true to view details of all previous occurrences of a recurring webinar.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set the value of this field to `true` to view webinar details of all previous occurrences of a recurring webinar."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "show_previous_occurrences"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webinar'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webinar:read:webinar:admin",
+          "webinar:read",
+          "webinar:read:admin",
+          "webinar:read:webinar"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/webinars/{webinarId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "occurrence_id",
+        "tool_parameter_name": "recurring_webinar_occurrence_id",
+        "description": "Unique identifier for an occurrence of a recurring webinar. [Recurring webinars](https://support.zoom.us/hc/en-us/articles/216354763-How-to-Schedule-A-Recurring-Webinar) can have a maximum of 50 occurrences. When you create a recurring Webinar using [**Create a webinar**](/docs/api-reference/zoom-api/methods#operation/webinarCreate) API, you can retrieve the Occurrence ID from the response of the API call.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Unique identifier for an occurrence of a recurring webinar. [Recurring webinars](https://support.zoom.us/hc/en-us/articles/216354763-How-to-Schedule-A-Recurring-Webinar) can have a maximum of 50 occurrences. When you create a recurring Webinar using [**Create a webinar**](/docs/api-reference/zoom-api/methods#operation/webinarCreate) API, you can retrieve the Occurrence ID from the response of the API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "show_previous_occurrences",
+        "tool_parameter_name": "show_previous_occurrences",
+        "description": "Set the value of this field to `true` to view webinar details of all previous occurrences of a recurring webinar.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Set the value of this field to `true` to view webinar details of all previous occurrences of a recurring webinar."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "webinarId",
+        "tool_parameter_name": "webinar_id",
+        "description": "The webinar's ID or universally unique ID (UUID).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID or universally unique ID (UUID)."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

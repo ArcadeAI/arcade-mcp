@@ -1,0 +1,202 @@
+{
+  "name": "GetZoomUserActivityLogs",
+  "fully_qualified_name": "ZoomApi.GetZoomUserActivityLogs@0.1.0",
+  "description": "Retrieve Zoom user sign in and sign out activity reports.\n\nUse this tool to obtain a list of sign in and sign out activity logs for users under a Zoom account. Useful for tracking account activity and ensuring compliance with organizational policies. Requires a Pro or higher Zoom plan.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date",
+        "required": false,
+        "description": "Start date for the activity logs report, in YYYY-MM-DD format. Must be within the last six months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for which you would like to view the activity logs report. Using the `from` and `to` parameters, specify a monthly date range for the report as the API only provides one month worth of data in one request. The specified date range should fall within the last six months."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date_for_activity_logs",
+        "required": false,
+        "description": "The end date up to which to view the activity logs report. Must specify within the last six months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date up to which you would like to view the activity logs report."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "records_per_page",
+        "required": false,
+        "description": "Specifies the number of activity log records to retrieve in one API call. Adjust for batch processing of data.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_next_page_token",
+        "required": false,
+        "description": "Token used for paginating through large sets of user activity logs. Use the token received from the previous response to access the next set of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Next page token is used to paginate through large result sets"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'reportSignInSignOutActivities'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "report:read:admin",
+          "report:read:user_activities:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/report/activities",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date",
+        "description": "Start date for which you would like to view the activity logs report. Using the `from` and `to` parameters, specify a monthly date range for the report as the API only provides one month worth of data in one request. The specified date range should fall within the last six months.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Start date for which you would like to view the activity logs report. Using the `from` and `to` parameters, specify a monthly date range for the report as the API only provides one month worth of data in one request. The specified date range should fall within the last six months."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date_for_activity_logs",
+        "description": "End date up to which you would like to view the activity logs report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "End date up to which you would like to view the activity logs report."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "records_per_page",
+        "description": "The number of records to be returned within a single API call",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_next_page_token",
+        "description": "Next page token is used to paginate through large result sets",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Next page token is used to paginate through large result sets"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

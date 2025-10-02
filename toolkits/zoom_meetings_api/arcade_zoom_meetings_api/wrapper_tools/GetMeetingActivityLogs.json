@@ -1,0 +1,316 @@
+{
+  "name": "GetMeetingActivityLogs",
+  "fully_qualified_name": "ZoomApi.GetMeetingActivityLogs@0.1.0",
+  "description": "Retrieve a list of meeting activity logs from Zoom.\n\nUse this tool to get a detailed history of meeting activities on Zoom. Ensure the meeting audit trail log feature is enabled on your account before using this tool.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date",
+        "required": true,
+        "description": "The start date for the report in 'yyyy-MM-dd' format. Ensure the range with 'to' is only one month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date in 'yyyy-MM-dd'format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month's worth of data at once."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "The end date for fetching meeting activity logs in 'yyyy-MM-dd' format. Must be within one month of the start date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date 'yyyy-MM-dd' format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "activity_type",
+        "required": true,
+        "description": "Specify the type of activity to filter logs. Options: All Activities, Meeting Created, Meeting Started, User Join, User Left, Remote Control, In-Meeting Chat, Meeting Ended.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "All Activities",
+            "Meeting Created",
+            "Meeting Started",
+            "User Join",
+            "User Left",
+            "Remote Control",
+            "In-Meeting Chat",
+            "Meeting Ended"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Activity type. \n-1 - All activities. \n0 - Meeting created. \n1 - Meeting started. \n2 - User joined. \n3 - User left. \n4 - Remote control. \n5 - In-meeting chat. \n9 - Meeting ended."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "activity_type"
+      },
+      {
+        "name": "number_of_records_per_call",
+        "required": false,
+        "description": "Specify the number of records to be returned in a single API call. Adjust according to data needs and rate limits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token for paginating through large sets of results. Expires in 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      },
+      {
+        "name": "meeting_number",
+        "required": false,
+        "description": "The unique identifier for the Zoom meeting. Required to fetch activity logs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meeting_number"
+      },
+      {
+        "name": "operator_name_or_email",
+        "required": false,
+        "description": "An operator's name or email used to filter the meeting activity logs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An operator's name or email."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'reportMeetingactivitylogs'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "report:read:meeting_activity_log:admin",
+          "report:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/report/meeting_activities",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date",
+        "description": "The start date in 'yyyy-MM-dd'format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month's worth of data at once.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date in 'yyyy-MM-dd'format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month's worth of data at once."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date",
+        "description": "The end date 'yyyy-MM-dd' format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date 'yyyy-MM-dd' format."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "number_of_records_per_call",
+        "description": "The number of records to be returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meeting_number",
+        "tool_parameter_name": "meeting_number",
+        "description": "The meeting's number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_key",
+        "tool_parameter_name": "operator_name_or_email",
+        "description": "An operator's name or email.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An operator's name or email."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "activity_type",
+        "tool_parameter_name": "activity_type",
+        "description": "Activity type. \n-1 - All activities. \n0 - Meeting created. \n1 - Meeting started. \n2 - User joined. \n3 - User left. \n4 - Remote control. \n5 - In-meeting chat. \n9 - Meeting ended.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "All Activities",
+            "Meeting Created",
+            "Meeting Started",
+            "User Join",
+            "User Left",
+            "Remote Control",
+            "In-Meeting Chat",
+            "Meeting Ended"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Activity type. \n-1 - All activities. \n0 - Meeting created. \n1 - Meeting started. \n2 - User joined. \n3 - User left. \n4 - Remote control. \n5 - In-meeting chat. \n9 - Meeting ended."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

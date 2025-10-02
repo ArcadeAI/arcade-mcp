@@ -1,0 +1,107 @@
+{
+  "name": "GetZoomArchivedFiles",
+  "fully_qualified_name": "ZoomApi.GetZoomArchivedFiles@0.1.0",
+  "description": "Retrieve archived files from a specific Zoom meeting.\n\nFetches archived files from a specified Zoom meeting instance. This tool is useful when you need details of past meeting records and files, given that the Meeting and Webinar Archiving feature is enabled in your account.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_uuid",
+        "required": true,
+        "description": "The universally unique identifier (UUID) of the Zoom meeting. Double encode if it starts with '/' or contains '//' when making other API calls.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's universally unique identifier (UUID). Each meeting instance generates a UUID. After a meeting ends, a new UUID is generated for the next meeting instance.\n\nIf the meeting UUID begins with a `/` character or contains a `//` character, you **must** [double encode](/docs/api/using-zoom-apis/#meeting-id-and-uuid) the meeting UUID when using the meeting UUID for other API calls."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingUUID"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'getArchivedFiles'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "archiving:read:archived_files:admin",
+          "archiving:read:archived_files",
+          "recording:read"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/past_meetings/{meetingUUID}/archive_files",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "meetingUUID",
+        "tool_parameter_name": "meeting_uuid",
+        "description": "The meeting's universally unique identifier (UUID). Each meeting instance generates a UUID. After a meeting ends, a new UUID is generated for the next meeting instance.\n\nIf the meeting UUID begins with a `/` character or contains a `//` character, you **must** [double encode](/docs/api/using-zoom-apis/#meeting-id-and-uuid) the meeting UUID when using the meeting UUID for other API calls.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's universally unique identifier (UUID). Each meeting instance generates a UUID. After a meeting ends, a new UUID is generated for the next meeting instance.\n\nIf the meeting UUID begins with a `/` character or contains a `//` character, you **must** [double encode](/docs/api/using-zoom-apis/#meeting-id-and-uuid) the meeting UUID when using the meeting UUID for other API calls."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

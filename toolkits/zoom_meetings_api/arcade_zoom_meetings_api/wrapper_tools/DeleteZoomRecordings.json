@@ -1,0 +1,147 @@
+{
+  "name": "DeleteZoomRecordings",
+  "fully_qualified_name": "ZoomApi.DeleteZoomRecordings@0.1.0",
+  "description": "Delete a meeting or webinar's cloud recordings.\n\nUse this tool to delete all cloud recordings of a specified Zoom meeting or webinar. Ensure that Cloud Recording is enabled on the user's account. Appropriate scopes are needed for this operation.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_or_webinar_identifier",
+        "required": true,
+        "description": "Provide the meeting or webinar ID/UUID to delete its cloud recordings. If using a UUID starting with '/' or containing '//', double encode it.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To get a meeting's cloud recordings, provide the meeting ID or meeting UUID. If the meeting ID is provided instead of UUID, the response will be for the latest meeting instance. \n\nTo get a webinar's cloud recordings, provide the webinar ID or the webinar UUID. If the webinar ID is provided instead of UUID, the response will be for the latest webinar instance. \n\nIf a UUID starts with `/` or contains `//`, like `/ajXp112QmuoKj4854875==`, you must **double encode** the UUID before making an API request. "
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "recording_delete_action",
+        "required": false,
+        "description": "Specify the action for deleting recordings: `trash` to move to trash or `delete` for permanent removal.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "trash",
+            "delete"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The recording delete actions.  \n `trash` - Move recording to trash.  \n `delete` - Delete recording permanently."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "action"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'recordingDelete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "recording:write:admin",
+          "cloud_recording:delete:meeting_recording",
+          "cloud_recording:delete:meeting_recording:master",
+          "cloud_recording:delete:meeting_recording:admin",
+          "recording:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/recordings",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "action",
+        "tool_parameter_name": "recording_delete_action",
+        "description": "The recording delete actions.  \n `trash` - Move recording to trash.  \n `delete` - Delete recording permanently.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "trash",
+            "delete"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The recording delete actions.  \n `trash` - Move recording to trash.  \n `delete` - Delete recording permanently."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_or_webinar_identifier",
+        "description": "To get a meeting's cloud recordings, provide the meeting ID or meeting UUID. If the meeting ID is provided instead of UUID, the response will be for the latest meeting instance. \n\nTo get a webinar's cloud recordings, provide the webinar ID or the webinar UUID. If the webinar ID is provided instead of UUID, the response will be for the latest webinar instance. \n\nIf a UUID starts with `/` or contains `//`, like `/ajXp112QmuoKj4854875==`, you must **double encode** the UUID before making an API request. ",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "To get a meeting's cloud recordings, provide the meeting ID or meeting UUID. If the meeting ID is provided instead of UUID, the response will be for the latest meeting instance. \n\nTo get a webinar's cloud recordings, provide the webinar ID or the webinar UUID. If the webinar ID is provided instead of UUID, the response will be for the latest webinar instance. \n\nIf a UUID starts with `/` or contains `//`, like `/ajXp112QmuoKj4854875==`, you must **double encode** the UUID before making an API request. "
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

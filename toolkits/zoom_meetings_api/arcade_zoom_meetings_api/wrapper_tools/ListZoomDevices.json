@@ -1,0 +1,402 @@
+{
+  "name": "ListZoomDevices",
+  "fully_qualified_name": "ZoomApi.ListZoomDevices@0.1.0",
+  "description": "Retrieve a list of devices from Zoom.\n\nUse this tool to obtain a list of all devices associated with a Zoom account. This can help in managing or auditing device usage within an organization.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_name_or_serial_number",
+        "required": false,
+        "description": "Filter devices by providing a name or serial number to narrow the search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by name or serial number."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_text"
+      },
+      {
+        "name": "filter_by_platform_os",
+        "required": false,
+        "description": "Filter devices by platform operating system. Options: 'win', 'mac', 'ipad', 'iphone', 'android', 'linux'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "win",
+            "mac",
+            "ipad",
+            "iphone",
+            "android",
+            "linux"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by platform operating system."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "platform_os"
+      },
+      {
+        "name": "filter_by_device_type",
+        "required": false,
+        "description": "Specify the integer code to filter devices by their type. The options are: `-1` for all Zoom Room devices, `0` for Zoom Rooms Computer, `1` for Zoom Rooms Controller, `2` for Zoom Rooms Scheduling Display, `3` for Zoom Rooms Control System, `4` for Zoom Rooms Whiteboard, `5` for Zoom Phone Appliance, and `6` for Zoom Rooms Computer (with Controller).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "-1",
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by device type.  \n  Device Type:  \n `-1` - All Zoom Room device(0,1,2,3,4,6).  \n `0` - Zoom Rooms Computer.  \n `1` - Zoom Rooms Controller.  \n `2` - Zoom Rooms Scheduling Display.  \n `3` - Zoom Rooms Control System.  \n `4` -  Zoom Rooms Whiteboard.  \n `5` - Zoom Phone Appliance.  \n `6` - Zoom Rooms Computer (with Controller)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "device_type"
+      },
+      {
+        "name": "filter_by_device_vendor",
+        "required": false,
+        "description": "Specify the vendor to filter devices by their manufacturer or brand.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by vendor."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "device_vendor"
+      },
+      {
+        "name": "filter_device_by_model",
+        "required": false,
+        "description": "Filter results to include only devices matching a specific model. Provide the model name as a string.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by model."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "device_model"
+      },
+      {
+        "name": "device_status_filter",
+        "required": false,
+        "description": "Filter devices by their status: `0` for offline, `1` for online, `-1` for unlinked.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "-1",
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by status.   \n  Device Status:  \n `0` - offline.  \n `1` - online.  \n `-1` - unlink"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "device_status"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specify the maximum number of records to return in a single call, controlling the data volume retrieved.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_token",
+        "required": false,
+        "description": "Token for retrieving the next page of device results. It expires after 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      },
+      {
+        "name": "filter_by_zdm_enrollment",
+        "required": false,
+        "description": "Filter devices by their enrollment in Zoom Device Management (ZDM). Use true for enrolled and false for not enrolled.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by enrollment of ZDM (Zoom Device Management)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_enrolled_in_zdm"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'listDevices'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "device:write:admin",
+          "device:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/devices",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "search_text",
+        "tool_parameter_name": "filter_by_name_or_serial_number",
+        "description": "Filter devices by name or serial number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by name or serial number."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "platform_os",
+        "tool_parameter_name": "filter_by_platform_os",
+        "description": "Filter devices by platform operating system.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "win",
+            "mac",
+            "ipad",
+            "iphone",
+            "android",
+            "linux"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by platform operating system."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_enrolled_in_zdm",
+        "tool_parameter_name": "filter_by_zdm_enrollment",
+        "description": "Filter devices by enrollment of ZDM (Zoom Device Management).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by enrollment of ZDM (Zoom Device Management)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "device_type",
+        "tool_parameter_name": "filter_by_device_type",
+        "description": "Filter devices by device type.  \n  Device Type:  \n `-1` - All Zoom Room device(0,1,2,3,4,6).  \n `0` - Zoom Rooms Computer.  \n `1` - Zoom Rooms Controller.  \n `2` - Zoom Rooms Scheduling Display.  \n `3` - Zoom Rooms Control System.  \n `4` -  Zoom Rooms Whiteboard.  \n `5` - Zoom Phone Appliance.  \n `6` - Zoom Rooms Computer (with Controller).",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "-1",
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by device type.  \n  Device Type:  \n `-1` - All Zoom Room device(0,1,2,3,4,6).  \n `0` - Zoom Rooms Computer.  \n `1` - Zoom Rooms Controller.  \n `2` - Zoom Rooms Scheduling Display.  \n `3` - Zoom Rooms Control System.  \n `4` -  Zoom Rooms Whiteboard.  \n `5` - Zoom Phone Appliance.  \n `6` - Zoom Rooms Computer (with Controller)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "device_vendor",
+        "tool_parameter_name": "filter_by_device_vendor",
+        "description": "Filter devices by vendor.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by vendor."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "device_model",
+        "tool_parameter_name": "filter_device_by_model",
+        "description": "Filter devices by model.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by model."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "device_status",
+        "tool_parameter_name": "device_status_filter",
+        "description": "Filter devices by status.   \n  Device Status:  \n `0` - offline.  \n `1` - online.  \n `-1` - unlink",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": [
+            "-1",
+            "0",
+            "1"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filter devices by status.   \n  Device Status:  \n `0` - offline.  \n `1` - online.  \n `-1` - unlink"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "result_limit",
+        "description": "The number of records returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

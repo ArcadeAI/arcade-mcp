@@ -1,0 +1,204 @@
+{
+  "name": "DeleteZoomMeeting",
+  "fully_qualified_name": "ZoomApi.DeleteZoomMeeting@0.1.0",
+  "description": "Delete a specific Zoom meeting or occurrence.\n\nUse this tool to delete a Zoom meeting. For recurring meetings, specify an `occurrence_id` to delete a single instance; otherwise, the entire series is removed. Appropriate scopes are required.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The unique identifier for the Zoom meeting. Ensure to handle as a long integer due to potential size exceeding 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "meeting_occurrence_id",
+        "required": false,
+        "description": "The ID for a specific meeting or webinar occurrence. Necessary for deleting a single occurrence in a recurring series.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting or webinar occurrence ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "occurrence_id"
+      },
+      {
+        "name": "notify_host_via_email",
+        "required": false,
+        "description": "Set to `true` to notify the host and alternative host about the meeting cancellation via email. Set to `false` to avoid sending notifications.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`: Notify host and alternative host about the meeting cancellation via email.\n`false`: Do not send any email notification."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "schedule_for_reminder"
+      },
+      {
+        "name": "notify_registrants_of_cancellation",
+        "required": false,
+        "description": "Set to true to notify registrants via email about the meeting cancellation; false to send no notification. Defaults to false.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`: Notify registrants about the meeting cancellation via email. \n\n`false`: Do not send any email notification to meeting registrants. \n\nThe default value of this field is `false`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "cancel_meeting_reminder"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingDelete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:write:admin",
+          "meeting:delete:meeting:admin",
+          "meeting:delete:meeting",
+          "meeting:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "occurrence_id",
+        "tool_parameter_name": "meeting_occurrence_id",
+        "description": "The meeting or webinar occurrence ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting or webinar occurrence ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "schedule_for_reminder",
+        "tool_parameter_name": "notify_host_via_email",
+        "description": "`true`: Notify host and alternative host about the meeting cancellation via email.\n`false`: Do not send any email notification.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`: Notify host and alternative host about the meeting cancellation via email.\n`false`: Do not send any email notification."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "cancel_meeting_reminder",
+        "tool_parameter_name": "notify_registrants_of_cancellation",
+        "description": "`true`: Notify registrants about the meeting cancellation via email. \n\n`false`: Do not send any email notification to meeting registrants. \n\nThe default value of this field is `false`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "`true`: Notify registrants about the meeting cancellation via email. \n\n`false`: Do not send any email notification to meeting registrants. \n\nThe default value of this field is `false`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

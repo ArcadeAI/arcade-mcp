@@ -1,0 +1,140 @@
+{
+  "name": "GetZoomMeetingPollInfo",
+  "fully_qualified_name": "ZoomApi.GetZoomMeetingPollInfo@0.1.0",
+  "description": "Retrieve details of a specific Zoom meeting poll.\n\nUse this tool to get information about a specific poll in a Zoom meeting. This requires the meeting host to have a Pro or higher plan and to have enabled the Meeting Polls/Quizzes setting. Appropriate scopes are required for access.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The unique ID of the Zoom meeting. Ensure it is stored as a long integer as it can exceed 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, store it as a `long` format integer, not a simple integer. Meeting IDs can exceed 10 digits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "poll_id",
+        "required": true,
+        "description": "The unique identifier for the poll within a Zoom meeting. Required to retrieve poll details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The poll ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "pollId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingPollGet'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:read:poll",
+          "meeting:read",
+          "meeting:read:admin",
+          "meeting:read:poll:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/polls/{pollId}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting's ID. \n\n When storing this value in your database, store it as a `long` format integer, not a simple integer. Meeting IDs can exceed 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, store it as a `long` format integer, not a simple integer. Meeting IDs can exceed 10 digits."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "pollId",
+        "tool_parameter_name": "poll_id",
+        "description": "The poll ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The poll ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "name": "SetWebinarVirtualBackground",
+  "fully_qualified_name": "ZoomApi.SetWebinarVirtualBackground@0.1.0",
+  "description": "Set a webinar's virtual background branding.\n\nThis tool sets the default virtual background branding for a Zoom webinar session. It requires the 'Webinar Session Branding' setting enabled and appropriate scopes such as 'webinar:write' or 'webinar:write:admin'.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webinar_id",
+        "required": true,
+        "description": "The unique identifier for the webinar to update the virtual background branding.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webinarId"
+      },
+      {
+        "name": "virtual_background_file_id",
+        "required": false,
+        "description": "The ID of the virtual background file to update for the webinar.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The virtual background file ID to update."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "set_default_virtual_background_for_all_panelists",
+        "required": false,
+        "description": "Whether to set the virtual background as the default for all panelists, including those without a current default background.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to set the virtual background file as the new default for all panelists. This includes panelists not currently assigned a default virtual background."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "set_default_for_all_panelists"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'setWebinarBrandingVB'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webinar:write:admin",
+          "webinar:update:branding_virtual_background",
+          "webinar:update:branding_virtual_background:admin",
+          "webinar:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/webinars/{webinarId}/branding/virtual_backgrounds",
+    "http_method": "PATCH",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "virtual_background_file_id",
+        "description": "The virtual background file ID to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The virtual background file ID to update."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "set_default_for_all_panelists",
+        "tool_parameter_name": "set_default_virtual_background_for_all_panelists",
+        "description": "Whether to set the virtual background file as the new default for all panelists. This includes panelists not currently assigned a default virtual background.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to set the virtual background file as the new default for all panelists. This includes panelists not currently assigned a default virtual background."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "webinarId",
+        "tool_parameter_name": "webinar_id",
+        "description": "The webinar's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

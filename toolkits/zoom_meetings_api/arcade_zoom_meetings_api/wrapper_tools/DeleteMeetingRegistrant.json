@@ -1,0 +1,172 @@
+{
+  "name": "DeleteMeetingRegistrant",
+  "fully_qualified_name": "ZoomApi.DeleteMeetingRegistrant@0.1.0",
+  "description": "Remove a registrant from a Zoom meeting.\n\nUse this tool to delete a registrant from a Zoom meeting. It requires the host to have a Pro or higher plan and registration enabled for the meeting. For recurring meetings, the `occurrence_id` field may be required based on the `registration_type`. Ensure the necessary OAuth scopes are present to perform this action.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The unique identifier for the Zoom meeting.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "registrant_id",
+        "required": true,
+        "description": "The unique identifier for the meeting registrant to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting registrant ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "registrantId"
+      },
+      {
+        "name": "meeting_occurrence_id",
+        "required": false,
+        "description": "The ID for a specific occurrence of a recurring Zoom meeting. Required if `registration_type` is 2 or 3.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting occurrence ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "occurrence_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingregistrantdelete'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:delete:registrant",
+          "meeting:delete:registrant:admin",
+          "meeting:write:admin",
+          "meeting:write"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/registrants/{registrantId}",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "occurrence_id",
+        "tool_parameter_name": "meeting_occurrence_id",
+        "description": "The meeting occurrence ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting occurrence ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "registrantId",
+        "tool_parameter_name": "registrant_id",
+        "description": "The meeting registrant ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting registrant ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

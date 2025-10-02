@@ -1,0 +1,144 @@
+{
+  "name": "GetWebinarCaptionToken",
+  "fully_qualified_name": "ZoomApi.GetWebinarCaptionToken@0.1.0",
+  "description": "Retrieve a closed caption token for a Zoom webinar.\n\nUse this tool to get a closed caption token URL for a Zoom webinar, enabling third-party closed captioning services. Requires a Pro or higher plan with the Webinar add-on and relevant settings enabled.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webinar_id",
+        "required": true,
+        "description": "The ID of the webinar for which the closed caption token is requested.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webinarId"
+      },
+      {
+        "name": "webinar_token_type",
+        "required": false,
+        "description": "The type of token needed for the webinar. Only 'closed_caption_token' is supported for third-party closed caption API access. Defaults to 'closed_caption_token'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "closed_caption_token"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar token type: \n* `closed_caption_token` &mdash; The third-party closed caption API token. \n\nThis defaults to `closed_caption_token`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'webinarToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webinar:read:token:admin",
+          "webinar:read",
+          "webinar:read:admin",
+          "webinar:read:token"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/webinars/{webinarId}/token",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "webinar_token_type",
+        "description": "The webinar token type: \n* `closed_caption_token` &mdash; The third-party closed caption API token. \n\nThis defaults to `closed_caption_token`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "closed_caption_token"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar token type: \n* `closed_caption_token` &mdash; The third-party closed caption API token. \n\nThis defaults to `closed_caption_token`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "webinarId",
+        "tool_parameter_name": "webinar_id",
+        "description": "The webinar's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

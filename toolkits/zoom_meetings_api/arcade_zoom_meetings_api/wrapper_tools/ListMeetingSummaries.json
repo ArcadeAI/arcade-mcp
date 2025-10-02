@@ -1,0 +1,202 @@
+{
+  "name": "ListMeetingSummaries",
+  "fully_qualified_name": "ZoomApi.ListMeetingSummaries@0.1.0",
+  "description": "Retrieve meeting and webinar summaries for an account.\n\nUse this tool to get a list of all meeting or webinar summaries available for a Zoom account. This requires the host to have an appropriate subscription and settings enabled. Note: End-to-End Encrypted meetings do not support summaries.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "number_of_records_per_call",
+        "required": false,
+        "description": "Specify the number of summaries to return in one API call. This controls the page size.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_next_page_token",
+        "required": false,
+        "description": "Token to paginate through large result sets. Expires in 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through a large set of results. The next page token returns whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      },
+      {
+        "name": "start_date_utc",
+        "required": false,
+        "description": "The start date in UTC format (`yyyy-MM-dd'T'HH:mm:ss'Z'`) to filter meeting summaries by creation date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date_utc",
+        "required": false,
+        "description": "The end date in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format to retrieve meeting summaries within this date range.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Listmeetingsummaries'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting:read:list_summaries:admin",
+          "meeting_summary:read:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/meeting_summaries",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "page_size",
+        "tool_parameter_name": "number_of_records_per_call",
+        "description": "The number of records returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_next_page_token",
+        "description": "Use the next page token to paginate through a large set of results. The next page token returns whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through a large set of results. The next page token returns whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date_utc",
+        "description": "The start date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date_utc",
+        "description": "The end date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date, in `yyyy-MM-dd'T'HH:mm:ss'Z'` UTC format, used to retrieve the meeting summaries' creation date range."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

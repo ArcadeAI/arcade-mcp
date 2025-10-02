@@ -1,0 +1,496 @@
+{
+  "name": "GetZoomHistoryMeetings",
+  "fully_qualified_name": "ZoomApi.GetZoomHistoryMeetings@0.1.0",
+  "description": "Retrieve a list of historical Zoom meetings and webinars.\n\nThis tool is used to fetch historical data of meetings and webinars from Zoom. It requires specific administrative read scopes and is subject to heavy rate limits, making it suitable for retrieving comprehensive reports of past Zoom events.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "start_date",
+        "required": true,
+        "description": "The start date for the report in `yyyy-mm-dd` format. Ensure the date range is within one month.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date in `yyyy-mm-dd` format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month worth of data at once."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "from"
+      },
+      {
+        "name": "end_date",
+        "required": true,
+        "description": "The end date for the query in `yyyy-mm-dd` format. It defines the end of the one-month date range for the report.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date in `yyyy-mm-dd` format."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "to"
+      },
+      {
+        "name": "query_date_type",
+        "required": false,
+        "description": "Specifies whether to query by meeting's start time or end time. Use 'start_time' for start time and 'end_time' for end time. Defaults to 'start_time'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "start_time",
+            "end_time"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of date to query.\n* `start_time` - Query by meeting's start time. \n* `end_time` - Query by meeting's end time. \n\nThis value defaults to `start_time`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "date_type"
+      },
+      {
+        "name": "query_meeting_type",
+        "required": false,
+        "description": "Specifies the type of meeting to query: 'all' for both meetings and webinars, 'meeting' for meetings only, and 'webinar' for webinars only.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "meeting",
+            "webinar",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting type to query. \n- `all` - rerturn meetings and webinars \n- `meeting` - only return meetings \n- `webinar` - only return webinars"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meeting_type"
+      },
+      {
+        "name": "report_type",
+        "required": false,
+        "description": "Specify the type of report to query: all, poll, survey, qa, resource, or reaction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "poll",
+            "survey",
+            "qa",
+            "resource",
+            "reaction"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query meetings that have this type of report.\n- `all` - all meetings\n- `poll` - meetings with poll data \n- `survey` - meetings with survey data \n- `qa` - meetings with Q&A data \n- `resource` - meetings with resource link data \n- `reaction` - meetings with reaction data"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "report_type"
+      },
+      {
+        "name": "search_keywords",
+        "required": false,
+        "description": "Keywords for the meeting topic or meeting ID to filter the historical Zoom meetings and webinars.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The keywords of meeting topic or meeting ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "search_key"
+      },
+      {
+        "name": "number_of_records_per_call",
+        "required": false,
+        "description": "The maximum number of records to return in a single API call. Helps manage large data sets.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page_size"
+      },
+      {
+        "name": "pagination_next_page_token",
+        "required": false,
+        "description": "Token for pagination of large result sets. Expires in 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "next_page_token"
+      },
+      {
+        "name": "group_identifier",
+        "required": false,
+        "description": "The unique group ID to query members. Use the List groups API to obtain this ID. Only includes users from the specified group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/rest/reference/user/methods/#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "query_meeting_features",
+        "required": false,
+        "description": "Comma-separated list of meeting features to filter historical meetings. Options include features like `screen_sharing`, `video_on`, `poll`, etc.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "screen_sharing",
+            "video_on",
+            "remote_control",
+            "closed_caption",
+            "language_interpretation",
+            "telephone_usage",
+            "in_meeting_chat",
+            "poll",
+            "join_by_room",
+            "waiting_room",
+            "live_transcription",
+            "reaction",
+            "zoom_apps",
+            "annotation",
+            "raise_hand",
+            "virtual_background",
+            "whiteboard",
+            "immersive_scene",
+            "avatar",
+            "switch_to_mobile",
+            "file_sharing",
+            "meeting_summary",
+            "meeting_questions",
+            "record_to_computer",
+            "record_to_cloud",
+            "live_translation",
+            "registration",
+            "smart_recording",
+            "multi_speaker",
+            "meeting_wallpaper",
+            "gen_ai_virtual_background",
+            "multi_share",
+            "document_collaboration",
+            "portrait_lighting",
+            "personalized_audio_isolation",
+            "color_themes"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting features to query and return history meetings that use one or more of these features. To provide multiple values, separate them with commas, like `meeting_summary,meeting_questions`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meeting_feature"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'Gethistorymeetingandwebinarlist'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "report:read:admin",
+          "report:read:list_history_meetings:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/report/history_meetings",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "from",
+        "tool_parameter_name": "start_date",
+        "description": "The start date in `yyyy-mm-dd` format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month worth of data at once.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The start date in `yyyy-mm-dd` format. The date range defined by the `from` and `to` parameters should only be one month, as the report includes only one month worth of data at once."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "to",
+        "tool_parameter_name": "end_date",
+        "description": "The end date in `yyyy-mm-dd` format.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The end date in `yyyy-mm-dd` format."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "date_type",
+        "tool_parameter_name": "query_date_type",
+        "description": "The type of date to query.\n* `start_time` - Query by meeting's start time. \n* `end_time` - Query by meeting's end time. \n\nThis value defaults to `start_time`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "start_time",
+            "end_time"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The type of date to query.\n* `start_time` - Query by meeting's start time. \n* `end_time` - Query by meeting's end time. \n\nThis value defaults to `start_time`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meeting_type",
+        "tool_parameter_name": "query_meeting_type",
+        "description": "The meeting type to query. \n- `all` - rerturn meetings and webinars \n- `meeting` - only return meetings \n- `webinar` - only return webinars",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "meeting",
+            "webinar",
+            "all"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting type to query. \n- `all` - rerturn meetings and webinars \n- `meeting` - only return meetings \n- `webinar` - only return webinars"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "report_type",
+        "tool_parameter_name": "report_type",
+        "description": "Query meetings that have this type of report.\n- `all` - all meetings\n- `poll` - meetings with poll data \n- `survey` - meetings with survey data \n- `qa` - meetings with Q&A data \n- `resource` - meetings with resource link data \n- `reaction` - meetings with reaction data",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "poll",
+            "survey",
+            "qa",
+            "resource",
+            "reaction"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Query meetings that have this type of report.\n- `all` - all meetings\n- `poll` - meetings with poll data \n- `survey` - meetings with survey data \n- `qa` - meetings with Q&A data \n- `resource` - meetings with resource link data \n- `reaction` - meetings with reaction data"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "search_key",
+        "tool_parameter_name": "search_keywords",
+        "description": "The keywords of meeting topic or meeting ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The keywords of meeting topic or meeting ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page_size",
+        "tool_parameter_name": "number_of_records_per_call",
+        "description": "The number of records to be returned within a single API call.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The number of records to be returned within a single API call."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "next_page_token",
+        "tool_parameter_name": "pagination_next_page_token",
+        "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Use the next page token to paginate through large result sets. A next page token is returned whenever the set of available results exceeds the current page size. This token's expiration period is 15 minutes."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_id",
+        "tool_parameter_name": "group_identifier",
+        "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/rest/reference/user/methods/#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The group ID. To get a group ID, use the [**List groups**](/docs/api/rest/reference/user/methods/#operation/groups) API. \n\n **Note:** The API response will only contain users who are members of the queried group ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meeting_feature",
+        "tool_parameter_name": "query_meeting_features",
+        "description": "The meeting features to query and return history meetings that use one or more of these features. To provide multiple values, separate them with commas, like `meeting_summary,meeting_questions`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "screen_sharing",
+            "video_on",
+            "remote_control",
+            "closed_caption",
+            "language_interpretation",
+            "telephone_usage",
+            "in_meeting_chat",
+            "poll",
+            "join_by_room",
+            "waiting_room",
+            "live_transcription",
+            "reaction",
+            "zoom_apps",
+            "annotation",
+            "raise_hand",
+            "virtual_background",
+            "whiteboard",
+            "immersive_scene",
+            "avatar",
+            "switch_to_mobile",
+            "file_sharing",
+            "meeting_summary",
+            "meeting_questions",
+            "record_to_computer",
+            "record_to_cloud",
+            "live_translation",
+            "registration",
+            "smart_recording",
+            "multi_speaker",
+            "meeting_wallpaper",
+            "gen_ai_virtual_background",
+            "multi_share",
+            "document_collaboration",
+            "portrait_lighting",
+            "personalized_audio_isolation",
+            "color_themes"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting features to query and return history meetings that use one or more of these features. To provide multiple values, separate them with commas, like `meeting_summary,meeting_questions`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

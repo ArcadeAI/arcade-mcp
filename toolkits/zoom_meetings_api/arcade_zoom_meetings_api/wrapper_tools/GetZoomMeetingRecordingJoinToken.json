@@ -1,0 +1,140 @@
+{
+  "name": "GetZoomMeetingRecordingJoinToken",
+  "fully_qualified_name": "ZoomApi.GetZoomMeetingRecordingJoinToken@0.1.0",
+  "description": "Retrieve a join token for Zoom meeting local recording.\n\nThis tool fetches the join token required for a recording bot to connect to a Zoom meeting and start local recording. It should be called when you need to enable a bot to record a meeting locally using the Zoom Meeting SDK. Ensure the 'Local recording' setting is enabled in the Zoom web portal before calling this tool.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "meeting_id",
+        "required": true,
+        "description": "The unique ID of the Zoom meeting. This should be stored as a long format integer to accommodate IDs exceeding 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "meetingId"
+      },
+      {
+        "name": "bypass_waiting_room",
+        "required": false,
+        "description": "Set to true to allow bypassing the waiting room and joining the meeting directly with the recording bot.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to bypass the waiting room."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "bypass_waiting_room"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'meetingLocalRecordingJoinToken'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "meeting_token:read:admin:local_recording",
+          "meeting:read:local_recording_token",
+          "meeting:read:local_recording_token:admin",
+          "meeting_token:read:local_recording"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/meetings/{meetingId}/jointoken/local_recording",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "bypass_waiting_room",
+        "tool_parameter_name": "bypass_waiting_room",
+        "description": "Whether to bypass the waiting room.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to bypass the waiting room."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "meetingId",
+        "tool_parameter_name": "meeting_id",
+        "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The meeting's ID. \n\n When storing this value in your database, you must store it as a long format integer and **not** an integer. Meeting IDs can exceed 10 digits."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

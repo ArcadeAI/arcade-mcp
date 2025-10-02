@@ -1,0 +1,108 @@
+{
+  "name": "RemoveWebinarBrandingWallpaper",
+  "fully_qualified_name": "ZoomApi.RemoveWebinarBrandingWallpaper@0.1.0",
+  "description": "Remove a webinar's branding wallpaper file.\n\nThis tool deletes the branding wallpaper file from a specified webinar. It should be called when you want to update or remove the session branding for a webinar. Make sure the Webinar Session Branding setting is enabled and the correct scopes are authorized.",
+  "toolkit": {
+    "name": "ArcadeZoomApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "webinar_id",
+        "required": true,
+        "description": "The unique identifier of the webinar whose branding wallpaper you want to delete.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "webinarId"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'deleteWebinarBrandingWallpaper'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-zoom",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": {
+        "scopes": [
+          "webinar:delete:branding_wallpaper",
+          "webinar:write:admin",
+          "webinar:write",
+          "webinar:delete:branding_wallpaper:admin"
+        ]
+      }
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Zoom API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.zoom.us/v2/webinars/{webinarId}/branding/wallpaper",
+    "http_method": "DELETE",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "webinarId",
+        "tool_parameter_name": "webinar_id",
+        "description": "The webinar's ID.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The webinar's ID."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
