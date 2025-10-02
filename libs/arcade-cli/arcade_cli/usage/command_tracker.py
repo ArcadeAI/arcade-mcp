@@ -1,3 +1,4 @@
+import functools
 import platform
 import sys
 import time
@@ -70,7 +71,7 @@ class CommandTracker:
             # Always update the linked principal_id on successful login
             self.identity.set_linked_principal_id(principal_id)
 
-    def _handle_successful_logout(self, duration: float | None = None) -> None:
+    def _handle_successful_logout(self, command_name: str, duration: float | None = None) -> None:
         """Handle a successful logout event.
 
         Upon a successful logout, we rotate the anon_id and clear the linked principal_id.
@@ -79,10 +80,9 @@ class CommandTracker:
         data = self.identity.load_or_create()
         was_authenticated = data.get("linked_principal_id") is not None
 
-        # Send event with current user_id before rotating
-        event_name = "CLI Command Executed"
+        # Send logout event as the authenticated user before resetting to anonymous
         properties = {
-            "command_name": event_name,
+            "command_name": command_name,
             "cli_version": self.cli_version,
             "python_version": self.python_version,
             "os_type": platform.system(),
@@ -93,7 +93,9 @@ class CommandTracker:
 
         # Check if using anon_id
         is_anon = self.user_id == self.identity.anon_id
-        self.usage_service.capture(event_name, self.user_id, properties=properties, is_anon=is_anon)
+        self.usage_service.capture(
+            "CLI Command Executed", self.user_id, properties=properties, is_anon=is_anon
+        )
 
         # Only rotate anon_id if user was actually authenticated
         if was_authenticated:
@@ -122,7 +124,7 @@ class CommandTracker:
             self._handle_successful_login()
 
         elif is_logout and success:
-            self._handle_successful_logout(duration)
+            self._handle_successful_logout(command_name, duration)
             return
 
         # Edge case: Lazy alias check for other commands (if user authenticated via side path)
@@ -180,19 +182,26 @@ class TrackedTyperCommand(TyperCommand):
                 is_logout=is_logout,
             )
         except Exception as e:
-            error_msg = str(e)[:200]
+            end_time = time.time()
+            duration = end_time - start_time
+
+            from arcade_cli.utils import CLIError
+
+            error_msg = str(e)[:300]
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
                 success=False,
+                duration=duration * 1000,
                 error_message=error_msg,
                 is_login=is_login,
                 is_logout=is_logout,
             )
-            raise
+
+            if isinstance(e, CLIError):
+                raise typer.Exit(code=1)
+            else:
+                raise
         else:
-            print(
-                f"[TrackedTyperCommand] Command {ctx.command.name} executed with result: {result}"
-            )
             return result
 
 
@@ -223,3 +232,48 @@ class TrackedTyper(typer.Typer):
             cls = TrackedTyperCommand
 
         return super().command(name, cls=cls, **kwargs)
+
+    def callback(
+        self, name: str | None = None, **kwargs
+    ) -> Callable[[typer.models.CommandFunctionType], typer.models.CommandFunctionType]:
+        """Override callback decorator to track callback execution."""
+        original_callback_decorator = super().callback(name, **kwargs)
+
+        def decorator(func: typer.models.CommandFunctionType) -> typer.models.CommandFunctionType:
+            @functools.wraps(func)
+            def tracked_callback(*args, **cb_kwargs) -> Any:
+                """Wrapper that tracks callback execution."""
+                # Get the context from kwargs (Typer passes it)
+                ctx = cb_kwargs.get("ctx") or (
+                    args[0] if args and isinstance(args[0], typer.Context) else None
+                )
+
+                command_name = ctx.invoked_subcommand if ctx and ctx.invoked_subcommand else "root"
+                start_time = time.time()
+
+                try:
+                    result = func(*args, **cb_kwargs)
+                except Exception as e:
+                    # Track callback failure (auth failures, version checks, etc.)
+                    end_time = time.time()
+                    duration = (end_time - start_time) * 1000
+
+                    from arcade_cli.utils import CLIError
+
+                    command_tracker.track_command_execution(
+                        command_name,
+                        success=False,
+                        duration=duration,
+                        error_message=str(e)[:300],
+                    )
+
+                    if isinstance(e, CLIError):
+                        raise typer.Exit(code=1)
+                    else:
+                        raise
+                else:
+                    return result
+
+            return original_callback_decorator(tracked_callback)
+
+        return decorator

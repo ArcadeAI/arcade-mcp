@@ -1,14 +1,14 @@
 from typing import Optional
 
-import typer
-from rich.console import Console
 from rich.markup import escape
 
 from arcade_cli.display import display_tool_details, display_tools_table
 from arcade_cli.utils import (
+    CLIError,
     create_cli_catalog,
     create_cli_catalog_local,
     get_tools_from_engine,
+    handle_cli_error,
 )
 
 
@@ -26,7 +26,6 @@ def show_logic(
     """Wrapper function for the `arcade show` CLI command
     Handles the logic for showing tools/toolkits.
     """
-    console = Console()
     try:
         if local:
             catalog = create_cli_catalog() if toolkit else create_cli_catalog_local()
@@ -46,16 +45,14 @@ def show_logic(
                 None,
             )
             if not tool_def:
-                console.print(f"❌ Tool '{tool}' not found.", style="bold red")
-                typer.Exit(code=1)
+                handle_cli_error(f"Tool '{tool}' not found.")
             else:
                 display_tool_details(tool_def, worker=worker)
         else:
             # Display the list of tools as a table
             display_tools_table(tools)
 
+    except CLIError:
+        raise
     except Exception as e:
-        if debug:
-            raise
-        error_message = f"❌ Failed to list tools: {escape(str(e))}"
-        console.print(error_message, style="bold red")
+        handle_cli_error(f"Failed to list tools: {escape(str(e))}", debug=debug)

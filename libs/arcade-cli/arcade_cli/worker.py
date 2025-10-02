@@ -10,7 +10,9 @@ from arcade_cli.constants import (
 )
 from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
+    CLIError,
     compute_base_url,
+    handle_cli_error,
     validate_and_get_config,
 )
 
@@ -182,8 +184,7 @@ def enable_worker(
     try:
         arcade.workers.update(worker_id, enabled=True)
     except Exception as e:
-        console.print(f"Error enabling worker: {e}", style="bold red")
-        raise typer.Exit(code=1)
+        handle_cli_error(f"Failed to enable worker '{worker_id}': {e}")
 
 
 @app.command("disable", help="Disable a worker")
@@ -196,8 +197,7 @@ def disable_worker(
     try:
         arcade.workers.update(worker_id, enabled=False)
     except Exception as e:
-        console.print(f"Error disabling worker: {e}", style="bold red")
-        raise typer.Exit(code=1)
+        handle_cli_error(f"Failed to disable worker '{worker_id}': {e}")
 
 
 @app.command("rm", help="Remove a worker")
@@ -251,17 +251,13 @@ def rm_worker(
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
-                console.print(
-                    "Deployment not found. To deregister the worker from the engine, use the --deregister flag.",
-                    style="bold red",
+                handle_cli_error(
+                    "Deployment not found. To deregister the worker from the engine, use the --deregister flag."
                 )
-                raise typer.Exit(code=1)
             else:
-                console.print(f"Error deleting deployment: {e}", style="bold red")
-                raise typer.Exit(code=1)
+                handle_cli_error(f"Error deleting deployment: {e}")
         except Exception as e:
-            console.print(f"Error deleting deployment: {e}", style="bold red")
-            raise typer.Exit(code=1)
+            handle_cli_error(f"Error deleting deployment: {e}")
 
     # Then try to delete from the engine
     try:
@@ -270,8 +266,7 @@ def rm_worker(
     except NotFoundError:
         console.print("Worker not found", style="bold red")
     except Exception as e:
-        console.print(f"Error deleting worker from engine: {e}", style="bold red")
-        raise typer.Exit(code=1)
+        handle_cli_error(f"Error deleting worker from engine: {e}")
 
 
 @app.command("logs", help="Get logs for a worker")
@@ -318,14 +313,15 @@ def worker_logs(
                 if not line or "[DONE]" in line:  # Skip empty lines
                     continue
                 if "event: error" in line:
-                    console.print("Could not stream logs", style="bold red")
+                    handle_cli_error("Could not stream logs")
                 if line.startswith("data:"):
                     # Extract just the data portion after 'data:'
                     data = line[5:].strip()  # Remove 'data:' prefix and whitespace
                     console.print(data, markup=False)
+    except CLIError:
+        raise
     except Exception as e:
-        console.print(f"Error connecting to log stream: {e}", style="bold red")
-        raise typer.Exit(code=1)
+        handle_cli_error(f"Error connecting to log stream: {e}")
 
 
 def get_toolkits(client: Arcade, worker_id: str | None) -> str:
