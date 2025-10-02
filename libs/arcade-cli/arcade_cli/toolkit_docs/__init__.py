@@ -7,11 +7,12 @@ from arcade_cli.toolkit_docs.docs_builder import (
     build_example_path,
     build_examples,
     build_toolkit_mdx,
-    build_toolkit_mdx_path,
+    build_toolkit_mdx_file_path,
 )
 from arcade_cli.toolkit_docs.utils import (
     get_all_enumerations,
     get_list_of_tools,
+    has_wrapper_tools_directory,
     print_debug_func,
     read_toolkit_metadata,
     resolve_api_key,
@@ -44,8 +45,9 @@ def generate_toolkit_docs(
 
     docs_dir = standardize_dir_path(docs_dir)
     toolkit_dir = standardize_dir_path(toolkit_dir)
+    is_wrapper_toolkit = has_wrapper_tools_directory(toolkit_dir)
 
-    print_debug("Reading toolkit metadata")
+    print_debug("Reading server metadata")
     pip_package_name = read_toolkit_metadata(toolkit_dir)
 
     print_debug(f"Getting list of tools for {toolkit_name} from the local Python environment")
@@ -56,16 +58,18 @@ def generate_toolkit_docs(
     print_debug("Getting all enumerations potentially used in tool argument specs")
     enums = get_all_enumerations(toolkit_dir)
 
-    print_debug(f"Building /{toolkit_name.lower()}.mdx file")
+    toolkit_mdx_file_path = build_toolkit_mdx_file_path(docs_section, docs_dir, toolkit_name)
+    print_debug(f"Building {toolkit_mdx_file_path} file")
     toolkit_mdx = build_toolkit_mdx(
+        toolkit_dir=toolkit_dir,
         tools=tools,
         docs_section=docs_section,
         enums=enums,
         pip_package_name=pip_package_name,
         openai_model=openai_model,
+        is_wrapper_toolkit=is_wrapper_toolkit,
     )
-    toolkit_mdx_path = build_toolkit_mdx_path(docs_section, docs_dir, toolkit_name)
-    write_file(toolkit_mdx_path, toolkit_mdx)
+    write_file(toolkit_mdx_file_path, toolkit_mdx)
 
     if tool_call_examples:
         print_debug("Building tool-call examples in Python and JavaScript")
