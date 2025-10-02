@@ -74,9 +74,9 @@ skip_empty = true
 [tool.hatch.build.targets.wheel]
 packages = [ "arcade_jira",]
     """
-    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml
+    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml.encode()
     assert read_toolkit_metadata("path/to/toolkits/jira") == "arcade_jira"
-    mock_open.assert_called_once_with("path/to/toolkits/jira/pyproject.toml")
+    mock_open.assert_called_once_with("path/to/toolkits/jira/pyproject.toml", "rb")
 
 
 @patch("arcade_cli.toolkit_docs.utils.open")
@@ -98,7 +98,7 @@ dependencies = [
 name = "Arcade"
 email = "dev@arcade.dev"
     """
-    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml
+    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml.encode()
     with pytest.raises(ValueError):
         print("\n\n\n", read_toolkit_metadata("path/to/toolkits/jira"))
 
@@ -109,18 +109,23 @@ def test_pascal_to_snake_case():
 
 
 def test_get_toolkit_auth_type_none():
-    assert get_toolkit_auth_type(requirement=None) == ""
+    from arcade_core.schema import ToolRequirements
+
+    tool_req = ToolRequirements()
+    assert get_toolkit_auth_type(tool_req=tool_req) == 'authType="None"'
 
 
 def test_get_toolkit_auth_type_with_provider_type():
-    requirement = ToolAuthRequirement(provider_type=AuthProviderType.oauth2.value)
-    assert get_toolkit_auth_type(requirement=requirement) == 'authType="OAuth2"'
+    from arcade_core.schema import ToolRequirements, ToolSecretRequirement
 
-    requirement = ToolAuthRequirement(provider_type="another_type")
-    assert get_toolkit_auth_type(requirement=requirement) == 'authType="another_type"'
+    tool_req = ToolRequirements(authorization=ToolAuthRequirement(provider_type=AuthProviderType.oauth2.value))
+    assert get_toolkit_auth_type(tool_req=tool_req) == 'authType="OAuth2"'
 
-    requirement = ToolAuthRequirement(provider_type="")
-    assert get_toolkit_auth_type(requirement=requirement) == ""
+    tool_req = ToolRequirements(authorization=ToolAuthRequirement(provider_type="another_type"))
+    assert get_toolkit_auth_type(tool_req=tool_req) == 'authType="another_type"'
+
+    tool_req = ToolRequirements(secrets=[ToolSecretRequirement(key="API_KEY")])
+    assert get_toolkit_auth_type(tool_req=tool_req) == 'authType="API Key"'
 
 
 def test_is_well_known_provider_none():
