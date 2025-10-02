@@ -3,12 +3,17 @@ import os
 import subprocess
 import sys
 
+from arcade_cli.usage.constants import (
+    ARCADE_USAGE_EVENT_DATA,
+    MAX_RETRIES_POSTHOG,
+    TIMEOUT_POSTHOG_ALIAS,
+)
 from arcade_cli.usage.utils import is_tracking_enabled
 
 
 class UsageService:
     def __init__(self) -> None:
-        self.api_key = "phc_g7OuFqZEAVwIgRdtnZkjvBpy9weQ1f9VJW6YP1SzQRF"
+        self.api_key = "phc_hIqUQyJpf2TP4COePO5jEpkGeUXipa7KqTEyDeRsTmB"
         self.host = "https://us.i.posthog.com"
 
     def alias(self, previous_id: str, distinct_id: str) -> None:
@@ -30,8 +35,8 @@ class UsageService:
             posthog = Posthog(
                 project_api_key=self.api_key,
                 host=self.host,
-                timeout=2,  # Short timeout
-                max_retries=1,
+                timeout=TIMEOUT_POSTHOG_ALIAS,
+                max_retries=MAX_RETRIES_POSTHOG,
             )
 
             posthog.alias(previous_id=previous_id, distinct_id=distinct_id)
@@ -70,7 +75,7 @@ class UsageService:
 
         # Pass data via environment variable (works on all platforms)
         env = os.environ.copy()
-        env["ARCADE_USAGE_EVENT_DATA"] = event_data
+        env[ARCADE_USAGE_EVENT_DATA] = event_data
 
         if sys.platform == "win32":
             # Windows: Use DETACHED_PROCESS to fully detach from parent console

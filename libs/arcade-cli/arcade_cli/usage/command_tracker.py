@@ -6,6 +6,18 @@ from importlib import metadata
 from typing import Any
 
 import typer
+from arcade_cli.usage.constants import (
+    EVENT_CLI_COMMAND_EXECUTED,
+    EVENT_CLI_COMMAND_FAILED,
+    PROP_CLI_VERSION,
+    PROP_COMMAND_NAME,
+    PROP_DURATION_MS,
+    PROP_ERROR_MESSAGE,
+    PROP_OS_RELEASE,
+    PROP_OS_TYPE,
+    PROP_RUNTIME_LANGUAGE,
+    PROP_RUNTIME_VERSION,
+)
 from arcade_cli.usage.identity import UsageIdentity
 from arcade_cli.usage.usage_service import UsageService
 from arcade_cli.usage.utils import is_tracking_enabled
@@ -20,7 +32,7 @@ class CommandTracker:
         self.usage_service = UsageService()
         self.identity = UsageIdentity()
         self._cli_version: str | None = None
-        self._python_version: str | None = None
+        self._runtime_version: str | None = None
 
     @property
     def cli_version(self) -> str:
@@ -33,12 +45,19 @@ class CommandTracker:
         return self._cli_version
 
     @property
-    def python_version(self) -> str:
-        """Get Python version, cached after first access."""
-        if self._python_version is None:
+    def runtime_language(self) -> str:
+        """Get the runtime language (always 'python' for this CLI)."""
+        return "python"
+
+    @property
+    def runtime_version(self) -> str:
+        """Get runtime version, cached after first access."""
+        if self._runtime_version is None:
             version_info = sys.version_info
-            self._python_version = f"{version_info.major}.{version_info.minor}.{version_info.micro}"
-        return self._python_version
+            self._runtime_version = (
+                f"{version_info.major}.{version_info.minor}.{version_info.micro}"
+            )
+        return self._runtime_version
 
     @property
     def user_id(self) -> str:
@@ -72,7 +91,9 @@ class CommandTracker:
             # Always update the linked principal_id on successful login
             self.identity.set_linked_principal_id(principal_id)
 
-    def _handle_successful_logout(self, command_name: str, duration: float | None = None) -> None:
+    def _handle_successful_logout(
+        self, command_name: str, duration_ms: float | None = None
+    ) -> None:
         """Handle a successful logout event.
 
         Upon a successful logout, we rotate the anon_id and clear the linked principal_id.
@@ -83,19 +104,20 @@ class CommandTracker:
 
         # Send logout event as the authenticated user before resetting to anonymous
         properties: dict[str, Any] = {
-            "command_name": command_name,
-            "cli_version": self.cli_version,
-            "python_version": self.python_version,
-            "os_type": platform.system(),
-            "os_release": platform.release(),
+            PROP_COMMAND_NAME: command_name,
+            PROP_CLI_VERSION: self.cli_version,
+            PROP_RUNTIME_LANGUAGE: self.runtime_language,
+            PROP_RUNTIME_VERSION: self.runtime_version,
+            PROP_OS_TYPE: platform.system(),
+            PROP_OS_RELEASE: platform.release(),
         }
-        if duration:
-            properties["duration"] = round(duration, 2)  # milliseconds
+        if duration_ms:
+            properties[PROP_DURATION_MS] = round(duration_ms)
 
         # Check if using anon_id
         is_anon = self.user_id == self.identity.anon_id
         self.usage_service.capture(
-            "CLI Command Executed", self.user_id, properties=properties, is_anon=is_anon
+            EVENT_CLI_COMMAND_EXECUTED, self.user_id, properties=properties, is_anon=is_anon
         )
 
         # Only rotate anon_id if user was actually authenticated
@@ -106,7 +128,7 @@ class CommandTracker:
         self,
         command_name: str,
         success: bool,
-        duration: float | None = None,
+        duration_ms: float | None = None,
         error_message: str | None = None,
         is_login: bool = False,
         is_logout: bool = False,
@@ -116,7 +138,7 @@ class CommandTracker:
         Args:
             command_name: The name of the CLI command that was executed.
             success: Whether the command was successfully executed.
-            duration: The duration of the command execution in milliseconds.
+            duration_ms: The duration of the command execution in milliseconds.
             error_message: The error message if the command failed.
             is_login: Whether this is a login command.
             is_logout: Whether this is a logout command.
@@ -128,7 +150,7 @@ class CommandTracker:
             self._handle_successful_login()
 
         elif is_logout and success:
-            self._handle_successful_logout(command_name, duration)
+            self._handle_successful_logout(command_name, duration_ms)
             return
 
         # Edge case: Lazy alias check for other commands (if user authenticated via side path)
@@ -140,21 +162,22 @@ class CommandTracker:
                 )
                 self.identity.set_linked_principal_id(principal_id)
 
-        event_name = "CLI Command Executed" if success else "CLI Command Failed"
+        event_name = EVENT_CLI_COMMAND_EXECUTED if success else EVENT_CLI_COMMAND_FAILED
 
         properties: dict[str, Any] = {
-            "command_name": command_name,
-            "cli_version": self.cli_version,
-            "python_version": self.python_version,
-            "os_type": platform.system(),
-            "os_release": platform.release(),
+            PROP_COMMAND_NAME: command_name,
+            PROP_CLI_VERSION: self.cli_version,
+            PROP_RUNTIME_LANGUAGE: self.runtime_language,
+            PROP_RUNTIME_VERSION: self.runtime_version,
+            PROP_OS_TYPE: platform.system(),
+            PROP_OS_RELEASE: platform.release(),
         }
 
         if not success and error_message:
-            properties["error_message"] = error_message
+            properties[PROP_ERROR_MESSAGE] = error_message
 
-        if duration:
-            properties["duration"] = round(duration, 2)  # milliseconds
+        if duration_ms:
+            properties[PROP_DURATION_MS] = round(duration_ms)
 
         # Check if using anon_id (not authenticated)
         is_anon = self.user_id == self.identity.anon_id
@@ -181,7 +204,7 @@ class TrackedTyperCommand(TyperCommand):
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
                 success=True,
-                duration=duration * 1000,
+                duration_ms=duration * 1000,
                 is_login=is_login,
                 is_logout=is_logout,
             )
@@ -195,7 +218,7 @@ class TrackedTyperCommand(TyperCommand):
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
                 success=False,
-                duration=duration * 1000,
+                duration_ms=duration * 1000,
                 error_message=error_msg,
                 is_login=is_login,
                 is_logout=is_logout,
@@ -265,7 +288,7 @@ class TrackedTyper(typer.Typer):
                     command_tracker.track_command_execution(
                         command_name,
                         success=False,
-                        duration=duration,
+                        duration_ms=duration,
                         error_message=str(e)[:300],
                     )
 

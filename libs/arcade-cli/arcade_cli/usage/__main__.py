@@ -8,6 +8,13 @@ import json
 import os
 import threading
 
+from arcade_cli.usage.constants import (
+    ARCADE_USAGE_EVENT_DATA,
+    MAX_RETRIES_POSTHOG,
+    PROP_PROCESS_PERSON_PROFILE,
+    TIMEOUT_POSTHOG_CAPTURE,
+    TIMEOUT_SUBPROCESS_EXIT,
+)
 from posthog import Posthog
 
 
@@ -19,21 +26,21 @@ def _timeout_exit() -> None:
 def main() -> None:
     """Capture a PostHog event from environment variable."""
 
-    timeout_timer = threading.Timer(10.0, _timeout_exit)
+    timeout_timer = threading.Timer(TIMEOUT_SUBPROCESS_EXIT, _timeout_exit)
     timeout_timer.daemon = True
     timeout_timer.start()
 
     try:
-        event_data = json.loads(os.environ["ARCADE_USAGE_EVENT_DATA"])
+        event_data = json.loads(os.environ[ARCADE_USAGE_EVENT_DATA])
 
         if event_data.get("is_anon", False):
-            event_data["properties"]["$process_person_profile"] = False
+            event_data["properties"][PROP_PROCESS_PERSON_PROFILE] = False
 
         posthog = Posthog(
             project_api_key=event_data["api_key"],
             host=event_data["host"],
-            timeout=5,
-            max_retries=1,
+            timeout=TIMEOUT_POSTHOG_CAPTURE,
+            max_retries=MAX_RETRIES_POSTHOG,
         )
 
         posthog.capture(

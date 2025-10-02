@@ -69,24 +69,34 @@ class TestCliVersion:
         assert tracker.cli_version == "unknown"
 
 
-class TestPythonVersion:
-    """Tests for python_version property."""
+class TestRuntimeLanguage:
+    """Tests for runtime_language property."""
 
-    def test_matches_sys_version_info(self) -> None:
-        """Test that python_version matches sys.version_info."""
+    def test_returns_python(self) -> None:
+        """Test that runtime_language returns 'python'."""
         tracker = CommandTracker()
 
-        version = tracker.python_version
+        assert tracker.runtime_language == "python"
+
+
+class TestRuntimeVersion:
+    """Tests for runtime_version property."""
+
+    def test_matches_sys_version_info(self) -> None:
+        """Test that runtime_version matches sys.version_info."""
+        tracker = CommandTracker()
+
+        version = tracker.runtime_version
         expected = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
         assert version == expected
 
     def test_caches_version(self) -> None:
-        """Test that python_version caches the version after first access."""
+        """Test that runtime_version caches the version after first access."""
         tracker = CommandTracker()
 
-        first_access = tracker.python_version
-        second_access = tracker.python_version
+        first_access = tracker.runtime_version
+        second_access = tracker.runtime_version
 
         # Should return the same object b/c it's cached
         assert first_access is second_access
@@ -213,15 +223,15 @@ class TestHandleSuccessfulLogout:
         mock_dependencies["identity"].get_distinct_id.return_value = "user-123"
 
         tracker = CommandTracker()
-        tracker._handle_successful_logout("logout", duration=100.5)
+        tracker._handle_successful_logout("logout", duration_ms=100.5)
 
         mock_dependencies["service"].capture.assert_called_once()
         call_args = mock_dependencies["service"].capture.call_args
 
-        assert call_args[0][0] == "CLI Command Executed"
+        assert call_args[0][0] == "CLI execution succeeded"
         assert call_args[0][1] == "user-123"
         assert call_args[1]["properties"]["command_name"] == "logout"
-        assert call_args[1]["properties"]["duration"] == 100.5
+        assert call_args[1]["properties"]["duration_ms"] == round(100.5)
 
     def test_resets_to_anonymous_when_was_authenticated(self, mock_dependencies: dict) -> None:
         """Test that logout resets to anonymous when user was authenticated."""
@@ -256,10 +266,10 @@ class TestHandleSuccessfulLogout:
         mock_dependencies["identity"].get_distinct_id.return_value = "anon-123"
 
         tracker = CommandTracker()
-        tracker._handle_successful_logout("logout", duration=250.75)
+        tracker._handle_successful_logout("logout", duration_ms=250.75)
 
         call_args = mock_dependencies["service"].capture.call_args
-        assert call_args[1]["properties"]["duration"] == 250.75
+        assert call_args[1]["properties"]["duration_ms"] == round(250.75)
 
 
 class TestTrackCommandExecution:
@@ -285,15 +295,15 @@ class TestTrackCommandExecution:
         mock_dependencies["identity"].anon_id = "anon-456"
 
         tracker = CommandTracker()
-        tracker.track_command_execution("test.command", success=True, duration=50.25)
+        tracker.track_command_execution("test.command", success=True, duration_ms=50.25)
 
         mock_dependencies["service"].capture.assert_called_once()
         call_args = mock_dependencies["service"].capture.call_args
 
-        assert call_args[0][0] == "CLI Command Executed"
+        assert call_args[0][0] == "CLI execution succeeded"
         assert call_args[0][1] == "user-789"
         assert call_args[1]["properties"]["command_name"] == "test.command"
-        assert call_args[1]["properties"]["duration"] == 50.25
+        assert call_args[1]["properties"]["duration_ms"] == round(50.25)
 
     @patch("arcade_cli.usage.command_tracker.platform")
     def test_tracks_failed_command(self, mock_platform: MagicMock, mock_dependencies: dict) -> None:
@@ -311,7 +321,7 @@ class TestTrackCommandExecution:
         mock_dependencies["service"].capture.assert_called_once()
         call_args = mock_dependencies["service"].capture.call_args
 
-        assert call_args[0][0] == "CLI Command Failed"
+        assert call_args[0][0] == "CLI execution failed"
         assert call_args[1]["properties"]["error_message"] == "Something went wrong"
 
     def test_handles_login_command(self, mock_dependencies: dict) -> None:
@@ -360,10 +370,10 @@ class TestTrackCommandExecution:
         mock_dependencies["identity"].anon_id = "anon-456"
 
         tracker = CommandTracker()
-        tracker.track_command_execution("test", success=True, duration=123.456789)
+        tracker.track_command_execution("test", success=True, duration_ms=123.456789)
 
         call_args = mock_dependencies["service"].capture.call_args
-        assert call_args[1]["properties"]["duration"] == 123.46
+        assert call_args[1]["properties"]["duration_ms"] == round(123.46)
 
     @patch("arcade_cli.usage.command_tracker.platform")
     def test_sets_is_anon_flag_correctly(
@@ -427,4 +437,4 @@ class TestTrackCommandExecution:
         call_args = mock_dependencies["service"].capture.call_args
         properties = call_args[1]["properties"]
 
-        assert "duration" not in properties
+        assert "duration_ms" not in properties

@@ -16,13 +16,19 @@ from typing import Any
 import httpx
 import yaml
 from arcade_cli.constants import ARCADE_CONFIG_PATH, CREDENTIALS_FILE_PATH
+from arcade_cli.usage.constants import (
+    KEY_ANON_ID,
+    KEY_LINKED_PRINCIPAL_ID,
+    TIMEOUT_ARCADE_API,
+    USAGE_FILE_NAME,
+)
 
 
 class UsageIdentity:
     """Manages user identity for PostHog analytics tracking."""
 
     def __init__(self) -> None:
-        self.usage_file_path = os.path.join(ARCADE_CONFIG_PATH, "usage.json")
+        self.usage_file_path = os.path.join(ARCADE_CONFIG_PATH, USAGE_FILE_NAME)
         self._data: dict[str, Any] | None = None
 
     def load_or_create(self) -> dict[str, Any]:
@@ -44,7 +50,7 @@ class UsageIdentity:
                         fcntl.flock(f.fileno(), fcntl.LOCK_SH)
                     try:
                         data = json.load(f)
-                        if isinstance(data, dict) and "anon_id" in data:
+                        if isinstance(data, dict) and KEY_ANON_ID in data:
                             self._data = data
                             return self._data
                     finally:
@@ -54,7 +60,7 @@ class UsageIdentity:
             except Exception:  # noqa: S110
                 pass
 
-        new_data = {"anon_id": str(uuid.uuid4()), "linked_principal_id": None}
+        new_data = {KEY_ANON_ID: str(uuid.uuid4()), KEY_LINKED_PRINCIPAL_ID: None}
 
         self._write_atomic(new_data)
         self._data = new_data
@@ -104,7 +110,7 @@ class UsageIdentity:
         data = self.load_or_create()
 
         # Check if we have a persisted principal_id first
-        linked_principal_id = data.get("linked_principal_id")
+        linked_principal_id = data.get(KEY_LINKED_PRINCIPAL_ID)
         if linked_principal_id:
             return str(linked_principal_id)
 
@@ -114,7 +120,7 @@ class UsageIdentity:
             return principal_id
 
         # Fall back to anon_id if not authenticated
-        return str(data["anon_id"])
+        return str(data[KEY_ANON_ID])
 
     def get_principal_id(self) -> str | None:
         """Fetch principal_id from Arcade Cloud API.
@@ -138,7 +144,7 @@ class UsageIdentity:
             response = httpx.get(
                 "https://cloud.arcade.dev/api/v1/auth/validate",
                 headers={"accept": "application/json", "Authorization": f"Bearer {api_key}"},
-                timeout=2.0,
+                timeout=TIMEOUT_ARCADE_API,
             )
 
             if response.status_code == 200:
@@ -164,7 +170,7 @@ class UsageIdentity:
         data = self.load_or_create()
         principal_id = self.get_principal_id()
 
-        return principal_id is not None and principal_id != data.get("linked_principal_id")
+        return principal_id is not None and principal_id != data.get(KEY_LINKED_PRINCIPAL_ID)
 
     def reset_to_anonymous(self) -> None:
         """Generate new anonymous ID and clear linked principal_id.
@@ -173,7 +179,7 @@ class UsageIdentity:
         accounts on the same machine
         """
         # Create fresh data with only anon_id
-        new_data = {"anon_id": str(uuid.uuid4()), "linked_principal_id": None}
+        new_data = {KEY_ANON_ID: str(uuid.uuid4()), KEY_LINKED_PRINCIPAL_ID: None}
 
         self._write_atomic(new_data)
         self._data = new_data
@@ -185,7 +191,7 @@ class UsageIdentity:
             principal_id: The principal_id to link to the current anon_id
         """
         data = self.load_or_create()
-        data["linked_principal_id"] = principal_id
+        data[KEY_LINKED_PRINCIPAL_ID] = principal_id
 
         self._write_atomic(data)
         self._data = data
@@ -198,4 +204,4 @@ class UsageIdentity:
             str: The anonymous ID
         """
         data = self.load_or_create()
-        return str(data["anon_id"])
+        return str(data[KEY_ANON_ID])
