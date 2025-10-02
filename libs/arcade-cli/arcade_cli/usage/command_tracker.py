@@ -11,6 +11,8 @@ from arcade_cli.usage.constants import (
     EVENT_CLI_COMMAND_FAILED,
     PROP_CLI_VERSION,
     PROP_COMMAND_NAME,
+    PROP_DEVICE_MONOTONIC_END,
+    PROP_DEVICE_MONOTONIC_START,
     PROP_DURATION_MS,
     PROP_ERROR_MESSAGE,
     PROP_OS_RELEASE,
@@ -92,7 +94,11 @@ class CommandTracker:
             self.identity.set_linked_principal_id(principal_id)
 
     def _handle_successful_logout(
-        self, command_name: str, duration_ms: float | None = None
+        self,
+        command_name: str,
+        duration_ms: float | None = None,
+        monotonic_start: float | None = None,
+        monotonic_end: float | None = None,
     ) -> None:
         """Handle a successful logout event.
 
@@ -114,6 +120,12 @@ class CommandTracker:
         if duration_ms:
             properties[PROP_DURATION_MS] = round(duration_ms)
 
+        if monotonic_start is not None:
+            properties[PROP_DEVICE_MONOTONIC_START] = monotonic_start
+
+        if monotonic_end is not None:
+            properties[PROP_DEVICE_MONOTONIC_END] = monotonic_end
+
         # Check if using anon_id
         is_anon = self.user_id == self.identity.anon_id
         self.usage_service.capture(
@@ -132,6 +144,8 @@ class CommandTracker:
         error_message: str | None = None,
         is_login: bool = False,
         is_logout: bool = False,
+        monotonic_start: float | None = None,
+        monotonic_end: float | None = None,
     ) -> None:
         """Track command execution event.
 
@@ -142,6 +156,8 @@ class CommandTracker:
             error_message: The error message if the command failed.
             is_login: Whether this is a login command.
             is_logout: Whether this is a logout command.
+            monotonic_start: Monotonic clock timestamp at command start.
+            monotonic_end: Monotonic clock timestamp at command end.
         """
         if not is_tracking_enabled():
             return
@@ -150,7 +166,9 @@ class CommandTracker:
             self._handle_successful_login()
 
         elif is_logout and success:
-            self._handle_successful_logout(command_name, duration_ms)
+            self._handle_successful_logout(
+                command_name, duration_ms, monotonic_start, monotonic_end
+            )
             return
 
         # Edge case: Lazy alias check for other commands (if user authenticated via side path)
@@ -179,6 +197,12 @@ class CommandTracker:
         if duration_ms:
             properties[PROP_DURATION_MS] = round(duration_ms)
 
+        if monotonic_start is not None:
+            properties[PROP_DEVICE_MONOTONIC_START] = monotonic_start
+
+        if monotonic_end is not None:
+            properties[PROP_DEVICE_MONOTONIC_END] = monotonic_end
+
         # Check if using anon_id (not authenticated)
         is_anon = self.user_id == self.identity.anon_id
         self.usage_service.capture(event_name, self.user_id, properties=properties, is_anon=is_anon)
@@ -198,8 +222,10 @@ class TrackedTyperCommand(TyperCommand):
         is_logout = command_name == "logout"
         try:
             start_time = time.time()
+            start_monotonic = time.monotonic()
             result = super().invoke(ctx)
             end_time = time.time()
+            end_monotonic = time.monotonic()
             duration = end_time - start_time
             command_tracker.track_command_execution(
                 command_tracker.get_full_command_path(ctx),
@@ -207,9 +233,12 @@ class TrackedTyperCommand(TyperCommand):
                 duration_ms=duration * 1000,
                 is_login=is_login,
                 is_logout=is_logout,
+                monotonic_start=start_monotonic,
+                monotonic_end=end_monotonic,
             )
         except Exception as e:
             end_time = time.time()
+            end_monotonic = time.monotonic()
             duration = end_time - start_time
 
             from arcade_cli.utils import CLIError
@@ -222,6 +251,8 @@ class TrackedTyperCommand(TyperCommand):
                 error_message=error_msg,
                 is_login=is_login,
                 is_logout=is_logout,
+                monotonic_start=start_monotonic,
+                monotonic_end=end_monotonic,
             )
 
             if isinstance(e, CLIError):
@@ -275,12 +306,14 @@ class TrackedTyper(typer.Typer):
 
                 command_name = ctx.invoked_subcommand if ctx and ctx.invoked_subcommand else "root"
                 start_time = time.time()
+                start_monotonic = time.monotonic()
 
                 try:
                     result = func(*args, **cb_kwargs)
                 except Exception as e:
                     # Track callback failure (auth failures, version checks, etc.)
                     end_time = time.time()
+                    end_monotonic = time.monotonic()
                     duration = (end_time - start_time) * 1000
 
                     from arcade_cli.utils import CLIError
@@ -290,6 +323,8 @@ class TrackedTyper(typer.Typer):
                         success=False,
                         duration_ms=duration,
                         error_message=str(e)[:300],
+                        monotonic_start=start_monotonic,
+                        monotonic_end=end_monotonic,
                     )
 
                     if isinstance(e, CLIError):
