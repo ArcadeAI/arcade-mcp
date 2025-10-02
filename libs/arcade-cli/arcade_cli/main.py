@@ -382,7 +382,7 @@ def evals(
     execute any functions decorated with @tool_eval, and display the results.
     """
     require_dependency(
-        package_name="arcade_evalss",
+        package_name="arcade_evals",
         command_name="evals",
         install_command=r"pip install 'arcade-mcp\[evals]'",
     )
