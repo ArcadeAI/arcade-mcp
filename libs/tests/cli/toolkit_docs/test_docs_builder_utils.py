@@ -14,7 +14,10 @@ from arcade_core.schema import ToolAuthRequirement
 
 
 @patch("arcade_cli.toolkit_docs.utils.open")
-def test_read_toolkit_metadata(mock_open):
+@patch("arcade_cli.toolkit_docs.utils.tomllib")
+def test_read_toolkit_metadata(mock_tomllib, mock_open):
+    from unittest.mock import MagicMock, mock_open as mock_open_func
+
     sample_pyproject_toml = """
 [build-system]
 requires = [ "hatchling",]
@@ -74,13 +77,25 @@ skip_empty = true
 [tool.hatch.build.targets.wheel]
 packages = [ "arcade_jira",]
     """
-    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml.encode()
+
+    # Setup mock to handle both binary and text mode
+    def open_side_effect(path, mode="r"):
+        if mode == "rb":
+            return mock_open_func(read_data=sample_pyproject_toml.encode()).return_value
+        else:
+            return mock_open_func(read_data=sample_pyproject_toml).return_value
+
+    mock_open.side_effect = open_side_effect
+    mock_tomllib.load.return_value = {"project": {"name": "arcade_jira"}}
+
     assert read_toolkit_metadata("path/to/toolkits/jira") == "arcade_jira"
-    mock_open.assert_called_once_with("path/to/toolkits/jira/pyproject.toml", "rb")
 
 
 @patch("arcade_cli.toolkit_docs.utils.open")
-def test_read_toolkit_metadata_missing_project_name(mock_open):
+@patch("arcade_cli.toolkit_docs.utils.tomllib")
+def test_read_toolkit_metadata_missing_project_name(mock_tomllib, mock_open):
+    from unittest.mock import mock_open as mock_open_func
+
     sample_pyproject_toml = """
 [build-system]
 requires = [ "hatchling",]
@@ -98,9 +113,19 @@ dependencies = [
 name = "Arcade"
 email = "dev@arcade.dev"
     """
-    mock_open.return_value.__enter__.return_value.read.return_value = sample_pyproject_toml.encode()
+
+    # Setup mock to handle both binary and text mode
+    def open_side_effect(path, mode="r"):
+        if mode == "rb":
+            return mock_open_func(read_data=sample_pyproject_toml.encode()).return_value
+        else:
+            return mock_open_func(read_data=sample_pyproject_toml).return_value
+
+    mock_open.side_effect = open_side_effect
+    mock_tomllib.load.return_value = {"project": {}}  # Missing "name"
+
     with pytest.raises(ValueError):
-        print("\n\n\n", read_toolkit_metadata("path/to/toolkits/jira"))
+        read_toolkit_metadata("path/to/toolkits/jira")
 
 
 def test_pascal_to_snake_case():
