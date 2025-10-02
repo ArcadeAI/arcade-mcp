@@ -129,10 +129,10 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
 
 def get_toolkit_auth_type(tool_req: ToolRequirements | None) -> str:
     if tool_req.authorization:
-        if tool_req.provider_type == AuthProviderType.oauth2.value:
+        if tool_req.authorization.provider_type == AuthProviderType.oauth2.value:
             return 'authType="OAuth2"'
         else:
-            return f'authType="{tool_req.provider_type}"'
+            return f'authType="{tool_req.authorization.provider_type}"'
     elif tool_req.secrets:
         return 'authType="API Key"'
     return 'authType="None"'
