@@ -14,8 +14,17 @@ The stdio (standard input/output) transport is used for direct client connection
 
 ### Usage
 
+**Recommended: Using Arcade CLI**
+
 ```bash
 # Run with stdio transport
+arcade mcp stdio
+```
+
+**Alternative: Direct Python**
+
+```bash
+# Using the module directly
 python -m arcade_mcp_server stdio
 
 # Or with MCPApp
@@ -24,14 +33,20 @@ app.run(transport="stdio")
 
 ### Client Configuration
 
-For Claude Desktop, configure in `~/Library/Application Support/Claude/claude_desktop_config.json`:
+For Claude Desktop, use the `arcade configure` command:
+
+```bash
+arcade configure claude --from-local
+```
+
+Or manually edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "my-tools": {
-      "command": "python",
-      "args": ["-m", "arcade_mcp_server", "stdio"],
+      "command": "arcade",
+      "args": ["mcp", "stdio"],
       "cwd": "/path/to/your/tools"
     }
   }
@@ -51,12 +66,21 @@ The HTTP transport provides REST/SSE endpoints for web-based clients.
 
 ### Usage
 
+**Recommended: Using Arcade CLI**
+
 ```bash
 # Run with HTTP transport (default)
-python -m arcade_mcp_server
+arcade mcp
 
 # With specific host and port
-python -m arcade_mcp_server --host 0.0.0.0 --port 8080
+arcade mcp --host 0.0.0.0 --port 8080
+```
+
+**Alternative: Direct Python**
+
+```bash
+# Using the module directly
+python -m arcade_mcp_server
 
 # Or with MCPApp
 app.run(transport="http", host="0.0.0.0", port=8080)
@@ -73,9 +97,11 @@ When running in HTTP mode, the server provides:
 
 ### Development Features
 
+**With Arcade CLI:**
+
 ```bash
 # Enable hot reload and debug mode
-python -m arcade_mcp_server --reload --debug
+arcade mcp --reload --debug
 
 # This enables:
 # - Automatic restart on code changes

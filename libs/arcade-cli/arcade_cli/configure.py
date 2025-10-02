@@ -80,9 +80,8 @@ def configure_claude_local(server_name: str, port: int = 8000, path: Path | None
         f"✅ Configured Claude Desktop by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    console.print(
-        f"   MCP client config file: {config_path.as_posix().replace(' ', '\\ ')}", style="dim"
-    )
+    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    console.print(f"   MCP client config file: {config_file_path}", style="dim")
     console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     console.print("   Restart Claude Desktop for changes to take effect.", style="yellow")
 
@@ -123,9 +122,8 @@ def configure_cursor_local(server_name: str, port: int = 8000, path: Path | None
         f"✅ Configured Cursor by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    console.print(
-        f"   MCP client config file: {config_path.as_posix().replace(' ', '\\ ')}", style="dim"
-    )
+    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    console.print(f"   MCP client config file: {config_file_path}", style="dim")
     console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     console.print("   Restart Cursor for changes to take effect.", style="yellow")
 
@@ -169,9 +167,8 @@ def configure_vscode_local(server_name: str, port: int = 8000, path: Path | None
         f"✅ Configured VS Code by adding local MCP server '{server_name}' to the configuration",
         style="green",
     )
-    console.print(
-        f"   MCP client config file: {config_path.as_posix().replace(' ', '\\ ')}", style="dim"
-    )
+    config_file_path = config_path.as_posix().replace(" ", "\\ ")
+    console.print(f"   MCP client config file: {config_file_path}", style="dim")
     console.print(f"   MCP Server URL: http://localhost:{port}/mcp", style="dim")
     console.print("   Restart VS Code for changes to take effect.", style="yellow")
 
@@ -201,12 +198,10 @@ def configure_client(
         path: Custom path to the MCP client configuration file
     """
     if not from_local and not from_arcade:
-        console.print("[red]Must specify either --from-local or --from-arcade[/red]")
-        raise typer.Exit(1)
+        raise typer.BadParameter("Must specify either --from-local or --from-arcade")
 
     if from_local and from_arcade:
-        console.print("[red]Cannot specify both --from-local and --from-arcade[/red]")
-        raise typer.Exit(1)
+        raise typer.BadParameter("Cannot specify both --from-local and --from-arcade")
 
     # Default server name if not provided
     if not server_name:
@@ -231,6 +226,6 @@ def configure_client(
         else:
             configure_vscode_arcade(server_name, path)
     else:
-        console.print(f"[red]Unknown client: {client}[/red]")
-        console.print("Supported clients: claude, cursor, vscode")
-        raise typer.Exit(1)
+        raise typer.BadParameter(
+            f"Unknown client: {client}. Supported clients: claude, cursor, vscode."
+        )
