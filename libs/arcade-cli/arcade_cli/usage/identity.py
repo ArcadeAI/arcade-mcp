@@ -106,7 +106,7 @@ class UsageIdentity:
         # Check if we have a persisted principal_id first
         linked_principal_id = data.get("linked_principal_id")
         if linked_principal_id:
-            return linked_principal_id
+            return str(linked_principal_id)
 
         # Try to fetch principal_id from API if not persisted
         principal_id = self.get_principal_id()
@@ -114,7 +114,7 @@ class UsageIdentity:
             return principal_id
 
         # Fall back to anon_id if not authenticated
-        return data["anon_id"]
+        return str(data["anon_id"])
 
     def get_principal_id(self) -> str | None:
         """Fetch principal_id from Arcade Cloud API.
@@ -143,7 +143,8 @@ class UsageIdentity:
 
             if response.status_code == 200:
                 data = response.json()
-                return data.get("data", {}).get("principal_id")
+                principal_id = data.get("data", {}).get("principal_id")
+                return str(principal_id) if principal_id else None
 
         except Exception:  # noqa: S110
             # Silent failure - don't disrupt CLI
@@ -197,4 +198,4 @@ class UsageIdentity:
             str: The anonymous ID
         """
         data = self.load_or_create()
-        return data["anon_id"]
+        return str(data["anon_id"])

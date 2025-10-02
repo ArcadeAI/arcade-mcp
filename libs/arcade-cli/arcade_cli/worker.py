@@ -344,3 +344,4 @@ def get_toolkits(client: Arcade, worker_id: str | None) -> str:
         return ""
     except Exception as e:
         handle_cli_error(f"Error getting server tools: {e}")
+    return ""

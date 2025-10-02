@@ -3,7 +3,7 @@ import platform
 import sys
 import time
 from importlib import metadata
-from typing import Any, Callable
+from typing import Any
 
 import typer
 from arcade_cli.usage.identity import UsageIdentity
@@ -19,8 +19,8 @@ class CommandTracker:
     def __init__(self) -> None:
         self.usage_service = UsageService()
         self.identity = UsageIdentity()
-        self._cli_version = None
-        self._python_version = None
+        self._cli_version: str | None = None
+        self._python_version: str | None = None
 
     @property
     def cli_version(self) -> str:
@@ -48,7 +48,7 @@ class CommandTracker:
     def get_full_command_path(self, ctx: typer.Context) -> str:
         """Get the full command path by traversing the context hierarchy."""
         command_parts = []
-        current_ctx = ctx
+        current_ctx: Any = ctx
         while current_ctx and current_ctx.parent:
             if current_ctx.command.name:
                 command_parts.append(current_ctx.command.name)
@@ -82,7 +82,7 @@ class CommandTracker:
         was_authenticated = data.get("linked_principal_id") is not None
 
         # Send logout event as the authenticated user before resetting to anonymous
-        properties = {
+        properties: dict[str, Any] = {
             "command_name": command_name,
             "cli_version": self.cli_version,
             "python_version": self.python_version,
@@ -142,7 +142,7 @@ class CommandTracker:
 
         event_name = "CLI Command Executed" if success else "CLI Command Failed"
 
-        properties = {
+        properties: dict[str, Any] = {
             "command_name": command_name,
             "cli_version": self.cli_version,
             "python_version": self.python_version,
@@ -168,7 +168,7 @@ command_tracker = CommandTracker()
 class TrackedTyperCommand(TyperCommand):
     """Custom TyperCommand that tracks individual command execution."""
 
-    def invoke(self, ctx: typer.Context) -> Any:
+    def invoke(self, ctx: Any) -> Any:
         """Override invoke to track command execution."""
         command_name = ctx.command.name
         is_login = command_name == "login"
@@ -212,13 +212,12 @@ class TrackedTyperCommand(TyperCommand):
 class TrackedTyperGroup(TyperGroup):
     """Custom TyperGroup that creates tracked commands."""
 
-    def command(
-        self, *args, **kwargs
-    ) -> Callable[[typer.models.CommandFunctionType], typer.models.CommandFunctionType]:
+    def command(self, *args: Any, **kwargs: Any) -> Any:
         """Override command decorator to use TrackedTyperCommand."""
         # Set the custom command class
         kwargs["cls"] = TrackedTyperCommand
-        return super().command(*args, **kwargs)
+        result: Any = super().command(*args, **kwargs)
+        return result
 
     def list_commands(self, ctx: Context) -> list[str]:  # type: ignore[override]
         """Return list of commands in the order appear."""
@@ -229,23 +228,22 @@ class TrackedTyper(typer.Typer):
     """Custom Typer that creates tracked commands."""
 
     def command(
-        self, name: str | None = None, *, cls: type[TyperCommand] | None = None, **kwargs
-    ) -> Callable[[typer.models.CommandFunctionType], typer.models.CommandFunctionType]:
+        self, name: str | None = None, *, cls: type[TyperCommand] | None = None, **kwargs: Any
+    ) -> Any:
         """Override command decorator to use TrackedTyperCommand."""
         if cls is None:
             cls = TrackedTyperCommand
 
-        return super().command(name, cls=cls, **kwargs)
+        result: Any = super().command(name, cls=cls, **kwargs)
+        return result
 
-    def callback(
-        self, name: str | None = None, **kwargs
-    ) -> Callable[[typer.models.CommandFunctionType], typer.models.CommandFunctionType]:
+    def callback(self, name: str | None = None, **kwargs: Any) -> Any:
         """Override callback decorator to track callback execution."""
-        original_callback_decorator = super().callback(name, **kwargs)
+        original_callback_decorator: Any = super().callback(name, **kwargs)
 
-        def decorator(func: typer.models.CommandFunctionType) -> typer.models.CommandFunctionType:
+        def decorator(func: Any) -> Any:
             @functools.wraps(func)
-            def tracked_callback(*args, **cb_kwargs) -> Any:
+            def tracked_callback(*args: Any, **cb_kwargs: Any) -> Any:
                 """Wrapper that tracks callback execution."""
                 # Get the context from kwargs (Typer passes it)
                 ctx = cb_kwargs.get("ctx") or (
@@ -278,6 +276,7 @@ class TrackedTyper(typer.Typer):
                 else:
                     return result
 
-            return original_callback_decorator(tracked_callback)
+            result: Any = original_callback_decorator(tracked_callback)
+            return result
 
         return decorator

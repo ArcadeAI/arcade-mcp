@@ -36,7 +36,7 @@ class UsageService:
 
             posthog.alias(previous_id=previous_id, distinct_id=distinct_id)
             posthog.flush()
-        except Exception:
+        except Exception:  # noqa: S110
             # Silent failure - don't disrupt CLI
             pass
 
