@@ -1,7 +1,7 @@
 {
   "name": "GetRecentItemsInfo",
   "fully_qualified_name": "BoxApi.GetRecentItemsInfo@0.1.0",
-  "description": "Fetch recent items accessed by a user in Box2.\n\nRetrieves information on the most recent items a user has accessed in Box2, up to 1000 items or within the last 90 days.",
+  "description": "Fetch recent items accessed by a user in Box.\n\nRetrieves information on the most recent items a user has accessed in Box, up to 1000 items or within the last 90 days.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,

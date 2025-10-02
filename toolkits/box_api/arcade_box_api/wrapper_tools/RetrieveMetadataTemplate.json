@@ -1,7 +1,7 @@
 {
   "name": "RetrieveMetadataTemplate",
   "fully_qualified_name": "BoxApi.RetrieveMetadataTemplate@0.1.0",
-  "description": "Retrieve a metadata template by scope and template key.\n\nThis tool retrieves a metadata template using its `scope` and `templateKey`. It is useful for accessing specific template details for Box2. To find these values, list all templates for an enterprise or globally, or list those applied to specific files or folders.",
+  "description": "Retrieve a metadata template by scope and template key.\n\nThis tool retrieves a metadata template using its `scope` and `templateKey`. It is useful for accessing specific template details for Box. To find these values, list all templates for an enterprise or globally, or list those applied to specific files or folders.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,

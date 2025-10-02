@@ -1,7 +1,7 @@
 {
   "name": "GetPendingCollaborationInvites",
   "fully_qualified_name": "BoxApi.GetPendingCollaborationInvites@0.1.0",
-  "description": "Retrieve user's pending collaboration invites from Box2.\n\nThis tool fetches all pending collaboration invitations for a user from the Box2 service. It should be called when you need to check for any outstanding collaboration invites for a user.",
+  "description": "Retrieve user's pending collaboration invites from Box.\n\nThis tool fetches all pending collaboration invitations for a user from the Box service. It should be called when you need to check for any outstanding collaboration invites for a user.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,

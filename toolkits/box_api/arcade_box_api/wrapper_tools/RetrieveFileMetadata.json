@@ -1,7 +1,7 @@
 {
   "name": "RetrieveFileMetadata",
   "fully_qualified_name": "BoxApi.RetrieveFileMetadata@0.1.0",
-  "description": "Retrieve all metadata for a specific file.\n\nThis tool is used to obtain comprehensive metadata information for a given file. It should be called when there is a need to access detailed metadata associated with a specific file ID in the Box2 service.",
+  "description": "Retrieve all metadata for a specific file.\n\nThis tool is used to obtain comprehensive metadata information for a given file. It should be called when there is a need to access detailed metadata associated with a specific file ID in the Box service.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "file_identifier",
         "required": true,
-        "description": "The unique identifier of a file, obtained from the URL in the Box2 web application. For example, from `https://*.app.box.com/files/123`, the `file_id` is `123`.",
+        "description": "The unique identifier of a file, obtained from the URL in the Box web application. For example, from `https://*.app.box.com/files/123`, the `file_id` is `123`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

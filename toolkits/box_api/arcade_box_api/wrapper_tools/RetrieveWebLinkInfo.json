@@ -1,7 +1,7 @@
 {
   "name": "RetrieveWebLinkInfo",
   "fully_qualified_name": "BoxApi.RetrieveWebLinkInfo@0.1.0",
-  "description": "Retrieve information about a specific web link.\n\nThis tool is used to get details about a web link by its ID. Call this tool when you need information regarding a particular web link from the Box2 service.",
+  "description": "Retrieve information about a specific web link.\n\nThis tool is used to get details about a web link by its ID. Call this tool when you need information regarding a particular web link from the Box service.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,

@@ -1,7 +1,7 @@
 {
   "name": "RetrieveGroupInfo",
   "fully_qualified_name": "BoxApi.RetrieveGroupInfo@0.1.0",
-  "description": "Retrieve detailed information about a specified group.\n\nThis tool fetches information about a group from Box2. It's intended for use by group members or users with admin-level permissions.",
+  "description": "Retrieve detailed information about a specified group.\n\nThis tool fetches information about a group from Box. It's intended for use by group members or users with admin-level permissions.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,

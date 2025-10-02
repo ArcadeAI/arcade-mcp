@@ -1,7 +1,7 @@
 {
   "name": "RemoveFileClassification",
   "fully_qualified_name": "BoxApi.RemoveFileClassification@0.1.0",
-  "description": "Remove classifications from a specified file.\n\nThis tool is used to remove any security classifications from a file in the Box2 service. It should be called when there's a need to clear security classifications.",
+  "description": "Remove classifications from a specified file.\n\nThis tool is used to remove any security classifications from a file in the Box service. It should be called when there's a need to clear security classifications.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "file_identifier",
         "required": true,
-        "description": "The unique identifier for the file whose classification is to be removed. Obtainable from the Box2 file URL.",
+        "description": "The unique identifier for the file whose classification is to be removed. Obtainable from the Box file URL.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,

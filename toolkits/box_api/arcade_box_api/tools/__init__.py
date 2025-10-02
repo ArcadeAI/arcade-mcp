@@ -1427,12 +1427,12 @@ async def retrieve_file_metadata(
     context: ToolContext,
     file_identifier: Annotated[
         str,
-        "The unique identifier of a file, obtained from the URL in the Box2 web application. For example, from `https://*.app.box.com/files/123`, the `file_id` is `123`.",  # noqa: E501
+        "The unique identifier of a file, obtained from the URL in the Box web application. For example, from `https://*.app.box.com/files/123`, the `file_id` is `123`.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_files_id_metadata'."]:
     """Retrieve all metadata for a specific file.
 
-    This tool is used to obtain comprehensive metadata information for a given file. It should be called when there is a need to access detailed metadata associated with a specific file ID in the Box2 service."""  # noqa: E501
+    This tool is used to obtain comprehensive metadata information for a given file. It should be called when there is a need to access detailed metadata associated with a specific file ID in the Box service."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/files/{file_id}/metadata".format(file_id=file_identifier),  # noqa: UP032
@@ -1490,7 +1490,7 @@ async def remove_file_classification(
     context: ToolContext,
     file_identifier: Annotated[
         str,
-        "The unique identifier for the file whose classification is to be removed. Obtainable from the Box2 file URL.",  # noqa: E501
+        "The unique identifier for the file whose classification is to be removed. Obtainable from the Box file URL.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any],
@@ -1498,7 +1498,7 @@ async def remove_file_classification(
 ]:
     """Remove classifications from a specified file.
 
-    This tool is used to remove any security classifications from a file in the Box2 service. It should be called when there's a need to clear security classifications."""  # noqa: E501
+    This tool is used to remove any security classifications from a file in the Box service. It should be called when there's a need to clear security classifications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/files/{file_id}/metadata/enterprise/securityClassification-6VMVochwUWo".format(  # noqa: UP032
@@ -2570,7 +2570,7 @@ async def retrieve_metadata_template(
 ]:
     """Retrieve a metadata template by scope and template key.
 
-    This tool retrieves a metadata template using its `scope` and `templateKey`. It is useful for accessing specific template details for Box2. To find these values, list all templates for an enterprise or globally, or list those applied to specific files or folders."""  # noqa: E501
+    This tool retrieves a metadata template using its `scope` and `templateKey`. It is useful for accessing specific template details for Box. To find these values, list all templates for an enterprise or globally, or list those applied to specific files or folders."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/metadata_templates/{scope}/{template_key}/schema".format(  # noqa: UP032
@@ -2988,9 +2988,9 @@ async def get_pending_collaboration_invites(
         int | None, "The maximum number of collaboration invites to return per page."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_collaborations'."]:
-    """Retrieve user's pending collaboration invites from Box2.
+    """Retrieve user's pending collaboration invites from Box.
 
-    This tool fetches all pending collaboration invitations for a user from the Box2 service. It should be called when you need to check for any outstanding collaboration invites for a user."""  # noqa: E501
+    This tool fetches all pending collaboration invitations for a user from the Box service. It should be called when you need to check for any outstanding collaboration invites for a user."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/collaborations",
@@ -3212,7 +3212,7 @@ async def get_shared_link_info(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_files_id#get_shared_link'."]:
     """Retrieve shared link details for a specific file.
 
-    This tool is used to get information about a shared link for a specified file. It should be called when users need details about the shared link associated with a particular file in the Box2 service."""  # noqa: E501
+    This tool is used to get information about a shared link for a specified file. It should be called when users need details about the shared link associated with a particular file in the Box service."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/files/{file_id}#get_shared_link".format(  # noqa: UP032
@@ -3322,7 +3322,7 @@ async def retrieve_web_link_info(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_web_links_id'."]:
     """Retrieve information about a specific web link.
 
-    This tool is used to get details about a web link by its ID. Call this tool when you need information regarding a particular web link from the Box2 service."""  # noqa: E501
+    This tool is used to get details about a web link by its ID. Call this tool when you need information regarding a particular web link from the Box service."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/web_links/{web_link_id}".format(web_link_id=web_link_id),  # noqa: UP032
@@ -3957,7 +3957,7 @@ async def retrieve_group_info(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_groups_id'."]:
     """Retrieve detailed information about a specified group.
 
-    This tool fetches information about a group from Box2. It's intended for use by group members or users with admin-level permissions."""  # noqa: E501
+    This tool fetches information about a group from Box. It's intended for use by group members or users with admin-level permissions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/groups/{group_id}".format(group_id=group_id),  # noqa: UP032
@@ -4243,7 +4243,7 @@ async def delete_webhook(
 
 
 @tool(requires_auth=OAuth2(id="arcade-box"))
-async def get_box2_events(
+async def get_box_events(
     context: ToolContext,
     event_stream_type: Annotated[
         str | None,
@@ -4434,9 +4434,9 @@ async def get_recent_items_info(
         "A position marker to begin returning results, used for marker-based pagination. Requires `usemarker=true`.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get_recent_items'."]:
-    """Fetch recent items accessed by a user in Box2.
+    """Fetch recent items accessed by a user in Box.
 
-    Retrieves information on the most recent items a user has accessed in Box2, up to 1000 items or within the last 90 days."""  # noqa: E501
+    Retrieves information on the most recent items a user has accessed in Box, up to 1000 items or within the last 90 days."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.box.com/2.0/recent_items",

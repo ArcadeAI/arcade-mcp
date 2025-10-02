@@ -1,7 +1,7 @@
 {
   "name": "GetSharedLinkInfo",
   "fully_qualified_name": "BoxApi.GetSharedLinkInfo@0.1.0",
-  "description": "Retrieve shared link details for a specific file.\n\nThis tool is used to get information about a shared link for a specified file. It should be called when users need details about the shared link associated with a particular file in the Box2 service.",
+  "description": "Retrieve shared link details for a specific file.\n\nThis tool is used to get information about a shared link for a specified file. It should be called when users need details about the shared link associated with a particular file in the Box service.",
   "toolkit": {
     "name": "ArcadeBoxApi",
     "description": null,
