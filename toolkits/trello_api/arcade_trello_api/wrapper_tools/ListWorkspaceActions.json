@@ -1,7 +1,7 @@
 {
   "name": "ListWorkspaceActions",
   "fully_qualified_name": "TrelloApi.ListWorkspaceActions@0.1.0",
-  "description": "Retrieves actions from a specified Trello workspace.\n\nThis tool calls the Trello API to list all actions associated with a specific workspace (organization). It is useful for tracking activity and updates within a workspace.",
+  "description": "Retrieve actions from a specific Workspace.\n\nUse this tool to obtain a list of all actions taken within a specified Trello Workspace. This can help track changes, updates, and other activities.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "workspace_identifier",
         "required": true,
-        "description": "The ID or name of the Trello workspace to retrieve actions from.",
+        "description": "The unique ID or name of the Trello Workspace to retrieve actions for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-organizations-id-actions'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

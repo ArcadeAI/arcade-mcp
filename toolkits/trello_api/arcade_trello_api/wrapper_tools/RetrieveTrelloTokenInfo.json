@@ -1,7 +1,7 @@
 {
   "name": "RetrieveTrelloTokenInfo",
   "fully_qualified_name": "TrelloApi.RetrieveTrelloTokenInfo@0.1.0",
-  "description": "Retrieve information about a Trello token.\n\nUse this tool to get detailed information about a specific Trello token by providing the token value.",
+  "description": "Retrieve information about a Trello token.\n\nUse this tool to get details about a specific Trello token, which may include access permissions and associated user or application information. Call this when you need to verify or inspect Trello token data.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "trello_token_value",
+        "name": "trello_token",
         "required": true,
-        "description": "The specific Trello token to retrieve information about. This is a string representing the token's unique identifier.",
+        "description": "The Trello token string for which you want to retrieve information. This token identifies the authentication session.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,13 +25,19 @@
         "http_endpoint_parameter_name": "token"
       },
       {
-        "name": "include_fields",
+        "name": "token_info_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields like 'dateCreated', 'dateExpires', 'idMember', 'identifier', 'permissions' to retrieve specific token information.",
+        "description": "Specify `all` or a comma-separated list of fields (`dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`) to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["identifier", "idMember", "dateCreated", "dateExpires", "permissions"],
+          "enum": [
+            "identifier",
+            "idMember",
+            "dateCreated",
+            "dateExpires",
+            "permissions"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`"
@@ -42,7 +48,7 @@
       {
         "name": "include_webhooks",
         "required": false,
-        "description": "Set to true to include webhooks in the token information.",
+        "description": "Set to true to include webhooks in the token details.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -58,7 +64,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-tokens-token'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -98,12 +108,18 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "include_fields",
+        "tool_parameter_name": "token_info_fields",
         "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["identifier", "idMember", "dateCreated", "dateExpires", "permissions"],
+          "enum": [
+            "identifier",
+            "idMember",
+            "dateCreated",
+            "dateExpires",
+            "permissions"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`"
@@ -132,7 +148,7 @@
       },
       {
         "name": "token",
-        "tool_parameter_name": "trello_token_value",
+        "tool_parameter_name": "trello_token",
         "description": "",
         "value_schema": {
           "val_type": "string",

@@ -1,7 +1,7 @@
 {
   "name": "ListWorkspaceMembers",
   "fully_qualified_name": "TrelloApi.ListWorkspaceMembers@0.1.0",
-  "description": "Retrieve members of a Trello Workspace.\n\nThis tool retrieves the list of members from a specified Trello Workspace using the Workspace ID.",
+  "description": "Retrieve members of a specified Trello Workspace.\n\nUse this tool to get a list of all members in a specified Trello Workspace by providing the Workspace ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,7 +10,7 @@
   "input": {
     "parameters": [
       {
-        "name": "workspace_id_or_name",
+        "name": "workspace_identifier",
         "required": true,
         "description": "The ID or name of the Trello Workspace to retrieve members from.",
         "value_schema": {
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-organizations-id-members'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "workspace_id_or_name",
+        "tool_parameter_name": "workspace_identifier",
         "description": "The ID or name of the Organization",
         "value_schema": {
           "val_type": "string",

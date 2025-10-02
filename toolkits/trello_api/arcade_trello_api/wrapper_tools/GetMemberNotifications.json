@@ -1,7 +1,7 @@
 {
   "name": "GetMemberNotifications",
   "fully_qualified_name": "TrelloApi.GetMemberNotifications@0.1.0",
-  "description": "Retrieve a member's notifications from Trello.\n\nThis tool fetches notifications for a specific member in Trello. It should be called when there is a need to see updates or alerts relevant to a user in Trello.",
+  "description": "Retrieve notifications for a specific Trello member.\n\nUse this tool to get notifications for a specific member on Trello by providing their member ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "member_identifier",
+        "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose notifications are to be retrieved.",
+        "description": "The ID or username of the Trello member to get notifications for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "notification_filter",
         "required": false,
-        "description": "Filter notifications by type, such as 'all', 'unread', or other valid types.",
+        "description": "Filters notifications by type. Accepts a comma-separated list of types like `addMemberToCard`, `commentCard`, etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "filter"
       },
       {
-        "name": "notification_read_status_filter",
+        "name": "notification_read_status",
         "required": false,
-        "description": "Filter notifications by their read status, choosing from: `all`, `read`, or `unread`.",
+        "description": "Filter notifications by read status: `all`, `read`, or `unread`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "notification_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of notification fields to retrieve specific data.",
+        "description": "Specify `all` or a comma-separated list of notification fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "notification_limit",
         "required": false,
-        "description": "Specify the maximum number of notifications to retrieve, up to 1000.",
+        "description": "Specify the number of notifications to retrieve, up to a maximum of 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "limit"
       },
       {
-        "name": "notification_page_number",
+        "name": "notification_page",
         "required": false,
-        "description": "The page number for paginated notifications. Maximum value is 100.",
+        "description": "Specify the page number of notifications to retrieve, with a maximum value of 100.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -100,9 +100,9 @@
         "http_endpoint_parameter_name": "page"
       },
       {
-        "name": "notification_before_id",
+        "name": "notification_id_before",
         "required": false,
-        "description": "A notification ID to retrieve notifications before the specified ID.",
+        "description": "A notification ID to fetch notifications received before this ID.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,7 +117,7 @@
       {
         "name": "since_notification_id",
         "required": false,
-        "description": "A notification ID to fetch notifications occurring after a specific ID.",
+        "description": "The notification ID to start retrieving notifications from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,7 +132,7 @@
       {
         "name": "member_creator_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to include in the response. Fields should match Trello's member field definitions.",
+        "description": "Specify 'all' or a comma-separated list of member field names to include data about the creator of the notification.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -147,7 +147,7 @@
       {
         "name": "include_entities",
         "required": false,
-        "description": "Include entities in the response. Set to true to include additional entity information.",
+        "description": "Set to 'true' to include entities in notifications; 'false' to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -160,9 +160,9 @@
         "http_endpoint_parameter_name": "entities"
       },
       {
-        "name": "display_notifications",
+        "name": "show_display",
         "required": false,
-        "description": "Set to True to include the display property in the notifications output.",
+        "description": "Set to true to display notifications, otherwise notifications are not shown.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -175,9 +175,9 @@
         "http_endpoint_parameter_name": "display"
       },
       {
-        "name": "include_member_creator_info",
+        "name": "include_member_creator",
         "required": false,
-        "description": "Set to true to include information about the member who created the notification.",
+        "description": "Include the member who created the notification in the response when true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -193,7 +193,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-notifications'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -250,7 +254,7 @@
       },
       {
         "name": "display",
-        "tool_parameter_name": "display_notifications",
+        "tool_parameter_name": "show_display",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -284,7 +288,7 @@
       },
       {
         "name": "read_filter",
-        "tool_parameter_name": "notification_read_status_filter",
+        "tool_parameter_name": "notification_read_status",
         "description": "One of: `all`, `read`, `unread`",
         "value_schema": {
           "val_type": "string",
@@ -335,7 +339,7 @@
       },
       {
         "name": "page",
-        "tool_parameter_name": "notification_page_number",
+        "tool_parameter_name": "notification_page",
         "description": "Max 100",
         "value_schema": {
           "val_type": "integer",
@@ -352,7 +356,7 @@
       },
       {
         "name": "before",
-        "tool_parameter_name": "notification_before_id",
+        "tool_parameter_name": "notification_id_before",
         "description": "A notification ID",
         "value_schema": {
           "val_type": "string",
@@ -386,7 +390,7 @@
       },
       {
         "name": "memberCreator",
-        "tool_parameter_name": "include_member_creator_info",
+        "tool_parameter_name": "include_member_creator",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -420,7 +424,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_identifier",
+        "tool_parameter_name": "member_id_or_username",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",

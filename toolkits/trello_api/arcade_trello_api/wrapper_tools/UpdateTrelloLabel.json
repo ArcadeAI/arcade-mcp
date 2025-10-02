@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloLabel",
   "fully_qualified_name": "TrelloApi.UpdateTrelloLabel@0.1.0",
-  "description": "Update a Trello label by its ID.\n\nThis tool updates the details of a Trello label using its unique ID. Use it to modify label properties such as color or name on a Trello board.",
+  "description": "Update a Trello label by its ID.\n\nUse this tool to update the details of a specific Trello label using its ID. Useful for changing label attributes such as name or color.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -9,6 +9,21 @@
   },
   "input": {
     "parameters": [
+      {
+        "name": "label_id",
+        "required": true,
+        "description": "The unique ID of the Trello label to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Label"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
       {
         "name": "new_label_name",
         "required": false,
@@ -27,7 +42,7 @@
       {
         "name": "new_label_color",
         "required": false,
-        "description": "Specify the new color for the label. Options: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",
+        "description": "The desired new color for the Trello label. Choose from options: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -54,7 +69,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-labels-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -134,6 +153,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "label_id",
+        "description": "The ID of the Label",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Label"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

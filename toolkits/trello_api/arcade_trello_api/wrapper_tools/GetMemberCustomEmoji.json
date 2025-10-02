@@ -1,7 +1,7 @@
 {
   "name": "GetMemberCustomEmoji",
   "fully_qualified_name": "TrelloApi.GetMemberCustomEmoji@0.1.0",
-  "description": "Retrieve a Trello member's custom emoji.\n\nUse this tool to get information about a specific custom emoji created by a Trello member. It requires the member's ID and the emoji ID to fetch the details.",
+  "description": "Retrieve a member's custom emoji.\n\nCall this tool to obtain details about a specific custom emoji associated with a Trello member.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose custom emoji details are requested.",
+        "description": "The unique ID or username of the Trello member to retrieve custom emoji details for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "custom_emoji_id",
         "required": true,
-        "description": "The unique identifier for the custom emoji to be retrieved. Required to fetch emoji details.",
+        "description": "The unique identifier of the custom emoji.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,13 +40,17 @@
         "http_endpoint_parameter_name": "idEmoji"
       },
       {
-        "name": "emoji_details_fields",
+        "name": "custom_emoji_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of 'name', 'url' to define which details of the emoji to retrieve.",
+        "description": "Specify 'all' or a comma-separated list of 'name', 'url' to determine which emoji details to return.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["name", "url", "all"],
+          "enum": [
+            "name",
+            "url",
+            "all"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `name`, `url`"
@@ -58,7 +62,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'membersidcustomemojiidemoji'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -98,12 +106,16 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "emoji_details_fields",
+        "tool_parameter_name": "custom_emoji_fields",
         "description": "`all` or a comma-separated list of `name`, `url`",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["name", "url", "all"],
+          "enum": [
+            "name",
+            "url",
+            "all"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `name`, `url`"

@@ -1,7 +1,7 @@
 {
   "name": "GetListActions",
   "fully_qualified_name": "TrelloApi.GetListActions@0.1.0",
-  "description": "Retrieve actions from a specific Trello list.\n\nUse this tool to get all the actions that have been performed on a specific Trello list by providing the list ID. It can be used to track changes and activities related to the list.",
+  "description": "Retrieve actions performed on a specific Trello list.\n\nUse this tool to get all actions taken on a given Trello list by specifying the list ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "list_id",
         "required": true,
-        "description": "The ID of the Trello list to retrieve actions for.",
+        "description": "The unique identifier of the Trello list to retrieve actions for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "action_types_filter",
+        "name": "action_type_filter",
         "required": false,
-        "description": "A comma-separated list of Trello action types to filter the results. Refer to the Trello action types documentation for valid options.",
+        "description": "A comma-separated list of action types to filter the actions retrieved from a Trello list.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-lists-id-actions'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -83,7 +87,7 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "action_types_filter",
+        "tool_parameter_name": "action_type_filter",
         "description": "A comma-separated list of [action types](https://developer.atlassian.com/cloud/trello/guides/rest-api/action-types/).",
         "value_schema": {
           "val_type": "string",

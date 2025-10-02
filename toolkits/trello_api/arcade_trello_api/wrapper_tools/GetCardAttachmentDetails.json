@@ -1,0 +1,175 @@
+{
+  "name": "GetCardAttachmentDetails",
+  "fully_qualified_name": "TrelloApi.GetCardAttachmentDetails@0.1.0",
+  "description": "Retrieve specific attachment details from a Trello card.\n\nUse this tool to get detailed information about a specific attachment on a Trello card. It is useful when you need to fetch metadata or other properties of an attachment associated with a card.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier for the Trello card containing the attachment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "attachment_id",
+        "required": true,
+        "description": "The unique ID of the attachment to fetch details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Attachment"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idAttachment"
+      },
+      {
+        "name": "attachment_fields",
+        "required": false,
+        "description": "List of specific attachment fields to include in the response. Accepts an array of field names.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "The Attachment fields to be included in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-cards-id-attachments-idattachment'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/cards/{id}/attachments/{idAttachment}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "attachment_fields",
+        "description": "The Attachment fields to be included in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "json",
+          "enum": null,
+          "properties": null,
+          "inner_properties": {},
+          "description": "The Attachment fields to be included in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idAttachment",
+        "tool_parameter_name": "attachment_id",
+        "description": "The ID of the Attachment",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Attachment"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

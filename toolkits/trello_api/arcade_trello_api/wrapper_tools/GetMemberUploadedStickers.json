@@ -1,18 +1,38 @@
 {
   "name": "GetMemberUploadedStickers",
   "fully_qualified_name": "TrelloApi.GetMemberUploadedStickers@0.1.0",
-  "description": "Retrieve a Trello member's uploaded stickers.\n\nUse this tool to get the custom stickers uploaded by a specific Trello member, identified by their member ID.",
+  "description": "Retrieve a member's uploaded custom stickers on Trello.\n\nUse this tool to access all custom stickers uploaded by a specific member on Trello by providing their ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member to retrieve their uploaded stickers.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-customstickers'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/members/{id}/customStickers",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

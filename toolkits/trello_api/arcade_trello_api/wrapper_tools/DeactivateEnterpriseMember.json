@@ -1,0 +1,315 @@
+{
+  "name": "DeactivateEnterpriseMember",
+  "fully_qualified_name": "TrelloApi.DeactivateEnterpriseMember@0.1.0",
+  "description": "Deactivate a member from an enterprise on Trello.\n\nDeactivate an enterprise member on Trello, unless the enterprise uses AdminHub for user management.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "enterprise_id",
+        "required": true,
+        "description": "The ID of the enterprise from which to deactivate a member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "member_id_to_deactivate",
+        "required": true,
+        "description": "ID of the member to deactivate in the enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Member to deactive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMember"
+      },
+      {
+        "name": "user_deactivation_status",
+        "required": true,
+        "description": "Set to true to deactivate the user; false keeps them active.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the user is deactivated or not."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "value"
+      },
+      {
+        "name": "member_field_values",
+        "required": false,
+        "description": "Comma-separated list of valid member field values, currently only 'id' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of any valid values that the [nested member field resource]() accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "organization_field",
+        "required": false,
+        "description": "Specify the organization attribute to retrieve, such as 'id' or 'name'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "organization_fields"
+      },
+      {
+        "name": "board_field_values",
+        "required": false,
+        "description": "A comma-separated list of fields related to the board resource, such as 'id', 'name', or 'url'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name",
+            "desc",
+            "descData",
+            "closed",
+            "idMemberCreator",
+            "idOrganization",
+            "pinned",
+            "url",
+            "shortUrl",
+            "prefs",
+            "labelNames",
+            "starred",
+            "limits",
+            "memberships",
+            "enterpriseOwned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "board_fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'enterprises-id-members-idMember-deactivated'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/enterprises/{id}/members/{idMember}/deactivated",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "value",
+        "tool_parameter_name": "user_deactivation_status",
+        "description": "Determines whether the user is deactivated or not.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether the user is deactivated or not."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "member_field_values",
+        "description": "A comma separated list of any valid values that the [nested member field resource]() accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma separated list of any valid values that the [nested member field resource]() accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "organization_fields",
+        "tool_parameter_name": "organization_field",
+        "description": "Any valid value that the [nested organization resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested organization resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "board_fields",
+        "tool_parameter_name": "board_field_values",
+        "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id",
+            "name",
+            "desc",
+            "descData",
+            "closed",
+            "idMemberCreator",
+            "idOrganization",
+            "pinned",
+            "url",
+            "shortUrl",
+            "prefs",
+            "labelNames",
+            "starred",
+            "limits",
+            "memberships",
+            "enterpriseOwned"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Any valid value that the [nested board resource](/cloud/trello/guides/rest-api/nested-resources/) accepts."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "enterprise_id",
+        "description": "ID of the enterprise to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the enterprise to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMember",
+        "tool_parameter_name": "member_id_to_deactivate",
+        "description": "ID of the Member to deactive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the Member to deactive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

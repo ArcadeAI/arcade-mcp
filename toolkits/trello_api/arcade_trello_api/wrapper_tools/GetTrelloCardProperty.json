@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloCardProperty",
   "fully_qualified_name": "TrelloApi.GetTrelloCardProperty@0.1.0",
-  "description": "Retrieve a specific property of a Trello card.\n\nUse this tool to obtain a particular property from a Trello card by specifying the card ID and desired field.",
+  "description": "Retrieve a specific field from a Trello card.\n\nUse this tool to get a specific property or detail of a Trello card by specifying the card ID and the field name you want to retrieve.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier for the Trello card from which to retrieve a specific property.",
+        "description": "The unique identifier of the Trello card to retrieve the property from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "desired_card_field",
+        "name": "card_field_name",
         "required": true,
-        "description": "Specify the field of the Trello card you want to retrieve, such as 'name', 'desc', 'due', etc.",
+        "description": "Specify which field of the Trello card to retrieve. Must be one of the predefined options such as 'id', 'name', 'url', etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -77,7 +77,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-field'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -134,7 +138,7 @@
       },
       {
         "name": "field",
-        "tool_parameter_name": "desired_card_field",
+        "tool_parameter_name": "card_field_name",
         "description": "The desired field.",
         "value_schema": {
           "val_type": "string",

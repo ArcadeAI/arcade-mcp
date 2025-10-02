@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloWebhookField",
   "fully_qualified_name": "TrelloApi.GetTrelloWebhookField@0.1.0",
-  "description": "Retrieve a specific field of a Trello webhook.\n\nUse this tool to get the value of a specific field from a Trello webhook by providing the webhook ID and the field name.",
+  "description": "Retrieve a specific field from a Trello webhook.\n\nUse this tool to access information about a specific field in a Trello webhook by providing the webhook ID and the desired field name.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "webhook_field_name",
+        "name": "webhook_field_to_retrieve",
         "required": true,
-        "description": "The specific field to retrieve from the Trello webhook. Options: 'active', 'callbackURL', 'description', 'idModel'.",
+        "description": "Specify the webhook field to retrieve. Options: `active`, `callbackURL`, `description`, `idModel`, `consecutiveFailures`, `firstConsecutiveFailDate`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -50,7 +50,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'webhooksidfield'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -107,7 +111,7 @@
       },
       {
         "name": "field",
-        "tool_parameter_name": "webhook_field_name",
+        "tool_parameter_name": "webhook_field_to_retrieve",
         "description": "Field to retrieve. One of: `active`, `callbackURL`, `description`, `idModel`",
         "value_schema": {
           "val_type": "string",

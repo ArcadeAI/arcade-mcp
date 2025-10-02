@@ -1,7 +1,7 @@
 {
   "name": "AddOrganizationsToEnterprise",
   "fully_qualified_name": "TrelloApi.AddOrganizationsToEnterprise@0.1.0",
-  "description": "Initiate the addition of organizations to a Trello enterprise.\n\nUse this tool to start adding multiple organizations to a specified Trello enterprise. A 200 response confirms the request was received, but not the successful addition.",
+  "description": "Add multiple organizations to an enterprise.\n\nUse this tool to add an array of organizations to a Trello enterprise. This operation is asynchronous for enterprises using AdminHub for user management. A successful call returns a 200 status, indicating the receipt of the request but not the completion of the process.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The ID of the Trello enterprise to which organizations are being added. This identifies the specific enterprise for the operation.",
+        "description": "The ID of the enterprise to which organizations are being added.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "organization_ids_to_add",
         "required": true,
-        "description": "An array of IDs of the organizations to add to the enterprise. Each ID should be a string.",
+        "description": "An array of organization IDs to be added to the enterprise.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "json",
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-enterprises-id-organizations-bulk-idOrganizations'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

@@ -1,7 +1,7 @@
 {
   "name": "RenameTrelloList",
   "fully_qualified_name": "TrelloApi.RenameTrelloList@0.1.0",
-  "description": "Rename a list on Trello.\n\nUse this tool to change the name of a specific list on Trello by providing the list's ID and the new name.",
+  "description": "Rename a list on Trello using its ID and field.\n\nUse this tool to rename a list on Trello by specifying the list ID and desired field name.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -27,11 +27,15 @@
       {
         "name": "list_field_to_update",
         "required": true,
-        "description": "Specify 'name' to rename the list on Trello. Choose from 'name', 'pos', 'subscribed'.",
+        "description": "Specify the list field to update, e.g., 'name', 'pos', or 'subscribed'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["name", "pos", "subscribed"],
+          "enum": [
+            "name",
+            "pos",
+            "subscribed"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "The field on the List to be updated"
@@ -42,7 +46,7 @@
       {
         "name": "new_list_name",
         "required": false,
-        "description": "The new name for the Trello list to be updated.",
+        "description": "The new name for the Trello list you want to apply.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -58,7 +62,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-lists-id-field'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -137,7 +145,11 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["name", "pos", "subscribed"],
+          "enum": [
+            "name",
+            "pos",
+            "subscribed"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "The field on the List to be updated"

@@ -1,0 +1,285 @@
+{
+  "name": "GetBoardMemberships",
+  "fully_qualified_name": "TrelloApi.GetBoardMemberships@0.1.0",
+  "description": "Get details on user memberships for a Trello board.\n\nUse this tool to retrieve information about the memberships users have on a specific Trello board. It should be called when you need to know details about user affiliations or roles within a board.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier of the Trello board to get membership information for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "membership_filter",
+        "required": false,
+        "description": "Specify which group of members to retrieve: `admins`, `all`, `none`, `normal`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admins",
+            "all",
+            "none",
+            "normal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of `admins`, `all`, `none`, `normal`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "filter"
+      },
+      {
+        "name": "member_fields_to_display",
+        "required": false,
+        "description": "Specify fields to display for the member if `member=true`. Valid values include 'id'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fields to show if `member=true`. Valid values: [nested member resource fields](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member_fields"
+      },
+      {
+        "name": "include_activity",
+        "required": false,
+        "description": "Set to true to include activity details for premium organizations only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Works for premium organizations only."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "activity"
+      },
+      {
+        "name": "display_organization_member_type",
+        "required": false,
+        "description": "Set to true to show the user's organization membership type, such as 'admin'.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Shows the type of member to the org the user is. For instance, an org admin will have a `orgMemberType` of `admin`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "orgMemberType"
+      },
+      {
+        "name": "include_nested_member_object",
+        "required": false,
+        "description": "Specify whether to include a nested member object in the response. True includes the object.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to include a [nested member object](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "member"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get-boards-id-memberships'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/boards/{id}/memberships",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "filter",
+        "tool_parameter_name": "membership_filter",
+        "description": "One of `admins`, `all`, `none`, `normal`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admins",
+            "all",
+            "none",
+            "normal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of `admins`, `all`, `none`, `normal`"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "activity",
+        "tool_parameter_name": "include_activity",
+        "description": "Works for premium organizations only.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Works for premium organizations only."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "orgMemberType",
+        "tool_parameter_name": "display_organization_member_type",
+        "description": "Shows the type of member to the org the user is. For instance, an org admin will have a `orgMemberType` of `admin`.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Shows the type of member to the org the user is. For instance, an org admin will have a `orgMemberType` of `admin`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "member",
+        "tool_parameter_name": "include_nested_member_object",
+        "description": "Determines whether to include a [nested member object](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Determines whether to include a [nested member object](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "member_fields",
+        "tool_parameter_name": "member_fields_to_display",
+        "description": "Fields to show if `member=true`. Valid values: [nested member resource fields](/cloud/trello/guides/rest-api/nested-resources/).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "id"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Fields to show if `member=true`. Valid values: [nested member resource fields](/cloud/trello/guides/rest-api/nested-resources/)."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the board",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

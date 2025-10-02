@@ -1,18 +1,38 @@
 {
   "name": "GetMemberNotificationSettings",
   "fully_qualified_name": "TrelloApi.GetMemberNotificationSettings@0.1.0",
-  "description": "Retrieve a member's blocked notification keys for a channel.\n\nUse this tool to get the blocked notification keys for a specific member on a given channel in Trello. This can help manage and customize notification settings effectively.",
+  "description": "Retrieve a member's notification channel settings on Trello.\n\nThis tool is used to get the notification settings for a specific member in Trello. Useful for understanding how and through which channels a member receives notifications.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member to retrieve notification settings for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
-    "description": "Response from the API endpoint 'get-members-id-notificationChannelSettings-channel'.",
-    "available_modes": ["value", "error", "null"],
+    "description": "Response from the API endpoint 'get-members-id-notificationChannelSettings'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -46,10 +66,28 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}",
+    "url": "https://api.trello.com/1/members/{id}/notificationsChannelSettings",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

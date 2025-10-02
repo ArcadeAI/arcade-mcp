@@ -1,7 +1,7 @@
 {
   "name": "GetCompletedChecklistItems",
   "fully_qualified_name": "TrelloApi.GetCompletedChecklistItems@0.1.0",
-  "description": "Retrieve completed checklist items from a Trello card.\n\nUse this tool to fetch the completed checklist items from a specified Trello card. Useful for tracking task progress or reviewing completed tasks on a Trello board.",
+  "description": "Fetch the completed checklist items on a Trello card.\n\nUse this tool to get the completed checklist items for a specific Trello card. It retrieves the states of checklist items to see which ones are completed.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier for the Trello card to retrieve completed checklist items from.",
+        "description": "The unique identifier of the Trello card to retrieve checklist item states.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "checklist_item_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of item attributes like `idCheckItem`, `state` to return specific fields of the checklist items.",
+        "description": "Specify 'all' or a comma-separated list of fields (`idCheckItem`, `state`) for the checklist items.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-checkitemstates'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

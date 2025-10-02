@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloChecklist",
   "fully_qualified_name": "TrelloApi.UpdateTrelloChecklist@0.1.0",
-  "description": "Updates an existing checklist on Trello.\n\nUse this tool to modify the properties of a specific checklist within Trello by providing its ID.",
+  "description": "Update an existing Trello checklist.\n\nUse this tool to update the details of an existing checklist on Trello. It is useful when modifications to the checklist content or status are required.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The unique identifier for the checklist to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
         "name": "checklist_name",
         "required": false,
-        "description": "The updated name of the checklist. Should be between 1 and 16384 characters.",
+        "description": "Name of the checklist being created or updated. Must be between 1 and 16384 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +42,7 @@
       {
         "name": "checklist_position",
         "required": false,
-        "description": "Specifies the position of the checklist on the Trello card. Acceptable values are `top`, `bottom`, or a positive integer for a specific position.",
+        "description": "Defines the position of the checklist on the card: 'top', 'bottom', or a positive number.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +58,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-checlists-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -112,6 +131,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "checklist_id",
+        "description": "ID of a checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

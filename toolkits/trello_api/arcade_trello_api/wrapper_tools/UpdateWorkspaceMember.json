@@ -1,0 +1,181 @@
+{
+  "name": "UpdateWorkspaceMember",
+  "fully_qualified_name": "TrelloApi.UpdateWorkspaceMember@0.1.0",
+  "description": "Add or update a member in a Trello Workspace.\n\nThis tool allows you to add a member to a Trello Workspace or update their role within the Workspace. Use it when you need to manage Workspace memberships.",
+  "toolkit": {
+    "name": "ArcadeTrelloApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "member_role",
+        "required": true,
+        "description": "Specify the member's role in the Workspace. Use 'admin' or 'normal'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: `admin`, `normal`"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      },
+      {
+        "name": "workspace_organization_id_or_name",
+        "required": true,
+        "description": "The ID or name of the Trello Workspace organization to update or add a member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member to update or add to the workspace.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member to update"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idMember"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'put-organizations-id-members-idmember'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "TRELLO_API_KEY"
+      },
+      {
+        "key": "TRELLO_TOKEN"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the trello API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.trello.com/1/organizations/{id}/members/{idMember}",
+    "http_method": "PUT",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "type",
+        "tool_parameter_name": "member_role",
+        "description": "One of: `admin`, `normal`",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "admin",
+            "normal"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "One of: `admin`, `normal`"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "workspace_organization_id_or_name",
+        "description": "The ID or name of the organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idMember",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member to update",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member to update"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "TRELLO_API_KEY",
+        "parameter_name": "key",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      },
+      {
+        "arcade_key": "TRELLO_TOKEN",
+        "parameter_name": "token",
+        "accepted_as": "query",
+        "formatted_value": null,
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

@@ -1,18 +1,38 @@
 {
   "name": "GetTrelloWebhookById",
   "fully_qualified_name": "TrelloApi.GetTrelloWebhookById@0.1.0",
-  "description": "Fetch details of a specific Trello webhook using its ID.\n\nCall this tool to get information about a Trello webhook, using the specific webhook ID and authentication token. Useful for checking webhook configuration or status.",
+  "description": "Retrieve details of a Trello webhook by its ID.\n\nThis tool fetches the details of a Trello webhook using its ID. Ensure to include the token used to create the webhook to avoid authorization errors.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "webhook_id",
+        "required": true,
+        "description": "The unique identifier of the Trello webhook to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the webhook to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-webhooks-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/webhooks/{id}",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "webhook_id",
+        "description": "ID of the webhook to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the webhook to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

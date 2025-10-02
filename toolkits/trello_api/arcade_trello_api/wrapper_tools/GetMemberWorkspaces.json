@@ -1,7 +1,7 @@
 {
   "name": "GetMemberWorkspaces",
   "fully_qualified_name": "TrelloApi.GetMemberWorkspaces@0.1.0",
-  "description": "Retrieve a member's Trello workspaces.\n\nThis tool retrieves the list of workspaces (organizations) associated with a specific Trello member.",
+  "description": "Retrieve a member's workspaces from Trello.\n\nUse this tool to obtain a list of workspaces (organizations) associated with a specific Trello member. It should be called when you need information about the workspaces a user is part of on Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "member_id_username",
+        "name": "member_id_or_username",
         "required": true,
-        "description": "The Trello member's ID or username to retrieve workspaces for.",
+        "description": "The unique ID or username of the Trello member whose workspaces are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,13 +25,18 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "workspace_visibility_filter",
+        "name": "workspace_filter",
         "required": false,
-        "description": "Filter the workspaces by visibility: 'all', 'members', 'none', or 'public'. 'members' filters to only private workspaces.",
+        "description": "Filter workspaces by type: `all`, `members`, `none`, or `public`. `members` filters to private workspaces.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "members", "none", "public"],
+          "enum": [
+            "all",
+            "members",
+            "none",
+            "public"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `all`, `members`, `none`, `public` (Note: `members` filters to only private Workspaces)"
@@ -42,11 +47,14 @@
       {
         "name": "organization_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of organization fields such as 'id', 'name'.",
+        "description": "Specify `all` or a comma-separated list of organization fields such as `id` or `name`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -57,7 +65,7 @@
       {
         "name": "include_paid_account_info",
         "required": false,
-        "description": "Include paid account details in the returned workspace information if true.",
+        "description": "Set to true to include paid account information in the returned workspace objects.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -73,7 +81,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-organizations'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -113,12 +125,17 @@
     "parameters": [
       {
         "name": "filter",
-        "tool_parameter_name": "workspace_visibility_filter",
+        "tool_parameter_name": "workspace_filter",
         "description": "One of: `all`, `members`, `none`, `public` (Note: `members` filters to only private Workspaces)",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "members", "none", "public"],
+          "enum": [
+            "all",
+            "members",
+            "none",
+            "public"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `all`, `members`, `none`, `public` (Note: `members` filters to only private Workspaces)"
@@ -135,7 +152,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -164,7 +184,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_username",
+        "tool_parameter_name": "member_id_or_username",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",

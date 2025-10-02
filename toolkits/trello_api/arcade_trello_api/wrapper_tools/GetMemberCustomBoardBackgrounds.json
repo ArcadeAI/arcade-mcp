@@ -1,18 +1,38 @@
 {
   "name": "GetMemberCustomBoardBackgrounds",
   "fully_qualified_name": "TrelloApi.GetMemberCustomBoardBackgrounds@0.1.0",
-  "description": "Retrieve a member's custom board backgrounds from Trello.\n\nUse this tool to obtain a list of custom board backgrounds associated with a specific Trello member. It provides the background data that the member has customized for their boards.",
+  "description": "Retrieve a member's custom board backgrounds on Trello.\n\nUse this tool to obtain a specific member's custom board backgrounds from Trello. This can be useful when customizing or reviewing a Trello board's appearance based on a member's personal background collection.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member whose custom board backgrounds you want to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-customboardbackgrounds'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

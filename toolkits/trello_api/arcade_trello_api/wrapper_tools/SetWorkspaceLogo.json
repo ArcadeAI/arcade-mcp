@@ -1,7 +1,7 @@
 {
   "name": "SetWorkspaceLogo",
   "fully_qualified_name": "TrelloApi.SetWorkspaceLogo@0.1.0",
-  "description": "Update the logo image for a Trello Workspace.\n\nThis tool sets the logo image for a specified Trello Workspace using its ID. It should be called when there's a need to update or set a new logo for an existing workspace.",
+  "description": "Set the logo image for a Workspace on Trello.\n\nUse this tool to set or update the logo image for a specific Workspace in Trello by providing the Workspace ID and logo information.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "workspace_identifier",
+        "name": "workspace_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello Workspace for which the logo is to be updated.",
+        "description": "The ID or name of the Trello Workspace for which the logo will be set.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "logo_image_file",
+        "name": "workspace_logo_file",
         "required": false,
-        "description": "The file path or URL of the image to use as the logo for the Trello Workspace.",
+        "description": "The path or binary data of the image file to set as the Workspace logo. It should be a valid image format.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-organizations-id-logo'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -83,7 +87,7 @@
     "parameters": [
       {
         "name": "file",
-        "tool_parameter_name": "logo_image_file",
+        "tool_parameter_name": "workspace_logo_file",
         "description": "Image file for the logo",
         "value_schema": {
           "val_type": "string",
@@ -100,7 +104,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "workspace_identifier",
+        "tool_parameter_name": "workspace_id_or_name",
         "description": "The ID or name of the Workspace",
         "value_schema": {
           "val_type": "string",

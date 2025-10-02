@@ -1,18 +1,53 @@
 {
   "name": "GetCustomBoardBackground",
   "fully_qualified_name": "TrelloApi.GetCustomBoardBackground@0.1.0",
-  "description": "Retrieve a specific custom board background from Trello.\n\nThis tool fetches details about a specific custom board background for a member on Trello, using their member ID and the background ID.",
+  "description": "Get a specific custom board background by ID.\n\nRetrieve details of a particular custom board background using the member and background ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the member to identify whose custom board background to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "custom_background_id",
+        "required": true,
+        "description": "The ID of the custom board background to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the custom background"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBackground"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-customboardbackgrounds-idbackground'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +84,42 @@
     "url": "https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBackground",
+        "tool_parameter_name": "custom_background_id",
+        "description": "The ID of the custom background",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the custom background"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

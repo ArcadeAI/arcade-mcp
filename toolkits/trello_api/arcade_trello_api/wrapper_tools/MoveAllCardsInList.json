@@ -1,7 +1,7 @@
 {
   "name": "MoveAllCardsInList",
   "fully_qualified_name": "TrelloApi.MoveAllCardsInList@0.1.0",
-  "description": "Move all cards from one Trello list to another.\n\nUse this tool to transfer all cards from a specified Trello list to another list. Call this when you need to reorganize or consolidate tasks within the Trello boards.",
+  "description": "Move all cards from one Trello list to another.\n\nUse this tool to move all cards from a specified list in Trello to another list. It's useful for reorganizing tasks or consolidating workflows within a Trello board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "target_board_id",
         "required": true,
-        "description": "The ID of the board to which all cards from the list should be moved.",
+        "description": "The ID of the board to which the cards should be moved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "target_list_id",
         "required": true,
-        "description": "The ID of the target list where the cards should be moved.",
+        "description": "The ID of the Trello list where the cards should be moved to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "source_list_id",
         "required": true,
-        "description": "The ID of the Trello list from which all cards should be moved.",
+        "description": "The unique ID of the list to move all cards from in Trello.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -58,7 +58,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-lists-id-moveallcards'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

@@ -1,7 +1,7 @@
 {
   "name": "DeclineEnterpriseJoinRequests",
   "fully_qualified_name": "TrelloApi.DeclineEnterpriseJoinRequests@0.1.0",
-  "description": "Decline requests for joining an enterprise.\n\nUse this tool to decline enterprise join requests for one or multiple organizations. Suitable for managing membership requests efficiently in Trello enterprises.",
+  "description": "Decline multiple enterprise join requests for organizations.\n\nThis tool declines enterprise join requests for one or multiple organizations in a Trello enterprise. It should be used when you need to reject several join requests at once.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "organization_ids",
         "required": true,
-        "description": "An array of IDs representing the organizations whose join requests are to be declined. Provide one or more organization IDs to manage requests efficiently.",
+        "description": "An array of organization IDs to decline join requests for.",
         "value_schema": {
           "val_type": "array",
           "inner_val_type": "json",
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "idOrganizations"
       },
       {
-        "name": "enterprise_id_to_decline_requests",
+        "name": "enterprise_id",
         "required": true,
-        "description": "ID of the Enterprise for which join requests are being declined.",
+        "description": "The ID of the enterprise for which join requests should be declined.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-enterprises-id-enterpriseJoinRequest-bulk'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -100,7 +104,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "enterprise_id_to_decline_requests",
+        "tool_parameter_name": "enterprise_id",
         "description": "ID of the Enterprise to retrieve.",
         "value_schema": {
           "val_type": "string",

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "arcade_trello_api"
 version = "0.1.0"
-description = "Tools that enable LLMs to interact directly with the Trello API."
+description = "Tools that enable LLMs to interact directly with the trello API."
 requires-python = ">=3.10"
 dependencies = [
     "arcade-tdk>=2.0.0,<3.0.0",

@@ -1,7 +1,7 @@
 {
   "name": "CreateTrelloWebhook",
   "fully_qualified_name": "TrelloApi.CreateTrelloWebhook@0.1.0",
-  "description": "Create a new webhook in Trello.\n\nThis tool is used to create a new webhook on Trello. Use it when you need to set up a new webhook to track changes on Trello boards or cards.",
+  "description": "Create a new webhook for a Trello token.\n\nUse this tool to create a new webhook associated with a specific Trello token. This is useful for setting up event notifications or integrations with Trello boards or cards.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,70 +10,74 @@
   "input": {
     "parameters": [
       {
-        "name": "webhook_callback_url",
+        "name": "webhook_post_url",
         "required": true,
-        "description": "A valid URL that Trello can access with `HEAD` and `POST` requests. This is the endpoint where Trello will send webhook notifications.",
+        "description": "The URL where the webhook will send POST requests when triggered.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "A valid URL that is reachable with a `HEAD` and `POST` request."
+          "description": "The URL that the webhook should POST information to."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "callbackURL"
       },
       {
-        "name": "model_id",
+        "name": "object_id_for_webhook",
         "required": true,
-        "description": "The ID of the Trello model (board or card) to be monitored by the webhook.",
+        "description": "The ID of the Trello object (board or card) to create a webhook on.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of the model to be monitored"
+          "description": "ID of the object to create a webhook on."
         },
         "inferrable": true,
         "http_endpoint_parameter_name": "idModel"
       },
       {
-        "name": "webhook_description",
-        "required": false,
-        "description": "A string with a length from 0 to 16384 characters describing the webhook.",
+        "name": "webhook_token",
+        "required": true,
+        "description": "The Trello authorization token needed for creating the webhook. This grants access to the Trello account where the webhook will be set up.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "A string with a length from `0` to `16384`."
+          "description": ""
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "description"
+        "http_endpoint_parameter_name": "token"
       },
       {
-        "name": "webhook_active",
+        "name": "webhook_description",
         "required": false,
-        "description": "Set to true if the webhook should be active and send POST requests; set to false to disable it.",
+        "description": "A description displayed when retrieving webhook information. This should provide meaningful context for the Trello webhook.",
         "value_schema": {
-          "val_type": "boolean",
+          "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Determines whether the webhook is active and sending `POST` requests."
+          "description": "A description to be displayed when retrieving information about the webhook."
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "active"
+        "http_endpoint_parameter_name": "description"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'post-webhooks'.",
-    "available_modes": ["value", "error", "null"],
+    "description": "Response from the API endpoint 'post-tokens-token-webhooks'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -107,21 +111,21 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/webhooks/",
+    "url": "https://api.trello.com/1/tokens/{token}/webhooks",
     "http_method": "POST",
     "headers": {},
     "parameters": [
       {
         "name": "description",
         "tool_parameter_name": "webhook_description",
-        "description": "A string with a length from `0` to `16384`.",
+        "description": "A description to be displayed when retrieving information about the webhook.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "A string with a length from `0` to `16384`."
+          "description": "A description to be displayed when retrieving information about the webhook."
         },
         "accepted_as": "query",
         "required": false,
@@ -130,15 +134,15 @@
       },
       {
         "name": "callbackURL",
-        "tool_parameter_name": "webhook_callback_url",
-        "description": "A valid URL that is reachable with a `HEAD` and `POST` request.",
+        "tool_parameter_name": "webhook_post_url",
+        "description": "The URL that the webhook should POST information to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "A valid URL that is reachable with a `HEAD` and `POST` request."
+          "description": "The URL that the webhook should POST information to."
         },
         "accepted_as": "query",
         "required": true,
@@ -147,15 +151,15 @@
       },
       {
         "name": "idModel",
-        "tool_parameter_name": "model_id",
-        "description": "ID of the model to be monitored",
+        "tool_parameter_name": "object_id_for_webhook",
+        "description": "ID of the object to create a webhook on.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "ID of the model to be monitored"
+          "description": "ID of the object to create a webhook on."
         },
         "accepted_as": "query",
         "required": true,
@@ -163,19 +167,19 @@
         "documentation_urls": []
       },
       {
-        "name": "active",
-        "tool_parameter_name": "webhook_active",
-        "description": "Determines whether the webhook is active and sending `POST` requests.",
+        "name": "token",
+        "tool_parameter_name": "webhook_token",
+        "description": "",
         "value_schema": {
-          "val_type": "boolean",
+          "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Determines whether the webhook is active and sending `POST` requests."
+          "description": ""
         },
-        "accepted_as": "query",
-        "required": false,
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

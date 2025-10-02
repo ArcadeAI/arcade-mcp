@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloPlugin",
   "fully_qualified_name": "TrelloApi.UpdateTrelloPlugin@0.1.0",
-  "description": "Update a Trello plugin with new information.\n\nUse this tool to update the details of a specific plugin in Trello by providing the plugin ID and new data.",
+  "description": "Update a Trello plugin by ID.\n\nUse this tool to modify the details of a specific Trello plugin by providing its ID. Ideal for updating plugin configurations or information.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "organization_identifier",
+        "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the organization to update the plugin for in Trello.",
+        "description": "The ID or name of the Trello organization to update the plugin for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-plugins-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "organization_identifier",
+        "tool_parameter_name": "organization_id_or_name",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",

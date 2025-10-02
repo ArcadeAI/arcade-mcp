@@ -1,7 +1,7 @@
 {
   "name": "AddAttachmentToTrelloCard",
   "fully_qualified_name": "TrelloApi.AddAttachmentToTrelloCard@0.1.0",
-  "description": "Attach a file or link to a Trello card.\n\nUse this tool to add an attachment to a specified Trello card by providing the card ID. Suitable for adding relevant documents or links directly to your Trello tasks.",
+  "description": "Add an attachment to a Trello card.\n\nThis tool is used to attach a file or URL to a specific Trello card by its ID. It should be called when users need to add additional resources or files to a Trello card to enhance task management or provide context.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier of the Trello card to which the attachment will be added. This is a required parameter.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
         "name": "attachment_name",
         "required": false,
-        "description": "The name of the attachment to be added to the Trello card. Maximum length of 256 characters.",
+        "description": "The name of the attachment. Provide a descriptive title, maximum length 256 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +40,9 @@
         "http_endpoint_parameter_name": "name"
       },
       {
-        "name": "file_attachment",
+        "name": "attachment_file",
         "required": false,
-        "description": "The path to the file to attach, provided as multipart/form-data.",
+        "description": "The file to attach as multipart/form-data. Provide the file path or binary data.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +57,7 @@
       {
         "name": "attachment_mime_type",
         "required": false,
-        "description": "The MIME type of the attachment, such as 'image/png' or 'application/pdf'. Max length 256.",
+        "description": "The MIME type of the attachment. Example: 'image/png'. Max length 256.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +72,7 @@
       {
         "name": "attachment_url",
         "required": false,
-        "description": "A URL to attach to the Trello card. It must start with `http://` or `https://`. This URL will be linked as an attachment.",
+        "description": "A URL to attach to the Trello card, starting with `http://` or `https://`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +87,7 @@
       {
         "name": "use_attachment_as_cover",
         "required": false,
-        "description": "Set to true to use the new attachment as the cover for the Trello card.",
+        "description": "Set to true to use the new attachment as a cover for the card.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -88,7 +103,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-cards-id-attachments'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -145,7 +164,7 @@
       },
       {
         "name": "file",
-        "tool_parameter_name": "file_attachment",
+        "tool_parameter_name": "attachment_file",
         "description": "The file to attach, as multipart/form-data",
         "value_schema": {
           "val_type": "string",
@@ -208,6 +227,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

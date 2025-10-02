@@ -1,4 +1,4 @@
-"""Arcade Starter Tools for Trello
+"""API Wrapper Tools for Trello
 
 DO NOT EDIT THIS MODULE DIRECTLY.
 
@@ -20,46 +20,45 @@ def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_action(
     context: ToolContext,
+    action_id: Annotated[str, "The unique ID of the Trello action to retrieve details for."],
     action_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of action fields to retrieve details. Refer to Trello's action object documentation for valid fields.",  # noqa: E501
+        "Specify 'all' or provide a comma-separated list of specific action fields to retrieve.",
     ] = None,
     member_fields_list: Annotated[
-        str | None, "Specify 'all' or a comma-separated list of member fields to retrieve."
+        str | None, "Specify 'all' or list member fields (comma-separated) to retrieve."
     ] = None,
-    include_member_creator_fields: Annotated[
-        str | None,
-        "Specify `all` or a comma-separated list of member fields to include for the action creator.",  # noqa: E501
+    member_creator_fields: Annotated[
+        str | None, "Specify `all` or list member fields to include for the action's creator."
     ] = None,
     include_display: Annotated[
-        bool | None, "Set to true to include display information in the response."
+        bool | None, "Include display details for the action. Accepts a boolean value."
     ] = None,
     include_entities: Annotated[
-        bool | None, "Set to true to include the entities related to the action in the response."
+        bool | None, "Set to true to include entities related to the action in the response."
     ] = None,
-    include_member_object: Annotated[
+    include_member: Annotated[
         bool | None,
-        "Specify whether to include the member object for the action. Use `true` to include or `false` to exclude.",  # noqa: E501
+        "A boolean to specify whether to include the member object related to the action.",
     ] = None,
-    include_member_creator: Annotated[
-        bool | None,
-        "Set to true to include the member object for the creator of the action, false to exclude.",
+    include_action_creator: Annotated[
+        bool | None, "Include the member object for the creator of the action when true."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id'."]:
-    """Retrieve details of a specific Trello action.
+    """Retrieve details of a specific Trello action by ID.
 
-    Use this tool to obtain information about a particular action in Trello by providing its unique ID."""  # noqa: E501
+    Use this tool to get detailed information about a specific action in Trello using the action's unique ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{id}",
+            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "display": include_display,
                 "entities": include_entities,
                 "fields": action_fields,
-                "member": include_member_object,
+                "member": include_member,
                 "member_fields": member_fields_list,
-                "memberCreator": include_member_creator,
-                "memberCreator_fields": include_member_creator_fields,
+                "memberCreator": include_action_creator,
+                "memberCreator_fields": member_creator_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -73,19 +72,23 @@ async def get_trello_action(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def edit_trello_comment_action(
+async def update_trello_comment(
     context: ToolContext,
     new_comment_text: Annotated[
         str,
-        "The updated content for the Trello comment action. Must be a string representing the new text for the comment.",  # noqa: E501
+        "The updated text content for the Trello comment. This replaces the current comment text.",
+    ],
+    action_id: Annotated[
+        str,
+        "The unique identifier for the action to be updated. Required to specify which comment you want to edit.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-actions-id'."]:
-    """Edit the content of a Trello comment action.
+    """Update a specific comment on Trello.
 
-    This tool updates a specific comment action in Trello, allowing the user to edit the content of the comment. It should be called when there is a need to change the text of an existing comment action."""  # noqa: E501
+    Use this tool to edit the content of a comment action on Trello by specifying the action ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{id}",
+            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "text": new_comment_text,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -103,13 +106,14 @@ async def edit_trello_comment_action(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_comment_action(
     context: ToolContext,
+    action_id: Annotated[str, "The ID of the Trello comment action to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-actions-id'."]:
     """Delete a specific comment action on Trello.
 
-    Use this tool to delete a specific comment action on Trello by providing the action ID. This tool is applicable only for comment actions."""  # noqa: E501
+    Use this tool to delete a specific comment action on Trello by providing the action ID. Only comment actions are eligible for deletion."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{id}",
+            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -124,23 +128,23 @@ async def delete_trello_comment_action(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_action_property(
+async def get_action_property(
     context: ToolContext,
     action_id: Annotated[
-        str, "The unique identifier for the Trello action you want to retrieve a property from."
+        str, "The unique identifier for the Trello action whose property you want to retrieve."
     ],
-    action_field_to_retrieve: Annotated[
+    action_field: Annotated[
         str,
-        "The specific field of the Trello action you want to retrieve. Options include: id, idMemberCreator, data, type, date, limits, display, memberCreator.",  # noqa: E501
+        "Select a specific property of a Trello action to retrieve. Options include: id, idMemberCreator, data, type, date, limits, display, memberCreator.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-field'."]:
     """Retrieve a specific property of a Trello action.
 
-    Use this tool to obtain a particular property from a Trello action, identified by its ID. Ideal for accessing specific details related to a Trello board action."""  # noqa: E501
+    Use this tool to get a particular property value of a specified action in Trello. It should be called when you need details about a specific aspect of an action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/{field}".format(  # noqa: UP032
-                id=action_id, field=action_field_to_retrieve
+                id=action_id, field=action_field
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -156,19 +160,17 @@ async def get_trello_action_property(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_action_board(
+async def get_board_for_action(
     context: ToolContext,
-    action_id: Annotated[
-        str, "The unique identifier of the Trello action to retrieve board details for."
-    ],
+    action_id: Annotated[str, "The ID of the action to fetch the associated board."],
     board_fields: Annotated[
         str | None,
-        "Specify 'all' to retrieve all board fields or provide a comma-separated list of specific board fields such as 'id', 'name', 'desc', etc.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of board fields like 'id', 'name', 'desc', etc.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-board'."]:
-    """Retrieve the board details for a specific Trello action.
+    """Fetch the board associated with a given action ID.
 
-    Use this tool to obtain the board details associated with a particular action on Trello. It should be called when you need to know which board an action belongs to."""  # noqa: E501
+    Use this tool to retrieve information about the board linked to a specific action in Trello. It should be called when there's a need to understand the context or details of the board related to a particular action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/board".format(id=action_id),  # noqa: UP032
@@ -187,19 +189,19 @@ async def get_trello_action_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_card_for_action(
+async def get_trello_card_from_action(
     context: ToolContext,
     action_id: Annotated[
-        str, "The unique identifier for the Trello action whose card details you want to retrieve."
+        str, "The unique ID of the action to retrieve the corresponding Trello card."
     ],
     card_fields: Annotated[
         str | None,
-        "Specify `all` to retrieve all fields or provide a comma-separated list of specific card fields to include in the response.",  # noqa: E501
+        "Specify `all` or a comma-separated list of card fields to retrieve from the Trello card.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-card'."]:
-    """Retrieve the Trello card linked to a specific action.
+    """Get information about a Trello card from an action ID.
 
-    This tool fetches the details of a Trello card associated with a given action ID. Use it to access information about the card linked to a specific activity in Trello."""  # noqa: E501
+    This tool retrieves information about the Trello card associated with a given action ID. It should be called when you need to find details of the card linked to a specific action in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/card".format(id=action_id),  # noqa: UP032
@@ -221,17 +223,15 @@ async def get_trello_card_for_action(
 async def get_trello_action_list(
     context: ToolContext,
     action_id: Annotated[
-        str,
-        "The unique identifier for the Trello action. Use this to fetch the associated list details.",  # noqa: E501
+        str, "The ID of the Trello action to retrieve the associated list details."
     ],
     list_fields: Annotated[
-        str | None,
-        "Specify `all` to get all fields or provide a comma-separated list of specific list fields to retrieve.",  # noqa: E501
+        str | None, "Specify `all` or a comma-separated list of list fields to retrieve."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-list'."]:
     """Retrieve the list associated with a specific Trello action.
 
-    This tool fetches details about the list linked to a specific action in Trello. Use it when you need to understand which list a particular Trello action is affecting or associated with."""  # noqa: E501
+    This tool is used to get the list details for a given action in Trello. It should be called when you need to find out which list is linked to a particular Trello action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/list".format(id=action_id),  # noqa: UP032
@@ -250,17 +250,19 @@ async def get_trello_action_list(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_of_action(
+async def get_action_member(
     context: ToolContext,
-    action_id: Annotated[str, "The ID of the Trello action to retrieve the member details for."],
+    action_id: Annotated[
+        str, "The unique ID of the action to retrieve the associated member details."
+    ],
     member_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of member fields to retrieve. Use 'id' for member ID.",  # noqa: E501
+        "Specify `all` or list specific member fields, separated by commas, to retrieve.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-member'."]:
-    """Retrieve member details for a given action.
+    """Retrieve the member associated with a specific action.
 
-    This tool retrieves the details of the member associated with a specified Trello action, excluding the creator. It is useful for identifying which member is linked to a particular action on Trello."""  # noqa: E501
+    This tool is used to get details about the member related to a particular action in Trello, excluding the creator. It should be called when you need information about the member involved in an action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/member".format(id=action_id),  # noqa: UP032
@@ -282,17 +284,16 @@ async def get_member_of_action(
 async def get_trello_action_creator(
     context: ToolContext,
     action_id: Annotated[
-        str,
-        "The unique identifier of the Trello action to retrieve the member creator information.",
+        str, "The unique identifier for the Trello action to retrieve the creator."
     ],
     member_fields: Annotated[
         str | None,
-        "Specify 'all' to retrieve all fields or provide a comma-separated list of specific member fields to retrieve.",  # noqa: E501
+        "A comma-separated list of member fields or 'all' to specify which details to retrieve about the member.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-membercreator'."]:
-    """Retrieve the creator of a specific Trello action.
+    """Retrieve the creator of a Trello action.
 
-    This tool calls the Trello API to obtain details about the member who created a specific action, identified by its ID. It should be used when you need to find out who initiated a particular action on a Trello board."""  # noqa: E501
+    Use this tool to obtain information about the member who initiated a specific action in Trello. Ideal for tracking activity or understanding user interactions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/memberCreator".format(id=action_id),  # noqa: UP032
@@ -314,16 +315,16 @@ async def get_trello_action_creator(
 async def get_organization_of_action(
     context: ToolContext,
     action_id: Annotated[
-        str, "The unique identifier of the action whose organization details are being retrieved."
+        str, "The unique identifier for the action whose organization details are being retrieved."
     ],
     organization_fields: Annotated[
         str | None,
-        "Specify '`all`' to retrieve all fields or provide a comma-separated list (e.g., 'id,name') of specific organization fields to retrieve.",  # noqa: E501
+        "Specify `all` or a comma-separated list of organization fields like `id,name` to retrieve specific details.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-id-organization'."]:
-    """Retrieve organization details of a specific action on Trello.
+    """Retrieve organization details for a given action ID.
 
-    This tool retrieves the organization information associated with a specified action in Trello. It should be called when detailed information about the organization linked to a particular action is needed."""  # noqa: E501
+    Use this tool to obtain information about the organization associated with a specific action on Trello. It should be called when you need to know which organization is linked to an action based on its ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/organization".format(id=action_id),  # noqa: UP032
@@ -342,19 +343,20 @@ async def get_organization_of_action(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_car_comment(
+async def modify_trello_action(
     context: ToolContext,
     new_comment_text: Annotated[
         str,
-        "The updated text for the Trello comment. Specify the new text content for the existing comment.",  # noqa: E501
+        "The new text to update the Trello comment with. Ensure it conveys the intended message clearly.",  # noqa: E501
     ],
     action_id: Annotated[
-        str, "The unique identifier for the Trello comment action that needs to be updated."
+        str,
+        "The ID of the Trello action to be updated. This ID identifies the specific comment action you want to modify.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-actions-id-text'."]:
-    """Update a comment on a Trello card.
+    """Update a comment on Trello using the action ID.
 
-    Use this tool to update the text of an existing comment on a Trello card by specifying the comment ID."""  # noqa: E501
+    Use this tool to update the text of a comment on Trello by providing the action ID. This is helpful for modifying existing comments to correct or amend information."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{id}/text".format(id=action_id),  # noqa: UP032
@@ -373,25 +375,25 @@ async def update_trello_car_comment(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_trello_action_reactions(
+async def list_action_reactions(
     context: ToolContext,
-    load_member_nested_resource: Annotated[
-        bool | None,
-        "Set to true to load the member as a nested resource. See [Members Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#members-nested-resource) for details.",  # noqa: E501
+    action_id: Annotated[str, "The ID of the Trello action to retrieve reactions for."],
+    include_member_as_nested_resource: Annotated[
+        bool | None, "Set to true to include member details as a nested resource in the response."
     ] = None,
-    load_emoji_as_nested_resource: Annotated[
-        bool | None, "Set to true to load emoji as a nested resource."
+    include_emoji: Annotated[
+        bool | None, "Set to true to load the emoji as a nested resource in the response."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-actions-idaction-reactions'."]:
-    """Retrieve reactions for a Trello action.
+    """Retrieve reactions for a specific Trello action.
 
-    Use this tool to obtain a list of reactions associated with a specific action on Trello. It should be called when you need to see how users have reacted to an action."""  # noqa: E501
+    Use this tool to get a list of all reactions associated with a specific action on Trello. It helps in understanding user interactions or feedback on particular actions."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions",
+            url="https://api.trello.com/1/actions/{idAction}/reactions".format(idAction=action_id),  # noqa: UP032
             params=remove_none_values({
-                "member": load_member_nested_resource,
-                "emoji": load_emoji_as_nested_resource,
+                "member": include_member_as_nested_resource,
+                "emoji": include_emoji,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -407,24 +409,31 @@ async def list_trello_action_reactions(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_reaction_info(
     context: ToolContext,
-    include_member: Annotated[
-        bool | None, "Set to true to load the member as a nested resource."
+    action_id: Annotated[
+        str, "The unique identifier for the Trello action related to the reaction."
+    ],
+    reaction_id: Annotated[str, "The ID of the reaction to fetch details for."],
+    include_member_as_nested_resource: Annotated[
+        bool | None,
+        "Set to true to load the member as a nested resource. Refer to Members Nested Resource documentation for more details.",  # noqa: E501
     ] = None,
     load_emoji_as_nested_resource: Annotated[
         bool | None,
-        "Set to true to include emoji details as a nested resource in the reaction information.",
+        "Specify whether to load the emoji as a nested resource when retrieving reaction information. Set to true to include emoji details.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-actions-idaction-reactions-id'."
 ]:
-    """Retrieve detailed information about a Trello reaction.
+    """Retrieve details of a specific Trello reaction.
 
-    Use this tool to obtain detailed information for a specific reaction associated with a Trello action. Call this tool when you need to understand more about the reaction context or details."""  # noqa: E501
+    Use this tool to get detailed information about a specific reaction on a Trello action. It is helpful for understanding how users are interacting with a card action."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}",
+            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
+                idAction=action_id, id=reaction_id
+            ),
             params=remove_none_values({
-                "member": include_member,
+                "member": include_member_as_nested_resource,
                 "emoji": load_emoji_as_nested_resource,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -439,17 +448,23 @@ async def get_reaction_info(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_reaction_from_trello_action(
+async def delete_trello_reaction(
     context: ToolContext,
+    action_id: Annotated[str, "The unique identifier for the Trello action."],
+    reaction_id: Annotated[
+        str, "The unique identifier for the reaction to be deleted from the Trello action."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-actions-idaction-reactions-id'."
 ]:
-    """Deletes a specified reaction from a Trello action.
+    """Delete a reaction from a Trello action.
 
-    Use this tool to remove a specific reaction from an action in Trello. It should be called when there is a need to delete a user's reaction to a specific Trello card action."""  # noqa: E501
+    Use this tool to remove a specific reaction from a Trello action, given the action ID and reaction ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}",
+            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
+                idAction=action_id, id=reaction_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -467,14 +482,15 @@ async def delete_reaction_from_trello_action(
 async def get_reaction_summary_for_action(
     context: ToolContext,
     action_id: Annotated[
-        str, "The unique identifier for the Trello action to get the reaction summary for."
+        str,
+        "The ID of the specific Trello action for which you want to retrieve a reaction summary.",
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-actions-idaction-reactionsummary'."
 ]:
-    """Retrieve a summary of reactions for a given Trello action.
+    """Retrieve a summary of reactions for a Trello action.
 
-    Use this tool to obtain a summarized list of all reactions associated with a specific action in Trello. It should be called when you need insights into how users are reacting to a particular action."""  # noqa: E501
+    Use this tool to get a summarized list of all reactions associated with a specific Trello action. It's useful for understanding how users have responded to an action on a Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/actions/{idAction}/reactionsSummary".format(  # noqa: UP032
@@ -494,15 +510,20 @@ async def get_reaction_summary_for_action(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_application_compliance_data(
+async def get_application_compliance_data(
     context: ToolContext,
+    application_key: Annotated[
+        str, "The unique key associated with the application to retrieve its compliance data."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'applications-key-compliance'."]:
-    """Retrieve compliance data for a Trello application key.
+    """Retrieve an application's compliance data from Trello.
 
-    Use this tool to obtain compliance information for a specific application key in Trello. Ideal for checking compliance status and details."""  # noqa: E501
+    Use this tool to get compliance information for a specific application by its key in Trello."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/applications/{key}/compliance",
+            url="https://api.trello.com/1/applications/{key}/compliance".format(  # noqa: UP032
+                key=application_key
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -517,16 +538,16 @@ async def get_trello_application_compliance_data(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_batch_requests(
+async def trello_batch_get_requests(
     context: ToolContext,
     api_routes_list: Annotated[
         str,
-        'A list of up to 10 API routes, each starting with a forward slash and excluding the API version number. Example: "/members/trello,/cards/[cardId]".',  # noqa: E501
+        "A list of up to 10 API routes, starting with a forward slash. Do not include the API version number.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-batch'."]:
-    """Execute multiple GET requests in a single batch call on Trello.
+    """Execute multiple GET requests to Trello in one call.
 
-    This tool allows you to perform up to 10 GET requests in one API call using Trello's batch functionality. It is useful when multiple pieces of information from Trello are needed at once, minimizing the number of separate requests."""  # noqa: E501
+    Use this tool to make up to 10 GET requests to the Trello API in a single batch. Ideal for retrieving multiple pieces of information efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/batch",
@@ -545,44 +566,41 @@ async def trello_batch_requests(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_memberships(
+async def get_board_memberships(
     context: ToolContext,
     board_id: Annotated[
-        str, "The unique identifier for the Trello board to retrieve membership information."
+        str, "The unique identifier of the Trello board to get membership information for."
     ],
     membership_filter: Annotated[
-        str | None,
-        "Filter to specify which types of memberships to retrieve: 'admins', 'all', 'none', or 'normal'.",  # noqa: E501
+        str | None, "Specify which group of members to retrieve: `admins`, `all`, `none`, `normal`."
     ] = None,
-    include_member_fields: Annotated[
+    member_fields_to_display: Annotated[
         str | None,
-        "Specify which fields to include for the member object when `member` is set to true. Valid value: 'id'.",  # noqa: E501
+        "Specify fields to display for the member if `member=true`. Valid values include 'id'.",
     ] = None,
     include_activity: Annotated[
-        bool | None,
-        "Set to true to include activity information, applicable only for premium organizations.",
+        bool | None, "Set to true to include activity details for premium organizations only."
     ] = None,
-    show_org_member_type: Annotated[
-        bool | None,
-        "Show the type of member each user is within the organization, such as 'admin'.",
+    display_organization_member_type: Annotated[
+        bool | None, "Set to true to show the user's organization membership type, such as 'admin'."
     ] = None,
     include_nested_member_object: Annotated[
         bool | None,
-        "Set to true to include a nested member object in the response. False will exclude it.",
+        "Specify whether to include a nested member object in the response. True includes the object.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-memberships'."]:
-    """Retrieve user memberships for a Trello board.
+    """Get details on user memberships for a Trello board.
 
-    Use this tool to get details about user memberships on a specific Trello board. It returns information on how users are associated with the board."""  # noqa: E501
+    Use this tool to retrieve information about the memberships users have on a specific Trello board. It should be called when you need to know details about user affiliations or roles within a board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/memberships".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "filter": membership_filter,
                 "activity": include_activity,
-                "orgMemberType": show_org_member_type,
+                "orgMemberType": display_organization_member_type,
                 "member": include_nested_member_object,
-                "member_fields": include_member_fields,
+                "member_fields": member_fields_to_display,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -596,89 +614,91 @@ async def get_trello_board_memberships(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_trello_board(
+async def get_trello_board_details(
     context: ToolContext,
+    board_id: Annotated[str, "The unique identifier of the Trello board to retrieve details for."],
     include_actions: Annotated[
         str | None,
-        "Specify if nested actions resource should be included in the response. Possible values: true or false.",  # noqa: E501
+        "Indicate whether to include actions related to the board. Set to true to include.",
     ] = None,
-    include_board_stars: Annotated[
+    board_stars_filter: Annotated[
         str | None,
-        "Specify whether to include board stars in the response: 'mine' for starred by the user, or 'none'.",  # noqa: E501
+        "Specify how board stars should be filtered. Use 'mine' to get your starred boards, or 'none' for all other boards.",  # noqa: E501
     ] = None,
-    include_cards: Annotated[
+    include_card_details: Annotated[
         str | None,
-        "Include cards as a nested resource in the board details response. This will fetch detailed information about the cards on the board.",  # noqa: E501
+        "Specify if card details should be included as a nested resource in the response. Read more about cards as nested resources.",  # noqa: E501
     ] = None,
     include_checklists: Annotated[
         str | None,
-        "Set to 'true' to include detailed checklist information in the board response. Checklists are nested resources containing additional data about board tasks.",  # noqa: E501
+        "Specify whether to include checklists as a nested resource in the response. Accepts a boolean value (true or false).",  # noqa: E501
     ] = None,
     board_fields_to_include: Annotated[
         str | None,
-        "Comma-separated board fields to include in the response: all, or a list of options such as closed, dateLastActivity, name, etc.",  # noqa: E501
+        "Specify which fields of the board to include in the response. Use 'all' or a comma-separated list (e.g., 'name,url').",  # noqa: E501
     ] = None,
-    include_labels: Annotated[
-        str | None, "Include label information for the Trello board as a nested resource."
+    include_labels_resource: Annotated[
+        str | None,
+        "Specify whether to include the label details as a nested resource in the response. Typically expected values might be strings such as 'true' or 'false'.",  # noqa: E501
     ] = None,
     include_lists: Annotated[
-        str | None, "Include lists as a nested resource in the board details response."
+        str | None, "Include details of lists on the Trello board. This is a nested resource."
     ] = None,
-    include_members_resource: Annotated[
+    include_members: Annotated[
         str | None,
-        "Include detailed member information with the board details. Provides member-related data as a nested resource.",  # noqa: E501
+        "Include member details as a nested resource in the response. Use 'true' to include or leave empty to exclude.",  # noqa: E501
     ] = None,
     include_memberships: Annotated[
         str | None,
-        "Include memberships as a nested resource in the response. Use 'true' to include or 'false' to exclude.",  # noqa: E501
+        "Include detailed membership information in the response. Set to 'true' to enable.",
     ] = None,
     include_card_plugin_data: Annotated[
         bool | None,
-        "Set to true to include card plugin data in the response. Must be used with the 'cards' parameter.",  # noqa: E501
+        "Set to true to include card plugin data in the response. Use with the `cards` parameter.",
     ] = None,
     include_custom_fields: Annotated[
-        bool | None,
-        "Set to true to include custom fields as a nested resource in the board details.",
+        bool | None, "Set to true to include custom fields in the board response."
     ] = None,
     include_plugin_data: Annotated[
-        bool | None, "Set to true to include plugin data for the board in the response."
-    ] = None,
-    include_organization_resource: Annotated[
         bool | None,
-        "Set to true to include the organization as a nested resource in the response. This accesses the organization's nested resource.",  # noqa: E501
+        "Determines whether plugin data for the board should be included in the response. Accepts true or false.",  # noqa: E501
+    ] = None,
+    include_organization: Annotated[
+        bool | None,
+        "Include the organization as a nested resource in the response. Set to true to include.",
     ] = None,
     include_organization_plugin_data: Annotated[
         bool | None,
-        "Include organization pluginData in the response when used with the 'organization' parameter. Set to true to include.",  # noqa: E501
+        "Set to true to include organization pluginData in the response. Must be used with the `organization` parameter.",  # noqa: E501
     ] = None,
     include_my_preferences: Annotated[
-        bool | None, "Include personal preferences in the response when set to true."
+        bool | None, "Set to true to include your preferences with the board details."
     ] = None,
     include_tags: Annotated[
         bool | None,
-        "Set to true to include collections (tags) that a board belongs to in the response.",
+        "Include tags (also known as collections) that the board belongs to. Set true to retrieve them, false otherwise.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id'."]:
-    """Fetch detailed information for a specific Trello board.
+    """Retrieve details for a specific Trello board.
 
-    Use this tool to obtain information about a specific Trello board by its ID. It returns details about the board, such as its name, description, and other relevant data."""  # noqa: E501
+    Use this tool to obtain information about a particular Trello board by providing its ID. It helps in accessing and displaying the specific board's details effortlessly."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}",
+            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "actions": include_actions,
-                "boardStars": include_board_stars,
-                "cards": include_cards,
+                "boardStars": board_stars_filter,
+                "cards": include_card_details,
                 "card_pluginData": include_card_plugin_data,
                 "checklists": include_checklists,
                 "customFields": include_custom_fields,
                 "fields": board_fields_to_include,
-                "labels": include_labels,
+                "labels": include_labels_resource,
                 "lists": include_lists,
-                "members": include_members_resource,
+                "members": include_members,
                 "memberships": include_memberships,
                 "pluginData": include_plugin_data,
-                "organization": include_organization_resource,
+                "organization": include_organization,
                 "organization_pluginData": include_organization_plugin_data,
                 "myPrefs": include_my_preferences,
                 "tags": include_tags,
@@ -695,106 +715,103 @@ async def retrieve_trello_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_board_by_id(
+async def update_trello_board(
     context: ToolContext,
-    new_board_name: Annotated[
-        str | None, "The new name for the Trello board, between 1 to 16384 characters long."
+    board_id: Annotated[str, "The unique identifier of the Trello board to update."],
+    board_new_name: Annotated[
+        str | None, "The new name for the board. Must be 1 to 16384 characters long."
     ] = None,
-    board_description: Annotated[
-        str | None, "A new description for the board. It can be 0 to 16384 characters long."
+    new_board_description: Annotated[
+        str | None, "A new description for the board, from 0 to 16384 characters long."
     ] = None,
-    user_subscription_status: Annotated[
-        str | None, "Set to 'true' if the user is subscribed to the board, otherwise 'false'."
+    user_subscribed_status: Annotated[
+        str | None,
+        "Indicate if the acting user is subscribed to the board. Expected values are 'true' or 'false'.",  # noqa: E501
     ] = None,
-    workspace_id_to_move_board: Annotated[
+    workspace_id_for_board: Annotated[
         str | None, "The ID of the Workspace to which the board should be moved."
     ] = None,
     board_permission_level: Annotated[
-        str | None, "The permission level for the board. Options are: org, private, or public."
+        str | None, "Set the board's permission level to 'org', 'private', or 'public'."
     ] = None,
-    invitation_permission: Annotated[
+    board_invitation_permission: Annotated[
         str | None,
-        "Specify who can invite people to this board. Accepted values are 'admins' or 'members'.",
+        "Specify who can invite people to this board. Choose between 'admins' or 'members'.",
     ] = None,
-    voting_permission_level: Annotated[
+    voting_permission: Annotated[
         str | None,
-        "Specify who can vote on the board. Possible values: 'disabled', 'members', 'observers', 'org', 'public'.",  # noqa: E501
+        "Specify who can vote on this board. Options: disabled, members, observers, org, public.",
     ] = None,
-    comment_permission_setting: Annotated[
+    comment_permission: Annotated[
         str | None,
-        "Specify who can comment on cards: disabled, members, observers, org, or public.",
+        "Specifies who can comment on cards: disabled, members, observers, org, or public.",
     ] = None,
-    board_background: Annotated[
+    board_background_id: Annotated[
         str | None,
-        "The ID of a custom background or one of the following colors: blue, orange, green, red, purple, pink, lime, sky, grey.",  # noqa: E501
+        "Specify the ID of a custom background or choose from predefined colors: blue, orange, green, red, purple, pink, lime, sky, grey.",  # noqa: E501
     ] = None,
     card_aging_preference: Annotated[
-        str | None,
-        "Set the card aging style on the Trello board. Options are 'pirate' or 'regular'.",
+        str | None, "Specifies the card aging style on the board. Options: 'pirate', 'regular'."
     ] = None,
     green_label_name: Annotated[
-        str | None, "The name for the green label. Must be between 1 and 16384 characters."
+        str | None, "Set the name for the green label. Must be 1 to 16384 characters long."
     ] = None,
     yellow_label_name: Annotated[
         str | None,
-        "The new name for the yellow label on the board. Must be between 1 and 16384 characters long.",  # noqa: E501
+        "Specify the name for the yellow label on the board. Must be between 1 and 16384 characters.",  # noqa: E501
     ] = None,
     orange_label_name: Annotated[
-        str | None,
-        "The name for the orange label on the board, ranging from 1 to 16384 characters long.",
+        str | None, "The name for the orange label. Must be 1 to 16384 characters long."
     ] = None,
     red_label_name: Annotated[
-        str | None,
-        "Provide a name for the red label, between 1 to 16384 characters long, to update its designation on the board.",  # noqa: E501
+        str | None, "Name for the red label on the board. It should be 1 to 16384 characters long."
     ] = None,
     purple_label_name: Annotated[
-        str | None, "The name for the purple label, between 1 to 16384 characters."
+        str | None, "Name for the purple label, 1 to 16384 characters long."
     ] = None,
     blue_label_name: Annotated[
-        str | None,
-        "Specify a new name for the blue label on the board. Must be between 1 and 16384 characters long.",  # noqa: E501
+        str | None, "Specify the name for the blue label, must be 1 to 16384 characters long."
     ] = None,
-    mark_board_as_closed: Annotated[
+    is_board_closed: Annotated[
         bool | None,
-        "Set to true to close the board, or false to keep it open. Accepts a boolean value.",
+        "Indicates if the board is closed. Use `true` to close (archive) the board, `false` to keep it open.",  # noqa: E501
     ] = None,
     allow_workspace_self_join: Annotated[
-        bool | None, "Set to true to allow Workspace members to join the board themselves."
+        bool | None,
+        "Set to true to allow Workspace members to join the board themselves; false to disallow.",
     ] = None,
     display_card_covers: Annotated[
-        bool | None, "Set to true to display card covers on the board, or false to hide them."
+        bool | None, "Set to true to display card covers on the board, false to hide them."
     ] = None,
-    hide_voter_identities_in_voting_power_up: Annotated[
-        bool | None,
-        "Set to true to hide who voted on cards in the Voting Power-Up; false to show identities.",
+    hide_votes: Annotated[
+        bool | None, "Set to true to hide voters on cards; false to show them."
     ] = None,
-    calendar_feed_enabled: Annotated[
-        bool | None,
-        "Set to true to enable the calendar feed, or false to disable it for the board.",
+    enable_calendar_feed: Annotated[
+        bool | None, "Set to true to enable the calendar feed; false to disable it."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-boards-id'."]:
     """Update an existing Trello board by ID.
 
-    Use this tool to modify details of a specific Trello board by providing its ID, such as updating its name, description, or settings."""  # noqa: E501
+    Use this tool to update the properties of an existing Trello board using its ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}",
+            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "name": new_board_name,
-                "desc": board_description,
-                "closed": mark_board_as_closed,
-                "subscribed": user_subscription_status,
-                "idOrganization": workspace_id_to_move_board,
+                "name": board_new_name,
+                "desc": new_board_description,
+                "closed": is_board_closed,
+                "subscribed": user_subscribed_status,
+                "idOrganization": workspace_id_for_board,
                 "prefs/permissionLevel": board_permission_level,
                 "prefs/selfJoin": allow_workspace_self_join,
                 "prefs/cardCovers": display_card_covers,
-                "prefs/hideVotes": hide_voter_identities_in_voting_power_up,
-                "prefs/invitations": invitation_permission,
-                "prefs/voting": voting_permission_level,
-                "prefs/comments": comment_permission_setting,
-                "prefs/background": board_background,
+                "prefs/hideVotes": hide_votes,
+                "prefs/invitations": board_invitation_permission,
+                "prefs/voting": voting_permission,
+                "prefs/comments": comment_permission,
+                "prefs/background": board_background_id,
                 "prefs/cardAging": card_aging_preference,
-                "prefs/calendarFeedEnabled": calendar_feed_enabled,
+                "prefs/calendarFeedEnabled": enable_calendar_feed,
                 "labelNames/green": green_label_name,
                 "labelNames/yellow": yellow_label_name,
                 "labelNames/orange": orange_label_name,
@@ -816,14 +833,14 @@ async def update_trello_board_by_id(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_board(
     context: ToolContext,
-    board_id_to_delete: Annotated[str, "The ID of the Trello board you want to delete."],
+    board_id: Annotated[str, "The ID of the Trello board to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-boards-id'."]:
-    """Deletes a specified board from Trello.
+    """Delete a Trello board by ID.
 
-    Use this tool to delete a specific board from Trello by providing the board ID. It should be called when there's a need to remove a board completely from the Trello workspace."""  # noqa: E501
+    Use this tool to delete a specified Trello board by providing its ID. It confirms the deletion of the board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}".format(id=board_id_to_delete),  # noqa: UP032
+            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -838,23 +855,23 @@ async def delete_trello_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_field(
+async def get_board_field(
     context: ToolContext,
     board_id: Annotated[
         str, "The unique identifier of the Trello board to retrieve the field from."
     ],
-    trello_board_field_name: Annotated[
+    board_field_name: Annotated[
         str,
-        "Specify the field name to retrieve from the Trello board. Valid values include: closed, dateLastActivity, dateLastView, desc, descData, idMemberCreator, idOrganization, invitations, invited, labelNames, memberships, name, pinned, powerUps, prefs, shortLink, shortUrl, starred, subscribed, url.",  # noqa: E501
+        "Specify the field name to retrieve from the Trello board. Valid values: closed, dateLastActivity, dateLastView, desc, descData, idMemberCreator, idOrganization, invitations, invited, labelNames, memberships, name, pinned, powerUps, prefs, shortLink, shortUrl, starred, subscribed, url.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-field'."]:
-    """Retrieve a specific field from a Trello board.
+    """Retrieve a specific field value from a Trello board.
 
-    Use this tool to obtain a specific field value from a Trello board by specifying the board's ID and the field name."""  # noqa: E501
+    Use this tool to get a specific field value from a Trello board by providing the board ID and the field name."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/{field}".format(  # noqa: UP032
-                id=board_id, field=trello_board_field_name
+                id=board_id, field=board_field_name
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -870,24 +887,24 @@ async def get_trello_board_field(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_board_star_information(
+async def get_board_stars(
     context: ToolContext,
     board_id: Annotated[
-        str, "The unique identifier of the Trello board to retrieve star information."
+        str, "The unique identifier for the Trello board to retrieve star information from."
     ],
-    star_filter: Annotated[
+    filter_by_board_stars: Annotated[
         str | None,
-        "Specify whose board stars to retrieve: 'mine' for your stars or 'none' for no specific filter.",  # noqa: E501
+        "Specify the filter for board stars. Valid values are 'mine' to select boards starred by the current user, or 'none' for no filtering.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-boardstars'."]:
-    """Retrieve information about stars on a Trello board.
+    """Retrieve board star details from Trello.
 
-    Use this tool to get details about the stars on a specific Trello board by providing the board ID."""  # noqa: E501
+    This tool is used to get information about the stars on a specific Trello board. It should be called when you want to check which users have starred a board or to manage board recognition."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{boardId}/boardStars".format(boardId=board_id),  # noqa: UP032
             params=remove_none_values({
-                "filter": star_filter,
+                "filter": filter_by_board_stars,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -901,15 +918,15 @@ async def get_board_star_information(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_checklists(
+async def get_board_checklists(
     context: ToolContext,
     board_id: Annotated[
-        str, "The unique identifier of the Trello board from which to retrieve checklists."
+        str, "The unique identifier of the Trello board for which to retrieve checklists."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'boards-id-checklists'."]:
     """Retrieve all checklists from a Trello board.
 
-    This tool retrieves all checklists associated with a specified Trello board. Use it to access checklist details for project management or task tracking purposes."""  # noqa: E501
+    Use this tool to get a list of all checklists on a specific Trello board by providing the board ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/checklists".format(id=board_id),  # noqa: UP032
@@ -927,15 +944,16 @@ async def get_trello_board_checklists(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_open_cards_from_trello_board(
+async def get_open_cards_on_board(
     context: ToolContext,
     board_id: Annotated[
-        str, "The unique identifier of the Trello board from which to retrieve open cards."
+        str,
+        "The ID of the Trello board from which to retrieve all open cards. This must be a valid board ID.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-cards'."]:
-    """Retrieve open cards from a specific Trello board.
+    """Retrieve all open cards from a Trello board.
 
-    This tool fetches all open cards from a specified Trello board. It should be used when you need to access the list of tasks or items currently active on a board."""  # noqa: E501
+    Use this tool to get all open cards on a specific Trello board by providing the board ID. It is useful for managing and viewing tasks or items in an active state on a Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/cards".format(id=board_id),  # noqa: UP032
@@ -956,21 +974,20 @@ async def get_open_cards_from_trello_board(
 async def get_filtered_trello_board_cards(
     context: ToolContext,
     board_id: Annotated[
-        str,
-        "The ID of the Trello board from which to retrieve cards. This is necessary to identify which board's cards to filter.",  # noqa: E501
+        str, "The unique identifier for the Trello board from which to retrieve cards."
     ],
-    card_filter: Annotated[
+    card_filter_type: Annotated[
         str,
-        "Specify the filter for retrieving board cards. Options: 'all', 'closed', 'complete', 'incomplete', 'none', 'open', 'visible'.",  # noqa: E501
+        "Filter for cards on the board. Options: all, closed, complete, incomplete, none, open, visible.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-cards-filter'."]:
-    """Retrieve filtered cards from a specific Trello board.
+    """Retrieve filtered cards from a Trello board.
 
-    Call this tool to get cards from a Trello board based on a specified filter. Useful for retrieving specific sets of cards like those that are complete, incomplete, or match other criteria."""  # noqa: E501
+    Use this tool to get cards from a specified Trello board that match a certain filter. Ideal for retrieving specific sets of cards based on criteria like labels, members, or statuses."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/cards/{filter}".format(  # noqa: UP032
-                id=board_id, filter=card_filter
+                id=board_id, filter=card_filter_type
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -986,15 +1003,15 @@ async def get_filtered_trello_board_cards(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_custom_fields(
+async def get_board_custom_fields(
     context: ToolContext,
     board_id: Annotated[
         str, "The unique identifier of the Trello board to retrieve custom field definitions for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-customfields'."]:
-    """Retrieve custom field definitions for a specific Trello board.
+    """Get Custom Field Definitions for a Trello board.
 
-    This tool is used to obtain the custom field definitions available on a specified Trello board. It should be called when users need to access or manage custom fields for organizational tasks."""  # noqa: E501
+    Use this tool to retrieve the Custom Field Definitions associated with a specific Trello board by providing the board ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/customFields".format(id=board_id),  # noqa: UP032
@@ -1012,24 +1029,22 @@ async def get_trello_board_custom_fields(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_board_label(
+async def create_label_on_board(
     context: ToolContext,
     label_name: Annotated[
-        str, "The name of the label to be created, ranging from 1 to 16384 characters."
+        str, "The name of the label to be created, between 1 and 16384 characters."
     ],
     label_color: Annotated[
-        str, "Specifies the color of the new label. Use a valid label color or set as 'null'."
+        str, "Sets the color of the new label. Accepts a label color or `null` for no color."
     ],
-    board_id_to_update: Annotated[
-        str, "The unique identifier of the Trello board where the new label will be added."
-    ],
+    board_id: Annotated[str, "The ID of the Trello board where the new label will be created."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards-id-labels'."]:
     """Create a new label on a Trello board.
 
-    Use this tool to add a new label to a specific Trello board. The tool should be called when you need to organize tasks by categorizing them with labels on Trello."""  # noqa: E501
+    Use this tool to create a new label on a specific Trello board by providing the board ID and label details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/labels".format(id=board_id_to_update),  # noqa: UP032
+            url="https://api.trello.com/1/boards/{id}/labels".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "name": label_name,
                 "color": label_color,
@@ -1046,33 +1061,34 @@ async def create_trello_board_label(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_lists(
+async def get_lists_on_board(
     context: ToolContext,
-    cards_filter: Annotated[
-        str | None, "Specify a card filter: 'all', 'closed', 'none', 'open'."
-    ] = None,
-    card_fields_list: Annotated[
+    board_id: Annotated[str, "The unique identifier of the Trello board to fetch its lists."],
+    card_filter: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of desired card fields to retrieve from the board.",  # noqa: E501
+        "Specify the filter to apply to cards on the list. Options are: 'all', 'closed', 'none', 'open'.",  # noqa: E501
+    ] = None,
+    card_fields_to_retrieve: Annotated[
+        str | None,
+        "Specify 'all' or a comma-separated list of card fields to retrieve from the board lists.",
     ] = None,
     list_filter: Annotated[
-        str | None,
-        "Filter to apply to lists on a Trello board. Options include 'all', 'closed', 'none', or 'open'.",  # noqa: E501
+        str | None, "Specify a filter to apply to lists: `all`, `closed`, `none`, or `open`."
     ] = None,
     list_fields: Annotated[
         str | None,
-        "Specify `all` to retrieve all fields or provide a comma-separated list of specific list fields to retrieve from Trello.",  # noqa: E501
+        "Specify `all` or a comma-separated list of list fields to retrieve from the Trello board. Use 'all' to access every field available.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-lists'."]:
-    """Retrieve lists from a specific Trello board.
+    """Retrieve all lists from a specified Trello board.
 
-    This tool is used to get all the lists present on a specified Trello board. It should be called when needing information about the organizational structure of a board, such as when managing tasks or projects using Trello."""  # noqa: E501
+    Use this tool to get information about all the lists on a specific Trello board by providing the board ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/lists",
+            url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "cards": cards_filter,
-                "card_fields": card_fields_list,
+                "cards": card_filter,
+                "card_fields": card_fields_to_retrieve,
                 "filter": list_filter,
                 "fields": list_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -1088,25 +1104,28 @@ async def get_trello_board_lists(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_list_on_board(
+async def create_trello_list(
     context: ToolContext,
     list_name: Annotated[
-        str, "The name of the Trello list to be created, between 1 and 16384 characters long."
+        str, "The name of the list to be created, ranging from 1 to 16384 characters."
     ],
-    list_position_on_board: Annotated[
+    board_id: Annotated[
+        str, "The unique identifier for the Trello board where the list will be created."
+    ],
+    list_position: Annotated[
         str | None,
-        "Specifies the position where the new list will appear on the board. Accepts `top`, `bottom`, or a positive number for a specific position.",  # noqa: E501
+        "Defines the position of the new list on the board. Accepts 'top', 'bottom', or a specific positive number for custom ordering.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards-id-lists'."]:
     """Create a new list on a Trello board.
 
-    Use this tool to add a new list to a specific Trello board by providing the board ID."""
+    This tool is used to create a new list on a specified Trello board. It should be called when you need to organize tasks or categories by adding a new list to an existing board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/lists",
+            url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "name": list_name,
-                "pos": list_position_on_board,
+                "pos": list_position,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -1122,14 +1141,17 @@ async def create_trello_list_on_board(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_filtered_lists_on_board(
     context: ToolContext,
-    board_id: Annotated[str, "The unique identifier of the Trello board to retrieve lists from."],
+    board_id: Annotated[
+        str, "The unique identifier for the Trello board from which to retrieve lists."
+    ],
     list_filter: Annotated[
-        str, "Filter for lists on a board. Options: 'all', 'closed', 'none', 'open'."
+        str,
+        "Filter criteria for the lists on the board. Options are: 'all', 'closed', 'none', 'open'.",
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-lists-filter'."]:
-    """Retrieve filtered lists from a specific Trello board.
+    """Retrieve filtered lists from a Trello board with specific criteria.
 
-    Use this tool to get lists from a Trello board based on specific filters, such as open or closed lists."""  # noqa: E501
+    Use this tool to obtain lists from a specified Trello board, applying specific filters to tailor the results. Ideal for managing board workflows by focusing on particular list attributes."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/lists/{filter}".format(  # noqa: UP032
@@ -1151,13 +1173,16 @@ async def get_filtered_lists_on_board(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_board_members(
     context: ToolContext,
+    board_id: Annotated[
+        str, "The unique identifier of the Trello board whose members you want to retrieve."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-members'."]:
-    """Retrieve members of a Trello board.
+    """Retrieve the members of a Trello board.
 
-    Use this tool to get a list of all members associated with a specific Trello board. Ideal for finding out who is part of a board and for managing memberships."""  # noqa: E501
+    Use this tool to get a list of members associated with a specific Trello board by providing the board ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members",
+            url="https://api.trello.com/1/boards/{id}/members".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1174,24 +1199,29 @@ async def get_board_members(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_member_to_trello_board(
     context: ToolContext,
-    member_role_on_board: Annotated[
-        str,
-        "Specifies the role of the member on the board. Choose from 'admin', 'normal', or 'observer'.",  # noqa: E501
+    member_type: Annotated[
+        str, "Specifies the role of the member on the board. Accepts: admin, normal, observer."
     ],
-    allow_billable_guest_addition: Annotated[
+    board_id: Annotated[
+        str, "The ID of the Trello board to which a member will be added. Provide a valid board ID."
+    ],
+    member_id: Annotated[str, "The ID of the member to add to the Trello board."],
+    allow_billable_guest: Annotated[
         bool | None,
-        "Set to true to allow organization admins to add multi-board guests onto a board.",
+        "Optional boolean to allow organization admins to add multi-board guests onto the board.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-boards-id-members-idmember'."]:
     """Add a member to a Trello board.
 
-    Use this tool to add a specific member to a Trello board. Provide the board and member IDs to complete the action."""  # noqa: E501
+    Use this tool to add a specific member to a Trello board by specifying the board ID and the member ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members/{idMember}",
+            url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
+                id=board_id, idMember=member_id
+            ),
             params=remove_none_values({
-                "type": member_role_on_board,
-                "allowBillableGuest": allow_billable_guest_addition,
+                "type": member_type,
+                "allowBillableGuest": allow_billable_guest,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -1207,13 +1237,17 @@ async def add_member_to_trello_board(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_member_from_trello_board(
     context: ToolContext,
+    board_id: Annotated[str, "The ID of the Trello board from which to remove the member."],
+    member_id_to_remove: Annotated[str, "The ID of the member to remove from the Trello board."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'boardsidmembersidmember'."]:
-    """Remove a member from a specific Trello board.
+    """Remove a member from a Trello board.
 
-    This tool is used to remove a specific member from a Trello board. Call this tool when you need to manage board memberships by deleting a user."""  # noqa: E501
+    Use this tool to remove a member from a specified Trello board by providing the board and member IDs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members/{idMember}",
+            url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
+                id=board_id, idMember=member_id_to_remove
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1228,37 +1262,34 @@ async def remove_member_from_trello_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_board_membership(
+async def update_board_membership(
     context: ToolContext,
     membership_type: Annotated[
+        str, "Specifies the role of the member on the board: 'admin', 'normal', or 'observer'."
+    ],
+    board_id: Annotated[
         str,
-        "Specifies the type of member for the board membership. Acceptable values are 'admin', 'normal', or 'observer'.",  # noqa: E501
+        "The ID of the Trello board to update the membership for. This is required to specify which board is being modified.",  # noqa: E501
     ],
-    board_id_to_update: Annotated[
-        str,
-        "The ID of the Trello board to update the membership on. This should be a string representing the board's unique identifier.",  # noqa: E501
-    ],
-    membership_id_to_add: Annotated[
-        str, "The ID of the membership to be added to the specified board."
-    ],
-    member_fields: Annotated[
+    membership_id_to_add: Annotated[str, "The ID of the membership to add to the board."],
+    membership_field_type: Annotated[
         str | None,
-        "Specifies which member fields to return. Options include 'all', 'avatarHash', 'bio', 'bioData', 'confirmed', 'fullName', 'idPremOrgsAdmin', 'initials', 'memberType', 'products', 'status', 'url', 'username'.",  # noqa: E501
+        "Specify the type of membership field to update. Valid values include all, avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-memberships-idmembership'."
 ]:
-    """Update a Trello board membership by ID.
+    """Update an existing membership on a Trello board.
 
-    Use this tool to update an existing membership on a Trello board by specifying the board and membership IDs."""  # noqa: E501
+    Use this tool to modify details of a membership on a Trello board. It requires specifying the board ID and the membership ID to update."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/memberships/{idMembership}".format(  # noqa: UP032
-                id=board_id_to_update, idMembership=membership_id_to_add
+                id=board_id, idMembership=membership_id_to_add
             ),
             params=remove_none_values({
                 "type": membership_type,
-                "member_fields": member_fields,
+                "member_fields": membership_field_type,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -1275,18 +1306,17 @@ async def update_trello_board_membership(
 async def update_board_email_position(
     context: ToolContext,
     email_position_preference: Annotated[
-        str,
-        "Specifies the email address position on the board. Acceptable values are 'bottom' or 'top'.",  # noqa: E501
+        str, "Specify the email address position on the board. Valid values are 'bottom' or 'top'."
     ],
     board_id: Annotated[
-        str, "The unique identifier of the Trello board to update the email position preference."
+        str, "The ID of the Trello board whose email position preference you want to update."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-myprefs-emailposition'."
 ]:
     """Update the email position preference on a Trello board.
 
-    This tool updates the email position preference for a specific Trello board. It should be called when changes to email notification settings need to be applied to a board."""  # noqa: E501
+    This tool updates the email position preference setting for a specified Trello board. Use this tool when you need to change how emails are displayed or organized on a board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/myPrefs/emailPosition".format(id=board_id),  # noqa: UP032
@@ -1305,26 +1335,21 @@ async def update_board_email_position(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_email_to_board_list_preference(
+async def set_default_email_to_board_list(
     context: ToolContext,
     email_list_id: Annotated[
-        str, "The ID of the email list where email-to-board cards should be created."
+        str, "The ID of the email list to set as the default for email-to-board cards."
     ],
-    board_id_to_update: Annotated[
-        str,
-        "The unique identifier of the Trello board to be updated with the new default email-to-board list preference.",  # noqa: E501
-    ],
+    board_id: Annotated[str, "The unique identifier of the Trello board to update."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-myprefs-idemaillist'."
 ]:
-    """Change the default list for email-to-board card creation.
+    """Change the default list for email-to-board cards.
 
-    This tool updates the default list where email-to-board cards are created on a specified Trello board. Call this when you need to change the list preference for incoming email cards."""  # noqa: E501
+    Use this tool to specify which list newly emailed cards are added to on a Trello board."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/idEmailList".format(  # noqa: UP032
-                id=board_id_to_update
-            ),
+            url="https://api.trello.com/1/boards/{id}/myPrefs/idEmailList".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "value": email_list_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -1340,19 +1365,21 @@ async def update_email_to_board_list_preference(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_board_sidebar_preference(
+async def update_board_sidebar_preference(
     context: ToolContext,
     board_id: Annotated[
-        str,
-        "The unique identifier of the Trello board to update the sidebar visibility preference for.",  # noqa: E501
+        str, "The unique identifier of the Trello board to update the sidebar preference."
     ],
-    show_sidebar: Annotated[bool, "Set to true to show the sidebar, false to hide it."],
+    show_sidebar: Annotated[
+        bool,
+        "Determines if the sidebar should be visible on the board. Set to true to show and false to hide.",  # noqa: E501
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-myPrefs-showsidebar'."
 ]:
     """Update the sidebar visibility preference for a Trello board.
 
-    Use this tool to change the 'showSidebar' preference for a specified Trello board. This is useful for adjusting the visibility of the sidebar on a board as per user preference."""  # noqa: E501
+    Use this tool to modify the sidebar visibility settings on a specified Trello board. Call this tool when you need to enable or disable the sidebar display on a Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebar".format(id=board_id),  # noqa: UP032
@@ -1374,17 +1401,17 @@ async def update_trello_board_sidebar_preference(
 async def update_sidebar_activity_preference(
     context: ToolContext,
     board_id: Annotated[
-        str, "The ID of the Trello board to update the sidebar activity preference on."
+        str, "The unique identifier for the Trello board to update the sidebar activity preference."
     ],
     show_sidebar_activity: Annotated[
-        bool, "Set to true to display sidebar activity on the board; false to hide it."
+        bool, "Set to true to display the sidebar activity; false to hide it."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-myPrefs-showsidebaractivity'."
 ]:
-    """Update the sidebar activity preference on a Trello board.
+    """Update sidebar activity display preference for a Trello board.
 
-    Use this tool to update the 'showSidebarActivity' preference on a specific Trello board. This modifies the board's settings to either display or hide sidebar activity according to the provided preference."""  # noqa: E501
+    Use this tool to update the preference for displaying the sidebar activity on a specific Trello board. Useful when adjusting board settings to improve user interaction."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarActivity".format(  # noqa: UP032
@@ -1405,22 +1432,21 @@ async def update_sidebar_activity_preference(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_sidebar_board_actions_pref(
+async def update_sidebar_board_actions_prefs(
     context: ToolContext,
     board_id: Annotated[
-        str, "The ID of the Trello board to update the sidebar board actions preference."
+        str, "The unique identifier of the Trello board to update the sidebar actions preference."
     ],
     show_sidebar_board_actions: Annotated[
-        bool,
-        "Set to true to show the sidebar board actions or false to hide them on a Trello board.",
+        bool, "Set to 'true' to show sidebar board actions, or 'false' to hide them."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-boards-id-myPrefs-showsidebarboardactions'.",
 ]:
-    """Update the sidebar board actions preference on a Trello board.
+    """Update the showSidebarBoardActions preference on a board.
 
-    Use this tool to update the preference for showing sidebar board actions on a specific Trello board. This is useful for customizing board views according to user needs."""  # noqa: E501
+    Use this tool to update the preference for displaying sidebar board actions on a Trello board. It should be called when you want to modify the visibility of board action buttons in the sidebar."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarBoardActions".format(  # noqa: UP032
@@ -1441,22 +1467,21 @@ async def update_sidebar_board_actions_pref(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_sidebar_members_display(
+async def update_trello_sidebar_members_view(
     context: ToolContext,
     board_id: Annotated[
         str,
-        "The unique identifier of the Trello board to update. Required to specify which board's sidebar member display preference you wish to change.",  # noqa: E501
+        "The unique identifier of the Trello board to update the sidebar members view preference.",
     ],
     show_sidebar_members: Annotated[
-        bool,
-        "Set to true to display members in the sidebar, or false to hide them on a Trello board.",
+        bool, "Set to true to show members of the board in the sidebar; false to hide them."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-boards-id-myPrefs-showsidebarmembers'."
 ]:
-    """Updates the sidebar member display preference on a Trello board.
+    """Update the sidebar members view preference on a Trello board.
 
-    Use this tool to change whether the sidebar member display is shown on a specific Trello board. It updates the 'showSidebarMembers' preference for a given board ID."""  # noqa: E501
+    This tool updates the 'showSidebarMembers' preference for a specific Trello board, adjusting whether members are displayed in the sidebar. Use it to customize a board's appearance as needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarMembers".format(  # noqa: UP032
@@ -1480,86 +1505,86 @@ async def update_sidebar_members_display(
 async def create_trello_board(
     context: ToolContext,
     board_name: Annotated[
-        str, "The new name for the Trello board. Must be between 1 and 16384 characters long."
+        str, "The name of the new Trello board. Must be 1 to 16384 characters long."
     ],
     board_description: Annotated[
-        str | None, "A description for the board, from 0 to 16384 characters in length."
+        str | None, "A new description for the board, ranging from 0 to 16384 characters."
     ] = None,
     workspace_id_or_name: Annotated[
-        str | None, "The ID or name of the Workspace where the new board will be created."
+        str | None, "The ID or name of the Workspace where the board will be created."
     ] = None,
     source_board_id: Annotated[
         str | None,
-        "The ID of a board to duplicate for creating the new board, allowing you to copy existing setups.",  # noqa: E501
+        "The ID of the board to copy into the new board. If provided, the new board will be a copy of the specified board.",  # noqa: E501
     ] = None,
-    retain_original_board_cards: Annotated[
+    keep_original_cards: Annotated[
         str | None,
-        "Specify 'cards' to retain cards from the original board. Use 'none' if you do not wish to retain cards.",  # noqa: E501
+        "Specify if cards from the original board should be retained in the new board. Use 'cards' to keep them or 'none' to exclude them.",  # noqa: E501
     ] = None,
-    enabled_power_ups: Annotated[
+    enable_power_ups: Annotated[
         str | None,
-        "Specify the Power-Ups to enable on the new board. Choose from: 'all', 'calendar', 'cardAging', 'recap', or 'voting'.",  # noqa: E501
+        "Specifies which Power-Ups to enable on the new board. Options include: `all`, `calendar`, `cardAging`, `recap`, `voting`.",  # noqa: E501
     ] = None,
     board_permission_level: Annotated[
-        str | None, "The permissions level of the board. Choose from: `org`, `private`, `public`."
-    ] = None,
-    voting_permissions: Annotated[
         str | None,
-        "Specifies who can vote on the board. Options: 'disabled', 'members', 'observers', 'org', 'public'.",  # noqa: E501
+        "Specifies the permission level of the board. Choose from 'org', 'private', or 'public'.",
     ] = None,
-    comments_permission: Annotated[
+    set_voting_permissions: Annotated[
         str | None,
-        "Defines who can comment on cards on the board. Options: `disabled`, `members`, `observers`, `org`, `public`.",  # noqa: E501
+        "Set who can vote on the board. Options: 'disabled', 'members', 'observers', 'org', 'public'.",  # noqa: E501
+    ] = None,
+    comment_permissions: Annotated[
+        str | None,
+        "Specifies who can comment on cards on this board. Options: `disabled`, `members`, `observers`, `org`, `public`.",  # noqa: E501
     ] = None,
     invitation_permission_level: Annotated[
         str | None,
-        "Specifies who can invite users to join the board. Options: `admins`, `members`.",
+        "Specifies who can invite users to join the board. Options: 'members' or 'admins'.",
     ] = None,
-    background_color: Annotated[
+    board_background_color: Annotated[
         str | None,
-        "Select a background color for the board. Options include: blue, orange, green, red, purple, pink, lime, sky, grey.",  # noqa: E501
+        "Select a background color for the board. Options are: `blue`, `orange`, `green`, `red`, `purple`, `pink`, `lime`, `sky`, `grey`, or a custom background ID.",  # noqa: E501
     ] = None,
     card_aging_type: Annotated[
-        str | None, "Type of card aging on the board if enabled. Options: 'pirate', 'regular'."
+        str | None, "Type of card aging for the board. Choose 'pirate' or 'regular'."
     ] = None,
     use_default_labels: Annotated[
-        bool | None,
-        "Set to true to include the default set of labels on the board, or false to exclude them.",
+        bool | None, "Set to true to use the default set of labels."
     ] = None,
-    use_default_lists: Annotated[
+    add_default_lists: Annotated[
         bool | None,
-        "Determines whether to use the default set of lists (To Do, Doing, Done) when creating a board. This is ignored if `idBoardSource` is provided.",  # noqa: E501
+        "Determines if the default lists (To Do, Doing, Done) should be added to the board. Ignored if `idBoardSource` is provided.",  # noqa: E501
     ] = None,
     allow_self_join: Annotated[
         bool | None,
-        "Allow users to join the board themselves without needing an invitation. Set to true to enable self-join, otherwise set false.",  # noqa: E501
+        "Set to true to allow users to join the board themselves; false requires an invitation.",
     ] = None,
     enable_card_covers: Annotated[
-        bool | None, "Enable card covers on the new board when true; disable them when false."
+        bool | None, "Set to true to enable card covers on the board."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards'."]:
-    """Create a new board on Trello.
+    """Create a new board in Trello.
 
-    Use this tool to create a new board on Trello quickly. This can be called when a user wants to organize projects or tasks by creating a new board."""  # noqa: E501
+    Use this tool to create a new board on Trello. It should be called when there's a need to organize tasks or projects into a new board structure."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/",
             params=remove_none_values({
                 "name": board_name,
                 "defaultLabels": use_default_labels,
-                "defaultLists": use_default_lists,
+                "defaultLists": add_default_lists,
                 "desc": board_description,
                 "idOrganization": workspace_id_or_name,
                 "idBoardSource": source_board_id,
-                "keepFromSource": retain_original_board_cards,
-                "powerUps": enabled_power_ups,
+                "keepFromSource": keep_original_cards,
+                "powerUps": enable_power_ups,
                 "prefs_permissionLevel": board_permission_level,
-                "prefs_voting": voting_permissions,
-                "prefs_comments": comments_permission,
+                "prefs_voting": set_voting_permissions,
+                "prefs_comments": comment_permissions,
                 "prefs_invitations": invitation_permission_level,
                 "prefs_selfJoin": allow_self_join,
                 "prefs_cardCovers": enable_card_covers,
-                "prefs_background": background_color,
+                "prefs_background": board_background_color,
                 "prefs_cardAging": card_aging_type,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1576,21 +1601,18 @@ async def create_trello_board(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def generate_trello_board_calendar_key(
     context: ToolContext,
-    board_id_to_update: Annotated[
-        str,
-        "The unique identifier of the Trello board for which you want to generate a calendar key.",
+    board_id: Annotated[
+        str, "The unique identifier of the Trello board for which to generate a calendar key."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'post-boards-id-calendarkey-generate'."
 ]:
     """Generates a calendar key for a Trello board.
 
-    Use this tool to generate a calendar key for an existing Trello board by providing the board ID. This allows for calendar integration and scheduling based on board activities."""  # noqa: E501
+    Use this tool to generate a calendar key for an existing Trello board. This key can be used to integrate the board's calendar with other applications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/calendarKey/generate".format(  # noqa: UP032
-                id=board_id_to_update
-            ),
+            url="https://api.trello.com/1/boards/{id}/calendarKey/generate".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1608,14 +1630,14 @@ async def generate_trello_board_calendar_key(
 async def generate_board_email_key(
     context: ToolContext,
     board_id: Annotated[
-        str, "The unique identifier of the Trello board for which the email key will be generated."
+        str, "The unique identifier of the Trello board for which to generate an email key."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'post-boards-id-emailkey-generate'."
 ]:
     """Generate an email key for a Trello board.
 
-    This tool generates a unique email key for a specified Trello board. It should be called when there's a need to create or regenerate the email key that allows emails to be sent directly to a board."""  # noqa: E501
+    This tool generates an email key for a specified Trello board, allowing emails to be sent directly to the board. It should be called when you need to enable email integration for a board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/emailKey/generate".format(id=board_id),  # noqa: UP032
@@ -1633,24 +1655,23 @@ async def generate_board_email_key(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_board_tag(
+async def create_board_tag(
     context: ToolContext,
-    tag_id: Annotated[
-        str,
-        "The ID of a tag from the organization associated with this board, used to create the tag on the specified Trello board.",  # noqa: E501
+    organization_tag_id: Annotated[
+        str, "Provide the ID of a tag from the organization this board belongs to."
     ],
     board_id: Annotated[
-        str, "The unique identifier of the Trello board where the tag should be created."
+        str, "The unique identifier of the Trello board where the tag will be created."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards-id-idtags'."]:
-    """Create a new tag for a specific Trello board.
+    """Create a new tag for a Trello board.
 
-    Use this tool to add a tag to a specified Trello board by providing the board ID. Useful for organizing and managing tasks with specific labels."""  # noqa: E501
+    Use this tool to create a new tag for a specific board in Trello. Ideal for organizing and categorizing tasks within a board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/idTags".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "value": tag_id,
+                "value": organization_tag_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -1666,18 +1687,14 @@ async def create_trello_board_tag(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def mark_trello_board_as_viewed(
     context: ToolContext,
-    board_id_to_mark_as_viewed: Annotated[
-        str, "The unique identifier of the Trello board to mark as viewed."
-    ],
+    board_id: Annotated[str, "The unique identifier of the Trello board to be marked as viewed."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards-id-markedasviewed'."]:
-    """Mark a Trello board as viewed.
+    """Marks a Trello board as viewed for a user.
 
-    This tool marks a specified Trello board as viewed. Use it to update the view status of a board in Trello."""  # noqa: E501
+    Use this tool when you need to mark a Trello board as viewed. It helps manage board activity tracking by indicating when a user has viewed it."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/markedAsViewed".format(  # noqa: UP032
-                id=board_id_to_mark_as_viewed
-            ),
+            url="https://api.trello.com/1/boards/{id}/markedAsViewed".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1692,15 +1709,16 @@ async def mark_trello_board_as_viewed(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_powerups(
+async def get_board_power_ups(
     context: ToolContext,
+    board_id: Annotated[str, "The ID of the Trello Board for which to retrieve enabled Power-Ups."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-boards-id-boardplugins'."]:
-    """Retrieve enabled Power-Ups on a Trello board.
+    """Retrieve the enabled Power-Ups on a Trello board.
 
-    This tool retrieves the list of enabled Power-Ups for a specific Trello board by its ID. Call this tool when you need to know which Power-Ups are activated on a given board."""  # noqa: E501
+    Use this tool to get a list of Power-Ups (features and integrations) that are currently enabled on a specific Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/boardPlugins",
+            url="https://api.trello.com/1/boards/{id}/boardPlugins".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1715,81 +1733,21 @@ async def get_trello_board_powerups(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def enable_trello_power_up_on_board(
+async def list_board_power_ups(
     context: ToolContext,
-    power_up_id_to_enable: Annotated[
-        str | None, "The ID of the Power-Up to activate on the specified board."
-    ] = None,
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-boards-id-boardplugins'."]:
-    """Enables a Power-Up on a specified Trello board.
-
-    This tool should be called when you need to activate a Power-Up feature on a specific Trello board. It enables the requested Power-Up on the board identified by its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/boardPlugins",
-            params=remove_none_values({
-                "idPlugin": power_up_id_to_enable,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
-
-
-@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def disable_powerup_on_board(
-    context: ToolContext,
-    board_id: Annotated[
-        str, "The unique identifier of the Trello board from which the Power-Up should be disabled."
-    ],
-    power_up_id_to_disable: Annotated[
-        str, "The ID of the Power-Up to disable on the Trello board."
-    ],
-) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-boards-id-boardplugins'."]:
-    """Disable a Power-Up on a Trello board.
-
-    This tool disables a Power-Up on a specified Trello board. Use it when you need to remove an existing Power-Up feature from a board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/boardPlugins/{idPlugin}".format(  # noqa: UP032
-                id=board_id, idPlugin=power_up_id_to_disable
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
-
-
-@tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_trello_board_power_ups(
-    context: ToolContext,
-    board_id: Annotated[
-        str, "The unique identifier of the Trello board whose Power-Ups you want to retrieve."
-    ],
-    power_up_filter: Annotated[
-        str | None, "Specify whether to retrieve 'enabled' or 'available' Power-Ups on the board."
+    board_id: Annotated[str, "The unique identifier for the Trello board to list its Power-Ups."],
+    power_up_status_filter: Annotated[
+        str | None, "Specify whether to list 'enabled' or 'available' Power-Ups on the board."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-board-id-plugins'."]:
-    """Retrieve Power-Ups for a Trello board by ID.
+    """Retrieve the Power-Ups enabled on a Trello board.
 
-    Use this tool to get a list of all Power-Ups enabled on a specific Trello board using its ID."""
+    Use this tool to get a list of all the Power-Ups currently active on a specific Trello board. It's useful for understanding which enhancements are applied to the board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/boards/{id}/plugins".format(id=board_id),  # noqa: UP032
             params=remove_none_values({
-                "filter": power_up_filter,
+                "filter": power_up_status_filter,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -1805,93 +1763,93 @@ async def list_trello_board_power_ups(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_card(
     context: ToolContext,
-    list_id: Annotated[str, "The ID of the Trello list where the new card should be created."],
+    list_id_for_card: Annotated[str, "The ID of the list where the new card will be created."],
     card_name: Annotated[
-        str | None,
-        "The name to assign to the new Trello card. This will serve as the main title of the card.",
+        str | None, "The title or name of the card to be created in Trello."
     ] = None,
     card_description: Annotated[
-        str | None, "The detailed description for the Trello card that you want to create."
-    ] = None,
-    new_card_position: Annotated[
         str | None,
-        "The position of the new card in the list. Accepted values are 'top', 'bottom', or a positive float representing a specific position.",  # noqa: E501
+        "A detailed text description for the Trello card. This helps in adding more context or information about the card's purpose or content.",  # noqa: E501
     ] = None,
-    due_date: Annotated[
+    card_position: Annotated[
+        str | None, "Position of the new card. Use 'top', 'bottom', or a specific float value."
+    ] = None,
+    card_due_date: Annotated[
         str | None,
-        "The due date for the Trello card. Format as a string in ISO 8601 format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ).",  # noqa: E501
+        "The due date for the Trello card, formatted as a string. Use ISO 8601 format (YYYY-MM-DD) for consistency.",  # noqa: E501
     ] = None,
     start_date: Annotated[
-        str | None, "The start date for the card. Use a date string or `null` if not applicable."
+        str | None, "The start date of the card in YYYY-MM-DD format, or `null` if not applicable."
     ] = None,
     member_ids_to_add: Annotated[
-        list[dict[str, str]] | None,
-        "List of member IDs to add to the card. Provide each ID as a separate entry in the list.",
+        list[dict[str, str]] | None, "A list of Trello member IDs to add to the card."
     ] = None,
     label_ids: Annotated[
         list[dict[str, str]] | None,
-        "List of label IDs to attach to the card. Provide as an array of strings.",
+        "List of label IDs to add to the card. Provide IDs as strings in a list format.",
     ] = None,
     attachment_url: Annotated[
         str | None,
-        "A URL starting with `http://` or `https://` to be attached to the new Trello card.",
+        "A URL starting with `http://` or `https://` to be attached to the card upon creation.",
     ] = None,
-    file_attachment_source: Annotated[
+    attachment_file_path: Annotated[
         str | None,
-        "The file source URL or path to attach to the card. Ensure it is accessible during upload.",
+        "The local file path to be attached to the Trello card. This file will be uploaded when the card is created.",  # noqa: E501
     ] = None,
     attachment_mime_type: Annotated[
-        str | None, "The MIME type of the attachment. Ensure it does not exceed 256 characters."
-    ] = None,
-    source_card_id: Annotated[
-        str | None, "The ID of an existing card to copy into the new card."
-    ] = None,
-    properties_to_copy_from_source: Annotated[
         str | None,
-        "Specify which properties to copy from the source card if using `idCardSource`. Options are: `all` or a comma-separated list of `attachments,checklists,customFields,comments,due,start,labels,members,start,stickers`.",  # noqa: E501
+        "The MIME type of the attachment for the Trello card. Maximum length is 256 characters.",
+    ] = None,
+    copy_card_source_id: Annotated[
+        str | None, "The ID of a card to copy properties from into the new card."
+    ] = None,
+    copy_properties_from_source: Annotated[
+        str | None,
+        "Specify properties to copy if using `idCardSource`. Use `all` or a comma-separated list of: `attachments,checklists,customFields,comments,due,start,labels,members,stickers`.",  # noqa: E501
     ] = None,
     map_view_address: Annotated[
-        str | None, "The address to use for Map View integration on the Trello card."
+        str | None,
+        "The address for use with the Map View in Trello. This can enhance location-based features.",  # noqa: E501
     ] = None,
-    map_view_location_name: Annotated[
-        str | None, "The name of the location for use with the Map View on Trello."
+    location_name: Annotated[
+        str | None, "The name of the location for use with the Map View in Trello."
     ] = None,
-    map_view_coordinates: Annotated[
-        str | None, "Coordinates in the format 'latitude,longitude' for use with the Map View."
+    map_coordinates: Annotated[
+        str | None, "Coordinates for the Map View in the format latitude,longitude."
     ] = None,
     card_display_role: Annotated[
         str | None,
-        "Specify how the card will be displayed. Options: 'separator', 'board', 'mirror', 'link'. The card name should align with the selected role.",  # noqa: E501
+        "Specifies how the card should be displayed. Options: `separator` for visual separation, `board` for linking to a Trello board, `mirror` for linking to a Trello card, and `link` for a general URL link.",  # noqa: E501
     ] = None,
-    is_card_status_complete: Annotated[
+    card_completion_status: Annotated[
         bool | None,
-        "Indicate if the card's status is complete. Use 'true' to mark as complete, 'false' otherwise.",  # noqa: E501
+        "Indicate if the card's status is complete. True means the card is complete, and false means it is incomplete.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards'."]:
     """Create a new card in Trello.
 
-    This tool allows you to create a new card on a Trello board. It is useful when users want to add tasks or notes to their Trello boards directly."""  # noqa: E501
+    Use this tool to create a new card on a Trello board. This is useful when you need to organize tasks or information by adding cards to your Trello workflow."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards",
             params=remove_none_values({
                 "name": card_name,
                 "desc": card_description,
-                "pos": new_card_position,
-                "due": due_date,
+                "pos": card_position,
+                "due": card_due_date,
                 "start": start_date,
-                "dueComplete": is_card_status_complete,
-                "idList": list_id,
+                "dueComplete": card_completion_status,
+                "idList": list_id_for_card,
                 "idMembers": member_ids_to_add,
                 "idLabels": label_ids,
                 "urlSource": attachment_url,
-                "fileSource": file_attachment_source,
+                "fileSource": attachment_file_path,
                 "mimeType": attachment_mime_type,
-                "idCardSource": source_card_id,
-                "keepFromSource": properties_to_copy_from_source,
+                "idCardSource": copy_card_source_id,
+                "keepFromSource": copy_properties_from_source,
                 "address": map_view_address,
-                "locationName": map_view_location_name,
-                "coordinates": map_view_coordinates,
+                "locationName": location_name,
+                "coordinates": map_coordinates,
                 "cardRole": card_display_role,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -1908,98 +1866,97 @@ async def create_trello_card(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_by_id(
     context: ToolContext,
-    fields_to_retrieve: Annotated[
+    card_id: Annotated[str, "The unique identifier for the Trello card to retrieve details for."],
+    card_fields_to_retrieve: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of Trello card fields to retrieve. Defaults include badges, closed, dateLastActivity, and more.",  # noqa: E501
+        "`all` or a comma-separated list of fields to retrieve for the Trello card. Defaults: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url",  # noqa: E501
     ] = None,
-    include_actions_details: Annotated[
+    include_action_details: Annotated[
         str | None,
-        "Determines if action details should be retrieved with the card. Refer to the Actions Nested Resource for specifics.",  # noqa: E501
+        "Specifies whether to include action details related to the card. Refer to Trello's Actions Nested Resource for options.",  # noqa: E501
     ] = None,
     include_attachments: Annotated[
         str | None,
-        "Specify 'true', 'false', or 'cover' to include respective attachment details on the Trello card.",  # noqa: E501
+        "Specify 'true', 'false', or 'cover' to determine the type of attachments to return.",
     ] = None,
-    attachment_fields_list: Annotated[
+    attachment_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of attachment fields to return for the card.",
+        "Specify `all` or a comma-separated list of attachment fields to retrieve for the card.",
     ] = None,
     member_fields_selection: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of member fields for the members on the card. Defaults are `avatarHash, fullName, initials, username`.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member fields like avatarHash, fullName, initials, username. Defaults to these fields if not specified.",  # noqa: E501
     ] = None,
     member_voted_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields for members who voted on the card. Defaults to avatarHash, fullName, initials, username.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member fields like 'avatarHash, fullName, initials, username'. Defaults to specific fields if not provided.",  # noqa: E501
     ] = None,
-    include_checklists_on_card: Annotated[
-        str | None,
-        "Specify whether to return the checklists on the card. Options are 'all' or 'none'.",
+    include_checklists: Annotated[
+        str | None, "Specify whether to include checklists in the card data. Use 'all' or 'none'."
     ] = None,
     checklist_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of `idBoard,idCard,name,pos` to define which checklist fields to return.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of fields (idBoard, idCard, name, pos) to return for checklists.",  # noqa: E501
     ] = None,
-    board_fields_to_include: Annotated[
+    board_fields_to_return: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields to include for the board. Defaults to 'name, desc, descData, closed, idOrganization, pinned, url, prefs'.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of board fields like name, desc, idOrganization. Defaults are name, desc, descData, closed, idOrganization, pinned, url, prefs.",  # noqa: E501
     ] = None,
-    sticker_field_selection: Annotated[
-        str | None, "Specify 'all' or a comma-separated list of sticker fields to include."
+    sticker_fields: Annotated[
+        str | None, "Specify `all` or a comma-separated list of sticker fields to retrieve."
     ] = None,
     include_card_members: Annotated[
-        bool | None, "Set to true to return member objects for members on the card."
+        bool | None, "Set to true to include member objects on the card, false to exclude them."
     ] = None,
-    include_voting_members: Annotated[
-        bool | None, "Set to true to return member objects for members who voted on the card."
+    include_members_who_voted: Annotated[
+        bool | None,
+        "Set to `true` to return member objects for members who voted on the card; set to `false` to exclude them.",  # noqa: E501
     ] = None,
     include_check_item_states: Annotated[
-        bool | None,
-        "Indicate if check item states should be included in the response. A value of true includes the states.",  # noqa: E501
+        bool | None, "Set to true to include check item states in the Trello card details response."
     ] = None,
     include_board_object: Annotated[
-        bool | None, "Set to true to include the board object the card is on."
+        bool | None, "Set to true to return the board object the card is on."
     ] = None,
-    include_list_details: Annotated[
+    include_lists_nested_resource: Annotated[
         bool | None,
-        "Set to true to include details about the list using the Lists Nested Resource.",
+        "Specify whether to include information about the Lists Nested Resource for the card. Use a boolean value.",  # noqa: E501
     ] = None,
     include_plugin_data: Annotated[
         bool | None, "Set to true to include pluginData on the card with the response."
     ] = None,
     include_stickers: Annotated[
-        bool | None,
-        "Set to true to include sticker models with the response; false to exclude them.",
+        bool | None, "Set to true to include sticker models in the response."
     ] = None,
     include_custom_field_items: Annotated[
         bool | None,
-        "Whether to include custom field items in the response. Set to true to include, false to exclude.",  # noqa: E501
+        "Set to true to include custom field items in the card details, or false to exclude them.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id'."]:
-    """Retrieve Trello card details using its ID.
+    """Retrieve Trello card details using card ID.
 
-    Use this tool to get comprehensive details about a Trello card by specifying its unique ID."""
+    Use this tool to get detailed information about a Trello card by providing its unique ID. Ideal for accessing specific card details such as description, labels, and more."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}",
+            url="https://api.trello.com/1/cards/{id}".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": fields_to_retrieve,
-                "actions": include_actions_details,
+                "fields": card_fields_to_retrieve,
+                "actions": include_action_details,
                 "attachments": include_attachments,
-                "attachment_fields": attachment_fields_list,
+                "attachment_fields": attachment_fields,
                 "members": include_card_members,
                 "member_fields": member_fields_selection,
-                "membersVoted": include_voting_members,
+                "membersVoted": include_members_who_voted,
                 "memberVoted_fields": member_voted_fields,
                 "checkItemStates": include_check_item_states,
-                "checklists": include_checklists_on_card,
+                "checklists": include_checklists,
                 "checklist_fields": checklist_fields,
                 "board": include_board_object,
-                "board_fields": board_fields_to_include,
-                "list": include_list_details,
+                "board_fields": board_fields_to_return,
+                "list": include_lists_nested_resource,
                 "pluginData": include_plugin_data,
                 "stickers": include_stickers,
-                "sticker_fields": sticker_field_selection,
+                "sticker_fields": sticker_fields,
                 "customFieldItems": include_custom_field_items,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2016,13 +1973,14 @@ async def get_trello_card_by_id(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_card(
     context: ToolContext,
+    card_id_to_delete: Annotated[str, "The unique ID of the Trello card to delete."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-cards-id'."]:
-    """Deletes a card from a Trello board.
+    """Deletes a card from Trello by ID.
 
-    This tool deletes a specific card from a Trello board using its ID. It should be used when a card needs to be permanently removed."""  # noqa: E501
+    Use this tool to delete a specific card from a Trello board by providing its ID. Useful for removing tasks or notes that are no longer needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}",
+            url="https://api.trello.com/1/cards/{id}".format(id=card_id_to_delete),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2040,20 +1998,20 @@ async def delete_trello_card(
 async def get_trello_card_property(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier for the Trello card from which to retrieve a specific property."
+        str, "The unique identifier of the Trello card to retrieve the property from."
     ],
-    desired_card_field: Annotated[
+    card_field_name: Annotated[
         str,
-        "Specify the field of the Trello card you want to retrieve, such as 'name', 'desc', 'due', etc.",  # noqa: E501
+        "Specify which field of the Trello card to retrieve. Must be one of the predefined options such as 'id', 'name', 'url', etc.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-field'."]:
-    """Retrieve a specific property of a Trello card.
+    """Retrieve a specific field from a Trello card.
 
-    Use this tool to obtain a particular property from a Trello card by specifying the card ID and desired field."""  # noqa: E501
+    Use this tool to get a specific property or detail of a Trello card by specifying the card ID and the field name you want to retrieve."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/{field}".format(  # noqa: UP032
-                id=card_id, field=desired_card_field
+                id=card_id, field=card_field_name
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2069,28 +2027,27 @@ async def get_trello_card_property(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_card_actions(
+async def list_card_actions(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of the Trello card whose actions are to be retrieved."
-    ],
-    action_types_filter: Annotated[
-        str | None, "Comma-separated list of Trello action types to filter the card actions."
+    card_id: Annotated[str, "The unique identifier of the Trello card to fetch actions for."],
+    action_type_filter: Annotated[
+        str | None,
+        "Comma-separated list of action types to filter the card actions. Refer to Trello's action types documentation for possible values.",  # noqa: E501
     ] = None,
-    action_results_page: Annotated[
+    results_page_number: Annotated[
         float | None,
-        "The results page number for card actions, with each page containing 50 actions.",
+        "Specify the page number for the actions results. Each page returns 50 actions.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-actions'."]:
-    """Retrieve actions on a specified Trello card.
+    """Retrieve all actions performed on a specific Trello card.
 
-    This tool fetches and lists all the actions performed on a specified Trello card by providing the card's ID."""  # noqa: E501
+    This tool retrieves a list of actions performed on a specified Trello card. It should be called when you need to analyze interactions or changes made to a card, such as comments, moves, or updates."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/actions".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "filter": action_types_filter,
-                "page": action_results_page,
+                "filter": action_type_filter,
+                "page": results_page_number,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -2104,24 +2061,26 @@ async def get_trello_card_actions(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_trello_card_attachments(
+async def list_card_attachments(
     context: ToolContext,
-    attachment_fields_list: Annotated[
+    card_id: Annotated[str, "The unique ID of the Trello card to retrieve attachments from."],
+    attachment_fields: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of attachment fields to retrieve. For example: 'name,url'.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of attachment fields to retrieve. Determines which attachment details are returned for the card.",  # noqa: E501
     ] = None,
     restrict_to_cover_attachment: Annotated[
-        str | None, "Set to 'cover' to restrict results to only the cover attachment of the card."
+        str | None,
+        "Specify 'cover' to limit results to only the cover attachment of the Trello card.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-attachments'."]:
-    """Retrieve attachments from a specific Trello card.
+    """Retrieve attachments from a Trello card.
 
-    Call this tool when you need to list all attachments associated with a specific Trello card using its ID."""  # noqa: E501
+    Use this tool to get the list of all attachments associated with a specific Trello card. This is helpful when you need to manage or review files attached to your Trello tasks."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments",
+            url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": attachment_fields_list,
+                "fields": attachment_fields,
                 "filter": restrict_to_cover_attachment,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2138,34 +2097,37 @@ async def list_trello_card_attachments(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def add_attachment_to_trello_card(
     context: ToolContext,
+    card_id: Annotated[
+        str,
+        "The unique identifier of the Trello card to which the attachment will be added. This is a required parameter.",  # noqa: E501
+    ],
     attachment_name: Annotated[
         str | None,
-        "The name of the attachment to be added to the Trello card. Maximum length of 256 characters.",  # noqa: E501
+        "The name of the attachment. Provide a descriptive title, maximum length 256 characters.",
     ] = None,
-    file_attachment: Annotated[
-        str | None, "The path to the file to attach, provided as multipart/form-data."
+    attachment_file: Annotated[
+        str | None,
+        "The file to attach as multipart/form-data. Provide the file path or binary data.",
     ] = None,
     attachment_mime_type: Annotated[
-        str | None,
-        "The MIME type of the attachment, such as 'image/png' or 'application/pdf'. Max length 256.",  # noqa: E501
+        str | None, "The MIME type of the attachment. Example: 'image/png'. Max length 256."
     ] = None,
     attachment_url: Annotated[
-        str | None,
-        "A URL to attach to the Trello card. It must start with `http://` or `https://`. This URL will be linked as an attachment.",  # noqa: E501
+        str | None, "A URL to attach to the Trello card, starting with `http://` or `https://`."
     ] = None,
     use_attachment_as_cover: Annotated[
-        bool | None, "Set to true to use the new attachment as the cover for the Trello card."
+        bool | None, "Set to true to use the new attachment as a cover for the card."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-attachments'."]:
-    """Attach a file or link to a Trello card.
+    """Add an attachment to a Trello card.
 
-    Use this tool to add an attachment to a specified Trello card by providing the card ID. Suitable for adding relevant documents or links directly to your Trello tasks."""  # noqa: E501
+    This tool is used to attach a file or URL to a specific Trello card by its ID. It should be called when users need to add additional resources or files to a Trello card to enhance task management or provide context."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments",
+            url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "name": attachment_name,
-                "file": file_attachment,
+                "file": attachment_file,
                 "mimeType": attachment_mime_type,
                 "url": attachment_url,
                 "setCover": use_attachment_as_cover,
@@ -2182,21 +2144,25 @@ async def add_attachment_to_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_card_attachment(
+async def get_card_attachment_details(
     context: ToolContext,
+    card_id: Annotated[str, "The unique identifier for the Trello card containing the attachment."],
+    attachment_id: Annotated[str, "The unique ID of the attachment to fetch details for."],
     attachment_fields: Annotated[
         list[dict[str, str]] | None,
-        "List the specific fields of the attachment to be included in the response. This can include properties like 'name', 'url', etc.",  # noqa: E501
+        "List of specific attachment fields to include in the response. Accepts an array of field names.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-cards-id-attachments-idattachment'."
 ]:
-    """Retrieve a specific attachment from a Trello card.
+    """Retrieve specific attachment details from a Trello card.
 
-    Use this tool to get details about a specific attachment on a Trello card, identified by card ID and attachment ID."""  # noqa: E501
+    Use this tool to get detailed information about a specific attachment on a Trello card. It is useful when you need to fetch metadata or other properties of an attachment associated with a card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}",
+            url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
+                id=card_id, idAttachment=attachment_id
+            ),
             params=remove_none_values({
                 "fields": attachment_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2212,18 +2178,20 @@ async def get_trello_card_attachment(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_card_attachment(
+async def delete_card_attachment(
     context: ToolContext,
-    card_id: Annotated[str, "The ID of the Trello card from which the attachment will be deleted."],
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card from which the attachment will be deleted."
+    ],
     attachment_id_to_delete: Annotated[
-        str, "The unique ID of the attachment that needs to be deleted from the Trello card."
+        str, "The ID of the attachment you want to delete from the specified Trello card."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'deleted-cards-id-attachments-idattachment'."
 ]:
     """Delete an attachment from a Trello card.
 
-    This tool deletes a specified attachment from a Trello card, given the card and attachment IDs. It should be called when you need to remove an attachment."""  # noqa: E501
+    Use this tool to remove an attachment from a specified Trello card. It should be called when you need to delete an attachment from a card, identified by its card ID and attachment ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
@@ -2243,24 +2211,24 @@ async def delete_trello_card_attachment(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_board_for_card(
+async def get_card_board_info(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier for the Trello card whose board information is desired."
+        str, "The unique identifier for the Trello card whose board information is to be retrieved."
     ],
-    retrieve_fields: Annotated[
+    board_field_selection: Annotated[
         str | None,
-        "Specify 'all' to get all board fields or provide a comma-separated list of specific fields.",  # noqa: E501
+        '`all` or specify board fields as a comma-separated list (e.g., "name,desc") to retrieve.',
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-board'."]:
     """Retrieve the board details for a specific Trello card.
 
-    This tool retrieves information about the board where a given Trello card is located. It should be used when you need to determine the board a particular card belongs to."""  # noqa: E501
+    Use this tool to find out which board a specific Trello card belongs to. This can be helpful when organizing tasks or managing projects, ensuring you know the context of each card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/board".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": retrieve_fields,
+                "fields": board_field_selection,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -2277,16 +2245,16 @@ async def get_board_for_card(
 async def get_completed_checklist_items(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier for the Trello card to retrieve completed checklist items from."
+        str, "The unique identifier of the Trello card to retrieve checklist item states."
     ],
     checklist_item_fields: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of item attributes like `idCheckItem`, `state` to return specific fields of the checklist items.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of fields (`idCheckItem`, `state`) for the checklist items.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-checkitemstates'."]:
-    """Retrieve completed checklist items from a Trello card.
+    """Fetch the completed checklist items on a Trello card.
 
-    Use this tool to fetch the completed checklist items from a specified Trello card. Useful for tracking task progress or reviewing completed tasks on a Trello board."""  # noqa: E501
+    Use this tool to get the completed checklist items for a specific Trello card. It retrieves the states of checklist items to see which ones are completed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/checkItemStates".format(id=card_id),  # noqa: UP032
@@ -2305,38 +2273,39 @@ async def get_completed_checklist_items(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_card_checklists(
+async def get_card_checklists(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier of the Trello card to retrieve checklists from."
+        str,
+        "The unique ID of the Trello card for which to retrieve the checklists. Required for identifying the specific card.",  # noqa: E501
     ],
     include_check_items: Annotated[
-        str | None, "Specify whether to include all check items (`all`) or none (`none`)."
-    ] = None,
-    checklist_item_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields like 'name, nameData, pos, state, type, due, dueReminder, idMember' to include in the checklist items.",  # noqa: E501
+        "Specify 'all' to include all checkItems or 'none' to exclude them on the card's checklists.",  # noqa: E501
+    ] = None,
+    checkitem_fields_selection: Annotated[
+        str | None,
+        "Specify `all` or a comma-separated list of fields for checklist items: `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",  # noqa: E501
     ] = None,
     include_all_checklists: Annotated[
-        str | None,
-        "Specify whether to retrieve all checklists (`all`) or none (`none`) from a Trello card.",
+        str | None, "Specify 'all' to retrieve all checklists or 'none' for none."
     ] = None,
-    fields_to_retrieve: Annotated[
+    card_info_fields: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of fields: `idBoard,idCard,name,pos` to retrieve from the Trello card.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of: 'idBoard, idCard, name, pos' for card fields to return.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-checklists'."]:
     """Retrieve checklists from a specific Trello card.
 
-    Use this tool to get all checklists associated with a specific Trello card by providing the card ID."""  # noqa: E501
+    Use this tool to obtain all checklists associated with a particular card on Trello by providing the card ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "checkItems": include_check_items,
-                "checkItem_fields": checklist_item_fields,
+                "checkItem_fields": checkitem_fields_selection,
                 "filter": include_all_checklists,
-                "fields": fields_to_retrieve,
+                "fields": card_info_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -2350,32 +2319,29 @@ async def get_trello_card_checklists(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_checklist(
+async def create_checklist_on_card(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of the Trello card to which the checklist will be added."
-    ],
-    checklist_name: Annotated[
-        str | None, "The name for the new checklist to be added to a Trello card."
-    ] = None,
+    card_id: Annotated[str, "The ID of the Trello card where the checklist will be created."],
+    checklist_name: Annotated[str | None, "The name for the new checklist on the card."] = None,
     source_checklist_id: Annotated[
-        str | None, "The ID of a source checklist to copy its items into the new checklist."
-    ] = None,
-    checklist_position: Annotated[
         str | None,
-        "The position of the checklist on the card. Specify `top`, `bottom`, or a positive integer for a custom position.",  # noqa: E501
+        "The ID of a source checklist to copy into the new one being created on the card.",
+    ] = None,
+    checklist_position_on_card: Annotated[
+        str | None,
+        "Specify the position of the checklist on the card. Can be 'top', 'bottom', or a positive number indicating the position.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-checklists'."]:
     """Create a new checklist on a Trello card.
 
-    This tool is used to add a new checklist to a specified Trello card. It should be called when there is a need to organize tasks or items on a Trello card using checklists."""  # noqa: E501
+    This tool allows you to create a new checklist on a specified Trello card by providing the card ID. Use it to organize tasks or items within a card efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "name": checklist_name,
                 "idChecklistSource": source_checklist_id,
-                "pos": checklist_position,
+                "pos": checklist_position_on_card,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -2389,21 +2355,29 @@ async def create_trello_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_checkitem_from_card(
+async def get_specific_checkitem_on_card(
     context: ToolContext,
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card to retrieve the checkItem from."
+    ],
+    checkitem_id: Annotated[
+        str, "The unique identifier of the checkItem to retrieve from the Trello card."
+    ],
     checkitem_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields ('name', 'nameData', 'pos', 'state', 'type', 'due', 'dueReminder', 'idMember') to include in the response.",  # noqa: E501
+        "Specify 'all' or provide a comma-separated list of attributes (e.g., 'name,pos,state').",
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-cards-id-checkitem-idcheckitem'."
 ]:
     """Retrieve a specific checkItem from a Trello card.
 
-    Use this tool to fetch details of a specific checkItem from a card in Trello by providing the card ID and checkItem ID."""  # noqa: E501
+    Use this tool to get details of a specific checkItem on a Trello card by providing the card and checkItem IDs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
+            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+                id=card_id, idCheckItem=checkitem_id
+            ),
             params=remove_none_values({
                 "fields": checkitem_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2419,48 +2393,53 @@ async def get_checkitem_from_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_checklist_item_on_card(
+async def update_trello_checklist_item(
     context: ToolContext,
+    card_id: Annotated[str, "The unique ID of the Trello card that contains the checklist item."],
+    checkitem_id: Annotated[
+        str, "The unique ID of the checklist item to update on the Trello card."
+    ],
     new_checklist_item_name: Annotated[
-        str | None, "The new name for the checklist item to be updated on the Trello card."
+        str | None, "The new name for the checklist item in a Trello card."
     ] = None,
     checkitem_state: Annotated[
-        str | None, "Specify the state of the checklist item: 'complete' or 'incomplete'."
+        str | None, "Specify the state of the checklist item, either `complete` or `incomplete`."
     ] = None,
     checklist_id: Annotated[
+        str | None, "The unique ID of the checklist containing the item to update."
+    ] = None,
+    position: Annotated[
         str | None,
-        "The unique identifier of the checklist containing the item to be updated on the Trello card. This ID is required to specify which checklist the item belongs to.",  # noqa: E501
+        "Position of the checklist item: `top`, `bottom`, or a numerical value for specific position.",  # noqa: E501
     ] = None,
-    position_of_checklist_item: Annotated[
-        str | None,
-        "Specify the position of the checklist item as 'top', 'bottom', or a positive float for specific ordering.",  # noqa: E501
+    checkitem_due_date: Annotated[
+        str | None, "A due date for the checklist item; expected format is a date string."
     ] = None,
-    due_date_for_checkitem: Annotated[
-        str | None, "A due date for the checklist item in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)."
-    ] = None,
-    due_date_reminder_minutes: Annotated[
+    due_reminder_minutes: Annotated[
         float | None,
-        "A reminder in minutes before the due date for the checklist item. Expected as a positive integer.",  # noqa: E501
+        "Specify the number of minutes before the due date when a reminder should be sent for the checkitem.",  # noqa: E501
     ] = None,
     member_id_to_remove: Annotated[
-        str | None, "The ID of the member to remove from the checklist item on the Trello card."
+        str | None, "The ID of the member to remove from the Trello card checklist item."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-cards-id-checkitem-idcheckitem'."
 ]:
-    """Update an item in a checklist on a Trello card.
+    """Update an item in a Trello card checklist.
 
-    This tool updates an existing item in a checklist on a specific Trello card."""
+    Use this tool to update a specific item within a checklist on a Trello card by providing the card and item identifiers."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
+            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+                id=card_id, idCheckItem=checkitem_id
+            ),
             params=remove_none_values({
                 "name": new_checklist_item_name,
                 "state": checkitem_state,
                 "idChecklist": checklist_id,
-                "pos": position_of_checklist_item,
-                "due": due_date_for_checkitem,
-                "dueReminder": due_date_reminder_minutes,
+                "pos": position,
+                "due": checkitem_due_date,
+                "dueReminder": due_reminder_minutes,
                 "idMember": member_id_to_remove,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2477,15 +2456,23 @@ async def update_checklist_item_on_card(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_checklist_item(
     context: ToolContext,
+    card_id: Annotated[
+        str, "The unique identifier for the Trello card from which to delete a checklist item."
+    ],
+    checkitem_id: Annotated[
+        str, "The ID of the checklist item to be deleted from the Trello card."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-checkitem-idcheckitem'."
 ]:
-    """Deletes a checklist item from a Trello card.
+    """Delete a checklist item from a Trello card.
 
-    Use this tool to remove a specific checklist item from a Trello card by providing the card ID and the checklist item ID."""  # noqa: E501
+    Use this tool to delete a specific checklist item from a Trello card when given the card and checklist item IDs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}",
+            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+                id=card_id, idCheckItem=checkitem_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2502,17 +2489,15 @@ async def delete_trello_checklist_item(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_card_list(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of the Trello card to retrieve list information."
-    ],
+    card_id: Annotated[str, "The unique identifier for the specific Trello card."],
     list_fields: Annotated[
         str | None,
-        "Specify 'all' to retrieve all fields, or provide a comma-separated list of specific fields for the list.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of list fields to retrieve details about the Trello list a card belongs to.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-list'."]:
-    """Retrieve the Trello list for a specific card.
+    """Retrieve the list a specific Trello card belongs to.
 
-    Call this tool to get information about the Trello list that a particular card belongs to, using the card's ID."""  # noqa: E501
+    Use this tool to get details about the list in which a specific Trello card is located. It should be called when you need to identify or manage the list associated with a card in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/list".format(id=card_id),  # noqa: UP032
@@ -2533,17 +2518,14 @@ async def get_trello_card_list(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_members(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of a Trello card to retrieve its associated members."
-    ],
+    card_id: Annotated[str, "The ID of the Trello card to get member information for."],
     member_fields: Annotated[
-        str | None,
-        "Specify 'all' or a comma-separated list of member fields to retrieve for each member on the card.",  # noqa: E501
+        str | None, "Specify 'all' or a comma-separated list of member fields to retrieve."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-members'."]:
-    """Retrieve members associated with a Trello card.
+    """Retrieve members assigned to a specific Trello card.
 
-    This tool is used to get the list of members assigned to a specific card on Trello based on the card ID. Use this when you need to know which members are collaborating on a particular Trello card."""  # noqa: E501
+    Use this tool to get details about the members associated with a specific Trello card by providing the card ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/members".format(id=card_id),  # noqa: UP032
@@ -2564,17 +2546,18 @@ async def get_card_members(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_card_voters(
     context: ToolContext,
+    card_id: Annotated[str, "The ID of the Trello card to retrieve voters for."],
     member_fields: Annotated[
         str | None,
-        "Specify 'all' or provide a comma-separated list of member fields to retrieve, such as 'id,username,email'.",  # noqa: E501
+        "Specify 'all' or a list of member fields (e.g., 'fullName,username') to include in the response.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-membersvoted'."]:
     """Retrieve members who voted on a Trello card.
 
-    Use this tool to get the list of members who have voted on a specific Trello card. It should be called when you need to identify who has expressed interest or opinion through voting on a card."""  # noqa: E501
+    Use this tool to get a list of members who have voted on a specific Trello card by providing the card ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/membersVoted",
+            url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2592,14 +2575,17 @@ async def get_card_voters(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def vote_on_trello_card(
     context: ToolContext,
-    member_id_to_vote_yes: Annotated[str, "The ID of the member to vote 'yes' on the Trello card."],
+    member_id_to_vote_yes: Annotated[
+        str, "The ID of the Trello member casting a 'yes' vote on the card."
+    ],
+    card_id: Annotated[str, "The unique ID of the Trello card where the vote will be cast."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'cardsidmembersvoted-1'."]:
-    """Vote on a Trello card for a specified member.
+    """Vote on a Trello card on behalf of a member.
 
-    Use this tool to register a vote on a Trello card for a given member, identified by the card's ID."""  # noqa: E501
+    Use this tool to cast a vote on a specified Trello card for a specific member. It should be called when you need to register a member's vote on a card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/membersVoted",
+            url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "value": member_id_to_vote_yes,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2615,16 +2601,13 @@ async def vote_on_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_card_plugin_data(
+async def get_trello_card_plugin_data(
     context: ToolContext,
-    card_id: Annotated[
-        str,
-        "The unique identifier for the Trello card from which you want to retrieve shared plugin data.",  # noqa: E501
-    ],
+    card_id: Annotated[str, "The ID of the Trello card to retrieve shared plugin data for."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-plugindata'."]:
-    """Retrieve shared plugin data for a Trello card.
+    """Retrieve shared plugin data from a Trello card.
 
-    Use this tool to fetch any shared pluginData on a specific Trello card using its ID."""
+    This tool is called to get any shared pluginData associated with a specific Trello card. It should be used when there's a need to access additional plugin-related information stored on a card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/pluginData".format(id=card_id),  # noqa: UP032
@@ -2642,17 +2625,19 @@ async def get_card_plugin_data(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_card_stickers(
+async def get_card_stickers(
     context: ToolContext,
-    card_id: Annotated[str, "The Trello card's unique identifier to retrieve its stickers."],
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card from which to retrieve stickers."
+    ],
     sticker_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields to retrieve specific sticker details.",
+        "Specify 'all' to retrieve all sticker fields or provide a comma-separated list of specific sticker fields to retrieve.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-stickers'."]:
-    """Retrieve all stickers from a specific Trello card.
+    """Retrieve stickers from a Trello card.
 
-    Use this tool to obtain a list of all stickers associated with a particular Trello card by providing the card ID."""  # noqa: E501
+    Use this tool to get all stickers placed on a specific Trello card by providing the card ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
@@ -2671,32 +2656,35 @@ async def get_trello_card_stickers(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_sticker_to_trello_card(
+async def add_sticker_to_card(
     context: ToolContext,
     sticker_identifier: Annotated[
         str,
-        "ID for custom stickers or string identifier for default stickers (e.g., 'taco-cool') to be added to the card.",  # noqa: E501
+        "For custom stickers, provide the sticker ID. For default stickers, provide the string identifier (e.g., 'taco-cool').",  # noqa: E501
     ],
     sticker_top_position: Annotated[
-        float, "The vertical position of the sticker on a card, ranging from -60 to 100."
+        float,
+        "The vertical position of the sticker, ranging from -60 to 100, indicating how far from the top it should be placed.",  # noqa: E501
     ],
     sticker_left_position: Annotated[
-        float, "The horizontal position of the sticker on the card, ranging from -60 to 100."
+        float, "Specify the left position of the sticker on the card, ranging from -60 to 100."
     ],
     sticker_z_index: Annotated[
-        int, "Specify the z-index of the sticker to control its stacking order on the card."
+        int, "The z-index/layer position of the sticker, affecting its stack order on the card."
+    ],
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card where the sticker will be added."
     ],
     sticker_rotation: Annotated[
-        float | None,
-        "The degree of rotation for the sticker, specified as a number. Adjusts the orientation of the sticker on the card.",  # noqa: E501
+        float | None, "The rotation angle of the sticker on the card, specified as a number."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-stickers'."]:
-    """Add a sticker to a Trello card.
+    """Add a sticker to a specific Trello card.
 
-    Use this tool to add a sticker to a specific Trello card when organizing tasks or visualizing boards."""  # noqa: E501
+    Use this tool to place a sticker on a specific Trello card by providing the card's ID. This is helpful for visually organizing or marking cards for emphasis."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers",
+            url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "image": sticker_identifier,
                 "top": sticker_top_position,
@@ -2716,19 +2704,24 @@ async def add_sticker_to_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_specific_sticker_on_card(
+async def get_card_sticker(
     context: ToolContext,
+    card_id: Annotated[
+        str, "The unique ID of the Trello card from which to retrieve the sticker details."
+    ],
+    sticker_id: Annotated[str, "The unique identifier for the sticker on a Trello card."],
     sticker_fields: Annotated[
-        str | None,
-        "Specify 'all' to retrieve all sticker fields or provide a comma-separated list of desired sticker fields.",  # noqa: E501
+        str | None, "Specify 'all' or a comma-separated list of sticker fields to retrieve."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-stickers-idsticker'."]:
-    """Retrieve details of a specific sticker from a Trello card.
+    """Retrieve details of a specific sticker on a Trello card.
 
-    Use this tool to obtain information about a particular sticker applied to a Trello card. This can be helpful to check sticker details for project management purposes."""  # noqa: E501
+    Use this tool to get information about a specific sticker on a Trello card by providing the card and sticker identifiers."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
+            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+                id=card_id, idSticker=sticker_id
+            ),
             params=remove_none_values({
                 "fields": sticker_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2744,17 +2737,23 @@ async def get_specific_sticker_on_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_trello_card_sticker(
+async def remove_card_sticker(
     context: ToolContext,
+    card_id: Annotated[
+        str, "The unique ID of the Trello card from which the sticker will be removed."
+    ],
+    sticker_id: Annotated[str, "The ID of the sticker to be removed from the Trello card."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-stickers-idsticker'."
 ]:
     """Remove a sticker from a Trello card.
 
-    Use this tool to remove a specific sticker from a Trello card using the card and sticker IDs."""
+    Use this tool to remove a specific sticker from a Trello card by specifying the card and sticker IDs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
+            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+                id=card_id, idSticker=sticker_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2769,35 +2768,41 @@ async def remove_trello_card_sticker(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_card_sticker(
+async def update_sticker_on_trello_card(
     context: ToolContext,
     sticker_top_position: Annotated[
-        float,
-        "The vertical position of the sticker, ranging from -60 to 100. Determines how high or low the sticker appears on the card.",  # noqa: E501
+        float, "The top position of the sticker, ranging from -60 to 100."
     ],
-    sticker_left_position: Annotated[
-        float,
-        "The left position of the sticker on the Trello card. Accepts values from -60 to 100.",
+    left_position: Annotated[
+        float, "The horizontal position of the sticker on the card, ranging from -60 to 100."
     ],
     sticker_z_index: Annotated[
-        int, "Specify the z-index to set the display order of the sticker on the Trello card."
+        int, "Specifies the z-index of the sticker, determining its stacking order on the card."
     ],
-    sticker_rotation: Annotated[
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card to which the sticker belongs."
+    ],
+    sticker_id: Annotated[
+        str, "The unique identifier of the sticker to be updated on the Trello card."
+    ],
+    sticker_rotation_angle: Annotated[
         float | None,
-        "The angle for rotating the sticker on the Trello card. Must be a number representing the degree of rotation.",  # noqa: E501
+        "Specify the rotation angle of the sticker. Expected values are numerical, representing the angle by which the sticker should be rotated.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-cards-id-stickers-idsticker'."]:
-    """Updates a sticker on a Trello card.
+    """Update a sticker on a Trello card.
 
-    Use this tool to modify an existing sticker on a specific Trello card. It should be called when changes to a sticker are needed within a Trello board card."""  # noqa: E501
+    Use this tool to update the details of a sticker on a specific Trello card by specifying the card and sticker identifiers."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}",
+            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+                id=card_id, idSticker=sticker_id
+            ),
             params=remove_none_values({
                 "top": sticker_top_position,
-                "left": sticker_left_position,
+                "left": left_position,
                 "zIndex": sticker_z_index,
-                "rotate": sticker_rotation,
+                "rotate": sticker_rotation_angle,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -2811,18 +2816,28 @@ async def update_trello_card_sticker(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_comment(
+async def edit_trello_comment(
     context: ToolContext,
-    new_comment_text: Annotated[str, "The updated text for the Trello card comment."],
+    new_comment_text: Annotated[
+        str, "The new text content for the Trello comment that needs to be updated."
+    ],
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card associated with the comment to update."
+    ],
+    comment_action_id: Annotated[
+        str, "The unique ID of the comment action you want to update on the Trello card."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-cards-id-actions-idaction-comments'."
 ]:
     """Update an existing comment on a Trello card.
 
-    Use this tool to update the text of an existing comment on a specific action of a Trello card."""  # noqa: E501
+    Use this tool to update a comment in a Trello card's activity. It is useful when a user needs to correct or modify a comment previously made on a Trello card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments",
+            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
+                id=card_id, idAction=comment_action_id
+            ),
             params=remove_none_values({
                 "text": new_comment_text,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2838,17 +2853,25 @@ async def update_trello_comment(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_card_comment(
+async def delete_trello_comment(
     context: ToolContext,
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card from which the comment will be deleted."
+    ],
+    comment_action_id: Annotated[
+        str, "The unique identifier for the comment action to be deleted on the Trello card."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-actions-id-comments'."
 ]:
     """Delete a specific comment from a Trello card.
 
-    Use this tool to delete a specific comment from a Trello card when provided with the card ID and the comment action ID."""  # noqa: E501
+    Use this tool to delete a comment from a Trello card by providing the card and action IDs."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments",
+            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
+                id=card_id, idAction=comment_action_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -2863,16 +2886,15 @@ async def delete_trello_card_comment(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_custom_field_items_for_card(
+async def get_trello_card_custom_field_items(
     context: ToolContext,
     card_id: Annotated[
-        str,
-        "The unique identifier of the Trello card whose custom field items are to be retrieved.",
+        str, "The unique identifier for the Trello card to retrieve custom field items."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-cards-id-customfielditems'."]:
-    """Retrieve custom field items for a specific Trello card.
+    """Retrieve custom field items for a Trello card.
 
-    Use this tool to get the custom field items associated with a Trello card by its ID. It should be called when you need detailed custom field information about a card in Trello."""  # noqa: E501
+    Use this tool to obtain the custom field items associated with a specific Trello card. Useful for accessing card-specific data beyond the standard fields."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/customFieldItems".format(id=card_id),  # noqa: UP032
@@ -2890,22 +2912,19 @@ async def get_custom_field_items_for_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_comment_to_trello_card(
+async def add_trello_card_comment(
     context: ToolContext,
-    comment_text: Annotated[
-        str,
-        "The text of the comment to add to the specified Trello card. Provide a clear and concise message.",  # noqa: E501
-    ],
-    trello_card_id: Annotated[
-        str, "The unique identifier of the Trello card where the comment will be added."
+    comment_text: Annotated[str, "The text of the comment to add to the Trello card."],
+    card_id: Annotated[
+        str, "The unique identifier of the Trello card to which the comment will be added."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-actions-comments'."]:
-    """Add a new comment to a Trello card by ID.
+    """Add a comment to a Trello card.
 
-    Use this tool to add a comment to a specific Trello card by providing the card's ID. It should be called when you need to attach additional information or notes to an existing Trello card."""  # noqa: E501
+    This tool allows you to add a new comment to a specific Trello card. Use it when you need to append additional information or feedback to a card in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/comments".format(id=trello_card_id),  # noqa: UP032
+            url="https://api.trello.com/1/cards/{id}/actions/comments".format(id=card_id),  # noqa: UP032
             params=remove_none_values({
                 "text": comment_text,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -2921,18 +2940,17 @@ async def add_comment_to_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_label_to_trello_card(
+async def add_label_to_card(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of the Trello card to which you want to add a label."
-    ],
+    card_id: Annotated[str, "The unique ID of the Trello card to which the label will be added."],
     label_id: Annotated[
-        str | None, "The unique ID of the label you wish to add to the Trello card."
+        str | None,
+        "The ID of the label to add to a Trello card. This is required to identify the specific label.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-idlabels'."]:
     """Add a label to a Trello card.
 
-    Use this tool to attach a specific label to a Trello card by providing the card's ID. This is useful for organizing and categorizing cards effectively."""  # noqa: E501
+    This tool adds a specified label to a given card in Trello. It is called when you need to organize or categorize a Trello card by attaching a label."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/idLabels".format(id=card_id),  # noqa: UP032
@@ -2954,16 +2972,15 @@ async def add_label_to_trello_card(
 async def add_member_to_trello_card(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier for the Trello card to which a member will be added."
+        str, "The unique identifier of the Trello card to which a member will be added."
     ],
     member_id_to_add: Annotated[
-        str | None,
-        "The ID of the member to add to the Trello card. This is required to identify which member will be added.",  # noqa: E501
+        str | None, "The ID of the member to be added to the specified Trello card."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-idmembers'."]:
     """Add a member to a Trello card.
 
-    Use this tool to add a specific member to a Trello card by providing the card's ID."""
+    Use this tool to assign a member to a specific Trello card by providing the card ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/idMembers".format(id=card_id),  # noqa: UP032
@@ -2982,22 +2999,22 @@ async def add_member_to_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_new_label_to_trello_card(
+async def add_label_to_trello_card(
     context: ToolContext,
     label_color: Annotated[
         str,
-        "A valid label color for the Trello label. Use 'null' for no color. Refer to Trello's label colors for options.",  # noqa: E501
+        "Specify a valid label color or `null`. Refer to Trello label options for valid colors.",
     ],
     card_id: Annotated[
-        str, "The unique identifier of the Trello card to which the label will be added."
+        str, "The unique identifier for the Trello card you want to attach the label to."
     ],
     label_name: Annotated[
-        str | None, "The name of the label to be created and added to the Trello card."
+        str | None, "Specify the name for the new label to be created and added to the card."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-cards-id-labels'."]:
-    """Adds a new label to a specific Trello card.
+    """Create a label on a Trello board and attach it to a card.
 
-    This tool creates a new label on a Trello board and associates it with the specified card. It should be called when you need to add an organizational label to a particular item within Trello."""  # noqa: E501
+    Use this tool to create a new label for a Trello board and add it to a specified card. This can help organize tasks and improve project management efficiency."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/labels".format(id=card_id),  # noqa: UP032
@@ -3017,19 +3034,19 @@ async def add_new_label_to_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def mark_trello_card_notifications_read(
+async def mark_card_notifications_read(
     context: ToolContext,
     card_id: Annotated[
         str,
-        "The unique identifier of the Trello card whose notifications you want to mark as read.",
+        "The unique identifier for the Trello card whose notifications you want to mark as read.",
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'post-cards-id-markassociatednotificationsread'.",
 ]:
-    """Mark all notifications for a Trello card as read.
+    """Marks notifications for a specific card as read.
 
-    Use this tool to mark all associated notifications of a specific Trello card as read. Ideal for maintaining notification management and ensuring no unseen alerts remain."""  # noqa: E501
+    Use this tool to mark all notifications associated with a specific Trello card as read. This is useful for keeping track of notifications and managing alerts efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/markAssociatedNotificationsRead".format(  # noqa: UP032
@@ -3052,15 +3069,18 @@ async def mark_trello_card_notifications_read(
 async def remove_label_from_card(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier of the Trello card from which the label will be removed."
+        str, "The unique identifier for the Trello card from which the label will be removed."
     ],
-    label_id_to_remove: Annotated[str, "The ID of the Trello label to be removed from the card."],
+    label_id_to_remove: Annotated[
+        str,
+        "The ID of the label you want to remove from the Trello card. This ID is unique to each label.",  # noqa: E501
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-idlabels-idlabel'."
 ]:
-    """Remove a label from a Trello card based on card and label IDs.
+    """Remove a label from a Trello card.
 
-    Use this tool to delete a specific label from a Trello card by providing the card ID and the label ID. It is useful when organizing and managing card labels in Trello."""  # noqa: E501
+    This tool is used to remove a specific label from a Trello card. It should be called when you need to unassign a label from a card in your Trello board. The tool confirms the successful removal of the label."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/idLabels/{idLabel}".format(  # noqa: UP032
@@ -3080,19 +3100,19 @@ async def remove_label_from_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_member_from_trello_card(
+async def remove_member_from_card(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier for the Trello card from which the member will be removed."
+        str, "The unique identifier of the Trello card from which the member will be removed."
     ],
     member_id_to_remove: Annotated[
         str,
-        "The ID of the member to be removed from the Trello card. This is required for identifying which member to remove.",  # noqa: E501
+        "The unique ID of the member you want to remove from the Trello card. This should match the Trello member ID format.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-id-idmembers-idmember'."]:
-    """Removes a member from a Trello card.
+    """Remove a member from a Trello card.
 
-    This tool should be called when you need to remove a specific member from a Trello card. It confirms the successful removal of the member."""  # noqa: E501
+    Use this tool to remove a specific member from a Trello card based on the card ID and member ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/idMembers/{idMember}".format(  # noqa: UP032
@@ -3112,21 +3132,20 @@ async def remove_member_from_trello_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_remove_member_vote(
+async def remove_member_vote_from_card(
     context: ToolContext,
     card_id: Annotated[
-        str,
-        "The unique identifier of the Trello card from which the member's vote should be removed.",
+        str, "The unique identifier of the Trello card from which to remove the vote."
     ],
     member_id_to_remove_vote: Annotated[
-        str, "The ID of the member whose vote you want to remove from the card."
+        str, "The ID of the member whose vote is to be removed from the Trello card."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-membersvoted-idmember'."
 ]:
-    """Remove a member's vote from a Trello card.
+    """Remove a member's vote from a card on Trello.
 
-    This tool removes a specified member's vote from a card in Trello. Call this tool when you need to revoke a vote cast by a member on a particular card."""  # noqa: E501
+    This tool is used to remove a specific member's vote from a card in Trello. It should be called when a member's vote needs to be deleted from a card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/membersVoted/{idMember}".format(  # noqa: UP032
@@ -3146,25 +3165,22 @@ async def trello_remove_member_vote(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_checklist_item(
+async def update_checklist_item_on_card(
     context: ToolContext,
-    card_id: Annotated[
-        str,
-        "The unique identifier for the Trello card where the checklist is located. Required to specify which card's checklist item needs updating.",  # noqa: E501
-    ],
+    card_id: Annotated[str, "The unique identifier for the Trello card containing the checklist."],
     checklist_item_id: Annotated[str, "The ID of the checklist item to update on a Trello card."],
-    checklist_id: Annotated[str, "The ID of the checklist to be updated on the Trello card."],
+    checklist_id: Annotated[str, "The ID of the checklist to update on the Trello card."],
     position_in_checklist: Annotated[
         str | None,
-        "Specify the position of the checklist item. Use `top`, `bottom`, or a positive float for a custom position.",  # noqa: E501
+        "Specify the position of the item in the checklist: `top`, `bottom`, or a positive float indicating the precise position.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-cards-idcard-checklist-idchecklist-checkitem-idcheckitem'.",  # noqa: E501
 ]:
-    """Update an item in a Trello card's checklist.
+    """Update an item in a checklist on a Trello card.
 
-    Use this tool to update an item in a checklist on a specific Trello card."""
+    Use this tool to modify or update details of a specific item within a checklist on a Trello card. Ideal for tasks requiring checklist adjustments on project boards."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{idCard}/checklist/{idChecklist}/checkItem/{idCheckItem}".format(  # noqa: UP032
@@ -3188,17 +3204,17 @@ async def update_trello_checklist_item(
 async def delete_checklist_from_card(
     context: ToolContext,
     card_id: Annotated[
-        str, "The unique identifier of the Trello card from which the checklist will be deleted."
+        str, "The unique identifier of the Trello card from which to delete the checklist."
     ],
     checklist_id_to_delete: Annotated[
-        str, "The ID of the checklist to remove from the specified Trello card."
+        str, "The ID of the checklist to delete from the specified Trello card."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-cards-id-checklists-idchecklist'."
 ]:
-    """Delete a checklist from a specified Trello card.
+    """Delete a checklist from a Trello card.
 
-    Use this tool to remove a specific checklist from a Trello card by providing the card and checklist identifiers."""  # noqa: E501
+    Use this tool to delete a specific checklist from a given Trello card, identified by card and checklist IDs."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/cards/{id}/checklists/{idChecklist}".format(  # noqa: UP032
@@ -3218,33 +3234,31 @@ async def delete_checklist_from_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_new_checklist(
+async def create_trello_checklist(
     context: ToolContext,
-    card_id: Annotated[
-        str, "The unique identifier of the Trello card to which the checklist will be added."
-    ],
+    card_id: Annotated[str, "The ID of the Trello card where the checklist will be added."],
     checklist_name: Annotated[
-        str | None, "The name of the checklist, a string between 1 and 16384 characters."
+        str | None, "The name of the checklist. Must be between 1 and 16384 characters."
     ] = None,
-    checklist_position_on_card: Annotated[
+    checklist_position: Annotated[
         str | None,
-        "Specify the position of the checklist on the card: 'top', 'bottom', or a positive number for a custom position.",  # noqa: E501
+        "Specify the position of the checklist on the card: 'top', 'bottom', or a positive number for a specific placement.",  # noqa: E501
     ] = None,
     source_checklist_id: Annotated[
         str | None,
-        "The ID of an existing checklist to copy into the new checklist. Use this to replicate checklist items.",  # noqa: E501
+        "The ID of an existing checklist to copy into the new checklist. Use this to duplicate a checklist template or predefined checklist items.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-checklists'."]:
-    """Create a new checklist in Trello.
+    """Create a checklist on a Trello card.
 
-    Use this tool to create a new checklist in a Trello card. It should be called when you need to add a checklist to organize tasks or subtasks within a Trello card."""  # noqa: E501
+    Use this tool to create a new checklist on a specified Trello card. This can be useful for organizing tasks and ensuring all steps are accounted for within a card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/checklists",
             params=remove_none_values({
                 "idCard": card_id,
                 "name": checklist_name,
-                "pos": checklist_position_on_card,
+                "pos": checklist_position,
                 "idChecklistSource": source_checklist_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3259,36 +3273,36 @@ async def create_trello_new_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_checklist(
+async def get_checklist_details(
     context: ToolContext,
-    filter_cards_status: Annotated[
+    checklist_id: Annotated[str, "The unique identifier of the checklist to be retrieved."],
+    card_visibility_filter: Annotated[
         str | None,
-        "Specify which cards associated with the checklist to include. Options: `all`, `closed`, `none`, `open`, `visible`.",  # noqa: E501
+        "Specifies which cards associated with the checklist to include. Valid values are: `all`, `closed`, `none`, `open`, `visible`.",  # noqa: E501
     ] = None,
-    return_check_items: Annotated[
-        str | None,
-        "Specify which check items to return: `all` or `none`. Use `all` to get all check items and `none` to exclude them.",  # noqa: E501
+    check_items_to_return: Annotated[
+        str | None, "Specify which check items to return: all or none."
     ] = None,
-    check_item_field_selection: Annotated[
+    checkitem_fields_to_return: Annotated[
         str | None,
-        "Specify which fields of the checkItem to return. Options are `all` or a comma-separated list of `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",  # noqa: E501
+        "Specify fields for checkItem details, using 'all' or a comma-separated list: 'name', 'nameData', 'pos', etc.",  # noqa: E501
     ] = None,
-    checklist_fields_to_return: Annotated[
+    include_checklist_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of specific checklist fields to retrieve, such as 'name', 'pos', etc.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of checklist fields to return (e.g., 'name,pos,state'). Use this to retrieve specific fields from the checklist.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id'."]:
-    """Retrieve details of a specific Trello checklist using its ID.
+    """Retrieve details of a specific Trello checklist.
 
-    This tool is used to fetch comprehensive details of a Trello checklist by providing its unique identifier. It is helpful when needing information about specific checklist items and their statuses."""  # noqa: E501
+    Call this tool to obtain details of a specific checklist in Trello using the checklist ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}",
+            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
-                "cards": filter_cards_status,
-                "checkItems": return_check_items,
-                "checkItem_fields": check_item_field_selection,
-                "fields": checklist_fields_to_return,
+                "cards": card_visibility_filter,
+                "checkItems": check_items_to_return,
+                "checkItem_fields": checkitem_fields_to_return,
+                "fields": include_checklist_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3304,20 +3318,22 @@ async def get_trello_checklist(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_checklist(
     context: ToolContext,
+    checklist_id: Annotated[str, "The unique identifier for the checklist to be updated."],
     checklist_name: Annotated[
-        str | None, "The updated name of the checklist. Should be between 1 and 16384 characters."
+        str | None,
+        "Name of the checklist being created or updated. Must be between 1 and 16384 characters.",
     ] = None,
     checklist_position: Annotated[
         str | None,
-        "Specifies the position of the checklist on the Trello card. Acceptable values are `top`, `bottom`, or a positive integer for a specific position.",  # noqa: E501
+        "Defines the position of the checklist on the card: 'top', 'bottom', or a positive number.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-checlists-id'."]:
-    """Updates an existing checklist on Trello.
+    """Update an existing Trello checklist.
 
-    Use this tool to modify the properties of a specific checklist within Trello by providing its ID."""  # noqa: E501
+    Use this tool to update the details of an existing checklist on Trello. It is useful when modifications to the checklist content or status are required."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}",
+            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
                 "name": checklist_name,
                 "pos": checklist_position,
@@ -3336,13 +3352,14 @@ async def update_trello_checklist(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_trello_checklist(
     context: ToolContext,
+    checklist_id: Annotated[str, "The unique ID of the checklist to be deleted from Trello."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-checklists-id'."]:
-    """Deletes a specified checklist from Trello.
+    """Delete a checklist from Trello by its ID.
 
-    Use this tool to delete a checklist from Trello by its ID. This is useful for managing and organizing Trello boards by removing unnecessary checklists."""  # noqa: E501
+    Use this tool to remove a checklist from a Trello board by specifying the checklist's ID. Call this tool when you need to delete a checklist from a Trello card or board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}",
+            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3357,15 +3374,23 @@ async def delete_trello_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_get_checklist_field(
+async def get_checklist_field(
     context: ToolContext,
+    checklist_id: Annotated[
+        str, "The unique identifier of the checklist to retrieve the field from."
+    ],
+    checklist_field_to_retrieve: Annotated[
+        str, "Specify the field of the checklist to retrieve, such as 'name' or 'pos'."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id-field'."]:
     """Retrieve a specific field from a Trello checklist.
 
-    Use this tool to get the value of a specified field from a checklist in Trello by providing the checklist ID and the field name."""  # noqa: E501
+    Call this tool to get detailed information about a specific field of a Trello checklist using its ID. Useful for retrieving particular attributes of a checklist, such as name, position, or IDCard."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/{field}",
+            url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
+                id=checklist_id, field=checklist_field_to_retrieve
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3380,21 +3405,26 @@ async def trello_get_checklist_field(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_checklist_field(
+async def update_checklist_field(
     context: ToolContext,
-    checklist_name_value: Annotated[
-        str,
-        "The new name for the checklist. It must be a string between 1 and 16384 characters long.",
+    checklist_name_update_value: Annotated[
+        str, "The new name for the checklist. Must be a string between 1 and 16384 characters."
+    ],
+    checklist_id: Annotated[str, "The unique identifier of the checklist to update."],
+    field_to_update: Annotated[
+        str, "Specify the checklist field to update, either 'name' or 'pos'."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-checklists-id-field'."]:
-    """Updates a specific field on a Trello checklist.
+    """Update a specific field on a Trello checklist.
 
-    Use this tool to modify a specific field of a checklist in Trello by providing the checklist ID and field name."""  # noqa: E501
+    Use this tool to update a specific field on a Trello checklist by providing the checklist ID and the field to be updated."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/{field}",
+            url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
+                id=checklist_id, field=field_to_update
+            ),
             params=remove_none_values({
-                "value": checklist_name_value,
+                "value": checklist_name_update_value,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3408,23 +3438,24 @@ async def update_trello_checklist_field(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_for_checklist(
+async def get_board_for_checklist(
     context: ToolContext,
     checklist_id: Annotated[
-        str, "ID of the checklist for which you want to retrieve the board details."
+        str, "The unique ID of the checklist whose board needs to be retrieved."
     ],
-    board_fields: Annotated[
-        str | None, "Specify 'all' or a comma-separated list of board fields like 'name'."
+    board_fields_filter: Annotated[
+        str | None,
+        "Specify `all` or a comma-separated list of board fields to retrieve. For example, 'name' or 'all'.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id-board'."]:
-    """Retrieve the board details for a specific Trello checklist.
+    """Retrieve the board associated with a specific checklist.
 
-    Use this tool to find out which board a specific checklist belongs to in Trello. This can be useful for understanding the context or organizing tasks related to the checklist."""  # noqa: E501
+    Use this tool to find out which board a specific checklist belongs to. Ideal for when you need to map a checklist back to its board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}/board".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": board_fields,
+                "fields": board_fields_filter,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3438,15 +3469,13 @@ async def get_trello_board_for_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_card_for_checklist(
+async def get_card_by_checklist(
     context: ToolContext,
-    checklist_id: Annotated[
-        str, "The unique identifier for a Trello checklist to retrieve the associated card."
-    ],
+    checklist_id: Annotated[str, "The ID of the checklist to find its associated card."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id-cards'."]:
-    """Retrieve the card associated with a given checklist ID.
+    """Retrieve the card associated with a specific checklist.
 
-    Use this tool to find out which card a specific checklist is attached to on Trello. Useful for tracking checklist locations within Trello boards."""  # noqa: E501
+    Use this tool to find which card a particular checklist belongs to in Trello. Call this when you have a checklist ID and need to determine the associated card."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/checklists/{id}/cards".format(id=checklist_id),  # noqa: UP032
@@ -3464,26 +3493,26 @@ async def get_card_for_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_checklist_items(
+async def get_checklist_items(
     context: ToolContext,
-    filter_check_items: Annotated[
-        str | None,
-        "Specify whether to retrieve all check items or none. Options are 'all' or 'none'.",
+    checklist_id: Annotated[str, "The unique ID of the checklist to retrieve items from."],
+    checkitem_filter: Annotated[
+        str | None, "Filter the checkitems to include. Options: 'all', 'none'."
     ] = None,
-    fields_to_retrieve: Annotated[
+    include_checkitem_fields: Annotated[
         str | None,
-        "Specify which fields to retrieve for the checklist items, such as `all`, `name`, `nameData`, etc.",  # noqa: E501
+        "Specify which fields to include for checkitems, e.g., `all`, `name`, `pos`, etc.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-checklists-id-checkitems'."]:
-    """Retrieve items from a Trello checklist.
+    """Retrieve checkitems from a specified checklist.
 
-    Use this tool to get all check items from a specified Trello checklist using its ID."""
+    Use this tool to get all checkitems from a checklist on Trello by providing the checklist ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems",
+            url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
-                "filter": filter_check_items,
-                "fields": fields_to_retrieve,
+                "filter": checkitem_filter,
+                "fields": include_checkitem_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3497,43 +3526,47 @@ async def retrieve_checklist_items(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_checkitem_on_trello_checklist(
+async def create_checkitem_on_checklist(
     context: ToolContext,
     checkitem_name: Annotated[
         str,
-        "The name of the new checkitem for the checklist, with a length between 1 and 16384 characters.",  # noqa: E501
+        "The name of the new check item on the checklist. Must be between 1 and 16384 characters.",
+    ],
+    checklist_id: Annotated[
+        str,
+        "The unique identifier of the checklist to which the checkitem will be added. This should be a string.",  # noqa: E501
     ],
     checkitem_position: Annotated[
         str | None,
-        "The position of the check item in the checklist. Accepts 'top', 'bottom', or a positive number to specify position.",  # noqa: E501
+        "Specify the check item's position in the checklist as 'top', 'bottom', or a positive number.",  # noqa: E501
     ] = None,
-    due_date_for_checkitem: Annotated[
-        str | None, "Specify the due date for the checkitem in ISO 8601 format (e.g., YYYY-MM-DD)."
+    checkitem_due_date: Annotated[
+        str | None, "Set the due date for the new checkitem. Use the format YYYY-MM-DD."
     ] = None,
-    due_reminder_minutes_before_due: Annotated[
+    due_reminder_minutes: Annotated[
         float | None,
-        "The number of minutes before the due date when a reminder should be sent for the checkitem.",  # noqa: E501
+        "The number of minutes before the due date at which a reminder should be sent for the checkitem.",  # noqa: E501
     ] = None,
     member_id: Annotated[
-        str | None, "The ID of a Trello member to assign to the checkitem."
+        str | None, "The ID of a member resource to assign the checkitem to."
     ] = None,
-    is_item_checked: Annotated[
+    is_checkitem_checked: Annotated[
         bool | None,
-        "Indicate if the check item should be marked as checked upon creation. Accepts a boolean value.",  # noqa: E501
+        "Indicates if the check item is already marked as checked upon creation. Accepts a boolean value.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-checklists-id-checkitems'."]:
-    """Add a checkitem to a specific Trello checklist.
+    """Add a checkitem to a specific checklist on Trello.
 
-    Use this tool to add a new checkitem to an existing checklist on Trello by specifying the checklist ID."""  # noqa: E501
+    Use this tool to add a new checkitem to an existing checklist on Trello by providing the checklist ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems",
+            url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
             params=remove_none_values({
                 "name": checkitem_name,
                 "pos": checkitem_position,
-                "checked": is_item_checked,
-                "due": due_date_for_checkitem,
-                "dueReminder": due_reminder_minutes_before_due,
+                "checked": is_checkitem_checked,
+                "due": checkitem_due_date,
+                "dueReminder": due_reminder_minutes,
                 "idMember": member_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3548,21 +3581,23 @@ async def create_checkitem_on_trello_checklist(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_checkitem_on_checklist(
+async def get_checklist_item(
     context: ToolContext,
+    checklist_id: Annotated[str, "ID of the checklist from which to retrieve the checkitem."],
+    check_item_id: Annotated[str, "ID of the check item to retrieve from the checklist."],
     checkitem_fields: Annotated[
         str | None,
-        "Specify fields to be retrieved for the checkitem. Options include: all, name, nameData, pos, state, type, due, dueReminder, idMember.",  # noqa: E501
+        "Specify the checkitem fields to retrieve: `all`, `name`, `nameData`, `pos`, `state`, `type`, `due`, `dueReminder`, `idMember`.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-checklists-id-checkitems-idcheckitem'."
 ]:
-    """Retrieve a specific checkitem from a checklist on Trello.
-
-    This tool fetches details of a specific checkitem from a checklist on Trello. It should be used when you need to access information about a particular checkitem's status or details within a checklist."""  # noqa: E501
+    """Retrieve details of a specific checkitem from a checklist."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
+            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
+                id=checklist_id, idCheckItem=check_item_id
+            ),
             params=remove_none_values({
                 "fields": checkitem_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -3580,15 +3615,19 @@ async def get_checkitem_on_checklist(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_checklist_item(
     context: ToolContext,
+    checklist_id: Annotated[str, "ID of the checklist from which an item will be removed."],
+    check_item_id: Annotated[str, "ID of the checklist item to remove in Trello."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-checklists-id-checkitems-idcheckitem'."
 ]:
     """Removes an item from a Trello checklist.
 
-    Use this tool to delete a specific item from a checklist on Trello by providing the checklist ID and the item ID."""  # noqa: E501
+    This tool removes a specified item from a checklist in Trello. Use it when you need to delete a checklist item."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}",
+            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
+                id=checklist_id, idCheckItem=check_item_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3605,13 +3644,17 @@ async def remove_checklist_item(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_custom_field(
     context: ToolContext,
+    custom_field_id: Annotated[
+        str,
+        "The unique identifier for the Trello custom field you want to retrieve. This ID is required to access specific details of the custom field.",  # noqa: E501
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-customfields-id'."]:
-    """Retrieve details of a specific Trello custom field.
+    """Retrieve details of a specific Trello custom field using its ID.
 
-    This tool is used to get information about a specific custom field in Trello by its ID. It should be called when you need details of a custom field, such as for displaying information or making decisions based on field data."""  # noqa: E501
+    Use this tool to obtain information about a custom field in Trello by providing its unique identifier. This is useful for accessing specific configurations or details of a custom field on a Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}",
+            url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3626,15 +3669,18 @@ async def get_trello_custom_field(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_custom_field_from_board(
+async def delete_custom_field(
     context: ToolContext,
+    custom_field_id: Annotated[
+        str, "The ID of the specific Custom Field to be deleted from a Trello board."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-customfields-id'."]:
-    """Deletes a custom field from a Trello board.
+    """Delete a Custom Field from a Trello board.
 
-    This tool should be called when you need to remove a custom field from a Trello board. It handles the deletion process and confirms successful removal."""  # noqa: E501
+    Use this tool to remove a specific custom field from a Trello board when it is no longer needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}",
+            url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3649,15 +3695,18 @@ async def delete_custom_field_from_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_option_to_dropdown_custom_field(
+async def add_dropdown_option_trello(
     context: ToolContext,
+    customfield_id: Annotated[
+        str, "The unique identifier of the custom field to which a dropdown option will be added."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-customfields-id-options'."]:
-    """Add a new option to a Trello dropdown custom field.
+    """Add an option to a Trello dropdown Custom Field.
 
-    Use this tool to add a new option to a specified dropdown custom field in Trello. It should be called when you need to expand the choices available in a dropdown menu within a Trello card custom field."""  # noqa: E501
+    This tool is used to add an option to a dropdown Custom Field in Trello. It should be called when you need to expand the selection options available in a specific dropdown custom field."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options",
+            url="https://api.trello.com/1/customFields/{id}/options".format(id=customfield_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3674,13 +3723,14 @@ async def add_option_to_dropdown_custom_field(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_custom_field_options(
     context: ToolContext,
+    custom_field_id: Annotated[str, "ID of the custom field to retrieve dropdown options."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-customfields-id-options'."]:
-    """Retrieve options for a Trello drop-down custom field.
+    """Retrieve options for a Trello dropdown custom field.
 
-    Use this tool to get all available options for a specific drop-down custom field in Trello by providing the custom field ID."""  # noqa: E501
+    Call this tool to get the available options for a specific dropdown custom field in Trello. Useful when you need to display or process the possible selections for a field by its ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options",
+            url="https://api.trello.com/1/customFields/{id}/options".format(id=custom_field_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3695,17 +3745,23 @@ async def get_custom_field_options(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_trello_custom_field_option(
+async def get_dropdown_customfield_option(
     context: ToolContext,
+    customfield_item_id: Annotated[
+        str, "The ID of the custom field item to retrieve details from."
+    ],
+    customfield_option_id: Annotated[str, "ID of the dropdown custom field option to retrieve."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-customfields-options-idcustomfieldoption'."
 ]:
-    """Retrieve details of a Trello custom field dropdown option.
+    """Retrieve details of a specific dropdown Custom Field option.
 
-    Use this tool to get information about a specific option within a dropdown-type custom field on Trello. Ideal for obtaining details when managing Trello boards and their associated data fields."""  # noqa: E501
+    Use this tool to get information about a specific option within a dropdown-type Custom Field on Trello. It should be called when you need details of a particular option by its ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}",
+            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
+                id=customfield_item_id, idCustomFieldOption=customfield_option_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3720,18 +3776,24 @@ async def retrieve_trello_custom_field_option(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_delete_customfield_option(
+async def delete_customfield_option(
     context: ToolContext,
+    customfield_item_id: Annotated[
+        str, "The ID of the custom field item from which the option will be deleted."
+    ],
+    custom_field_option_id: Annotated[str, "ID of the custom field option to delete."],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'delete-customfields-options-idcustomfieldoption'.",
 ]:
-    """Delete an option from a Trello custom field dropdown.
+    """Delete an option from a Custom Field dropdown on Trello.
 
-    Use this tool to remove a specific option from a dropdown in Trello's custom field. Useful for managing and updating dropdown options in your Trello boards."""  # noqa: E501
+    Use this tool to remove a specific option from a Custom Field dropdown in Trello. Ideal for maintaining updates or cleaning up unnecessary options."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}",
+            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
+                id=customfield_item_id, idCustomFieldOption=custom_field_option_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3746,11 +3808,11 @@ async def trello_delete_customfield_option(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_available_emojis(
+async def list_available_emoji(
     context: ToolContext,
-    emoji_locale: Annotated[
+    locale: Annotated[
         str | None,
-        "Specify the locale for emoji descriptions and names; defaults to the user's locale if not provided.",  # noqa: E501
+        "The locale for emoji descriptions and names. Defaults to the logged-in member's locale.",
     ] = None,
     include_spritesheet_urls: Annotated[
         bool | None, "Set to true to include spritesheet URLs in the response."
@@ -3758,12 +3820,12 @@ async def list_available_emojis(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'emoji'."]:
     """Retrieve a list of available emojis from Trello.
 
-    Use this tool to get a comprehensive list of all emojis that can be accessed and used on the Trello platform."""  # noqa: E501
+    This tool is used to call the Trello API to retrieve a list of all available emojis. It should be called when there's a need to access or display the available emoji options within Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/emoji",
             params=remove_none_values({
-                "locale": emoji_locale,
+                "locale": locale,
                 "spritesheets": include_spritesheet_urls,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -3778,82 +3840,81 @@ async def list_available_emojis(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_enterprise_by_id(
+async def get_enterprise_by_id(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The unique identifier for the Trello enterprise to retrieve details for."
+        str, "The unique ID of the enterprise to retrieve details for from Trello."
     ],
     enterprise_fields_to_retrieve: Annotated[
         str | None,
-        "Comma-separated list of enterprise fields to include: `id`, `name`, `displayName`, etc.",
+        "Comma-separated list of fields to retrieve, such as `id`, `name`, `displayName`, etc.",
     ] = None,
-    member_type: Annotated[
-        str | None,
-        "Specify the type of members to retrieve: `none`, `normal`, `admins`, `owners`, or `all`.",
+    member_inclusion_type: Annotated[
+        str | None, "Specify the type of members to include: none, normal, admins, owners, or all."
     ] = None,
-    member_details_field: Annotated[
+    member_fields: Annotated[
         str | None,
-        "Specify one member detail to retrieve: `avatarHash`, `fullName`, `initials`, or `username`.",  # noqa: E501
+        "Specify one member attribute to include: `avatarHash`, `fullName`, `initials`, or `username`.",  # noqa: E501
     ] = None,
     member_filter_query: Annotated[
         str | None,
-        "SCIM-style query to filter members, taking precedence over 'all', 'normal', or 'admins'. If used, pagination is applied to the member array.",  # noqa: E501
+        "A SCIM-style query to filter members. Overrides the normal/admins value of members.",
     ] = None,
-    member_sorting_value: Annotated[
+    member_sort_value: Annotated[
         str | None,
-        "A SCIM-style sorting value for sorting members. Prefix with '-' for descending. Uses 'ascending' by default.",  # noqa: E501
+        "Provide a SCIM-style sorting value. Prefix with '-' for descending order; default is ascending.",  # noqa: E501
     ] = None,
-    deprecated_member_sort_by: Annotated[
+    member_sort: Annotated[
         str | None,
-        "Deprecated SCIM-style sorting value for members; consider using member_sort instead.",
+        "SCIM-style sort value for members. Use `-` prefix to sort descending. Note: members array may be paginated.",  # noqa: E501
     ] = None,
-    use_member_sort_order: Annotated[
+    deprecated_member_sort_order: Annotated[
         str | None,
-        "This argument is deprecated. Consider using `member_sort` instead. Acceptable values are `ascending`, `descending`, `asc`, or `desc`.",  # noqa: E501
+        "Deprecated parameter for sorting members. Use 'member_sort' instead. Accepts: `ascending`, `descending`, `asc`, `desc`.",  # noqa: E501
     ] = None,
     member_start_index: Annotated[
-        int | None, "The starting index for pagination of the member array, ranging from 0 to 100."
+        int | None,
+        "An integer between 0 and 100 specifying the starting index for paginated member results.",
     ] = None,
-    member_limit: Annotated[
-        int | None, "Specify the number of members in the result, ranging from 0 to 100."
+    member_count: Annotated[
+        int | None, "Specify the number of members to retrieve, ranging from 0 to 100."
     ] = None,
-    organization_visibility: Annotated[
+    organization_visibility_filter: Annotated[
         str | None,
-        "Specify the visibility of organizations associated with the enterprise. Options: none, members, public, all.",  # noqa: E501
+        "Specify the level of visibility for the organizations. Options are: `none`, `members`, `public`, `all`.",  # noqa: E501
     ] = None,
     organization_fields: Annotated[
         str | None,
-        "Specify valid values that the nested organization field resource accepts to retrieve specific organization details.",  # noqa: E501
+        "Specify fields related to organizations to retrieve. Use values accepted by nested organization field resource.",  # noqa: E501
     ] = None,
-    organization_memberships_list: Annotated[
+    organization_memberships_filter: Annotated[
         str | None,
-        "Comma-separated list indicating the desired organization memberships: `me`, `normal`, `admin`, `active`, `deactivated`.",  # noqa: E501
+        "Comma-separated list of workspace memberships to include, such as 'me', 'normal', 'admin', 'active', 'deactivated'.",  # noqa: E501
     ] = None,
-    include_paid_account_info: Annotated[
-        bool | None,
-        "Set to true to include paid account information in the returned workspace objects, or false to exclude it.",  # noqa: E501
+    include_paid_account_information: Annotated[
+        bool | None, "Include paid account information in the returned workspace objects if true."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprises-id'."]:
-    """Retrieve Trello enterprise details using enterprise ID.
+    """Retrieve details of an enterprise by its ID.
 
-    Use this tool to obtain information about a specific Trello enterprise by providing its ID. Useful for accessing details about an enterprise's configuration, members, and more."""  # noqa: E501
+    Use this tool to retrieve information about a specific enterprise in Trello using its ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": enterprise_fields_to_retrieve,
-                "members": member_type,
-                "member_fields": member_details_field,
+                "members": member_inclusion_type,
+                "member_fields": member_fields,
                 "member_filter": member_filter_query,
-                "member_sort": member_sorting_value,
-                "member_sortBy": deprecated_member_sort_by,
-                "member_sortOrder": use_member_sort_order,
+                "member_sort": member_sort_value,
+                "member_sortBy": member_sort,
+                "member_sortOrder": deprecated_member_sort_order,
                 "member_startIndex": member_start_index,
-                "member_count": member_limit,
-                "organizations": organization_visibility,
+                "member_count": member_count,
+                "organizations": organization_visibility_filter,
                 "organization_fields": organization_fields,
-                "organization_paid_accounts": include_paid_account_info,
-                "organization_memberships": organization_memberships_list,
+                "organization_paid_accounts": include_paid_account_information,
+                "organization_memberships": organization_memberships_filter,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3870,12 +3931,12 @@ async def get_trello_enterprise_by_id(
 async def get_enterprise_audit_log(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The unique identifier of the Trello enterprise to retrieve the audit log for."
+        str, "ID of the enterprise whose audit log actions are to be retrieved."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprises-id-auditlog'."]:
-    """Fetch actions from a Trello enterprise's audit log.
+    """Retrieve actions from an enterprise's audit log.
 
-    Retrieves and returns an array of actions related to a specific Trello enterprise object from the audit log page. This tool requires an Enterprise admin token and includes actions from AdminHub for enterprises using user management via AdminHub."""  # noqa: E501
+    Fetches an array of actions related to an Enterprise object for audit purposes from Trello's audit log. Useful for analyzing enterprise activities and administrative changes."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/auditlog".format(id=enterprise_id),  # noqa: UP032
@@ -3895,20 +3956,22 @@ async def get_enterprise_audit_log(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_enterprise_admins(
     context: ToolContext,
-    enterprise_id: Annotated[str, "ID of the enterprise to retrieve the admin members from."],
-    admin_fields: Annotated[
+    enterprise_id: Annotated[
+        str, "The unique ID of the enterprise whose admin members you want to retrieve."
+    ],
+    member_fields: Annotated[
         str | None,
-        "Specify which admin member fields to include. Use values accepted by Trello's nested member field resource.",  # noqa: E501
+        "Specify the fields to be included in the response for each admin member. These should match valid values that the nested member field resource accepts.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprises-id-admins'."]:
-    """Retrieve admin members of an enterprise in Trello.
+    """Retrieve admin members of a specified enterprise.
 
-    Use this tool to obtain the list of admin members associated with a specific enterprise in Trello."""  # noqa: E501
+    Use this tool to obtain the list of admin members for a given enterprise, identified by its ID. This is helpful for managing or viewing enterprise administrative access."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/admins".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": admin_fields,
+                "fields": member_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3925,37 +3988,35 @@ async def get_enterprise_admins(
 async def get_enterprise_signup_url(
     context: ToolContext,
     enterprise_id: Annotated[
-        str,
-        "The ID of the enterprise for which you want to retrieve the signup URL. This is required.",
+        str, "The unique ID of the Trello enterprise for which you want to retrieve the signup URL."
     ],
-    return_url: Annotated[
-        str | None,
-        "Provide any valid URL to redirect the user after signup. This URL will be used post-signup or redirection.",  # noqa: E501
+    redirect_url: Annotated[
+        str | None, "Any valid URL to which the user will be redirected after signup."
     ] = None,
     require_authentication: Annotated[
         bool | None,
-        "Indicates if authentication is required to access the signup URL. True if needed, false otherwise.",  # noqa: E501
+        "Specifies if authentication is needed to access the signup URL. True means authentication is required.",  # noqa: E501
     ] = None,
-    confirmation_accepted: Annotated[
+    has_user_accepted_confirmation: Annotated[
         bool | None,
-        "Indicates if the user has accepted the confirmation prompt before being redirected to the signup page.",  # noqa: E501
+        "Indicates if the user has acknowledged the confirmation before being redirected. Set to True if confirmed.",  # noqa: E501
     ] = None,
-    user_consented_to_terms_of_service: Annotated[
+    tos_accepted: Annotated[
         bool | None,
-        "Indicate if the user has consented to Trello's Terms of Service before being redirected to the signup page.",  # noqa: E501
+        "Indicate if the user has seen and consented to the Trello ToS before redirection.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprises-id-signupurl'."]:
-    """Retrieve the signup URL for a specific enterprise.
+    """Retrieve the signup URL for a specific enterprise on Trello.
 
-    Use this tool to get the signup URL for an enterprise in Trello. It should be called when there's a need to direct someone to sign up for a specific enterprise."""  # noqa: E501
+    Use this tool to get the signup URL for a specific Trello enterprise. This can be useful when you need to invite new users to join an enterprise on Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/signupUrl".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "authenticate": require_authentication,
-                "confirmationAccepted": confirmation_accepted,
-                "returnUrl": return_url,
-                "tosAccepted": user_consented_to_terms_of_service,
+                "confirmationAccepted": has_user_accepted_confirmation,
+                "returnUrl": redirect_url,
+                "tosAccepted": tos_accepted,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -3972,61 +4033,58 @@ async def get_enterprise_signup_url(
 async def get_enterprise_users(
     context: ToolContext,
     enterprise_id: Annotated[
-        str,
-        "The ID of the Trello enterprise whose users you want to retrieve. This is required to identify the target enterprise.",  # noqa: E501
+        str, "The unique identifier of the Trello enterprise to retrieve users from."
     ],
-    filter_active_since_date: Annotated[
-        str | None,
-        "Filter users active on or after this date (inclusive). Use ISO 8601 format (e.g., 'YYYY-MM-DD').",  # noqa: E501
-    ] = None,
     active_since_date: Annotated[
-        str | None,
-        "Returns only Trello users who have been active since this date (inclusive). Should be in ISO 8601 format (YYYY-MM-DD).",  # noqa: E501
+        str | None, "Return only users active since this date (inclusive). Format: YYYY-MM-DD."
     ] = None,
-    search_value: Annotated[
+    inactive_since_date: Annotated[
         str | None,
-        "Provide a string to find members whose email address or full name starts with this value.",
+        "Returns only Trello users active since this date (inclusive). Provide the date in YYYY-MM-DD format.",  # noqa: E501
+    ] = None,
+    search_value_filter: Annotated[
+        str | None, "Filter users by email address or full name starting with this value."
     ] = None,
     pagination_cursor: Annotated[
         str | None,
-        "Cursor string to retrieve the next batch of users. Use the cursor returned from the previous response.",  # noqa: E501
+        "Cursor for returning the next set of results in a paginated response. Use the cursor from the response to fetch subsequent batches.",  # noqa: E501
     ] = None,
-    licensed_members_filter: Annotated[
+    licensed_members_only: Annotated[
         bool | None,
-        "Set to true to return licensed members; false for unlicensed members; unspecified returns both.",  # noqa: E501
+        "If true, return only members with a Trello license. If false, return only those without a license. If omitted, return both.",  # noqa: E501
     ] = None,
     return_deactivated_members: Annotated[
         bool | None,
-        "Set to true to return deactivated members, set to false for active members. If unspecified, returns both.",  # noqa: E501
+        "Return deactivated members when true; active members when false. Unspecified returns all members.",  # noqa: E501
     ] = None,
-    include_guests_without_license: Annotated[
+    include_collaborators: Annotated[
         bool | None,
-        "Set to true to include members who are guests on boards without a license. False excludes them. Defaults to both.",  # noqa: E501
+        "Set to true to include members who are board guests (without a license). False excludes them. If unspecified, both are returned.",  # noqa: E501
     ] = None,
-    include_managed_users: Annotated[
+    return_managed_members: Annotated[
         bool | None,
-        "Set to true to return users managed by the Trello Enterprise; false to exclude them. If unspecified, both managed and unmanaged users are returned.",  # noqa: E501
+        "Set to true to return only members managed by the Trello Enterprise, false to exclude managed members. If not set, both are returned.",  # noqa: E501
     ] = None,
-    retrieve_administrators: Annotated[
+    include_administrators_only: Annotated[
         bool | None,
-        "Set true to get members who are administrators, false for non-administrators, or leave unspecified for all.",  # noqa: E501
+        "If true, returns only administrators of the Trello Enterprise. If false, returns only non-administrators. If unspecified, returns both.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-users-id'."]:
-    """Retrieve users of a Trello enterprise account.
+    """Retrieve users from a Trello enterprise, with optional filters.
 
-    Use this tool to get information on users within a Trello enterprise. You can specify the type of users to retrieve, such as licensed members or board guests. The response is paginated, returning up to 100 users per request."""  # noqa: E501
+    Use this tool to get information about users in a Trello enterprise, such as licensed members or board guests. The response is paginated, providing up to 100 users per request."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/members/query".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
-                "licensed": licensed_members_filter,
+                "licensed": licensed_members_only,
                 "deactivated": return_deactivated_members,
-                "collaborator": include_guests_without_license,
-                "managed": include_managed_users,
-                "admin": retrieve_administrators,
-                "activeSince": filter_active_since_date,
-                "inactiveSince": active_since_date,
-                "search": search_value,
+                "collaborator": include_collaborators,
+                "managed": return_managed_members,
+                "admin": include_administrators_only,
+                "activeSince": active_since_date,
+                "inactiveSince": inactive_since_date,
+                "search": search_value_filter,
                 "cursor": pagination_cursor,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -4044,59 +4102,59 @@ async def get_enterprise_users(
 async def get_enterprise_members(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The unique identifier of the enterprise whose members you want to retrieve."
+        str,
+        "ID of the enterprise whose members are to be retrieved. This is required to specify which enterprise's members you want to access.",  # noqa: E501
     ],
     member_fields: Annotated[
+        str | None, "Comma-separated list of valid member fields to retrieve."
+    ] = None,
+    scim_filter_query: Annotated[
         str | None,
-        "A comma-separated list of valid member fields to include in the response. Refer to Trello's member object documentation for valid fields.",  # noqa: E501
+        "SCIM-style query to filter members. Overrides member type filters and controls pagination.",  # noqa: E501
     ] = None,
-    filter_scim_query: Annotated[
+    sort_members: Annotated[
         str | None,
-        "SCIM-style query to filter enterprise members, taking precedence over member type values.",
+        "SCIM-style sorting value. Prefix with '-' for descending order; otherwise, it's ascending.",  # noqa: E501
     ] = None,
-    sort_members_by: Annotated[
+    sort_criteria: Annotated[
         str | None,
-        "SCIM-style sorting string for enterprise members. Prefix with '-' for descending order, otherwise ascending.",  # noqa: E501
+        "Sorting option for members. Use 'sort' parameter instead, following SCIM-style sorting. Deprecated parameter.",  # noqa: E501
     ] = None,
-    sort_by: Annotated[
+    sort_order_for_listing: Annotated[
         str | None,
-        "Deprecated: Use 'sort' instead. Specifies sorting for members. This accepts SCIM-style values but is not recommended for use.",  # noqa: E501
+        "Defines the order for sorting members. Use values: 'ascending', 'descending', 'asc', or 'desc'. Deprecated: Prefer 'sort'.",  # noqa: E501
     ] = None,
-    use_deprecated_sort_order: Annotated[
-        str | None,
-        "Use deprecated sorting order: `ascending`, `descending`, `asc`, `desc`. Recommended to use `sort` instead.",  # noqa: E501
+    member_start_index: Annotated[
+        int | None, "An integer between 0 and 9999 indicating where to start retrieving members."
     ] = None,
-    start_index: Annotated[
-        int | None, "Starting point for pagination, any integer between 0 and 9999."
-    ] = None,
-    scim_style_filter: Annotated[
-        str | None, "A SCIM-style filter to specify the number of members to retrieve."
+    member_count_filter: Annotated[
+        str | None, "Apply a SCIM-style filter to specify the number of members to retrieve."
     ] = None,
     organization_fields: Annotated[
         str | None,
-        "Specifies valid fields for nested organization data when retrieving enterprise members.",
+        "Specify valid values for nested organization fields to retrieve specific organization-related data.",  # noqa: E501
     ] = None,
-    board_fields_to_include: Annotated[
+    included_board_fields: Annotated[
         str | None,
-        "Comma-separated list of board resource fields to include for each member. Refer to Trello's nested board resource for valid values.",  # noqa: E501
+        "Comma-separated list of values accepted by the nested board resource to specify included fields.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-enterprises-id-members'."]:
     """Retrieve members of a specified enterprise on Trello.
 
-    This tool fetches and returns a list of members belonging to a specified enterprise in Trello. Ideal for when user needs to access or display membership information of a Trello enterprise."""  # noqa: E501
+    Use this tool to get a list of members associated with a particular enterprise by providing the enterprise ID. This is useful for managing team members or reviewing enterprise membership details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/members".format(id=enterprise_id),  # noqa: UP032
             params=remove_none_values({
                 "fields": member_fields,
-                "filter": filter_scim_query,
-                "sort": sort_members_by,
-                "sortBy": sort_by,
-                "sortOrder": use_deprecated_sort_order,
-                "startIndex": start_index,
-                "count": scim_style_filter,
+                "filter": scim_filter_query,
+                "sort": sort_members,
+                "sortBy": sort_criteria,
+                "sortOrder": sort_order_for_listing,
+                "startIndex": member_start_index,
+                "count": member_count_filter,
                 "organization_fields": organization_fields,
-                "board_fields": board_fields_to_include,
+                "board_fields": included_board_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4110,41 +4168,38 @@ async def get_enterprise_members(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_enterprise_member(
+async def get_enterprise_member_by_id(
     context: ToolContext,
     enterprise_id: Annotated[
-        str,
-        "The unique identifier of the Trello enterprise for which to retrieve member information.",
+        str, "The ID of the enterprise from which to retrieve the member information."
     ],
-    member_id: Annotated[
-        str, "The ID of the Trello member to retrieve details for within the enterprise."
-    ],
-    member_fields_list: Annotated[
-        str | None, "Comma-separated list of valid member field values for retrieval."
-    ] = None,
-    organization_field_value: Annotated[
+    member_id: Annotated[str, "The unique ID of the enterprise member to retrieve details for."],
+    member_fields: Annotated[
         str | None,
-        "A valid value for the nested organization field resource, as specified by Trello guidelines.",  # noqa: E501
+        "A comma-separated list of fields to retrieve for the member. Accepts any valid values from the nested member field resource.",  # noqa: E501
     ] = None,
-    board_details_fields: Annotated[
+    organization_fields: Annotated[
         str | None,
-        "A comma-separated list of valid fields for nested board resources to retrieve specific board information.",  # noqa: E501
+        "Specify which organization fields to retrieve, using valid organization field resource identifiers.",  # noqa: E501
+    ] = None,
+    board_fields_for_enterprise_member: Annotated[
+        str | None, "Comma-separated values specifying board fields for a member of an enterprise."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-enterprises-id-members-idmember'."
 ]:
-    """Retrieve a specific Trello enterprise member by ID.
+    """Retrieve a specific enterprise member's details by ID.
 
-    Use this tool to get information about a specific member within a Trello enterprise using the member's ID. Useful for accessing member details for enterprise management."""  # noqa: E501
+    This tool retrieves details of a specific member within an enterprise using their ID. It should be called when you need information about an enterprise member, provided the enterprise ID and member ID are known."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/members/{idMember}".format(  # noqa: UP032
                 id=enterprise_id, idMember=member_id
             ),
             params=remove_none_values({
-                "fields": member_fields_list,
-                "organization_fields": organization_field_value,
-                "board_fields": board_details_fields,
+                "fields": member_fields,
+                "organization_fields": organization_fields,
+                "board_fields": board_fields_for_enterprise_member,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4158,22 +4213,19 @@ async def get_trello_enterprise_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def check_organization_transfer_eligibility(
+async def check_org_transferability(
     context: ToolContext,
-    enterprise_id: Annotated[
-        str,
-        "The ID of the Enterprise for which you want to check organization transfer eligibility.",
-    ],
+    enterprise_id: Annotated[str, "ID of the Enterprise for which to check transferability."],
     organization_id: Annotated[
-        str, "The ID of the organization to check for transfer eligibility to an enterprise."
+        str, "The ID of the Organization resource to check for transfer eligibility."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-enterprises-id-transferrable-organization-idOrganization'.",  # noqa: E501
 ]:
-    """Determine if an organization can be transferred to an enterprise.
+    """Check if an organization can be transferred to an enterprise.
 
-    Use this tool to check if a specific organization within Trello can be transferred to a given enterprise. This is useful for managing enterprise-level organization transfers."""  # noqa: E501
+    Use this tool to determine whether a specific organization is eligible for transfer to a certain enterprise."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/transferrable/organization/{idOrganization}".format(  # noqa: UP032
@@ -4193,15 +4245,14 @@ async def check_organization_transfer_eligibility(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_get_transferrable_organizations(
+async def get_transferrable_organizations(
     context: ToolContext,
     enterprise_id: Annotated[
-        str,
-        "The unique ID of the Enterprise for which you want to retrieve transferrable organizations.",  # noqa: E501
+        str, "The ID of the enterprise for which to retrieve transferrable organizations."
     ],
-    organization_ids_array: Annotated[
+    organization_ids: Annotated[
         list[dict[str, str]],
-        "An array of organization IDs to check for transferability to the specified enterprise.",
+        "An array of organization IDs to check for transferability to an enterprise.",
     ],
 ) -> Annotated[
     dict[str, Any],
@@ -4209,11 +4260,11 @@ async def trello_get_transferrable_organizations(
 ]:
     """Retrieve organizations transferrable to an enterprise.
 
-    Use this tool to get a list of organizations that can be transferred to a specified enterprise, based on a provided bulk list of organizations."""  # noqa: E501
+    Fetches a list of organizations that can be transferred to an enterprise, given a bulk list of organization IDs. Use this tool to identify which organizations can be moved to a specified enterprise."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/transferrable/bulk/{idOrganizations}".format(  # noqa: UP032
-                id=enterprise_id, idOrganizations=organization_ids_array
+                id=enterprise_id, idOrganizations=organization_ids
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -4232,23 +4283,22 @@ async def trello_get_transferrable_organizations(
 async def decline_enterprise_join_requests(
     context: ToolContext,
     organization_ids: Annotated[
-        list[dict[str, str]],
-        "An array of IDs representing the organizations whose join requests are to be declined. Provide one or more organization IDs to manage requests efficiently.",  # noqa: E501
+        list[dict[str, str]], "An array of organization IDs to decline join requests for."
     ],
-    enterprise_id_to_decline_requests: Annotated[
-        str, "ID of the Enterprise for which join requests are being declined."
+    enterprise_id: Annotated[
+        str, "The ID of the enterprise for which join requests should be declined."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-enterprises-id-enterpriseJoinRequest-bulk'.",
 ]:
-    """Decline requests for joining an enterprise.
+    """Decline multiple enterprise join requests for organizations.
 
-    Use this tool to decline enterprise join requests for one or multiple organizations. Suitable for managing membership requests efficiently in Trello enterprises."""  # noqa: E501
+    This tool declines enterprise join requests for one or multiple organizations in a Trello enterprise. It should be used when you need to reject several join requests at once."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/${id}/enterpriseJoinRequest/bulk".format(  # noqa: UP032
-                id=enterprise_id_to_decline_requests
+                id=enterprise_id
             ),
             params=remove_none_values({
                 "idOrganizations": organization_ids,
@@ -4265,45 +4315,43 @@ async def decline_enterprise_join_requests(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_claimable_workspaces_by_enterprise_id(
+async def get_claimable_workspaces(
     context: ToolContext,
-    enterprise_id: Annotated[
-        str, "The unique ID of the enterprise for which you want to retrieve claimable workspaces."
-    ],
-    max_number_of_workspaces: Annotated[
-        int | None, "Specify the maximum number of workspaces to retrieve and return."
+    enterprise_id: Annotated[str, "ID of the enterprise to retrieve claimable workspaces for."],
+    workspace_limit: Annotated[
+        int | None,
+        "Limits the number of workspaces returned in the query. Use an integer value to specify the maximum number.",  # noqa: E501
     ] = None,
-    sort_order_for_documents: Annotated[
-        str | None, "Specifies the sort order to return matching workspaces in the response."
+    sort_order_cursor: Annotated[
+        str | None,
+        "Specifies the sort order for returning matching documents by setting a cursor position.",
     ] = None,
     enterprise_name: Annotated[
-        str | None,
-        "The name of the enterprise to retrieve claimable workspaces for. Specify to filter workspaces by enterprise name.",  # noqa: E501
+        str | None, "Name of the enterprise to retrieve claimable workspaces for."
     ] = None,
     active_since_date: Annotated[
-        str | None, "The date (in YYYY-MM-DD format) to filter workspaces active until that date."
+        str | None, "Date in YYYY-MM-DD format to search up to for active workspaces."
     ] = None,
-    search_inactive_since_date: Annotated[
-        str | None,
-        "Date in YYYY-MM-DD format to search up to for inactive workspaces. Filters results by workspace inactiveness.",  # noqa: E501
+    inactive_since_date: Annotated[
+        str | None, "Date in YYYY-MM-DD format for filtering workspaces inactive up to this date."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-enterprises-id-claimableOrganizations'."
 ]:
-    """Retrieve claimable workspaces by enterprise ID.
+    """Retrieve claimable workspaces for an enterprise by ID.
 
-    Use this tool to get the list of workspaces that an enterprise can claim by specifying its ID. You can optionally filter the results based on activity status."""  # noqa: E501
+    Use this tool to get the list of workspaces that can be claimed by a specific enterprise, optionally filtering by active or inactive status."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/claimableOrganizations".format(  # noqa: UP032
                 id=enterprise_id
             ),
             params=remove_none_values({
-                "limit": max_number_of_workspaces,
-                "cursor": sort_order_for_documents,
+                "limit": workspace_limit,
+                "cursor": sort_order_cursor,
                 "name": enterprise_name,
                 "activeSince": active_since_date,
-                "inactiveSince": search_inactive_since_date,
+                "inactiveSince": inactive_since_date,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4317,24 +4365,21 @@ async def get_claimable_workspaces_by_enterprise_id(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_pending_workspaces_for_enterprise(
+async def get_pending_enterprise_workspaces(
     context: ToolContext,
-    enterprise_id: Annotated[
-        str, "The unique identifier for the enterprise from which to retrieve pending workspaces."
-    ],
+    enterprise_id: Annotated[str, "ID of the enterprise for which to retrieve pending workspaces."],
     active_since_date: Annotated[
-        str | None, "Date in YYYY-MM-DD format to determine workspace activeness up to that date."
+        str | None, "Date in YYYY-MM-DD format to search for active workspaces up to this date."
     ] = None,
-    inactive_since_date: Annotated[
-        str | None,
-        "Date in YYYY-MM-DD format indicating up to which date workspaces are considered inactive.",
+    inactive_until_date: Annotated[
+        str | None, "Specify the date (YYYY-MM-DD) to search up to for workspace inactiveness."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-enterprises-id-pendingOrganizations'."
 ]:
-    """Retrieve pending workspaces for a specific enterprise.
+    """Retrieve pending workspaces for an enterprise by ID.
 
-    Use this tool to get the workspaces that are pending approval for a given enterprise by its ID on Trello."""  # noqa: E501
+    Use this tool to get a list of workspaces that are pending approval for a specific enterprise. It is useful when managing enterprise-level organization and pending requests."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/pendingOrganizations".format(  # noqa: UP032
@@ -4342,7 +4387,7 @@ async def get_pending_workspaces_for_enterprise(
             ),
             params=remove_none_values({
                 "activeSince": active_since_date,
-                "inactiveSince": inactive_since_date,
+                "inactiveSince": inactive_until_date,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4359,16 +4404,15 @@ async def get_pending_workspaces_for_enterprise(
 async def create_enterprise_auth_token(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The unique identifier for the Trello enterprise for which to generate an auth token."
+        str, "ID of the enterprise for which you want to create an auth token."
     ],
     token_expiration: Annotated[
-        str | None,
-        "The duration for which the authentication token is valid. Options: `1hour`, `1day`, `30days`, `never`.",  # noqa: E501
+        str | None, "Specify token expiration duration: `1hour`, `1day`, `30days`, or `never`."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-enterprises-id-tokens'."]:
-    """Generate an authentication token for an enterprise in Trello.
+    """Create an auth token for a Trello enterprise.
 
-    This tool is used to create an authentication token for a specific enterprise on Trello, which can be utilized for authorized API interactions."""  # noqa: E501
+    Use this tool to generate an authentication token for a specified Trello enterprise. It is typically called when access to enterprise-level features is required."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/tokens".format(id=enterprise_id),  # noqa: UP032
@@ -4387,20 +4431,21 @@ async def create_enterprise_auth_token(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def transfer_organization_to_enterprise(
+async def transfer_org_to_enterprise(
     context: ToolContext,
     organization_id_to_transfer: Annotated[
-        str, "The unique identifier of the organization to be transferred to the enterprise."
+        str,
+        "ID of the organization that needs to be transferred to the enterprise. It is required for initiating the transfer process.",  # noqa: E501
     ],
     enterprise_id: Annotated[
-        str, "The ID of the enterprise to which the organization will be transferred."
+        str, "ID of the Enterprise to which the organization will be transferred."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-enterprises-id-organizations'."
 ]:
     """Transfer an organization to an enterprise.
 
-    This tool transfers an organization to an enterprise on Trello. For enterprises using AdminHub, organizations are added asynchronously. A 200 response confirms receipt of the transfer request, not successful completion."""  # noqa: E501
+    Use this tool to initiate the transfer of an organization to an enterprise. It is useful for enterprises using AdminHub for user management; the addition will be completed asynchronously. A successful call only confirms the request was received."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/organizations".format(id=enterprise_id),  # noqa: UP032
@@ -4419,25 +4464,25 @@ async def transfer_organization_to_enterprise(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_member_license(
+async def update_member_license_status(
     context: ToolContext,
     enterprise_id: Annotated[
         str,
-        "The unique identifier for the Enterprise. Required to specify the Enterprise in which the member's license status will be updated.",  # noqa: E501
+        "The unique ID of the enterprise. Required to specify which enterprise the member's license status will be updated for.",  # noqa: E501
     ],
     member_id: Annotated[
-        str, "The unique identifier of the Trello member whose license status is to be updated."
+        str, "The unique identifier of the member whose license status is being updated."
     ],
     grant_enterprise_license: Annotated[
         bool,
-        "Set to true to grant the member an Enterprise license, or false to not grant it. Cannot revoke for AdminHub-managed enterprises.",  # noqa: E501
+        "Boolean to specify if the user should be granted an Enterprise license (true) or not (false).",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-enterprises-id-members-idmember-licensed'."
 ]:
-    """Update a Trello member's license status in an enterprise.
+    """Update a member's license status in an enterprise.
 
-    Use this tool to modify whether an enterprise member should have a Trello license. Note: Cannot revoke licenses for enterprises using AdminHub for user management."""  # noqa: E501
+    Use this tool to update whether a member should utilize one of an enterprise's available licenses. Note that revoking a license will deactivate the member within the enterprise. This operation is not available for enterprises using AdminHub for user management."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/licensed".format(  # noqa: UP032
@@ -4458,44 +4503,39 @@ async def update_trello_member_license(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def deactivate_enterprise_member_trello(
+async def deactivate_enterprise_member(
     context: ToolContext,
-    enterprise_id: Annotated[
-        str,
-        "ID of the enterprise to deactivate a member in. This is required to identify the correct enterprise.",  # noqa: E501
+    enterprise_id: Annotated[str, "The ID of the enterprise from which to deactivate a member."],
+    member_id_to_deactivate: Annotated[str, "ID of the member to deactivate in the enterprise."],
+    user_deactivation_status: Annotated[
+        bool, "Set to true to deactivate the user; false keeps them active."
     ],
-    member_id_to_deactivate: Annotated[
-        str, "The ID of the member to deactivate in the Trello enterprise."
-    ],
-    deactivate_user: Annotated[
-        bool, "Set to true to deactivate the user, and false to keep them active."
-    ],
-    member_fields_list: Annotated[
+    member_field_values: Annotated[
         str | None,
-        "Comma-separated values for filtering member fields to deactivate. Only 'id' is valid.",
+        "Comma-separated list of valid member field values, currently only 'id' is supported.",
     ] = None,
-    organization_field_value: Annotated[
-        str | None,
-        "Specify a valid organization field value such as 'id' or 'name' that the nested organization resource accepts.",  # noqa: E501
+    organization_field: Annotated[
+        str | None, "Specify the organization attribute to retrieve, such as 'id' or 'name'."
     ] = None,
     board_field_values: Annotated[
-        str | None, "A comma-separated list of board fields to retrieve, such as id, name, or desc."
+        str | None,
+        "A comma-separated list of fields related to the board resource, such as 'id', 'name', or 'url'.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'enterprises-id-members-idMember-deactivated'."
 ]:
-    """Deactivate a member in a Trello enterprise.
+    """Deactivate a member from an enterprise on Trello.
 
-    This tool deactivates a specified member within a Trello enterprise. Note that deactivation is not possible for enterprises using AdminHub for user management."""  # noqa: E501
+    Deactivate an enterprise member on Trello, unless the enterprise uses AdminHub for user management."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
                 id=enterprise_id, idMember=member_id_to_deactivate
             ),
             params=remove_none_values({
-                "value": deactivate_user,
-                "fields": member_fields_list,
-                "organization_fields": organization_field_value,
+                "value": user_deactivation_status,
+                "fields": member_field_values,
+                "organization_fields": organization_field,
                 "board_fields": board_field_values,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -4513,21 +4553,19 @@ async def deactivate_enterprise_member_trello(
 async def make_trello_member_enterprise_admin(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The ID of the Trello enterprise to make the member an admin of."
+        str, "The unique ID of the enterprise for which a member is being made an admin."
     ],
-    member_id_for_admin_promotion: Annotated[
-        str, "The ID of the Trello member to be promoted to enterprise admin status."
-    ],
+    member_id_to_promote: Annotated[str, "ID of the member to be made an admin of the enterprise."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-enterprises-id-admins-idmember'."
 ]:
-    """Promote a Trello member to enterprise admin status.
+    """Promote a member to an enterprise admin in Trello.
 
-    Use this tool to make a Trello member an admin of an enterprise. Not applicable to enterprises using AdminHub for user management."""  # noqa: E501
+    Use this tool to make a Trello member an admin of a specified enterprise. Note: This action is not available for enterprises using AdminHub for user management."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id_for_admin_promotion
+                id=enterprise_id, idMember=member_id_to_promote
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -4545,21 +4583,20 @@ async def make_trello_member_enterprise_admin(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_enterprise_admin(
     context: ToolContext,
-    enterprise_id: Annotated[str, "The unique identifier of the Trello enterprise to modify."],
-    member_id_to_remove: Annotated[
-        str,
-        "ID of the member to be removed as an admin from the enterprise. This is necessary to target the specific member within the enterprise.",  # noqa: E501
+    enterprise_id: Annotated[str, "The ID of the Enterprise from which the admin will be removed."],
+    member_id_to_remove_admin: Annotated[
+        str, "The unique ID of the member to remove as an admin from the enterprise."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'enterprises-id-organizations-idmember'."
 ]:
-    """Removes a member as an admin from a Trello enterprise.
+    """Remove a member as admin from a Trello enterprise.
 
-    Use this tool to remove a member's admin status from a Trello enterprise. Note that this is not available for enterprises using AdminHub for user management."""  # noqa: E501
+    Use this tool to remove a member's admin rights from an enterprise in Trello. Note that this action is not available for enterprises using AdminHub for user management."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id_to_remove
+                id=enterprise_id, idMember=member_id_to_remove_admin
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -4578,21 +4615,21 @@ async def remove_enterprise_admin(
 async def remove_organization_from_enterprise(
     context: ToolContext,
     enterprise_id: Annotated[
-        str, "The unique identifier of the enterprise from which the organization is to be removed."
+        str, "The unique ID of the enterprise from which you want to remove the organization."
     ],
-    organization_id: Annotated[
-        str, "The ID of the organization to be removed from the enterprise in Trello."
+    organization_id_to_remove: Annotated[
+        str, "The ID of the organization to be removed from the specified enterprise."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-enterprises-id-organizations-idorg'."
 ]:
-    """Remove an organization from an enterprise in Trello.
+    """Remove an organization from an enterprise.
 
-    This tool is used to remove a specific organization from an enterprise in Trello. It should be called when an organization needs to be detached from an enterprise."""  # noqa: E501
+    Use this tool to remove an organization from a specified enterprise in Trello."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/organizations/{idOrg}".format(  # noqa: UP032
-                id=enterprise_id, idOrg=organization_id
+                id=enterprise_id, idOrg=organization_id_to_remove
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -4611,20 +4648,18 @@ async def remove_organization_from_enterprise(
 async def add_organizations_to_enterprise(
     context: ToolContext,
     enterprise_id: Annotated[
-        str,
-        "The ID of the Trello enterprise to which organizations are being added. This identifies the specific enterprise for the operation.",  # noqa: E501
+        str, "The ID of the enterprise to which organizations are being added."
     ],
     organization_ids_to_add: Annotated[
-        list[dict[str, str]],
-        "An array of IDs of the organizations to add to the enterprise. Each ID should be a string.",  # noqa: E501
+        list[dict[str, str]], "An array of organization IDs to be added to the enterprise."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-enterprises-id-organizations-bulk-idOrganizations'.",
 ]:
-    """Initiate the addition of organizations to a Trello enterprise.
+    """Add multiple organizations to an enterprise.
 
-    Use this tool to start adding multiple organizations to a specified Trello enterprise. A 200 response confirms the request was received, but not the successful addition."""  # noqa: E501
+    Use this tool to add an array of organizations to a Trello enterprise. This operation is asynchronous for enterprises using AdminHub for user management. A successful call returns a 200 status, indicating the receipt of the request but not the completion of the process."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/enterprises/{id}/organizations/bulk/{idOrganizations}".format(  # noqa: UP032
@@ -4646,19 +4681,22 @@ async def add_organizations_to_enterprise(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_label_info(
     context: ToolContext,
-    fields_details_to_retrieve: Annotated[
+    label_id: Annotated[
+        str, "The unique identifier of the Trello label to retrieve information for."
+    ],
+    fields_included_in_response: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields to retrieve information about the Trello label, such as name and color.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of field names to include in the response.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-labels-id'."]:
-    """Retrieve details about a specific Trello label.
+    """Retrieve detailed information about a specific Trello label.
 
-    Use this tool to get information about a single Trello label by its ID, such as name, color, and other attributes. Useful for understanding label details in Trello boards."""  # noqa: E501
+    Use this tool to get details of a specific label in Trello by providing the label ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/labels/{id}",
+            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": fields_details_to_retrieve,
+                "fields": fields_included_in_response,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4674,20 +4712,21 @@ async def get_trello_label_info(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_label(
     context: ToolContext,
+    label_id: Annotated[str, "The unique ID of the Trello label to update."],
     new_label_name: Annotated[
         str | None, "The new name for the Trello label to be updated."
     ] = None,
     new_label_color: Annotated[
         str | None,
-        "Specify the new color for the label. Options: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",  # noqa: E501
+        "The desired new color for the Trello label. Choose from options: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-labels-id'."]:
     """Update a Trello label by its ID.
 
-    This tool updates the details of a Trello label using its unique ID. Use it to modify label properties such as color or name on a Trello board."""  # noqa: E501
+    Use this tool to update the details of a specific Trello label using its ID. Useful for changing label attributes such as name or color."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/labels/{id}",
+            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
             params=remove_none_values({
                 "name": new_label_name,
                 "color": new_label_color,
@@ -4704,15 +4743,16 @@ async def update_trello_label(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_label_by_id(
+async def delete_trello_label(
     context: ToolContext,
+    label_id: Annotated[str, "The unique ID of the Trello label to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-labels-id'."]:
-    """Delete a Trello label using its ID.
+    """Delete a Trello label by its ID.
 
-    Use this tool to remove a specific label from a Trello board by providing the label's unique ID."""  # noqa: E501
+    Use this tool to remove a specific label from Trello by providing its ID. It should be called when a user wants to delete a label that is no longer needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/labels/{id}",
+            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -4729,24 +4769,24 @@ async def delete_label_by_id(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_label_field(
     context: ToolContext,
-    new_value_for_label_field: Annotated[
+    new_field_value: Annotated[
         str, "The new value to update the specified field on the Trello label."
     ],
-    label_id: Annotated[str, "The unique identifier for the Trello label you want to update."],
+    label_id: Annotated[str, "The ID of the Trello label to be updated."],
     label_field_to_update: Annotated[
-        str, "Specify the label field to update, either 'color' or 'name'."
+        str, "Specify the field (e.g., 'color' or 'name') on the Trello label to update."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-labels-id-field'."]:
     """Update a specific field on a Trello label.
 
-    Use this tool to update a field on a specific Trello label, such as changing its name or color."""  # noqa: E501
+    Use this tool to update a specific field, such as name or color, on a Trello label by providing the label ID and the field to be updated."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/labels/{id}/{field}".format(  # noqa: UP032
                 id=label_id, field=label_field_to_update
             ),
             params=remove_none_values({
-                "value": new_value_for_label_field,
+                "value": new_field_value,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4762,25 +4802,23 @@ async def update_trello_label_field(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_label(
     context: ToolContext,
-    label_name: Annotated[str, "The name for the new label to be created on the Trello board."],
+    label_name: Annotated[str, "Name for the label to be created on the Trello board."],
     label_color: Annotated[
         str,
-        "The color of the label to be created on the board. Must be one of the following: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",  # noqa: E501
+        "Specifies the color for the label. Accepted values are: yellow, purple, blue, red, green, orange, black, sky, pink, lime.",  # noqa: E501
     ],
-    board_id_for_label_creation: Annotated[
-        str, "The unique identifier of the Trello board where the label will be created."
-    ],
+    board_id: Annotated[str, "The unique ID of the Trello board where the label will be created."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-labels'."]:
     """Create a new label on a Trello board.
 
-    Use this tool to add a new label to a specific board in Trello, helping organize tasks."""
+    Use this tool to add a new label to a specific board in Trello. Ideal for organizing and categorizing tasks on your board by creating custom labels."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/labels",
             params=remove_none_values({
                 "name": label_name,
                 "color": label_color,
-                "idBoard": board_id_for_label_creation,
+                "idBoard": board_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4796,19 +4834,22 @@ async def create_trello_label(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_list_info(
     context: ToolContext,
-    list_fields: Annotated[
+    list_id: Annotated[
+        str, "The unique identifier for the Trello list to retrieve information for."
+    ],
+    list_field_names: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of Trello list field names to retrieve specific information.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of field names to retrieve details for a Trello list.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-lists-id'."]:
-    """Retrieve information about a Trello list by ID.
+    """Retrieve detailed information about a specific Trello list.
 
-    Use this tool to get details on a specific Trello list using its ID. It returns various attributes of the list, providing insights into its contents and structure."""  # noqa: E501
+    Use this tool to get detailed information about a Trello list by its ID. Ideal for managing and reviewing list-specific data within Trello boards."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/lists/{id}",
+            url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": list_fields,
+                "fields": list_field_names,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4822,37 +4863,38 @@ async def get_trello_list_info(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_list_properties(
+async def update_trello_list(
     context: ToolContext,
-    new_list_name: Annotated[str | None, "The new name to assign to the Trello list."] = None,
-    target_board_id: Annotated[
+    list_id: Annotated[str, "The ID of the Trello list to update."],
+    new_list_name: Annotated[str | None, "The new name to set for the Trello list."] = None,
+    destination_board_id: Annotated[
         str | None,
-        "The ID of the board where the list should be moved. Use this to transfer the list to a different board.",  # noqa: E501
+        "ID of the board where the list should be moved. This allows you to relocate the list to a different board.",  # noqa: E501
     ] = None,
-    new_list_position: Annotated[
+    list_new_position: Annotated[
         str | None,
-        "Specify the new position of the Trello list as 'top', 'bottom', or a positive floating point number to set the exact position.",  # noqa: E501
+        "New position for the list: 'top', 'bottom', or a positive floating point number. Determines where the list should be placed on the board.",  # noqa: E501
     ] = None,
     archive_list: Annotated[
-        bool | None, "Set to true to archive the list (close it), false to keep it active."
+        bool | None, "Set to true to archive (close) the list, false to keep it open."
     ] = None,
-    is_member_subscribed: Annotated[
+    member_subscribed: Annotated[
         bool | None,
-        "Indicates whether the active member is subscribed to the list. Use true for subscribed, false for not subscribed.",  # noqa: E501
+        "Indicates if the active member is subscribed to the list. Use true for subscribed, false for not subscribed.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-lists-id'."]:
-    """Update properties of a Trello list using its ID.
+    """Updates properties of a Trello list.
 
-    This tool is used to update the properties of a specific list in Trello by providing the list ID. Call this tool when you need to modify list attributes."""  # noqa: E501
+    This tool updates the properties of a specified Trello list when changes are needed, such as modifying its name or position."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/lists/{id}",
+            url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
                 "name": new_list_name,
                 "closed": archive_list,
-                "idBoard": target_board_id,
-                "pos": new_list_position,
-                "subscribed": is_member_subscribed,
+                "idBoard": destination_board_id,
+                "pos": list_new_position,
+                "subscribed": member_subscribed,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -4866,31 +4908,28 @@ async def update_trello_list_properties(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_list(
+async def create_trello_board_list(
     context: ToolContext,
-    list_name: Annotated[str, "The name for the new list you want to create on the Trello board."],
-    board_id: Annotated[
-        str, "The unique identifier of the Trello board where the list will be created."
-    ],
-    copy_from_list_id: Annotated[
-        str | None,
-        "The ID of the existing list to copy when creating the new list. If not provided, no copying occurs.",  # noqa: E501
+    list_name: Annotated[str, "The name of the list to be created on the Trello board."],
+    board_id: Annotated[str, "The ID of the Trello board where the new list will be created."],
+    source_list_id: Annotated[
+        str | None, "ID of the list to copy into the new list to replicate its content."
     ] = None,
     list_position: Annotated[
         str | None,
-        "Specifies the position of the new list on the Trello board. Can be 'top', 'bottom', or a positive floating point number indicating a specific position.",  # noqa: E501
+        "Specifies where the new list will be positioned on the board. Accepts 'top', 'bottom', or a positive floating point number to indicate a specific position.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-lists'."]:
-    """Create a new list on a specified Trello board.
+    """Create a new list on a Trello board.
 
-    Use this tool to add a new list to any board on Trello. Ideal for organizing tasks or projects by creating distinct sections within a board."""  # noqa: E501
+    Use this tool to add a new list to an existing Trello board. Ideal for organizing tasks or projects by creating distinct categories or phases."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists",
             params=remove_none_values({
                 "name": list_name,
                 "idBoard": board_id,
-                "idListSource": copy_from_list_id,
+                "idListSource": source_list_id,
                 "pos": list_position,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -4907,11 +4946,11 @@ async def create_trello_list(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def archive_all_cards_in_list(
     context: ToolContext,
-    list_id: Annotated[str, "The unique identifier of the Trello list to archive all cards from."],
+    list_id: Annotated[str, "The ID of the Trello list to archive all cards from."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-lists-id-archiveallcards'."]:
     """Archive all cards in a specified Trello list.
 
-    Use this tool to archive every card in a specific Trello list. Ideal for managing list organization by clearing completed or inactive tasks."""  # noqa: E501
+    Use this tool to archive every card in a specified Trello list. It is useful for organizing cards and clearing lists once they are no longer needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/archiveAllCards".format(id=list_id),  # noqa: UP032
@@ -4931,17 +4970,13 @@ async def archive_all_cards_in_list(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def move_all_cards_in_list(
     context: ToolContext,
-    target_board_id: Annotated[
-        str, "The ID of the board to which all cards from the list should be moved."
-    ],
-    target_list_id: Annotated[str, "The ID of the target list where the cards should be moved."],
-    source_list_id: Annotated[
-        str, "The ID of the Trello list from which all cards should be moved."
-    ],
+    target_board_id: Annotated[str, "The ID of the board to which the cards should be moved."],
+    target_list_id: Annotated[str, "The ID of the Trello list where the cards should be moved to."],
+    source_list_id: Annotated[str, "The unique ID of the list to move all cards from in Trello."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-lists-id-moveallcards'."]:
     """Move all cards from one Trello list to another.
 
-    Use this tool to transfer all cards from a specified Trello list to another list. Call this when you need to reorganize or consolidate tasks within the Trello boards."""  # noqa: E501
+    Use this tool to move all cards from a specified list in Trello to another list. It's useful for reorganizing tasks or consolidating workflows within a Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/moveAllCards".format(id=source_list_id),  # noqa: UP032
@@ -4961,16 +4996,16 @@ async def move_all_cards_in_list(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_list_status(
+async def archive_unarchive_list_trello(
     context: ToolContext,
-    list_id: Annotated[str, "The unique ID of the Trello list to archive or unarchive."],
+    list_id: Annotated[str, "The ID of the Trello list to archive or unarchive."],
     archive_list: Annotated[
-        str | None, "Set to true to archive the list; false to unarchive it."
+        str | None, "Set to true to archive the list, false to unarchive."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-lists-id-closed'."]:
-    """Archive or unarchive a Trello list.
+    """Toggle a list's archived status in Trello.
 
-    Use this tool to change the status of a Trello list to either archived or active. This is useful for organizing lists within your Trello board."""  # noqa: E501
+    Use this tool to archive or unarchive a list in Trello by specifying its ID. This is useful for organizing boards by managing list visibility."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/closed".format(id=list_id),  # noqa: UP032
@@ -4989,17 +5024,14 @@ async def update_trello_list_status(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def move_list_to_different_board(
+async def move_list_to_board(
     context: ToolContext,
-    target_board_id: Annotated[
-        str,
-        "The unique identifier of the board to which the list will be moved. Ensure the board ID is correct and corresponds to an existing board in your Trello account.",  # noqa: E501
-    ],
-    list_id: Annotated[str, "The unique identifier of the list to be moved to a different board."],
+    target_board_id: Annotated[str, "The ID of the board where the list will be moved."],
+    list_id: Annotated[str, "The unique ID of the Trello list to be moved to another board."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-id-idboard'."]:
-    """Moves a Trello list to a different board.
+    """Transfer a Trello list to another board.
 
-    This tool is used to move a specific list from its current board to another board in Trello. Call this tool when you need to organize or reorganize lists across different Trello boards."""  # noqa: E501
+    Use this tool to move a specific list from its current board to a different board on Trello. Ideal for organizing tasks and managing projects across boards efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/idBoard".format(id=list_id),  # noqa: UP032
@@ -5022,13 +5054,15 @@ async def rename_trello_list(
     context: ToolContext,
     list_id: Annotated[str, "The unique identifier of the Trello list to be renamed."],
     list_field_to_update: Annotated[
-        str, "Specify 'name' to rename the list on Trello. Choose from 'name', 'pos', 'subscribed'."
+        str, "Specify the list field to update, e.g., 'name', 'pos', or 'subscribed'."
     ],
-    new_list_name: Annotated[str | None, "The new name for the Trello list to be updated."] = None,
+    new_list_name: Annotated[
+        str | None, "The new name for the Trello list you want to apply."
+    ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-lists-id-field'."]:
-    """Rename a list on Trello.
+    """Rename a list on Trello using its ID and field.
 
-    Use this tool to change the name of a specific list on Trello by providing the list's ID and the new name."""  # noqa: E501
+    Use this tool to rename a list on Trello by specifying the list ID and desired field name."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/{field}".format(  # noqa: UP032
@@ -5051,20 +5085,20 @@ async def rename_trello_list(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_list_actions(
     context: ToolContext,
-    list_id: Annotated[str, "The ID of the Trello list to retrieve actions for."],
-    action_types_filter: Annotated[
+    list_id: Annotated[str, "The unique identifier of the Trello list to retrieve actions for."],
+    action_type_filter: Annotated[
         str | None,
-        "A comma-separated list of Trello action types to filter the results. Refer to the Trello action types documentation for valid options.",  # noqa: E501
+        "A comma-separated list of action types to filter the actions retrieved from a Trello list.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-lists-id-actions'."]:
-    """Retrieve actions from a specific Trello list.
+    """Retrieve actions performed on a specific Trello list.
 
-    Use this tool to get all the actions that have been performed on a specific Trello list by providing the list ID. It can be used to track changes and activities related to the list."""  # noqa: E501
+    Use this tool to get all actions taken on a given Trello list by specifying the list ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/actions".format(id=list_id),  # noqa: UP032
             params=remove_none_values({
-                "filter": action_types_filter,
+                "filter": action_type_filter,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5078,19 +5112,16 @@ async def get_list_actions(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_board_for_list(
+async def get_board_by_list_id(
     context: ToolContext,
-    list_id: Annotated[
-        str, "The unique identifier of the Trello list for which to retrieve board information."
-    ],
+    list_id: Annotated[str, "The unique ID of the list to find its associated board."],
     board_fields: Annotated[
-        str | None,
-        "Specify `all` or a list of board fields to retrieve, separated by commas. Use fields from Trello's board object.",  # noqa: E501
+        str | None, "Specify 'all' or a comma-separated list of board fields to retrieve."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-lists-id-board'."]:
-    """Retrieve the board details for a specified Trello list ID.
+    """Retrieve the board for a specified list ID in Trello.
 
-    Use this tool to find out which board a specific Trello list belongs to. It returns details about the board associated with the given list ID, helping users navigate their Trello information efficiently."""  # noqa: E501
+    This tool retrieves the details of the board that a specific list belongs to in Trello. Use it when you need to identify or access the board associated with a particular list."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/board".format(id=list_id),  # noqa: UP032
@@ -5109,16 +5140,13 @@ async def get_trello_board_for_list(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_trello_cards(
+async def get_trello_list_cards(
     context: ToolContext,
-    list_id: Annotated[
-        str,
-        "The unique identifier of the Trello list from which to retrieve all cards. This is a required string value.",  # noqa: E501
-    ],
+    list_id: Annotated[str, "The ID of the Trello list from which to retrieve cards."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-lists-id-cards'."]:
     """Retrieve all cards from a specific Trello list.
 
-    Use this tool to get all cards within a particular Trello list by providing the list ID."""
+    Use this tool to get a list of all cards from a specific Trello list by providing the list ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/lists/{id}/cards".format(id=list_id),  # noqa: UP032
@@ -5136,113 +5164,112 @@ async def list_trello_cards(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_member(
+async def get_trello_member_details(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose details you want to retrieve."
+        str, "The ID or username of the Trello member to be retrieved."
     ],
-    include_actions_nested_resource: Annotated[
+    include_actions_details: Annotated[
         str | None,
-        "Specifies if and how to include actions. See the Actions Nested Resource for options.",
+        "Include detailed actions information associated with the member. Refer to the Actions Nested Resource for more options.",  # noqa: E501
     ] = None,
-    include_boards_information: Annotated[
+    include_boards_details: Annotated[
         str | None,
-        "Fetch additional board-related details for the member. Refer to the Boards Nested Resource documentation for more specifics.",  # noqa: E501
+        "Include details of boards associated with the member. See the Boards Nested Resource for additional options.",  # noqa: E501
     ] = None,
-    board_backgrounds_filter: Annotated[
+    board_background_options: Annotated[
         str | None,
-        "Specify the type of board backgrounds to retrieve: 'all', 'custom', 'default', 'none', or 'premium'.",  # noqa: E501
+        "Specifies which board backgrounds to retrieve. Options include: 'all', 'custom', 'default', 'none', 'premium'.",  # noqa: E501
     ] = None,
     boards_invited_filter: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of board statuses such as closed, members, open, organization, pinned, public, starred, unpinned to filter invited boards.",  # noqa: E501
+        "Specify 'all' or a comma-separated list (closed, members, open, organization, pinned, public, starred, unpinned) to filter invited boards.",  # noqa: E501
     ] = None,
     boards_invited_fields: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of board fields such as id, name, desc, etc., to retrieve specific fields for boards the member is invited to.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of board fields like id, name, desc, etc.",
     ] = None,
     include_card_details: Annotated[
         str | None,
-        "Specify if card details associated with the member should be retrieved, with options detailed in the Cards Nested Resource guide.",  # noqa: E501
+        "Options to include card-related information about the member. See the Cards Nested Resource for additional options.",  # noqa: E501
     ] = None,
-    custom_board_backgrounds: Annotated[
-        str | None, "Specify if all or none of the custom board backgrounds are included."
+    include_custom_board_backgrounds: Annotated[
+        str | None,
+        "Specify `all` to include all custom board backgrounds or `none` to exclude them.",
     ] = None,
     include_custom_emoji: Annotated[
-        str | None, "Include all custom emojis if set to 'all', or exclude them if set to 'none'."
+        str | None,
+        "Set to 'all' to include all custom emoji details for the member, or 'none' to exclude them.",  # noqa: E501
     ] = None,
     include_custom_stickers: Annotated[
         str | None,
-        "Specify whether to include all custom stickers ('all') or none ('none') in the member data.",  # noqa: E501
+        "Specify 'all' to include all custom stickers or 'none' to exclude them when retrieving member details.",  # noqa: E501
     ] = None,
-    member_fields: Annotated[
-        str | None,
-        "Specify 'all' or a list of member fields to retrieve, such as 'id,email,fullName'.",
+    member_detail_fields: Annotated[
+        str | None, "Specify `all` or a comma-separated list of member fields to retrieve."
     ] = None,
     include_notifications: Annotated[
         str | None,
-        "Include notifications related data for the member. See the Trello Notifications Nested Resource for more details.",  # noqa: E501
+        "Specify whether to include notifications details for the Trello member. Follow the Notifications Nested Resource guidelines.",  # noqa: E501
     ] = None,
-    include_organizations: Annotated[
+    organizations_inclusion: Annotated[
         str | None,
-        "Specify which organizations to include for the Trello member. Options: 'all', 'members', 'none', 'public'.",  # noqa: E501
+        "Specify if and which organizations related to the member should be returned. One of: `all`, `members`, `none`, `public`.",  # noqa: E501
     ] = None,
-    organization_fields_to_include: Annotated[
-        str | None,
-        "Specify 'all' or a comma-separated list of fields (e.g., 'id,name') to retrieve specific organization details.",  # noqa: E501
+    organization_fields: Annotated[
+        str | None, "Specify `all` or a comma-separated list of organization fields (`id`, `name`)."
     ] = None,
-    include_invited_organizations: Annotated[
+    invited_organizations_scope: Annotated[
         str | None,
-        "Specify which invited organizations to include: 'all', 'members', 'none', or 'public'.",
+        "Specify the scope of invited organizations to include in the response. Options: 'all', 'members', 'none', 'public'.",  # noqa: E501
     ] = None,
-    organizations_invited_fields: Annotated[
+    organization_fields_invited: Annotated[
         str | None,
-        "Specify 'all' or provide a comma-separated list of organization fields to retrieve, such as 'id,name'.",  # noqa: E501
+        "Comma-separated list of invited organization fields or 'all'. Options: 'id', 'name'.",
     ] = None,
     include_tokens: Annotated[
         str | None,
-        "Specify whether to include all tokens or none in the retrieved member data. Use 'all' to include all tokens, or 'none' to exclude them.",  # noqa: E501
+        'Specify if all tokens associated with the member should be returned. Use `"all"` to include tokens, or `"none"` to exclude them.',  # noqa: E501
     ] = None,
     include_board_stars: Annotated[
-        bool | None, "Whether to return the board stars. Set to true to include the data."
+        bool | None, "Set to true to include board stars in the response."
     ] = None,
-    include_organization_paid_account_info: Annotated[
-        bool | None,
-        "Set to true to include paid account information in the returned workspace object.",
+    include_paid_account_info_in_workspace: Annotated[
+        bool | None, "Set to true to include paid account information in the workspace object."
     ] = None,
     include_paid_account_info: Annotated[
         bool | None,
-        "Set to True to include paid account information in the returned member object.",
+        "Set to true to include paid account information in the Trello member response.",
     ] = None,
     include_saved_searches: Annotated[
-        bool | None,
-        "Set to `true` to include saved searches in the member information. Use `false` to exclude.",  # noqa: E501
+        bool | None, "Set to true to include saved searches data in the response."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members=id'."]:
-    """Retrieve detailed information about a Trello member using their ID.
+    """Retrieve details of a Trello member by ID.
 
-    This tool fetches detailed information about a Trello member given their specific ID. It is useful when detailed member data is needed for tasks involving user management or collaboration analysis on Trello."""  # noqa: E501
+    Use this tool to get comprehensive information about a specific Trello member by providing their ID.
+    It's ideal for obtaining member profile data and understanding user-specific information in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "actions": include_actions_nested_resource,
-                "boards": include_boards_information,
-                "boardBackgrounds": board_backgrounds_filter,
+                "actions": include_actions_details,
+                "boards": include_boards_details,
+                "boardBackgrounds": board_background_options,
                 "boardsInvited": boards_invited_filter,
                 "boardsInvited_fields": boards_invited_fields,
                 "boardStars": include_board_stars,
                 "cards": include_card_details,
-                "customBoardBackgrounds": custom_board_backgrounds,
+                "customBoardBackgrounds": include_custom_board_backgrounds,
                 "customEmoji": include_custom_emoji,
                 "customStickers": include_custom_stickers,
-                "fields": member_fields,
+                "fields": member_detail_fields,
                 "notifications": include_notifications,
-                "organizations": include_organizations,
-                "organization_fields": organization_fields_to_include,
-                "organization_paid_account": include_organization_paid_account_info,
-                "organizationsInvited": include_invited_organizations,
-                "organizationsInvited_fields": organizations_invited_fields,
+                "organizations": organizations_inclusion,
+                "organization_fields": organization_fields,
+                "organization_paid_account": include_paid_account_info_in_workspace,
+                "organizationsInvited": invited_organizations_scope,
+                "organizationsInvited_fields": organization_fields_invited,
                 "paid_account": include_paid_account_info,
                 "savedSearches": include_saved_searches,
                 "tokens": include_tokens,
@@ -5261,51 +5288,51 @@ async def get_trello_member(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_member(
     context: ToolContext,
-    member_id_or_username: Annotated[str, "The ID or username of the Trello member to update."],
-    member_full_name: Annotated[
-        str | None, "New name for the Trello member. Ensure it does not begin or end with a space."
+    member_identifier: Annotated[str, "The ID or username of the Trello member to update."],
+    new_member_full_name: Annotated[
+        str | None, "New name for the member. It should not begin or end with a space."
     ] = None,
     member_initials: Annotated[
-        str | None, "New initials for the member. Must be 1-4 characters long."
+        str | None, "New initials for the member, between 1 and 4 characters long."
     ] = None,
     new_username: Annotated[
         str | None,
-        "New unique username for the member. Must be at least 3 characters long, containing only lowercase letters, underscores, and numbers.",  # noqa: E501
+        "New username for the member. Must be unique, at least 3 characters long, only lowercase letters, underscores, and numbers.",  # noqa: E501
     ] = None,
-    member_bio_update: Annotated[
+    member_bio: Annotated[
         str | None,
-        "A new biography for the Trello member. It should provide a brief description or info about the member.",  # noqa: E501
+        "Biography or description for the member. Allows personalization or additional information about the member.",  # noqa: E501
     ] = None,
-    avatar_source: Annotated[
-        str | None, "Specify the source of the avatar. Choose 'gravatar', 'none', or 'upload'."
+    avatar_source_option: Annotated[
+        str | None, "Specify the source for the avatar. Options: 'gravatar', 'none', 'upload'."
     ] = None,
-    preferences_locale: Annotated[
-        str | None,
-        "Locale setting for the member's preferences. Specify as a language code, e.g., 'en-US'.",
+    preferred_locale: Annotated[
+        str | None, "Specify the preferred language locale for the member."
     ] = None,
-    summary_update_frequency: Annotated[
+    update_interval_minutes: Annotated[
         int | None,
-        "Set the frequency for summary updates. Use `-1` to disable, `1` for every minute, or `60` for hourly updates.",  # noqa: E501
+        "Set the interval for summaries in minutes. Use `-1` to disable, `1` for frequent, or `60` for hourly updates.",  # noqa: E501
     ] = None,
     enable_color_blind_mode: Annotated[
-        bool | None, "Set to true to enable color blind mode in the member's preferences."
+        bool | None,
+        "Enable or disable color blind mode for the member. `true` to enable; `false` to disable.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-members-id'."]:
-    """Update Trello member details.
+    """Update a member's information on Trello.
 
-    Use this tool to update details of a Trello member by specifying their ID."""
+    Use this tool to update details of a Trello member by specifying their ID. This is useful for modifying user information or settings."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}".format(id=member_id_or_username),  # noqa: UP032
+            url="https://api.trello.com/1/members/{id}".format(id=member_identifier),  # noqa: UP032
             params=remove_none_values({
-                "fullName": member_full_name,
+                "fullName": new_member_full_name,
                 "initials": member_initials,
                 "username": new_username,
-                "bio": member_bio_update,
-                "avatarSource": avatar_source,
+                "bio": member_bio,
+                "avatarSource": avatar_source_option,
                 "prefs/colorBlind": enable_color_blind_mode,
-                "prefs/locale": preferences_locale,
-                "prefs/minutesBetweenSummaries": summary_update_frequency,
+                "prefs/locale": preferred_locale,
+                "prefs/minutesBetweenSummaries": update_interval_minutes,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5319,19 +5346,18 @@ async def update_trello_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_member_property(
+async def get_member_property(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member to retrieve information for."
+        str, "The ID or username of the Trello member whose property is to be fetched."
     ],
     member_property_field: Annotated[
-        str,
-        "The specific property of the Trello member to retrieve, such as 'username' or 'email'.",
+        str, "Specify which field (e.g., id, username) of the Trello member to retrieve."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-field'."]:
-    """Retrieve a specific property of a Trello member.
+    """Fetch a specific property of a Trello member.
 
-    Use this tool to get a particular property, such as username or email, of a Trello member by specifying their ID."""  # noqa: E501
+    Use this tool to retrieve a particular property of a member in Trello by specifying the member's ID and the desired field."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/{field}".format(  # noqa: UP032
@@ -5351,24 +5377,24 @@ async def get_trello_member_property(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_member_actions(
+async def list_member_actions(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose actions you want to retrieve."
+        str, "The ID or username of the Trello member whose actions are being retrieved."
     ],
-    action_type_filter: Annotated[
+    action_types_filter: Annotated[
         str | None,
-        "Comma-separated list of action types to filter the member's actions, based on Trello's available action types.",  # noqa: E501
+        "A comma-separated list of action types to filter the actions performed by a member.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-actions'."]:
-    """Retrieve actions for a specific Trello member.
+    """Retrieve actions performed by a Trello member.
 
-    This tool is used to list all actions associated with a specific Trello member, identified by their member ID. It should be called when you need to view the activities or changes made by a member on Trello."""  # noqa: E501
+    Use this tool to obtain a list of actions associated with a specific Trello member. It is useful when you need to track or analyze the activities of a member on Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/actions".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "filter": action_type_filter,
+                "filter": action_types_filter,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5382,19 +5408,20 @@ async def get_trello_member_actions(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_board_backgrounds(
+async def get_custom_board_backgrounds(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose board backgrounds you want to retrieve."
+        str,
+        "The ID or username of the Trello member whose custom board backgrounds you want to retrieve.",  # noqa: E501
     ],
     background_filter: Annotated[
         str | None,
-        "Specify which board backgrounds to retrieve: `all`, `custom`, `default`, `none`, or `premium`.",  # noqa: E501
+        "Filter results to include specific types of board backgrounds: `all`, `custom`, `default`, `none`, or `premium`.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-boardbackgrounds'."]:
-    """Retrieve a member's custom board backgrounds from Trello.
+    """Retrieve a member's custom board backgrounds on Trello.
 
-    This tool is used to get the custom board backgrounds for a specific Trello member. It should be called when you need to retrieve or display the background images a member has set up for their boards."""  # noqa: E501
+    This tool fetches a member's custom board backgrounds from Trello. It should be called when you need to access the personalized board backgrounds created or used by a specific member."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
@@ -5415,29 +5442,28 @@ async def get_member_board_backgrounds(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def upload_trello_board_background(
+async def upload_board_background(
     context: ToolContext,
-    board_background_file_path: Annotated[
+    background_file: Annotated[
         str,
-        "The path to the image file for the board background to upload. This should be a string representing the file's location in your system.",  # noqa: E501
+        "The path to the file to be uploaded as the new board background. It should be a valid file path or URL.",  # noqa: E501
     ],
     member_id_or_username: Annotated[
-        str,
-        "The ID or username of the Trello member. This specifies whose board background is to be uploaded.",  # noqa: E501
+        str, "The ID or username of the Trello member to upload the board background for."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'post-members-id-boardbackgrounds-1'."
 ]:
-    """Upload a new board background to Trello.
+    """Upload a new background to a Trello board.
 
-    This tool uploads a new background image to a Trello board for a specified member. Use it when you need to change or customize the appearance of a Trello board by adding a new background."""  # noqa: E501
+    Use this tool to upload a new background to a specific Trello board. It should be called when there's a need to update or add a board background under a member's account."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
                 id=member_id_or_username
             ),
             params=remove_none_values({
-                "file": board_background_file_path,
+                "file": background_file,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5453,19 +5479,25 @@ async def upload_trello_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member for whom to retrieve the board background."
+    ],
+    board_background_id: Annotated[str, "The ID of the board background to retrieve details for."],
     background_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of: 'brightness', 'fullSizeUrl', 'scaled', 'tile' to retrieve specific fields of a member's board background.",  # noqa: E501
+        "Specify `all` or a comma-separated list of background details like `brightness`, `fullSizeUrl`, `scaled`, `tile`.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-boardbackgrounds-idbackground'."
 ]:
-    """Retrieve a member's board background from Trello.
+    """Retrieve a member's board background in Trello.
 
-    Use this tool to get specific details about a member's board background in Trello by providing the member ID and background ID."""  # noqa: E501
+    Use this tool to retrieve the background details of a specific board associated with a member in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=board_background_id
+            ),
             params=remove_none_values({
                 "fields": background_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -5483,25 +5515,33 @@ async def get_member_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the member whose board background is being updated."
+    ],
+    board_background_id: Annotated[
+        str, "The unique identifier for the board background to be updated."
+    ],
     background_brightness: Annotated[
         str | None,
-        "Set the brightness of the board background to either `dark`, `light`, or `unknown`.",
+        "Set the brightness of the board background. Accepted values: 'dark', 'light', 'unknown'.",
     ] = None,
-    enable_tile_background: Annotated[
-        bool | None, "Set to true if the board background should be tiled, false otherwise."
+    tile_background: Annotated[
+        bool | None, "Set to true if you want the board background to be tiled."
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-members-id-boardbackgrounds-idbackground'."
 ]:
     """Update a Trello board background for a member.
 
-    This tool is used to update the background image of a Trello board for a specific member. Call this tool when you need to change the visual appearance of a Trello board by updating its background."""  # noqa: E501
+    Use this tool to update the background of a Trello board for a specified member. Ideal for personalizing or managing board appearances."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=board_background_id
+            ),
             params=remove_none_values({
                 "brightness": background_brightness,
-                "tile": enable_tile_background,
+                "tile": tile_background,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5517,16 +5557,22 @@ async def update_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose board background you want to delete."
+    ],
+    board_background_id: Annotated[str, "The unique ID of the board background to be deleted."],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'delete-members-id-boardbackgrounds-idbackground'.",
 ]:
-    """Delete a specific board background for a Trello member.
+    """Deletes a board background for a Trello member.
 
-    This tool deletes a specific background image from a Trello board associated with a particular member. It should be called when a user wants to remove a background image from a Trello board."""  # noqa: E501
+    Use this tool to delete a specified board background for a Trello member. This should be called when a user needs to remove an unwanted or outdated background from their Trello board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=board_background_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5544,12 +5590,12 @@ async def delete_board_background(
 async def list_member_board_stars(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose board stars you want to list."
+        str, "The ID or username of the Trello member whose board stars are to be listed."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-boardstars'."]:
-    """Fetch the list of a member's starred Trello boards.
+    """Retrieve a member's starred boards.
 
-    Use this tool to retrieve the board stars of a specific Trello member."""
+    Call this tool to list the boards that a specific member has starred in Trello."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
@@ -5567,28 +5613,26 @@ async def list_member_board_stars(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def star_board_on_trello(
+async def star_board_for_member(
     context: ToolContext,
-    board_id_to_star: Annotated[
-        str, "The identifier of the Trello board that you want to star for the member."
-    ],
-    board_star_position: Annotated[
+    board_id_to_star: Annotated[str, "The ID of the board that you want to star for the member."],
+    position_of_starred_board: Annotated[
         str,
-        "The position to star the board: `top`, `bottom`, or a specific position as a positive float.",  # noqa: E501
+        "Specifies the position for the newly starred board: 'top', 'bottom', or a positive float for precise placement.",  # noqa: E501
     ],
     member_id_or_username: Annotated[
-        str, "The Trello member's ID or username to star the board for."
+        str, "The ID or username of the Trello member for whom the board will be starred."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-members-id-boardstars'."]:
     """Star a board for a Trello member.
 
-    Use this tool to star a board for a Trello member by specifying their ID."""
+    Use this tool to star a specific Trello board on behalf of a member. This is useful for members who want to highlight or prioritize certain boards for easy access."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
                 "idBoard": board_id_to_star,
-                "pos": board_star_position,
+                "pos": position_of_starred_board,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5602,17 +5646,25 @@ async def star_board_on_trello(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_specific_board_star(
+async def get_board_star(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose boardStar details you want to retrieve."
+    ],
+    board_star_id: Annotated[
+        str, "The unique ID of the board star to retrieve details for a member."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-boardstars-idstar'."
 ]:
-    """Retrieve details of a specific board star.
+    """Retrieve details of a specific boardStar for a member.
 
-    This tool calls Trello's API to get details about a specific board star for a member. Use it when you need to access information about a specific board star based on the member ID and star ID."""  # noqa: E501
+    Use this tool to get information about a particular boardStar associated with a member. It is useful for retrieving specific boardStar details such as the board's favorite status for a member."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
+            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+                id=member_id_or_username, idStar=board_star_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5629,21 +5681,31 @@ async def get_specific_board_star(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_starred_board_position(
     context: ToolContext,
-    new_starred_board_position: Annotated[
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member whose starred board position is being updated.",
+    ],
+    board_star_id: Annotated[
+        str,
+        "The unique identifier for the board star. Used to specify which starred board's position to update.",  # noqa: E501
+    ],
+    new_position_for_starred_board: Annotated[
         str | None,
-        "The new position for the starred board. Use `top`, `bottom`, or a positive float to specify the position.",  # noqa: E501
+        "Specify the new position for the starred board. Use 'top', 'bottom', or a positive float for a custom position.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-members-id-boardstars-idstar'."
 ]:
-    """Update the position of a starred board in Trello.
+    """Update the position of a starred board on Trello.
 
-    This tool updates the position of a starred board for a specific member on Trello. It should be called when there's a need to reorder starred boards for better organization."""  # noqa: E501
+    Use this tool to change the ordering of a user's starred boards on Trello by updating their position."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
+            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+                id=member_id_or_username, idStar=board_star_id
+            ),
             params=remove_none_values({
-                "pos": new_starred_board_position,
+                "pos": new_position_for_starred_board,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5657,17 +5719,23 @@ async def update_starred_board_position(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def unstar_board_on_trello(
+async def unstar_trello_board(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to unstar a board for."
+    ],
+    board_star_id: Annotated[str, "The unique identifier of the board star to be removed."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-members-id-boardstars-idstar'."
 ]:
-    """Unstar a Trello board for a specific member.
+    """Unstar a Trello board for a user.
 
-    Use this tool to unstar a board for a specified member on Trello. Call it when a user wants to remove a board from their starred list."""  # noqa: E501
+    This tool is used to remove a star from a specified Trello board for a specific user. Call this tool when a user wants to unmark a board as a favorite."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}",
+            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+                id=member_id_or_username, idStar=board_star_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5682,41 +5750,44 @@ async def unstar_board_on_trello(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_user_boards_trello(
+async def list_user_boards(
     context: ToolContext,
-    user_identifier: Annotated[str, "The Trello member's ID or username to retrieve their boards."],
-    board_filter_options: Annotated[
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose boards are to be retrieved."
+    ],
+    board_filter: Annotated[
         str | None,
-        "Specify which types of boards to retrieve: 'all', or a comma-separated list including 'closed', 'members', 'open', 'organization', 'public', 'starred'.",  # noqa: E501
+        "Comma-separated list of board filters like 'closed', 'members', etc., or 'all'.",
     ] = None,
     board_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of board fields to retrieve, such as 'id', 'name', 'desc'.",  # noqa: E501
+        "Specify `all` or a comma-separated list of board fields to include (e.g., `id,name,desc`).",  # noqa: E501
     ] = None,
-    include_lists: Annotated[
+    include_lists_with_boards: Annotated[
         str | None,
-        "Specify which lists to include with the boards: `all`, `closed`, `none`, or `open`.",
+        "Specify which lists to include with the boards. Choose from: `all`, `closed`, `none`, `open`.",  # noqa: E501
     ] = None,
-    organization_fields_to_include: Annotated[
+    include_organization_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of organization fields such as 'id' or 'name' to include with the boards.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of organization fields to include (e.g., 'id,name').",  # noqa: E501
     ] = None,
     include_organization: Annotated[
-        bool | None, "Set to true to include the Organization object with the boards."
+        bool | None,
+        "Indicates whether to include the Organization object with the Boards. Set to true to include.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-boards'."]:
-    """Retrieve the boards a user is a member of in Trello.
+    """Lists the boards that a user is a member of.
 
-    Use this tool to get a list of Trello boards that a specific user is a member of by their ID."""
+    Use this tool to retrieve a list of boards associated with a specific user ID on Trello."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boards".format(id=user_identifier),  # noqa: UP032
+            url="https://api.trello.com/1/members/{id}/boards".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "filter": board_filter_options,
+                "filter": board_filter,
                 "fields": board_fields,
-                "lists": include_lists,
+                "lists": include_lists_with_boards,
                 "organization": include_organization,
-                "organization_fields": organization_fields_to_include,
+                "organization_fields": include_organization_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5730,26 +5801,25 @@ async def get_user_boards_trello(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_invited_boards_for_member(
+async def get_member_invited_boards(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose invited boards you want to retrieve."
+        str, "The ID or username of the Trello member to retrieve invited boards for."
     ],
-    board_fields: Annotated[
-        str | None,
-        "Specify 'all' or a comma-separated list of board fields like 'id', 'name', 'desc', etc.",
+    included_board_fields: Annotated[
+        str | None, "Specify 'all' or a list of board fields to retrieve, such as 'id,name,desc'."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-boardsinvited'."]:
-    """Retrieve boards a Trello member is invited to.
+    """Retrieve the boards a Trello member has been invited to.
 
-    Use this tool to get a list of boards to which a specific Trello member has been invited."""
+    Use this tool to get a list of Trello boards that a specific member has been invited to. Useful for tracking invitations and access permissions for members."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/boardsInvited".format(  # noqa: UP032
                 id=member_id_or_username
             ),
             params=remove_none_values({
-                "fields": board_fields,
+                "fields": included_board_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5763,24 +5833,24 @@ async def get_invited_boards_for_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_cards_on_trello(
+async def get_member_trello_cards(
     context: ToolContext,
     member_id_or_username: Annotated[
         str, "The ID or username of the Trello member to retrieve cards for."
     ],
-    card_filter_option: Annotated[
+    filter_status: Annotated[
         str | None,
-        "Filter cards by status: `all`, `closed`, `complete`, `incomplete`, `none`, `open`, `visible`. Determines which cards to retrieve based on visibility and completion status.",  # noqa: E501
+        "Specify the filter for the cards: all, closed, complete, incomplete, none, open, or visible.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-cards'."]:
-    """Retrieve cards associated with a Trello member.
+    """Retrieve the cards assigned to a Trello member.
 
-    This tool fetches all the cards a specified member is associated with on Trello. It's useful for tracking and managing tasks related to a member."""  # noqa: E501
+    Use this tool to get a list of cards that a particular Trello member is assigned to, identified by their member ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/cards".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "filter": card_filter_option,
+                "filter": filter_status,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5796,15 +5866,21 @@ async def get_member_cards_on_trello(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_board_backgrounds(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member whose custom board backgrounds you want to retrieve.",  # noqa: E501
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-customboardbackgrounds'."
 ]:
-    """Retrieve a member's custom board backgrounds from Trello.
+    """Retrieve a member's custom board backgrounds on Trello.
 
-    Use this tool to obtain a list of custom board backgrounds associated with a specific Trello member. It provides the background data that the member has customized for their boards."""  # noqa: E501
+    Use this tool to obtain a specific member's custom board backgrounds from Trello. This can be useful when customizing or reviewing a Trello board's appearance based on a member's personal background collection."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds",
+            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5819,23 +5895,29 @@ async def get_member_custom_board_backgrounds(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def upload_custom_trello_board_background(
+async def upload_custom_board_background(
     context: ToolContext,
-    background_image_url: Annotated[
+    background_image_file: Annotated[
         str,
-        "A URL pointing to the image file for the custom board background. The image should be accessible via this link.",  # noqa: E501
+        "Path to the image file to be uploaded as a custom board background. Ensure the file format is compatible with Trello.",  # noqa: E501
+    ],
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member to whom the custom board background will be uploaded.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'membersidcustomboardbackgrounds-1'."
 ]:
-    """Upload a new custom board background to Trello.
+    """Upload a new custom board background for a Trello board.
 
-    This tool uploads a new custom board background to a specific Trello member's account, allowing for personalized customization of Trello boards."""  # noqa: E501
+    This tool uploads a custom background image to a Trello board. Use it when you want to add a personalized background to enhance a board's appearance."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds",
+            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
-                "file": background_image_url,
+                "file": background_image_file,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -5851,16 +5933,23 @@ async def upload_custom_trello_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_custom_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the member to identify whose custom board background to retrieve.",
+    ],
+    custom_background_id: Annotated[str, "The ID of the custom board background to retrieve."],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-members-id-customboardbackgrounds-idbackground'.",
 ]:
-    """Retrieve a specific custom board background from Trello.
+    """Get a specific custom board background by ID.
 
-    This tool fetches details about a specific custom board background for a member on Trello, using their member ID and the background ID."""  # noqa: E501
+    Retrieve details of a particular custom board background using the member and background ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=custom_background_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5877,24 +5966,29 @@ async def get_custom_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_custom_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the member whose board background will be updated."
+    ],
+    custom_background_id: Annotated[str, "The ID of the custom background to update."],
     background_brightness: Annotated[
         str | None,
-        "Set the brightness level of the board background. Options are `dark`, `light`, or `unknown`.",  # noqa: E501
+        "Set the brightness of the custom board background. Options: 'dark', 'light', 'unknown'.",
     ] = None,
     tile_background: Annotated[
-        bool | None,
-        "Indicate whether the background should be tiled. Use true for tiling, false otherwise.",
+        bool | None, "Set to true to tile the board background, false for no tiling."
     ] = None,
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-members-id-customboardbackgrounds-idbackground'.",
 ]:
-    """Update a specific custom board background.
+    """Update a specific custom board background for a member.
 
-    Use this tool to update the background of a custom board for a member on Trello."""
+    This tool updates the custom background of a board for a specified member. Use it when you need to modify or change the background image or style of a board on Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=custom_background_id
+            ),
             params=remove_none_values({
                 "brightness": background_brightness,
                 "tile": tile_background,
@@ -5911,18 +6005,25 @@ async def update_custom_board_background(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_board_background(
+async def delete_custom_board_background(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member whose custom board background is to be deleted.",
+    ],
+    background_id: Annotated[str, "The ID of the custom background to be deleted."],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'delete-members-id-customboardbackgrounds-idbackground'.",
 ]:
-    """Delete a specific custom board background in Trello.
+    """Delete a specific custom board background on Trello.
 
-    Removes a custom background from a Trello board for a specified member. Use this when you need to delete a background that is no longer needed."""  # noqa: E501
+    Use this tool to delete a custom board background for a specific member in Trello. Call this when you need to remove a visually customized board background permanently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}",
+            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+                id=member_id_or_username, idBackground=background_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5939,13 +6040,16 @@ async def delete_trello_board_background(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_emojis(
     context: ToolContext,
+    member_identifier: Annotated[
+        str, "The ID or username of the Trello member to retrieve custom emojis for."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-customemoji'."]:
-    """Retrieve a Trello member's custom emojis.
+    """Retrieve a member's uploaded custom emojis from Trello.
 
-    This tool is used to get the custom emojis that a Trello member has uploaded. It should be called when you need to access these emojis for a specific Trello member."""  # noqa: E501
+    This tool fetches the custom emojis uploaded by a specified member on Trello. Use it when you need to access or display a member's personalized emoji collection."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customEmoji",
+            url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5962,20 +6066,23 @@ async def get_member_custom_emojis(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_custom_emoji(
     context: ToolContext,
-    emoji_image_file: Annotated[
-        str,
-        "The file path or URL of the emoji image to upload. Ensure the file is in a supported format.",  # noqa: E501
+    emoji_file_path: Annotated[
+        str, "Path to the image file for the custom emoji. Must be a supported image format."
     ],
-    emoji_name: Annotated[str, "The name of the custom emoji, between 2 and 64 characters long."],
+    emoji_name: Annotated[str, "Name for the custom emoji, must be between 2 to 64 characters."],
+    member_identifier: Annotated[
+        str,
+        "The ID or username of the Trello member for whom the emoji is being created. This identifies the target member.",  # noqa: E501
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-members-id-customemoji'."]:
-    """Creates a new custom emoji for a Trello member.
+    """Create a new custom emoji for a Trello member.
 
-    Use this tool to add a new custom emoji to a Trello member's profile. Ideal for personalizing boards with unique emoji."""  # noqa: E501
+    This tool is used to create a new custom emoji for a specific Trello member. It should be called when a user wants to add a personalized emoji to their Trello account."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customEmoji",
+            url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
             params=remove_none_values({
-                "file": emoji_image_file,
+                "file": emoji_file_path,
                 "name": emoji_name,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -5993,27 +6100,24 @@ async def create_custom_emoji(
 async def get_member_custom_emoji(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose custom emoji details are requested."
+        str, "The unique ID or username of the Trello member to retrieve custom emoji details for."
     ],
-    custom_emoji_id: Annotated[
-        str,
-        "The unique identifier for the custom emoji to be retrieved. Required to fetch emoji details.",  # noqa: E501
-    ],
-    emoji_details_fields: Annotated[
+    custom_emoji_id: Annotated[str, "The unique identifier of the custom emoji."],
+    custom_emoji_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of 'name', 'url' to define which details of the emoji to retrieve.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of 'name', 'url' to determine which emoji details to return.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'membersidcustomemojiidemoji'."]:
-    """Retrieve a Trello member's custom emoji.
+    """Retrieve a member's custom emoji.
 
-    Use this tool to get information about a specific custom emoji created by a Trello member. It requires the member's ID and the emoji ID to fetch the details."""  # noqa: E501
+    Call this tool to obtain details about a specific custom emoji associated with a Trello member."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/customEmoji/{idEmoji}".format(  # noqa: UP032
                 id=member_id_or_username, idEmoji=custom_emoji_id
             ),
             params=remove_none_values({
-                "fields": emoji_details_fields,
+                "fields": custom_emoji_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6029,13 +6133,18 @@ async def get_member_custom_emoji(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_uploaded_stickers(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to retrieve their uploaded stickers."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-customstickers'."]:
-    """Retrieve a Trello member's uploaded stickers.
+    """Retrieve a member's uploaded custom stickers on Trello.
 
-    Use this tool to get the custom stickers uploaded by a specific Trello member, identified by their member ID."""  # noqa: E501
+    Use this tool to access all custom stickers uploaded by a specific member on Trello by providing their ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers",
+            url="https://api.trello.com/1/members/{id}/customStickers".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6050,19 +6159,25 @@ async def get_member_uploaded_stickers(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def upload_custom_sticker_trello(
+async def upload_custom_sticker(
     context: ToolContext,
     sticker_file_path: Annotated[
         str,
-        "The file path to the custom sticker image you want to upload. Ensure the file is accessible and appropriately formatted.",  # noqa: E501
+        "The file path of the custom sticker to upload. It should be a valid path to the sticker image file on the server or local system.",  # noqa: E501
+    ],
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member for whom the custom sticker is being uploaded. This identifies the target member's account.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-members-id-customstickers'."]:
-    """Upload custom stickers to a Trello member's account.
+    """Upload a new custom sticker for a Trello member.
 
-    Use this tool to upload a new custom sticker to a Trello member's account. It should be called when you want to enhance a user's Trello board with custom visual elements."""  # noqa: E501
+    This tool uploads a new custom sticker to a Trello member's account. It should be called when a user wants to personalize their Trello experience with custom stickers."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers",
+            url="https://api.trello.com/1/members/{id}/customStickers".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "file": sticker_file_path,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -6080,21 +6195,29 @@ async def upload_custom_sticker_trello(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_custom_sticker(
     context: ToolContext,
-    custom_sticker_fields: Annotated[
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose sticker is being retrieved."
+    ],
+    sticker_id: Annotated[
+        str, "The ID of the uploaded custom sticker to retrieve for a Trello member."
+    ],
+    sticker_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of 'scaled', 'url' to retrieve specific sticker details.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of 'scaled', 'url' to get specific details about the sticker.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-customstickers-idsticker'."
 ]:
-    """Retrieve a specific member's custom sticker.
+    """Retrieve a specific custom sticker for a Trello member.
 
-    This tool is used to get detailed information about a specific custom sticker belonging to a Trello member. It should be called when you need to access or display a member's custom sticker details."""  # noqa: E501
+    Use this tool to get information about a custom sticker associated with a specific Trello member by providing the member's ID and the sticker's ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}",
+            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
+                id=member_id_or_username, idSticker=sticker_id
+            ),
             params=remove_none_values({
-                "fields": custom_sticker_fields,
+                "fields": sticker_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6110,15 +6233,23 @@ async def get_member_custom_sticker(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def delete_member_custom_sticker(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose custom sticker will be deleted."
+    ],
+    sticker_id: Annotated[
+        str, "The ID of the uploaded sticker to be deleted from the member's profile."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-members-id-customstickers-idsticker'."
 ]:
-    """Delete a member's custom sticker on Trello.
+    """Remove a member's custom sticker.
 
-    This tool deletes a specific custom sticker for a member on Trello. Use it when you need to remove a custom sticker associated with a member's profile."""  # noqa: E501
+    Use this tool to delete a specified custom sticker from a Trello member's profile."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}",
+            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
+                id=member_id_or_username, idSticker=sticker_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6135,65 +6266,65 @@ async def delete_member_custom_sticker(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_notifications(
     context: ToolContext,
-    member_identifier: Annotated[
-        str, "The ID or username of the Trello member whose notifications are to be retrieved."
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to get notifications for."
     ],
     notification_filter: Annotated[
-        str | None, "Filter notifications by type, such as 'all', 'unread', or other valid types."
-    ] = None,
-    notification_read_status_filter: Annotated[
         str | None,
-        "Filter notifications by their read status, choosing from: `all`, `read`, or `unread`.",
+        "Filters notifications by type. Accepts a comma-separated list of types like `addMemberToCard`, `commentCard`, etc.",  # noqa: E501
+    ] = None,
+    notification_read_status: Annotated[
+        str | None, "Filter notifications by read status: `all`, `read`, or `unread`."
     ] = None,
     notification_fields: Annotated[
-        str | None,
-        "Specify `all` or a comma-separated list of notification fields to retrieve specific data.",
+        str | None, "Specify `all` or a comma-separated list of notification fields to retrieve."
     ] = None,
     notification_limit: Annotated[
-        int | None, "Specify the maximum number of notifications to retrieve, up to 1000."
+        int | None, "Specify the number of notifications to retrieve, up to a maximum of 1000."
     ] = None,
-    notification_page_number: Annotated[
-        int | None, "The page number for paginated notifications. Maximum value is 100."
+    notification_page: Annotated[
+        int | None,
+        "Specify the page number of notifications to retrieve, with a maximum value of 100.",
     ] = None,
-    notification_before_id: Annotated[
-        str | None, "A notification ID to retrieve notifications before the specified ID."
+    notification_id_before: Annotated[
+        str | None, "A notification ID to fetch notifications received before this ID."
     ] = None,
     since_notification_id: Annotated[
-        str | None, "A notification ID to fetch notifications occurring after a specific ID."
+        str | None, "The notification ID to start retrieving notifications from."
     ] = None,
     member_creator_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of member fields to include in the response. Fields should match Trello's member field definitions.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member field names to include data about the creator of the notification.",  # noqa: E501
     ] = None,
     include_entities: Annotated[
-        bool | None,
-        "Include entities in the response. Set to true to include additional entity information.",
+        bool | None, "Set to 'true' to include entities in notifications; 'false' to exclude them."
     ] = None,
-    display_notifications: Annotated[
-        bool | None, "Set to True to include the display property in the notifications output."
+    show_display: Annotated[
+        bool | None, "Set to true to display notifications, otherwise notifications are not shown."
     ] = None,
-    include_member_creator_info: Annotated[
-        bool | None,
-        "Set to true to include information about the member who created the notification.",
+    include_member_creator: Annotated[
+        bool | None, "Include the member who created the notification in the response when true."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-notifications'."]:
-    """Retrieve a member's notifications from Trello.
+    """Retrieve notifications for a specific Trello member.
 
-    This tool fetches notifications for a specific member in Trello. It should be called when there is a need to see updates or alerts relevant to a user in Trello."""  # noqa: E501
+    Use this tool to get notifications for a specific member on Trello by providing their member ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notifications".format(id=member_identifier),  # noqa: UP032
+            url="https://api.trello.com/1/members/{id}/notifications".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "entities": include_entities,
-                "display": display_notifications,
+                "display": show_display,
                 "filter": notification_filter,
-                "read_filter": notification_read_status_filter,
+                "read_filter": notification_read_status,
                 "fields": notification_fields,
                 "limit": notification_limit,
-                "page": notification_page_number,
-                "before": notification_before_id,
+                "page": notification_page,
+                "before": notification_id_before,
                 "since": since_notification_id,
-                "memberCreator": include_member_creator_info,
+                "memberCreator": include_member_creator,
                 "memberCreator_fields": member_creator_fields,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6210,29 +6341,32 @@ async def get_member_notifications(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_member_workspaces(
     context: ToolContext,
-    member_id_username: Annotated[
-        str, "The Trello member's ID or username to retrieve workspaces for."
+    member_id_or_username: Annotated[
+        str, "The unique ID or username of the Trello member whose workspaces are to be retrieved."
     ],
-    workspace_visibility_filter: Annotated[
+    workspace_filter: Annotated[
         str | None,
-        "Filter the workspaces by visibility: 'all', 'members', 'none', or 'public'. 'members' filters to only private workspaces.",  # noqa: E501
+        "Filter workspaces by type: `all`, `members`, `none`, or `public`. `members` filters to private workspaces.",  # noqa: E501
     ] = None,
     organization_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of organization fields such as 'id', 'name'.",
+        "Specify `all` or a comma-separated list of organization fields such as `id` or `name`.",
     ] = None,
     include_paid_account_info: Annotated[
-        bool | None, "Include paid account details in the returned workspace information if true."
+        bool | None,
+        "Set to true to include paid account information in the returned workspace objects.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-organizations'."]:
-    """Retrieve a member's Trello workspaces.
+    """Retrieve a member's workspaces from Trello.
 
-    This tool retrieves the list of workspaces (organizations) associated with a specific Trello member."""  # noqa: E501
+    Use this tool to obtain a list of workspaces (organizations) associated with a specific Trello member. It should be called when you need information about the workspaces a user is part of on Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/organizations".format(id=member_id_username),  # noqa: UP032
+            url="https://api.trello.com/1/members/{id}/organizations".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
-                "filter": workspace_visibility_filter,
+                "filter": workspace_filter,
                 "fields": organization_fields,
                 "paid_account": include_paid_account_info,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -6248,29 +6382,28 @@ async def get_member_workspaces(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_invited_workspaces(
+async def get_invited_workspaces(
     context: ToolContext,
-    member_id_or_username: Annotated[
-        str,
-        "The unique ID or username of the Trello member for whom you want to retrieve invited workspaces. This identifies the member in the Trello system.",  # noqa: E501
+    member_identifier: Annotated[
+        str, "The ID or username of the Trello member to fetch invited workspaces for."
     ],
-    organization_fields_filter: Annotated[
+    organization_fields_selection: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of organization fields (e.g., 'id,name') to filter the returned data. Use 'all' to include every available field.",  # noqa: E501
+        "Specify `all` or a comma-separated list of organization fields (e.g., 'id,name').",
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-organizationsinvited'."
 ]:
-    """Retrieve a member's invited workspaces.
+    """Fetches workspaces a member has been invited to.
 
-    Call this tool to get the list of workspaces (organizations) that a specific Trello member has been invited to. Useful for tracking pending workspace invitations."""  # noqa: E501
+    Call this tool to obtain a list of workspaces or organizations a Trello member has been invited to. Useful for checking pending workspace invitations."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/organizationsInvited".format(  # noqa: UP032
-                id=member_id_or_username
+                id=member_identifier
             ),
             params=remove_none_values({
-                "fields": organization_fields_filter,
+                "fields": organization_fields_selection,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6286,13 +6419,18 @@ async def get_member_invited_workspaces(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_member_saved_searches(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to retrieve saved searches for."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-savedsearches'."]:
-    """Retrieve saved searches for a Trello member.
+    """Retrieve saved searches for a specified member.
 
-    This tool retrieves the list of saved searches associated with a specific Trello member ID. It should be called when you need to access or display a member's saved searches on Trello."""  # noqa: E501
+    Use this tool to obtain the list of saved searches associated with a specific Trello member. It should be called when you need to access saved search data for a given member by their ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches",
+            url="https://api.trello.com/1/members/{id}/savedSearches".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6307,24 +6445,27 @@ async def list_member_saved_searches(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_saved_search(
+async def create_saved_search_trello(
     context: ToolContext,
-    saved_search_name: Annotated[str, "The name of the saved search to be created in Trello."],
-    search_query: Annotated[
+    saved_search_name: Annotated[
         str,
-        "The search query you want to save in Trello. This can include keywords and filters specific to Trello search functionality.",  # noqa: E501
+        "The name for the saved search in Trello. This is how the search will be referred to in the interface.",  # noqa: E501
     ],
+    search_query: Annotated[str, "The search query to be saved for a Trello member."],
     saved_search_position: Annotated[
         str,
-        "Specify the position of the saved search: 'top', 'bottom', or a positive float for specific ordering.",  # noqa: E501
+        "Specifies where to position the saved search: 'top', 'bottom', or a positive float for a custom position.",  # noqa: E501
+    ],
+    member_identifier: Annotated[
+        str, "The ID or username of the Trello member for whom the saved search is being created."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-members-id-savedsearches'."]:
-    """Create a saved search in Trello for a user.
+    """Create a saved search in Trello for a member.
 
-    Use this tool to create a new saved search for a specific user in Trello. This is useful for organizing and quickly accessing important search queries within Trello."""  # noqa: E501
+    This tool is used to create a new saved search for a specific Trello member. It should be called when a user wants to save a search query for future use in their Trello account."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches",
+            url="https://api.trello.com/1/members/{id}/savedSearches".format(id=member_identifier),  # noqa: UP032
             params=remove_none_values({
                 "name": saved_search_name,
                 "query": search_query,
@@ -6342,17 +6483,23 @@ async def create_trello_saved_search(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_saved_search_from_trello(
+async def get_saved_search_details(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose saved search is being accessed."
+    ],
+    saved_search_id: Annotated[str, "The ID of the saved search to retrieve details for."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-savedsearches-idsearch'."
 ]:
-    """Fetch a specific saved search from Trello.
+    """Retrieve detailed information about a saved search on Trello.
 
-    Use this tool to retrieve information about a specific saved search for a member in Trello. It should be called when you need to access the details of a saved search using the member's ID and the search ID."""  # noqa: E501
+    This tool is used to fetch detailed information for a specific saved search of a Trello member. It should be called when you need to retrieve the parameters or criteria of a saved search identified by its ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
+            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+                id=member_id_or_username, idSearch=saved_search_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6367,29 +6514,37 @@ async def retrieve_saved_search_from_trello(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_saved_search(
+async def update_saved_search(
     context: ToolContext,
-    new_saved_search_name: Annotated[str | None, "The updated name for the saved search."] = None,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member for whom the saved search will be updated."
+    ],
+    saved_search_id: Annotated[str, "The ID of the saved search to be updated in Trello."],
+    new_saved_search_name: Annotated[
+        str | None, "The updated name for the saved search in Trello."
+    ] = None,
     new_search_query: Annotated[
         str | None, "The updated search query for the saved search."
     ] = None,
-    saved_search_position: Annotated[
+    new_search_position: Annotated[
         str | None,
-        "Specify the new position for the saved search: `top`, `bottom`, or a positive float for precise positioning.",  # noqa: E501
+        "Specifies the new position for the saved search: `top`, `bottom`, or a positive float for custom positioning.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-members-id-savedsearches-idsearch'."
 ]:
     """Update a saved search in Trello for a specific member.
 
-    Use this tool to update the details of a saved search for a specific Trello member. It's useful when changes to search criteria or labels are required."""  # noqa: E501
+    This tool updates an existing saved search for a Trello member. Use it when you need to change details of a saved search, like search terms or settings."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
+            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+                id=member_id_or_username, idSearch=saved_search_id
+            ),
             params=remove_none_values({
                 "name": new_saved_search_name,
                 "query": new_search_query,
-                "pos": saved_search_position,
+                "pos": new_search_position,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6403,17 +6558,23 @@ async def update_trello_saved_search(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_delete_saved_search(
+async def delete_saved_search(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member whose saved search will be deleted."
+    ],
+    saved_search_id: Annotated[str, "The ID of the saved search to delete for a Trello member."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-members-id-savedsearches-idsearch'."
 ]:
-    """Delete a saved search from a Trello member's profile.
+    """Permanently remove a saved search for a Trello member.
 
-    Use this tool to remove a specific saved search associated with a Trello member. Useful for managing or organizing saved searches by permanently removing unwanted entries."""  # noqa: E501
+    Use this tool when you need to delete a specific saved search for a Trello member by their ID and the search ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}",
+            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+                id=member_id_or_username, idSearch=saved_search_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6428,18 +6589,18 @@ async def trello_delete_saved_search(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_app_tokens(
+async def list_member_app_tokens(
     context: ToolContext,
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member to retrieve app tokens for."
+        str, "The ID or username of the Trello member whose app tokens are to be retrieved."
     ],
     include_webhooks: Annotated[
-        bool | None, "Set to true to include webhooks in the app tokens list for the member."
+        bool | None, "Set to true to include webhooks in the response."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-tokens'."]:
-    """Retrieve a Trello member's app tokens.
+    """Retrieve a list of a member's application tokens.
 
-    Use this tool to obtain a list of app tokens associated with a specific Trello member by their ID."""  # noqa: E501
+    This tool retrieves a list of application tokens associated with a specific member. Use this when you need to access or manage a member's app tokens on Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/tokens".format(id=member_id_or_username),  # noqa: UP032
@@ -6458,23 +6619,24 @@ async def get_member_app_tokens(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_member_avatar(
+async def create_member_avatar(
     context: ToolContext,
-    avatar_image_file_path: Annotated[
-        str, "The file path of the image to be used as the new avatar for the Trello member."
+    avatar_file_path: Annotated[
+        str,
+        "The file path of the image to be used as the new avatar for the member. The path must point to a valid image file.",  # noqa: E501
     ],
     member_id_or_username: Annotated[
-        str, "The Trello member's ID or username for whom the avatar is being created."
+        str, "The ID or username of the Trello member for whom the avatar is being created."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'membersidavatar'."]:
     """Create a new avatar for a Trello member.
 
-    This tool is used to generate a new avatar for a specified Trello member by their ID."""
+    Use this tool to generate a new avatar for a specified Trello member by providing their ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/avatar".format(id=member_id_or_username),  # noqa: UP032
             params=remove_none_values({
-                "file": avatar_image_file_path,
+                "file": avatar_file_path,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6491,17 +6653,17 @@ async def create_trello_member_avatar(
 async def dismiss_trello_message(
     context: ToolContext,
     message_to_dismiss: Annotated[
-        str, "The unique identifier of the message to be dismissed for the specified Trello member."
+        str, "The content of the Trello message to be dismissed for the member."
     ],
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member whose message will be dismissed."
+        str, "The ID or username of the Trello member for whom the message will be dismissed."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'post-members-id-onetimemessagesdismissed'."
 ]:
-    """Dismiss a specific one-time message for a Trello member.
+    """Dismiss a specific message for a Trello member.
 
-    Use this tool to dismiss a one-time message for a specific member on Trello. It should be called when a user wants to mark a Trello message as dismissed so that it is no longer shown."""  # noqa: E501
+    Use this tool to dismiss a one-time message for a Trello member by their ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/members/{id}/oneTimeMessagesDismissed".format(  # noqa: UP032
@@ -6522,17 +6684,22 @@ async def dismiss_trello_message(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_notification_channel_settings(
+async def get_member_notification_settings(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to retrieve notification settings for."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-members-id-notificationChannelSettings'."
 ]:
-    """Retrieve a Trello member's notification channel settings.
+    """Retrieve a member's notification channel settings on Trello.
 
-    Use this tool to get the notification channel settings for a Trello member by their ID."""
+    This tool is used to get the notification settings for a specific member in Trello. Useful for understanding how and through which channels a member receives notifications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings",
+            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings".format(  # noqa: UP032
+                id=member_id_or_username
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6547,18 +6714,26 @@ async def get_member_notification_channel_settings(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_member_notification_settings(
+async def get_blocked_notification_keys(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str, "The ID or username of the Trello member to fetch blocked notification keys."
+    ],
+    notification_channel: Annotated[
+        str, "Specify the channel to block notifications on. Currently, 'email' is supported."
+    ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-members-id-notificationChannelSettings-channel'.",
 ]:
-    """Retrieve a member's blocked notification keys for a channel.
+    """Fetch blocked notification keys for a Trello member's channel.
 
-    Use this tool to get the blocked notification keys for a specific member on a given channel in Trello. This can help manage and customize notification settings effectively."""  # noqa: E501
+    This tool retrieves the blocked notification keys of a specific Trello member on a designated channel. It is useful for managing or auditing notification settings for a user's communication channels."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}",
+            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}".format(  # noqa: UP032
+                id=member_id_or_username, channel=notification_channel
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6573,18 +6748,33 @@ async def get_member_notification_settings(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_notification_blocked_keys(
+async def update_member_notification_blocked_keys(
     context: ToolContext,
+    member_id_or_username: Annotated[
+        str,
+        "The ID or username of the Trello member whose notification settings you want to update.",
+    ],
+    notification_channel: Annotated[
+        str, "Specifies the channel (e.g., 'email') on which to block notifications."
+    ],
+    blocked_notification_keys: Annotated[
+        str,
+        "Comma-separated list of notification keys to block for the member's channel. Valid keys include 'notification_comment_card', 'notification_added_a_due_date', etc.",  # noqa: E501
+    ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-members-id-notificationChannelSettings-channel-blockedKeys'.",  # noqa: E501
 ]:
-    """Updates blocked notification keys for a Trello member.
+    """Update blocked notification keys for a member's channel.
 
-    Use this tool to update the notification settings of a Trello member by modifying the blocked keys for a specific channel."""  # noqa: E501
+    Use this tool to update the list of blocked notification keys for a specific channel of a Trello member. This is useful to customize notification preferences on a per-channel basis."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}",
+            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}".format(  # noqa: UP032
+                id=member_id_or_username,
+                channel=notification_channel,
+                blockedKeys=blocked_notification_keys,
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -6602,79 +6792,79 @@ async def update_trello_notification_blocked_keys(
 async def get_trello_notification(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The unique identifier for the Trello notification to be retrieved."
+        str, "The unique identifier for the specific Trello notification to retrieve."
     ],
-    include_board_fields: Annotated[
+    board_fields_to_include: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of board fields to include, such as `id`, `name`, `desc`, etc. Choose fields relevant to your needs.",  # noqa: E501
+        "Specify `all` or a comma-separated list of board fields (e.g., `id,name,desc`) to retrieve.",  # noqa: E501
     ] = None,
-    include_card_fields: Annotated[
+    card_fields_to_include: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of card fields to include in the notification details.",  # noqa: E501
+        "Specify `all` or a comma-separated list of card fields to include in the response. Valid options: id, address, badges, checkItemStates, closed, coordinates, creationMethod, dueComplete, dateLastActivity, desc, descData, due, dueReminder, idBoard, idChecklists, idLabels, idList, idMembers, idMembersVoted, idShort, idAttachmentCover, labels, limits, locationName, manualCoverAttachment, name, pos, shortLink, shortUrl, subscribed, url, cover, isTemplate.",  # noqa: E501
     ] = None,
     notification_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields like id, unread, type, etc., to include in the notification details.",  # noqa: E501
+        "Specify `all` or a comma-separated list of notification fields like `id`, `unread`, `type`, etc.",  # noqa: E501
     ] = None,
-    include_member_fields: Annotated[
+    member_fields_inclusion: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of member fields to include in the response, such as 'id'.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member fields to include in the response.",
     ] = None,
-    member_creator_fields: Annotated[
+    include_member_creator_fields: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of member fields for the creator. Use 'id' or other valid fields.",  # noqa: E501
+        "`all` or a comma-separated list of member fields to include for the member creator.",
     ] = None,
-    organization_fields_to_include: Annotated[
+    organization_field_selection: Annotated[
         str | None,
-        "Specify `all` or a comma-separated list of organization fields to retrieve, such as `id` and `name`.",  # noqa: E501
+        "Specify `all` or a comma-separated list of organization fields like `id,name` to include in the result.",  # noqa: E501
     ] = None,
     include_board_object: Annotated[
         bool | None, "Set to true to include the board object in the notification details."
     ] = None,
-    include_card_object: Annotated[
-        bool | None, "Set to true to include the card object in the notification details."
+    include_card: Annotated[
+        bool | None, "Set to true to include the card object in the notification response."
     ] = None,
-    include_display_object: Annotated[
-        bool | None, "Set to true to include the display object with the results."
+    include_display: Annotated[
+        bool | None, "Set to true to include the display object in the results."
     ] = None,
     include_entities: Annotated[
-        bool | None, "Set to true to include the entities object with the notification results."
+        bool | None, "Set to true to include the entities object in the results."
     ] = None,
-    include_list: Annotated[
+    include_list_object: Annotated[
+        bool | None, "Include the list object in the notification details when true."
+    ] = None,
+    include_member: Annotated[
+        bool | None, "Include the member object in the response when true; exclude it when false."
+    ] = None,
+    include_member_creator_object: Annotated[
         bool | None,
-        "Set to `true` to include the list object in the notification details; otherwise, `false`.",
+        "Set to true to include the member object of the creator in the notification details.",
     ] = None,
-    include_member_object: Annotated[
-        bool | None, "Set to true to include the member object."
-    ] = None,
-    include_member_creator: Annotated[
-        bool | None, "Set to true to include the member object of the creator in the response."
-    ] = None,
-    include_organization_object: Annotated[
+    include_organization: Annotated[
         bool | None, "Set to true to include the organization object in the notification details."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-notifications-id'."]:
-    """Retrieve details of a specific Trello notification.
+    """Retrieve a specific Trello notification by its ID.
 
-    Use this tool to fetch detailed information about a specific notification in Trello using its ID."""  # noqa: E501
+    Use this tool to get the details of a specific notification on Trello by providing the notification ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
                 "board": include_board_object,
-                "board_fields": include_board_fields,
-                "card": include_card_object,
-                "card_fields": include_card_fields,
-                "display": include_display_object,
+                "board_fields": board_fields_to_include,
+                "card": include_card,
+                "card_fields": card_fields_to_include,
+                "display": include_display,
                 "entities": include_entities,
                 "fields": notification_fields,
-                "list": include_list,
-                "member": include_member_object,
-                "member_fields": include_member_fields,
-                "memberCreator": include_member_creator,
-                "memberCreator_fields": member_creator_fields,
-                "organization": include_organization_object,
-                "organization_fields": organization_fields_to_include,
+                "list": include_list_object,
+                "member": include_member,
+                "member_fields": member_fields_inclusion,
+                "memberCreator": include_member_creator_object,
+                "memberCreator_fields": include_member_creator_fields,
+                "organization": include_organization,
+                "organization_fields": organization_field_selection,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6688,21 +6878,23 @@ async def get_trello_notification(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_notification_read_status(
+async def update_notification_status(
     context: ToolContext,
-    notification_id: Annotated[str, "The unique identifier for the Trello notification to update."],
-    keep_notification_unread: Annotated[
-        bool | None, "Set to true to keep the notification unread; false to mark it as read."
+    notification_id: Annotated[
+        str, "The unique identifier of the Trello notification to be updated."
+    ],
+    mark_as_read: Annotated[
+        bool | None, "Set to true to mark the notification as read, false to keep it unread."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-notifications-id'."]:
-    """Updates the read status of a Trello notification.
+    """Update the read status of a Trello notification.
 
-    This tool should be called when you need to change the read status of a specific Trello notification, using its ID."""  # noqa: E501
+    This tool updates the read status of a specific Trello notification. It should be called when you want to mark a notification as read or unread in Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
-                "unread": keep_notification_unread,
+                "unread": mark_as_read,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6716,23 +6908,22 @@ async def update_notification_read_status(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_notification_field(
+async def get_notification_property(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The unique identifier of the Trello notification to retrieve a specific field."
+        str, "The unique ID of the notification to access its specific property."
     ],
-    notification_field_to_retrieve: Annotated[
-        str,
-        "Specify which field of the Trello notification to retrieve, such as 'id', 'unread', 'type', 'date', etc.",  # noqa: E501
+    notification_property_field: Annotated[
+        str, "The specific field of the notification to retrieve, such as 'id', 'type', or 'date'."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-notifications-id-field'."]:
-    """Retrieve a specific property of a Trello notification.
+    """Retrieve a specific property from a Trello notification.
 
-    Use this tool to get a specific field from a Trello notification by providing the notification's ID and the desired field name."""  # noqa: E501
+    Use this tool to obtain a particular attribute of a Trello notification by specifying the notification ID and the desired field. Useful when needing detailed information about a notification."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/{field}".format(  # noqa: UP032
-                id=notification_id, field=notification_field_to_retrieve
+                id=notification_id, field=notification_property_field
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -6748,26 +6939,26 @@ async def get_trello_notification_field(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def mark_all_trello_notifications_read(
+async def mark_all_notifications_read(
     context: ToolContext,
-    notification_ids: Annotated[
+    notification_ids_to_mark: Annotated[
         list[str] | None,
-        "A list of notification IDs to mark as read or unread. Provide these as an array of strings.",  # noqa: E501
+        "A list of notification IDs to mark as read or unread. Useful for managing specific notifications.",  # noqa: E501
     ] = None,
-    mark_as_read: Annotated[
+    mark_notifications_read: Annotated[
         bool | None,
-        "Set to true to mark notifications as read. Defaults to true, marking notifications as read.",  # noqa: E501
+        "Boolean to specify whether to mark notifications as read (true) or unread (false). Defaults to true (mark as read).",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-notifications-all-read'."]:
-    """Marks all Trello notifications as read.
+    """Mark all Trello notifications as read.
 
-    Use this tool to mark all your Trello notifications as read when you need to clear notification alerts."""  # noqa: E501
+    Use this tool to mark all notifications in Trello as read, helping users manage their notification inbox efficiently."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/all/read",
             params=remove_none_values({
-                "read": mark_as_read,
-                "ids": notification_ids,
+                "read": mark_notifications_read,
+                "ids": notification_ids_to_mark,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6781,23 +6972,23 @@ async def mark_all_trello_notifications_read(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def mark_notification_unread(
+async def update_notification_read_status(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The unique identifier of the Trello notification to be marked as unread."
+        str, "The unique identifier of the Trello notification to update the read status for."
     ],
-    notification_read_status: Annotated[
-        str | None, "Set to 'unread' to mark the notification as unread. Accepted value: 'unread'."
+    notification_unread_status: Annotated[
+        str | None, "Specify 'true' to mark the notification as unread, 'false' to mark it as read."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-notifications-id-unread'."]:
-    """Marks a Trello notification as unread.
+    """Update the read status of a Trello notification.
 
-    Use this tool to change the read status of a Trello notification to unread."""
+    This tool updates the read status of a specific Trello notification by marking it as read or unread."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/unread".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
-                "value": notification_read_status,
+                "value": notification_unread_status,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6811,24 +7002,24 @@ async def mark_notification_unread(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_notification_board(
+async def get_board_notification_info(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The ID of the Trello notification to retrieve the associated board information."
+        str, "The unique ID of the notification to retrieve the associated board."
     ],
-    board_fields: Annotated[
+    board_fields_selection: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of board fields like 'id', 'name', 'desc', etc., to retrieve specific board details.",  # noqa: E501
+        "Specify `all` or a comma-separated list of board fields like id, name, desc, etc., to retrieve specific board details.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-notifications-id-board'."]:
-    """Retrieve the board linked to a Trello notification.
+    """Retrieve the board associated with a specific notification.
 
-    Use this tool to get information about the board associated with a specific Trello notification. It should be called when you need to identify which board a notification is related to in Trello."""  # noqa: E501
+    Use this tool to find out which Trello board a particular notification is linked to. It is useful when needing to trace the context or origin of notifications within Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/board".format(id=notification_id),  # noqa: UP032
             params=remove_none_values({
-                "fields": board_fields,
+                "fields": board_fields_selection,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -6842,19 +7033,19 @@ async def get_trello_notification_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_notification_card(
+async def get_notification_card(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The unique identifier of the Trello notification to retrieve the associated card."
+        str, "The unique ID of the notification to retrieve the associated card."
     ],
     card_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of Trello card fields to retrieve (e.g., 'name,desc,idBoard').",  # noqa: E501
+        "Specify 'all' or a comma-separated list of card fields to retrieve. Choose from 'id', 'address', 'badges', etc.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-notifications-id-card'."]:
-    """Retrieve the Trello card linked to a notification.
+    """Retrieve the card linked to a specific notification.
 
-    Use this tool to find the specific Trello card that is associated with a given notification. Useful for tracking the context or source of a notification."""  # noqa: E501
+    This tool fetches the card details associated with a given notification ID on Trello. It should be used when you need information about the card referenced in a notification."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/card".format(id=notification_id),  # noqa: UP032
@@ -6873,19 +7064,19 @@ async def get_trello_notification_card(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_notification_associated_list(
+async def get_trello_notification_list(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The ID of the notification to retrieve the associated list for."
+        str, "The unique ID of the Trello notification to retrieve the associated list."
     ],
     list_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields to include in the response. Refer to Trello's REST API documentation for options.",  # noqa: E501
+        "Specify `all` or a comma-separated list of list fields to retrieve for the notification.",
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-notifications-id-list'."]:
-    """Retrieve the list linked to a specific notification.
+    """Retrieve the list linked to a specific Trello notification.
 
-    This tool is used to obtain the list associated with a particular notification ID in Trello."""
+    Use this tool to get the list information associated with a given Trello notification ID. This is useful for identifying which list is involved in a notification or for further actions related to that list."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/list".format(id=notification_id),  # noqa: UP032
@@ -6904,19 +7095,19 @@ async def get_notification_associated_list(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_notification_recipient_member(
+async def get_notification_member(
     context: ToolContext,
     notification_id: Annotated[
-        str, "The unique identifier for the Trello notification to retrieve recipient details."
+        str, "The unique ID of the Trello notification to retrieve the member information for."
     ],
     member_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of member fields to retrieve information about the member the notification is about. Valid options include field names as specified in Trello's object definitions.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member fields to retrieve details about the member a notification is about.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'notificationsidmember'."]:
-    """Retrieve the recipient member of a Trello notification.
+    """Get the member a notification is about.
 
-    This tool fetches information about the member to whom a specific Trello notification is directed, excluding the creator of the notification."""  # noqa: E501
+    Fetches information about the member involved in a specific Trello notification, excluding the creator."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/member".format(id=notification_id),  # noqa: UP032
@@ -6935,22 +7126,21 @@ async def get_notification_recipient_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_notification_creator(
+async def get_notification_creator(
     context: ToolContext,
     notification_id: Annotated[
-        str,
-        "The unique identifier for the Trello notification to retrieve the creator's information.",
+        str, "The unique identifier for the notification whose creator details are to be retrieved."
     ],
     member_fields: Annotated[
         str | None,
-        "Specify 'all' or a list of member fields separated by commas to retrieve specific member details.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of member fields to retrieve information about the notification creator.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-notifications-id-membercreator'."
 ]:
-    """Retrieve the creator of a Trello notification.
+    """Get the member who created the notification.
 
-    Use this tool to get information about the member who created a specific Trello notification by its ID."""  # noqa: E501
+    Use this tool to fetch information about the member who created a specific notification in Trello. Ideal for understanding the origin of notifications."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/memberCreator".format(  # noqa: UP032
@@ -6974,19 +7164,18 @@ async def get_trello_notification_creator(
 async def get_notification_organization(
     context: ToolContext,
     notification_id: Annotated[
-        str,
-        "The unique identifier for the Trello notification to retrieve the associated organization.",  # noqa: E501
+        str, "The ID of the Trello notification to retrieve its associated organization."
     ],
     organization_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields (e.g., 'id,name') to retrieve for the organization.",  # noqa: E501
+        "A string specifying 'all' or a comma-separated list of fields like 'id' or 'name' to retrieve about the organization.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-notifications-id-organization'."
 ]:
-    """Retrieve the organization linked to a notification on Trello.
+    """Retrieve the organization linked to a notification.
 
-    Call this tool to obtain the organization details associated with a specific notification from Trello."""  # noqa: E501
+    Use this tool to obtain details about the organization associated with a specific Trello notification. It is useful when you need to understand the origin or context of a notification by identifying the related organization."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/notifications/{id}/organization".format(  # noqa: UP032
@@ -7009,28 +7198,30 @@ async def get_notification_organization(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_trello_workspace(
     context: ToolContext,
-    workspace_display_name: Annotated[
-        str, "The display name of the Trello workspace. It should be clear and descriptive."
+    display_name_for_workspace: Annotated[
+        str,
+        "The name to display for the Trello workspace. This should be a descriptive and recognizable name.",  # noqa: E501
     ],
     workspace_description: Annotated[
-        str | None, "A string providing the description for the Trello Workspace."
+        str | None,
+        "A description for the Trello workspace. Provide details about the purpose or scope of this workspace.",  # noqa: E501
     ] = None,
     workspace_identifier: Annotated[
         str | None,
-        "A unique identifier for the Workspace. Must be at least 3 characters long using only lowercase letters, underscores, and numbers. Invalid characters will be removed, and duplicates will be auto-resolved.",  # noqa: E501
+        "A unique string with at least 3 characters. Only lowercase letters, underscores, and numbers are allowed.",  # noqa: E501
     ] = None,
     workspace_website_url: Annotated[
-        str | None, "A URL starting with `http://` or `https://` for the organization's website."
+        str | None, "The website URL for the workspace, must start with `http://` or `https://`."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-organizations'."]:
-    """Create a new Trello Workspace.
+    """Create a new Trello workspace.
 
-    This tool is used to create a new Workspace in Trello. It should be called when a user wants to set up a new organizational space within Trello for managing projects and teams."""  # noqa: E501
+    Use this tool to create a new workspace in Trello. It should be called when you want to organize boards and manage team's projects under a new workspace."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations",
             params=remove_none_values({
-                "displayName": workspace_display_name,
+                "displayName": display_name_for_workspace,
                 "desc": workspace_description,
                 "name": workspace_identifier,
                 "website": workspace_website_url,
@@ -7047,15 +7238,18 @@ async def create_trello_workspace(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_organization_details(
+async def get_organization_details(
     context: ToolContext,
+    organization_identifier: Annotated[
+        str, "The ID or name of the Trello organization to fetch details for."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id'."]:
-    """Retrieve details of a specific Trello organization by ID.
+    """Fetches details of a Trello organization by ID.
 
-    Use this tool to get detailed information about a Trello organization by providing its ID. Ideal for accessing organization-specific data on Trello."""  # noqa: E501
+    Use this tool to obtain detailed information about a specific Trello organization using its ID. It provides the necessary details for managing or reviewing organization settings within Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}",
+            url="https://api.trello.com/1/organizations/{id}".format(id=organization_identifier),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7070,13 +7264,14 @@ async def get_trello_organization_details(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_trello_organization(
+async def update_organization(
     context: ToolContext,
+    organization_id_or_name: Annotated[str, "The ID or name of the Trello organization to update."],
     new_organization_name: Annotated[
         str | None,
-        "A unique name for the organization. Must contain at least 3 lowercase letters, underscores, or numbers.",  # noqa: E501
+        "A unique name for the organization with at least 3 lowercase letters, underscores, or numbers.",  # noqa: E501
     ] = None,
-    organization_display_name: Annotated[
+    new_display_name: Annotated[
         str | None,
         "A new display name for the organization. Must be at least 1 character long and not begin or end with a space.",  # noqa: E501
     ] = None,
@@ -7084,59 +7279,58 @@ async def update_trello_organization(
         str | None, "A new description for the organization in Trello."
     ] = None,
     organization_website_url: Annotated[
-        str | None,
-        "The website URL for the organization. It should start with `http://`, `https://`, or be `null`.",  # noqa: E501
+        str | None, "A URL for the organization starting with 'http://', 'https://', or 'null'."
     ] = None,
-    google_apps_associated_domain: Annotated[
+    google_apps_domain: Annotated[
         str | None, "The Google Apps domain to link this organization to."
     ] = None,
     google_apps_version: Annotated[
         int | None,
-        "Specify the version of Google Apps to link with the organization. Use `1` or `2`.",
+        "Specifies the Google Apps version to link with the organization. It should be either `1` or `2`.",  # noqa: E501
     ] = None,
-    board_visibility_restriction_for_workspace_boards: Annotated[
+    workspace_board_visibility_restriction: Annotated[
         str | None,
-        "Specifies who can create Workspace visible boards: choose from 'admin', 'none', or 'org'.",
+        "Specifies who on the Workspace can make Workspace visible boards. Acceptable values: `admin`, `none`, `org`.",  # noqa: E501
     ] = None,
-    board_visibility_restrict_for_private_boards: Annotated[
+    private_board_visibility_restriction: Annotated[
         str | None,
-        "Specifies who can create private boards within the organization. Options: 'admin', 'none', 'org'.",  # noqa: E501
+        "Specifies who can create private boards within the organization. Acceptable values: `admin`, `none`, `org`.",  # noqa: E501
     ] = None,
-    public_board_visibility_permission: Annotated[
+    public_board_visibility_restriction: Annotated[
         str | None,
-        "Specify who in the Workspace can create public boards. Options: `admin`, `none`, `org`.",
+        "Specifies who in the workspace can create public boards. Options: 'admin', 'none', 'org'.",
     ] = None,
     organization_invite_restriction_email: Annotated[
         str | None,
-        "An email address with optional wildcard characters for organization invite restriction. Format examples: `subdomain.*.trello.com`.",  # noqa: E501
+        "An email address pattern with optional wildcard characters for restricting organization invites.",  # noqa: E501
     ] = None,
-    workspace_visibility_permission: Annotated[
-        str | None, "Set the visibility of the Workspace page. Options: `private` or `public`."
+    workspace_visibility: Annotated[
+        str | None, "Sets the visibility of the Workspace page. Options: `private` or `public`."
     ] = None,
-    disable_external_members_in_workspace: Annotated[
+    allow_external_members: Annotated[
         bool | None,
-        "Set to true to restrict non-workspace members from being added to boards inside the Workspace. Set to false to allow them.",  # noqa: E501
+        "Set to false to prevent non-workspace members from being added to boards in the Workspace.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-organizations-id'."]:
-    """Update organization details in Trello.
+    """Update the details of a Trello organization.
 
-    Use this tool to update the details of an existing organization in Trello. This can be used when organization data needs to be modified or corrected."""  # noqa: E501
+    This tool updates an organization's information in Trello using the organization's ID. Call this when changes to organization details are needed."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}",
+            url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
             params=remove_none_values({
                 "name": new_organization_name,
-                "displayName": organization_display_name,
+                "displayName": new_display_name,
                 "desc": organization_description,
                 "website": organization_website_url,
-                "prefs/associatedDomain": google_apps_associated_domain,
-                "prefs/externalMembersDisabled": disable_external_members_in_workspace,
+                "prefs/associatedDomain": google_apps_domain,
+                "prefs/externalMembersDisabled": allow_external_members,
                 "prefs/googleAppsVersion": google_apps_version,
-                "prefs/boardVisibilityRestrict/org": board_visibility_restriction_for_workspace_boards,  # noqa: E501
-                "prefs/boardVisibilityRestrict/private": board_visibility_restrict_for_private_boards,  # noqa: E501
-                "prefs/boardVisibilityRestrict/public": public_board_visibility_permission,
+                "prefs/boardVisibilityRestrict/org": workspace_board_visibility_restriction,
+                "prefs/boardVisibilityRestrict/private": private_board_visibility_restriction,
+                "prefs/boardVisibilityRestrict/public": public_board_visibility_restriction,
                 "prefs/orgInviteRestrict": organization_invite_restriction_email,
-                "prefs/permissionLevel": workspace_visibility_permission,
+                "prefs/permissionLevel": workspace_visibility,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -7150,15 +7344,18 @@ async def update_trello_organization(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_organization(
+async def delete_organization(
     context: ToolContext,
+    organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello organization to be deleted."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-organizations-id'."]:
-    """Deletes a Trello organization by its ID.
+    """Delete an existing organization in Trello.
 
-    Use this tool to delete an organization from Trello by specifying its unique ID."""
+    Use this tool to permanently delete an organization from Trello by providing its ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}",
+            url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7173,22 +7370,22 @@ async def delete_trello_organization(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_organization_field(
+async def get_organization_field_trello(
     context: ToolContext,
-    organization_identifier: Annotated[
-        str, "Specify the ID or name of the Trello organization to retrieve its field data."
+    organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello organization to retrieve the field from."
     ],
-    organization_field_name: Annotated[
-        str, "The specific field name of the organization to retrieve ('id' or 'name')."
+    organization_field: Annotated[
+        str, "The specific field of the organization to retrieve, such as 'id' or 'name'."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-field'."]:
     """Retrieve a specific field from a Trello organization.
 
-    Use this tool to obtain detailed information about a specific field within a Trello organization by specifying the organization ID and field name."""  # noqa: E501
+    Use this tool to obtain specific details about a Trello organization by providing the organization ID and the field you are interested in."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/{field}".format(  # noqa: UP032
-                id=organization_identifier, field=organization_field_name
+                id=organization_id_or_name, field=organization_field
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7207,12 +7404,12 @@ async def get_trello_organization_field(
 async def list_workspace_actions(
     context: ToolContext,
     workspace_identifier: Annotated[
-        str, "The ID or name of the Trello workspace to retrieve actions from."
+        str, "The unique ID or name of the Trello Workspace to retrieve actions for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-actions'."]:
-    """Retrieves actions from a specified Trello workspace.
+    """Retrieve actions from a specific Workspace.
 
-    This tool calls the Trello API to list all actions associated with a specific workspace (organization). It is useful for tracking activity and updates within a workspace."""  # noqa: E501
+    Use this tool to obtain a list of all actions taken within a specified Trello Workspace. This can help track changes, updates, and other activities."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/actions".format(  # noqa: UP032
@@ -7232,27 +7429,27 @@ async def list_workspace_actions(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def list_boards_in_workspace(
+async def list_workspace_boards(
     context: ToolContext,
-    organization_id_or_name: Annotated[
-        str, "The ID or name of the Trello organization to list boards for."
+    organization_identifier: Annotated[
+        str, "The ID or name of the Trello organization (workspace) to list boards for."
     ],
     board_status_filter: Annotated[
         str | None,
-        "Specifies which boards to list: `all`, or a comma-separated list of `open`, `closed`, `members`, `organization`, `public`.",  # noqa: E501
+        "Define which boards to list using `all` or a combination of `open`, `closed`, `members`, `organization`, `public`.",  # noqa: E501
     ] = None,
     board_fields_to_retrieve: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of board fields such as 'id', 'name', 'desc', etc., to include in the response.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of board fields to retrieve (e.g., 'id,name,url').",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-boards'."]:
-    """Retrieve boards from a specified Trello workspace.
+    """Retrieve boards in a specified Trello workspace.
 
-    This tool retrieves a list of boards within a specified Trello workspace. It should be called when a user wants to view all the boards associated with a particular Trello organization."""  # noqa: E501
+    Use this tool to obtain a list of all boards within a specific Trello workspace, identified by its ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/boards".format(  # noqa: UP032
-                id=organization_id_or_name
+                id=organization_identifier
             ),
             params=remove_none_values({
                 "filter": board_status_filter,
@@ -7270,19 +7467,23 @@ async def list_boards_in_workspace(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def initiate_trello_csv_export(
+async def start_organization_csv_export(
     context: ToolContext,
+    workspace_identifier: Annotated[
+        str, "The unique ID or name of the Trello Workspace to export."
+    ],
     include_attachments: Annotated[
-        bool | None,
-        "Set to true to include attachments in the CSV export, or false to exclude them.",
+        bool | None, "Set to true to include attachments in the CSV export, false to exclude."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-organizations-id-exports'."]:
     """Initiate a CSV export for a Trello organization.
 
-    This tool starts a CSV export process for a specified organization in Trello. Use it to obtain CSV data of the organization's activity or data."""  # noqa: E501
+    Use this tool to trigger the export of a Trello organization's data into a CSV file. This is useful for archiving or analyzing organizational data outside of Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/exports",
+            url="https://api.trello.com/1/organizations/{id}/exports".format(  # noqa: UP032
+                id=workspace_identifier
+            ),
             params=remove_none_values({
                 "attachments": include_attachments,
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7298,15 +7499,20 @@ async def initiate_trello_csv_export(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_organization_exports(
+async def retrieve_trello_organization_exports(
     context: ToolContext,
+    workspace_id_or_name: Annotated[
+        str, "The ID or name of the Trello Workspace to retrieve exports for."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-exports'."]:
-    """Retrieve exports for a specified Trello organization.
+    """Retrieve exports for a Trello organization.
 
-    Use this tool to get the list of exports available for a given Trello organization by providing the organization ID."""  # noqa: E501
+    This tool retrieves the exports available for a specified Trello organization using the organization's ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/exports",
+            url="https://api.trello.com/1/organizations/{id}/exports".format(  # noqa: UP032
+                id=workspace_id_or_name
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7323,17 +7529,17 @@ async def get_trello_organization_exports(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_workspace_members(
     context: ToolContext,
-    workspace_id_or_name: Annotated[
+    workspace_identifier: Annotated[
         str, "The ID or name of the Trello Workspace to retrieve members from."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-members'."]:
-    """Retrieve members of a Trello Workspace.
+    """Retrieve members of a specified Trello Workspace.
 
-    This tool retrieves the list of members from a specified Trello Workspace using the Workspace ID."""  # noqa: E501
+    Use this tool to get a list of all members in a specified Trello Workspace by providing the Workspace ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members".format(  # noqa: UP032
-                id=workspace_id_or_name
+                id=workspace_identifier
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7353,23 +7559,20 @@ async def update_organization_members(
     context: ToolContext,
     member_email: Annotated[str, "The email address of the member to update in the organization."],
     member_full_name: Annotated[
-        str,
-        "The name of the organization member; must be at least 1 character and cannot begin or end with a space.",  # noqa: E501
+        str, "Name for the member, must be at least 1 character and not begin or end with a space."
     ],
-    organization_identifier: Annotated[
-        str, "The unique ID or name of the Trello organization to update members for."
-    ],
+    organization_id_or_name: Annotated[str, "The ID or name of the Trello organization to update."],
     member_role_type: Annotated[
-        str | None, "The role type of the member to be updated. Options are 'admin' or 'normal'."
+        str | None, "Specify the member's role: `admin` or `normal`."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-organizations-id-members'."]:
-    """Update members in a Trello organization.
+    """Update the members of a Trello organization.
 
-    Use this tool to update the members of a specified Trello organization by providing the organization's ID."""  # noqa: E501
+    Use this tool to modify the membership of a specified Trello organization. It updates the organization members based on provided details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members".format(  # noqa: UP032
-                id=organization_identifier
+                id=organization_id_or_name
             ),
             params=remove_none_values({
                 "email": member_email,
@@ -7388,29 +7591,29 @@ async def update_organization_members(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_workspace_memberships(
+async def list_workspace_memberships(
     context: ToolContext,
-    workspace_identifier: Annotated[
-        str,
-        "The ID or name of the Trello Workspace. This identifies which Workspace's memberships to retrieve.",  # noqa: E501
+    organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello Workspace to list memberships for."
     ],
     membership_filter: Annotated[
         str | None,
-        "A filter option to specify which memberships to retrieve: 'all', 'active', 'admin', 'deactivated', 'me', or 'normal'. Comma-separate multiple values to combine filters.",  # noqa: E501
+        "Filter memberships by status: 'all', 'active', 'admin', 'deactivated', 'me', 'normal'. Use a comma-separated list for multiple.",  # noqa: E501
     ] = None,
     include_member_objects: Annotated[
-        bool | None, "Set to true to include Member objects with the Memberships in the response."
+        bool | None,
+        "Set to true to include Member objects with the Memberships. Useful for detailed member info.",  # noqa: E501
     ] = None,
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-organizations-id-memberships'."
 ]:
-    """Retrieve memberships of a Trello Workspace.
+    """Retrieve memberships of a specific Workspace on Trello.
 
-    This tool retrieves all memberships associated with a specified Trello Workspace, providing details about each member's role and status within the organization."""  # noqa: E501
+    Use this tool to fetch a list of all memberships within a specified Trello Workspace. This can help identify members and their roles in the Workspace."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/memberships".format(  # noqa: UP032
-                id=workspace_identifier
+                id=organization_id_or_name
             ),
             params=remove_none_values({
                 "filter": membership_filter,
@@ -7428,22 +7631,25 @@ async def get_workspace_memberships(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_organization_membership_details(
+async def get_organization_membership(
     context: ToolContext,
     organization_id_or_name: Annotated[
-        str, "The ID or name of the Trello organization from which to retrieve membership details."
+        str, "The ID or name of the Trello organization to retrieve membership details."
     ],
-    membership_id: Annotated[str, "The unique ID of the membership to retrieve details for."],
+    membership_id: Annotated[
+        str,
+        "The ID of the membership to retrieve within an organization. Use this to specify which membership details to load.",  # noqa: E501
+    ],
     include_member_object: Annotated[
-        bool | None, "Set to true to include the Member object in the response, otherwise false."
+        bool | None, "Include the Member object in the response when true."
     ] = None,
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-organizations-id-memberships-idmembership'.",
 ]:
-    """Retrieve a specific membership from an organization.
+    """Retrieve details of a specific organization membership.
 
-    Use this tool to get detailed information about a specific membership within an organization on Trello. This is useful for understanding the roles or limits associated with a membership."""  # noqa: E501
+    Use this tool to get detailed information about a specific membership within an organization on Trello. It is particularly useful for understanding the membership attributes or status for a given organization and membership ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/memberships/{idMembership}".format(  # noqa: UP032
@@ -7464,15 +7670,15 @@ async def get_organization_membership_details(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_workspace_plugin_data(
+async def get_workspace_scoped_plugin_data(
     context: ToolContext,
     organization_id_or_name: Annotated[
-        str, "The ID or name of the Trello organization to retrieve plugin data for."
+        str, "The ID or name of the organization whose plugin data you want to retrieve."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-plugindata'."]:
-    """Retrieve plugin data for a specific Trello Workspace.
+    """Retrieve organization scoped pluginData for a Workspace.
 
-    Use this tool to obtain plugin data associated with a specific Trello Workspace by providing the organization's ID."""  # noqa: E501
+    Call this tool to access plugin data that is specific to a particular Workspace in an organization. Ideal for retrieving information related to plugins configured within the Trello Workspace."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/pluginData".format(  # noqa: UP032
@@ -7494,13 +7700,18 @@ async def get_workspace_plugin_data(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def list_organization_collections(
     context: ToolContext,
+    organization_identifier: Annotated[
+        str, "The ID or name of the Trello organization whose collections are to be listed."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-organizations-id-tags'."]:
-    """Lists collections for a specified organization on Trello.
+    """Retrieve collections of a specified organization.
 
-    Use this tool to retrieve and list all the collections associated with a specific organization on Trello. Useful for managing and organizing different tags within an organization's workspace."""  # noqa: E501
+    This tool fetches and lists the collections associated with a specific organization on Trello. It should be called when there is a need to access or display the organization's collections."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/tags",
+            url="https://api.trello.com/1/organizations/{id}/tags".format(  # noqa: UP032
+                id=organization_identifier
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7517,13 +7728,18 @@ async def list_organization_collections(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def create_organization_tag(
     context: ToolContext,
+    organization_identifier: Annotated[
+        str, "The ID or name of the organization for which the tag will be created."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-organizations-id-tags'."]:
-    """Create a tag within a Trello organization.
+    """Create a new tag within a specified organization on Trello.
 
-    This tool is used to create a new tag in a specific Trello organization. Use it when you need to organize or categorize items within an organization by adding a new tag."""  # noqa: E501
+    This tool is used to create a new tag for a specific organization in Trello. Call this tool when you need to organize tasks by adding a tag to an organization's board."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/tags",
+            url="https://api.trello.com/1/organizations/{id}/tags".format(  # noqa: UP032
+                id=organization_identifier
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7538,31 +7754,30 @@ async def create_organization_tag(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def add_or_update_workspace_member(
+async def update_workspace_member(
     context: ToolContext,
-    member_role_type: Annotated[
-        str, "Role of the member in the workspace; choose one: `admin` or `normal`."
+    member_role: Annotated[
+        str, "Specify the member's role in the Workspace. Use 'admin' or 'normal'."
     ],
-    organization_id_or_name: Annotated[
-        str,
-        "The ID or name of the organization (workspace) to which the member should be added or updated.",  # noqa: E501
+    workspace_organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello Workspace organization to update or add a member."
     ],
     member_id_or_username: Annotated[
-        str, "The ID or username of the member to update in the Trello workspace."
+        str, "The ID or username of the Trello member to update or add to the workspace."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'put-organizations-id-members-idmember'."
 ]:
-    """Add a member to a workspace or update their role.
+    """Add or update a member in a Trello Workspace.
 
-    Use this tool to add a new member to a specific Trello workspace or update the role of an existing member. This is useful for managing workspace access and permissions."""  # noqa: E501
+    This tool allows you to add a member to a Trello Workspace or update their role within the Workspace. Use it when you need to manage Workspace memberships."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
-                id=organization_id_or_name, idMember=member_id_or_username
+                id=workspace_organization_id_or_name, idMember=member_id_or_username
             ),
             params=remove_none_values({
-                "type": member_role_type,
+                "type": member_role,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -7576,19 +7791,18 @@ async def add_or_update_workspace_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_workplace_member(
+async def remove_workspace_member(
     context: ToolContext,
     workspace_id_or_name: Annotated[
-        str, "The ID or name of the Trello workspace from which to remove the member."
+        str, "The ID or name of the Trello workspace from which the member will be removed."
     ],
     member_id_to_remove: Annotated[
-        str,
-        "The ID of the member to be removed from the Trello workspace. This should be a valid member ID string.",  # noqa: E501
+        str, "The ID of the member to be removed from the Trello workspace."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-organizations-id-members'."]:
     """Remove a member from a Trello workspace.
 
-    This tool removes a specified member from a Trello workspace using the workspace and member IDs."""  # noqa: E501
+    This tool is used to remove a member from a specific Trello workspace. Call this tool when you need to manage workspace membership by removing a user."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
@@ -7608,24 +7822,25 @@ async def remove_workplace_member(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_workspace_member_status(
+async def toggle_workspace_member_status(
     context: ToolContext,
     organization_identifier: Annotated[
-        str, "The ID or name of the Trello organization (Workspace) to update the member's status."
+        str, "The ID or name of the organization to identify the Workspace."
     ],
     member_id_or_username: Annotated[
-        str, "The ID or username of the Trello member to deactivate or reactivate in the Workspace."
+        str,
+        "The ID or username of the member whose status should be updated in the Trello Workspace.",
     ],
     deactivate_member: Annotated[
-        bool, "Set to true to deactivate the member or false to reactivate them in the Workspace."
+        bool, "A boolean value where true deactivates and false reactivates a member."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'put-organizations-id-members-idmember-deactivated'.",
 ]:
-    """Deactivate or reactivate a Trello Workspace member.
+    """Deactivate or reactivate a member of a Workspace on Trello.
 
-    Use this tool to change the activation status of a member in a Trello Workspace. It can be used to either deactivate or reactivate a member."""  # noqa: E501
+    Use this tool to deactivate or reactivate a specified member within a Trello Workspace. It should be called when you need to change a member's active status."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
@@ -7648,21 +7863,22 @@ async def update_workspace_member_status(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def set_workspace_logo(
     context: ToolContext,
-    workspace_identifier: Annotated[
-        str, "The ID or name of the Trello Workspace for which the logo is to be updated."
+    workspace_id_or_name: Annotated[
+        str, "The ID or name of the Trello Workspace for which the logo will be set."
     ],
-    logo_image_file: Annotated[
-        str | None, "The file path or URL of the image to use as the logo for the Trello Workspace."
+    workspace_logo_file: Annotated[
+        str | None,
+        "The path or binary data of the image file to set as the Workspace logo. It should be a valid image format.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-organizations-id-logo'."]:
-    """Update the logo image for a Trello Workspace.
+    """Set the logo image for a Workspace on Trello.
 
-    This tool sets the logo image for a specified Trello Workspace using its ID. It should be called when there's a need to update or set a new logo for an existing workspace."""  # noqa: E501
+    Use this tool to set or update the logo image for a specific Workspace in Trello by providing the Workspace ID and logo information."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_identifier),  # noqa: UP032
+            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_id_or_name),  # noqa: UP032
             params=remove_none_values({
-                "file": logo_image_file,
+                "file": workspace_logo_file,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -7676,18 +7892,18 @@ async def set_workspace_logo(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_workspace_logo(
+async def delete_workspace_logo(
     context: ToolContext,
-    workspace_id: Annotated[
-        str, "The ID or name of the Trello workspace from which to remove the logo."
+    workspace_identifier: Annotated[
+        str, "The ID or name of the Trello workspace whose logo you want to delete."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-organizations-id-logo'."]:
-    """Delete the logo from a Trello workspace.
+    """Deletes the logo from a Trello workspace.
 
-    Use this tool to remove the logo associated with a specific Trello workspace by providing the workspace ID."""  # noqa: E501
+    This tool deletes the logo from a specified Trello workspace by its ID. Use it when you need to remove a logo from a workspace to update its appearance."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_id),  # noqa: UP032
+            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_identifier),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7702,25 +7918,25 @@ async def remove_workspace_logo(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_member_from_workspace(
+async def delete_member_from_workspace(
     context: ToolContext,
-    organization_identifier: Annotated[
+    organization_id_or_name: Annotated[
         str,
-        "The ID or name of the Trello organization (Workspace) from which the member will be removed.",  # noqa: E501
+        "The ID or name of the Trello organization to specify which workspace the member should be removed from.",  # noqa: E501
     ],
     member_id_to_remove: Annotated[
-        str, "The ID of the member to remove from the Trello Workspace and all its boards."
+        str, "The ID of the member to remove from the Trello Workspace and all associated boards."
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'organizations-id-members-idmember-all'."
 ]:
-    """Remove a member from a Trello Workspace and all associated boards.
+    """Remove a member from a Trello Workspace and all its boards.
 
-    This tool removes a specified member from a Trello Workspace and all boards within that Workspace. It should be called when you need to completely revoke a member's access to an entire Workspace and all its boards."""  # noqa: E501
+    This tool removes a specified member from a Trello Workspace and all associated boards. It should be used when you need to completely revoke a member's access to a workspace and its boards."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/members/{idMember}/all".format(  # noqa: UP032
-                id=organization_identifier, idMember=member_id_to_remove
+                id=organization_id_or_name, idMember=member_id_to_remove
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7738,21 +7954,21 @@ async def remove_member_from_workspace(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def remove_workspace_google_domain(
     context: ToolContext,
-    organization_id: Annotated[
+    organization_id_or_name: Annotated[
         str,
-        "The ID or name of the Trello organization (Workspace) to remove the associated Google Apps domain.",  # noqa: E501
+        "The ID or name of the Trello organization (Workspace) to disassociate from the Google Apps domain.",  # noqa: E501
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'delete-organizations-id-prefs-associateddomain'.",
 ]:
-    """Removes the associated Google Apps domain from a Workspace.
+    """Remove the associated Google Apps domain from a Workspace.
 
-    Use this tool to delete the associated Google Apps domain from a specified Trello Workspace, identified by its ID."""  # noqa: E501
+    This tool deletes the associated Google Apps domain from a specified Trello Workspace. It should be called when you need to disassociate a Google domain from a Workspace."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/prefs/associatedDomain".format(  # noqa: UP032
-                id=organization_id
+                id=organization_id_or_name
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7768,19 +7984,18 @@ async def remove_workspace_google_domain(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def remove_email_domain_restriction(
+async def remove_workspace_invite_restriction(
     context: ToolContext,
     organization_id_or_name: Annotated[
-        str,
-        "The ID or name of the Trello organization where the email domain restriction will be removed.",  # noqa: E501
+        str, "The ID or name of the Trello organization to remove invite restrictions from."
     ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'delete-organizations-id-prefs-orginviterestrict'.",
 ]:
-    """Remove the email domain restriction for inviting to a Trello Workspace.
+    """Removes email domain restrictions for Workspace invitations.
 
-    Use this tool to lift the restriction on email domains for inviting members to a Trello Workspace. This can help when expanding team access."""  # noqa: E501
+    Use this tool to remove any email domain restrictions on who can be invited to a Trello Workspace. It should be called when there's a need to allow broader invitations to the Workspace without domain limitations."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/prefs/orgInviteRestrict".format(  # noqa: UP032
@@ -7800,18 +8015,20 @@ async def remove_email_domain_restriction(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_organization_tag(
+async def delete_organization_tag(
     context: ToolContext,
     organization_identifier: Annotated[
-        str, "The ID or name of the Trello organization from which the tag will be deleted."
+        str, "The ID or name of the organization from which to delete the tag."
     ],
-    tag_id_to_delete: Annotated[str, "The ID of the Trello organization's tag to be deleted."],
+    tag_id_to_delete: Annotated[
+        str, "The identifier for the tag that needs to be deleted from the organization in Trello."
+    ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-organizations-id-tags-idtag'."
 ]:
-    """Delete a specific tag from a Trello organization.
+    """Delete a tag from an organization in Trello.
 
-    Use this tool to remove a tag from a Trello organization by specifying the organization and tag identifiers."""  # noqa: E501
+    Use this tool to remove a specific tag from an organization in Trello, identified by the organization ID and tag ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/tags/{idTag}".format(  # noqa: UP032
@@ -7834,20 +8051,23 @@ async def delete_trello_organization_tag(
 async def check_new_billable_guests_on_board(
     context: ToolContext,
     organization_id_or_name: Annotated[
-        str, "The ID or name of the Trello organization to check for new billable guests."
+        str,
+        "The ID or name of the Trello organization to check for new billable guests on a board.",
     ],
-    board_id: Annotated[str, "The ID of the Trello board to check for new billable guests."],
+    board_id_to_check_new_billable_guests: Annotated[
+        str, "The ID of the Trello board to check for new billable guests."
+    ],
 ) -> Annotated[
     dict[str, Any],
     "Response from the API endpoint 'get-organizations-id-newbillableguests-idboard'.",
 ]:
-    """Verify if a Trello board has new billable guests.
+    """Checks for new billable guests on a specified Trello board.
 
-    This tool is used to determine whether a specified Trello board contains any new billable guests. It is helpful for managing billing and guest access on Trello boards."""  # noqa: E501
+    Use this tool to determine if a specific Trello board within an organization has acquired new billable guests."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/organizations/{id}/newBillableGuests/{idBoard}".format(  # noqa: UP032
-                id=organization_id_or_name, idBoard=board_id
+                id=organization_id_or_name, idBoard=board_id_to_check_new_billable_guests
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7863,18 +8083,18 @@ async def check_new_billable_guests_on_board(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def get_trello_plugin_by_id(
+async def get_trello_plugin(
     context: ToolContext,
-    organization_identifier: Annotated[
-        str, "The Trello organization ID or name to retrieve plugin details for."
+    organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello organization to retrieve the plugin for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-plugins-id'."]:
-    """Retrieve information about a Trello plugin by ID.
+    """Retrieve details of a specific Trello plugin using its ID.
 
-    Use this tool to get detailed information about a specific Trello plugin using its ID. This can be helpful for understanding what the plugin does and its capabilities on the Trello platform."""  # noqa: E501
+    Use this tool to fetch information about a specific Trello plugin by providing its ID. This is useful for obtaining plugin details directly from Trello."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_identifier),  # noqa: UP032
+            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7891,16 +8111,16 @@ async def get_trello_plugin_by_id(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_plugin(
     context: ToolContext,
-    organization_identifier: Annotated[
-        str, "The ID or name of the organization to update the plugin for in Trello."
+    organization_id_or_name: Annotated[
+        str, "The ID or name of the Trello organization to update the plugin for."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-plugins-id'."]:
-    """Update a Trello plugin with new information.
+    """Update a Trello plugin by ID.
 
-    Use this tool to update the details of a specific plugin in Trello by providing the plugin ID and new data."""  # noqa: E501
+    Use this tool to modify the details of a specific Trello plugin by providing its ID. Ideal for updating plugin configurations or information."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_identifier),  # noqa: UP032
+            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -7917,19 +8137,20 @@ async def update_trello_plugin(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_plugin_member_privacy_compliance(
     context: ToolContext,
-    plugin_power_up_id: Annotated[
-        str, "The ID of the Trello Power-Up for which to retrieve member privacy compliance."
+    power_up_id: Annotated[
+        str,
+        "The unique identifier for the Power-Up to retrieve its member privacy compliance details.",
     ],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-plugins-id-compliance-memberprivacy'."
 ]:
-    """Retrieve member privacy compliance for a Trello plugin.
+    """Retrieve member privacy compliance for a specific plugin.
 
-    Use this tool to get information about the privacy compliance of members for a specific Trello plugin identified by its ID."""  # noqa: E501
+    This tool retrieves the member privacy compliance details for a specific plugin on Trello. Use this when you need to assess the privacy compliance status of a plugin regarding member information."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/plugins/{id}/compliance/memberPrivacy".format(  # noqa: UP032
-                id=plugin_power_up_id
+                id=power_up_id
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
@@ -7948,100 +8169,94 @@ async def get_plugin_member_privacy_compliance(
 async def trello_search(
     context: ToolContext,
     search_query: Annotated[
-        str,
-        "A search query string for finding items in Trello. Must be between 1 and 16,384 characters.",  # noqa: E501
+        str, "The search query string with a length between 1 and 16384 characters."
     ],
-    board_ids: Annotated[
+    board_filter: Annotated[
         str | None,
-        "Specify 'mine' to search your boards or provide a comma-separated list of specific Board IDs.",  # noqa: E501
+        "Specify `mine` or a comma-separated list of Board IDs to filter search results.",
     ] = None,
     organization_ids: Annotated[
-        str | None, "A comma-separated list of Trello Organization IDs to narrow the search."
+        str | None, "A comma-separated list of Organization IDs to search within."
     ] = None,
-    card_ids: Annotated[
-        str | None,
-        "A comma-separated list of Trello card IDs to specify which cards to search within.",
+    card_ids_list: Annotated[
+        str | None, "A comma-separated list of Card IDs to search within specific cards."
     ] = None,
     search_object_types: Annotated[
         str | None,
-        "Specify the Trello object types to search. Use 'all' or list specific types like 'actions', 'boards', 'cards', 'members', 'organizations'.",  # noqa: E501
+        "Specify the Trello object types to search: `all` or a comma-separated list of `actions`, `boards`, `cards`, `members`, `organizations`.",  # noqa: E501
     ] = None,
-    board_fields: Annotated[
+    board_fields_to_include: Annotated[
         str | None,
-        "Specify fields of boards to include in the search. Use 'all' or a comma-separated list of fields like 'closed', 'dateLastActivity', 'name', etc.",  # noqa: E501
+        "Specify which board fields to include. Use 'all' or a comma-separated list like 'name,url'.",  # noqa: E501
     ] = None,
     maximum_boards_to_return: Annotated[
-        int | None,
-        "Specifies the maximum number of boards to return. The highest value allowed is 1000.",
+        int | None, "The maximum number of boards to return. Must be an integer from 1 to 1000."
     ] = None,
-    card_fields_to_include: Annotated[
+    card_fields_selection: Annotated[
         str | None,
-        "Comma-separated list of card fields to include, or 'all'. Options: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, idAttachmentCover, idBoard, idChecklists, idLabels, idList, idMembers, idMembersVoted, idShort, labels, manualCoverAttachment, name, pos, shortLink, shortUrl, subscribed, url.",  # noqa: E501
+        "Specify 'all' or a comma-separated list of card fields like 'name', 'due', 'labels' to include in the results.",  # noqa: E501
     ] = None,
     maximum_cards_to_return: Annotated[
-        int | None, "The maximum number of cards to return, with an upper limit of 1000."
+        int | None, "The maximum number of cards to return, up to 1000."
     ] = None,
     cards_page_number: Annotated[
-        float | None, "Specifies the page of card results to return, with a maximum limit of 100."
+        float | None, "Specify the page number for card search results. Maximum value is 100."
     ] = None,
     include_card_attachments: Annotated[
         str | None,
-        "Specifies whether to include card attachment objects in the results. Accepts 'true', 'false', or 'cover' to include only cover attachments.",  # noqa: E501
+        "Indicate whether to include attachment objects with card results. Accepts true, false, or 'cover' for only card cover attachments.",  # noqa: E501
     ] = None,
-    organization_fields_to_include: Annotated[
+    organization_fields: Annotated[
         str | None,
-        "Specify which fields of organizations to include: all or select fields like billableMemberCount, desc, etc.",  # noqa: E501
+        "Comma-separated list of organization fields to include. Options: all, billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website.",  # noqa: E501
     ] = None,
-    max_organizations_to_return: Annotated[
-        int | None,
-        "Specify the maximum number of Workspaces (organizations) to return, up to a maximum of 1000.",  # noqa: E501
+    maximum_workspaces_to_return: Annotated[
+        int | None, "Specify the maximum number of Workspaces to return, up to a maximum of 1000."
     ] = None,
     member_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of member fields to include: avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",  # noqa: E501
+        "Specify member fields to retrieve. Options: all, or comma-separated list like `avatarHash`, `bio`, `fullName`, etc.",  # noqa: E501
     ] = None,
-    maximum_members_returned: Annotated[
-        int | None, "Specify the maximum number of members to return, with a maximum of 1000."
+    maximum_members_to_return: Annotated[
+        int | None,
+        "Specify the maximum number of members to return. Must be an integer up to 1000.",
     ] = None,
-    include_parent_organization_with_board_results: Annotated[
-        bool | None, "Set to true to include the parent organization with board results."
+    include_board_organization: Annotated[
+        bool | None, "Include the parent organization with board results when set to true."
     ] = None,
     include_parent_board_with_card_results: Annotated[
-        bool | None, "Set to true to include the parent board with card results; false otherwise."
+        bool | None, "Include parent board information with card results. Use true to include."
     ] = None,
     include_parent_list_with_card_results: Annotated[
-        bool | None,
-        "Set to true to include the parent list with card results, false to exclude it.",
+        bool | None, "Include the parent list with card results. True to include, false to exclude."
     ] = None,
     include_card_members: Annotated[
-        bool | None,
-        "Set to true to include member objects with card results. Accepts a boolean value (true or false).",  # noqa: E501
+        bool | None, "True to include member objects with card results; false to exclude them."
     ] = None,
     include_card_stickers: Annotated[
-        bool | None,
-        "Set to true to include sticker objects with card results; false to exclude them.",
+        bool | None, "Set to true to include sticker objects with card results."
     ] = None,
-    enable_partial_search: Annotated[
+    partial_match_search: Annotated[
         bool | None,
-        "Set to true to enable partial matching in search queries. Allows matching for words starting with a query term.",  # noqa: E501
+        "Search for content starting with any of the words in the query. Enables partial word matching within Trello.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-search'."]:
-    """Search for items in Trello.
+    """Search for anything in your Trello account.
 
-    Use this tool to search for cards, boards, lists, and other items within Trello. It returns relevant search results based on the query provided."""  # noqa: E501
+    This tool allows users to perform a search in their Trello account to find boards, cards, and other items matching their query."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/search",
             params=remove_none_values({
                 "query": search_query,
-                "idBoards": board_ids,
+                "idBoards": board_filter,
                 "idOrganizations": organization_ids,
-                "idCards": card_ids,
+                "idCards": card_ids_list,
                 "modelTypes": search_object_types,
-                "board_fields": board_fields,
+                "board_fields": board_fields_to_include,
                 "boards_limit": maximum_boards_to_return,
-                "board_organization": include_parent_organization_with_board_results,
-                "card_fields": card_fields_to_include,
+                "board_organization": include_board_organization,
+                "card_fields": card_fields_selection,
                 "cards_limit": maximum_cards_to_return,
                 "cards_page": cards_page_number,
                 "card_board": include_parent_board_with_card_results,
@@ -8049,11 +8264,11 @@ async def trello_search(
                 "card_members": include_card_members,
                 "card_stickers": include_card_stickers,
                 "card_attachments": include_card_attachments,
-                "organization_fields": organization_fields_to_include,
-                "organizations_limit": max_organizations_to_return,
+                "organization_fields": organization_fields,
+                "organizations_limit": maximum_workspaces_to_return,
                 "member_fields": member_fields,
-                "members_limit": maximum_members_returned,
-                "partial": enable_partial_search,
+                "members_limit": maximum_members_to_return,
+                "partial": partial_match_search,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -8070,26 +8285,24 @@ async def trello_search(
 async def search_trello_members(
     context: ToolContext,
     search_query: Annotated[
-        str, "A search query string for Trello members, between 1 and 16384 characters long."
+        str, "The search query string, must be between 1 to 16384 characters in length."
     ],
     maximum_results: Annotated[
-        int | None, "The maximum number of Trello members to return, with a limit of 20."
+        int | None, "The maximum number of results to return, up to 20."
     ] = None,
     board_id: Annotated[
-        str | None,
-        "The ID of the Trello board to search for members associated with it. Leave blank to search all boards.",  # noqa: E501
+        str | None, "The ID of the board to search for members associated with it."
     ] = None,
     organization_id: Annotated[
-        str | None,
-        "The ID of the organization to filter members within. Use this to narrow search results to a specific organization.",  # noqa: E501
+        str | None, "The unique ID of the Trello organization to filter search results by."
     ] = None,
     search_only_organization_members: Annotated[
-        bool | None, "Set to true to restrict the search to members within the organization only."
+        bool | None, "Set to true to search only within organization members."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-search-members'."]:
-    """Search for Trello members by name or criteria.
+    """Search for Trello members by criteria.
 
-    This tool searches for members in Trello based on specified criteria, such as their name or other member details."""  # noqa: E501
+    Use this tool to search for Trello members based on specific criteria. Useful for finding users in an organization or project."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/search/members/",
@@ -8114,26 +8327,26 @@ async def search_trello_members(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_token_info(
     context: ToolContext,
-    trello_token_value: Annotated[
+    trello_token: Annotated[
         str,
-        "The specific Trello token to retrieve information about. This is a string representing the token's unique identifier.",  # noqa: E501
+        "The Trello token string for which you want to retrieve information. This token identifies the authentication session.",  # noqa: E501
     ],
-    include_fields: Annotated[
+    token_info_fields: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of fields like 'dateCreated', 'dateExpires', 'idMember', 'identifier', 'permissions' to retrieve specific token information.",  # noqa: E501
+        "Specify `all` or a comma-separated list of fields (`dateCreated`, `dateExpires`, `idMember`, `identifier`, `permissions`) to retrieve.",  # noqa: E501
     ] = None,
     include_webhooks: Annotated[
-        bool | None, "Set to true to include webhooks in the token information."
+        bool | None, "Set to true to include webhooks in the token details."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-tokens-token'."]:
     """Retrieve information about a Trello token.
 
-    Use this tool to get detailed information about a specific Trello token by providing the token value."""  # noqa: E501
+    Use this tool to get details about a specific Trello token, which may include access permissions and associated user or application information. Call this when you need to verify or inspect Trello token data."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}".format(token=trello_token_value),  # noqa: UP032
+            url="https://api.trello.com/1/tokens/{token}".format(token=trello_token),  # noqa: UP032
             params=remove_none_values({
-                "fields": include_fields,
+                "fields": token_info_fields,
                 "webhooks": include_webhooks,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8148,25 +8361,25 @@ async def retrieve_trello_token_info(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_trello_token_owner_info(
+async def get_trello_token_owner_info(
     context: ToolContext,
-    api_token: Annotated[
+    user_token: Annotated[
         str,
-        "The API token associated with the Trello account. Use this to retrieve information about the token's owner.",  # noqa: E501
+        "The Trello token provided by the user to authenticate and retrieve owner information. This should be a valid token string.",  # noqa: E501
     ],
-    member_info_fields: Annotated[
+    member_info_fields_to_retrieve: Annotated[
         str | None,
-        "Specify 'all' or a comma-separated list of valid fields for the Member Object to retrieve specific information.",  # noqa: E501
+        "Specify `all` or a comma-separated list of fields to retrieve from the Member Object. Refer to the Trello documentation for valid fields.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-tokens-token-member'."]:
-    """Retrieve token owner information from Trello.
+    """Retrieve information about a Trello token's owner.
 
-    Use this tool to get details about the owner of a Trello API token. This can be useful for verifying token ownership or understanding user-related details tied to a specific token."""  # noqa: E501
+    Call this tool to get details about the owner of a specific Trello token. Useful for verifying token ownership or accessing member-related data."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/member".format(token=api_token),  # noqa: UP032
+            url="https://api.trello.com/1/tokens/{token}/member".format(token=user_token),  # noqa: UP032
             params=remove_none_values({
-                "fields": member_info_fields,
+                "fields": member_info_fields_to_retrieve,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -8180,15 +8393,18 @@ async def retrieve_trello_token_owner_info(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def retrieve_trello_webhooks(
+async def get_trello_token_webhooks(
     context: ToolContext,
+    trello_token: Annotated[
+        str, "The Trello token to authenticate the request and fetch webhooks."
+    ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-tokens-token-webhooks'."]:
-    """Retrieve all webhooks created with a Trello token.
+    """Retrieve webhooks created with a specific Trello token.
 
-    Use this tool to fetch all webhooks associated with a specific Trello token. It should be called when you need to manage or analyze webhook data for a given token."""  # noqa: E501
+    Use this tool to obtain all webhooks that have been created using a specific Trello token. Useful for managing and reviewing webhook configurations."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks",
+            url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=trello_token),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8203,28 +8419,32 @@ async def retrieve_trello_webhooks(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_webhook(
+async def create_trello_webhook(
     context: ToolContext,
-    webhook_callback_url: Annotated[
-        str,
-        "The URL where the webhook will POST updates. Ensure this is a valid and reachable URL for receiving notifications.",  # noqa: E501
+    webhook_post_url: Annotated[
+        str, "The URL where the webhook will send POST requests when triggered."
     ],
     object_id_for_webhook: Annotated[
-        str, "The ID of the Trello object (like a board or card) for which to create a webhook."
+        str, "The ID of the Trello object (board or card) to create a webhook on."
+    ],
+    webhook_token: Annotated[
+        str,
+        "The Trello authorization token needed for creating the webhook. This grants access to the Trello account where the webhook will be set up.",  # noqa: E501
     ],
     webhook_description: Annotated[
-        str | None, "A brief description displayed when retrieving webhook information."
+        str | None,
+        "A description displayed when retrieving webhook information. This should provide meaningful context for the Trello webhook.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-tokens-token-webhooks'."]:
     """Create a new webhook for a Trello token.
 
-    Use this tool to set up a new webhook associated with a specific Trello token. This is useful for receiving real-time updates or notifications related to Trello boards or cards linked to the token."""  # noqa: E501
+    Use this tool to create a new webhook associated with a specific Trello token. This is useful for setting up event notifications or integrations with Trello boards or cards."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks",
+            url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=webhook_token),  # noqa: UP032
             params=remove_none_values({
                 "description": webhook_description,
-                "callbackURL": webhook_callback_url,
+                "callbackURL": webhook_post_url,
                 "idModel": object_id_for_webhook,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8241,15 +8461,21 @@ async def create_webhook(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def retrieve_trello_webhook(
     context: ToolContext,
+    access_token: Annotated[
+        str, "The authentication token for accessing Trello's API to retrieve webhook details."
+    ],
+    webhook_id: Annotated[str, "The ID of the Trello webhook to retrieve."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'get-tokens-token-webhooks-idwebhook'."
 ]:
-    """Retrieve details of a specific Trello webhook using a token.
+    """Retrieve details of a Trello webhook using a token and webhook ID.
 
-    This tool is used to fetch information about a specific webhook created in Trello using a token. It provides details about the configured webhook associated with the given token and webhook ID."""  # noqa: E501
+    Use this tool to get information about a specific webhook created with a Trello token. It requires a token and the webhook ID to access the details."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
+            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+                token=access_token, idWebhook=webhook_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8264,17 +8490,24 @@ async def retrieve_trello_webhook(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_delete_webhook(
+async def delete_trello_webhook(
     context: ToolContext,
+    authentication_token: Annotated[
+        str,
+        "The authentication token for the Trello account to authorize the deletion of the webhook.",
+    ],
+    webhook_id: Annotated[str, "The ID of the Trello webhook to delete."],
 ) -> Annotated[
     dict[str, Any], "Response from the API endpoint 'delete-tokens-token-webhooks-idwebhook'."
 ]:
-    """Deletes a specified Trello webhook using the token and webhook ID.
+    """Delete a specific Trello webhook.
 
-    This tool removes a webhook in Trello created with the specified token and webhook ID. It should be called when you need to delete a webhook that is no longer needed or to manage webhook inventory."""  # noqa: E501
+    Use this tool to delete a webhook in Trello, specified by token and webhook ID."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
+            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+                token=authentication_token, idWebhook=webhook_id
+            ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8289,30 +8522,33 @@ async def trello_delete_webhook(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def update_webhook(
+async def update_webhook_token(
     context: ToolContext,
+    authentication_token: Annotated[
+        str, "The token used for authentication to update the Trello webhook."
+    ],
+    webhook_id: Annotated[str, "ID of the Trello webhook to be updated."],
     webhook_description: Annotated[
-        str | None,
-        "A string describing the webhook for display purposes. Used when retrieving webhook details.",  # noqa: E501
+        str | None, "Provide a description to display when retrieving webhook information."
     ] = None,
-    webhook_callback_url: Annotated[
+    callback_url: Annotated[str | None, "The URL to which the webhook will POST data."] = None,
+    webhook_object_id: Annotated[
         str | None,
-        "The URL where the webhook will send POST requests. Must be a valid, accessible URL.",
-    ] = None,
-    webhook_target_object_id: Annotated[
-        str | None, "The ID of the object the webhook is associated with on Trello."
+        "Provide the ID of the Trello object that the webhook is associated with. This ID is needed to identify which object the webhook should be updated for.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'tokenstokenwebhooks-1'."]:
-    """Update a Trello webhook using token authentication.
+    """Update a Trello webhook associated with a token.
 
-    Use this tool to update an existing Trello webhook by providing the token and webhook ID. Call this when adjustments to the webhook configuration are needed."""  # noqa: E501
+    Use this tool to update the configuration of a Trello webhook linked with a specific token."""
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
+            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+                token=authentication_token, idWebhook=webhook_id
+            ),
             params=remove_none_values({
                 "description": webhook_description,
-                "callbackURL": webhook_callback_url,
-                "idModel": webhook_target_object_id,
+                "callbackURL": callback_url,
+                "idModel": webhook_object_id,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -8326,19 +8562,18 @@ async def update_webhook(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def trello_delete_token(
+async def delete_trello_token(
     context: ToolContext,
-    authorization_token: Annotated[
-        str,
-        "The specific authorization token in Trello to be deleted. This should be a string value.",
+    trello_token: Annotated[
+        str, "The authentication token to be deleted. This is required for access removal."
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-token'."]:
-    """Deletes an authorization token in Trello.
+    """Delete a Trello API authentication token.
 
-    Use this tool to delete a specific authorization token in Trello when access is no longer required. This helps maintain security and manage permissions effectively."""  # noqa: E501
+    Use this tool to delete a specific Trello API authentication token when it is no longer needed for access or should be invalidated for security reasons."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/".format(token=authorization_token),  # noqa: UP032
+            url="https://api.trello.com/1/tokens/{token}/".format(token=trello_token),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8353,34 +8588,35 @@ async def trello_delete_token(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def create_trello_webhook(
+async def add_trello_webhook(
     context: ToolContext,
-    webhook_callback_url: Annotated[
+    callback_url: Annotated[
         str,
-        "A valid URL that Trello can access with `HEAD` and `POST` requests. This is the endpoint where Trello will send webhook notifications.",  # noqa: E501
+        "A string for a valid URL that Trello can reach with `HEAD` and `POST` requests, used for receiving webhook payloads.",  # noqa: E501
     ],
-    model_id: Annotated[
-        str, "The ID of the Trello model (board or card) to be monitored by the webhook."
+    model_id_to_monitor: Annotated[
+        str, "ID of the Trello model (e.g., board or card) to monitor for updates."
     ],
     webhook_description: Annotated[
-        str | None, "A string with a length from 0 to 16384 characters describing the webhook."
+        str | None,
+        "Provide a description for the new webhook, with a length of 0 to 16384 characters.",
     ] = None,
-    webhook_active: Annotated[
+    webhook_is_active: Annotated[
         bool | None,
-        "Set to true if the webhook should be active and send POST requests; set to false to disable it.",  # noqa: E501
+        "Indicates if the webhook is active and sending POST requests. True to activate, false to deactivate.",  # noqa: E501
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'post-webhooks'."]:
-    """Create a new webhook in Trello.
+    """Create a new webhook on Trello.
 
-    This tool is used to create a new webhook on Trello. Use it when you need to set up a new webhook to track changes on Trello boards or cards."""  # noqa: E501
+    This tool creates a new webhook in Trello, allowing users to receive updates about changes to boards or cards. Call this tool when you need to automate interactions or notifications based on Trello activities."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/webhooks/",
             params=remove_none_values({
                 "description": webhook_description,
-                "callbackURL": webhook_callback_url,
-                "idModel": model_id,
-                "active": webhook_active,
+                "callbackURL": callback_url,
+                "idModel": model_id_to_monitor,
+                "active": webhook_is_active,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -8396,13 +8632,14 @@ async def create_trello_webhook(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def get_trello_webhook_by_id(
     context: ToolContext,
+    webhook_id: Annotated[str, "The unique identifier of the Trello webhook to retrieve."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-webhooks-id'."]:
-    """Fetch details of a specific Trello webhook using its ID.
+    """Retrieve details of a Trello webhook by its ID.
 
-    Call this tool to get information about a Trello webhook, using the specific webhook ID and authentication token. Useful for checking webhook configuration or status."""  # noqa: E501
+    This tool fetches the details of a Trello webhook using its ID. Ensure to include the token used to create the webhook to avoid authorization errors."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}",
+            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8419,34 +8656,32 @@ async def get_trello_webhook_by_id(
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
 async def update_trello_webhook(
     context: ToolContext,
+    webhook_id: Annotated[str, "The unique ID of the Trello webhook to update."],
     webhook_description: Annotated[
         str | None,
-        "A string description for the webhook, with a length from 0 to 16384 characters.",
+        "Provide a description for the webhook, with a string length between 0 to 16384 characters.",  # noqa: E501
     ] = None,
     callback_url: Annotated[
-        str | None,
-        "A valid URL that is reachable with a HEAD and POST request. This URL will be used as the callback for the webhook.",  # noqa: E501
+        str | None, "A valid URL for the webhook to send POST and HEAD requests."
     ] = None,
     model_id_to_monitor: Annotated[
-        str | None,
-        "The ID of the model that the webhook will monitor in Trello. Ensure this is the correct ID for accurate monitoring.",  # noqa: E501
+        str | None, "ID of the Trello model that the webhook will monitor."
     ] = None,
-    is_webhook_active: Annotated[
-        bool | None,
-        "Set to true to make the webhook active, allowing it to send POST requests. False deactivates it.",  # noqa: E501
+    set_webhook_active: Annotated[
+        bool | None, "True to activate the webhook for sending POST requests; false to deactivate."
     ] = None,
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'put-webhooks-id'."]:
-    """Updates a Trello webhook using its ID.
+    """Update a Trello webhook by its ID.
 
-    This tool updates an existing Trello webhook by its ID. It should be called when modifications to the webhook settings, such as the callback URL or description, are needed."""  # noqa: E501
+    Use this tool to update the details of an existing Trello webhook by providing the webhook ID."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}",
+            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
             params=remove_none_values({
                 "description": webhook_description,
                 "callbackURL": callback_url,
                 "idModel": model_id_to_monitor,
-                "active": is_webhook_active,
+                "active": set_webhook_active,
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
             }),
@@ -8460,15 +8695,16 @@ async def update_trello_webhook(
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
-async def delete_trello_webhook_by_id(
+async def remove_trello_webhook(
     context: ToolContext,
+    webhook_id: Annotated[str, "The unique ID of the Trello webhook to be deleted."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'delete-webhooks-id'."]:
-    """Delete a specific webhook on Trello by its ID.
+    """Deletes a Trello webhook using its ID.
 
-    This tool deletes a Trello webhook given its ID. Use it when you need to remove an outdated or unnecessary webhook from a Trello board."""  # noqa: E501
+    This tool is used to delete a specific Trello webhook by providing its unique ID. It should be called when there is a need to remove an existing webhook that is no longer required."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}",
+            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),
                 "token": context.get_secret("TRELLO_TOKEN"),
@@ -8488,18 +8724,18 @@ async def get_trello_webhook_field(
     webhook_id: Annotated[
         str, "The unique identifier of the Trello webhook to retrieve information from."
     ],
-    webhook_field_name: Annotated[
+    webhook_field_to_retrieve: Annotated[
         str,
-        "The specific field to retrieve from the Trello webhook. Options: 'active', 'callbackURL', 'description', 'idModel'.",  # noqa: E501
+        "Specify the webhook field to retrieve. Options: `active`, `callbackURL`, `description`, `idModel`, `consecutiveFailures`, `firstConsecutiveFailDate`.",  # noqa: E501
     ],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'webhooksidfield'."]:
-    """Retrieve a specific field of a Trello webhook.
+    """Retrieve a specific field from a Trello webhook.
 
-    Use this tool to get the value of a specific field from a Trello webhook by providing the webhook ID and the field name."""  # noqa: E501
+    Use this tool to access information about a specific field in a Trello webhook by providing the webhook ID and the desired field name."""  # noqa: E501
     async with httpx.AsyncClient() as client:
         response = await client.request(
             url="https://api.trello.com/1/webhooks/{id}/{field}".format(  # noqa: UP032
-                id=webhook_id, field=webhook_field_name
+                id=webhook_id, field=webhook_field_to_retrieve
             ),
             params=remove_none_values({
                 "key": context.get_secret("TRELLO_API_KEY"),

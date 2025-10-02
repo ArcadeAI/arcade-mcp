@@ -1,7 +1,7 @@
 {
   "name": "RemoveWorkspaceGoogleDomain",
   "fully_qualified_name": "TrelloApi.RemoveWorkspaceGoogleDomain@0.1.0",
-  "description": "Removes the associated Google Apps domain from a Workspace.\n\nUse this tool to delete the associated Google Apps domain from a specified Trello Workspace, identified by its ID.",
+  "description": "Remove the associated Google Apps domain from a Workspace.\n\nThis tool deletes the associated Google Apps domain from a specified Trello Workspace. It should be called when you need to disassociate a Google domain from a Workspace.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "organization_id",
+        "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello organization (Workspace) to remove the associated Google Apps domain.",
+        "description": "The ID or name of the Trello organization (Workspace) to disassociate from the Google Apps domain.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'delete-organizations-id-prefs-associateddomain'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "organization_id",
+        "tool_parameter_name": "organization_id_or_name",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",

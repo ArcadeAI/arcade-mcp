@@ -1,7 +1,7 @@
 {
   "name": "ArchiveAllCardsInList",
   "fully_qualified_name": "TrelloApi.ArchiveAllCardsInList@0.1.0",
-  "description": "Archive all cards in a specified Trello list.\n\nUse this tool to archive every card in a specific Trello list. Ideal for managing list organization by clearing completed or inactive tasks.",
+  "description": "Archive all cards in a specified Trello list.\n\nUse this tool to archive every card in a specified Trello list. It is useful for organizing cards and clearing lists once they are no longer needed.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "list_id",
         "required": true,
-        "description": "The unique identifier of the Trello list to archive all cards from.",
+        "description": "The ID of the Trello list to archive all cards from.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-lists-id-archiveallcards'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

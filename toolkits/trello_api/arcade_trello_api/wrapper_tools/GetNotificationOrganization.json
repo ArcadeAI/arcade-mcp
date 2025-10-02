@@ -1,7 +1,7 @@
 {
   "name": "GetNotificationOrganization",
   "fully_qualified_name": "TrelloApi.GetNotificationOrganization@0.1.0",
-  "description": "Retrieve the organization linked to a notification on Trello.\n\nCall this tool to obtain the organization details associated with a specific notification from Trello.",
+  "description": "Retrieve the organization linked to a notification.\n\nUse this tool to obtain details about the organization associated with a specific Trello notification. It is useful when you need to understand the origin or context of a notification by identifying the related organization.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier for the Trello notification to retrieve the associated organization.",
+        "description": "The ID of the Trello notification to retrieve its associated organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,11 +27,14 @@
       {
         "name": "organization_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields (e.g., 'id,name') to retrieve for the organization.",
+        "description": "A string specifying 'all' or a comma-separated list of fields like 'id' or 'name' to retrieve about the organization.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -43,7 +46,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-notifications-id-organization'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -88,7 +95,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"

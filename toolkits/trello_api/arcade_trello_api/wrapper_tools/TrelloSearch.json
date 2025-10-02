@@ -1,7 +1,7 @@
 {
   "name": "TrelloSearch",
   "fully_qualified_name": "TrelloApi.TrelloSearch@0.1.0",
-  "description": "Search for items in Trello.\n\nUse this tool to search for cards, boards, lists, and other items within Trello. It returns relevant search results based on the query provided.",
+  "description": "Search for anything in your Trello account.\n\nThis tool allows users to perform a search in their Trello account to find boards, cards, and other items matching their query.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "search_query",
         "required": true,
-        "description": "A search query string for finding items in Trello. Must be between 1 and 16,384 characters.",
+        "description": "The search query string with a length between 1 and 16384 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "query"
       },
       {
-        "name": "board_ids",
+        "name": "board_filter",
         "required": false,
-        "description": "Specify 'mine' to search your boards or provide a comma-separated list of specific Board IDs.",
+        "description": "Specify `mine` or a comma-separated list of Board IDs to filter search results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "organization_ids",
         "required": false,
-        "description": "A comma-separated list of Trello Organization IDs to narrow the search.",
+        "description": "A comma-separated list of Organization IDs to search within.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +55,9 @@
         "http_endpoint_parameter_name": "idOrganizations"
       },
       {
-        "name": "card_ids",
+        "name": "card_ids_list",
         "required": false,
-        "description": "A comma-separated list of Trello card IDs to specify which cards to search within.",
+        "description": "A comma-separated list of Card IDs to search within specific cards.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "search_object_types",
         "required": false,
-        "description": "Specify the Trello object types to search. Use 'all' or list specific types like 'actions', 'boards', 'cards', 'members', 'organizations'.",
+        "description": "Specify the Trello object types to search: `all` or a comma-separated list of `actions`, `boards`, `cards`, `members`, `organizations`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,9 +85,9 @@
         "http_endpoint_parameter_name": "modelTypes"
       },
       {
-        "name": "board_fields",
+        "name": "board_fields_to_include",
         "required": false,
-        "description": "Specify fields of boards to include in the search. Use 'all' or a comma-separated list of fields like 'closed', 'dateLastActivity', 'name', etc.",
+        "description": "Specify which board fields to include. Use 'all' or a comma-separated list like 'name,url'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -102,7 +102,7 @@
       {
         "name": "maximum_boards_to_return",
         "required": false,
-        "description": "Specifies the maximum number of boards to return. The highest value allowed is 1000.",
+        "description": "The maximum number of boards to return. Must be an integer from 1 to 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -115,9 +115,9 @@
         "http_endpoint_parameter_name": "boards_limit"
       },
       {
-        "name": "card_fields_to_include",
+        "name": "card_fields_selection",
         "required": false,
-        "description": "Comma-separated list of card fields to include, or 'all'. Options: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, idAttachmentCover, idBoard, idChecklists, idLabels, idList, idMembers, idMembersVoted, idShort, labels, manualCoverAttachment, name, pos, shortLink, shortUrl, subscribed, url.",
+        "description": "Specify 'all' or a comma-separated list of card fields like 'name', 'due', 'labels' to include in the results.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -132,7 +132,7 @@
       {
         "name": "maximum_cards_to_return",
         "required": false,
-        "description": "The maximum number of cards to return, with an upper limit of 1000.",
+        "description": "The maximum number of cards to return, up to 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -147,7 +147,7 @@
       {
         "name": "cards_page_number",
         "required": false,
-        "description": "Specifies the page of card results to return, with a maximum limit of 100.",
+        "description": "Specify the page number for card search results. Maximum value is 100.",
         "value_schema": {
           "val_type": "number",
           "inner_val_type": null,
@@ -162,7 +162,7 @@
       {
         "name": "include_card_attachments",
         "required": false,
-        "description": "Specifies whether to include card attachment objects in the results. Accepts 'true', 'false', or 'cover' to include only cover attachments.",
+        "description": "Indicate whether to include attachment objects with card results. Accepts true, false, or 'cover' for only card cover attachments.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -175,9 +175,9 @@
         "http_endpoint_parameter_name": "card_attachments"
       },
       {
-        "name": "organization_fields_to_include",
+        "name": "organization_fields",
         "required": false,
-        "description": "Specify which fields of organizations to include: all or select fields like billableMemberCount, desc, etc.",
+        "description": "Comma-separated list of organization fields to include. Options: all, billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -190,9 +190,9 @@
         "http_endpoint_parameter_name": "organization_fields"
       },
       {
-        "name": "max_organizations_to_return",
+        "name": "maximum_workspaces_to_return",
         "required": false,
-        "description": "Specify the maximum number of Workspaces (organizations) to return, up to a maximum of 1000.",
+        "description": "Specify the maximum number of Workspaces to return, up to a maximum of 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -207,7 +207,7 @@
       {
         "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to include: avatarHash, bio, bioData, confirmed, fullName, idPremOrgsAdmin, initials, memberType, products, status, url, username.",
+        "description": "Specify member fields to retrieve. Options: all, or comma-separated list like `avatarHash`, `bio`, `fullName`, etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -220,9 +220,9 @@
         "http_endpoint_parameter_name": "member_fields"
       },
       {
-        "name": "maximum_members_returned",
+        "name": "maximum_members_to_return",
         "required": false,
-        "description": "Specify the maximum number of members to return, with a maximum of 1000.",
+        "description": "Specify the maximum number of members to return. Must be an integer up to 1000.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -235,9 +235,9 @@
         "http_endpoint_parameter_name": "members_limit"
       },
       {
-        "name": "include_parent_organization_with_board_results",
+        "name": "include_board_organization",
         "required": false,
-        "description": "Set to true to include the parent organization with board results.",
+        "description": "Include the parent organization with board results when set to true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -252,7 +252,7 @@
       {
         "name": "include_parent_board_with_card_results",
         "required": false,
-        "description": "Set to true to include the parent board with card results; false otherwise.",
+        "description": "Include parent board information with card results. Use true to include.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -267,7 +267,7 @@
       {
         "name": "include_parent_list_with_card_results",
         "required": false,
-        "description": "Set to true to include the parent list with card results, false to exclude it.",
+        "description": "Include the parent list with card results. True to include, false to exclude.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -282,7 +282,7 @@
       {
         "name": "include_card_members",
         "required": false,
-        "description": "Set to true to include member objects with card results. Accepts a boolean value (true or false).",
+        "description": "True to include member objects with card results; false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -297,7 +297,7 @@
       {
         "name": "include_card_stickers",
         "required": false,
-        "description": "Set to true to include sticker objects with card results; false to exclude them.",
+        "description": "Set to true to include sticker objects with card results.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -310,9 +310,9 @@
         "http_endpoint_parameter_name": "card_stickers"
       },
       {
-        "name": "enable_partial_search",
+        "name": "partial_match_search",
         "required": false,
-        "description": "Set to true to enable partial matching in search queries. Allows matching for words starting with a query term.",
+        "description": "Search for content starting with any of the words in the query. Enables partial word matching within Trello.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -328,7 +328,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-search'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -385,7 +389,7 @@
       },
       {
         "name": "idBoards",
-        "tool_parameter_name": "board_ids",
+        "tool_parameter_name": "board_filter",
         "description": "`mine` or a comma-separated list of Board IDs",
         "value_schema": {
           "val_type": "string",
@@ -419,7 +423,7 @@
       },
       {
         "name": "idCards",
-        "tool_parameter_name": "card_ids",
+        "tool_parameter_name": "card_ids_list",
         "description": "A comma-separated list of Card IDs",
         "value_schema": {
           "val_type": "string",
@@ -453,7 +457,7 @@
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "board_fields",
+        "tool_parameter_name": "board_fields_to_include",
         "description": "all or a comma-separated list of: `closed`, `dateLastActivity`, `dateLastView`, `desc`, `descData`, `idOrganization`, `invitations`, `invited`, `labelNames`, `memberships`, `name`, `pinned`, `powerUps`, `prefs`, `shortLink`, `shortUrl`, `starred`, `subscribed`, `url`",
         "value_schema": {
           "val_type": "string",
@@ -487,7 +491,7 @@
       },
       {
         "name": "board_organization",
-        "tool_parameter_name": "include_parent_organization_with_board_results",
+        "tool_parameter_name": "include_board_organization",
         "description": "Whether to include the parent organization with board results",
         "value_schema": {
           "val_type": "boolean",
@@ -504,7 +508,7 @@
       },
       {
         "name": "card_fields",
-        "tool_parameter_name": "card_fields_to_include",
+        "tool_parameter_name": "card_fields_selection",
         "description": "all or a comma-separated list of: `badges`, `checkItemStates`, `closed`, `dateLastActivity`, `desc`, `descData`, `due`, `idAttachmentCover`, `idBoard`, `idChecklists`, `idLabels`, `idList`, `idMembers`, `idMembersVoted`, `idShort`, `labels`, `manualCoverAttachment`, `name`, `pos`, `shortLink`, `shortUrl`, `subscribed`, `url`",
         "value_schema": {
           "val_type": "string",
@@ -640,7 +644,7 @@
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "organization_fields_to_include",
+        "tool_parameter_name": "organization_fields",
         "description": "all or a comma-separated list of billableMemberCount, desc, descData, displayName, idBoards, invitations, invited, logoHash, memberships, name, powerUps, prefs, premiumFeatures, products, url, website",
         "value_schema": {
           "val_type": "string",
@@ -657,7 +661,7 @@
       },
       {
         "name": "organizations_limit",
-        "tool_parameter_name": "max_organizations_to_return",
+        "tool_parameter_name": "maximum_workspaces_to_return",
         "description": "The maximum number of Workspaces to return. Maximum 1000",
         "value_schema": {
           "val_type": "integer",
@@ -691,7 +695,7 @@
       },
       {
         "name": "members_limit",
-        "tool_parameter_name": "maximum_members_returned",
+        "tool_parameter_name": "maximum_members_to_return",
         "description": "The maximum number of members to return. Maximum 1000",
         "value_schema": {
           "val_type": "integer",
@@ -708,7 +712,7 @@
       },
       {
         "name": "partial",
-        "tool_parameter_name": "enable_partial_search",
+        "tool_parameter_name": "partial_match_search",
         "description": "By default, Trello searches for each word in your query against exactly matching words within Member content. Specifying partial to be true means that we will look for content that starts with any of the words in your query.  If you are looking for a Card titled \"My Development Status Report\", by default you would need to search for \"Development\". If you have partial enabled, you will be able to search for \"dev\" but not \"velopment\".",
         "value_schema": {
           "val_type": "boolean",

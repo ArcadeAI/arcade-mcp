@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloMember",
   "fully_qualified_name": "TrelloApi.UpdateTrelloMember@0.1.0",
-  "description": "Update Trello member details.\n\nUse this tool to update details of a Trello member by specifying their ID.",
+  "description": "Update a member's information on Trello.\n\nUse this tool to update details of a Trello member by specifying their ID. This is useful for modifying user information or settings.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,7 +10,7 @@
   "input": {
     "parameters": [
       {
-        "name": "member_id_or_username",
+        "name": "member_identifier",
         "required": true,
         "description": "The ID or username of the Trello member to update.",
         "value_schema": {
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_full_name",
+        "name": "new_member_full_name",
         "required": false,
-        "description": "New name for the Trello member. Ensure it does not begin or end with a space.",
+        "description": "New name for the member. It should not begin or end with a space.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "member_initials",
         "required": false,
-        "description": "New initials for the member. Must be 1-4 characters long.",
+        "description": "New initials for the member, between 1 and 4 characters long.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "new_username",
         "required": false,
-        "description": "New unique username for the member. Must be at least 3 characters long, containing only lowercase letters, underscores, and numbers.",
+        "description": "New username for the member. Must be unique, at least 3 characters long, only lowercase letters, underscores, and numbers.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -70,9 +70,9 @@
         "http_endpoint_parameter_name": "username"
       },
       {
-        "name": "member_bio_update",
+        "name": "member_bio",
         "required": false,
-        "description": "A new biography for the Trello member. It should provide a brief description or info about the member.",
+        "description": "Biography or description for the member. Allows personalization or additional information about the member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -85,13 +85,17 @@
         "http_endpoint_parameter_name": "bio"
       },
       {
-        "name": "avatar_source",
+        "name": "avatar_source_option",
         "required": false,
-        "description": "Specify the source of the avatar. Choose 'gravatar', 'none', or 'upload'.",
+        "description": "Specify the source for the avatar. Options: 'gravatar', 'none', 'upload'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["gravatar", "none", "upload"],
+          "enum": [
+            "gravatar",
+            "none",
+            "upload"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `gravatar`, `none`, `upload`"
@@ -100,9 +104,9 @@
         "http_endpoint_parameter_name": "avatarSource"
       },
       {
-        "name": "preferences_locale",
+        "name": "preferred_locale",
         "required": false,
-        "description": "Locale setting for the member's preferences. Specify as a language code, e.g., 'en-US'.",
+        "description": "Specify the preferred language locale for the member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -115,9 +119,9 @@
         "http_endpoint_parameter_name": "prefs/locale"
       },
       {
-        "name": "summary_update_frequency",
+        "name": "update_interval_minutes",
         "required": false,
-        "description": "Set the frequency for summary updates. Use `-1` to disable, `1` for every minute, or `60` for hourly updates.",
+        "description": "Set the interval for summaries in minutes. Use `-1` to disable, `1` for frequent, or `60` for hourly updates.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -132,7 +136,7 @@
       {
         "name": "enable_color_blind_mode",
         "required": false,
-        "description": "Set to true to enable color blind mode in the member's preferences.",
+        "description": "Enable or disable color blind mode for the member. `true` to enable; `false` to disable.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -148,7 +152,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-members-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -188,7 +196,7 @@
     "parameters": [
       {
         "name": "fullName",
-        "tool_parameter_name": "member_full_name",
+        "tool_parameter_name": "new_member_full_name",
         "description": "New name for the member. Cannot begin or end with a space.",
         "value_schema": {
           "val_type": "string",
@@ -239,7 +247,7 @@
       },
       {
         "name": "bio",
-        "tool_parameter_name": "member_bio_update",
+        "tool_parameter_name": "member_bio",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -256,12 +264,16 @@
       },
       {
         "name": "avatarSource",
-        "tool_parameter_name": "avatar_source",
+        "tool_parameter_name": "avatar_source_option",
         "description": "One of: `gravatar`, `none`, `upload`",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["gravatar", "none", "upload"],
+          "enum": [
+            "gravatar",
+            "none",
+            "upload"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `gravatar`, `none`, `upload`"
@@ -290,7 +302,7 @@
       },
       {
         "name": "prefs/locale",
-        "tool_parameter_name": "preferences_locale",
+        "tool_parameter_name": "preferred_locale",
         "description": "",
         "value_schema": {
           "val_type": "string",
@@ -307,7 +319,7 @@
       },
       {
         "name": "prefs/minutesBetweenSummaries",
-        "tool_parameter_name": "summary_update_frequency",
+        "tool_parameter_name": "update_interval_minutes",
         "description": "`-1` for disabled, `1`, or `60`",
         "value_schema": {
           "val_type": "integer",
@@ -324,7 +336,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "member_id_or_username",
+        "tool_parameter_name": "member_identifier",
         "description": "The ID or username of the member",
         "value_schema": {
           "val_type": "string",

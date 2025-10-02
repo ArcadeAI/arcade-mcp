@@ -1,7 +1,7 @@
 {
   "name": "GetOrganizationOfAction",
   "fully_qualified_name": "TrelloApi.GetOrganizationOfAction@0.1.0",
-  "description": "Retrieve organization details of a specific action on Trello.\n\nThis tool retrieves the organization information associated with a specified action in Trello. It should be called when detailed information about the organization linked to a particular action is needed.",
+  "description": "Retrieve organization details for a given action ID.\n\nUse this tool to obtain information about the organization associated with a specific action on Trello. It should be called when you need to know which organization is linked to an action based on its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier of the action whose organization details are being retrieved.",
+        "description": "The unique identifier for the action whose organization details are being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,11 +27,14 @@
       {
         "name": "organization_fields",
         "required": false,
-        "description": "Specify '`all`' to retrieve all fields or provide a comma-separated list (e.g., 'id,name') of specific organization fields to retrieve.",
+        "description": "Specify `all` or a comma-separated list of organization fields like `id,name` to retrieve specific details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization fields"
@@ -43,7 +46,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-actions-id-organization'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -88,7 +95,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization fields"

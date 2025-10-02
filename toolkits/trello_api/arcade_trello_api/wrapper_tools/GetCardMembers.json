@@ -1,7 +1,7 @@
 {
   "name": "GetCardMembers",
   "fully_qualified_name": "TrelloApi.GetCardMembers@0.1.0",
-  "description": "Retrieve members associated with a Trello card.\n\nThis tool is used to get the list of members assigned to a specific card on Trello based on the card ID. Use this when you need to know which members are collaborating on a particular Trello card.",
+  "description": "Retrieve members assigned to a specific Trello card.\n\nUse this tool to get details about the members associated with a specific Trello card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of a Trello card to retrieve its associated members.",
+        "description": "The ID of the Trello card to get member information for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to retrieve for each member on the card.",
+        "description": "Specify 'all' or a comma-separated list of member fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-members'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

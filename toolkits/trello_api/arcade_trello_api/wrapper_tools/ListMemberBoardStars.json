@@ -1,7 +1,7 @@
 {
   "name": "ListMemberBoardStars",
   "fully_qualified_name": "TrelloApi.ListMemberBoardStars@0.1.0",
-  "description": "Fetch the list of a member's starred Trello boards.\n\nUse this tool to retrieve the board stars of a specific Trello member.",
+  "description": "Retrieve a member's starred boards.\n\nCall this tool to list the boards that a specific member has starred in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose board stars you want to list.",
+        "description": "The ID or username of the Trello member whose board stars are to be listed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-boardstars'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

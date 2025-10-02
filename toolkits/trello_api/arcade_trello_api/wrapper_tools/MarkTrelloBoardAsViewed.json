@@ -1,7 +1,7 @@
 {
   "name": "MarkTrelloBoardAsViewed",
   "fully_qualified_name": "TrelloApi.MarkTrelloBoardAsViewed@0.1.0",
-  "description": "Mark a Trello board as viewed.\n\nThis tool marks a specified Trello board as viewed. Use it to update the view status of a board in Trello.",
+  "description": "Marks a Trello board as viewed for a user.\n\nUse this tool when you need to mark a Trello board as viewed. It helps manage board activity tracking by indicating when a user has viewed it.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "board_id_to_mark_as_viewed",
+        "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board to mark as viewed.",
+        "description": "The unique identifier of the Trello board to be marked as viewed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-boards-id-markedasviewed'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "board_id_to_mark_as_viewed",
+        "tool_parameter_name": "board_id",
         "description": "The id of the board to update",
         "value_schema": {
           "val_type": "string",

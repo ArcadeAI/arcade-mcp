@@ -1,7 +1,7 @@
 {
   "name": "GetCardVoters",
   "fully_qualified_name": "TrelloApi.GetCardVoters@0.1.0",
-  "description": "Retrieve members who voted on a Trello card.\n\nUse this tool to get the list of members who have voted on a specific Trello card. It should be called when you need to identify who has expressed interest or opinion through voting on a card.",
+  "description": "Retrieve members who voted on a Trello card.\n\nUse this tool to get a list of members who have voted on a specific Trello card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "card_id",
+        "required": true,
+        "description": "The ID of the Trello card to retrieve voters for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
         "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' or provide a comma-separated list of member fields to retrieve, such as 'id,username,email'.",
+        "description": "Specify 'all' or a list of member fields (e.g., 'fullName,username') to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-membersvoted'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -80,6 +99,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

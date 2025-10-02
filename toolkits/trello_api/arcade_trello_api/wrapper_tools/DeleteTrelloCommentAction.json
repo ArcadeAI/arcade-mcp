@@ -1,18 +1,38 @@
 {
   "name": "DeleteTrelloCommentAction",
   "fully_qualified_name": "TrelloApi.DeleteTrelloCommentAction@0.1.0",
-  "description": "Delete a specific comment action on Trello.\n\nUse this tool to delete a specific comment action on Trello by providing the action ID. This tool is applicable only for comment actions.",
+  "description": "Delete a specific comment action on Trello.\n\nUse this tool to delete a specific comment action on Trello by providing the action ID. Only comment actions are eligible for deletion.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "action_id",
+        "required": true,
+        "description": "The ID of the Trello comment action to be deleted.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'delete-actions-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/actions/{id}",
     "http_method": "DELETE",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "action_id",
+        "description": "The ID of the Action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloAction",
   "fully_qualified_name": "TrelloApi.GetTrelloAction@0.1.0",
-  "description": "Retrieve details of a specific Trello action.\n\nUse this tool to obtain information about a particular action in Trello by providing its unique ID.",
+  "description": "Retrieve details of a specific Trello action by ID.\n\nUse this tool to get detailed information about a specific action in Trello using the action's unique ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "action_id",
+        "required": true,
+        "description": "The unique ID of the Trello action to retrieve details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
         "name": "action_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of action fields to retrieve details. Refer to Trello's action object documentation for valid fields.",
+        "description": "Specify 'all' or provide a comma-separated list of specific action fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +42,7 @@
       {
         "name": "member_fields_list",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to retrieve.",
+        "description": "Specify 'all' or list member fields (comma-separated) to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +55,9 @@
         "http_endpoint_parameter_name": "member_fields"
       },
       {
-        "name": "include_member_creator_fields",
+        "name": "member_creator_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of member fields to include for the action creator.",
+        "description": "Specify `all` or list member fields to include for the action's creator.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +72,7 @@
       {
         "name": "include_display",
         "required": false,
-        "description": "Set to true to include display information in the response.",
+        "description": "Include display details for the action. Accepts a boolean value.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -72,7 +87,7 @@
       {
         "name": "include_entities",
         "required": false,
-        "description": "Set to true to include the entities related to the action in the response.",
+        "description": "Set to true to include entities related to the action in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -85,9 +100,9 @@
         "http_endpoint_parameter_name": "entities"
       },
       {
-        "name": "include_member_object",
+        "name": "include_member",
         "required": false,
-        "description": "Specify whether to include the member object for the action. Use `true` to include or `false` to exclude.",
+        "description": "A boolean to specify whether to include the member object related to the action.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -100,9 +115,9 @@
         "http_endpoint_parameter_name": "member"
       },
       {
-        "name": "include_member_creator",
+        "name": "include_action_creator",
         "required": false,
-        "description": "Set to true to include the member object for the creator of the action, false to exclude.",
+        "description": "Include the member object for the creator of the action when true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -118,7 +133,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-actions-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -209,7 +228,7 @@
       },
       {
         "name": "member",
-        "tool_parameter_name": "include_member_object",
+        "tool_parameter_name": "include_member",
         "description": "",
         "value_schema": {
           "val_type": "boolean",
@@ -243,7 +262,7 @@
       },
       {
         "name": "memberCreator",
-        "tool_parameter_name": "include_member_creator",
+        "tool_parameter_name": "include_action_creator",
         "description": "Whether to include the member object for the creator of the action",
         "value_schema": {
           "val_type": "boolean",
@@ -260,7 +279,7 @@
       },
       {
         "name": "memberCreator_fields",
-        "tool_parameter_name": "include_member_creator_fields",
+        "tool_parameter_name": "member_creator_fields",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -272,6 +291,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "action_id",
+        "description": "The ID of the Action",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Action"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

@@ -1,7 +1,7 @@
 {
   "name": "CreateTrelloWorkspace",
   "fully_qualified_name": "TrelloApi.CreateTrelloWorkspace@0.1.0",
-  "description": "Create a new Trello Workspace.\n\nThis tool is used to create a new Workspace in Trello. It should be called when a user wants to set up a new organizational space within Trello for managing projects and teams.",
+  "description": "Create a new Trello workspace.\n\nUse this tool to create a new workspace in Trello. It should be called when you want to organize boards and manage team's projects under a new workspace.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "workspace_display_name",
+        "name": "display_name_for_workspace",
         "required": true,
-        "description": "The display name of the Trello workspace. It should be clear and descriptive.",
+        "description": "The name to display for the Trello workspace. This should be a descriptive and recognizable name.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "workspace_description",
         "required": false,
-        "description": "A string providing the description for the Trello Workspace.",
+        "description": "A description for the Trello workspace. Provide details about the purpose or scope of this workspace.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "workspace_identifier",
         "required": false,
-        "description": "A unique identifier for the Workspace. Must be at least 3 characters long using only lowercase letters, underscores, and numbers. Invalid characters will be removed, and duplicates will be auto-resolved.",
+        "description": "A unique string with at least 3 characters. Only lowercase letters, underscores, and numbers are allowed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "workspace_website_url",
         "required": false,
-        "description": "A URL starting with `http://` or `https://` for the organization's website.",
+        "description": "The website URL for the workspace, must start with `http://` or `https://`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -73,7 +73,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-organizations'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -113,7 +117,7 @@
     "parameters": [
       {
         "name": "displayName",
-        "tool_parameter_name": "workspace_display_name",
+        "tool_parameter_name": "display_name_for_workspace",
         "description": "The name to display for the Organization",
         "value_schema": {
           "val_type": "string",

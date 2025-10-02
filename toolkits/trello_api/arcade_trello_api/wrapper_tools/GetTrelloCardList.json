@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloCardList",
   "fully_qualified_name": "TrelloApi.GetTrelloCardList@0.1.0",
-  "description": "Retrieve the Trello list for a specific card.\n\nCall this tool to get information about the Trello list that a particular card belongs to, using the card's ID.",
+  "description": "Retrieve the list a specific Trello card belongs to.\n\nUse this tool to get details about the list in which a specific Trello card is located. It should be called when you need to identify or manage the list associated with a card in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card to retrieve list information.",
+        "description": "The unique identifier for the specific Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "list_fields",
         "required": false,
-        "description": "Specify 'all' to retrieve all fields, or provide a comma-separated list of specific fields for the list.",
+        "description": "Specify 'all' or a comma-separated list of list fields to retrieve details about the Trello list a card belongs to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id-list'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

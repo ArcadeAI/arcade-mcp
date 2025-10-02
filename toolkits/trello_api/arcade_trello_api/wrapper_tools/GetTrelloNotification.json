@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloNotification",
   "fully_qualified_name": "TrelloApi.GetTrelloNotification@0.1.0",
-  "description": "Retrieve details of a specific Trello notification.\n\nUse this tool to fetch detailed information about a specific notification in Trello using its ID.",
+  "description": "Retrieve a specific Trello notification by its ID.\n\nUse this tool to get the details of a specific notification on Trello by providing the notification ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier for the Trello notification to be retrieved.",
+        "description": "The unique identifier for the specific Trello notification to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "include_board_fields",
+        "name": "board_fields_to_include",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of board fields to include, such as `id`, `name`, `desc`, etc. Choose fields relevant to your needs.",
+        "description": "Specify `all` or a comma-separated list of board fields (e.g., `id,name,desc`) to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,9 +57,9 @@
         "http_endpoint_parameter_name": "board_fields"
       },
       {
-        "name": "include_card_fields",
+        "name": "card_fields_to_include",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of card fields to include in the notification details.",
+        "description": "Specify `all` or a comma-separated list of card fields to include in the response. Valid options: id, address, badges, checkItemStates, closed, coordinates, creationMethod, dueComplete, dateLastActivity, desc, descData, due, dueReminder, idBoard, idChecklists, idLabels, idList, idMembers, idMembersVoted, idShort, idAttachmentCover, labels, limits, locationName, manualCoverAttachment, name, pos, shortLink, shortUrl, subscribed, url, cover, isTemplate.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -108,7 +108,7 @@
       {
         "name": "notification_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields like id, unread, type, etc., to include in the notification details.",
+        "description": "Specify `all` or a comma-separated list of notification fields like `id`, `unread`, `type`, etc.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -133,13 +133,15 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "include_member_fields",
+        "name": "member_fields_inclusion",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of member fields to include in the response, such as 'id'.",
+        "description": "Specify 'all' or a comma-separated list of member fields to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -148,13 +150,15 @@
         "http_endpoint_parameter_name": "member_fields"
       },
       {
-        "name": "member_creator_fields",
+        "name": "include_member_creator_fields",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of member fields for the creator. Use 'id' or other valid fields.",
+        "description": "`all` or a comma-separated list of member fields to include for the member creator.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -163,13 +167,16 @@
         "http_endpoint_parameter_name": "memberCreator_fields"
       },
       {
-        "name": "organization_fields_to_include",
+        "name": "organization_field_selection",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of organization fields to retrieve, such as `id` and `name`.",
+        "description": "Specify `all` or a comma-separated list of organization fields like `id,name` to include in the result.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -193,9 +200,9 @@
         "http_endpoint_parameter_name": "board"
       },
       {
-        "name": "include_card_object",
+        "name": "include_card",
         "required": false,
-        "description": "Set to true to include the card object in the notification details.",
+        "description": "Set to true to include the card object in the notification response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -208,9 +215,9 @@
         "http_endpoint_parameter_name": "card"
       },
       {
-        "name": "include_display_object",
+        "name": "include_display",
         "required": false,
-        "description": "Set to true to include the display object with the results.",
+        "description": "Set to true to include the display object in the results.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -225,7 +232,7 @@
       {
         "name": "include_entities",
         "required": false,
-        "description": "Set to true to include the entities object with the notification results.",
+        "description": "Set to true to include the entities object in the results.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -238,9 +245,9 @@
         "http_endpoint_parameter_name": "entities"
       },
       {
-        "name": "include_list",
+        "name": "include_list_object",
         "required": false,
-        "description": "Set to `true` to include the list object in the notification details; otherwise, `false`.",
+        "description": "Include the list object in the notification details when true.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -253,9 +260,9 @@
         "http_endpoint_parameter_name": "list"
       },
       {
-        "name": "include_member_object",
+        "name": "include_member",
         "required": false,
-        "description": "Set to true to include the member object.",
+        "description": "Include the member object in the response when true; exclude it when false.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -268,9 +275,9 @@
         "http_endpoint_parameter_name": "member"
       },
       {
-        "name": "include_member_creator",
+        "name": "include_member_creator_object",
         "required": false,
-        "description": "Set to true to include the member object of the creator in the response.",
+        "description": "Set to true to include the member object of the creator in the notification details.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -283,7 +290,7 @@
         "http_endpoint_parameter_name": "memberCreator"
       },
       {
-        "name": "include_organization_object",
+        "name": "include_organization",
         "required": false,
         "description": "Set to true to include the organization object in the notification details.",
         "value_schema": {
@@ -301,7 +308,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-notifications-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -358,7 +369,7 @@
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "include_board_fields",
+        "tool_parameter_name": "board_fields_to_include",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -392,7 +403,7 @@
       },
       {
         "name": "card",
-        "tool_parameter_name": "include_card_object",
+        "tool_parameter_name": "include_card",
         "description": "Whether to include the card object",
         "value_schema": {
           "val_type": "boolean",
@@ -409,7 +420,7 @@
       },
       {
         "name": "card_fields",
-        "tool_parameter_name": "include_card_fields",
+        "tool_parameter_name": "card_fields_to_include",
         "description": "`all` or a comma-separated list of card [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -460,7 +471,7 @@
       },
       {
         "name": "display",
-        "tool_parameter_name": "include_display_object",
+        "tool_parameter_name": "include_display",
         "description": "Whether to include the display object with the results",
         "value_schema": {
           "val_type": "boolean",
@@ -523,7 +534,7 @@
       },
       {
         "name": "list",
-        "tool_parameter_name": "include_list",
+        "tool_parameter_name": "include_list_object",
         "description": "Whether to include the list object",
         "value_schema": {
           "val_type": "boolean",
@@ -540,7 +551,7 @@
       },
       {
         "name": "member",
-        "tool_parameter_name": "include_member_object",
+        "tool_parameter_name": "include_member",
         "description": "Whether to include the member object",
         "value_schema": {
           "val_type": "boolean",
@@ -557,12 +568,14 @@
       },
       {
         "name": "member_fields",
-        "tool_parameter_name": "include_member_fields",
+        "tool_parameter_name": "member_fields_inclusion",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -574,7 +587,7 @@
       },
       {
         "name": "memberCreator",
-        "tool_parameter_name": "include_member_creator",
+        "tool_parameter_name": "include_member_creator_object",
         "description": "Whether to include the member object of the creator",
         "value_schema": {
           "val_type": "boolean",
@@ -591,12 +604,14 @@
       },
       {
         "name": "memberCreator_fields",
-        "tool_parameter_name": "member_creator_fields",
+        "tool_parameter_name": "include_member_creator_fields",
         "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member [fields](/cloud/trello/guides/rest-api/object-definitions/)"
@@ -608,7 +623,7 @@
       },
       {
         "name": "organization",
-        "tool_parameter_name": "include_organization_object",
+        "tool_parameter_name": "include_organization",
         "description": "Whether to include the organization object",
         "value_schema": {
           "val_type": "boolean",
@@ -625,12 +640,15 @@
       },
       {
         "name": "organization_fields",
-        "tool_parameter_name": "organization_fields_to_include",
+        "tool_parameter_name": "organization_field_selection",
         "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id", "name"],
+          "enum": [
+            "id",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of organization [fields](/cloud/trello/guides/rest-api/object-definitions/)"

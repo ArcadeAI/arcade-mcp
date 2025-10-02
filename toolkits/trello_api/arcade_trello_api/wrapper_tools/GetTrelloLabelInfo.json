@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloLabelInfo",
   "fully_qualified_name": "TrelloApi.GetTrelloLabelInfo@0.1.0",
-  "description": "Retrieve details about a specific Trello label.\n\nUse this tool to get information about a single Trello label by its ID, such as name, color, and other attributes. Useful for understanding label details in Trello boards.",
+  "description": "Retrieve detailed information about a specific Trello label.\n\nUse this tool to get details of a specific label in Trello by providing the label ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "fields_details_to_retrieve",
+        "name": "label_id",
+        "required": true,
+        "description": "The unique identifier of the Trello label to retrieve information for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Label"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "fields_included_in_response",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields to retrieve information about the Trello label, such as name and color.",
+        "description": "Specify 'all' or a comma-separated list of field names to include in the response.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-labels-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +87,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "fields_details_to_retrieve",
+        "tool_parameter_name": "fields_included_in_response",
         "description": "all or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -80,6 +99,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "label_id",
+        "description": "The ID of the Label",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Label"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

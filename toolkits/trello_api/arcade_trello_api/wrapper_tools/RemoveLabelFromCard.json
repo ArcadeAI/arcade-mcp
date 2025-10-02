@@ -1,7 +1,7 @@
 {
   "name": "RemoveLabelFromCard",
   "fully_qualified_name": "TrelloApi.RemoveLabelFromCard@0.1.0",
-  "description": "Remove a label from a Trello card based on card and label IDs.\n\nUse this tool to delete a specific label from a Trello card by providing the card ID and the label ID. It is useful when organizing and managing card labels in Trello.",
+  "description": "Remove a label from a Trello card.\n\nThis tool is used to remove a specific label from a Trello card. It should be called when you need to unassign a label from a card in your Trello board. The tool confirms the successful removal of the label.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card from which the label will be removed.",
+        "description": "The unique identifier for the Trello card from which the label will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "label_id_to_remove",
         "required": true,
-        "description": "The ID of the Trello label to be removed from the card.",
+        "description": "The ID of the label you want to remove from the Trello card. This ID is unique to each label.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'delete-cards-id-idlabels-idlabel'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

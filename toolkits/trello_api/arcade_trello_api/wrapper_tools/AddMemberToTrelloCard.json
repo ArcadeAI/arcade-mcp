@@ -1,7 +1,7 @@
 {
   "name": "AddMemberToTrelloCard",
   "fully_qualified_name": "TrelloApi.AddMemberToTrelloCard@0.1.0",
-  "description": "Add a member to a Trello card.\n\nUse this tool to add a specific member to a Trello card by providing the card's ID.",
+  "description": "Add a member to a Trello card.\n\nUse this tool to assign a member to a specific Trello card by providing the card ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier for the Trello card to which a member will be added.",
+        "description": "The unique identifier of the Trello card to which a member will be added.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_to_add",
         "required": false,
-        "description": "The ID of the member to add to the Trello card. This is required to identify which member will be added.",
+        "description": "The ID of the member to be added to the specified Trello card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-cards-id-idmembers'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

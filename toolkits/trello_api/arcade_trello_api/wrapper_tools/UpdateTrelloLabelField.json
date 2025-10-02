@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloLabelField",
   "fully_qualified_name": "TrelloApi.UpdateTrelloLabelField@0.1.0",
-  "description": "Update a specific field on a Trello label.\n\nUse this tool to update a field on a specific Trello label, such as changing its name or color.",
+  "description": "Update a specific field on a Trello label.\n\nUse this tool to update a specific field, such as name or color, on a Trello label by providing the label ID and the field to be updated.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,7 +10,7 @@
   "input": {
     "parameters": [
       {
-        "name": "new_value_for_label_field",
+        "name": "new_field_value",
         "required": true,
         "description": "The new value to update the specified field on the Trello label.",
         "value_schema": {
@@ -27,7 +27,7 @@
       {
         "name": "label_id",
         "required": true,
-        "description": "The unique identifier for the Trello label you want to update.",
+        "description": "The ID of the Trello label to be updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,11 +42,14 @@
       {
         "name": "label_field_to_update",
         "required": true,
-        "description": "Specify the label field to update, either 'color' or 'name'.",
+        "description": "Specify the field (e.g., 'color' or 'name') on the Trello label to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["color", "name"],
+          "enum": [
+            "color",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "The field on the Label to update."
@@ -58,7 +61,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-labels-id-field'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -98,7 +105,7 @@
     "parameters": [
       {
         "name": "value",
-        "tool_parameter_name": "new_value_for_label_field",
+        "tool_parameter_name": "new_field_value",
         "description": "The new value for the field.",
         "value_schema": {
           "val_type": "string",
@@ -137,7 +144,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["color", "name"],
+          "enum": [
+            "color",
+            "name"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "The field on the Label to update."

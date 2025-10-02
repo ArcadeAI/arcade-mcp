@@ -1,18 +1,38 @@
 {
   "name": "CreateOrganizationTag",
   "fully_qualified_name": "TrelloApi.CreateOrganizationTag@0.1.0",
-  "description": "Create a tag within a Trello organization.\n\nThis tool is used to create a new tag in a specific Trello organization. Use it when you need to organize or categorize items within an organization by adding a new tag.",
+  "description": "Create a new tag within a specified organization on Trello.\n\nThis tool is used to create a new tag for a specific organization in Trello. Call this tool when you need to organize tasks by adding a tag to an organization's board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "organization_identifier",
+        "required": true,
+        "description": "The ID or name of the organization for which the tag will be created.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Organization"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'post-organizations-id-tags'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/organizations/{id}/tags",
     "http_method": "POST",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "organization_identifier",
+        "description": "The ID or name of the Organization",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or name of the Organization"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

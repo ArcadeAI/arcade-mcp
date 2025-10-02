@@ -1,18 +1,53 @@
 {
   "name": "RetrieveTrelloWebhook",
   "fully_qualified_name": "TrelloApi.RetrieveTrelloWebhook@0.1.0",
-  "description": "Retrieve details of a specific Trello webhook using a token.\n\nThis tool is used to fetch information about a specific webhook created in Trello using a token. It provides details about the configured webhook associated with the given token and webhook ID.",
+  "description": "Retrieve details of a Trello webhook using a token and webhook ID.\n\nUse this tool to get information about a specific webhook created with a Trello token. It requires a token and the webhook ID to access the details.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "access_token",
+        "required": true,
+        "description": "The authentication token for accessing Trello's API to retrieve webhook details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "token"
+      },
+      {
+        "name": "webhook_id",
+        "required": true,
+        "description": "The ID of the Trello webhook to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the [Webhooks](ref:webhooks) to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idWebhook"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-tokens-token-webhooks-idwebhook'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +84,42 @@
     "url": "https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "token",
+        "tool_parameter_name": "access_token",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idWebhook",
+        "tool_parameter_name": "webhook_id",
+        "description": "ID of the [Webhooks](ref:webhooks) to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the [Webhooks](ref:webhooks) to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

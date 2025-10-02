@@ -1,7 +1,7 @@
 {
   "name": "GetReactionSummaryForAction",
   "fully_qualified_name": "TrelloApi.GetReactionSummaryForAction@0.1.0",
-  "description": "Retrieve a summary of reactions for a given Trello action.\n\nUse this tool to obtain a summarized list of all reactions associated with a specific action in Trello. It should be called when you need insights into how users are reacting to a particular action.",
+  "description": "Retrieve a summary of reactions for a Trello action.\n\nUse this tool to get a summarized list of all reactions associated with a specific Trello action. It's useful for understanding how users have responded to an action on a Trello board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier for the Trello action to get the reaction summary for.",
+        "description": "The ID of the specific Trello action for which you want to retrieve a reaction summary.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-actions-idaction-reactionsummary'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

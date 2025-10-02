@@ -1,7 +1,7 @@
 {
   "name": "GetPluginMemberPrivacyCompliance",
   "fully_qualified_name": "TrelloApi.GetPluginMemberPrivacyCompliance@0.1.0",
-  "description": "Retrieve member privacy compliance for a Trello plugin.\n\nUse this tool to get information about the privacy compliance of members for a specific Trello plugin identified by its ID.",
+  "description": "Retrieve member privacy compliance for a specific plugin.\n\nThis tool retrieves the member privacy compliance details for a specific plugin on Trello. Use this when you need to assess the privacy compliance status of a plugin regarding member information.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "plugin_power_up_id",
+        "name": "power_up_id",
         "required": true,
-        "description": "The ID of the Trello Power-Up for which to retrieve member privacy compliance.",
+        "description": "The unique identifier for the Power-Up to retrieve its member privacy compliance details.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-plugins-id-compliance-memberprivacy'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "plugin_power_up_id",
+        "tool_parameter_name": "power_up_id",
         "description": "The ID of the Power-Up",
         "value_schema": {
           "val_type": "string",

@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloCardById",
   "fully_qualified_name": "TrelloApi.GetTrelloCardById@0.1.0",
-  "description": "Retrieve Trello card details using its ID.\n\nUse this tool to get comprehensive details about a Trello card by specifying its unique ID.",
+  "description": "Retrieve Trello card details using card ID.\n\nUse this tool to get detailed information about a Trello card by providing its unique ID. Ideal for accessing specific card details such as description, labels, and more.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
-        "name": "fields_to_retrieve",
+        "name": "card_id",
+        "required": true,
+        "description": "The unique identifier for the Trello card to retrieve details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "card_fields_to_retrieve",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of Trello card fields to retrieve. Defaults include badges, closed, dateLastActivity, and more.",
+        "description": "`all` or a comma-separated list of fields to retrieve for the Trello card. Defaults: badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +40,9 @@
         "http_endpoint_parameter_name": "fields"
       },
       {
-        "name": "include_actions_details",
+        "name": "include_action_details",
         "required": false,
-        "description": "Determines if action details should be retrieved with the card. Refer to the Actions Nested Resource for specifics.",
+        "description": "Specifies whether to include action details related to the card. Refer to Trello's Actions Nested Resource for options.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +57,7 @@
       {
         "name": "include_attachments",
         "required": false,
-        "description": "Specify 'true', 'false', or 'cover' to include respective attachment details on the Trello card.",
+        "description": "Specify 'true', 'false', or 'cover' to determine the type of attachments to return.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +70,9 @@
         "http_endpoint_parameter_name": "attachments"
       },
       {
-        "name": "attachment_fields_list",
+        "name": "attachment_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of attachment fields to return for the card.",
+        "description": "Specify `all` or a comma-separated list of attachment fields to retrieve for the card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +87,7 @@
       {
         "name": "member_fields_selection",
         "required": false,
-        "description": "Specify `all` or a comma-separated list of member fields for the members on the card. Defaults are `avatarHash, fullName, initials, username`.",
+        "description": "Specify 'all' or a comma-separated list of member fields like avatarHash, fullName, initials, username. Defaults to these fields if not specified.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -87,7 +102,7 @@
       {
         "name": "member_voted_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields for members who voted on the card. Defaults to avatarHash, fullName, initials, username.",
+        "description": "Specify 'all' or a comma-separated list of member fields like 'avatarHash, fullName, initials, username'. Defaults to specific fields if not provided.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -100,9 +115,9 @@
         "http_endpoint_parameter_name": "memberVoted_fields"
       },
       {
-        "name": "include_checklists_on_card",
+        "name": "include_checklists",
         "required": false,
-        "description": "Specify whether to return the checklists on the card. Options are 'all' or 'none'.",
+        "description": "Specify whether to include checklists in the card data. Use 'all' or 'none'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -117,7 +132,7 @@
       {
         "name": "checklist_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of `idBoard,idCard,name,pos` to define which checklist fields to return.",
+        "description": "Specify 'all' or a comma-separated list of fields (idBoard, idCard, name, pos) to return for checklists.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -130,9 +145,9 @@
         "http_endpoint_parameter_name": "checklist_fields"
       },
       {
-        "name": "board_fields_to_include",
+        "name": "board_fields_to_return",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of fields to include for the board. Defaults to 'name, desc, descData, closed, idOrganization, pinned, url, prefs'.",
+        "description": "Specify 'all' or a comma-separated list of board fields like name, desc, idOrganization. Defaults are name, desc, descData, closed, idOrganization, pinned, url, prefs.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -145,9 +160,9 @@
         "http_endpoint_parameter_name": "board_fields"
       },
       {
-        "name": "sticker_field_selection",
+        "name": "sticker_fields",
         "required": false,
-        "description": "Specify 'all' or a comma-separated list of sticker fields to include.",
+        "description": "Specify `all` or a comma-separated list of sticker fields to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -162,7 +177,7 @@
       {
         "name": "include_card_members",
         "required": false,
-        "description": "Set to true to return member objects for members on the card.",
+        "description": "Set to true to include member objects on the card, false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -175,9 +190,9 @@
         "http_endpoint_parameter_name": "members"
       },
       {
-        "name": "include_voting_members",
+        "name": "include_members_who_voted",
         "required": false,
-        "description": "Set to true to return member objects for members who voted on the card.",
+        "description": "Set to `true` to return member objects for members who voted on the card; set to `false` to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -192,7 +207,7 @@
       {
         "name": "include_check_item_states",
         "required": false,
-        "description": "Indicate if check item states should be included in the response. A value of true includes the states.",
+        "description": "Set to true to include check item states in the Trello card details response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -207,7 +222,7 @@
       {
         "name": "include_board_object",
         "required": false,
-        "description": "Set to true to include the board object the card is on.",
+        "description": "Set to true to return the board object the card is on.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -220,9 +235,9 @@
         "http_endpoint_parameter_name": "board"
       },
       {
-        "name": "include_list_details",
+        "name": "include_lists_nested_resource",
         "required": false,
-        "description": "Set to true to include details about the list using the Lists Nested Resource.",
+        "description": "Specify whether to include information about the Lists Nested Resource for the card. Use a boolean value.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -252,7 +267,7 @@
       {
         "name": "include_stickers",
         "required": false,
-        "description": "Set to true to include sticker models with the response; false to exclude them.",
+        "description": "Set to true to include sticker models in the response.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -267,7 +282,7 @@
       {
         "name": "include_custom_field_items",
         "required": false,
-        "description": "Whether to include custom field items in the response. Set to true to include, false to exclude.",
+        "description": "Set to true to include custom field items in the card details, or false to exclude them.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -283,7 +298,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-cards-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -323,7 +342,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "fields_to_retrieve",
+        "tool_parameter_name": "card_fields_to_retrieve",
         "description": "`all` or a comma-separated list of [fields](/cloud/trello/guides/rest-api/object-definitions/). **Defaults**: `badges, checkItemStates, closed, dateLastActivity, desc, descData, due, start, idBoard, idChecklists, idLabels, idList, idMembers, idShort, idAttachmentCover, manualCoverAttachment, labels, name, pos, shortUrl, url`",
         "value_schema": {
           "val_type": "string",
@@ -340,7 +359,7 @@
       },
       {
         "name": "actions",
-        "tool_parameter_name": "include_actions_details",
+        "tool_parameter_name": "include_action_details",
         "description": "See the [Actions Nested Resource](/cloud/trello/guides/rest-api/nested-resources/#actions-nested-resource)",
         "value_schema": {
           "val_type": "string",
@@ -374,7 +393,7 @@
       },
       {
         "name": "attachment_fields",
-        "tool_parameter_name": "attachment_fields_list",
+        "tool_parameter_name": "attachment_fields",
         "description": "`all` or a comma-separated list of attachment [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -425,7 +444,7 @@
       },
       {
         "name": "membersVoted",
-        "tool_parameter_name": "include_voting_members",
+        "tool_parameter_name": "include_members_who_voted",
         "description": "Whether to return member objects for members who voted on the card",
         "value_schema": {
           "val_type": "boolean",
@@ -476,7 +495,7 @@
       },
       {
         "name": "checklists",
-        "tool_parameter_name": "include_checklists_on_card",
+        "tool_parameter_name": "include_checklists",
         "description": "Whether to return the checklists on the card. `all` or `none`",
         "value_schema": {
           "val_type": "string",
@@ -527,7 +546,7 @@
       },
       {
         "name": "board_fields",
-        "tool_parameter_name": "board_fields_to_include",
+        "tool_parameter_name": "board_fields_to_return",
         "description": "`all` or a comma-separated list of board [fields](/cloud/trello/guides/rest-api/object-definitions/#board-object). **Defaults**: `name, desc, descData, closed, idOrganization, pinned, url, prefs`",
         "value_schema": {
           "val_type": "string",
@@ -544,7 +563,7 @@
       },
       {
         "name": "list",
-        "tool_parameter_name": "include_list_details",
+        "tool_parameter_name": "include_lists_nested_resource",
         "description": "See the [Lists Nested Resource](/cloud/trello/guides/rest-api/nested-resources/)",
         "value_schema": {
           "val_type": "boolean",
@@ -595,7 +614,7 @@
       },
       {
         "name": "sticker_fields",
-        "tool_parameter_name": "sticker_field_selection",
+        "tool_parameter_name": "sticker_fields",
         "description": "`all` or a comma-separated list of sticker [fields](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
@@ -624,6 +643,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "card_id",
+        "description": "The ID of the Card",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the Card"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

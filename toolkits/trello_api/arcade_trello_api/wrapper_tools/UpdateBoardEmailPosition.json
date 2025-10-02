@@ -1,7 +1,7 @@
 {
   "name": "UpdateBoardEmailPosition",
   "fully_qualified_name": "TrelloApi.UpdateBoardEmailPosition@0.1.0",
-  "description": "Update the email position preference on a Trello board.\n\nThis tool updates the email position preference for a specific Trello board. It should be called when changes to email notification settings need to be applied to a board.",
+  "description": "Update the email position preference on a Trello board.\n\nThis tool updates the email position preference setting for a specified Trello board. Use this tool when you need to change how emails are displayed or organized on a board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,11 +12,14 @@
       {
         "name": "email_position_preference",
         "required": true,
-        "description": "Specifies the email address position on the board. Acceptable values are 'bottom' or 'top'.",
+        "description": "Specify the email address position on the board. Valid values are 'bottom' or 'top'.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["bottom", "top"],
+          "enum": [
+            "bottom",
+            "top"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "Valid values: bottom, top. Determines the position of the email address."
@@ -27,7 +30,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board to update the email position preference.",
+        "description": "The ID of the Trello board whose email position preference you want to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +46,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-boards-id-myprefs-emailposition'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -88,7 +95,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["bottom", "top"],
+          "enum": [
+            "bottom",
+            "top"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "Valid values: bottom, top. Determines the position of the email address."

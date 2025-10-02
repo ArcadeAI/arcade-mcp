@@ -1,7 +1,7 @@
 {
   "name": "UpdateNotificationReadStatus",
   "fully_qualified_name": "TrelloApi.UpdateNotificationReadStatus@0.1.0",
-  "description": "Updates the read status of a Trello notification.\n\nThis tool should be called when you need to change the read status of a specific Trello notification, using its ID.",
+  "description": "Update the read status of a Trello notification.\n\nThis tool updates the read status of a specific Trello notification by marking it as read or unread.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "notification_id",
         "required": true,
-        "description": "The unique identifier for the Trello notification to update.",
+        "description": "The unique identifier of the Trello notification to update the read status for.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,25 +25,29 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "keep_notification_unread",
+        "name": "notification_unread_status",
         "required": false,
-        "description": "Set to true to keep the notification unread; false to mark it as read.",
+        "description": "Specify 'true' to mark the notification as unread, 'false' to mark it as read.",
         "value_schema": {
-          "val_type": "boolean",
+          "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Whether the notification should be marked as read or not"
+          "description": ""
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "unread"
+        "http_endpoint_parameter_name": "value"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'put-notifications-id'.",
-    "available_modes": ["value", "error", "null"],
+    "description": "Response from the API endpoint 'put-notifications-id-unread'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -77,21 +81,21 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/notifications/{id}",
+    "url": "https://api.trello.com/1/notifications/{id}/unread",
     "http_method": "PUT",
     "headers": {},
     "parameters": [
       {
-        "name": "unread",
-        "tool_parameter_name": "keep_notification_unread",
-        "description": "Whether the notification should be marked as read or not",
+        "name": "value",
+        "tool_parameter_name": "notification_unread_status",
+        "description": "",
         "value_schema": {
-          "val_type": "boolean",
+          "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "Whether the notification should be marked as read or not"
+          "description": ""
         },
         "accepted_as": "query",
         "required": false,

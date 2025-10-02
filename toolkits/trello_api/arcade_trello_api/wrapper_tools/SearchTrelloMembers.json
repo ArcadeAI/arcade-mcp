@@ -1,7 +1,7 @@
 {
   "name": "SearchTrelloMembers",
   "fully_qualified_name": "TrelloApi.SearchTrelloMembers@0.1.0",
-  "description": "Search for Trello members by name or criteria.\n\nThis tool searches for members in Trello based on specified criteria, such as their name or other member details.",
+  "description": "Search for Trello members by criteria.\n\nUse this tool to search for Trello members based on specific criteria. Useful for finding users in an organization or project.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "search_query",
         "required": true,
-        "description": "A search query string for Trello members, between 1 and 16384 characters long.",
+        "description": "The search query string, must be between 1 to 16384 characters in length.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "maximum_results",
         "required": false,
-        "description": "The maximum number of Trello members to return, with a limit of 20.",
+        "description": "The maximum number of results to return, up to 20.",
         "value_schema": {
           "val_type": "integer",
           "inner_val_type": null,
@@ -42,7 +42,7 @@
       {
         "name": "board_id",
         "required": false,
-        "description": "The ID of the Trello board to search for members associated with it. Leave blank to search all boards.",
+        "description": "The ID of the board to search for members associated with it.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,7 +57,7 @@
       {
         "name": "organization_id",
         "required": false,
-        "description": "The ID of the organization to filter members within. Use this to narrow search results to a specific organization.",
+        "description": "The unique ID of the Trello organization to filter search results by.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -72,7 +72,7 @@
       {
         "name": "search_only_organization_members",
         "required": false,
-        "description": "Set to true to restrict the search to members within the organization only.",
+        "description": "Set to true to search only within organization members.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -88,7 +88,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-search-members'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

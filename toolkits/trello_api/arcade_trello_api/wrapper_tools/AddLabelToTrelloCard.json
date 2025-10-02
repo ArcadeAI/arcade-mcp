@@ -1,7 +1,7 @@
 {
   "name": "AddLabelToTrelloCard",
   "fully_qualified_name": "TrelloApi.AddLabelToTrelloCard@0.1.0",
-  "description": "Add a label to a Trello card.\n\nUse this tool to attach a specific label to a Trello card by providing the card's ID. This is useful for organizing and categorizing cards effectively.",
+  "description": "Create a label on a Trello board and attach it to a card.\n\nUse this tool to create a new label for a Trello board and add it to a specified card. This can help organize tasks and improve project management efficiency.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "label_color",
+        "required": true,
+        "description": "Specify a valid label color or `null`. Refer to Trello label options for valid colors.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A valid label color or `null`. See [labels](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "color"
+      },
+      {
         "name": "card_id",
         "required": true,
-        "description": "The unique identifier of the Trello card to which you want to add a label.",
+        "description": "The unique identifier for the Trello card you want to attach the label to.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,25 +40,29 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "label_id",
+        "name": "label_name",
         "required": false,
-        "description": "The unique ID of the label you wish to add to the Trello card.",
+        "description": "Specify the name for the new label to be created and added to the card.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of the label to add"
+          "description": "A name for the label"
         },
         "inferrable": true,
-        "http_endpoint_parameter_name": "value"
+        "http_endpoint_parameter_name": "name"
       }
     ]
   },
   "output": {
-    "description": "Response from the API endpoint 'post-cards-id-idlabels'.",
-    "available_modes": ["value", "error", "null"],
+    "description": "Response from the API endpoint 'post-cards-id-labels'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -77,21 +96,38 @@
       "version": "1.0.0",
       "description": ""
     },
-    "url": "https://api.trello.com/1/cards/{id}/idLabels",
+    "url": "https://api.trello.com/1/cards/{id}/labels",
     "http_method": "POST",
     "headers": {},
     "parameters": [
       {
-        "name": "value",
-        "tool_parameter_name": "label_id",
-        "description": "The ID of the label to add",
+        "name": "color",
+        "tool_parameter_name": "label_color",
+        "description": "A valid label color or `null`. See [labels](/cloud/trello/guides/rest-api/object-definitions/)",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
           "enum": null,
           "properties": null,
           "inner_properties": null,
-          "description": "The ID of the label to add"
+          "description": "A valid label color or `null`. See [labels](/cloud/trello/guides/rest-api/object-definitions/)"
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "name",
+        "tool_parameter_name": "label_name",
+        "description": "A name for the label",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A name for the label"
         },
         "accepted_as": "query",
         "required": false,

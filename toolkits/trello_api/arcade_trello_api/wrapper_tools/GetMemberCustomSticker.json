@@ -1,7 +1,7 @@
 {
   "name": "GetMemberCustomSticker",
   "fully_qualified_name": "TrelloApi.GetMemberCustomSticker@0.1.0",
-  "description": "Retrieve a specific member's custom sticker.\n\nThis tool is used to get detailed information about a specific custom sticker belonging to a Trello member. It should be called when you need to access or display a member's custom sticker details.",
+  "description": "Retrieve a specific custom sticker for a Trello member.\n\nUse this tool to get information about a custom sticker associated with a specific Trello member by providing the member's ID and the sticker's ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,13 +10,47 @@
   "input": {
     "parameters": [
       {
-        "name": "custom_sticker_fields",
-        "required": false,
-        "description": "Specify 'all' or a comma-separated list of 'scaled', 'url' to retrieve specific sticker details.",
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member whose sticker is being retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["scaled", "url", "all"],
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "sticker_id",
+        "required": true,
+        "description": "The ID of the uploaded custom sticker to retrieve for a Trello member.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the uploaded sticker"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idSticker"
+      },
+      {
+        "name": "sticker_fields",
+        "required": false,
+        "description": "Specify 'all' or a comma-separated list of 'scaled', 'url' to get specific details about the sticker.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "scaled",
+            "url",
+            "all"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `scaled`, `url`"
@@ -28,7 +62,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-customstickers-idsticker'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,18 +106,56 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "custom_sticker_fields",
+        "tool_parameter_name": "sticker_fields",
         "description": "`all` or a comma-separated list of `scaled`, `url`",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["scaled", "url", "all"],
+          "enum": [
+            "scaled",
+            "url",
+            "all"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of `scaled`, `url`"
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idSticker",
+        "tool_parameter_name": "sticker_id",
+        "description": "The ID of the uploaded sticker",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the uploaded sticker"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

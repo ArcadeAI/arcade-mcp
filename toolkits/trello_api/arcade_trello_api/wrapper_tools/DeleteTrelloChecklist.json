@@ -1,18 +1,38 @@
 {
   "name": "DeleteTrelloChecklist",
   "fully_qualified_name": "TrelloApi.DeleteTrelloChecklist@0.1.0",
-  "description": "Deletes a specified checklist from Trello.\n\nUse this tool to delete a checklist from Trello by its ID. This is useful for managing and organizing Trello boards by removing unnecessary checklists.",
+  "description": "Delete a checklist from Trello by its ID.\n\nUse this tool to remove a checklist from a Trello board by specifying the checklist's ID. Call this tool when you need to delete a checklist from a Trello card or board.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "checklist_id",
+        "required": true,
+        "description": "The unique ID of the checklist to be deleted from Trello.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'delete-checklists-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/checklists/{id}",
     "http_method": "DELETE",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "checklist_id",
+        "description": "ID of a checklist.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of a checklist."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

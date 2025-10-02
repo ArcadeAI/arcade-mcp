@@ -1,7 +1,7 @@
 {
   "name": "UpdateBoardBackground",
   "fully_qualified_name": "TrelloApi.UpdateBoardBackground@0.1.0",
-  "description": "Update a Trello board background for a member.\n\nThis tool is used to update the background image of a Trello board for a specific member. Call this tool when you need to change the visual appearance of a Trello board by updating its background.",
+  "description": "Update a Trello board background for a member.\n\nUse this tool to update the background of a Trello board for a specified member. Ideal for personalizing or managing board appearances.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,13 +10,47 @@
   "input": {
     "parameters": [
       {
-        "name": "background_brightness",
-        "required": false,
-        "description": "Set the brightness of the board background to either `dark`, `light`, or `unknown`.",
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the member whose board background is being updated.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["dark", "light", "unknown"],
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "board_background_id",
+        "required": true,
+        "description": "The unique identifier for the board background to be updated.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board background"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBackground"
+      },
+      {
+        "name": "background_brightness",
+        "required": false,
+        "description": "Set the brightness of the board background. Accepted values: 'dark', 'light', 'unknown'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "dark",
+            "light",
+            "unknown"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `dark`, `light`, `unknown`"
@@ -25,9 +59,9 @@
         "http_endpoint_parameter_name": "brightness"
       },
       {
-        "name": "enable_tile_background",
+        "name": "tile_background",
         "required": false,
-        "description": "Set to true if the board background should be tiled, false otherwise.",
+        "description": "Set to true if you want the board background to be tiled.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -43,7 +77,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-members-id-boardbackgrounds-idbackground'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -88,7 +126,11 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["dark", "light", "unknown"],
+          "enum": [
+            "dark",
+            "light",
+            "unknown"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `dark`, `light`, `unknown`"
@@ -100,7 +142,7 @@
       },
       {
         "name": "tile",
-        "tool_parameter_name": "enable_tile_background",
+        "tool_parameter_name": "tile_background",
         "description": "Whether the background should be tiled",
         "value_schema": {
           "val_type": "boolean",
@@ -112,6 +154,40 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBackground",
+        "tool_parameter_name": "board_background_id",
+        "description": "The ID of the board background",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board background"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

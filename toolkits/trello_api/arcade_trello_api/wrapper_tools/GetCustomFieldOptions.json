@@ -1,18 +1,38 @@
 {
   "name": "GetCustomFieldOptions",
   "fully_qualified_name": "TrelloApi.GetCustomFieldOptions@0.1.0",
-  "description": "Retrieve options for a Trello drop-down custom field.\n\nUse this tool to get all available options for a specific drop-down custom field in Trello by providing the custom field ID.",
+  "description": "Retrieve options for a Trello dropdown custom field.\n\nCall this tool to get the available options for a specific dropdown custom field in Trello. Useful when you need to display or process the possible selections for a field by its ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "custom_field_id",
+        "required": true,
+        "description": "ID of the custom field to retrieve dropdown options.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the customfield."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'post-customfields-id-options'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/customFields/{id}/options",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "custom_field_id",
+        "description": "ID of the customfield.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the customfield."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {

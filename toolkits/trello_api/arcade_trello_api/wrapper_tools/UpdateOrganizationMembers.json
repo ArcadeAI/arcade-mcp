@@ -1,7 +1,7 @@
 {
   "name": "UpdateOrganizationMembers",
   "fully_qualified_name": "TrelloApi.UpdateOrganizationMembers@0.1.0",
-  "description": "Update members in a Trello organization.\n\nUse this tool to update the members of a specified Trello organization by providing the organization's ID.",
+  "description": "Update the members of a Trello organization.\n\nUse this tool to modify the membership of a specified Trello organization. It updates the organization members based on provided details.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_full_name",
         "required": true,
-        "description": "The name of the organization member; must be at least 1 character and cannot begin or end with a space.",
+        "description": "Name for the member, must be at least 1 character and not begin or end with a space.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -40,9 +40,9 @@
         "http_endpoint_parameter_name": "fullName"
       },
       {
-        "name": "organization_identifier",
+        "name": "organization_id_or_name",
         "required": true,
-        "description": "The unique ID or name of the Trello organization to update members for.",
+        "description": "The ID or name of the Trello organization to update.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -57,11 +57,14 @@
       {
         "name": "member_role_type",
         "required": false,
-        "description": "The role type of the member to be updated. Options are 'admin' or 'normal'.",
+        "description": "Specify the member's role: `admin` or `normal`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["admin", "normal"],
+          "enum": [
+            "admin",
+            "normal"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `admin`, `normal`"
@@ -73,7 +76,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-organizations-id-members'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -152,7 +159,10 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["admin", "normal"],
+          "enum": [
+            "admin",
+            "normal"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `admin`, `normal`"
@@ -164,7 +174,7 @@
       },
       {
         "name": "id",
-        "tool_parameter_name": "organization_identifier",
+        "tool_parameter_name": "organization_id_or_name",
         "description": "The ID or name of the organization",
         "value_schema": {
           "val_type": "string",

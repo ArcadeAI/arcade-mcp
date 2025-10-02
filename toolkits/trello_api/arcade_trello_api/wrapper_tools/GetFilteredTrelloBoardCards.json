@@ -1,7 +1,7 @@
 {
   "name": "GetFilteredTrelloBoardCards",
   "fully_qualified_name": "TrelloApi.GetFilteredTrelloBoardCards@0.1.0",
-  "description": "Retrieve filtered cards from a specific Trello board.\n\nCall this tool to get cards from a Trello board based on a specified filter. Useful for retrieving specific sets of cards like those that are complete, incomplete, or match other criteria.",
+  "description": "Retrieve filtered cards from a Trello board.\n\nUse this tool to get cards from a specified Trello board that match a certain filter. Ideal for retrieving specific sets of cards based on criteria like labels, members, or statuses.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "board_id",
         "required": true,
-        "description": "The ID of the Trello board from which to retrieve cards. This is necessary to identify which board's cards to filter.",
+        "description": "The unique identifier for the Trello board from which to retrieve cards.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,13 +25,21 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "card_filter",
+        "name": "card_filter_type",
         "required": true,
-        "description": "Specify the filter for retrieving board cards. Options: 'all', 'closed', 'complete', 'incomplete', 'none', 'open', 'visible'.",
+        "description": "Filter for cards on the board. Options: all, closed, complete, incomplete, none, open, visible.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "closed", "complete", "incomplete", "none", "open", "visible"],
+          "enum": [
+            "all",
+            "closed",
+            "complete",
+            "incomplete",
+            "none",
+            "open",
+            "visible"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `all`, `closed`, `complete`, `incomplete`, `none`, `open`, `visible`"
@@ -43,7 +51,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-boards-id-cards-filter'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -100,12 +112,20 @@
       },
       {
         "name": "filter",
-        "tool_parameter_name": "card_filter",
+        "tool_parameter_name": "card_filter_type",
         "description": "One of: `all`, `closed`, `complete`, `incomplete`, `none`, `open`, `visible`",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "closed", "complete", "incomplete", "none", "open", "visible"],
+          "enum": [
+            "all",
+            "closed",
+            "complete",
+            "incomplete",
+            "none",
+            "open",
+            "visible"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "One of: `all`, `closed`, `complete`, `incomplete`, `none`, `open`, `visible`"

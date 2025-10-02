@@ -1,7 +1,7 @@
 {
   "name": "GetMemberBoardBackground",
   "fully_qualified_name": "TrelloApi.GetMemberBoardBackground@0.1.0",
-  "description": "Retrieve a member's board background from Trello.\n\nUse this tool to get specific details about a member's board background in Trello by providing the member ID and background ID.",
+  "description": "Retrieve a member's board background in Trello.\n\nUse this tool to retrieve the background details of a specific board associated with a member in Trello.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,13 +10,49 @@
   "input": {
     "parameters": [
       {
-        "name": "background_fields",
-        "required": false,
-        "description": "Specify 'all' or a comma-separated list of: 'brightness', 'fullSizeUrl', 'scaled', 'tile' to retrieve specific fields of a member's board background.",
+        "name": "member_id_or_username",
+        "required": true,
+        "description": "The ID or username of the Trello member for whom to retrieve the board background.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "brightness", "fullSizeUrl", "scaled", "tile"],
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
+        "name": "board_background_id",
+        "required": true,
+        "description": "The ID of the board background to retrieve details for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board background"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "idBackground"
+      },
+      {
+        "name": "background_fields",
+        "required": false,
+        "description": "Specify `all` or a comma-separated list of background details like `brightness`, `fullSizeUrl`, `scaled`, `tile`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "all",
+            "brightness",
+            "fullSizeUrl",
+            "scaled",
+            "tile"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `brightness`, `fullSizeUrl`, `scaled`, `tile`"
@@ -28,7 +64,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-members-id-boardbackgrounds-idbackground'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -73,13 +113,53 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["all", "brightness", "fullSizeUrl", "scaled", "tile"],
+          "enum": [
+            "all",
+            "brightness",
+            "fullSizeUrl",
+            "scaled",
+            "tile"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of: `brightness`, `fullSizeUrl`, `scaled`, `tile`"
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "member_id_or_username",
+        "description": "The ID or username of the member",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID or username of the member"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "idBackground",
+        "tool_parameter_name": "board_background_id",
+        "description": "The ID of the board background",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board background"
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

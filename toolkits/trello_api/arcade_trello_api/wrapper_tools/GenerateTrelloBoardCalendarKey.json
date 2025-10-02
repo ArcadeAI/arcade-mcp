@@ -1,7 +1,7 @@
 {
   "name": "GenerateTrelloBoardCalendarKey",
   "fully_qualified_name": "TrelloApi.GenerateTrelloBoardCalendarKey@0.1.0",
-  "description": "Generates a calendar key for a Trello board.\n\nUse this tool to generate a calendar key for an existing Trello board by providing the board ID. This allows for calendar integration and scheduling based on board activities.",
+  "description": "Generates a calendar key for a Trello board.\n\nUse this tool to generate a calendar key for an existing Trello board. This key can be used to integrate the board's calendar with other applications.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,9 @@
   "input": {
     "parameters": [
       {
-        "name": "board_id_to_update",
+        "name": "board_id",
         "required": true,
-        "description": "The unique identifier of the Trello board for which you want to generate a calendar key.",
+        "description": "The unique identifier of the Trello board for which to generate a calendar key.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-boards-id-calendarkey-generate'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -68,7 +72,7 @@
     "parameters": [
       {
         "name": "id",
-        "tool_parameter_name": "board_id_to_update",
+        "tool_parameter_name": "board_id",
         "description": "The id of the board to update",
         "value_schema": {
           "val_type": "string",

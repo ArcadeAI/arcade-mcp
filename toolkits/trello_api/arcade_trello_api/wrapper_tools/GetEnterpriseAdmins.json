@@ -1,7 +1,7 @@
 {
   "name": "GetEnterpriseAdmins",
   "fully_qualified_name": "TrelloApi.GetEnterpriseAdmins@0.1.0",
-  "description": "Retrieve admin members of an enterprise in Trello.\n\nUse this tool to obtain the list of admin members associated with a specific enterprise in Trello.",
+  "description": "Retrieve admin members of a specified enterprise.\n\nUse this tool to obtain the list of admin members for a given enterprise, identified by its ID. This is helpful for managing or viewing enterprise administrative access.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "ID of the enterprise to retrieve the admin members from.",
+        "description": "The unique ID of the enterprise whose admin members you want to retrieve.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "admin_fields",
+        "name": "member_fields",
         "required": false,
-        "description": "Specify which admin member fields to include. Use values accepted by Trello's nested member field resource.",
+        "description": "Specify the fields to be included in the response for each admin member. These should match valid values that the nested member field resource accepts.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-enterprises-id-admins'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -83,7 +87,7 @@
     "parameters": [
       {
         "name": "fields",
-        "tool_parameter_name": "admin_fields",
+        "tool_parameter_name": "member_fields",
         "description": "Any valid value that the [nested member field resource]() accepts.",
         "value_schema": {
           "val_type": "string",

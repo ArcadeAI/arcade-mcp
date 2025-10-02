@@ -1,7 +1,7 @@
 {
   "name": "GetTrelloActionCreator",
   "fully_qualified_name": "TrelloApi.GetTrelloActionCreator@0.1.0",
-  "description": "Retrieve the creator of a specific Trello action.\n\nThis tool calls the Trello API to obtain details about the member who created a specific action, identified by its ID. It should be used when you need to find out who initiated a particular action on a Trello board.",
+  "description": "Retrieve the creator of a Trello action.\n\nUse this tool to obtain information about the member who initiated a specific action in Trello. Ideal for tracking activity or understanding user interactions.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "action_id",
         "required": true,
-        "description": "The unique identifier of the Trello action to retrieve the member creator information.",
+        "description": "The unique identifier for the Trello action to retrieve the creator.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,11 +27,13 @@
       {
         "name": "member_fields",
         "required": false,
-        "description": "Specify 'all' to retrieve all fields or provide a comma-separated list of specific member fields to retrieve.",
+        "description": "A comma-separated list of member fields or 'all' to specify which details to retrieve about the member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member fields"
@@ -43,7 +45,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-actions-id-membercreator'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -88,7 +94,9 @@
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
-          "enum": ["id"],
+          "enum": [
+            "id"
+          ],
           "properties": null,
           "inner_properties": null,
           "description": "`all` or a comma-separated list of member fields"

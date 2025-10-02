@@ -1,7 +1,7 @@
 {
   "name": "CreateEnterpriseAuthToken",
   "fully_qualified_name": "TrelloApi.CreateEnterpriseAuthToken@0.1.0",
-  "description": "Generate an authentication token for an enterprise in Trello.\n\nThis tool is used to create an authentication token for a specific enterprise on Trello, which can be utilized for authorized API interactions.",
+  "description": "Create an auth token for a Trello enterprise.\n\nUse this tool to generate an authentication token for a specified Trello enterprise. It is typically called when access to enterprise-level features is required.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique identifier for the Trello enterprise for which to generate an auth token.",
+        "description": "ID of the enterprise for which you want to create an auth token.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "token_expiration",
         "required": false,
-        "description": "The duration for which the authentication token is valid. Options: `1hour`, `1day`, `30days`, `never`.",
+        "description": "Specify token expiration duration: `1hour`, `1day`, `30days`, or `never`.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-enterprises-id-tokens'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

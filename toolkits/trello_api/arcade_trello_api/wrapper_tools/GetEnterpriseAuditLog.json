@@ -1,7 +1,7 @@
 {
   "name": "GetEnterpriseAuditLog",
   "fully_qualified_name": "TrelloApi.GetEnterpriseAuditLog@0.1.0",
-  "description": "Fetch actions from a Trello enterprise's audit log.\n\nRetrieves and returns an array of actions related to a specific Trello enterprise object from the audit log page. This tool requires an Enterprise admin token and includes actions from AdminHub for enterprises using user management via AdminHub.",
+  "description": "Retrieve actions from an enterprise's audit log.\n\nFetches an array of actions related to an Enterprise object for audit purposes from Trello's audit log. Useful for analyzing enterprise activities and administrative changes.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique identifier of the Trello enterprise to retrieve the audit log for.",
+        "description": "ID of the enterprise whose audit log actions are to be retrieved.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -28,7 +28,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-enterprises-id-auditlog'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

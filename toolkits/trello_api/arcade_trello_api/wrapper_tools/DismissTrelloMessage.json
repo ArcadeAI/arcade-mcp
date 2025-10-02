@@ -1,7 +1,7 @@
 {
   "name": "DismissTrelloMessage",
   "fully_qualified_name": "TrelloApi.DismissTrelloMessage@0.1.0",
-  "description": "Dismiss a specific one-time message for a Trello member.\n\nUse this tool to dismiss a one-time message for a specific member on Trello. It should be called when a user wants to mark a Trello message as dismissed so that it is no longer shown.",
+  "description": "Dismiss a specific message for a Trello member.\n\nUse this tool to dismiss a one-time message for a Trello member by their ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "message_to_dismiss",
         "required": true,
-        "description": "The unique identifier of the message to be dismissed for the specified Trello member.",
+        "description": "The content of the Trello message to be dismissed for the member.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +27,7 @@
       {
         "name": "member_id_or_username",
         "required": true,
-        "description": "The ID or username of the Trello member whose message will be dismissed.",
+        "description": "The ID or username of the Trello member for whom the message will be dismissed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'post-members-id-onetimemessagesdismissed'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,

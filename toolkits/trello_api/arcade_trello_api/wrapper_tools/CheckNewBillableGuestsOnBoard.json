@@ -1,7 +1,7 @@
 {
   "name": "CheckNewBillableGuestsOnBoard",
   "fully_qualified_name": "TrelloApi.CheckNewBillableGuestsOnBoard@0.1.0",
-  "description": "Verify if a Trello board has new billable guests.\n\nThis tool is used to determine whether a specified Trello board contains any new billable guests. It is helpful for managing billing and guest access on Trello boards.",
+  "description": "Checks for new billable guests on a specified Trello board.\n\nUse this tool to determine if a specific Trello board within an organization has acquired new billable guests.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "organization_id_or_name",
         "required": true,
-        "description": "The ID or name of the Trello organization to check for new billable guests.",
+        "description": "The ID or name of the Trello organization to check for new billable guests on a board.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,7 +25,7 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "board_id",
+        "name": "board_id_to_check_new_billable_guests",
         "required": true,
         "description": "The ID of the Trello board to check for new billable guests.",
         "value_schema": {
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'get-organizations-id-newbillableguests-idboard'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -100,7 +104,7 @@
       },
       {
         "name": "idBoard",
-        "tool_parameter_name": "board_id",
+        "tool_parameter_name": "board_id_to_check_new_billable_guests",
         "description": "The ID of the board to check for new billable guests.",
         "value_schema": {
           "val_type": "string",

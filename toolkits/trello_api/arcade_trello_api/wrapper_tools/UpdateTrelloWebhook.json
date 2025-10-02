@@ -1,7 +1,7 @@
 {
   "name": "UpdateTrelloWebhook",
   "fully_qualified_name": "TrelloApi.UpdateTrelloWebhook@0.1.0",
-  "description": "Updates a Trello webhook using its ID.\n\nThis tool updates an existing Trello webhook by its ID. It should be called when modifications to the webhook settings, such as the callback URL or description, are needed.",
+  "description": "Update a Trello webhook by its ID.\n\nUse this tool to update the details of an existing Trello webhook by providing the webhook ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -10,9 +10,24 @@
   "input": {
     "parameters": [
       {
+        "name": "webhook_id",
+        "required": true,
+        "description": "The unique ID of the Trello webhook to update.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the webhook to retrieve."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      },
+      {
         "name": "webhook_description",
         "required": false,
-        "description": "A string description for the webhook, with a length from 0 to 16384 characters.",
+        "description": "Provide a description for the webhook, with a string length between 0 to 16384 characters.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -27,7 +42,7 @@
       {
         "name": "callback_url",
         "required": false,
-        "description": "A valid URL that is reachable with a HEAD and POST request. This URL will be used as the callback for the webhook.",
+        "description": "A valid URL for the webhook to send POST and HEAD requests.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -42,7 +57,7 @@
       {
         "name": "model_id_to_monitor",
         "required": false,
-        "description": "The ID of the model that the webhook will monitor in Trello. Ensure this is the correct ID for accurate monitoring.",
+        "description": "ID of the Trello model that the webhook will monitor.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -55,9 +70,9 @@
         "http_endpoint_parameter_name": "idModel"
       },
       {
-        "name": "is_webhook_active",
+        "name": "set_webhook_active",
         "required": false,
-        "description": "Set to true to make the webhook active, allowing it to send POST requests. False deactivates it.",
+        "description": "True to activate the webhook for sending POST requests; false to deactivate.",
         "value_schema": {
           "val_type": "boolean",
           "inner_val_type": null,
@@ -73,7 +88,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'put-webhooks-id'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -164,7 +183,7 @@
       },
       {
         "name": "active",
-        "tool_parameter_name": "is_webhook_active",
+        "tool_parameter_name": "set_webhook_active",
         "description": "Determines whether the webhook is active and sending `POST` requests.",
         "value_schema": {
           "val_type": "boolean",
@@ -176,6 +195,23 @@
         },
         "accepted_as": "query",
         "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "id",
+        "tool_parameter_name": "webhook_id",
+        "description": "ID of the webhook to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the webhook to retrieve."
+        },
+        "accepted_as": "path",
+        "required": true,
         "deprecated": false,
         "documentation_urls": []
       }

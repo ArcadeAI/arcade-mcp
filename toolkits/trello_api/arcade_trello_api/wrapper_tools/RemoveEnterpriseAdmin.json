@@ -1,7 +1,7 @@
 {
   "name": "RemoveEnterpriseAdmin",
   "fully_qualified_name": "TrelloApi.RemoveEnterpriseAdmin@0.1.0",
-  "description": "Removes a member as an admin from a Trello enterprise.\n\nUse this tool to remove a member's admin status from a Trello enterprise. Note that this is not available for enterprises using AdminHub for user management.",
+  "description": "Remove a member as admin from a Trello enterprise.\n\nUse this tool to remove a member's admin rights from an enterprise in Trello. Note that this action is not available for enterprises using AdminHub for user management.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
@@ -12,7 +12,7 @@
       {
         "name": "enterprise_id",
         "required": true,
-        "description": "The unique identifier of the Trello enterprise to modify.",
+        "description": "The ID of the Enterprise from which the admin will be removed.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -25,9 +25,9 @@
         "http_endpoint_parameter_name": "id"
       },
       {
-        "name": "member_id_to_remove",
+        "name": "member_id_to_remove_admin",
         "required": true,
-        "description": "ID of the member to be removed as an admin from the enterprise. This is necessary to target the specific member within the enterprise.",
+        "description": "The unique ID of the member to remove as an admin from the enterprise.",
         "value_schema": {
           "val_type": "string",
           "inner_val_type": null,
@@ -43,7 +43,11 @@
   },
   "output": {
     "description": "Response from the API endpoint 'enterprises-id-organizations-idmember'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -100,7 +104,7 @@
       },
       {
         "name": "idMember",
-        "tool_parameter_name": "member_id_to_remove",
+        "tool_parameter_name": "member_id_to_remove_admin",
         "description": "ID of the member to be removed as an admin from enterprise.",
         "value_schema": {
           "val_type": "string",

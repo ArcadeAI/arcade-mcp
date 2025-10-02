@@ -1,18 +1,38 @@
 {
   "name": "GetBoardMembers",
   "fully_qualified_name": "TrelloApi.GetBoardMembers@0.1.0",
-  "description": "Retrieve members of a Trello board.\n\nUse this tool to get a list of all members associated with a specific Trello board. Ideal for finding out who is part of a board and for managing memberships.",
+  "description": "Retrieve the members of a Trello board.\n\nUse this tool to get a list of members associated with a specific Trello board by providing the board ID.",
   "toolkit": {
     "name": "ArcadeTrelloApi",
     "description": null,
     "version": "0.1.0"
   },
   "input": {
-    "parameters": []
+    "parameters": [
+      {
+        "name": "board_id",
+        "required": true,
+        "description": "The unique identifier of the Trello board whose members you want to retrieve.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "id"
+      }
+    ]
   },
   "output": {
     "description": "Response from the API endpoint 'get-boards-id-members'.",
-    "available_modes": ["value", "error", "null"],
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
     "value_schema": {
       "val_type": "json",
       "inner_val_type": null,
@@ -49,7 +69,25 @@
     "url": "https://api.trello.com/1/boards/{id}/members",
     "http_method": "GET",
     "headers": {},
-    "parameters": [],
+    "parameters": [
+      {
+        "name": "id",
+        "tool_parameter_name": "board_id",
+        "description": "The ID of the board",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the board"
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
     "documentation_urls": [],
     "secrets": [
       {
