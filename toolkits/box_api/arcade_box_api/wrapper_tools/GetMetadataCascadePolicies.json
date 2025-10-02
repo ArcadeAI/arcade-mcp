@@ -1,0 +1,199 @@
+{
+  "name": "GetMetadataCascadePolicies",
+  "fully_qualified_name": "BoxApi.GetMetadataCascadePolicies@0.1.0",
+  "description": "Retrieve metadata cascade policies for a folder.\n\nUse this tool to obtain a list of metadata cascade policies applied to a specific folder, excluding the root folder.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "target_folder_id",
+        "required": true,
+        "description": "The ID of the folder to query for metadata cascade policies. The root folder with ID '0' is not allowed.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which folder to return policies for. This can not be used on the\nroot folder with ID `0`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "folder_id"
+      },
+      {
+        "name": "owner_enterprise_id",
+        "required": false,
+        "description": "The ID of the enterprise to find metadata cascade policies for. Defaults to the current enterprise if not specified.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the enterprise ID for which to find metadata\ncascade policies. If not specified, it defaults to the\ncurrent enterprise."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "owner_enterprise_id"
+      },
+      {
+        "name": "pagination_marker",
+        "required": false,
+        "description": "Position marker for paginating results. Set `usemarker` to true to enable.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "response_offset",
+        "required": false,
+        "description": "The offset at which to begin the response, must not exceed 10000.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_metadata_cascade_policies'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/metadata_cascade_policies",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "folder_id",
+        "tool_parameter_name": "target_folder_id",
+        "description": "Specifies which folder to return policies for. This can not be used on the\nroot folder with ID `0`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which folder to return policies for. This can not be used on the\nroot folder with ID `0`."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "owner_enterprise_id",
+        "tool_parameter_name": "owner_enterprise_id",
+        "description": "The ID of the enterprise ID for which to find metadata\ncascade policies. If not specified, it defaults to the\ncurrent enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the enterprise ID for which to find metadata\ncascade policies. If not specified, it defaults to the\ncurrent enterprise."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "response_offset",
+        "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

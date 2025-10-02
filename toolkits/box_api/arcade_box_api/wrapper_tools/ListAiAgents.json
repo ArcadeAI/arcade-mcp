@@ -1,0 +1,263 @@
+{
+  "name": "ListAiAgents",
+  "fully_qualified_name": "BoxApi.ListAiAgents@0.1.0",
+  "description": "Retrieve a list of AI agents with specified parameters.\n\nThis tool fetches AI agents from the service based on provided filters or parameters. It should be called when information about available AI agents is needed, such as their names, types, or statuses.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_mode",
+        "required": false,
+        "description": "List of modes to filter the agent configuration. Options: `ask`, `text_gen`, `extract`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mode to filter the agent config to return. Possible values are: `ask`, `text_gen`, and `extract`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mode"
+      },
+      {
+        "name": "response_fields",
+        "required": false,
+        "description": "List of fields to return for each AI agent in the response. Specify as an array of strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields to return in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "agent_state_filter",
+        "required": false,
+        "description": "Specify the states of agents to return. Acceptable values include: 'enabled', 'disabled', and 'enabled_for_selected_users'.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the agents to return. Possible values are: `enabled`, `disabled` and `enabled_for_selected_users`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "agent_state"
+      },
+      {
+        "name": "results_start_position_marker",
+        "required": false,
+        "description": "The starting point marker for returning paginated results. Use this to continue a previous query from where it left off.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "The maximum number of AI agents to return for a single page of results.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "include_box_default_agents",
+        "required": false,
+        "description": "Set to true to include Box default AI agents in the response, false otherwise.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the Box default agents in the response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "include_box_default"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_ai_agents'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/ai_agents",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "mode",
+        "tool_parameter_name": "filter_by_mode",
+        "description": "The mode to filter the agent config to return. Possible values are: `ask`, `text_gen`, and `extract`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mode to filter the agent config to return. Possible values are: `ask`, `text_gen`, and `extract`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "response_fields",
+        "description": "The fields to return in the response.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The fields to return in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "agent_state",
+        "tool_parameter_name": "agent_state_filter",
+        "description": "The state of the agents to return. Possible values are: `enabled`, `disabled` and `enabled_for_selected_users`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The state of the agents to return. Possible values are: `enabled`, `disabled` and `enabled_for_selected_users`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "include_box_default",
+        "tool_parameter_name": "include_box_default_agents",
+        "description": "Whether to include the Box default agents in the response.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether to include the Box default agents in the response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "marker",
+        "tool_parameter_name": "results_start_position_marker",
+        "description": "Defines the position marker at which to begin returning results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

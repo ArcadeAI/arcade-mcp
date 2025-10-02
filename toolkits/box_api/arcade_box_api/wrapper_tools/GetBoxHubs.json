@@ -1,0 +1,269 @@
+{
+  "name": "GetBoxHubs",
+  "fully_qualified_name": "BoxApi.GetBoxHubs@0.1.0",
+  "description": "Retrieve all Box Hubs for the user.\n\nThis tool retrieves all the Box Hubs associated with the requesting user. It should be called when there's a need to list or display the user's Box Hubs.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "hub_search_query",
+        "required": false,
+        "description": "The string to search for specific Box Hubs. Use keywords to refine search results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string to search for Box Hubs."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "hub_scope",
+        "required": false,
+        "description": "Specifies which Box Hubs to retrieve. Options: `editable`, `view_only`, `all`. Default is `all`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the Box Hubs to retrieve. Possible values include `editable`,\n`view_only`, and `all`. Default is `all`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "sort_results_by",
+        "required": false,
+        "description": "Field to sort Box Hubs by: `name`, `updated_at`, `last_accessed_at`, `view_count`, `relevance` (default: `relevance`).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field to sort results by. \nPossible values include `name`, `updated_at`,\n`last_accessed_at`, `view_count`, and `relevance`.\nDefault is `relevance`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "sort"
+      },
+      {
+        "name": "sort_direction",
+        "required": false,
+        "description": "Specify the sort order: 'ASC' for ascending or 'DESC' for descending.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort results in. This can be either in alphabetical ascending\n(`ASC`) or descending (`DESC`) order."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "direction"
+      },
+      {
+        "name": "pagination_start_marker",
+        "required": false,
+        "description": "Defines the position marker to begin returning results, used for marker-based pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "The maximum number of Box Hubs to return per page. Use for pagination control.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_hubs_v2025.0'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/hubs",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2025.0"
+    },
+    "parameters": [
+      {
+        "name": "query",
+        "tool_parameter_name": "hub_search_query",
+        "description": "The query string to search for Box Hubs.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The query string to search for Box Hubs."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "hub_scope",
+        "description": "The scope of the Box Hubs to retrieve. Possible values include `editable`,\n`view_only`, and `all`. Default is `all`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the Box Hubs to retrieve. Possible values include `editable`,\n`view_only`, and `all`. Default is `all`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "sort",
+        "tool_parameter_name": "sort_results_by",
+        "description": "The field to sort results by. \nPossible values include `name`, `updated_at`,\n`last_accessed_at`, `view_count`, and `relevance`.\nDefault is `relevance`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The field to sort results by. \nPossible values include `name`, `updated_at`,\n`last_accessed_at`, `view_count`, and `relevance`.\nDefault is `relevance`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "direction",
+        "tool_parameter_name": "sort_direction",
+        "description": "The direction to sort results in. This can be either in alphabetical ascending\n(`ASC`) or descending (`DESC`) order.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ASC",
+            "DESC"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The direction to sort results in. This can be either in alphabetical ascending\n(`ASC`) or descending (`DESC`) order."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_start_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

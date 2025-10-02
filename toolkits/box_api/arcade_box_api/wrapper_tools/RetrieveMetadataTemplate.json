@@ -1,0 +1,141 @@
+{
+  "name": "RetrieveMetadataTemplate",
+  "fully_qualified_name": "BoxApi.RetrieveMetadataTemplate@0.1.0",
+  "description": "Retrieve a metadata template by scope and template key.\n\nThis tool retrieves a metadata template using its `scope` and `templateKey`. It is useful for accessing specific template details for Box. To find these values, list all templates for an enterprise or globally, or list those applied to specific files or folders.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "metadata_template_scope",
+        "required": true,
+        "description": "Specifies the scope for the metadata template. Choose between 'global' or 'enterprise'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "global",
+            "enterprise"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the metadata template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "metadata_template_name",
+        "required": true,
+        "description": "The name of the metadata template to retrieve its details.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metadata template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_metadata_templates_id_id_schema'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/metadata_templates/{scope}/{template_key}/schema",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "scope",
+        "tool_parameter_name": "metadata_template_scope",
+        "description": "The scope of the metadata template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "global",
+            "enterprise"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the metadata template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "template_key",
+        "tool_parameter_name": "metadata_template_name",
+        "description": "The name of the metadata template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metadata template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "name": "RetrieveFileTemplateMetadata",
+  "fully_qualified_name": "BoxApi.RetrieveFileTemplateMetadata@0.1.0",
+  "description": "Retrieve metadata for a specific file template.\n\nUse this tool to get the metadata template instance applied to a file. It should be called when metadata information about a file is needed, such as tags, classifications, or other custom data types.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_identifier",
+        "required": true,
+        "description": "The unique identifier for a file, obtainable from the file URL in the Box web application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_id"
+      },
+      {
+        "name": "metadata_scope",
+        "required": true,
+        "description": "Defines the scope of the metadata template to be retrieved. Options are 'global' or 'enterprise'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "global",
+            "enterprise"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the metadata template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "scope"
+      },
+      {
+        "name": "metadata_template_name",
+        "required": true,
+        "description": "The name of the metadata template to retrieve for the specified file.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metadata template."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "template_key"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_files_id_metadata_id_id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/files/{file_id}/metadata/{scope}/{template_key}",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "file_id",
+        "tool_parameter_name": "file_identifier",
+        "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "scope",
+        "tool_parameter_name": "metadata_scope",
+        "description": "The scope of the metadata template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "global",
+            "enterprise"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The scope of the metadata template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "template_key",
+        "tool_parameter_name": "metadata_template_name",
+        "description": "The name of the metadata template.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The name of the metadata template."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "name": "GetAiAgentDefaultConfig",
+  "fully_qualified_name": "BoxApi.GetAiAgentDefaultConfig@0.1.0",
+  "description": "Retrieve the default configuration for the AI agent.\n\nCall this tool to get the default settings and configurations for the AI agent. Useful for understanding the baseline setup or preparing to customize AI agent parameters.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_mode",
+        "required": true,
+        "description": "Specifies the mode to filter and return the agent configuration. Options: 'ask', 'text_gen', 'extract', 'extract_structured'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ask",
+            "text_gen",
+            "extract",
+            "extract_structured"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mode to filter the agent config to return."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "mode"
+      },
+      {
+        "name": "agent_config_language_code",
+        "required": false,
+        "description": "The ISO language code to specify the language for the AI agent configuration. Default is returned if unsupported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ISO language code to return the agent config for.\nIf the language is not supported the default agent config is returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "language"
+      },
+      {
+        "name": "model_identifier",
+        "required": false,
+        "description": "Specify the model name to retrieve the default agent configuration. Ensure it matches the supported model names.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The model to return the default agent config for."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "model"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_ai_agent_default'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/ai_agent_default",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "mode",
+        "tool_parameter_name": "filter_mode",
+        "description": "The mode to filter the agent config to return.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "ask",
+            "text_gen",
+            "extract",
+            "extract_structured"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The mode to filter the agent config to return."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "language",
+        "tool_parameter_name": "agent_config_language_code",
+        "description": "The ISO language code to return the agent config for.\nIf the language is not supported the default agent config is returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ISO language code to return the agent config for.\nIf the language is not supported the default agent config is returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "model",
+        "tool_parameter_name": "model_identifier",
+        "description": "The model to return the default agent config for.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The model to return the default agent config for."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

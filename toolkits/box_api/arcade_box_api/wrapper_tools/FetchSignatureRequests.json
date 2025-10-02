@@ -1,0 +1,199 @@
+{
+  "name": "FetchSignatureRequests",
+  "fully_qualified_name": "BoxApi.FetchSignatureRequests@0.1.0",
+  "description": "Retrieve signature requests created by a user.\n\nFetches a list of signature requests that have been created by a user. Signature requests won't be listed if their associated files or parent folder are deleted.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_marker",
+        "required": false,
+        "description": "Defines the starting point for returning results, used for marker-based pagination. Requires use_marker to be true.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "Specify the maximum number of signature requests to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "sender_email_list",
+        "required": false,
+        "description": "A list of sender emails to filter the signature requests by sender. `shared_requests` must be `true` if provided.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of sender emails to filter the signature requests by sender.\nIf provided, `shared_requests` must be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "senders"
+      },
+      {
+        "name": "include_shared_requests",
+        "required": false,
+        "description": "Set to true to include signature requests where the user is a collaborator but not the owner. Must be true if sender emails are provided.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, only includes requests that user is not an owner,\nbut user is a collaborator. Collaborator access is determined by the\nuser access level of the sign files of the request.\nDefault is `false`. Must be set to `true` if `senders` are provided."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "shared_requests"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_sign_requests'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/sign_requests",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "senders",
+        "tool_parameter_name": "sender_email_list",
+        "description": "A list of sender emails to filter the signature requests by sender.\nIf provided, `shared_requests` must be set to `true`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A list of sender emails to filter the signature requests by sender.\nIf provided, `shared_requests` must be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "shared_requests",
+        "tool_parameter_name": "include_shared_requests",
+        "description": "If set to `true`, only includes requests that user is not an owner,\nbut user is a collaborator. Collaborator access is determined by the\nuser access level of the sign files of the request.\nDefault is `false`. Must be set to `true` if `senders` are provided.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "If set to `true`, only includes requests that user is not an owner,\nbut user is a collaborator. Collaborator access is determined by the\nuser access level of the sign files of the request.\nDefault is `false`. Must be set to `true` if `senders` are provided."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

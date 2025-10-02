@@ -1,0 +1,338 @@
+{
+  "name": "GetDebitReversalsList",
+  "fully_qualified_name": "StripeApi.GetDebitReversalsList@0.1.0",
+  "description": "Retrieves a list of debit reversals from Stripe.\n\nUse this tool to obtain a list of debit reversals from the Stripe Treasury API, which provides details on reversed debit transactions.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "financial_account_id",
+        "required": true,
+        "description": "The ID of the FinancialAccount to retrieve associated debit reversals.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns objects associated with this FinancialAccount."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "financial_account"
+      },
+      {
+        "name": "pagination_ending_before_cursor",
+        "required": false,
+        "description": "A cursor object ID for pagination. Use this to fetch the previous page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ending_before"
+      },
+      {
+        "name": "fields_to_expand",
+        "required": false,
+        "description": "A list of fields in the response to expand for obtaining additional nested information.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "max_number_of_debit_reversals",
+        "required": false,
+        "description": "The maximum number of debit reversals to return. Must be between 1 and 100. Defaults to 10 if not specified.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "filter_by_received_debit_id",
+        "required": false,
+        "description": "The ID of the ReceivedDebit to filter debit reversals by. Only returns reversals for this specific ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for the ReceivedDebit ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "received_debit"
+      },
+      {
+        "name": "resolution_status",
+        "required": false,
+        "description": "Filter DebitReversals based on the resolution ('lost' or 'won').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "lost",
+            "won"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for a given resolution."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "resolution"
+      },
+      {
+        "name": "pagination_starting_after_cursor",
+        "required": false,
+        "description": "An object ID that serves as a pagination cursor for fetching the next page of results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "starting_after"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Specify the status of DebitReversals to return. Options are: 'canceled', 'completed', or 'processing'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "canceled",
+            "completed",
+            "processing"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for a given status."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetTreasuryDebitReversals'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/treasury/debit_reversals",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "ending_before",
+        "tool_parameter_name": "pagination_ending_before_cursor",
+        "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "fields_to_expand",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "financial_account",
+        "tool_parameter_name": "financial_account_id",
+        "description": "Returns objects associated with this FinancialAccount.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Returns objects associated with this FinancialAccount."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_number_of_debit_reversals",
+        "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "received_debit",
+        "tool_parameter_name": "filter_by_received_debit_id",
+        "description": "Only return DebitReversals for the ReceivedDebit ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for the ReceivedDebit ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "resolution",
+        "tool_parameter_name": "resolution_status",
+        "description": "Only return DebitReversals for a given resolution.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "lost",
+            "won"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for a given resolution."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "starting_after",
+        "tool_parameter_name": "pagination_starting_after_cursor",
+        "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "Only return DebitReversals for a given status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "canceled",
+            "completed",
+            "processing"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Only return DebitReversals for a given status."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}
