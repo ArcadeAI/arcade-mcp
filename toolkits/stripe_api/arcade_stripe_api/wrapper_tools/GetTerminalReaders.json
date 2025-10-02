@@ -1,0 +1,350 @@
+{
+  "name": "GetTerminalReaders",
+  "fully_qualified_name": "StripeApi.GetTerminalReaders@0.1.0",
+  "description": "Retrieve a list of terminal reader objects.\n\nUse this tool to obtain a list of Stripe terminal readers. It is useful when you need to manage or view details of connected terminal devices.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_device_type",
+        "required": false,
+        "description": "Specify the type of device to filter terminal readers. Options include: 'bbpos_chipper2x', 'bbpos_wisepad3', 'bbpos_wisepos_e', 'mobile_phone_reader', 'simulated_stripe_s700', 'simulated_wisepos_e', 'stripe_m2', 'stripe_s700', 'verifone_P400'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "bbpos_chipper2x",
+            "bbpos_wisepad3",
+            "bbpos_wisepos_e",
+            "mobile_phone_reader",
+            "simulated_stripe_s700",
+            "simulated_wisepos_e",
+            "stripe_m2",
+            "stripe_s700",
+            "verifone_P400"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters readers by device type"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "device_type"
+      },
+      {
+        "name": "pagination_cursor_ending_before",
+        "required": false,
+        "description": "A cursor for pagination, used to fetch the previous page based on object ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ending_before"
+      },
+      {
+        "name": "expand_response_fields",
+        "required": false,
+        "description": "List of fields to expand in the response, specified as strings.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "object_return_limit",
+        "required": false,
+        "description": "Specifies the maximum number of terminal reader objects to return, ranging from 1 to 100. Default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "filter_by_location_id",
+        "required": false,
+        "description": "Specify the location ID to filter readers to a specific location only.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A location ID to filter the response list to only readers at the specific location"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "location"
+      },
+      {
+        "name": "filter_by_serial_number",
+        "required": false,
+        "description": "Provide a serial number to filter the list of terminal readers by this specific serial number.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters readers by serial number"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "serial_number"
+      },
+      {
+        "name": "pagination_start_object_id",
+        "required": false,
+        "description": "The object ID used as a cursor to define your starting point in the list for pagination, fetching the next page.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "starting_after"
+      },
+      {
+        "name": "filter_by_status",
+        "required": false,
+        "description": "Filter terminal readers by their status, either 'offline' or 'online'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "offline",
+            "online"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A status filter to filter readers to only offline or online readers"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "status"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetTerminalReaders'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/terminal/readers",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "device_type",
+        "tool_parameter_name": "filter_by_device_type",
+        "description": "Filters readers by device type",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "bbpos_chipper2x",
+            "bbpos_wisepad3",
+            "bbpos_wisepos_e",
+            "mobile_phone_reader",
+            "simulated_stripe_s700",
+            "simulated_wisepos_e",
+            "stripe_m2",
+            "stripe_s700",
+            "verifone_P400"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters readers by device type"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ending_before",
+        "tool_parameter_name": "pagination_cursor_ending_before",
+        "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_response_fields",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "object_return_limit",
+        "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "location",
+        "tool_parameter_name": "filter_by_location_id",
+        "description": "A location ID to filter the response list to only readers at the specific location",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A location ID to filter the response list to only readers at the specific location"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "serial_number",
+        "tool_parameter_name": "filter_by_serial_number",
+        "description": "Filters readers by serial number",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters readers by serial number"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "starting_after",
+        "tool_parameter_name": "pagination_start_object_id",
+        "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "status",
+        "tool_parameter_name": "filter_by_status",
+        "description": "A status filter to filter readers to only offline or online readers",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "offline",
+            "online"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "A status filter to filter readers to only offline or online readers"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

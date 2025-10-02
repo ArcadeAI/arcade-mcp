@@ -44,7 +44,7 @@ async def run_http():
     server = MCPServer(catalog=catalog)
     await server._start()
     try:
-        transport = HTTPStreamableTransport(host="0.0.0.0", port=7777)
+        transport = HTTPStreamableTransport(host="0.0.0.0", port=8000)
         await transport.run(server)
     finally:
         await server._stop()

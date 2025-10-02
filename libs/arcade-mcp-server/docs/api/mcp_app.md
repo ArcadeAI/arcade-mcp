@@ -15,7 +15,7 @@ app = MCPApp(name="my_server", version="1.0.0")
 def greet(name: str) -> str:
     return f"Hello, {name}!"
 
-app.run(host="127.0.0.1", port=7777)
+app.run(host="127.0.0.1", port=8000)
 ```
 
 #### Class Reference
@@ -38,7 +38,7 @@ def echo(text: str) -> str:
 
 if __name__ == "__main__":
     # Start an HTTP server (good for local development/testing)
-    app.run(host="0.0.0.0", port=7777, reload=False, debug=True)
+    app.run(host="0.0.0.0", port=8000, reload=False, debug=True)
 ```
 
 ```bash

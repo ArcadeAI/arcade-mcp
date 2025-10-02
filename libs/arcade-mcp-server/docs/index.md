@@ -27,11 +27,41 @@ Arcade MCP (Model Context Protocol) enables AI assistants and development tools 
 
 ### Installation
 
+We recommend installing the `arcade-mcp` CLI package, which includes `arcade-mcp-server` and provides a streamlined development workflow:
+
 ```bash
-pip install arcade-mcp-server
+uv pip install arcade-mcp
 ```
 
-### Create Your First Tool
+Or install just the server library if you prefer a direct Python approach:
+
+```bash
+uv pip install arcade-mcp-server
+```
+
+### Quick Start: Create a New Server (Recommended)
+
+The fastest way to get started is with the `arcade new` command, which creates a starter MCP server with example tools:
+
+```bash
+# Create a new server project
+arcade new my_server
+
+# Navigate to the project
+cd my_server
+
+# Run the server
+arcade mcp
+```
+
+The generated server includes three example tools:
+- **Simple tool** - A basic function to get you started
+- **Secret-based tool** - Shows how to use environment secrets
+- **OAuth tool** - Demonstrates how to use a OAuth tool (requires `arcade login`)
+
+### Manual Setup: Create Your First Tool
+
+If you prefer to create tools manually, you can use the `MCPApp` interface:
 
 ```python
 from arcade_mcp_server import MCPApp
@@ -48,18 +78,43 @@ if __name__ == "__main__":
     app.run()
 ```
 
-### Run Your Server
+### Running Your Server
+
+**Recommended: Use the Arcade CLI**
 
 ```bash
-# For development
-python my_tools.py
+# Run HTTP server (default)
+arcade mcp
 
-# For Claude Desktop
-python -m arcade_mcp_server stdio
+# Run stdio server (for Claude Desktop, Cursor, etc.)
+arcade mcp stdio
 
-# For HTTP clients
-python -m arcade_mcp_server --host 0.0.0.0 --port 8080
+# Run with debug logging and hot reload
+arcade mcp --debug --reload
 ```
+
+**Alternative: Direct Python execution**
+
+```bash
+# Run your server.py file directly
+python server.py
+```
+
+### Configure MCP Clients
+
+Once your server is running, connect it to your favorite AI assistant:
+
+```bash
+# Configure Claude Desktop (configures for stdio)
+arcade configure claude --from-local
+
+# Configure Cursor (configures for http streamable)
+arcade configure cursor --from-local
+
+# Configure VS Code (configures for http streamable)
+arcade configure vscode --from-local
+```
+
 
 ## Client Integration
 
@@ -80,7 +135,7 @@ Connect your MCP server with AI assistants and development tools:
 ## Community
 
 - [GitHub Repository](https://github.com/ArcadeAI/arcade-mcp)
-- [Discord Community](https://discord.gg/arcade-mcp)
+- [Discord Community](https://discord.com/invite/GUZEMpEZ9p)
 - [Documentation](https://docs.arcade.dev)
 
 ## License

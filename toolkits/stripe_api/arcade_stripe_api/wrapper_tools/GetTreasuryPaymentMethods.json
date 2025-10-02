@@ -1,0 +1,360 @@
+{
+  "name": "GetTreasuryPaymentMethods",
+  "fully_qualified_name": "StripeApi.GetTreasuryPaymentMethods@0.1.0",
+  "description": "Retrieve a list of PaymentMethods for Treasury flows.\n\nThis tool retrieves a list of PaymentMethods specifically for Treasury flows. It should be used when you want to access payment methods for these specific purposes, rather than customer-attached payment methods.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "customer_id",
+        "required": false,
+        "description": "The ID of the customer whose PaymentMethods will be retrieved for Treasury flows. This is used to filter the payment methods specific to a customer.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer whose PaymentMethods will be retrieved."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "customer"
+      },
+      {
+        "name": "pagination_ending_before",
+        "required": false,
+        "description": "An object ID to fetch the previous page of the list in pagination. Use to navigate to earlier records.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ending_before"
+      },
+      {
+        "name": "expand_response_fields",
+        "required": false,
+        "description": "Specifies which fields in the payment methods response should be expanded for more details.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "The maximum number of payment methods to return, between 1 and 100. Default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "starting_after_payment_method",
+        "required": false,
+        "description": "An object ID cursor to paginate through the list of payment methods. Use it to fetch the next page after a given object.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "starting_after"
+      },
+      {
+        "name": "filter_payment_method_type",
+        "required": false,
+        "description": "Filter the list based on the payment method type. Use specific payment method values like 'card', 'paypal', etc., if expecting only one type.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "acss_debit",
+            "affirm",
+            "afterpay_clearpay",
+            "alipay",
+            "alma",
+            "amazon_pay",
+            "au_becs_debit",
+            "bacs_debit",
+            "bancontact",
+            "billie",
+            "blik",
+            "boleto",
+            "card",
+            "cashapp",
+            "crypto",
+            "customer_balance",
+            "eps",
+            "fpx",
+            "giropay",
+            "grabpay",
+            "ideal",
+            "kakao_pay",
+            "klarna",
+            "konbini",
+            "kr_card",
+            "link",
+            "mb_way",
+            "mobilepay",
+            "multibanco",
+            "naver_pay",
+            "nz_bank_account",
+            "oxxo",
+            "p24",
+            "pay_by_bank",
+            "payco",
+            "paynow",
+            "paypal",
+            "pix",
+            "promptpay",
+            "revolut_pay",
+            "samsung_pay",
+            "satispay",
+            "sepa_debit",
+            "sofort",
+            "swish",
+            "twint",
+            "us_bank_account",
+            "wechat_pay",
+            "zip"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional filter on the list, based on the object `type` field. Without the filter, the list includes all current and future payment method types. If your integration expects only one type of payment method in the response, make sure to provide a type value in the request."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetPaymentMethods'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/payment_methods",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "customer",
+        "tool_parameter_name": "customer_id",
+        "description": "The ID of the customer whose PaymentMethods will be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the customer whose PaymentMethods will be retrieved."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ending_before",
+        "tool_parameter_name": "pagination_ending_before",
+        "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_response_fields",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "starting_after",
+        "tool_parameter_name": "starting_after_payment_method",
+        "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "type",
+        "tool_parameter_name": "filter_payment_method_type",
+        "description": "An optional filter on the list, based on the object `type` field. Without the filter, the list includes all current and future payment method types. If your integration expects only one type of payment method in the response, make sure to provide a type value in the request.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "acss_debit",
+            "affirm",
+            "afterpay_clearpay",
+            "alipay",
+            "alma",
+            "amazon_pay",
+            "au_becs_debit",
+            "bacs_debit",
+            "bancontact",
+            "billie",
+            "blik",
+            "boleto",
+            "card",
+            "cashapp",
+            "crypto",
+            "customer_balance",
+            "eps",
+            "fpx",
+            "giropay",
+            "grabpay",
+            "ideal",
+            "kakao_pay",
+            "klarna",
+            "konbini",
+            "kr_card",
+            "link",
+            "mb_way",
+            "mobilepay",
+            "multibanco",
+            "naver_pay",
+            "nz_bank_account",
+            "oxxo",
+            "p24",
+            "pay_by_bank",
+            "payco",
+            "paynow",
+            "paypal",
+            "pix",
+            "promptpay",
+            "revolut_pay",
+            "samsung_pay",
+            "satispay",
+            "sepa_debit",
+            "sofort",
+            "swish",
+            "twint",
+            "us_bank_account",
+            "wechat_pay",
+            "zip"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "An optional filter on the list, based on the object `type` field. Without the filter, the list includes all current and future payment method types. If your integration expects only one type of payment method in the response, make sure to provide a type value in the request."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}
