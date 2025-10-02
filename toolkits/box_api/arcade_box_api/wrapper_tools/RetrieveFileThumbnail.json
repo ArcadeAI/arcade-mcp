@@ -1,0 +1,269 @@
+{
+  "name": "RetrieveFileThumbnail",
+  "fully_qualified_name": "BoxApi.RetrieveFileThumbnail@0.1.0",
+  "description": "Retrieves a thumbnail image of a specified file.\n\nThis tool retrieves a thumbnail of a file in various sizes, such as 32x32, 64x64, 128x128, and 256x256 in .png format, or 32x32, 160x160, and 320x320 in .jpg format. Use this tool to get a smaller image representation of images and videos.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_identifier",
+        "required": true,
+        "description": "The unique identifier for the file. You can find this ID in the file URL on the Box web application.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_id"
+      },
+      {
+        "name": "thumbnail_file_format",
+        "required": true,
+        "description": "Specify the file format for the thumbnail, either 'png' or 'jpg'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "png",
+            "jpg"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The file format for the thumbnail."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "extension"
+      },
+      {
+        "name": "minimum_thumbnail_height",
+        "required": false,
+        "description": "Specify the minimum height for the thumbnail image required. Accepts an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum height of the thumbnail."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "min_height"
+      },
+      {
+        "name": "minimum_thumbnail_width",
+        "required": false,
+        "description": "The minimum width of the thumbnail to be retrieved. Specify an integer value.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum width of the thumbnail."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "min_width"
+      },
+      {
+        "name": "maximum_thumbnail_height",
+        "required": false,
+        "description": "The maximum height of the thumbnail in pixels. Valid values depend on the specified format. For .png, maximum is 256; for .jpg, maximum is 320.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum height of the thumbnail."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_height"
+      },
+      {
+        "name": "maximum_thumbnail_width",
+        "required": false,
+        "description": "The maximum width for the thumbnail image in pixels. Define the width according to the available sizes in .png or .jpg formats.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum width of the thumbnail."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "max_width"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_files_id_thumbnail_id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/files/{file_id}/thumbnail.{extension}",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "min_height",
+        "tool_parameter_name": "minimum_thumbnail_height",
+        "description": "The minimum height of the thumbnail.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum height of the thumbnail."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "min_width",
+        "tool_parameter_name": "minimum_thumbnail_width",
+        "description": "The minimum width of the thumbnail.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The minimum width of the thumbnail."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "max_height",
+        "tool_parameter_name": "maximum_thumbnail_height",
+        "description": "The maximum height of the thumbnail.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum height of the thumbnail."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "max_width",
+        "tool_parameter_name": "maximum_thumbnail_width",
+        "description": "The maximum width of the thumbnail.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum width of the thumbnail."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_id",
+        "tool_parameter_name": "file_identifier",
+        "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "extension",
+        "tool_parameter_name": "thumbnail_file_format",
+        "description": "The file format for the thumbnail.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "png",
+            "jpg"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "The file format for the thumbnail."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

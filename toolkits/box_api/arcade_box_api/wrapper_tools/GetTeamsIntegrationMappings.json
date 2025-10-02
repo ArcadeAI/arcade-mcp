@@ -1,0 +1,209 @@
+{
+  "name": "GetTeamsIntegrationMappings",
+  "fully_qualified_name": "BoxApi.GetTeamsIntegrationMappings@0.1.0",
+  "description": "Retrieve Teams integration mappings for an enterprise.\n\nThis tool retrieves a list of Teams integration mappings within a user's enterprise. It requires Admin or Co-Admin access to execute this call.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "mapped_item_type",
+        "required": false,
+        "description": "Specify the type of item ('channel' or 'team') for which the mapping should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "channel",
+            "team"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mapped item type, for which the mapping should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "partner_item_type"
+      },
+      {
+        "name": "mapped_item_id",
+        "required": false,
+        "description": "The ID of the mapped item for which the mapping should be returned. Required for retrieving specific integration mappings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the mapped item,\nfor which the mapping should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "partner_item_id"
+      },
+      {
+        "name": "box_item_id_for_mappings",
+        "required": false,
+        "description": "The Box item ID to retrieve integration mappings for. Required for fetching specific mappings.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item ID, for which the mappings should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "box_item_id"
+      },
+      {
+        "name": "box_item_type",
+        "required": false,
+        "description": "Specify the type of Box item for which the mappings should be returned. Acceptable value is 'folder'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "folder"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item type, for\nwhich the mappings should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "box_item_type"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_integration_mappings_teams'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/integration_mappings/teams",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "partner_item_type",
+        "tool_parameter_name": "mapped_item_type",
+        "description": "Mapped item type, for which the mapping should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "channel",
+            "team"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mapped item type, for which the mapping should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "partner_item_id",
+        "tool_parameter_name": "mapped_item_id",
+        "description": "ID of the mapped item,\nfor which the mapping should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the mapped item,\nfor which the mapping should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "box_item_id",
+        "tool_parameter_name": "box_item_id_for_mappings",
+        "description": "Box item ID, for which the mappings should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item ID, for which the mappings should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "box_item_type",
+        "tool_parameter_name": "box_item_type",
+        "description": "Box item type, for\nwhich the mappings should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "folder"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item type, for\nwhich the mappings should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

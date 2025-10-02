@@ -1,0 +1,103 @@
+{
+  "name": "DeleteSlackIntegrationMapping",
+  "fully_qualified_name": "BoxApi.DeleteSlackIntegrationMapping@0.1.0",
+  "description": "Deletes a Slack integration mapping for Box content.\n\nThis tool deletes a specified Slack integration mapping in Box. It requires admin or co-admin permissions. Use it when a Slack integration mapping needs to be removed.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "slack_integration_mapping_id",
+        "required": true,
+        "description": "The ID of the Slack integration mapping to be deleted. This requires Admin or Co-Admin permission.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of an integration mapping."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "integration_mapping_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete_integration_mappings_slack_id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/integration_mappings/slack/{integration_mapping_id}",
+    "http_method": "DELETE",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "integration_mapping_id",
+        "tool_parameter_name": "slack_integration_mapping_id",
+        "description": "An ID of an integration mapping.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "An ID of an integration mapping."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

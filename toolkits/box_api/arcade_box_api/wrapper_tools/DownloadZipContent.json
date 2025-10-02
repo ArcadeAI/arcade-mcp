@@ -1,0 +1,103 @@
+{
+  "name": "DownloadZipContent",
+  "fully_qualified_name": "BoxApi.DownloadZipContent@0.1.0",
+  "description": "Download the contents of a zip archive.\n\nThis tool retrieves the contents of a zip archive from a specified URL, which is valid for a short time. It's useful for downloading the archive to a device, but remember that once a download starts, it cannot be paused or resumed. A new request must be created for a fresh URL.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "zip_archive_unique_id",
+        "required": true,
+        "description": "The unique identifier for the zip archive to be downloaded. This ID must be obtained from the 'Create zip download' API response.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represent this `zip` archive."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "zip_download_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_zip_downloads_id_content'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/zip_downloads/{zip_download_id}/content",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "zip_download_id",
+        "tool_parameter_name": "zip_archive_unique_id",
+        "description": "The unique identifier that represent this `zip` archive.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represent this `zip` archive."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}
