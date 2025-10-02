@@ -8,6 +8,7 @@ from typing import Any, Callable
 import typer
 from arcade_cli.usage.identity import UsageIdentity
 from arcade_cli.usage.usage_service import UsageService
+from arcade_cli.usage.utils import is_tracking_enabled
 from typer.core import TyperCommand, TyperGroup
 from typer.models import Context
 
@@ -120,6 +121,9 @@ class CommandTracker:
             is_login: Whether this is a login command.
             is_logout: Whether this is a logout command.
         """
+        if not is_tracking_enabled():
+            return
+
         if is_login and success:
             self._handle_successful_login()
 

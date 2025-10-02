@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 
+from arcade_cli.usage.utils import is_tracking_enabled
+
 
 class UsageService:
     def __init__(self) -> None:
@@ -19,6 +21,9 @@ class UsageService:
             previous_id: The previous distinct_id (usually anon_id)
             distinct_id: The new distinct_id (usually email)
         """
+        if not is_tracking_enabled():
+            return
+
         try:
             from posthog import Posthog
 
@@ -49,6 +54,9 @@ class UsageService:
             properties: Event properties
             is_anon: Whether this is an anonymous user (sets $process_person_profile to false)
         """
+        if not is_tracking_enabled():
+            return
+
         event_data = json.dumps({
             "event_name": event_name,
             "properties": properties,
