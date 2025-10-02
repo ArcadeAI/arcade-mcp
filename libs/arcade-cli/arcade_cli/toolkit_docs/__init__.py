@@ -61,6 +61,7 @@ def generate_toolkit_docs(
     toolkit_mdx_file_path = build_toolkit_mdx_file_path(docs_section, docs_dir, toolkit_name)
     print_debug(f"Building {toolkit_mdx_file_path} file")
     toolkit_mdx = build_toolkit_mdx(
+        toolkit_package_name=toolkit_name,
         toolkit_dir=toolkit_dir,
         tools=tools,
         docs_section=docs_section,

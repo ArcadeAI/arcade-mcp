@@ -60,7 +60,7 @@ def build_toolkit_mdx_dir_path(
         "en",
         "mcp-servers",
         docs_section,
-        f"{toolkit_name.lower()}",
+        f"{toolkit_name.lower().replace('_', '-')}",
     )
 
     if ensure_exists:
@@ -86,6 +86,7 @@ def build_example_path(example_filename: str, docs_root_dir: str, toolkit_name: 
 
 
 def build_toolkit_mdx(
+    toolkit_package_name: str,
     toolkit_dir: str,
     tools: list[ToolDefinition],
     docs_section: str,
@@ -132,7 +133,9 @@ def build_toolkit_mdx(
     table_of_contents = build_table_of_contents(tools)
     footer = build_footer(toolkit_name, pip_package_name, sample_tool.requirements.authorization)
 
-    referenced_enums, tools_specs = build_tools_specs(tools, docs_section, enums)
+    referenced_enums, tools_specs = build_tools_specs(
+        toolkit_package_name, tools, docs_section, enums
+    )
     reference_mdx = build_reference_mdx(toolkit_name, referenced_enums) if referenced_enums else ""
 
     toolkit_mdx = toolkit_page_template.format(
@@ -239,6 +242,7 @@ def build_footer(
 
 
 def build_tools_specs(
+    toolkit_name: str,
     tools: list[ToolDefinition],
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -250,6 +254,7 @@ def build_tools_specs(
     referenced_enums = []
     for tool in tools:
         tool_referenced_enums, tool_spec = build_tool_spec(
+            toolkit_name=toolkit_name,
             tool=tool,
             docs_section=docs_section,
             enums=enums,
@@ -264,6 +269,7 @@ def build_tools_specs(
 
 
 def build_tool_spec(
+    toolkit_name: str,
     tool: ToolDefinition,
     docs_section: str,
     enums: dict[str, type[Enum]],
@@ -272,7 +278,7 @@ def build_tool_spec(
     tool_spec_secrets_template: str = TOOL_SPEC_SECRETS,
 ) -> tuple[list[tuple[str, type[Enum]]], str]:
     tabbed_examples_list = TABBED_EXAMPLES_LIST.format(
-        toolkit_name=tool.toolkit.name.lower(),
+        toolkit_name=toolkit_name.lower(),
         tool_name=pascal_to_snake_case(tool.name),
     )
     referenced_enums, parameters = build_tool_parameters(
@@ -363,12 +369,15 @@ def build_examples(
         interface_signature = build_tool_interface_signature(tool)
         input_map = generate_tool_input_map(interface_signature, openai_model)
         fully_qualified_name = tool.fully_qualified_name.split("@")[0]
+
+        py_file_name = f"{pascal_to_snake_case(tool.name)}_example_call_tool.py"
         examples.append((
-            f"{pascal_to_snake_case(tool.name)}_example_call_tool.py",
+            py_file_name,
             build_python_example(fully_qualified_name, input_map),
         ))
+        js_file_name = f"{pascal_to_snake_case(tool.name)}_example_call_tool.js"
         examples.append((
-            f"{pascal_to_snake_case(tool.name)}_example_call_tool.js",
+            js_file_name,
             build_javascript_example(fully_qualified_name, input_map),
         ))
     return examples
