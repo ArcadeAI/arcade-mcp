@@ -7,22 +7,29 @@ TOOLKIT_PAGE = """{header}
 {footer}
 """
 
-TOOLKIT_HEADER = """# {toolkit_title}
+STARTER_TOOLKIT_HEADER_IMPORT = 'import StarterToolInfo from "@/app/_components/starter-tool-info";'
 
-import ToolInfo from "@/components/ToolInfo";
-import Badges from "@/components/Badges";
-import TabbedCodeBlock from "@/components/TabbedCodeBlock";
-import TableOfContents from "@/components/TableOfContents";
-import ToolFooter from "@/components/ToolFooter";
+STARTER_TOOL_INFO_CALL = '<StarterToolInfo toolkitName="{toolkit_name}" />'
+
+TOOLKIT_HEADER = """# {toolkit_title}
+{starter_tool_info_import}
+import ToolInfo from "@/app/_components/tool-info";
+import Badges from "@/app/_components/badges";
+import TabbedCodeBlock from "@/app/_components/tabbed-code-block";
+import TableOfContents from "@/app/_components/table-of-contents";
+import ToolFooter from "@/app/_components/tool-footer";
+import {{ Callout }} from "nextra/components";
 
 <ToolInfo
-  description="Enable agents to interact with {toolkit_title}"
+  description="{tool_info_description}"
   author="Arcade"
   {auth_type}
   versions={{["{version}"]}}
 />
 
 <Badges repo="arcadeai/{pip_package_name}" />
+
+{starter_tool_info_warning}
 
 {description}"""
 
@@ -36,11 +43,11 @@ TABLE_OF_CONTENTS = """## Available Tools
   }}
 />
 
-<Tip>
+<Callout>
   If you need to perform an action that's not listed here, you can [get in touch
   with us](mailto:contact@arcade.dev) to request a new tool, or [create your
-  own tools](/home/build-tools/create-a-toolkit).
-</Tip>"""
+  own tools](/home/build-tools/create-a-mcp-server).
+</Callout>"""
 
 TABLE_OF_CONTENTS_ITEM = '\n      ["{tool_fully_qualified_name}", "{description}"],'
 
@@ -59,7 +66,7 @@ TOOL_SPEC = """## {tool_fully_qualified_name}
 
 TOOL_SPEC_SECRETS = """**Secrets**
 
-This tool requires the following secrets: {secrets} (learn how to [configure secrets](/home/build-tools/create-a-tool-with-secrets#supplying-the-secret))
+This tool requires the following secrets: {secrets} (learn how to [configure secrets](/home/build-tools/create-a-tool-with-secrets#set-the-secret-in-the-arcade-dashboard))
 """
 
 TABBED_EXAMPLES_LIST = """<TabbedCodeBlock
@@ -67,8 +74,8 @@ TABBED_EXAMPLES_LIST = """<TabbedCodeBlock
     {{
       label: "Call the Tool Directly",
       content: {{
-        Python: ["/examples/integrations/toolkits/{toolkit_name}/{tool_name}_example_call_tool.py"],
-        JavaScript: ["/examples/integrations/toolkits/{toolkit_name}/{tool_name}_example_call_tool.js"],
+        Python: ["/examples/integrations/mcp-servers/{toolkit_name}/{tool_name}_example_call_tool.py"],
+        JavaScript: ["/examples/integrations/mcp-servers/{toolkit_name}/{tool_name}_example_call_tool.js"],
       }},
     }},
   ]}}
@@ -85,9 +92,9 @@ TOOLKIT_FOOTER_OAUTH2 = """## Auth
 <ToolFooter pipPackageName="{pip_package_name}" />
 """
 
-WELL_KNOWN_PROVIDER_CONFIG = "The Arcade {toolkit_name} toolkit uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts. Please refer to the [{provider_name} auth provider](/home/auth-providers/{provider_id}) documentation to learn how to configure auth."
+WELL_KNOWN_PROVIDER_CONFIG = "The Arcade {toolkit_name} MCP Server uses the [{provider_name} auth provider](/home/auth-providers/{provider_id}) to connect to users' {toolkit_name} accounts. Please refer to the [{provider_name} auth provider](/home/auth-providers/{provider_id}) documentation to learn how to configure auth."
 
-GENERIC_PROVIDER_CONFIG = "The {toolkit_name} toolkit uses the Auth Provider with id `{provider_id}` to connect to users' {toolkit_name} accounts. In order to use the toolkit, you will need to configure the `{provider_id}` auth provider."
+GENERIC_PROVIDER_CONFIG = "The {toolkit_name} MCP Server uses the Auth Provider with id `{provider_id}` to connect to users' {toolkit_name} accounts. In order to use the MCP Server, you will need to configure the `{provider_id}` auth provider."
 
 TOOL_CALL_EXAMPLE_JS = """import {{ Arcade }} from "@arcadeai/arcadejs";
 
@@ -148,7 +155,7 @@ print(json.dumps(response.output.value, indent=2))
 
 ENUM_MDX = """## Reference
 
-Below is a reference of enumerations used by some of the tools in the {toolkit_name} toolkit:
+Below is a reference of enumerations used by some of the tools in the {toolkit_name} MCP Server:
 
 {enum_items}
 """
