@@ -7,15 +7,61 @@ IN THE ../wrapper_tools DIRECTORY INTO PYTHON CODE. ANY CHANGES TO THIS MODULE W
 BE OVERWRITTEN BY THE TRANSPILER.
 """
 
+import asyncio
 from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
 from arcade_tdk.auth import OAuth2
 
+# Retry configuration
+INITIAL_RETRY_DELAY = 0.5  # seconds
+
+HTTP_CLIENT = httpx.AsyncClient(
+    timeout=httpx.Timeout(60.0, connect=10.0),
+    limits=httpx.Limits(max_keepalive_connections=20, max_connections=100),
+    transport=httpx.AsyncHTTPTransport(retries=3),
+    http2=True,
+    follow_redirects=True,
+)
+
 
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
+
+
+async def make_request(
+    url: str,
+    method: str,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
+    max_retries: int = 3,
+) -> httpx.Response:
+    """Make an HTTP request with retry logic for 5xx server errors."""
+    for attempt in range(max_retries):
+        try:
+            response = await HTTP_CLIENT.request(
+                url=url,
+                method=method,
+                params=params,
+                headers=headers,
+                data=data,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            # Only retry on 5xx server errors
+            if e.response.status_code >= 500 and attempt < max_retries - 1:
+                # Exponential backoff: 0.5s, 1s, 2s
+                await asyncio.sleep(INITIAL_RETRY_DELAY * (2**attempt))
+                continue
+            # Re-raise for 4xx errors or if max retries reached
+            raise
+        except httpx.RequestError:
+            # Don't retry request errors (network issues are handled by transport)
+            raise
+        else:
+            return response
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -25,21 +71,21 @@ async def retrieve_token_status(
     """Retrieve the status of an OAuth or personal access token.
 
     This tool checks the status of a Square OAuth access token or a personal access token. It should be called to verify if a token is active or expired. Ensure the token is included in the Authorization header as 'Bearer ACCESS_TOKEN'."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/oauth2/token/status",
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/oauth2/token/status",
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["BANK_ACCOUNTS_READ"]))
@@ -60,26 +106,25 @@ async def list_bank_accounts(
     """Fetch a list of bank accounts linked to a Square account.
 
     Call this tool to retrieve all bank accounts associated with a Square account. Useful for checking account details or managing linked bank accounts."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bank-accounts",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "limit": max_bank_accounts_limit,
-                "location_id": location_id_filter,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bank-accounts",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "limit": max_bank_accounts_limit,
+            "location_id": location_id_filter,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["BANK_ACCOUNTS_READ"]))
@@ -93,23 +138,23 @@ async def get_bank_account_details_by_id(
     """Retrieve bank account details using V1 ID.
 
     Use this tool to get detailed information about a bank account by providing the V1 bank account ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bank-accounts/by-v1-id/{v1_bank_account_id}".format(  # noqa: UP032
-                v1_bank_account_id=v1_bank_account_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bank-accounts/by-v1-id/{v1_bank_account_id}".format(  # noqa: UP032
+            v1_bank_account_id=v1_bank_account_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["BANK_ACCOUNTS_READ"]))
@@ -122,23 +167,23 @@ async def get_bank_account_details(
     """Retrieve details of a Square account's bank account.
 
     Fetches detailed information about a specific bank account linked to a Square account using the bank account ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bank-accounts/{bank_account_id}".format(  # noqa: UP032
-                bank_account_id=bank_account_identifier
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bank-accounts/{bank_account_id}".format(  # noqa: UP032
+            bank_account_id=bank_account_identifier
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -176,30 +221,29 @@ async def get_booking_list(
     """Retrieve a collection of bookings.
 
     Use this tool to get a collection of bookings from the Squareup service. Relevant permissions (OAuth scope) are needed: `APPOINTMENTS_READ` for buyer-level and `APPOINTMENTS_ALL_READ` along with `APPOINTMENTS_READ` for seller-level permissions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings",
-            params=remove_none_values({
-                "limit": results_per_page_limit,
-                "cursor": pagination_cursor,
-                "customer_id": specific_customer_id,
-                "team_member_id": team_member_id,
-                "location_id": specific_location_id,
-                "start_at_min": earliest_start_time,
-                "start_at_max": latest_start_time,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings",
+        method="GET",
+        params=remove_none_values({
+            "limit": results_per_page_limit,
+            "cursor": pagination_cursor,
+            "customer_id": specific_customer_id,
+            "team_member_id": team_member_id,
+            "location_id": specific_location_id,
+            "start_at_min": earliest_start_time,
+            "start_at_max": latest_start_time,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
@@ -209,21 +253,21 @@ async def get_business_booking_profile(
     """Retrieve seller's booking profile details.
 
     Use this tool to get detailed information about a seller's booking profile. Call this tool when you need to provide or display booking-related information for a seller."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/business-booking-profile",
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/business-booking-profile",
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -242,25 +286,21 @@ async def get_booking_custom_attributes(
     """Retrieve all custom attribute definitions for bookings.
 
     Use this tool to get all custom attribute definitions associated with bookings. It requires appropriate OAuth scopes for buyer or seller level permissions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions",
-            params=remove_none_values({
-                "limit": maximum_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions",
+        method="GET",
+        params=remove_none_values({"limit": maximum_results_per_page, "cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_WRITE"]))
@@ -275,23 +315,23 @@ async def delete_booking_custom_attribute_definition(
     """Deletes a bookings custom attribute definition.
 
     Use to delete a custom attribute definition for bookings. Requires specific OAuth scopes depending on permission level: `APPOINTMENTS_WRITE` for buyer-level or both `APPOINTMENTS_ALL_WRITE` and `APPOINTMENTS_WRITE` for seller-level. Seller-level calls require an Appointments Plus or Premium subscription."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_definition_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_definition_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -311,24 +351,23 @@ async def retrieve_booking_custom_attribute_definition(
     """Retrieve a booking's custom attribute definition.
 
     Use this tool to obtain the definition of a custom attribute for bookings. Appropriate OAuth scope permissions are required, either buyer-level (`APPOINTMENTS_READ`) or seller-level (`APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ`)."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            params=remove_none_values({"version": custom_attribute_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({"version": custom_attribute_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
@@ -346,25 +385,21 @@ async def list_location_booking_profiles(
     """Lists location booking profiles of a seller.
 
     Use this tool to retrieve a list of all the booking profiles associated with a seller's locations from Squareup."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/location-booking-profiles",
-            params=remove_none_values({
-                "limit": maximum_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/location-booking-profiles",
+        method="GET",
+        params=remove_none_values({"limit": maximum_results_per_page, "cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
@@ -377,23 +412,23 @@ async def retrieve_location_booking_profile(
     """Retrieve a seller's location booking profile.
 
     Use this tool to obtain the booking profile details for a specific seller's location by providing the location ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/location-booking-profiles/{location_id}".format(  # noqa: UP032
-                location_id=location_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/location-booking-profiles/{location_id}".format(  # noqa: UP032
+            location_id=location_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
@@ -418,27 +453,26 @@ async def list_team_member_booking_profiles(
     """Lists booking profiles for team members.
 
     Call this tool to retrieve booking profiles for all team members, useful for managing schedules and appointments."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles",
-            params=remove_none_values({
-                "bookable_only": include_only_bookable_team_members,
-                "limit": max_results_per_page,
-                "cursor": pagination_cursor,
-                "location_id": filter_by_location_id,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles",
+        method="GET",
+        params=remove_none_values({
+            "bookable_only": include_only_bookable_team_members,
+            "limit": max_results_per_page,
+            "cursor": pagination_cursor,
+            "location_id": filter_by_location_id,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_BUSINESS_SETTINGS_READ"]))
@@ -454,23 +488,23 @@ async def retrieve_team_member_booking_profile(
     """Retrieve a team member's booking profile details.
 
     Use this tool to access the booking profile of a specific team member by their ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles/{team_member_id}".format(  # noqa: UP032
-                team_member_id=team_member_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/team-member-booking-profiles/{team_member_id}".format(  # noqa: UP032
+            team_member_id=team_member_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -481,23 +515,21 @@ async def retrieve_booking(
     """Retrieve details of a specific booking.
 
     Use this tool to get information about a particular booking using its ID. Appropriate OAuth scopes are required depending on whether buyer or seller permissions are needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/{booking_id}".format(  # noqa: UP032
-                booking_id=booking_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/{booking_id}".format(booking_id=booking_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -523,28 +555,27 @@ async def list_booking_custom_attributes(
     """Lists custom attributes for a specific booking.
 
     Use this tool to retrieve the custom attributes associated with a specific booking. Ensure the appropriate OAuth permissions (`APPOINTMENTS_READ` for buyer-level or `APPOINTMENTS_ALL_READ` and `APPOINTMENTS_READ` for seller-level) are set before calling this endpoint."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes".format(  # noqa: UP032
-                booking_id=booking_identifier
-            ),
-            params=remove_none_values({
-                "limit": maximum_results_per_page,
-                "cursor": pagination_cursor,
-                "with_definitions": include_custom_attribute_definitions,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes".format(  # noqa: UP032
+            booking_id=booking_identifier
+        ),
+        method="GET",
+        params=remove_none_values({
+            "limit": maximum_results_per_page,
+            "cursor": pagination_cursor,
+            "with_definitions": include_custom_attribute_definitions,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_WRITE"]))
@@ -561,23 +592,23 @@ async def delete_booking_custom_attribute(
     """Deletes a custom attribute from a booking.
 
     Use this tool to remove a custom attribute from a specific booking. Appropriate OAuth permissions are required: 'APPOINTMENTS_WRITE' for buyer-level and 'APPOINTMENTS_ALL_WRITE' with 'APPOINTMENTS_WRITE' for seller-level. Seller must be subscribed to Appointments Plus or Premium."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
-                booking_id=booking_id, key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
+            booking_id=booking_id, key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["APPOINTMENTS_READ"]))
@@ -602,27 +633,26 @@ async def get_booking_custom_attribute(
     """Retrieve a custom attribute for a specific booking.
 
     Use this tool to get a custom attribute associated with a given booking, using either buyer- or seller-level permissions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
-                booking_id=target_booking_id, key=custom_attribute_key
-            ),
-            params=remove_none_values({
-                "with_definition": include_custom_attribute_definition,
-                "version": custom_attribute_version,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/bookings/{booking_id}/custom-attributes/{key}".format(  # noqa: UP032
+            booking_id=target_booking_id, key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "with_definition": include_custom_attribute_definition,
+            "version": custom_attribute_version,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -652,28 +682,27 @@ async def retrieve_card_list(
     """Retrieve a list of cards owned by the account.
 
     The tool retrieves up to 25 cards associated with the account making the request. It should be used when there is a need to access card information for the account."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cards",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "customer_id": filter_by_customer_id,
-                "include_disabled": include_disabled_cards,
-                "reference_id": filter_by_reference_id,
-                "sort_order": card_sort_order,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cards",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "customer_id": filter_by_customer_id,
+            "include_disabled": include_disabled_cards,
+            "reference_id": filter_by_reference_id,
+            "sort_order": card_sort_order,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -684,21 +713,21 @@ async def retrieve_card_details(
     """Retrieve details for a specific card using its ID.
 
     This tool retrieves information about a specific card identified by its ID, allowing users to access details such as metadata and status."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cards/{card_id}".format(card_id=card_identifier),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cards/{card_id}".format(card_id=card_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -709,23 +738,23 @@ async def disable_payment_card(
     """Disable a payment card to prevent charges.
 
     Use this tool to disable a payment card, stopping any further updates or charges. Disabling an already disabled card is permitted but will not have any additional effect."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cards/{card_id}/disable".format(  # noqa: UP032
-                card_id=payment_card_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cards/{card_id}/disable".format(  # noqa: UP032
+            card_id=payment_card_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CASH_DRAWER_READ"]))
@@ -756,29 +785,28 @@ async def list_cash_drawer_shifts(
     """Retrieve cash drawer shift details for a location and date range.
 
     This tool provides details for all the cash drawer shifts for a specified location within a given date range. It should be called when cash drawer shift information is needed, such as start and end times, cash amounts, or other shift details for financial tracking and auditing purposes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cash-drawers/shifts",
-            params=remove_none_values({
-                "location_id": location_identifier,
-                "sort_order": sort_order_for_listing,
-                "begin_time": query_start_time,
-                "end_time": exclusive_end_date,
-                "limit": result_limit,
-                "cursor": next_page_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cash-drawers/shifts",
+        method="GET",
+        params=remove_none_values({
+            "location_id": location_identifier,
+            "sort_order": sort_order_for_listing,
+            "begin_time": query_start_time,
+            "end_time": exclusive_end_date,
+            "limit": result_limit,
+            "cursor": next_page_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CASH_DRAWER_READ"]))
@@ -795,24 +823,23 @@ async def get_cash_drawer_shift_details(
     """Get summary details for a specific cash drawer shift.
 
     Use this tool to retrieve detailed information about a specific cash drawer shift, including relevant data about its transactions and status."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}".format(  # noqa: UP032
-                shift_id=cash_drawer_shift_id
-            ),
-            params=remove_none_values({"location_id": location_identifier}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}".format(  # noqa: UP032
+            shift_id=cash_drawer_shift_id
+        ),
+        method="GET",
+        params=remove_none_values({"location_id": location_identifier}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CASH_DRAWER_READ"]))
@@ -835,28 +862,27 @@ async def list_cash_drawer_shift_events(
     """Retrieve events for a specific cash drawer shift.
 
     This tool retrieves a paginated list of events for a specific cash drawer shift. It is useful for tracking activities and occurrences related to a particular shift."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}/events".format(  # noqa: UP032
-                shift_id=cash_drawer_shift_id
-            ),
-            params=remove_none_values({
-                "location_id": location_identifier,
-                "limit": page_size_limit,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/cash-drawers/shifts/{shift_id}/events".format(  # noqa: UP032
+            shift_id=cash_drawer_shift_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "location_id": location_identifier,
+            "limit": page_size_limit,
+            "cursor": pagination_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_READ"]))
@@ -866,21 +892,21 @@ async def retrieve_catalog_info(
     """Retrieve Square Catalog API details and batch size limits.
 
     Use this tool to get information about the Square Catalog API, including batch size limits for catalog operations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/catalog/info",
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/catalog/info",
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_READ"]))
@@ -902,26 +928,25 @@ async def list_catalog_items(
     """Retrieve a list of catalog objects by type.
 
     This tool retrieves a list of all catalog objects of specified types, such as ITEM, ITEM_VARIATION, MODIFIER, etc., excluding deleted items. It's useful for accessing and managing various components of a catalog in the Square ecosystem."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/catalog/list",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "types": catalog_object_types,
-                "catalog_version": catalog_version,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/catalog/list",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "types": catalog_object_types,
+            "catalog_version": catalog_version,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_WRITE"]))
@@ -935,23 +960,23 @@ async def delete_catalog_object(
     """Deletes a catalog object and its children by ID.
 
     This tool deletes a catalog object by its ID, including all its child objects, ensuring that only one delete request is processed at a time per seller account. It should be called when you want to permanently remove a catalog item and its variations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
-                object_id=catalog_object_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
+            object_id=catalog_object_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ITEMS_READ"]))
@@ -976,28 +1001,27 @@ async def retrieve_catalog_item(
     """Fetch detailed catalog item information by ID.
 
     Use this tool to obtain complete details about a specific catalog item, including its variations, modifier lists, and applicable taxes, by providing the item ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
-                object_id=catalog_object_id
-            ),
-            params=remove_none_values({
-                "include_related_objects": include_related_objects,
-                "catalog_version": catalog_version,
-                "include_category_path_to_root": include_category_path_to_root,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/catalog/object/{object_id}".format(  # noqa: UP032
+            object_id=catalog_object_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "include_related_objects": include_related_objects,
+            "catalog_version": catalog_version,
+            "include_category_path_to_root": include_category_path_to_root,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1027,28 +1051,27 @@ async def list_square_customers(
     """Retrieve customer profiles from a Square account.
 
     Use this tool to obtain a list of customer profiles linked to a Square account. This is helpful for managing and analyzing customer data. Customer profiles may take some time to update, especially during network issues."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "limit": maximum_results_per_page,
-                "sort_field": customer_sorting_field,
-                "sort_order": customer_sort_order,
-                "count": include_total_customer_count,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "limit": maximum_results_per_page,
+            "sort_field": customer_sorting_field,
+            "sort_order": customer_sort_order,
+            "count": include_total_customer_count,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1068,25 +1091,21 @@ async def list_customer_custom_attribute_definitions(
     """Retrieve customer custom attribute definitions for a Square seller.
 
     Use this tool to list all customer-related custom attribute definitions for a Square seller account. It returns all visible custom attribute definitions to the requesting application, including those set by other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/custom-attribute-definitions",
-            params=remove_none_values({
-                "limit": maximum_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/custom-attribute-definitions",
+        method="GET",
+        params=remove_none_values({"limit": maximum_results_per_page, "cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1102,23 +1121,23 @@ async def delete_customer_custom_attribute_definition(
     """Delete a customer custom attribute definition for a seller account.
 
     This tool deletes a customer-related custom attribute definition from a Square seller's account. It will also remove the related custom attribute from all customer profiles in the seller's Customer Directory. Only the definition owner can perform this action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1138,24 +1157,23 @@ async def get_customer_custom_attribute_definition(
     """Retrieve a customer's custom attribute definition from Square.
 
     Fetches a customer-related custom attribute definition from a Square seller account. This should be called to get definitions where visibility is either 'READ_ONLY' or 'READ_WRITE_VALUES', including seller-defined custom fields."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            params=remove_none_values({"version": custom_attribute_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({"version": custom_attribute_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1173,25 +1191,21 @@ async def list_customer_groups(
     """Retrieve the list of customer groups for a business.
 
     Use this tool to access all customer groups associated with a business. Useful for managing or displaying customer segmentation and categories."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/groups",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "limit": maximum_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/groups",
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor, "limit": maximum_results_per_page}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1200,23 +1214,23 @@ async def delete_customer_group(
     customer_group_id: Annotated[str, "The ID of the customer group to delete."],
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'DeleteCustomerGroup'."]:
     """Deletes a specified customer group by ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
-                group_id=customer_group_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
+            group_id=customer_group_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1229,23 +1243,23 @@ async def retrieve_customer_group(
     """Retrieve details of a specific customer group using its ID.
 
     This tool retrieves information about a specific customer group identified by a given group ID. It is useful for accessing details about customer segmentation for targeting or analysis purposes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
-                group_id=customer_group_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/groups/{group_id}".format(  # noqa: UP032
+            group_id=customer_group_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1262,22 +1276,21 @@ async def list_customer_segments(
     """Retrieve the list of customer segments for a business.
 
     Call this tool to obtain the customer segments associated with a business. This can be useful for understanding customer classifications and targeting specific groups in marketing or service strategies."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/segments",
-            params=remove_none_values({"cursor": pagination_cursor, "limit": max_results_per_page}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/segments",
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor, "limit": max_results_per_page}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1290,23 +1303,23 @@ async def retrieve_customer_segment(
     """Retrieve details of a specific customer segment.
 
     Use this tool to obtain information about a customer segment identified by a `segment_id`."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/segments/{segment_id}".format(  # noqa: UP032
-                segment_id=customer_segment_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/segments/{segment_id}".format(  # noqa: UP032
+            segment_id=customer_segment_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1321,24 +1334,23 @@ async def delete_customer_profile(
     """Deletes a customer profile from a business.
 
     Use this tool to delete a customer profile, especially if created by merging existing profiles. The unique customer ID is required for deletion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
-                customer_id=customer_identifier
-            ),
-            params=remove_none_values({"version": customer_profile_version}),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
+            customer_id=customer_identifier
+        ),
+        method="DELETE",
+        params=remove_none_values({"version": customer_profile_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1352,23 +1364,23 @@ async def get_customer_details(
     """Retrieve details for a specific customer.
 
     Use this tool to get detailed information about a specific customer by their ID. Ideal for when you need to access customer profiles or verify customer details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
-                customer_id=customer_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}".format(  # noqa: UP032
+            customer_id=customer_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1393,28 +1405,27 @@ async def list_customer_custom_attributes(
     """Retrieve custom attributes for a customer profile.
 
     This tool lists the custom attributes associated with a specified customer profile. It can also retrieve custom attribute definitions if specified. It returns all attributes visible to the requesting application, including those with read-only or read-write visibility owned by other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes".format(  # noqa: UP032
-                customer_id=customer_profile_id
-            ),
-            params=remove_none_values({
-                "limit": result_limit,
-                "cursor": pagination_cursor,
-                "with_definitions": include_custom_attribute_definitions,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes".format(  # noqa: UP032
+            customer_id=customer_profile_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "limit": result_limit,
+            "cursor": pagination_cursor,
+            "with_definitions": include_custom_attribute_definitions,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1431,23 +1442,23 @@ async def delete_customer_custom_attribute(
     """Delete a custom attribute from a customer profile.
 
     Deletes a custom attribute from a customer profile, ensuring the visibility setting is `VISIBILITY_READ_WRITE_VALUES` for attributes owned by other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
-                customer_id=customer_profile_id, key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
+            customer_id=customer_profile_id, key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_READ"]))
@@ -1472,27 +1483,26 @@ async def retrieve_customer_custom_attribute(
     """Retrieve a custom attribute for a customer profile.
 
     Use this tool to get a custom attribute associated with a customer. Optionally, retrieve the attribute definition and ensure proper visibility settings for attributes owned by other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
-                customer_id=customer_profile_id, key=custom_attribute_key
-            ),
-            params=remove_none_values({
-                "with_definition": include_custom_attribute_definition,
-                "version": custom_attribute_version,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}/custom-attributes/{key}".format(  # noqa: UP032
+            customer_id=customer_profile_id, key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "with_definition": include_custom_attribute_definition,
+            "version": custom_attribute_version,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1509,23 +1519,23 @@ async def remove_group_from_customer(
     """Removes a group membership from a customer.
 
     Use this tool to remove a customer's membership in a specific group by providing the customer's ID and the group's ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
-                customer_id=customer_id, group_id=customer_group_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
+            customer_id=customer_id, group_id=customer_group_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["CUSTOMERS_WRITE"]))
@@ -1543,23 +1553,23 @@ async def add_group_to_customer(
     """Add a customer to a specific group.
 
     Use this tool to assign a specified customer to a particular group by providing the customer's ID and the group's ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
-                customer_id=customer_id, group_id=customer_group_id
-            ),
-            method="PUT",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/customers/{customer_id}/groups/{group_id}".format(  # noqa: UP032
+            customer_id=customer_id, group_id=customer_group_id
+        ),
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICES_READ"]))
@@ -1582,27 +1592,26 @@ async def list_merchant_devices(
     """Retrieve a list of merchant's connected devices.
 
     Call this tool to obtain a list of devices associated with a merchant, specifically Terminal API devices, using the Squareup service."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/devices",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "sort_order": result_sort_order,
-                "limit": results_per_page,
-                "location_id": filter_by_location_id,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/devices",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "sort_order": result_sort_order,
+            "limit": results_per_page,
+            "location_id": filter_by_location_id,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICE_CREDENTIAL_MANAGEMENT"]))
@@ -1628,27 +1637,26 @@ async def list_device_codes(
     """Retrieve all device codes for the merchant.
 
     This tool retrieves all device codes associated with a merchant account on Square. It should be called when there's a need to list or manage the devices linked to a merchant."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/devices/codes",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "location_id": filter_by_location_id,
-                "product_type": filter_by_product_type,
-                "status": device_code_status,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/devices/codes",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "location_id": filter_by_location_id,
+            "product_type": filter_by_product_type,
+            "status": device_code_status,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICE_CREDENTIAL_MANAGEMENT"]))
@@ -1661,21 +1669,21 @@ async def retrieve_device_code(
     """Retrieve device code details by ID.
 
     Use this tool to get details of a device code using the associated ID from Squareup."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/devices/codes/{id}".format(id=device_code_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/devices/codes/{id}".format(id=device_code_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DEVICES_READ"]))
@@ -1688,23 +1696,23 @@ async def retrieve_device_info(
     """Retrieve device information using a device ID.
 
     Use this tool to obtain details about a specific device by providing its device ID. It retrieves information related to the device, which can be useful for managing or reviewing devices in a system."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/devices/{device_id}".format(  # noqa: UP032
-                device_id=device_unique_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/devices/{device_id}".format(  # noqa: UP032
+            device_id=device_unique_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
@@ -1725,26 +1733,25 @@ async def get_account_disputes(
     """Fetches disputes associated with an account.
 
     Use this tool to retrieve all disputes linked to a specific account. This can help in tracking and managing any disputes that have arisen."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "states": dispute_states_filter,
-                "location_id": location_identifier,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "states": dispute_states_filter,
+            "location_id": location_identifier,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
@@ -1755,23 +1762,21 @@ async def retrieve_dispute_details(
     """Retrieve details about a specific dispute.
 
     Use this tool to get detailed information about a particular dispute, including the reasons and status of the dispute."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}".format(  # noqa: UP032
-                dispute_id=dispute_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}".format(dispute_id=dispute_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_WRITE"]))
@@ -1785,23 +1790,23 @@ async def accept_dispute(
     """Accepts the loss on a dispute, updating the state to ACCEPTED.
 
     This tool accepts the loss on a dispute by updating its state to ACCEPTED. Square processes the disputed amount, returning it to the cardholder and debiting the seller's Square account or associated bank account if funds are insufficient."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}/accept".format(  # noqa: UP032
-                dispute_id=dispute_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}/accept".format(  # noqa: UP032
+            dispute_id=dispute_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
@@ -1818,24 +1823,23 @@ async def list_dispute_evidence(
     """Retrieve evidence related to a specific dispute.
 
     Use this tool to obtain a list of all evidence associated with a particular dispute by specifying the dispute ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence".format(  # noqa: UP032
-                dispute_id=dispute_id
-            ),
-            params=remove_none_values({"cursor": pagination_cursor}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence".format(  # noqa: UP032
+            dispute_id=dispute_id
+        ),
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_WRITE"]))
@@ -1851,23 +1855,23 @@ async def remove_dispute_evidence(
     """Removes specified evidence from a dispute.
 
     Use this tool to remove evidence from a dispute. This can be called when it's necessary to retract evidence previously submitted for a dispute. The bank will not be informed of the removed evidence."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
-                dispute_id=dispute_id, evidence_id=evidence_id_to_remove
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
+            dispute_id=dispute_id, evidence_id=evidence_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_READ"]))
@@ -1882,23 +1886,23 @@ async def get_dispute_evidence_metadata(
     """Retrieve metadata for specified dispute evidence.
 
     Call this tool to obtain metadata of dispute evidence using a given dispute ID and evidence ID. Ensure to maintain a copy of any evidence uploaded as it cannot be downloaded later."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
-                dispute_id=dispute_id, evidence_id=evidence_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}/evidence/{evidence_id}".format(  # noqa: UP032
+            dispute_id=dispute_id, evidence_id=evidence_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["DISPUTES_WRITE"]))
@@ -1912,23 +1916,23 @@ async def submit_dispute_evidence(
     """Submit evidence to a cardholder's bank for a dispute.
 
     This tool is used to submit evidence related to a dispute to the cardholder's bank. It includes evidence uploaded through specific Square endpoints and any automatically provided evidence. Evidence cannot be removed once submitted."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/disputes/{dispute_id}/submit-evidence".format(  # noqa: UP032
-                dispute_id=dispute_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/disputes/{dispute_id}/submit-evidence".format(  # noqa: UP032
+            dispute_id=dispute_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -1938,21 +1942,21 @@ async def disable_events_search(
     """Disable events to prevent them from being searchable.
 
     Use this tool to disable events, preventing them from being searchable, even if re-enabled later. Helpful for managing event visibility."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/events/disable",
-            method="PUT",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/events/disable",
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -1962,21 +1966,21 @@ async def enable_events_for_search(
     """Enable events to make them searchable.
 
     This tool activates events so that they become searchable. Only events occurring while enabled will be searchable. Use this tool when you need to ensure events are indexed for search."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/events/enable",
-            method="PUT",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/events/enable",
+        method="PUT",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -1990,22 +1994,21 @@ async def list_event_types(
     """Retrieve all event types available for webhooks and querying.
 
     Use this tool to list all the event types you can subscribe to as webhooks or query via the Events API. It helps in understanding which events are trackable and can be used for notifications or further analysis."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/events/types",
-            params=remove_none_values({"api_version": api_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/events/types",
+        method="GET",
+        params=remove_none_values({"api_version": api_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["GIFTCARDS_READ"]))
@@ -2032,28 +2035,27 @@ async def list_gift_cards(
     """Retrieve a list of all gift cards, with optional filters.
 
     Call this tool to obtain a sorted list of gift cards. You can apply filters to narrow down the results. Useful for managing and reviewing available gift cards."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/gift-cards",
-            params=remove_none_values({
-                "type": gift_card_type,
-                "state": gift_card_state,
-                "limit": results_per_page_limit,
-                "cursor": pagination_cursor,
-                "customer_id": customer_id,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/gift-cards",
+        method="GET",
+        params=remove_none_values({
+            "type": gift_card_type,
+            "state": gift_card_state,
+            "limit": results_per_page_limit,
+            "cursor": pagination_cursor,
+            "customer_id": customer_id,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["GIFTCARDS_READ"]))
@@ -2095,31 +2097,30 @@ async def list_gift_card_activities(
     """Retrieve and filter gift card activities for a seller.
 
     Lists gift card activities from the seller's account. Optionally filter the activities by gift card, region, or within a specific time window."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/gift-cards/activities",
-            params=remove_none_values({
-                "gift_card_id": gift_card_id,
-                "type": activity_type,
-                "location_id": location_id,
-                "begin_time": reporting_start_time,
-                "end_time": end_time,
-                "limit": result_limit,
-                "cursor": pagination_cursor,
-                "sort_order": activities_sort_order,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/gift-cards/activities",
+        method="GET",
+        params=remove_none_values({
+            "gift_card_id": gift_card_id,
+            "type": activity_type,
+            "location_id": location_id,
+            "begin_time": reporting_start_time,
+            "end_time": end_time,
+            "limit": result_limit,
+            "cursor": pagination_cursor,
+            "sort_order": activities_sort_order,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["GIFTCARDS_READ"]))
@@ -2130,21 +2131,21 @@ async def get_gift_card_details(
     """Retrieve details of a gift card using its ID.
 
     Use this tool to access information about a specific gift card by providing its ID. It is useful for checking gift card balance, status, and other related details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/gift-cards/{id}".format(id=gift_card_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/gift-cards/{id}".format(id=gift_card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
@@ -2157,23 +2158,23 @@ async def get_inventory_adjustment(
     """Retrieve detailed information on an inventory adjustment.
 
     This tool retrieves the details of a specific InventoryAdjustment using the provided adjustment ID. It should be called when you need to obtain information about changes in inventory quantities."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/inventory/adjustments/{adjustment_id}".format(  # noqa: UP032
-                adjustment_id=inventory_adjustment_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/inventory/adjustments/{adjustment_id}".format(  # noqa: UP032
+            adjustment_id=inventory_adjustment_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
@@ -2184,23 +2185,23 @@ async def retrieve_inventory_physical_count(
     """Retrieve the inventory physical count by its ID.
 
     Call this tool to obtain information about a specific inventory physical count using the provided `physical_count_id`. It returns the associated InventoryPhysicalCount object."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/inventory/physical-counts/{physical_count_id}".format(  # noqa: UP032
-                physical_count_id=inventory_physical_count_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/inventory/physical-counts/{physical_count_id}".format(  # noqa: UP032
+            physical_count_id=inventory_physical_count_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
@@ -2213,23 +2214,23 @@ async def get_inventory_transfer(
     """Retrieve details of an Inventory Transfer using its ID.
 
     Use this tool to obtain information about a specific Inventory Transfer by providing its transfer ID. This can be useful for tracking inventory movements within a system."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/inventory/transfers/{transfer_id}".format(  # noqa: UP032
-                transfer_id=inventory_transfer_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/inventory/transfers/{transfer_id}".format(  # noqa: UP032
+            transfer_id=inventory_transfer_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVENTORY_READ"]))
@@ -2250,24 +2251,23 @@ async def retrieve_inventory_count(
     """Get the current stock count for an item.
 
     Fetches the current calculated stock level for a specific CatalogObject at specified Locations. Useful for checking inventory availability. Results are paginated and unsorted."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/inventory/{catalog_object_id}".format(  # noqa: UP032
-                catalog_object_id=catalog_object_id
-            ),
-            params=remove_none_values({"location_ids": location_ids, "cursor": pagination_cursor}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/inventory/{catalog_object_id}".format(  # noqa: UP032
+            catalog_object_id=catalog_object_id
+        ),
+        method="GET",
+        params=remove_none_values({"location_ids": location_ids, "cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_READ"]))
@@ -2286,26 +2286,25 @@ async def list_invoices(
     """Retrieve a list of invoices for a specified location.
 
     Use this tool to get a list of invoices from a specific location. The response is paginated, and if the list is truncated, a cursor is provided to fetch the next set of invoices."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/invoices",
-            params=remove_none_values({
-                "location_id": location_id,
-                "cursor": pagination_cursor,
-                "limit": maximum_invoices_to_return,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/invoices",
+        method="GET",
+        params=remove_none_values({
+            "location_id": location_id,
+            "cursor": pagination_cursor,
+            "limit": maximum_invoices_to_return,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE", "INVOICES_WRITE"]))
@@ -2320,24 +2319,23 @@ async def delete_draft_invoice(
     """Deletes a specified draft invoice.
 
     Use this tool to delete a draft invoice. Once deleted, the associated order status changes to CANCELED. This tool cannot delete published invoices."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(  # noqa: UP032
-                invoice_id=invoice_id_to_delete
-            ),
-            params=remove_none_values({"version": invoice_version_to_delete}),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(  # noqa: UP032
+            invoice_id=invoice_id_to_delete
+        ),
+        method="DELETE",
+        params=remove_none_values({"version": invoice_version_to_delete}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_READ"]))
@@ -2348,23 +2346,21 @@ async def retrieve_invoice_by_id(
     """Retrieve details of an invoice using its ID.
 
     Use this tool to obtain detailed information about a specific invoice by providing its unique ID. It is useful for accessing invoice data such as amounts, status, and recipient information."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(  # noqa: UP032
-                invoice_id=invoice_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/invoices/{invoice_id}".format(invoice_id=invoice_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["INVOICES_WRITE"]))
@@ -2382,23 +2378,23 @@ async def remove_invoice_attachment(
     """Remove an attachment from an invoice and delete the file.
 
     Use this tool to permanently delete an attachment from an invoice. It is applicable only for invoices in the DRAFT, SCHEDULED, UNPAID, or PARTIALLY_PAID state."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/invoices/{invoice_id}/attachments/{attachment_id}".format(  # noqa: UP032
-                invoice_id=invoice_id, attachment_id=attachment_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/invoices/{invoice_id}/attachments/{attachment_id}".format(  # noqa: UP032
+            invoice_id=invoice_id, attachment_id=attachment_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
@@ -2418,26 +2414,25 @@ async def list_business_break_types(
     """Retrieve a list of BreakType instances for a business.
 
     This tool provides a paginated list of BreakType instances associated with a business. Use it to fetch information about different break types configured in a business's system."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/break-types",
-            params=remove_none_values({
-                "location_id": filter_by_location_id,
-                "limit": max_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/break-types",
+        method="GET",
+        params=remove_none_values({
+            "location_id": filter_by_location_id,
+            "limit": max_results_per_page,
+            "cursor": pagination_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_WRITE"]))
@@ -2450,21 +2445,21 @@ async def delete_break_type(
     """Deletes an existing break type.
 
     Use this tool to delete a specific break type, even if it is referenced by a shift."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_uuid),  # noqa: UP032
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_uuid),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
@@ -2477,21 +2472,21 @@ async def retrieve_break_type(
     """Retrieve details of a specific break type by ID.
 
     Use this tool to obtain information about a specific break type using its unique identifier."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/break-types/{id}".format(id=break_type_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_READ"]))
@@ -2504,23 +2499,23 @@ async def get_scheduled_shift(
     """Retrieve details of a scheduled shift by ID.
 
     The tool retrieves information about a scheduled shift using its unique ID. Call this tool when you need detailed information about a specific shift."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/scheduled-shifts/{id}".format(  # noqa: UP032
-                id=scheduled_shift_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/scheduled-shifts/{id}".format(  # noqa: UP032
+            id=scheduled_shift_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -2541,26 +2536,25 @@ async def list_team_member_wages(
     """Retrieve paginated team member wages for a business.
 
     Use this tool to obtain a paginated list of wages for team members within a business. Ideal for managing payroll and financial records."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/team-member-wages",
-            params=remove_none_values({
-                "team_member_id": filter_by_team_member_id,
-                "limit": results_per_page,
-                "cursor": next_page_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/team-member-wages",
+        method="GET",
+        params=remove_none_values({
+            "team_member_id": filter_by_team_member_id,
+            "limit": results_per_page,
+            "cursor": next_page_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -2573,23 +2567,23 @@ async def get_team_member_wage(
     """Retrieve wage details for a specified team member.
 
     Use this tool to obtain wage information for a specific team member by providing their unique ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/team-member-wages/{id}".format(  # noqa: UP032
-                id=team_member_wage_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/team-member-wages/{id}".format(  # noqa: UP032
+            id=team_member_wage_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_WRITE"]))
@@ -2600,21 +2594,21 @@ async def delete_timecard(
     """Deletes a specified timecard.
 
     Use this tool to delete a timecard by its ID when managing labor records."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_id),  # noqa: UP032
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_READ"]))
@@ -2625,21 +2619,21 @@ async def retrieve_timecard(
     """Retrieve a specific timecard using its ID.
 
     Use this tool to fetch detailed information about a single timecard by providing its unique identifier."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_uuid),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/timecards/{id}".format(id=timecard_uuid),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["TIMECARDS_SETTINGS_READ"]))
@@ -2656,22 +2650,21 @@ async def list_workweek_configurations(
     """Retrieve workweek configurations for a business.
 
     This tool returns a list of workweek configuration instances, providing details about the workweek setup for a specified business. It should be used when you need to understand or analyze the workweek parameters configured within a business."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/labor/workweek-configs",
-            params=remove_none_values({"limit": max_results_per_page, "cursor": page_cursor}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/labor/workweek-configs",
+        method="GET",
+        params=remove_none_values({"limit": max_results_per_page, "cursor": page_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2681,21 +2674,21 @@ async def list_seller_locations(
     """Retrieve details of all seller locations from Square.
 
     Call this tool to get information about all the seller's locations, including inactive ones, retrieved in alphabetical order by name. Useful for managing or displaying seller location data."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations",
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations",
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2718,26 +2711,25 @@ async def list_location_custom_attribute_definitions(
     """Retrieve location custom attribute definitions for a Square account.
 
     This tool retrieves all location-related custom attribute definitions for a Square seller account. It includes those visible to the requesting application, even if created by other applications. Use this to access custom attribute definitions with various visibility settings."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions",
-            params=remove_none_values({
-                "visibility_filter": filter_by_visibility,
-                "limit": maximum_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/custom-attribute-definitions",
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": filter_by_visibility,
+            "limit": maximum_results_per_page,
+            "cursor": pagination_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
@@ -2753,23 +2745,23 @@ async def delete_location_custom_attribute(
     """Delete a location-related custom attribute definition.
 
     Use this tool to delete a specific location-related custom attribute definition from a Square seller account. Only the definition owner can perform this action. Deleting also removes the attribute from all locations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2789,24 +2781,23 @@ async def retrieve_location_custom_attribute_definition(
     """Retrieve location-related custom attribute definitions.
 
     Retrieves a custom attribute definition for a location from a Square seller account. Applicable when needing details on custom attributes for specific locations. Accessible only if visibility is set accordingly."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_definition_key
-            ),
-            params=remove_none_values({"version": custom_attribute_definition_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_definition_key
+        ),
+        method="GET",
+        params=remove_none_values({"version": custom_attribute_definition_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2819,23 +2810,23 @@ async def retrieve_location_details(
     """Retrieve detailed information about a specific location.
 
     Call this tool to obtain information about a particular location by providing the location ID. Use \"main\" as the ID to get details about the main location."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/{location_id}".format(  # noqa: UP032
-                location_id=location_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/{location_id}".format(  # noqa: UP032
+            location_id=location_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2864,29 +2855,28 @@ async def list_location_custom_attributes(
     """Fetch custom attributes for a specific location.
 
     Use this tool to list custom attributes associated with a specific location. It can also retrieve custom attribute definitions if needed. It includes attributes visible to the requesting app, even if owned by others."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes".format(  # noqa: UP032
-                location_id=location_id
-            ),
-            params=remove_none_values({
-                "visibility_filter": visibility_filter,
-                "limit": max_results_per_page,
-                "cursor": pagination_cursor,
-                "with_definitions": include_custom_attribute_definitions,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes".format(  # noqa: UP032
+            location_id=location_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": visibility_filter,
+            "limit": max_results_per_page,
+            "cursor": pagination_cursor,
+            "with_definitions": include_custom_attribute_definitions,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
@@ -2903,23 +2893,23 @@ async def remove_location_custom_attribute(
     """Deletes a custom attribute from a specified location.
 
     Use this tool to delete a custom attribute associated with a specified location. Ensure that the attribute's visibility is set to `VISIBILITY_READ_WRITE_VALUES` if it is owned by another application."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
-                location_id=location_id, key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
+            location_id=location_id, key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -2945,27 +2935,26 @@ async def get_location_custom_attribute(
     """Retrieve a custom attribute for a specified location.
 
     This tool fetches a custom attribute associated with a specific location. Optional retrieval of the custom attribute's definition is available. Visibility settings must permit access if owned by another application."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
-                location_id=location_id, key=custom_attribute_key
-            ),
-            params=remove_none_values({
-                "with_definition": include_definition,
-                "version": custom_attribute_version,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/locations/{location_id}/custom-attributes/{key}".format(  # noqa: UP032
+            location_id=location_id, key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "with_definition": include_definition,
+            "version": custom_attribute_version,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
@@ -2976,23 +2965,23 @@ async def retrieve_loyalty_account(
     """Retrieve information about a loyalty account.
 
     Use this tool to get detailed information about a specific loyalty account using the account ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/accounts/{account_id}".format(  # noqa: UP032
-                account_id=loyalty_account_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/accounts/{account_id}".format(  # noqa: UP032
+            account_id=loyalty_account_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
@@ -3005,23 +2994,23 @@ async def retrieve_loyalty_program(
     """Retrieve details of a seller's loyalty program.
 
     Use this tool to obtain information about a seller's loyalty program by specifying the program ID or using the keyword 'main'. It provides details on how buyers can earn and redeem points."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/programs/{program_id}".format(  # noqa: UP032
-                program_id=loyalty_program_identifier
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/programs/{program_id}".format(  # noqa: UP032
+            program_id=loyalty_program_identifier
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
@@ -3047,28 +3036,27 @@ async def list_loyalty_promotions(
     """Fetches loyalty promotions for a specific program.
 
     Use this tool to retrieve a list of loyalty promotions linked to a specific loyalty program, sorted by their creation date, from newest to oldest."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions".format(  # noqa: UP032
-                program_id=loyalty_program_id
-            ),
-            params=remove_none_values({
-                "status": filter_by_status,
-                "cursor": pagination_cursor,
-                "limit": max_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions".format(  # noqa: UP032
+            program_id=loyalty_program_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "status": filter_by_status,
+            "cursor": pagination_cursor,
+            "limit": max_results_per_page,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
@@ -3085,23 +3073,23 @@ async def retrieve_loyalty_promotion(
     """Retrieve details of a specific loyalty promotion.
 
     Use this tool to get information about a specific loyalty promotion identified by program and promotion IDs. Call this tool when you need to access or display details of a particular loyalty promotion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}".format(  # noqa: UP032
-                promotion_id=loyalty_promotion_id, program_id=loyalty_program_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}".format(  # noqa: UP032
+            promotion_id=loyalty_promotion_id, program_id=loyalty_program_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_WRITE"]))
@@ -3116,23 +3104,23 @@ async def cancel_loyalty_promotion(
     """Cancel an active or scheduled loyalty promotion early.
 
     Use this tool to set a loyalty promotion to the 'CANCELED' state. It is useful for canceling active promotions earlier than planned or canceling scheduled promotions before they begin. This is also applicable if you need to cancel one prior to creating a new promotion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}/cancel".format(  # noqa: UP032
-                promotion_id=loyalty_promotion_id, program_id=loyalty_program_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/programs/{program_id}/promotions/{promotion_id}/cancel".format(  # noqa: UP032
+            promotion_id=loyalty_promotion_id, program_id=loyalty_program_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_WRITE"]))
@@ -3146,23 +3134,23 @@ async def delete_loyalty_reward(
     """Delete a loyalty reward and restore loyalty points.
 
     Use this tool to delete a loyalty reward, which restores loyalty points to the account. It also updates the associated order by removing the reward and related discounts if an order ID was specified. The reward cannot be deleted if it has been redeemed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
-                reward_id=reward_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
+            reward_id=reward_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["LOYALTY_READ"]))
@@ -3173,23 +3161,23 @@ async def retrieve_loyalty_reward(
     """Retrieve details of a loyalty reward.
 
     This tool is used to fetch information about a specific loyalty reward by providing the reward ID. It should be called when details about a particular reward are needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
-                reward_id=loyalty_reward_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/loyalty/rewards/{reward_id}".format(  # noqa: UP032
+            reward_id=loyalty_reward_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3203,22 +3191,21 @@ async def get_merchant_details(
     """Retrieve merchant details using an access token.
 
     Provides information about the merchant linked to the specified access token. Typically returns a single merchant object. Useful for obtaining merchant details for personal or OAuth token-based access."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants",
-            params=remove_none_values({"cursor": previous_response_cursor}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants",
+        method="GET",
+        params=remove_none_values({"cursor": previous_response_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3241,26 +3228,25 @@ async def list_merchant_custom_attribute_definitions(
     """Retrieve custom attribute definitions for a Square seller account.
 
     Lists all visible merchant-related custom attribute definitions for a Square seller account, including those created by other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions",
-            params=remove_none_values({
-                "visibility_filter": filter_by_visibility,
-                "limit": max_results_per_page,
-                "cursor": pagination_cursor,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions",
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": filter_by_visibility,
+            "limit": max_results_per_page,
+            "cursor": pagination_cursor,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
@@ -3275,23 +3261,23 @@ async def delete_merchant_custom_attribute(
     """Delete a custom attribute definition from a merchant account.
 
     Use this tool to delete a merchant-related custom attribute definition from a Square seller account. This action also removes the corresponding custom attribute from the merchant. Note that only the definition owner can perform this deletion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=attribute_key_to_delete
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=attribute_key_to_delete
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3311,24 +3297,23 @@ async def retrieve_merchant_custom_attribute(
     """Retrieve a merchant's custom attribute definition.
 
     This tool retrieves custom attribute definitions related to a merchant from a Square seller account. It is useful when you need to access specific attribute definitions created within an account. The attribute definition must have a visibility setting of 'VISIBILITY_READ_ONLY' or 'VISIBILITY_READ_WRITE_VALUES' if created by another application."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            params=remove_none_values({"version": custom_attribute_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({"version": custom_attribute_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3342,23 +3327,23 @@ async def retrieve_merchant_info(
     """Retrieve details of a specific merchant using merchant ID.
 
     Use this tool to obtain the `Merchant` object details by providing the `merchant_id`. It should be called when users need specific information about a merchant via their unique ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/{merchant_id}".format(  # noqa: UP032
-                merchant_id=merchant_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/{merchant_id}".format(  # noqa: UP032
+            merchant_id=merchant_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3387,29 +3372,28 @@ async def list_merchant_custom_attributes(
     """Retrieve custom attributes for a specified merchant.
 
     Use this tool to get custom attributes associated with a merchant. You can optionally include definitions of these attributes. The tool returns all attributes visible to the requesting application, including those with read-only or read-write visibility."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes".format(  # noqa: UP032
-                merchant_id=merchant_id
-            ),
-            params=remove_none_values({
-                "visibility_filter": filter_by_visibility,
-                "limit": max_results_per_page,
-                "cursor": pagination_cursor,
-                "with_definitions": include_custom_attribute_definitions,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes".format(  # noqa: UP032
+            merchant_id=merchant_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": filter_by_visibility,
+            "limit": max_results_per_page,
+            "cursor": pagination_cursor,
+            "with_definitions": include_custom_attribute_definitions,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_WRITE"]))
@@ -3426,23 +3410,23 @@ async def remove_merchant_custom_attribute(
     """Deletes a custom attribute from a merchant.
 
     Use this tool to delete a custom attribute associated with a merchant. The attribute can only be deleted if its visibility is set to 'VISIBILITY_READ_WRITE_VALUES' if owned by another application."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
-                merchant_id=merchant_identifier, key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
+            merchant_id=merchant_identifier, key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3468,27 +3452,26 @@ async def get_merchant_custom_attribute(
     """Retrieve a custom attribute for a specific merchant.
 
     This tool retrieves a custom attribute associated with a merchant. Use it to access merchant-specific data, with the option to include the custom attribute definition. Visibility settings dictate access permissions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
-                merchant_id=merchant_id, key=custom_attribute_key
-            ),
-            params=remove_none_values({
-                "with_definition": include_definition,
-                "version": custom_attribute_version,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/merchants/{merchant_id}/custom-attributes/{key}".format(  # noqa: UP032
+            merchant_id=merchant_id, key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "with_definition": include_definition,
+            "version": custom_attribute_version,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["MERCHANT_PROFILE_READ"]))
@@ -3499,23 +3482,23 @@ async def retrieve_checkout_location_settings(
     """Retrieve location-level settings for a Square checkout page.
 
     Fetches the settings for a specified location's Square-hosted checkout page. Useful for accessing configuration details or customizing checkout experiences based on location."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/online-checkout/location-settings/{location_id}".format(  # noqa: UP032
-                location_id=location_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/online-checkout/location-settings/{location_id}".format(  # noqa: UP032
+            location_id=location_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(
@@ -3529,21 +3512,21 @@ async def get_square_merchant_settings(
     """Retrieve merchant settings for Square checkout pages.
 
     Use this tool to get the merchant-level settings configured for a Square-hosted checkout page. Useful for accessing checkout configurations and preferences."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/online-checkout/merchant-settings",
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/online-checkout/merchant-settings",
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3561,25 +3544,21 @@ async def list_payment_links(
     """Retrieve all available payment links from Squareup.
 
     Use this tool to list all payment links generated in your Squareup account. It helps in managing and reviewing payment links efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/online-checkout/payment-links",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "limit": results_per_page_limit,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/online-checkout/payment-links",
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor, "limit": results_per_page_limit}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE", "ORDERS_READ"]))
@@ -3593,23 +3572,23 @@ async def delete_payment_link(
     """Deletes a specified payment link.
 
     Use this tool to delete a payment link by providing the link's ID. Call it when you need to remove a payment link from your system."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
-                id=payment_link_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
+            id=payment_link_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3620,23 +3599,23 @@ async def retrieve_payment_link(
     """Retrieve details of a specified payment link.
 
     Use this tool to get details about a specific payment link by providing its unique ID. Ideal for retrieving information about payment transactions handled via Squareup."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
-                id=payment_link_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/online-checkout/payment-links/{id}".format(  # noqa: UP032
+            id=payment_link_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3659,26 +3638,25 @@ async def list_order_custom_attribute_definitions(
     """Retrieve order-related custom attribute definitions for a Square seller.
 
     Use this tool to list all order-related custom attribute definitions for a Square seller account. It includes attributes visible to the requesting application, even those created by other applications, with various visibility settings."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/custom-attribute-definitions",
-            params=remove_none_values({
-                "visibility_filter": custom_attribute_visibility_filter,
-                "cursor": pagination_cursor,
-                "limit": maximum_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/custom-attribute-definitions",
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": custom_attribute_visibility_filter,
+            "cursor": pagination_cursor,
+            "limit": maximum_results_per_page,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE"]))
@@ -3694,23 +3672,23 @@ async def delete_order_custom_attribute_definition(
     """Delete an order-related custom attribute definition.
 
     Deletes a custom attribute definition related to an order from a Square seller account. Only the owner of the definition can perform this action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3729,24 +3707,23 @@ async def retrieve_order_custom_attribute_definition(
     """Retrieve custom attribute definition for a Square order.
 
     Use this tool to fetch a specific custom attribute definition related to an order from a Square seller account. The custom attribute must be set to specific visibility settings to be accessible."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
-                key=custom_attribute_key
-            ),
-            params=remove_none_values({"version": current_version_of_custom_attribute}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/custom-attribute-definitions/{key}".format(  # noqa: UP032
+            key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({"version": current_version_of_custom_attribute}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3757,21 +3734,21 @@ async def retrieve_order_by_id(
     """Retrieve order details by Order ID.
 
     Use this tool to retrieve detailed information about a specific order using its Order ID. It is useful for checking order status, contents, and other order-related details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/{order_id}".format(order_id=order_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/{order_id}".format(order_id=order_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3800,29 +3777,28 @@ async def list_order_custom_attributes(
     """Retrieve custom attributes linked to a specific order.
 
     This tool retrieves custom attribute details for a specified order, including all attributes visible to the requesting application across different visibility settings. It supports fetching custom attribute definitions as well."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes".format(  # noqa: UP032
-                order_id=target_order_id
-            ),
-            params=remove_none_values({
-                "visibility_filter": attribute_visibility_filter,
-                "cursor": pagination_cursor,
-                "limit": max_results_per_page,
-                "with_definitions": include_custom_attribute_definitions,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes".format(  # noqa: UP032
+            order_id=target_order_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "visibility_filter": attribute_visibility_filter,
+            "cursor": pagination_cursor,
+            "limit": max_results_per_page,
+            "with_definitions": include_custom_attribute_definitions,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_WRITE"]))
@@ -3840,23 +3816,23 @@ async def delete_order_custom_attribute(
     """Delete a custom attribute from an order.
 
     Use this tool to delete a specific custom attribute associated with an order. This is necessary when a custom attribute has the 'VISIBILITY_READ_WRITE_VALUES' setting or is defined by the seller."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
-                order_id=order_id, custom_attribute_key=custom_attribute_key
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
+            order_id=order_id, custom_attribute_key=custom_attribute_key
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ORDERS_READ"]))
@@ -3879,27 +3855,26 @@ async def retrieve_order_custom_attribute(
     """Retrieve a custom attribute associated with an order.
 
     This tool retrieves a custom attribute linked to a specified order. It can also return the custom attribute definition if requested. Use this when you need information about custom fields attached to an order, especially those with specific visibility settings."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
-                order_id=order_id, custom_attribute_key=custom_attribute_key
-            ),
-            params=remove_none_values({
-                "version": current_version,
-                "with_definition": include_custom_attribute_definition,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/orders/{order_id}/custom-attributes/{custom_attribute_key}".format(  # noqa: UP032
+            order_id=order_id, custom_attribute_key=custom_attribute_key
+        ),
+        method="GET",
+        params=remove_none_values({
+            "version": current_version,
+            "with_definition": include_custom_attribute_definition,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -3965,38 +3940,37 @@ async def fetch_payment_list(
     """Retrieve a list of payments for an account.
 
     This tool calls the Squareup API to fetch a list of payments associated with the account making the request. It should be called when you need to access recent payment records. Note that results are eventually consistent, and there may be slight delays in updates."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payments",
-            params=remove_none_values({
-                "begin_time": start_time_for_payment_retrieval,
-                "end_time": payment_retrieval_end_time,
-                "sort_order": order_results_by,
-                "cursor": pagination_cursor,
-                "location_id": limit_results_by_location,
-                "total": exact_payment_amount,
-                "last_4": payment_card_last_four_digits,
-                "card_brand": payment_card_brand,
-                "limit": max_results_per_page,
-                "is_offline_payment": include_offline_payments,
-                "offline_begin_time": offline_payment_start_time,
-                "offline_end_time": offline_payment_end_time,
-                "updated_at_begin_time": updated_at_start_time,
-                "updated_at_end_time": end_time_for_update_retrieval,
-                "sort_field": sort_results_by_field,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payments",
+        method="GET",
+        params=remove_none_values({
+            "begin_time": start_time_for_payment_retrieval,
+            "end_time": payment_retrieval_end_time,
+            "sort_order": order_results_by,
+            "cursor": pagination_cursor,
+            "location_id": limit_results_by_location,
+            "total": exact_payment_amount,
+            "last_4": payment_card_last_four_digits,
+            "card_brand": payment_card_brand,
+            "limit": max_results_per_page,
+            "is_offline_payment": include_offline_payments,
+            "offline_begin_time": offline_payment_start_time,
+            "offline_end_time": offline_payment_end_time,
+            "updated_at_begin_time": updated_at_start_time,
+            "updated_at_end_time": end_time_for_update_retrieval,
+            "sort_field": sort_results_by_field,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4009,23 +3983,21 @@ async def get_payment_details(
     """Retrieve specific payment details by payment ID.
 
     Use this tool to obtain detailed information about a specific payment using its payment ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payments/{payment_id}".format(  # noqa: UP032
-                payment_id=payment_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payments/{payment_id}".format(payment_id=payment_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
@@ -4039,23 +4011,23 @@ async def cancel_approved_payment(
     """Cancel an approved payment transaction.
 
     Use this tool to void a payment that has an APPROVED status. This can be useful when a transaction needs to be reversed before completion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payments/{payment_id}/cancel".format(  # noqa: UP032
-                payment_id=payment_identifier
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payments/{payment_id}/cancel".format(  # noqa: UP032
+            payment_id=payment_identifier
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4092,30 +4064,29 @@ async def get_payout_list(
     """Retrieve a list of all payouts for the default location.
 
     This tool retrieves all payouts for the default location, allowing filtration by location ID, status, time range, and sorting order. It requires the `PAYOUTS_READ` OAuth scope."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payouts",
-            params=remove_none_values({
-                "location_id": location_id,
-                "status": payout_status_filter,
-                "begin_time": start_time_for_payouts,
-                "end_time": end_time,
-                "sort_order": sort_order,
-                "cursor": pagination_cursor,
-                "limit": max_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payouts",
+        method="GET",
+        params=remove_none_values({
+            "location_id": location_id,
+            "status": payout_status_filter,
+            "begin_time": start_time_for_payouts,
+            "end_time": end_time,
+            "sort_order": sort_order,
+            "cursor": pagination_cursor,
+            "limit": max_results_per_page,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4126,21 +4097,21 @@ async def get_payout_details(
     """Retrieve details of a specific payout by payout ID.
 
     Use this tool to get detailed information about a specific payout by providing the payout ID. Useful for tracking or reviewing specific payout transactions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payouts/{payout_id}".format(payout_id=payout_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payouts/{payout_id}".format(payout_id=payout_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4166,28 +4137,27 @@ async def list_payout_entries(
     """Retrieve all payout entries for a specific payout.
 
     Fetches a list of all payout entries associated with a particular payout ID. Ideal for obtaining detailed payout information from Square."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/payouts/{payout_id}/payout-entries".format(  # noqa: UP032
-                payout_id=payout_id
-            ),
-            params=remove_none_values({
-                "sort_order": payout_entries_sort_order,
-                "cursor": pagination_cursor,
-                "limit": max_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/payouts/{payout_id}/payout-entries".format(  # noqa: UP032
+            payout_id=payout_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "sort_order": payout_entries_sort_order,
+            "cursor": pagination_cursor,
+            "limit": max_results_per_page,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4239,34 +4209,33 @@ async def list_payment_refunds(
     """Retrieve a list of payment refunds for the account.
 
     Fetches a list of refunds associated with the account making the request. Suitable for monitoring refund transactions, with a maximum of 100 results per page. Results may take several seconds to update due to eventual consistency."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/refunds",
-            params=remove_none_values({
-                "begin_time": start_time_for_refund_retrieval,
-                "end_time": refund_end_time,
-                "sort_order": results_sort_order,
-                "cursor": pagination_cursor,
-                "location_id": limit_results_to_location,
-                "status": refund_status_filter,
-                "source_type": payment_source_type,
-                "limit": max_results_per_page,
-                "updated_at_begin_time": updated_at_start_time,
-                "updated_at_end_time": updated_at_end_time,
-                "sort_field": sort_results_by_field,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/refunds",
+        method="GET",
+        params=remove_none_values({
+            "begin_time": start_time_for_refund_retrieval,
+            "end_time": refund_end_time,
+            "sort_order": results_sort_order,
+            "cursor": pagination_cursor,
+            "location_id": limit_results_to_location,
+            "status": refund_status_filter,
+            "source_type": payment_source_type,
+            "limit": max_results_per_page,
+            "updated_at_begin_time": updated_at_start_time,
+            "updated_at_end_time": updated_at_end_time,
+            "sort_field": sort_results_by_field,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4277,23 +4246,23 @@ async def fetch_specific_refund(
     """Retrieve details of a specific refund using its ID.
 
     Call this tool to fetch information about a particular refund by providing the refund ID. This is useful for checking the status and details of any refund made through the system."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/refunds/{refund_id}".format(  # noqa: UP032
-                refund_id=specific_refund_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/refunds/{refund_id}".format(  # noqa: UP032
+            refund_id=specific_refund_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SITE_READ"]))
@@ -4303,21 +4272,21 @@ async def list_square_online_sites(
     """Retrieve a list of Square Online sites for a seller.
 
     Use this tool to obtain a list of Square Online sites associated with a seller, ordered by their creation date. This is part of Square's early access program for online APIs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/sites",
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/sites",
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SNIPPETS_WRITE"]))
@@ -4330,23 +4299,23 @@ async def remove_square_online_snippet(
     """Delete a snippet from a Square Online site.
 
     Use this tool to remove a snippet from a Square Online site. Call it when you have the site ID from which you want to delete the snippet. Ideal for managing online site content efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
-                site_id=site_id_for_snippet_removal
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
+            site_id=site_id_for_snippet_removal
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["ONLINE_STORE_SNIPPETS_READ"]))
@@ -4359,23 +4328,23 @@ async def retrieve_site_snippet(
     """Retrieve snippets from a Square Online site.
 
     Use this tool to retrieve the snippet added by your application from a specified Square Online site. Ideal for accessing custom code snippets associated with your applications on Square sites."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
-                site_id=site_identifier
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/sites/{site_id}/snippet".format(  # noqa: UP032
+            site_id=site_identifier
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_READ"]))
@@ -4390,24 +4359,23 @@ async def retrieve_subscription(
     """Retrieve details of a specific subscription.
 
     This tool retrieves information about a specific subscription using its ID. It is called when detailed subscription data is needed, such as for review or management purposes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/subscriptions/{subscription_id}".format(  # noqa: UP032
-                subscription_id=subscription_id
-            ),
-            params=remove_none_values({"include": include_related_info}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/subscriptions/{subscription_id}".format(  # noqa: UP032
+            subscription_id=subscription_id
+        ),
+        method="GET",
+        params=remove_none_values({"include": include_related_info}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_WRITE"]))
@@ -4422,23 +4390,23 @@ async def delete_subscription_action(
     """Delete a scheduled action from a subscription.
 
     This tool deletes a specific scheduled action associated with a subscription identified by its subscription and action IDs. Use it to cancel or remove actions that are no longer needed from a subscription plan."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/actions/{action_id}".format(  # noqa: UP032
-                subscription_id=subscription_id, action_id=action_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/actions/{action_id}".format(  # noqa: UP032
+            subscription_id=subscription_id, action_id=action_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_WRITE"]))
@@ -4452,23 +4420,23 @@ async def cancel_subscription(
     """Schedule cancellation of an active subscription.
 
     Use this tool to schedule a cancellation for an active subscription. The subscription will remain active until the end of the current billing period, after which it will be marked as canceled."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/cancel".format(  # noqa: UP032
-                subscription_id=subscription_identifier
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/cancel".format(  # noqa: UP032
+            subscription_id=subscription_identifier
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["SUBSCRIPTIONS_READ"]))
@@ -4489,24 +4457,23 @@ async def list_subscription_events(
     """Retrieve events for a specific subscription.
 
     Call this tool to retrieve all events related to a specific subscription using the Square API. Useful for tracking changes and updates within a subscription lifecycle."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/events".format(  # noqa: UP032
-                subscription_id=subscription_id
-            ),
-            params=remove_none_values({"cursor": pagination_cursor, "limit": max_events_per_page}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/subscriptions/{subscription_id}/events".format(  # noqa: UP032
+            subscription_id=subscription_id
+        ),
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor, "limit": max_events_per_page}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -4520,22 +4487,21 @@ async def list_jobs_for_seller(
     """Retrieve a list of jobs in a seller account.
 
     This tool retrieves a list of jobs associated with a seller account, sorted by title in ascending order. Use this tool when you need to view or manage the job listings for a seller."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/team-members/jobs",
-            params=remove_none_values({"cursor": pagination_cursor}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/team-members/jobs",
+        method="GET",
+        params=remove_none_values({"cursor": pagination_cursor}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -4548,23 +4514,23 @@ async def retrieve_job_details(
     """Retrieve details of a specified job by ID.
 
     Use this tool to get information about a specific job using its ID. It should be called when details about a particular job are needed, such as in management and administrative tasks."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/team-members/jobs/{job_id}".format(  # noqa: UP032
-                job_id=job_identifier
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/team-members/jobs/{job_id}".format(  # noqa: UP032
+            job_id=job_identifier
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -4578,23 +4544,23 @@ async def retrieve_team_member_details(
     """Retrieve details of a team member by ID.
 
     Use this tool to access detailed information about a specific team member using their unique ID. This is useful for managing or reviewing team member profiles."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/team-members/{team_member_id}".format(  # noqa: UP032
-                team_member_id=team_member_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/team-members/{team_member_id}".format(  # noqa: UP032
+            team_member_id=team_member_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["EMPLOYEES_READ"]))
@@ -4607,23 +4573,23 @@ async def retrieve_team_member_wage_setting(
     """Retrieve wage setting details for a specific team member.
 
     This tool retrieves the wage setting for a team member based on their ID. Use this when you need to access detailed wage information about a specific member. It is recommended to use RetrieveTeamMember or SearchTeamMembers for related queries."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/team-members/{team_member_id}/wage-setting".format(  # noqa: UP032
-                team_member_id=team_member_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/team-members/{team_member_id}/wage-setting".format(  # noqa: UP032
+            team_member_id=team_member_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4637,23 +4603,23 @@ async def get_terminal_action(
     """Retrieve details of a terminal action request by ID.
 
     This tool retrieves a Terminal action request using the specified `action_id`. Terminal action requests can be accessed within 30 days of their request."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/actions/{action_id}".format(  # noqa: UP032
-                action_id=terminal_action_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/actions/{action_id}".format(  # noqa: UP032
+            action_id=terminal_action_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
@@ -4664,23 +4630,23 @@ async def cancel_terminal_action(
     """Cancel a terminal action request if permitted.
 
     Use this tool to cancel a terminal action request when the status allows for cancellation."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/actions/{action_id}/cancel".format(  # noqa: UP032
-                action_id=terminal_action_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/actions/{action_id}/cancel".format(  # noqa: UP032
+            action_id=terminal_action_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4693,23 +4659,23 @@ async def dismiss_terminal_action(
     """Dismiss a Square Terminal action request.
 
     Use this tool to dismiss a Terminal action request if it is permitted by the status and type of the request."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/actions/{action_id}/dismiss".format(  # noqa: UP032
-                action_id=terminal_action_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/actions/{action_id}/dismiss".format(  # noqa: UP032
+            action_id=terminal_action_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4723,23 +4689,23 @@ async def retrieve_terminal_checkout(
     """Retrieve a Terminal checkout request by ID.
 
     This tool retrieves the details of a Terminal checkout request using a unique `checkout_id`. It should be called to access checkout information up to 30 days after the request was created."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}".format(  # noqa: UP032
-                checkout_id=terminal_checkout_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}".format(  # noqa: UP032
+            checkout_id=terminal_checkout_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
@@ -4750,23 +4716,23 @@ async def cancel_terminal_checkout(
     """Cancel a Terminal checkout request if feasible.
 
     This tool cancels a Terminal checkout request, if its current status allows cancellation. It should be called when a checkout process needs to be aborted."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/cancel".format(  # noqa: UP032
-                checkout_id=terminal_checkout_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/cancel".format(  # noqa: UP032
+            checkout_id=terminal_checkout_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4777,23 +4743,23 @@ async def dismiss_terminal_checkout(
     """Dismiss a Terminal checkout request if permitted.
 
     Call this tool to dismiss a Terminal checkout request when the request status and type allow for dismissal. Useful for managing checkout operations and correcting errors in checkout processes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/dismiss".format(  # noqa: UP032
-                checkout_id=terminal_checkout_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/checkouts/{checkout_id}/dismiss".format(  # noqa: UP032
+            checkout_id=terminal_checkout_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_READ"]))
@@ -4807,23 +4773,23 @@ async def get_terminal_refund(
     """Fetch Interac Terminal refund details by ID.
 
     Use this tool to retrieve details of an Interac Terminal refund within 30 days of its creation using the refund ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}".format(  # noqa: UP032
-                terminal_refund_id=terminal_refund_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}".format(  # noqa: UP032
+            terminal_refund_id=terminal_refund_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["PAYMENTS_WRITE"]))
@@ -4834,23 +4800,23 @@ async def cancel_terminal_refund(
     """Cancel a terminal refund request if allowed.
 
     This tool cancels a terminal refund request using the refund request ID, if the current status permits cancellation."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/cancel".format(  # noqa: UP032
-                terminal_refund_id=terminal_refund_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/cancel".format(  # noqa: UP032
+            terminal_refund_id=terminal_refund_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4864,23 +4830,23 @@ async def dismiss_terminal_refund(
     """Dismiss a Terminal refund request if permissible.
 
     Use this tool to dismiss a Terminal refund request when the request status and type allow for dismissal."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/dismiss".format(  # noqa: UP032
-                terminal_refund_id=terminal_refund_unique_id
-            ),
-            method="POST",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/terminals/refunds/{terminal_refund_id}/dismiss".format(  # noqa: UP032
+            terminal_refund_id=terminal_refund_unique_id
+        ),
+        method="POST",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup", scopes=["VENDOR_READ"]))
@@ -4894,21 +4860,21 @@ async def retrieve_vendor_info(
     """Retrieve detailed information about a vendor by ID.
 
     This tool is used to fetch detailed information about a specific vendor using their Vendor ID. It is helpful when you need comprehensive vendor details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/vendors/{vendor_id}".format(vendor_id=vendor_id),  # noqa: UP032
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/vendors/{vendor_id}".format(vendor_id=vendor_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4922,22 +4888,21 @@ async def list_webhook_event_types(
     """Retrieves all available webhook event types for subscription.
 
     Use this tool to get a comprehensive list of webhook event types that can be subscribed to via the Square API."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/webhooks/event-types",
-            params=remove_none_values({"api_version": api_version}),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/webhooks/event-types",
+        method="GET",
+        params=remove_none_values({"api_version": api_version}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4963,27 +4928,26 @@ async def list_webhook_subscriptions(
     """Lists all webhook subscriptions for your application.
 
     Use this tool to retrieve a list of all webhook subscriptions owned by your application. It is useful for managing or reviewing your webhook configurations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/webhooks/subscriptions",
-            params=remove_none_values({
-                "cursor": pagination_cursor,
-                "include_disabled": include_disabled_subscriptions,
-                "sort_order": sort_order,
-                "limit": max_results_per_page,
-            }),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/webhooks/subscriptions",
+        method="GET",
+        params=remove_none_values({
+            "cursor": pagination_cursor,
+            "include_disabled": include_disabled_subscriptions,
+            "sort_order": sort_order,
+            "limit": max_results_per_page,
+        }),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -4997,23 +4961,23 @@ async def delete_webhook_subscription(
     """Deletes a webhook subscription to stop receiving events.
 
     Use this tool to delete a specific webhook subscription by its ID, preventing further event notifications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032
-                subscription_id=webhook_subscription_id
-            ),
-            method="DELETE",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032
+            subscription_id=webhook_subscription_id
+        ),
+        method="DELETE",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
@@ -5027,20 +4991,20 @@ async def retrieve_webhook_subscription(
     """Retrieve details of a specific webhook subscription by ID.
 
     Use this tool to fetch information about a webhook subscription using its unique identifier. This is useful when you need to verify the configuration or details of a specific webhook subscription."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032
-                subscription_id=webhook_subscription_id
-            ),
-            method="GET",
-            headers=remove_none_values({
-                "Authorization": "Bearer {authorization}".format(  # noqa: UP032
-                    authorization=context.get_auth_token_or_empty()
-                )
-            }),
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://connect.squareup.com/v2/webhooks/subscriptions/{subscription_id}".format(  # noqa: UP032
+            subscription_id=webhook_subscription_id
+        ),
+        method="GET",
+        params=remove_none_values({}),
+        headers=remove_none_values({
+            "Authorization": "Bearer {authorization}".format(  # noqa: UP032
+                authorization=context.get_auth_token_or_empty()
+            )
+        }),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
