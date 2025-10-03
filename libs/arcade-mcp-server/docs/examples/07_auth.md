@@ -1,6 +1,6 @@
-# 06 - OAuth Authentication
+# 07 - OAuth Tools
 
-Learn how to create tools that require OAuth authentication using the Arcade authentication system.
+Learn how to create tools that require OAuth
 
 ## Prerequisites
 
