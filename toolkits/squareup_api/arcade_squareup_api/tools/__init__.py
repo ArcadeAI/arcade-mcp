@@ -64,7 +64,7 @@ async def make_request(
             return response
 
     # This should never be reached, but satisfies type checker
-    raise httpx.RequestError("Maximum retries exceeded")
+    raise httpx.RequestError("Maximum retries exceeded")  # noqa: TRY003
 
 @tool(requires_auth=OAuth2(id="arcade-squareup"))
 async def retrieve_token_status(
