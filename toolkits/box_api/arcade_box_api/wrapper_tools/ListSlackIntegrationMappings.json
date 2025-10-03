@@ -1,0 +1,303 @@
+{
+  "name": "ListSlackIntegrationMappings",
+  "fully_qualified_name": "BoxApi.ListSlackIntegrationMappings@0.1.0",
+  "description": "Retrieve Slack integration mappings for a Box enterprise.\n\nThis tool is used to list Slack integration mappings within a user's enterprise on Box. It requires Admin or Co-Admin privileges.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "pagination_start_marker",
+        "required": false,
+        "description": "Defines the starting position for pagination results. Requires 'usemarker' to be true.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "The maximum number of Slack integration mappings to return per page from the user's enterprise.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "mapped_item_type",
+        "required": false,
+        "description": "The type of mapped item for which the Slack integration mapping should be returned. Only 'channel' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "channel"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mapped item type, for which the mapping should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "partner_item_type"
+      },
+      {
+        "name": "mapped_item_id",
+        "required": false,
+        "description": "ID of the mapped item for which the Slack integration mapping should be retrieved.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the mapped item,\nfor which the mapping should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "partner_item_id"
+      },
+      {
+        "name": "box_item_id",
+        "required": false,
+        "description": "Box item ID for which to retrieve Slack integration mappings. Must be a valid ID within the user's enterprise.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item ID, for which the mappings should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "box_item_id"
+      },
+      {
+        "name": "box_item_type",
+        "required": false,
+        "description": "Specify the type of Box item for which the mappings should be returned. Currently, only 'folder' is supported.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "folder"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item type, for\nwhich the mappings should be returned."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "box_item_type"
+      },
+      {
+        "name": "include_manually_created_mappings",
+        "required": false,
+        "description": "Set to true to include mappings that have been manually created.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the mapping has been manually created."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "is_manually_created"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_integration_mappings_slack'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/integration_mappings/slack",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_start_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "partner_item_type",
+        "tool_parameter_name": "mapped_item_type",
+        "description": "Mapped item type, for which the mapping should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "channel"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Mapped item type, for which the mapping should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "partner_item_id",
+        "tool_parameter_name": "mapped_item_id",
+        "description": "ID of the mapped item,\nfor which the mapping should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "ID of the mapped item,\nfor which the mapping should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "box_item_id",
+        "tool_parameter_name": "box_item_id",
+        "description": "Box item ID, for which the mappings should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item ID, for which the mappings should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "box_item_type",
+        "tool_parameter_name": "box_item_type",
+        "description": "Box item type, for\nwhich the mappings should be returned.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "folder"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Box item type, for\nwhich the mappings should be returned."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "is_manually_created",
+        "tool_parameter_name": "include_manually_created_mappings",
+        "description": "Whether the mapping has been manually created.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the mapping has been manually created."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -27,47 +27,50 @@ Arcade MCP (Model Context Protocol) enables AI assistants and development tools 
 
 ### Installation
 
-We recommend installing the `arcade-mcp` CLI package, which includes `arcade-mcp-server` and provides a streamlined development workflow:
-
-```bash
-uv pip install arcade-mcp
-```
-
-Or install just the server library if you prefer a direct Python approach:
+We recommend installing the `arcade-mcp-server` library for direct Python development:
 
 ```bash
 uv pip install arcade-mcp-server
 ```
 
-### Quick Start: Create a New Server (Recommended)
-
-The fastest way to get started is with the `arcade new` command, which creates a starter MCP server with example tools:
+Or install the `arcade-mcp` CLI package for additional tooling and streamlined development workflow:
 
 ```bash
+uv pip install arcade-mcp
+```
+
+### Quick Start: Create a New Server (Recommended)
+
+The fastest way to get started is with the `arcade new` command, which creates a complete MCP server project:
+
+```bash
+# Install the CLI
+uv pip install arcade-mcp
+
 # Create a new server project
 arcade new my_server
 
 # Navigate to the project
 cd my_server
-
-# Run the server
-arcade mcp
 ```
 
-The generated server includes three example tools:
-- **Simple tool** - A basic function to get you started
-- **Secret-based tool** - Shows how to use environment secrets
-- **OAuth tool** - Demonstrates how to use a OAuth tool (requires `arcade login`)
+This generates a complete project with:
 
-### Manual Setup: Create Your First Tool
+- **server.py** - Main server file with MCPApp and example tools
 
-If you prefer to create tools manually, you can use the `MCPApp` interface:
+- **pyproject.toml** - Dependencies and project configuration
+
+- **.env.example** - Example `.env` file containing a secret required by one of the generated tools in `server.py`
+
+The generated `server.py` includes proper command-line argument handling:
 
 ```python
-from arcade_mcp_server import MCPApp
+#!/usr/bin/env python3
+import sys
 from typing import Annotated
+from arcade_mcp_server import MCPApp
 
-app = MCPApp(name="my-tools", version="1.0.0")
+app = MCPApp(name="my_server", version="1.0.0")
 
 @app.tool
 def greet(name: Annotated[str, "Name to greet"]) -> str:
@@ -75,30 +78,36 @@ def greet(name: Annotated[str, "Name to greet"]) -> str:
     return f"Hello, {name}!"
 
 if __name__ == "__main__":
-    app.run()
+    transport = sys.argv[1] if len(sys.argv) > 1 else "http"
+    app.run(transport=transport, host="127.0.0.1", port=8000)
 ```
+
+This approach gives you:
+- **Complete Project Setup** - Everything you need in one command
+
+- **Best Practices** - Proper dependency management with pyproject.toml
+
+- **Example Code** - Learn from working examples of common patterns
+
+- **Production Ready** - Structured for growth and deployment
 
 ### Running Your Server
 
-**Recommended: Use the Arcade CLI**
+Run your server directly with Python:
 
 ```bash
-# Run HTTP server (default)
-arcade mcp
+# Run with HTTP transport (default)
+uv run server.py
 
-# Run stdio server (for Claude Desktop, Cursor, etc.)
-arcade mcp stdio
+# Run with stdio transport (for Claude Desktop)
+uv run server.py stdio
 
-# Run with debug logging and hot reload
-arcade mcp --debug --reload
+# Or use python directly
+python server.py http
+python server.py stdio
 ```
 
-**Alternative: Direct Python execution**
-
-```bash
-# Run your server.py file directly
-python server.py
-```
+Your server will start and listen for connections. With HTTP transport, you can access the API docs at http://127.0.0.1:8000/docs.
 
 ### Configure MCP Clients
 

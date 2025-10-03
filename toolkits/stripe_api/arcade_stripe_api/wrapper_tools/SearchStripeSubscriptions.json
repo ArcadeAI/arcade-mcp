@@ -1,0 +1,196 @@
+{
+  "name": "SearchStripeSubscriptions",
+  "fully_qualified_name": "StripeApi.SearchStripeSubscriptions@0.1.0",
+  "description": "Search previously created Stripe subscriptions.\n\nUse this tool to search for subscriptions created with Stripe using their Search Query Language. This is ideal for retrieving subscription data, but not suitable for scenarios requiring strict consistency, such as immediately after creating or updating data. Note: This functionality isn't available for merchants in India.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "search_query_string",
+        "required": true,
+        "description": "The search query string used to filter Stripe subscriptions. Refer to the Stripe Search Query Language documentation for syntax and query fields.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query string. See [search query language](https://stripe.com/docs/search#search-query-language) and the list of supported [query fields for subscriptions](https://stripe.com/docs/search#query-fields-for-subscriptions)."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "query"
+      },
+      {
+        "name": "expand_fields",
+        "required": false,
+        "description": "A list of fields in the Stripe subscription response to be expanded. This allows accessing additional data for each subscription object.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "result_limit",
+        "required": false,
+        "description": "Specify the maximum number of subscription results to return, from 1 to 100. Default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor",
+        "required": false,
+        "description": "Cursor for paginating through results. Omit on first call; use next_page value from a prior response for subsequent results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination across multiple pages of results. Don't include this parameter on the first call. Use the next_page value returned in a previous response to request subsequent results."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "page"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetSubscriptionsSearch'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/subscriptions/search",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_fields",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "result_limit",
+        "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "page",
+        "tool_parameter_name": "pagination_cursor",
+        "description": "A cursor for pagination across multiple pages of results. Don't include this parameter on the first call. Use the next_page value returned in a previous response to request subsequent results.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for pagination across multiple pages of results. Don't include this parameter on the first call. Use the next_page value returned in a previous response to request subsequent results."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "query",
+        "tool_parameter_name": "search_query_string",
+        "description": "The search query string. See [search query language](https://stripe.com/docs/search#search-query-language) and the list of supported [query fields for subscriptions](https://stripe.com/docs/search#query-fields-for-subscriptions).",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The search query string. See [search query language](https://stripe.com/docs/search#search-query-language) and the list of supported [query fields for subscriptions](https://stripe.com/docs/search#query-fields-for-subscriptions)."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

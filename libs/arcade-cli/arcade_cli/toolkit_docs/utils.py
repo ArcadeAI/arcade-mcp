@@ -2,13 +2,19 @@ import importlib
 import inspect
 import os
 import re
+import sys
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
 
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    tomllib = None
+
 from arcade_core.auth import AuthProviderType
 from arcade_core.catalog import ToolCatalog
-from arcade_core.schema import ToolAuthRequirement, ToolDefinition
+from arcade_core.schema import ToolDefinition, ToolRequirements
 from rich.console import Console
 
 from arcade_cli.utils import discover_toolkits
@@ -42,14 +48,22 @@ def write_file(path: str, content: str) -> None:
 
 def read_toolkit_metadata(toolkit_dir: str) -> str:
     pyproject_path = os.path.join(toolkit_dir, "pyproject.toml")
-    with open(pyproject_path) as f:
-        content = f.read()
-        project_section_match = re.search(r"\[project\](.*?)(?=\n\[|$)", content, re.DOTALL)
-        if project_section_match:
-            project_content = project_section_match.group(1)
-            name_match = re.search(r'name\s*=\s*["\']([^"\']+)["\']', project_content)
-            if name_match:
-                return name_match.group(1).strip()
+
+    if tomllib is not None:
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+            if "project" in data and "name" in data["project"]:
+                return data["project"]["name"]
+    else:
+        # Fallback to regex for Python < 3.11
+        with open(pyproject_path) as f:
+            content = f.read()
+            project_section_match = re.search(r"\[project\](.*?)(?=\n\[|$)", content, re.DOTALL)
+            if project_section_match:
+                project_content = project_section_match.group(1)
+                name_match = re.search(r'name\s*=\s*["\']([^"\']+)["\']', project_content)
+                if name_match:
+                    return name_match.group(1).strip()
 
     raise ValueError(f"Could not find package name in '{pyproject_path}'")
 
@@ -113,14 +127,15 @@ def get_all_enumerations(toolkit_root_dir: str) -> dict[str, type[Enum]]:
     return enums
 
 
-def get_toolkit_auth_type(requirement: ToolAuthRequirement | None) -> str:
-    if requirement is None:
-        return ""
-    elif requirement.provider_type == AuthProviderType.oauth2.value:
-        return 'authType="OAuth2"'
-    elif requirement.provider_type:
-        return f'authType="{requirement.provider_type}"'
-    return ""
+def get_toolkit_auth_type(tool_req: ToolRequirements | None) -> str:
+    if tool_req.authorization:
+        if tool_req.authorization.provider_type == AuthProviderType.oauth2.value:
+            return 'authType="OAuth2"'
+        else:
+            return f'authType="{tool_req.authorization.provider_type}"'
+    elif tool_req.secrets:
+        return 'authType="API Key"'
+    return 'authType="None"'
 
 
 def find_enum_by_options(
@@ -159,3 +174,47 @@ def is_well_known_provider(
 
 def clean_fully_qualified_name(fully_qualified_name: str) -> str:
     return fully_qualified_name.split("@")[0]
+
+
+def has_wrapper_tools_directory(toolkit_package_path: str) -> bool:
+    has_dir = os.path.exists(os.path.join(toolkit_package_path, "wrapper_tools"))
+    if has_dir:
+        return True
+
+    # Check one level deep
+    for dir_name in os.listdir(toolkit_package_path):
+        if os.path.exists(os.path.join(toolkit_package_path, dir_name, "wrapper_tools")):
+            return True
+
+    return False
+
+
+def find_pyproject_toml(toolkit_package_path: str) -> str:
+    for root, _, files in os.walk(toolkit_package_path):
+        for file in files:
+            if file == "pyproject.toml":
+                return os.path.join(root, file)
+
+    raise ValueError(f"No pyproject.toml found in {toolkit_package_path}")
+
+
+def get_pyproject_description(pyproject_path: str) -> str:
+    if tomllib is not None:
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+            if "project" in data and "description" in data["project"]:
+                return data["project"]["description"]
+    else:
+        # Fallback to regex for Python < 3.11
+        with open(pyproject_path) as f:
+            content = f.read()
+            project_section_match = re.search(r"\[project\](.*?)(?=\n\[|$)", content, re.DOTALL)
+            if project_section_match:
+                project_content = project_section_match.group(1)
+                description_match = re.search(
+                    r'description\s*=\s*["\']([^"\']+)["\']', project_content
+                )
+                if description_match:
+                    return description_match.group(1).strip()
+
+    raise ValueError(f"Could not find description in '{pyproject_path}'")

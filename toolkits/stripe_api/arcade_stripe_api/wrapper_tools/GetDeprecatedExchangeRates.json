@@ -1,0 +1,132 @@
+{
+  "name": "GetDeprecatedExchangeRates",
+  "fully_qualified_name": "StripeApi.GetDeprecatedExchangeRates@0.1.0",
+  "description": "Retrieves deprecated exchange rates for a given currency.\n\nThis tool fetches exchange rates from one currency to all supported currencies using the deprecated Exchange Rate API from Stripe. Use this only if the newer FX Quotes API is not suitable for your needs.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "currency_rate_id",
+        "required": true,
+        "description": "The currency code (e.g., 'USD') to retrieve exchange rates for. Use the deprecated Exchange Rate API responsibly.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "rate_id"
+      },
+      {
+        "name": "expand_fields",
+        "required": false,
+        "description": "List of fields to be expanded in the response. Each field is specified as a string.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetExchangeRatesRateId'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/exchange_rates/{rate_id}",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "expand",
+        "tool_parameter_name": "expand_fields",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "rate_id",
+        "tool_parameter_name": "currency_rate_id",
+        "description": "",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": ""
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

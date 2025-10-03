@@ -18,16 +18,16 @@ The stdio (standard input/output) transport is used for direct client connection
 
 ```bash
 # Run with stdio transport
-arcade mcp stdio
+uv run server.py stdio
 ```
 
 **Alternative: Direct Python**
 
 ```bash
-# Using the module directly
-python -m arcade_mcp_server stdio
+# Run your server directly
+uv run server.py stdio
 
-# Or with MCPApp
+# Or with python
 app.run(transport="stdio")
 ```
 
@@ -70,19 +70,17 @@ The HTTP transport provides REST/SSE endpoints for web-based clients.
 
 ```bash
 # Run with HTTP transport (default)
-arcade mcp
-
-# With specific host and port
-arcade mcp --host 0.0.0.0 --port 8080
+uv run server.py
+uv run server.py http
 ```
 
 **Alternative: Direct Python**
 
 ```bash
-# Using the module directly
-python -m arcade_mcp_server
+# Run your server directly
+uv run server.py
 
-# Or with MCPApp
+# Or with python
 app.run(transport="http", host="0.0.0.0", port=8080)
 ```
 
@@ -99,9 +97,9 @@ When running in HTTP mode, the server provides:
 
 **With Arcade CLI:**
 
-```bash
+```python
 # Enable hot reload and debug mode
-arcade mcp --reload --debug
+app.run(host="127.0.0.1", port=8000, reload=True)
 
 # This enables:
 # - Automatic restart on code changes

@@ -4,8 +4,8 @@ Access runtime features through Context including logging, secrets, and progress
 
 ## Running the Example
 
-- **Run**: `python -m arcade_mcp_server`
-- **Run (stdio)**: `python -m arcade_mcp_server stdio`
+- **Run**: `uv run 03_context.py`
+- **Run (stdio)**: `uv run 03_context.py stdio`
 - **Env**: set `API_KEY`, `DATABASE_URL`
 
 ## Source Code

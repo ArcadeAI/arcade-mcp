@@ -1,0 +1,167 @@
+{
+  "name": "RetrieveGroupMemberships",
+  "fully_qualified_name": "BoxApi.RetrieveGroupMemberships@0.1.0",
+  "description": "Fetch members of a specified group.\n\nRetrieves all the members of a specified group. This tool should be called when you need to get a list of users in a group. Note that access is restricted to members of the group or users with admin-level permissions.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "group_identifier",
+        "required": true,
+        "description": "The unique ID of the group to fetch its members. Only members or admins can access this.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the group."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "group_id"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "Specify the maximum number of members to retrieve per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "response_offset",
+        "required": false,
+        "description": "The starting point for retrieving members. Must not exceed 10000 to avoid errors.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "offset"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_groups_id_memberships'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/groups/{group_id}/memberships",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "offset",
+        "tool_parameter_name": "response_offset",
+        "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The offset of the item at which to begin the response.\n\nQueries with offset parameter value\nexceeding 10000 will be rejected\nwith a 400 response."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "group_id",
+        "tool_parameter_name": "group_identifier",
+        "description": "The ID of the group.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the group."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

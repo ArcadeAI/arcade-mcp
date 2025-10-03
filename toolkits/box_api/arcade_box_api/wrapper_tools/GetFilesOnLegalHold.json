@@ -1,0 +1,199 @@
+{
+  "name": "GetFilesOnLegalHold",
+  "fully_qualified_name": "BoxApi.GetFilesOnLegalHold@0.1.0",
+  "description": "Retrieve files currently on legal hold for a specific assignment.\n\nThis tool retrieves a list of files with their current versions that are under a legal hold for a specified assignment. It should be used when you need to know which files are currently on hold for legal purposes associated with a specific legal hold policy assignment.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "legal_hold_policy_assignment_id",
+        "required": true,
+        "description": "The ID of the legal hold policy assignment to retrieve files currently on hold.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the legal hold policy assignment."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "legal_hold_policy_assignment_id"
+      },
+      {
+        "name": "pagination_marker",
+        "required": false,
+        "description": "Position marker for starting the result set when using marker-based pagination. Requires the 'usemarker' parameter to be true.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      },
+      {
+        "name": "maximum_items_per_page",
+        "required": false,
+        "description": "The maximum number of items to return per page. Use this to control pagination size.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "included_attributes",
+        "required": false,
+        "description": "A list of specific attributes to include in the response. Only these attributes will be returned unless others are explicitly specified. Use this to customize the response fields.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_legal_hold_policy_assignments_id_files_on_hold'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/legal_hold_policy_assignments/{legal_hold_policy_assignment_id}/files_on_hold",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "maximum_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "fields",
+        "tool_parameter_name": "included_attributes",
+        "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "legal_hold_policy_assignment_id",
+        "tool_parameter_name": "legal_hold_policy_assignment_id",
+        "description": "The ID of the legal hold policy assignment.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the legal hold policy assignment."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

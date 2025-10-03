@@ -1,0 +1,333 @@
+{
+  "name": "GetFileVersionRetentions",
+  "fully_qualified_name": "BoxApi.GetFileVersionRetentions@0.1.0",
+  "description": "Retrieve file version retentions for an enterprise.\n\nRetrieves all file version retentions for a specified enterprise. Note that this API is deprecated; consider using newer alternatives for files and file versions under retention.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "filter_by_file_id",
+        "required": false,
+        "description": "Filters results to include only files with this specific file ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files with this ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_id"
+      },
+      {
+        "name": "filter_by_file_version_id",
+        "required": false,
+        "description": "Filters results by file versions matching this ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by file versions with this ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_version_id"
+      },
+      {
+        "name": "retention_policy_id",
+        "required": false,
+        "description": "Filter results by the specific retention policy ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the retention policy with this ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "policy_id"
+      },
+      {
+        "name": "filter_by_disposition_action",
+        "required": false,
+        "description": "Filter results based on the retention policy's disposition action, such as 'permanently_delete' or 'remove_retention'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "permanently_delete",
+            "remove_retention"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the retention policy with this disposition\naction."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "disposition_action"
+      },
+      {
+        "name": "filter_by_disposition_before_date",
+        "required": false,
+        "description": "Provide a date to filter results by files that will have their disposition come into effect before this date. Format: YYYY-MM-DD.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files that will have their disposition\ncome into effect before this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "disposition_before"
+      },
+      {
+        "name": "disposition_effective_after_date",
+        "required": false,
+        "description": "Filter results by files with disposition effective after this date. Use ISO 8601 format (e.g., '2023-10-01').",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files that will have their disposition\ncome into effect after this date."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "disposition_after"
+      },
+      {
+        "name": "max_items_per_page",
+        "required": false,
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_start_marker",
+        "required": false,
+        "description": "Defines the starting point for paginated results using a position marker. Requires marker-based pagination to be enabled.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "marker"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_file_version_retentions'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/file_version_retentions",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "file_id",
+        "tool_parameter_name": "filter_by_file_id",
+        "description": "Filters results by files with this ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files with this ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_version_id",
+        "tool_parameter_name": "filter_by_file_version_id",
+        "description": "Filters results by file versions with this ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by file versions with this ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "policy_id",
+        "tool_parameter_name": "retention_policy_id",
+        "description": "Filters results by the retention policy with this ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the retention policy with this ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "disposition_action",
+        "tool_parameter_name": "filter_by_disposition_action",
+        "description": "Filters results by the retention policy with this disposition\naction.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": [
+            "permanently_delete",
+            "remove_retention"
+          ],
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by the retention policy with this disposition\naction."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "disposition_before",
+        "tool_parameter_name": "filter_by_disposition_before_date",
+        "description": "Filters results by files that will have their disposition\ncome into effect before this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files that will have their disposition\ncome into effect before this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "disposition_after",
+        "tool_parameter_name": "disposition_effective_after_date",
+        "description": "Filters results by files that will have their disposition\ncome into effect after this date.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Filters results by files that will have their disposition\ncome into effect after this date."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "max_items_per_page",
+        "description": "The maximum number of items to return per page.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The maximum number of items to return per page."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "marker",
+        "tool_parameter_name": "pagination_start_marker",
+        "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Defines the position marker at which to begin returning results. This is\nused when paginating using marker-based pagination.\n\nThis requires `usemarker` to be set to `true`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "name": "RetrieveFileDetails",
+  "fully_qualified_name": "BoxApi.RetrieveFileDetails@0.1.0",
+  "description": "Fetch details about a specific file using its ID.\n\nUse this tool to get information about a file by providing its ID. It retrieves detailed metadata and properties of the file.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "file_identifier",
+        "required": true,
+        "description": "The unique identifier for a file, found in the URL of the file in the web application. Example: from `https://*.app.box.com/files/123`, use `123`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "file_id"
+      },
+      {
+        "name": "included_file_attributes",
+        "required": false,
+        "description": "Specify attributes to include in the response as a list of strings. Additional attributes replace standard fields unless explicitly included. Metadata can be queried using 'metadata' with scope and key.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested.\n\nAdditionally this field can be used to query any metadata\napplied to the file by specifying the `metadata` field as well\nas the scope and key of the template to retrieve, for example\n`?fields=metadata.enterprise_12345.contractTemplate`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "fields"
+      },
+      {
+        "name": "etag_conditional_retrieval",
+        "required": false,
+        "description": "Provide the last observed etag value to retrieve the file only if it has changed. Returns a 304 status if unchanged.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ensures an item is only returned if it has changed.\n\nPass in the item's last observed `etag` value\ninto this header and the endpoint will fail\nwith a `304 Not Modified` if the item has not\nchanged since."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "if-none-match"
+      },
+      {
+        "name": "shared_link_with_optional_password",
+        "required": false,
+        "description": "Provide the shared link URL for the item. Use the format 'shared_link=[link]' or 'shared_link=[link]&shared_link_password=[password]' if a password is required.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL, and optional password, for the shared link of this item.\n\nThis header can be used to access items that have not been\nexplicitly shared with a user.\n\nUse the format `shared_link=[link]` or if a password is required then\nuse `shared_link=[link]&shared_link_password=[password]`.\n\nThis header can be used on the file or folder shared, as well as on any files\nor folders nested within the item."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boxapi"
+      },
+      {
+        "name": "file_representations_request",
+        "required": false,
+        "description": "Request specific representations of a file using hints, e.g., '[jpg?dimensions=32x32][jpg?dimensions=64x64]'.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A header required to request specific `representations`\nof a file. Use this in combination with the `fields` query\nparameter to request a specific file representation.\n\nThe general format for these representations is\n`X-Rep-Hints: [...]` where `[...]` is one or many\nhints in the format `[fileType?query]`.\n\nFor example, to request a `png` representation in `32x32`\nas well as `64x64` pixel dimensions provide the following\nhints.\n\n`x-rep-hints: [jpg?dimensions=32x32][jpg?dimensions=64x64]`\n\nAdditionally, a `text` representation is available for all\ndocument file types in Box using the `[extracted_text]`\nrepresentation.\n\n`x-rep-hints: [extracted_text]`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "x-rep-hints"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_files_id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/files/{file_id}",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "fields",
+        "tool_parameter_name": "included_file_attributes",
+        "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested.\n\nAdditionally this field can be used to query any metadata\napplied to the file by specifying the `metadata` field as well\nas the scope and key of the template to retrieve, for example\n`?fields=metadata.enterprise_12345.contractTemplate`.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A comma-separated list of attributes to include in the\nresponse. This can be used to request fields that are\nnot normally returned in a standard response.\n\nBe aware that specifying this parameter will have the\neffect that none of the standard fields are returned in\nthe response unless explicitly specified, instead only\nfields for the mini representation are returned, additional\nto the fields requested.\n\nAdditionally this field can be used to query any metadata\napplied to the file by specifying the `metadata` field as well\nas the scope and key of the template to retrieve, for example\n`?fields=metadata.enterprise_12345.contractTemplate`."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "file_id",
+        "tool_parameter_name": "file_identifier",
+        "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The unique identifier that represents a file.\n\nThe ID for any file can be determined\nby visiting a file in the web application\nand copying the ID from the URL. For example,\nfor the URL `https://*.app.box.com/files/123`\nthe `file_id` is `123`."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "if-none-match",
+        "tool_parameter_name": "etag_conditional_retrieval",
+        "description": "Ensures an item is only returned if it has changed.\n\nPass in the item's last observed `etag` value\ninto this header and the endpoint will fail\nwith a `304 Not Modified` if the item has not\nchanged since.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Ensures an item is only returned if it has changed.\n\nPass in the item's last observed `etag` value\ninto this header and the endpoint will fail\nwith a `304 Not Modified` if the item has not\nchanged since."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "boxapi",
+        "tool_parameter_name": "shared_link_with_optional_password",
+        "description": "The URL, and optional password, for the shared link of this item.\n\nThis header can be used to access items that have not been\nexplicitly shared with a user.\n\nUse the format `shared_link=[link]` or if a password is required then\nuse `shared_link=[link]&shared_link_password=[password]`.\n\nThis header can be used on the file or folder shared, as well as on any files\nor folders nested within the item.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The URL, and optional password, for the shared link of this item.\n\nThis header can be used to access items that have not been\nexplicitly shared with a user.\n\nUse the format `shared_link=[link]` or if a password is required then\nuse `shared_link=[link]&shared_link_password=[password]`.\n\nThis header can be used on the file or folder shared, as well as on any files\nor folders nested within the item."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "x-rep-hints",
+        "tool_parameter_name": "file_representations_request",
+        "description": "A header required to request specific `representations`\nof a file. Use this in combination with the `fields` query\nparameter to request a specific file representation.\n\nThe general format for these representations is\n`X-Rep-Hints: [...]` where `[...]` is one or many\nhints in the format `[fileType?query]`.\n\nFor example, to request a `png` representation in `32x32`\nas well as `64x64` pixel dimensions provide the following\nhints.\n\n`x-rep-hints: [jpg?dimensions=32x32][jpg?dimensions=64x64]`\n\nAdditionally, a `text` representation is available for all\ndocument file types in Box using the `[extracted_text]`\nrepresentation.\n\n`x-rep-hints: [extracted_text]`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A header required to request specific `representations`\nof a file. Use this in combination with the `fields` query\nparameter to request a specific file representation.\n\nThe general format for these representations is\n`X-Rep-Hints: [...]` where `[...]` is one or many\nhints in the format `[fileType?query]`.\n\nFor example, to request a `png` representation in `32x32`\nas well as `64x64` pixel dimensions provide the following\nhints.\n\n`x-rep-hints: [jpg?dimensions=32x32][jpg?dimensions=64x64]`\n\nAdditionally, a `text` representation is available for all\ndocument file types in Box using the `[extracted_text]`\nrepresentation.\n\n`x-rep-hints: [extracted_text]`."
+        },
+        "accepted_as": "header",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "name": "DeleteUserAccount",
+  "fully_qualified_name": "BoxApi.DeleteUserAccount@0.1.0",
+  "description": "Delete a user account from the system.\n\nUse this tool to delete a user account. Ensure the user does not own content, or use the 'force' option to remove the user along with their files.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "user_id",
+        "required": true,
+        "description": "The unique identifier for the user to be deleted. Required for specifying which user account to delete.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the user."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      },
+      {
+        "name": "send_deletion_notification",
+        "required": false,
+        "description": "Indicate whether the user should receive an email notification about the deletion. Set to true to send notification.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the user will receive email notification of\nthe deletion."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "notify"
+      },
+      {
+        "name": "force_delete_user",
+        "required": false,
+        "description": "Set to true to delete the user and their files even if they still own content.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the user should be deleted even if this user\nstill own files."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "force"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'delete_users_id'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/users/{user_id}",
+    "http_method": "DELETE",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "notify",
+        "tool_parameter_name": "send_deletion_notification",
+        "description": "Whether the user will receive email notification of\nthe deletion.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the user will receive email notification of\nthe deletion."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "force",
+        "tool_parameter_name": "force_delete_user",
+        "description": "Whether the user should be deleted even if this user\nstill own files.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether the user should be deleted even if this user\nstill own files."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "user_id",
+        "description": "The ID of the user.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the user."
+        },
+        "accepted_as": "path",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

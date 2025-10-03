@@ -1,0 +1,135 @@
+{
+  "name": "GetUserTosStatus",
+  "fully_qualified_name": "BoxApi.GetUserTosStatus@0.1.0",
+  "description": "Retrieve user acceptance status for terms of service.\n\nThis tool retrieves information about users and their status regarding terms of service acceptance, including whether they have accepted the terms and when.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "terms_of_service_id",
+        "required": true,
+        "description": "The unique identifier for the specific terms of service document.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the terms of service."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "tos_id"
+      },
+      {
+        "name": "filter_by_user_id",
+        "required": false,
+        "description": "Limits results to the specified user ID for retrieving their terms of service acceptance status.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits results to the given user ID."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "user_id"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_terms_of_service_user_statuses'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/terms_of_service_user_statuses",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "tos_id",
+        "tool_parameter_name": "terms_of_service_id",
+        "description": "The ID of the terms of service.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The ID of the terms of service."
+        },
+        "accepted_as": "query",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "user_id",
+        "tool_parameter_name": "filter_by_user_id",
+        "description": "Limits results to the given user ID.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Limits results to the given user ID."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

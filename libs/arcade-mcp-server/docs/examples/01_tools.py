@@ -1,67 +1,40 @@
-#!/usr/bin/env python
-from typing import Annotated
-
-from arcade_mcp_server import tool
-from typing_extensions import TypedDict
-
+#!/usr/bin/env python3
 """
-01_tools.py - Tool creation, discovery, and parameter types
+01_tools.py - Tool creation and parameter types
 
 This example demonstrates:
-1. How to create tools with the @tool decorator
+1. How to create tools with @app.tool decorator in MCPApp
 2. Different parameter types (simple, lists, TypedDict)
-3. How arcade_mcp_server discovers tools automatically
+3. Direct Python execution for better control
 
 To run:
-    python -m arcade_mcp_server                  # Auto-discover all tools
-    python -m arcade_mcp_server --show-packages  # Show what's being loaded
-    python -m arcade_mcp_server stdio            # For Claude Desktop
+    uv run 01_tools.py                  # HTTP transport (default)
+    uv run 01_tools.py stdio           # stdio transport for Claude Desktop
 """
 
-# === DISCOVERY PATTERNS ===
+import sys
+from typing import Annotated
 
-"""
-The arcade_mcp_server CLI discovers tools using these patterns:
+from arcade_mcp_server import MCPApp
+from typing_extensions import TypedDict
 
-1. Current directory: *.py files
-   - Scans all Python files in the current directory
-   - Imports and checks for @tool decorated functions
-
-2. tools/ directory:
-   - If exists, recursively scans for Python files
-   - Common convention for organizing tools
-
-3. arcade_tools/ directory:
-   - Alternative directory name
-   - Also recursively scanned
-
-4. Package loading with --tool-package:
-   python -m arcade_mcp_server --tool-package github
-   - Loads arcade-github package
-   - Can load any installed package in the current python environment
-
-5. Discover all installed with --discover-installed:
-   python -m arcade_mcp_server --discover-installed
-   - Finds all arcade-* packages in the current python environment
-   - Loads all their tools
-
-Discovery tips:
-- Use __init__.py in directories for proper imports
-- Organize related tools in subdirectories
-- Use clear, descriptive tool names
-- Tools are namespaced by their toolkit name
-"""
+# Create the MCP application
+app = MCPApp(
+    name="tools_example",
+    version="1.0.0",
+    instructions="Example server demonstrating various tool parameter types",
+)
 
 # === SIMPLE TOOLS ===
 
 
-@tool
+@app.tool
 def hello(name: Annotated[str, "Name to greet"]) -> Annotated[str, "Greeting message"]:
     """Say hello to someone."""
     return f"Hello, {name}!"
 
 
-@tool
+@app.tool
 def add(
     a: Annotated[float, "First number"], b: Annotated[float, "Second number"]
 ) -> Annotated[float, "Sum of the numbers"]:
@@ -72,7 +45,7 @@ def add(
 # === TOOLS WITH LIST PARAMETERS ===
 
 
-@tool
+@app.tool
 def calculate_average(
     numbers: Annotated[list[float], "List of numbers to average"],
 ) -> Annotated[float, "Average of all numbers"]:
@@ -82,7 +55,7 @@ def calculate_average(
     return sum(numbers) / len(numbers)
 
 
-@tool
+@app.tool
 def factorial(n: Annotated[int, "Non-negative integer"]) -> Annotated[int, "Factorial of n"]:
     """Calculate the factorial of a number."""
     if n < 0:
@@ -106,7 +79,7 @@ class PersonInfo(TypedDict):
     is_active: bool
 
 
-@tool
+@app.tool
 def create_user_profile(
     person: Annotated[PersonInfo, "Person's information"],
 ) -> Annotated[str, "Formatted user profile"]:
@@ -129,7 +102,7 @@ class CalculationResult(TypedDict):
     count: int
 
 
-@tool
+@app.tool
 def analyze_numbers(
     values: Annotated[list[float], "List of numbers to analyze"],
 ) -> Annotated[CalculationResult, "Statistical analysis of the numbers"]:
@@ -144,3 +117,14 @@ def analyze_numbers(
         "max": max(values),
         "count": len(values),
     }
+
+
+if __name__ == "__main__":
+    # Check if stdio transport was requested
+    transport = "stdio" if len(sys.argv) > 1 and sys.argv[1] == "stdio" else "http"
+
+    print(f"Starting {app.name} v{app.version}")
+    print(f"Transport: {transport}")
+
+    # Run the server
+    app.run(transport=transport, host="127.0.0.1", port=8000)

@@ -1,0 +1,103 @@
+{
+  "name": "GetSharedAppItem",
+  "fully_qualified_name": "BoxApi.GetSharedAppItem@0.1.0",
+  "description": "Retrieve details of an app item using a shared link.\n\nUse this tool to get information about an app item by providing a shared link, which may originate from any enterprise.",
+  "toolkit": {
+    "name": "ArcadeBoxApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "shared_link_information",
+        "required": true,
+        "description": "A string with the format `shared_link=[link]&shared_link_password=[password]`, containing the shared link and an optional password.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A header containing the shared link and optional password for the\nshared link.\n\nThe format for this header is `shared_link=[link]&shared_link_password=[password]`."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "boxapi"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'get_shared_items#app_items'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": {
+      "provider_id": "arcade-box",
+      "provider_type": "oauth2",
+      "id": null,
+      "oauth2": null
+    },
+    "secrets": null,
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the box API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.box.com/2.0/shared_items#app_items",
+    "http_method": "GET",
+    "headers": {
+      "box-version": "2024.0"
+    },
+    "parameters": [
+      {
+        "name": "boxapi",
+        "tool_parameter_name": "shared_link_information",
+        "description": "A header containing the shared link and optional password for the\nshared link.\n\nThe format for this header is `shared_link=[link]&shared_link_password=[password]`.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A header containing the shared link and optional password for the\nshared link.\n\nThe format for this header is `shared_link=[link]&shared_link_password=[password]`."
+        },
+        "accepted_as": "header",
+        "required": true,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "auth_token",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "The OAuth token to use for authentication.",
+        "is_auth_token": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "name": "ListPaymentMethodDomains",
+  "fully_qualified_name": "StripeApi.ListPaymentMethodDomains@0.1.0",
+  "description": "Retrieve details of existing payment method domains.\n\nUse this tool to get a list of all payment method domains and their associated details. This can be helpful for managing or reviewing your payment configurations.",
+  "toolkit": {
+    "name": "ArcadeStripeApi",
+    "description": null,
+    "version": "0.1.0"
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "domain_name",
+        "required": false,
+        "description": "Specify the domain name for the payment method domain object you want to represent.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain name that this payment method domain object represents."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "domain_name"
+      },
+      {
+        "name": "pagination_cursor_ending_before",
+        "required": false,
+        "description": "A cursor ID to fetch the previous page of the payment method domain list in pagination.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "ending_before"
+      },
+      {
+        "name": "fields_to_expand",
+        "required": false,
+        "description": "List of fields in the response to expand for more detailed information.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "expand"
+      },
+      {
+        "name": "limit_number_of_returned_objects",
+        "required": false,
+        "description": "Specify the number of payment method domains to return, ranging from 1 to 100. Default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "limit"
+      },
+      {
+        "name": "pagination_cursor_starting_after",
+        "required": false,
+        "description": "An object ID cursor to fetch the next page in the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "starting_after"
+      },
+      {
+        "name": "include_enabled_domains",
+        "required": false,
+        "description": "Include only enabled payment method domains in the results. If false, all domains will be included regardless of status.",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether this payment method domain is enabled. If the domain is not enabled, payment methods will not appear in Elements or Embedded Checkout"
+        },
+        "inferrable": true,
+        "http_endpoint_parameter_name": "enabled"
+      }
+    ]
+  },
+  "output": {
+    "description": "Response from the API endpoint 'GetPaymentMethodDomains'.",
+    "available_modes": [
+      "value",
+      "error",
+      "null"
+    ],
+    "value_schema": {
+      "val_type": "json",
+      "inner_val_type": null,
+      "enum": null,
+      "properties": null,
+      "inner_properties": null,
+      "description": null
+    }
+  },
+  "requirements": {
+    "authorization": null,
+    "secrets": [
+      {
+        "key": "STRIPE_API_KEY"
+      }
+    ],
+    "metadata": null
+  },
+  "deprecation_message": null,
+  "metadata": {
+    "object_type": "api_wrapper_tool",
+    "version": "1.0.0",
+    "description": "Tools that enable LLMs to interact directly with the Stripe API."
+  },
+  "http_endpoint": {
+    "metadata": {
+      "object_type": "http_endpoint",
+      "version": "1.0.0",
+      "description": ""
+    },
+    "url": "https://api.stripe.com/v1/payment_method_domains",
+    "http_method": "GET",
+    "headers": {},
+    "parameters": [
+      {
+        "name": "domain_name",
+        "tool_parameter_name": "domain_name",
+        "description": "The domain name that this payment method domain object represents.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "The domain name that this payment method domain object represents."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "enabled",
+        "tool_parameter_name": "include_enabled_domains",
+        "description": "Whether this payment method domain is enabled. If the domain is not enabled, payment methods will not appear in Elements or Embedded Checkout",
+        "value_schema": {
+          "val_type": "boolean",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Whether this payment method domain is enabled. If the domain is not enabled, payment methods will not appear in Elements or Embedded Checkout"
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "ending_before",
+        "tool_parameter_name": "pagination_cursor_ending_before",
+        "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `ending_before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with `obj_bar`, your subsequent call can include `ending_before=obj_bar` in order to fetch the previous page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "expand",
+        "tool_parameter_name": "fields_to_expand",
+        "description": "Specifies which fields in the response should be expanded.",
+        "value_schema": {
+          "val_type": "array",
+          "inner_val_type": "string",
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "Specifies which fields in the response should be expanded."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "limit",
+        "tool_parameter_name": "limit_number_of_returned_objects",
+        "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10.",
+        "value_schema": {
+          "val_type": "integer",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 10."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      },
+      {
+        "name": "starting_after",
+        "tool_parameter_name": "pagination_cursor_starting_after",
+        "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list.",
+        "value_schema": {
+          "val_type": "string",
+          "inner_val_type": null,
+          "enum": null,
+          "properties": null,
+          "inner_properties": null,
+          "description": "A cursor for use in pagination. `starting_after` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with `obj_foo`, your subsequent call can include `starting_after=obj_foo` in order to fetch the next page of the list."
+        },
+        "accepted_as": "query",
+        "required": false,
+        "deprecated": false,
+        "documentation_urls": []
+      }
+    ],
+    "documentation_urls": [],
+    "secrets": [
+      {
+        "arcade_key": "STRIPE_API_KEY",
+        "parameter_name": "Authorization",
+        "accepted_as": "header",
+        "formatted_value": "Bearer {authorization}",
+        "description": "",
+        "is_auth_token": false
+      }
+    ]
+  }
+}

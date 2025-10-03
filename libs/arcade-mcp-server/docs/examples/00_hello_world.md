@@ -4,8 +4,8 @@ The simplest possible MCP server with a single tool using arcade-mcp-server.
 
 ## Running the Example
 
-- **Run (HTTP default)**: `python -m arcade_mcp_server`
-- **Run (stdio for Claude Desktop)**: `python -m arcade_mcp_server stdio`
+- **Run (HTTP default)**: `uv run 00_hello_world.py`
+- **Run (stdio for Claude Desktop)**: `uv run 00_hello_world.py stdio`
 
 ## Source Code
 
@@ -15,7 +15,8 @@ The simplest possible MCP server with a single tool using arcade-mcp-server.
 
 ## Key Concepts
 
-- **Minimal Setup**: Just import `@tool` decorator and annotate your function
-- **Auto-Discovery**: The CLI automatically finds tools in your current directory
+- **Minimal Setup**: Create `MCPApp`, define tools with `@app.tool`, and run with `app.run()`
+- **Direct Execution**: Run your server file directly with `uv run` or `python`
 - **Transport Flexibility**: Works with both stdio (for Claude Desktop) and HTTP
 - **Type Annotations**: Use `Annotated` to provide descriptions for parameters and return values
+- **Command Line Args**: Pass transport type as command line argument
