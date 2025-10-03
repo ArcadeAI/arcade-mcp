@@ -1,6 +1,6 @@
 [project]
 name = "arcade-mcp"
-version = "1.0.0rc3"
+version = "1.0.0rc4"
 description = "Arcade.dev - Tool Calling platform for Agents"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -30,6 +30,7 @@ dependencies = [
     "tqdm==4.67.1",
     "openai==1.82.1",
     "click==8.1.8",
+    "posthog==6.7.6",
 ]
 
 [project.optional-dependencies]

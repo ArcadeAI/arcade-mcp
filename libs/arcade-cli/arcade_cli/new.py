@@ -243,15 +243,15 @@ def create_new_toolkit_minimal(output_directory: str, toolkit_name: str) -> None
     # Check for illegal characters in the toolkit name
     if re.match(r"^[a-z0-9_]+$", toolkit_name):
         if (toolkit_directory / toolkit_name).exists():
-            console.print(f"[red]Toolkit '{toolkit_name}' already exists.[/red]")
-            exit(1)
+            raise FileExistsError(
+                f"Server with name '{toolkit_name}' already exists at '{toolkit_directory / toolkit_name}'"
+            )
     else:
-        console.print(
-            "[red]Toolkit name contains illegal characters. "
+        raise ValueError(
+            f"Server name '{toolkit_name}' contains illegal characters. "
             "Only lowercase alphanumeric characters and underscores are allowed. "
-            "Please try again.[/red]"
+            "Please try again."
         )
-        exit(1)
 
     context = {
         "toolkit_name": toolkit_name,

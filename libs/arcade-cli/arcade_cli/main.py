@@ -29,8 +29,8 @@ from arcade_cli.display import (
 )
 from arcade_cli.show import show_logic
 from arcade_cli.toolkit_docs import generate_toolkit_docs
+from arcade_cli.usage.command_tracker import TrackedTyper, TrackedTyperGroup
 from arcade_cli.utils import (
-    OrderCommands,
     Provider,
     compute_base_url,
     compute_login_url,
@@ -44,8 +44,8 @@ from arcade_cli.utils import (
     version_callback,
 )
 
-cli = typer.Typer(
-    cls=OrderCommands,
+cli = TrackedTyper(
+    cls=TrackedTyperGroup,
     add_completion=False,
     no_args_is_help=True,
     pretty_exceptions_enable=True,
@@ -271,16 +271,11 @@ def mcp(
             handle_cli_error("Failed to run MCP server")
 
     except KeyboardInterrupt:
-        console.print("\n[yellow]MCP server stopped[/yellow]")
-        raise typer.Exit(0)
+        console.print("\n[yellow]MCP server gracefully shutdown[/yellow]")
     except FileNotFoundError:
-        console.print(
-            "[red]arcade_mcp_server module not found. Make sure arcade-mcp-server is installed.[/red]"
+        handle_cli_error(
+            "arcade_mcp_server module not found. Make sure arcade-mcp-server is installed"
         )
-        raise typer.Exit(1)
-    except Exception as e:
-        console.print(f"[red]Error running MCP server: {e}[/red]")
-        raise typer.Exit(1)
 
 
 @cli.command(
@@ -770,7 +765,10 @@ def docs(
             "Please choose one of the 'gpt-4o' and 'gpt-5' series models.",
             style="bold red",
         )
-        raise typer.Exit()
+        handle_cli_error(
+            f"Attention: '{openai_model}' is not a valid OpenAI model. "
+            "Please choose one of the 'gpt-4o' and 'gpt-5' series models."
+        )
 
     try:
         success = generate_toolkit_docs(
@@ -831,6 +829,4 @@ def main_callback(
         return
 
     if not check_existing_login(suppress_message=True):
-        console.print("Not logged in to Arcade CLI. Use ", style="bold red", end="")
-        console.print("arcade login", style="bold green")
-        raise typer.Exit()
+        handle_cli_error("Not logged in to Arcade CLI. Use `arcade login` to log in.")
