@@ -1,4 +1,5 @@
 import functools
+import os
 import platform
 import sys
 import time
@@ -6,6 +7,7 @@ from importlib import metadata
 from typing import Any
 
 import typer
+from arcade_cli.constants import ARCADE_CONFIG_PATH
 from arcade_cli.usage.constants import (
     EVENT_CLI_COMMAND_EXECUTED,
     EVENT_CLI_COMMAND_FAILED,
@@ -23,8 +25,11 @@ from arcade_cli.usage.constants import (
 from arcade_cli.usage.identity import UsageIdentity
 from arcade_cli.usage.usage_service import UsageService
 from arcade_cli.usage.utils import is_tracking_enabled
+from rich.console import Console
 from typer.core import TyperCommand, TyperGroup
 from typer.models import Context
+
+console = Console()
 
 
 class CommandTracker:
@@ -217,6 +222,13 @@ class TrackedTyperCommand(TyperCommand):
 
     def invoke(self, ctx: Any) -> Any:
         """Override invoke to track command execution."""
+        if not os.path.exists(ARCADE_CONFIG_PATH):
+            console.print(
+                "[yellow]Arcade collects CLI usage data to help us debug and improve the service. "
+                "By continuing to use the Arcade CLI, you agree to the terms of our Privacy Policy. "
+                "To opt out, set the ARCADE_USAGE_TRACKING environment variable to 0.[/yellow]"
+            )
+
         command_name = ctx.command.name
         is_login = command_name == "login"
         is_logout = command_name == "logout"
