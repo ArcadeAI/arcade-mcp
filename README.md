@@ -37,22 +37,11 @@
     <a href="https://docs.arcade.dev/home/quickstart" target="_blank">Quickstart</a> •
     <a href="https://docs.arcade.dev/home/contact-us" target="_blank">Contact Us</a>
 
-# Arcade AI Platform
-
-Arcade is a developer platform that lets you build, deploy, and manage tools for AI agents.
-
-This repository contains the core Arcade libraries, organized as separate packages for maximum flexibility and modularity:
-
--   **arcade-core** - Core platform functionality and schemas | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-core) | `pip install arcade-core` |
--   **arcade-mcp-server** - MCP Server Development Framework | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-mcp-server) | `pip install arcade-mcp-server` |
--   **arcade-tdk** - Tool Development Kit with the `@tool` decorator | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-tdk) | `pip install arcade-tdk` |
--   **arcade-serve** - Serving infrastructure for workers and MCP servers | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-serve) | `pip install arcade-serve` |
--   **arcade-evals** - Evaluation framework for testing tool performance | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-evals) | `pip install 'arcade-mcp[evals]` |
--   **arcade-cli** - Command-line interface for the Arcade platform | [Source code](https://github.com/ArcadeAI/arcade-mcp/tree/main/libs/arcade-cli) | `pip install arcade-mcp` |
-
-![diagram](https://github.com/user-attachments/assets/1a567e5f-d6b4-4b1e-9918-c401ad232ebb)
+# Arcade MCP Server Framework
 
 **To learn more about Arcade.dev, check out our [documentation](https://docs.arcade.dev/home).**
+
+**To learn more about the Arcade MCP Server Framework, check out our [Arcade MCP documentation](https://python.mcp.arcade.dev/)**
 
 _Pst. hey, you, give us a star if you like it!_
 
@@ -60,46 +49,89 @@ _Pst. hey, you, give us a star if you like it!_
   <img src="https://img.shields.io/github/stars/ArcadeAI/arcade-mcp.svg" alt="GitHub stars">
 </a>
 
-## Quick Start
+### Quick Start: Create a New Server
 
-### Installation
-
-For development, install all packages with dependencies using uv workspace:
+The fastest way to get started is with the `arcade new` command, which creates a complete MCP server project:
 
 ```bash
-# Install all packages and dev dependencies
-uv sync --extra all --dev
+# Install the CLI
+uv pip install arcade-mcp
 
-# Or use the Makefile (includes pre-commit hooks)
-make install
+# Create a new server project
+arcade new my_server
+
+# Navigate to the project
+cd my_server
 ```
 
-For production use, install individual packages as needed:
+This generates a complete project with:
 
-```bash
-pip install arcade-mcp          # CLI
-pip install 'arcade-mcp[evals]' # CLI + Evaluation framework
-pip install 'arcade-mcp[all]'   # CLI + Serving infra + eval framework + TDK
-pip install arcade_serve       # Serving infrastructure
-pip install arcade-tdk         # Tool Development Kit
+- **server.py** - Main server file with MCPApp and example tools
+
+- **pyproject.toml** - Dependencies and project configuration
+
+- **.env.example** - Example `.env` file containing a secret required by one of the generated tools in `server.py`
+
+The generated `server.py` includes proper command-line argument handling:
+
+```python
+#!/usr/bin/env python3
+import sys
+from typing import Annotated
+from arcade_mcp_server import MCPApp
+
+app = MCPApp(name="my_server", version="1.0.0")
+
+@app.tool
+def greet(name: Annotated[str, "Name to greet"]) -> str:
+    """Greet someone by name."""
+    return f"Hello, {name}!"
+
+if __name__ == "__main__":
+    transport = sys.argv[1] if len(sys.argv) > 1 else "http"
+    app.run(transport=transport, host="127.0.0.1", port=8000)
 ```
 
-### Development
+This approach gives you:
+- **Complete Project Setup** - Everything you need in one command
 
-Use the Makefile for standard tasks:
+- **Best Practices** - Proper dependency management with pyproject.toml
+
+- **Example Code** - Learn from working examples of common patterns
+
+- **Production Ready** - Structured for growth and deployment
+
+### Running Your Server
+
+Run your server directly with Python:
 
 ```bash
-# Run tests
-make test
+# Run with HTTP transport (default)
+uv run server.py
 
-# Run linting and type checking
-make check
+# Run with stdio transport (for Claude Desktop)
+uv run server.py stdio
 
-# Build all packages
-make build
+# Or use python directly
+python server.py http
+python server.py stdio
+```
 
-# See all available commands
-make help
+Your server will start and listen for connections. With HTTP transport, you can access the API docs at http://127.0.0.1:8000/docs.
+
+### Configure MCP Clients
+
+Once your server is running, connect it to your favorite AI assistant:
+
+```bash
+# Configure Claude Desktop (configures for stdio)
+arcade configure claude --from-local
+
+# Configure Cursor (configures for http streamable)
+arcade configure cursor --from-local
+
+# Configure VS Code (configures for http streamable)
+arcade configure vscode --from-local
 ```
 
 ## Client Libraries
