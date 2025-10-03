@@ -7,14 +7,60 @@ IN THE ../wrapper_tools DIRECTORY INTO PYTHON CODE. ANY CHANGES TO THIS MODULE W
 BE OVERWRITTEN BY THE TRANSPILER.
 """
 
+import asyncio
 from typing import Annotated, Any
 
 import httpx
 from arcade_tdk import ToolContext, tool
 
+# Retry configuration
+INITIAL_RETRY_DELAY = 0.5  # seconds
+
+HTTP_CLIENT = httpx.AsyncClient(
+    timeout=httpx.Timeout(60.0, connect=10.0),
+    limits=httpx.Limits(max_keepalive_connections=20, max_connections=100),
+    transport=httpx.AsyncHTTPTransport(retries=3),
+    http2=True,
+    follow_redirects=True,
+)
+
 
 def remove_none_values(data: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in data.items() if v is not None}
+
+
+async def make_request(
+    url: str,
+    method: str,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
+    max_retries: int = 3,
+) -> httpx.Response:
+    """Make an HTTP request with retry logic for 5xx server errors."""
+    for attempt in range(max_retries):
+        try:
+            response = await HTTP_CLIENT.request(
+                url=url,
+                method=method,
+                params=params,
+                headers=headers,
+                data=data,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            # Only retry on 5xx server errors
+            if e.response.status_code >= 500 and attempt < max_retries - 1:
+                # Exponential backoff: 0.5s, 1s, 2s
+                await asyncio.sleep(INITIAL_RETRY_DELAY * (2**attempt))
+                continue
+            # Re-raise for 4xx errors or if max retries reached
+            raise
+        except httpx.RequestError:
+            # Don't retry request errors (network issues are handled by transport)
+            raise
+        else:
+            return response
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -48,27 +94,27 @@ async def get_trello_action(
     """Retrieve details of a specific Trello action by ID.
 
     Use this tool to get detailed information about a specific action in Trello using the action's unique ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "display": include_display,
-                "entities": include_entities,
-                "fields": action_fields,
-                "member": include_member,
-                "member_fields": member_fields_list,
-                "memberCreator": include_action_creator,
-                "memberCreator_fields": member_creator_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "display": include_display,
+            "entities": include_entities,
+            "fields": action_fields,
+            "member": include_member,
+            "member_fields": member_fields_list,
+            "memberCreator": include_action_creator,
+            "memberCreator_fields": member_creator_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -86,21 +132,21 @@ async def update_trello_comment(
     """Update a specific comment on Trello.
 
     Use this tool to edit the content of a comment action on Trello by specifying the action ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "text": new_comment_text,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "text": new_comment_text,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -111,20 +157,20 @@ async def delete_trello_comment_action(
     """Delete a specific comment action on Trello.
 
     Use this tool to delete a specific comment action on Trello by providing the action ID. Only comment actions are eligible for deletion."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}".format(id=action_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -141,22 +187,22 @@ async def get_action_property(
     """Retrieve a specific property of a Trello action.
 
     Use this tool to get a particular property value of a specified action in Trello. It should be called when you need details about a specific aspect of an action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/{field}".format(  # noqa: UP032
-                id=action_id, field=action_field
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/{field}".format(  # noqa: UP032
+            id=action_id, field=action_field
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -171,21 +217,21 @@ async def get_board_for_action(
     """Fetch the board associated with a given action ID.
 
     Use this tool to retrieve information about the board linked to a specific action in Trello. It should be called when there's a need to understand the context or details of the board related to a particular action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/board".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": board_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/board".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": board_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -202,21 +248,21 @@ async def get_trello_card_from_action(
     """Get information about a Trello card from an action ID.
 
     This tool retrieves information about the Trello card associated with a given action ID. It should be called when you need to find details of the card linked to a specific action in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/card".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": card_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/card".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": card_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -232,21 +278,21 @@ async def get_trello_action_list(
     """Retrieve the list associated with a specific Trello action.
 
     This tool is used to get the list details for a given action in Trello. It should be called when you need to find out which list is linked to a particular Trello action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/list".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": list_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/list".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": list_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -263,21 +309,21 @@ async def get_action_member(
     """Retrieve the member associated with a specific action.
 
     This tool is used to get details about the member related to a particular action in Trello, excluding the creator. It should be called when you need information about the member involved in an action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/member".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/member".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -294,21 +340,21 @@ async def get_trello_action_creator(
     """Retrieve the creator of a Trello action.
 
     Use this tool to obtain information about the member who initiated a specific action in Trello. Ideal for tracking activity or understanding user interactions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/memberCreator".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/memberCreator".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -325,21 +371,21 @@ async def get_organization_of_action(
     """Retrieve organization details for a given action ID.
 
     Use this tool to obtain information about the organization associated with a specific action on Trello. It should be called when you need to know which organization is linked to an action based on its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/organization".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": organization_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/organization".format(id=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": organization_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -357,21 +403,21 @@ async def modify_trello_action(
     """Update a comment on Trello using the action ID.
 
     Use this tool to update the text of a comment on Trello by providing the action ID. This is helpful for modifying existing comments to correct or amend information."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{id}/text".format(id=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": new_comment_text,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{id}/text".format(id=action_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": new_comment_text,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -388,22 +434,22 @@ async def list_action_reactions(
     """Retrieve reactions for a specific Trello action.
 
     Use this tool to get a list of all reactions associated with a specific action on Trello. It helps in understanding user interactions or feedback on particular actions."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions".format(idAction=action_id),  # noqa: UP032
-            params=remove_none_values({
-                "member": include_member_as_nested_resource,
-                "emoji": include_emoji,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{idAction}/reactions".format(idAction=action_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "member": include_member_as_nested_resource,
+            "emoji": include_emoji,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -427,24 +473,24 @@ async def get_reaction_info(
     """Retrieve details of a specific Trello reaction.
 
     Use this tool to get detailed information about a specific reaction on a Trello action. It is helpful for understanding how users are interacting with a card action."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
-                idAction=action_id, id=reaction_id
-            ),
-            params=remove_none_values({
-                "member": include_member_as_nested_resource,
-                "emoji": load_emoji_as_nested_resource,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
+            idAction=action_id, id=reaction_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "member": include_member_as_nested_resource,
+            "emoji": load_emoji_as_nested_resource,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -460,22 +506,22 @@ async def delete_trello_reaction(
     """Delete a reaction from a Trello action.
 
     Use this tool to remove a specific reaction from a Trello action, given the action ID and reaction ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
-                idAction=action_id, id=reaction_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{idAction}/reactions/{id}".format(  # noqa: UP032
+            idAction=action_id, id=reaction_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -491,22 +537,22 @@ async def get_reaction_summary_for_action(
     """Retrieve a summary of reactions for a Trello action.
 
     Use this tool to get a summarized list of all reactions associated with a specific Trello action. It's useful for understanding how users have responded to an action on a Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/actions/{idAction}/reactionsSummary".format(  # noqa: UP032
-                idAction=action_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/actions/{idAction}/reactionsSummary".format(  # noqa: UP032
+            idAction=action_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -519,22 +565,20 @@ async def get_application_compliance_data(
     """Retrieve an application's compliance data from Trello.
 
     Use this tool to get compliance information for a specific application by its key in Trello."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/applications/{key}/compliance".format(  # noqa: UP032
-                key=application_key
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/applications/{key}/compliance".format(key=application_key),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -548,21 +592,21 @@ async def trello_batch_get_requests(
     """Execute multiple GET requests to Trello in one call.
 
     Use this tool to make up to 10 GET requests to the Trello API in a single batch. Ideal for retrieving multiple pieces of information efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/batch",
-            params=remove_none_values({
-                "urls": api_routes_list,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/batch",
+        method="GET",
+        params=remove_none_values({
+            "urls": api_routes_list,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -592,25 +636,25 @@ async def get_board_memberships(
     """Get details on user memberships for a Trello board.
 
     Use this tool to retrieve information about the memberships users have on a specific Trello board. It should be called when you need to know details about user affiliations or roles within a board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/memberships".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": membership_filter,
-                "activity": include_activity,
-                "orgMemberType": display_organization_member_type,
-                "member": include_nested_member_object,
-                "member_fields": member_fields_to_display,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/memberships".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": membership_filter,
+            "activity": include_activity,
+            "orgMemberType": display_organization_member_type,
+            "member": include_nested_member_object,
+            "member_fields": member_fields_to_display,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -682,36 +726,36 @@ async def get_trello_board_details(
     """Retrieve details for a specific Trello board.
 
     Use this tool to obtain information about a particular Trello board by providing its ID. It helps in accessing and displaying the specific board's details effortlessly."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "actions": include_actions,
-                "boardStars": board_stars_filter,
-                "cards": include_card_details,
-                "card_pluginData": include_card_plugin_data,
-                "checklists": include_checklists,
-                "customFields": include_custom_fields,
-                "fields": board_fields_to_include,
-                "labels": include_labels_resource,
-                "lists": include_lists,
-                "members": include_members,
-                "memberships": include_memberships,
-                "pluginData": include_plugin_data,
-                "organization": include_organization,
-                "organization_pluginData": include_organization_plugin_data,
-                "myPrefs": include_my_preferences,
-                "tags": include_tags,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "actions": include_actions,
+            "boardStars": board_stars_filter,
+            "cards": include_card_details,
+            "card_pluginData": include_card_plugin_data,
+            "checklists": include_checklists,
+            "customFields": include_custom_fields,
+            "fields": board_fields_to_include,
+            "labels": include_labels_resource,
+            "lists": include_lists,
+            "members": include_members,
+            "memberships": include_memberships,
+            "pluginData": include_plugin_data,
+            "organization": include_organization,
+            "organization_pluginData": include_organization_plugin_data,
+            "myPrefs": include_my_preferences,
+            "tags": include_tags,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -793,41 +837,41 @@ async def update_trello_board(
     """Update an existing Trello board by ID.
 
     Use this tool to update the properties of an existing Trello board using its ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": board_new_name,
-                "desc": new_board_description,
-                "closed": is_board_closed,
-                "subscribed": user_subscribed_status,
-                "idOrganization": workspace_id_for_board,
-                "prefs/permissionLevel": board_permission_level,
-                "prefs/selfJoin": allow_workspace_self_join,
-                "prefs/cardCovers": display_card_covers,
-                "prefs/hideVotes": hide_votes,
-                "prefs/invitations": board_invitation_permission,
-                "prefs/voting": voting_permission,
-                "prefs/comments": comment_permission,
-                "prefs/background": board_background_id,
-                "prefs/cardAging": card_aging_preference,
-                "prefs/calendarFeedEnabled": enable_calendar_feed,
-                "labelNames/green": green_label_name,
-                "labelNames/yellow": yellow_label_name,
-                "labelNames/orange": orange_label_name,
-                "labelNames/red": red_label_name,
-                "labelNames/purple": purple_label_name,
-                "labelNames/blue": blue_label_name,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "name": board_new_name,
+            "desc": new_board_description,
+            "closed": is_board_closed,
+            "subscribed": user_subscribed_status,
+            "idOrganization": workspace_id_for_board,
+            "prefs/permissionLevel": board_permission_level,
+            "prefs/selfJoin": allow_workspace_self_join,
+            "prefs/cardCovers": display_card_covers,
+            "prefs/hideVotes": hide_votes,
+            "prefs/invitations": board_invitation_permission,
+            "prefs/voting": voting_permission,
+            "prefs/comments": comment_permission,
+            "prefs/background": board_background_id,
+            "prefs/cardAging": card_aging_preference,
+            "prefs/calendarFeedEnabled": enable_calendar_feed,
+            "labelNames/green": green_label_name,
+            "labelNames/yellow": yellow_label_name,
+            "labelNames/orange": orange_label_name,
+            "labelNames/red": red_label_name,
+            "labelNames/purple": purple_label_name,
+            "labelNames/blue": blue_label_name,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -838,20 +882,20 @@ async def delete_trello_board(
     """Delete a Trello board by ID.
 
     Use this tool to delete a specified Trello board by providing its ID. It confirms the deletion of the board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}".format(id=board_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -868,22 +912,22 @@ async def get_board_field(
     """Retrieve a specific field value from a Trello board.
 
     Use this tool to get a specific field value from a Trello board by providing the board ID and the field name."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/{field}".format(  # noqa: UP032
-                id=board_id, field=board_field_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/{field}".format(  # noqa: UP032
+            id=board_id, field=board_field_name
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -900,21 +944,21 @@ async def get_board_stars(
     """Retrieve board star details from Trello.
 
     This tool is used to get information about the stars on a specific Trello board. It should be called when you want to check which users have starred a board or to manage board recognition."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{boardId}/boardStars".format(boardId=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": filter_by_board_stars,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{boardId}/boardStars".format(boardId=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": filter_by_board_stars,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -927,20 +971,20 @@ async def get_board_checklists(
     """Retrieve all checklists from a Trello board.
 
     Use this tool to get a list of all checklists on a specific Trello board by providing the board ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/checklists".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/checklists".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -954,20 +998,20 @@ async def get_open_cards_on_board(
     """Retrieve all open cards from a Trello board.
 
     Use this tool to get all open cards on a specific Trello board by providing the board ID. It is useful for managing and viewing tasks or items in an active state on a Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/cards".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/cards".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -984,22 +1028,22 @@ async def get_filtered_trello_board_cards(
     """Retrieve filtered cards from a Trello board.
 
     Use this tool to get cards from a specified Trello board that match a certain filter. Ideal for retrieving specific sets of cards based on criteria like labels, members, or statuses."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/cards/{filter}".format(  # noqa: UP032
-                id=board_id, filter=card_filter_type
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/cards/{filter}".format(  # noqa: UP032
+            id=board_id, filter=card_filter_type
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1012,20 +1056,20 @@ async def get_board_custom_fields(
     """Get Custom Field Definitions for a Trello board.
 
     Use this tool to retrieve the Custom Field Definitions associated with a specific Trello board by providing the board ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/customFields".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/customFields".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1042,22 +1086,22 @@ async def create_label_on_board(
     """Create a new label on a Trello board.
 
     Use this tool to create a new label on a specific Trello board by providing the board ID and label details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/labels".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": label_name,
-                "color": label_color,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/labels".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": label_name,
+            "color": label_color,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1083,24 +1127,24 @@ async def get_lists_on_board(
     """Retrieve all lists from a specified Trello board.
 
     Use this tool to get information about all the lists on a specific Trello board by providing the board ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "cards": card_filter,
-                "card_fields": card_fields_to_retrieve,
-                "filter": list_filter,
-                "fields": list_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "cards": card_filter,
+            "card_fields": card_fields_to_retrieve,
+            "filter": list_filter,
+            "fields": list_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1120,22 +1164,22 @@ async def create_trello_list(
     """Create a new list on a Trello board.
 
     This tool is used to create a new list on a specified Trello board. It should be called when you need to organize tasks or categories by adding a new list to an existing board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": list_name,
-                "pos": list_position,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/lists".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": list_name,
+            "pos": list_position,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1152,22 +1196,22 @@ async def get_filtered_lists_on_board(
     """Retrieve filtered lists from a Trello board with specific criteria.
 
     Use this tool to obtain lists from a specified Trello board, applying specific filters to tailor the results. Ideal for managing board workflows by focusing on particular list attributes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/lists/{filter}".format(  # noqa: UP032
-                id=board_id, filter=list_filter
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/lists/{filter}".format(  # noqa: UP032
+            id=board_id, filter=list_filter
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1180,20 +1224,20 @@ async def get_board_members(
     """Retrieve the members of a Trello board.
 
     Use this tool to get a list of members associated with a specific Trello board by providing the board ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/members".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1214,24 +1258,24 @@ async def add_member_to_trello_board(
     """Add a member to a Trello board.
 
     Use this tool to add a specific member to a Trello board by specifying the board ID and the member ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
-                id=board_id, idMember=member_id
-            ),
-            params=remove_none_values({
-                "type": member_type,
-                "allowBillableGuest": allow_billable_guest,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
+            id=board_id, idMember=member_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "type": member_type,
+            "allowBillableGuest": allow_billable_guest,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1243,22 +1287,22 @@ async def remove_member_from_trello_board(
     """Remove a member from a Trello board.
 
     Use this tool to remove a member from a specified Trello board by providing the board and member IDs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
-                id=board_id, idMember=member_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/members/{idMember}".format(  # noqa: UP032
+            id=board_id, idMember=member_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1282,24 +1326,24 @@ async def update_board_membership(
     """Update an existing membership on a Trello board.
 
     Use this tool to modify details of a membership on a Trello board. It requires specifying the board ID and the membership ID to update."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/memberships/{idMembership}".format(  # noqa: UP032
-                id=board_id, idMembership=membership_id_to_add
-            ),
-            params=remove_none_values({
-                "type": membership_type,
-                "member_fields": membership_field_type,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/memberships/{idMembership}".format(  # noqa: UP032
+            id=board_id, idMembership=membership_id_to_add
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "type": membership_type,
+            "member_fields": membership_field_type,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1317,21 +1361,21 @@ async def update_board_email_position(
     """Update the email position preference on a Trello board.
 
     This tool updates the email position preference setting for a specified Trello board. Use this tool when you need to change how emails are displayed or organized on a board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/emailPosition".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": email_position_preference,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/emailPosition".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": email_position_preference,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1347,21 +1391,21 @@ async def set_default_email_to_board_list(
     """Change the default list for email-to-board cards.
 
     Use this tool to specify which list newly emailed cards are added to on a Trello board."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/idEmailList".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": email_list_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/idEmailList".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": email_list_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1380,21 +1424,21 @@ async def update_board_sidebar_preference(
     """Update the sidebar visibility preference for a Trello board.
 
     Use this tool to modify the sidebar visibility settings on a specified Trello board. Call this tool when you need to enable or disable the sidebar display on a Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebar".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": show_sidebar,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebar".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": show_sidebar,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1412,23 +1456,21 @@ async def update_sidebar_activity_preference(
     """Update sidebar activity display preference for a Trello board.
 
     Use this tool to update the preference for displaying the sidebar activity on a specific Trello board. Useful when adjusting board settings to improve user interaction."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarActivity".format(  # noqa: UP032
-                id=board_id
-            ),
-            params=remove_none_values({
-                "value": show_sidebar_activity,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarActivity".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": show_sidebar_activity,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1447,23 +1489,23 @@ async def update_sidebar_board_actions_prefs(
     """Update the showSidebarBoardActions preference on a board.
 
     Use this tool to update the preference for displaying sidebar board actions on a Trello board. It should be called when you want to modify the visibility of board action buttons in the sidebar."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarBoardActions".format(  # noqa: UP032
-                id=board_id
-            ),
-            params=remove_none_values({
-                "value": show_sidebar_board_actions,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarBoardActions".format(  # noqa: UP032
+            id=board_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": show_sidebar_board_actions,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1482,23 +1524,21 @@ async def update_trello_sidebar_members_view(
     """Update the sidebar members view preference on a Trello board.
 
     This tool updates the 'showSidebarMembers' preference for a specific Trello board, adjusting whether members are displayed in the sidebar. Use it to customize a board's appearance as needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarMembers".format(  # noqa: UP032
-                id=board_id
-            ),
-            params=remove_none_values({
-                "value": show_sidebar_members,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/myPrefs/showSidebarMembers".format(id=board_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": show_sidebar_members,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1566,36 +1606,36 @@ async def create_trello_board(
     """Create a new board in Trello.
 
     Use this tool to create a new board on Trello. It should be called when there's a need to organize tasks or projects into a new board structure."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/",
-            params=remove_none_values({
-                "name": board_name,
-                "defaultLabels": use_default_labels,
-                "defaultLists": add_default_lists,
-                "desc": board_description,
-                "idOrganization": workspace_id_or_name,
-                "idBoardSource": source_board_id,
-                "keepFromSource": keep_original_cards,
-                "powerUps": enable_power_ups,
-                "prefs_permissionLevel": board_permission_level,
-                "prefs_voting": set_voting_permissions,
-                "prefs_comments": comment_permissions,
-                "prefs_invitations": invitation_permission_level,
-                "prefs_selfJoin": allow_self_join,
-                "prefs_cardCovers": enable_card_covers,
-                "prefs_background": board_background_color,
-                "prefs_cardAging": card_aging_type,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/",
+        method="POST",
+        params=remove_none_values({
+            "name": board_name,
+            "defaultLabels": use_default_labels,
+            "defaultLists": add_default_lists,
+            "desc": board_description,
+            "idOrganization": workspace_id_or_name,
+            "idBoardSource": source_board_id,
+            "keepFromSource": keep_original_cards,
+            "powerUps": enable_power_ups,
+            "prefs_permissionLevel": board_permission_level,
+            "prefs_voting": set_voting_permissions,
+            "prefs_comments": comment_permissions,
+            "prefs_invitations": invitation_permission_level,
+            "prefs_selfJoin": allow_self_join,
+            "prefs_cardCovers": enable_card_covers,
+            "prefs_background": board_background_color,
+            "prefs_cardAging": card_aging_type,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1610,20 +1650,20 @@ async def generate_trello_board_calendar_key(
     """Generates a calendar key for a Trello board.
 
     Use this tool to generate a calendar key for an existing Trello board. This key can be used to integrate the board's calendar with other applications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/calendarKey/generate".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/calendarKey/generate".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1638,20 +1678,20 @@ async def generate_board_email_key(
     """Generate an email key for a Trello board.
 
     This tool generates an email key for a specified Trello board, allowing emails to be sent directly to the board. It should be called when you need to enable email integration for a board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/emailKey/generate".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/emailKey/generate".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1667,21 +1707,21 @@ async def create_board_tag(
     """Create a new tag for a Trello board.
 
     Use this tool to create a new tag for a specific board in Trello. Ideal for organizing and categorizing tasks within a board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/idTags".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": organization_tag_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/idTags".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "value": organization_tag_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1692,20 +1732,20 @@ async def mark_trello_board_as_viewed(
     """Marks a Trello board as viewed for a user.
 
     Use this tool when you need to mark a Trello board as viewed. It helps manage board activity tracking by indicating when a user has viewed it."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/markedAsViewed".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/markedAsViewed".format(id=board_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1716,20 +1756,20 @@ async def get_board_power_ups(
     """Retrieve the enabled Power-Ups on a Trello board.
 
     Use this tool to get a list of Power-Ups (features and integrations) that are currently enabled on a specific Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/boardPlugins".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/boardPlugins".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1743,21 +1783,21 @@ async def list_board_power_ups(
     """Retrieve the Power-Ups enabled on a Trello board.
 
     Use this tool to get a list of all the Power-Ups currently active on a specific Trello board. It's useful for understanding which enhancements are applied to the board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/boards/{id}/plugins".format(id=board_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": power_up_status_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/boards/{id}/plugins".format(id=board_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": power_up_status_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1829,38 +1869,38 @@ async def create_trello_card(
     """Create a new card in Trello.
 
     Use this tool to create a new card on a Trello board. This is useful when you need to organize tasks or information by adding cards to your Trello workflow."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards",
-            params=remove_none_values({
-                "name": card_name,
-                "desc": card_description,
-                "pos": card_position,
-                "due": card_due_date,
-                "start": start_date,
-                "dueComplete": card_completion_status,
-                "idList": list_id_for_card,
-                "idMembers": member_ids_to_add,
-                "idLabels": label_ids,
-                "urlSource": attachment_url,
-                "fileSource": attachment_file_path,
-                "mimeType": attachment_mime_type,
-                "idCardSource": copy_card_source_id,
-                "keepFromSource": copy_properties_from_source,
-                "address": map_view_address,
-                "locationName": location_name,
-                "coordinates": map_coordinates,
-                "cardRole": card_display_role,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards",
+        method="POST",
+        params=remove_none_values({
+            "name": card_name,
+            "desc": card_description,
+            "pos": card_position,
+            "due": card_due_date,
+            "start": start_date,
+            "dueComplete": card_completion_status,
+            "idList": list_id_for_card,
+            "idMembers": member_ids_to_add,
+            "idLabels": label_ids,
+            "urlSource": attachment_url,
+            "fileSource": attachment_file_path,
+            "mimeType": attachment_mime_type,
+            "idCardSource": copy_card_source_id,
+            "keepFromSource": copy_properties_from_source,
+            "address": map_view_address,
+            "locationName": location_name,
+            "coordinates": map_coordinates,
+            "cardRole": card_display_role,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1936,38 +1976,38 @@ async def get_trello_card_by_id(
     """Retrieve Trello card details using card ID.
 
     Use this tool to get detailed information about a Trello card by providing its unique ID. Ideal for accessing specific card details such as description, labels, and more."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": card_fields_to_retrieve,
-                "actions": include_action_details,
-                "attachments": include_attachments,
-                "attachment_fields": attachment_fields,
-                "members": include_card_members,
-                "member_fields": member_fields_selection,
-                "membersVoted": include_members_who_voted,
-                "memberVoted_fields": member_voted_fields,
-                "checkItemStates": include_check_item_states,
-                "checklists": include_checklists,
-                "checklist_fields": checklist_fields,
-                "board": include_board_object,
-                "board_fields": board_fields_to_return,
-                "list": include_lists_nested_resource,
-                "pluginData": include_plugin_data,
-                "stickers": include_stickers,
-                "sticker_fields": sticker_fields,
-                "customFieldItems": include_custom_field_items,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": card_fields_to_retrieve,
+            "actions": include_action_details,
+            "attachments": include_attachments,
+            "attachment_fields": attachment_fields,
+            "members": include_card_members,
+            "member_fields": member_fields_selection,
+            "membersVoted": include_members_who_voted,
+            "memberVoted_fields": member_voted_fields,
+            "checkItemStates": include_check_item_states,
+            "checklists": include_checklists,
+            "checklist_fields": checklist_fields,
+            "board": include_board_object,
+            "board_fields": board_fields_to_return,
+            "list": include_lists_nested_resource,
+            "pluginData": include_plugin_data,
+            "stickers": include_stickers,
+            "sticker_fields": sticker_fields,
+            "customFieldItems": include_custom_field_items,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -1978,20 +2018,20 @@ async def delete_trello_card(
     """Deletes a card from Trello by ID.
 
     Use this tool to delete a specific card from a Trello board by providing its ID. Useful for removing tasks or notes that are no longer needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}".format(id=card_id_to_delete),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}".format(id=card_id_to_delete),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2008,22 +2048,20 @@ async def get_trello_card_property(
     """Retrieve a specific field from a Trello card.
 
     Use this tool to get a specific property or detail of a Trello card by specifying the card ID and the field name you want to retrieve."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/{field}".format(  # noqa: UP032
-                id=card_id, field=card_field_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/{field}".format(id=card_id, field=card_field_name),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2042,22 +2080,22 @@ async def list_card_actions(
     """Retrieve all actions performed on a specific Trello card.
 
     This tool retrieves a list of actions performed on a specified Trello card. It should be called when you need to analyze interactions or changes made to a card, such as comments, moves, or updates."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": action_type_filter,
-                "page": results_page_number,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/actions".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": action_type_filter,
+            "page": results_page_number,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2076,22 +2114,22 @@ async def list_card_attachments(
     """Retrieve attachments from a Trello card.
 
     Use this tool to get the list of all attachments associated with a specific Trello card. This is helpful when you need to manage or review files attached to your Trello tasks."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": attachment_fields,
-                "filter": restrict_to_cover_attachment,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": attachment_fields,
+            "filter": restrict_to_cover_attachment,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2122,25 +2160,25 @@ async def add_attachment_to_trello_card(
     """Add an attachment to a Trello card.
 
     This tool is used to attach a file or URL to a specific Trello card by its ID. It should be called when users need to add additional resources or files to a Trello card to enhance task management or provide context."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": attachment_name,
-                "file": attachment_file,
-                "mimeType": attachment_mime_type,
-                "url": attachment_url,
-                "setCover": use_attachment_as_cover,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/attachments".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": attachment_name,
+            "file": attachment_file,
+            "mimeType": attachment_mime_type,
+            "url": attachment_url,
+            "setCover": use_attachment_as_cover,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2158,23 +2196,23 @@ async def get_card_attachment_details(
     """Retrieve specific attachment details from a Trello card.
 
     Use this tool to get detailed information about a specific attachment on a Trello card. It is useful when you need to fetch metadata or other properties of an attachment associated with a card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
-                id=card_id, idAttachment=attachment_id
-            ),
-            params=remove_none_values({
-                "fields": attachment_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
+            id=card_id, idAttachment=attachment_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": attachment_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2192,22 +2230,22 @@ async def delete_card_attachment(
     """Delete an attachment from a Trello card.
 
     Use this tool to remove an attachment from a specified Trello card. It should be called when you need to delete an attachment from a card, identified by its card ID and attachment ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
-                id=card_id, idAttachment=attachment_id_to_delete
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/attachments/{idAttachment}".format(  # noqa: UP032
+            id=card_id, idAttachment=attachment_id_to_delete
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2224,21 +2262,21 @@ async def get_card_board_info(
     """Retrieve the board details for a specific Trello card.
 
     Use this tool to find out which board a specific Trello card belongs to. This can be helpful when organizing tasks or managing projects, ensuring you know the context of each card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/board".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": board_field_selection,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/board".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": board_field_selection,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2255,21 +2293,21 @@ async def get_completed_checklist_items(
     """Fetch the completed checklist items on a Trello card.
 
     Use this tool to get the completed checklist items for a specific Trello card. It retrieves the states of checklist items to see which ones are completed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItemStates".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": checklist_item_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checkItemStates".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": checklist_item_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2298,24 +2336,24 @@ async def get_card_checklists(
     """Retrieve checklists from a specific Trello card.
 
     Use this tool to obtain all checklists associated with a particular card on Trello by providing the card ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "checkItems": include_check_items,
-                "checkItem_fields": checkitem_fields_selection,
-                "filter": include_all_checklists,
-                "fields": card_info_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "checkItems": include_check_items,
+            "checkItem_fields": checkitem_fields_selection,
+            "filter": include_all_checklists,
+            "fields": card_info_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2335,23 +2373,23 @@ async def create_checklist_on_card(
     """Create a new checklist on a Trello card.
 
     This tool allows you to create a new checklist on a specified Trello card by providing the card ID. Use it to organize tasks or items within a card efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": checklist_name,
-                "idChecklistSource": source_checklist_id,
-                "pos": checklist_position_on_card,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checklists".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": checklist_name,
+            "idChecklistSource": source_checklist_id,
+            "pos": checklist_position_on_card,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2373,23 +2411,23 @@ async def get_specific_checkitem_on_card(
     """Retrieve a specific checkItem from a Trello card.
 
     Use this tool to get details of a specific checkItem on a Trello card by providing the card and checkItem IDs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
-                id=card_id, idCheckItem=checkitem_id
-            ),
-            params=remove_none_values({
-                "fields": checkitem_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+            id=card_id, idCheckItem=checkitem_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": checkitem_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2428,29 +2466,29 @@ async def update_trello_checklist_item(
     """Update an item in a Trello card checklist.
 
     Use this tool to update a specific item within a checklist on a Trello card by providing the card and item identifiers."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
-                id=card_id, idCheckItem=checkitem_id
-            ),
-            params=remove_none_values({
-                "name": new_checklist_item_name,
-                "state": checkitem_state,
-                "idChecklist": checklist_id,
-                "pos": position,
-                "due": checkitem_due_date,
-                "dueReminder": due_reminder_minutes,
-                "idMember": member_id_to_remove,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+            id=card_id, idCheckItem=checkitem_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "name": new_checklist_item_name,
+            "state": checkitem_state,
+            "idChecklist": checklist_id,
+            "pos": position,
+            "due": checkitem_due_date,
+            "dueReminder": due_reminder_minutes,
+            "idMember": member_id_to_remove,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2468,22 +2506,22 @@ async def delete_trello_checklist_item(
     """Delete a checklist item from a Trello card.
 
     Use this tool to delete a specific checklist item from a Trello card when given the card and checklist item IDs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
-                id=card_id, idCheckItem=checkitem_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}".format(  # noqa: UP032
+            id=card_id, idCheckItem=checkitem_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2498,21 +2536,21 @@ async def get_trello_card_list(
     """Retrieve the list a specific Trello card belongs to.
 
     Use this tool to get details about the list in which a specific Trello card is located. It should be called when you need to identify or manage the list associated with a card in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/list".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": list_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/list".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": list_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2526,21 +2564,21 @@ async def get_card_members(
     """Retrieve members assigned to a specific Trello card.
 
     Use this tool to get details about the members associated with a specific Trello card by providing the card ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/members".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/members".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2555,21 +2593,21 @@ async def get_card_voters(
     """Retrieve members who voted on a Trello card.
 
     Use this tool to get a list of members who have voted on a specific Trello card by providing the card ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2583,21 +2621,21 @@ async def vote_on_trello_card(
     """Vote on a Trello card on behalf of a member.
 
     Use this tool to cast a vote on a specified Trello card for a specific member. It should be called when you need to register a member's vote on a card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": member_id_to_vote_yes,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/membersVoted".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "value": member_id_to_vote_yes,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2608,20 +2646,20 @@ async def get_trello_card_plugin_data(
     """Retrieve shared plugin data from a Trello card.
 
     This tool is called to get any shared pluginData associated with a specific Trello card. It should be used when there's a need to access additional plugin-related information stored on a card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/pluginData".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/pluginData".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2638,21 +2676,21 @@ async def get_card_stickers(
     """Retrieve stickers from a Trello card.
 
     Use this tool to get all stickers placed on a specific Trello card by providing the card ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": sticker_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": sticker_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2682,25 +2720,25 @@ async def add_sticker_to_card(
     """Add a sticker to a specific Trello card.
 
     Use this tool to place a sticker on a specific Trello card by providing the card's ID. This is helpful for visually organizing or marking cards for emphasis."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "image": sticker_identifier,
-                "top": sticker_top_position,
-                "left": sticker_left_position,
-                "zIndex": sticker_z_index,
-                "rotate": sticker_rotation,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/stickers".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "image": sticker_identifier,
+            "top": sticker_top_position,
+            "left": sticker_left_position,
+            "zIndex": sticker_z_index,
+            "rotate": sticker_rotation,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2717,23 +2755,23 @@ async def get_card_sticker(
     """Retrieve details of a specific sticker on a Trello card.
 
     Use this tool to get information about a specific sticker on a Trello card by providing the card and sticker identifiers."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
-                id=card_id, idSticker=sticker_id
-            ),
-            params=remove_none_values({
-                "fields": sticker_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+            id=card_id, idSticker=sticker_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": sticker_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2749,22 +2787,22 @@ async def remove_card_sticker(
     """Remove a sticker from a Trello card.
 
     Use this tool to remove a specific sticker from a Trello card by specifying the card and sticker IDs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
-                id=card_id, idSticker=sticker_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+            id=card_id, idSticker=sticker_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2793,26 +2831,26 @@ async def update_sticker_on_trello_card(
     """Update a sticker on a Trello card.
 
     Use this tool to update the details of a sticker on a specific Trello card by specifying the card and sticker identifiers."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
-                id=card_id, idSticker=sticker_id
-            ),
-            params=remove_none_values({
-                "top": sticker_top_position,
-                "left": left_position,
-                "zIndex": sticker_z_index,
-                "rotate": sticker_rotation_angle,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/stickers/{idSticker}".format(  # noqa: UP032
+            id=card_id, idSticker=sticker_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "top": sticker_top_position,
+            "left": left_position,
+            "zIndex": sticker_z_index,
+            "rotate": sticker_rotation_angle,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2833,23 +2871,23 @@ async def edit_trello_comment(
     """Update an existing comment on a Trello card.
 
     Use this tool to update a comment in a Trello card's activity. It is useful when a user needs to correct or modify a comment previously made on a Trello card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
-                id=card_id, idAction=comment_action_id
-            ),
-            params=remove_none_values({
-                "text": new_comment_text,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
+            id=card_id, idAction=comment_action_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "text": new_comment_text,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2867,22 +2905,22 @@ async def delete_trello_comment(
     """Delete a specific comment from a Trello card.
 
     Use this tool to delete a comment from a Trello card by providing the card and action IDs."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
-                id=card_id, idAction=comment_action_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/actions/{idAction}/comments".format(  # noqa: UP032
+            id=card_id, idAction=comment_action_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2895,20 +2933,20 @@ async def get_trello_card_custom_field_items(
     """Retrieve custom field items for a Trello card.
 
     Use this tool to obtain the custom field items associated with a specific Trello card. Useful for accessing card-specific data beyond the standard fields."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/customFieldItems".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/customFieldItems".format(id=card_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2922,21 +2960,21 @@ async def add_trello_card_comment(
     """Add a comment to a Trello card.
 
     This tool allows you to add a new comment to a specific Trello card. Use it when you need to append additional information or feedback to a card in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/actions/comments".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "text": comment_text,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/actions/comments".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "text": comment_text,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2951,21 +2989,21 @@ async def add_label_to_card(
     """Add a label to a Trello card.
 
     This tool adds a specified label to a given card in Trello. It is called when you need to organize or categorize a Trello card by attaching a label."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/idLabels".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": label_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/idLabels".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "value": label_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -2981,21 +3019,21 @@ async def add_member_to_trello_card(
     """Add a member to a Trello card.
 
     Use this tool to assign a member to a specific Trello card by providing the card ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/idMembers".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": member_id_to_add,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/idMembers".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "value": member_id_to_add,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3015,22 +3053,22 @@ async def add_label_to_trello_card(
     """Create a label on a Trello board and attach it to a card.
 
     Use this tool to create a new label for a Trello board and add it to a specified card. This can help organize tasks and improve project management efficiency."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/labels".format(id=card_id),  # noqa: UP032
-            params=remove_none_values({
-                "color": label_color,
-                "name": label_name,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/labels".format(id=card_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "color": label_color,
+            "name": label_name,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3047,22 +3085,22 @@ async def mark_card_notifications_read(
     """Marks notifications for a specific card as read.
 
     Use this tool to mark all notifications associated with a specific Trello card as read. This is useful for keeping track of notifications and managing alerts efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/markAssociatedNotificationsRead".format(  # noqa: UP032
-                id=card_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/markAssociatedNotificationsRead".format(  # noqa: UP032
+            id=card_id
+        ),
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3081,22 +3119,22 @@ async def remove_label_from_card(
     """Remove a label from a Trello card.
 
     This tool is used to remove a specific label from a Trello card. It should be called when you need to unassign a label from a card in your Trello board. The tool confirms the successful removal of the label."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/idLabels/{idLabel}".format(  # noqa: UP032
-                id=card_id, idLabel=label_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/idLabels/{idLabel}".format(  # noqa: UP032
+            id=card_id, idLabel=label_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3113,22 +3151,22 @@ async def remove_member_from_card(
     """Remove a member from a Trello card.
 
     Use this tool to remove a specific member from a Trello card based on the card ID and member ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/idMembers/{idMember}".format(  # noqa: UP032
-                id=card_id, idMember=member_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/idMembers/{idMember}".format(  # noqa: UP032
+            id=card_id, idMember=member_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3146,22 +3184,22 @@ async def remove_member_vote_from_card(
     """Remove a member's vote from a card on Trello.
 
     This tool is used to remove a specific member's vote from a card in Trello. It should be called when a member's vote needs to be deleted from a card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/membersVoted/{idMember}".format(  # noqa: UP032
-                id=card_id, idMember=member_id_to_remove_vote
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/membersVoted/{idMember}".format(  # noqa: UP032
+            id=card_id, idMember=member_id_to_remove_vote
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3181,23 +3219,23 @@ async def update_checklist_item_on_card(
     """Update an item in a checklist on a Trello card.
 
     Use this tool to modify or update details of a specific item within a checklist on a Trello card. Ideal for tasks requiring checklist adjustments on project boards."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{idCard}/checklist/{idChecklist}/checkItem/{idCheckItem}".format(  # noqa: UP032
-                idCard=card_id, idCheckItem=checklist_item_id, idChecklist=checklist_id
-            ),
-            params=remove_none_values({
-                "pos": position_in_checklist,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{idCard}/checklist/{idChecklist}/checkItem/{idCheckItem}".format(  # noqa: UP032
+            idCard=card_id, idCheckItem=checklist_item_id, idChecklist=checklist_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "pos": position_in_checklist,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3215,22 +3253,22 @@ async def delete_checklist_from_card(
     """Delete a checklist from a Trello card.
 
     Use this tool to delete a specific checklist from a given Trello card, identified by card and checklist IDs."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/cards/{id}/checklists/{idChecklist}".format(  # noqa: UP032
-                id=card_id, idChecklist=checklist_id_to_delete
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/cards/{id}/checklists/{idChecklist}".format(  # noqa: UP032
+            id=card_id, idChecklist=checklist_id_to_delete
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3252,24 +3290,24 @@ async def create_trello_checklist(
     """Create a checklist on a Trello card.
 
     Use this tool to create a new checklist on a specified Trello card. This can be useful for organizing tasks and ensuring all steps are accounted for within a card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists",
-            params=remove_none_values({
-                "idCard": card_id,
-                "name": checklist_name,
-                "pos": checklist_position,
-                "idChecklistSource": source_checklist_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists",
+        method="POST",
+        params=remove_none_values({
+            "idCard": card_id,
+            "name": checklist_name,
+            "pos": checklist_position,
+            "idChecklistSource": source_checklist_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3295,24 +3333,24 @@ async def get_checklist_details(
     """Retrieve details of a specific Trello checklist.
 
     Call this tool to obtain details of a specific checklist in Trello using the checklist ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "cards": card_visibility_filter,
-                "checkItems": check_items_to_return,
-                "checkItem_fields": checkitem_fields_to_return,
-                "fields": include_checklist_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "cards": card_visibility_filter,
+            "checkItems": check_items_to_return,
+            "checkItem_fields": checkitem_fields_to_return,
+            "fields": include_checklist_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3331,22 +3369,22 @@ async def update_trello_checklist(
     """Update an existing Trello checklist.
 
     Use this tool to update the details of an existing checklist on Trello. It is useful when modifications to the checklist content or status are required."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": checklist_name,
-                "pos": checklist_position,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "name": checklist_name,
+            "pos": checklist_position,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3357,20 +3395,20 @@ async def delete_trello_checklist(
     """Delete a checklist from Trello by its ID.
 
     Use this tool to remove a checklist from a Trello board by specifying the checklist's ID. Call this tool when you need to delete a checklist from a Trello card or board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}".format(id=checklist_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3386,22 +3424,22 @@ async def get_checklist_field(
     """Retrieve a specific field from a Trello checklist.
 
     Call this tool to get detailed information about a specific field of a Trello checklist using its ID. Useful for retrieving particular attributes of a checklist, such as name, position, or IDCard."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
-                id=checklist_id, field=checklist_field_to_retrieve
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
+            id=checklist_id, field=checklist_field_to_retrieve
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3418,23 +3456,23 @@ async def update_checklist_field(
     """Update a specific field on a Trello checklist.
 
     Use this tool to update a specific field on a Trello checklist by providing the checklist ID and the field to be updated."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
-                id=checklist_id, field=field_to_update
-            ),
-            params=remove_none_values({
-                "value": checklist_name_update_value,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/{field}".format(  # noqa: UP032
+            id=checklist_id, field=field_to_update
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": checklist_name_update_value,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3451,21 +3489,21 @@ async def get_board_for_checklist(
     """Retrieve the board associated with a specific checklist.
 
     Use this tool to find out which board a specific checklist belongs to. Ideal for when you need to map a checklist back to its board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/board".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": board_fields_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/board".format(id=checklist_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": board_fields_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3476,20 +3514,20 @@ async def get_card_by_checklist(
     """Retrieve the card associated with a specific checklist.
 
     Use this tool to find which card a particular checklist belongs to in Trello. Call this when you have a checklist ID and need to determine the associated card."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/cards".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/cards".format(id=checklist_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3507,22 +3545,22 @@ async def get_checklist_items(
     """Retrieve checkitems from a specified checklist.
 
     Use this tool to get all checkitems from a checklist on Trello by providing the checklist ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": checkitem_filter,
-                "fields": include_checkitem_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": checkitem_filter,
+            "fields": include_checkitem_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3558,26 +3596,26 @@ async def create_checkitem_on_checklist(
     """Add a checkitem to a specific checklist on Trello.
 
     Use this tool to add a new checkitem to an existing checklist on Trello by providing the checklist ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": checkitem_name,
-                "pos": checkitem_position,
-                "checked": is_checkitem_checked,
-                "due": checkitem_due_date,
-                "dueReminder": due_reminder_minutes,
-                "idMember": member_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/checkItems".format(id=checklist_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": checkitem_name,
+            "pos": checkitem_position,
+            "checked": is_checkitem_checked,
+            "due": checkitem_due_date,
+            "dueReminder": due_reminder_minutes,
+            "idMember": member_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3593,23 +3631,23 @@ async def get_checklist_item(
     dict[str, Any], "Response from the API endpoint 'get-checklists-id-checkitems-idcheckitem'."
 ]:
     """Retrieve details of a specific checkitem from a checklist."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
-                id=checklist_id, idCheckItem=check_item_id
-            ),
-            params=remove_none_values({
-                "fields": checkitem_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
+            id=checklist_id, idCheckItem=check_item_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": checkitem_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3623,22 +3661,22 @@ async def remove_checklist_item(
     """Removes an item from a Trello checklist.
 
     This tool removes a specified item from a checklist in Trello. Use it when you need to delete a checklist item."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
-                id=checklist_id, idCheckItem=check_item_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/checklists/{id}/checkItems/{idCheckItem}".format(  # noqa: UP032
+            id=checklist_id, idCheckItem=check_item_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3652,20 +3690,20 @@ async def get_trello_custom_field(
     """Retrieve details of a specific Trello custom field using its ID.
 
     Use this tool to obtain information about a custom field in Trello by providing its unique identifier. This is useful for accessing specific configurations or details of a custom field on a Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3678,20 +3716,20 @@ async def delete_custom_field(
     """Delete a Custom Field from a Trello board.
 
     Use this tool to remove a specific custom field from a Trello board when it is no longer needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}".format(id=custom_field_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3704,20 +3742,20 @@ async def add_dropdown_option_trello(
     """Add an option to a Trello dropdown Custom Field.
 
     This tool is used to add an option to a dropdown Custom Field in Trello. It should be called when you need to expand the selection options available in a specific dropdown custom field."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options".format(id=customfield_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}/options".format(id=customfield_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3728,20 +3766,20 @@ async def get_custom_field_options(
     """Retrieve options for a Trello dropdown custom field.
 
     Call this tool to get the available options for a specific dropdown custom field in Trello. Useful when you need to display or process the possible selections for a field by its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options".format(id=custom_field_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}/options".format(id=custom_field_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3757,22 +3795,22 @@ async def get_dropdown_customfield_option(
     """Retrieve details of a specific dropdown Custom Field option.
 
     Use this tool to get information about a specific option within a dropdown-type Custom Field on Trello. It should be called when you need details of a particular option by its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
-                id=customfield_item_id, idCustomFieldOption=customfield_option_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
+            id=customfield_item_id, idCustomFieldOption=customfield_option_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3789,22 +3827,22 @@ async def delete_customfield_option(
     """Delete an option from a Custom Field dropdown on Trello.
 
     Use this tool to remove a specific option from a Custom Field dropdown in Trello. Ideal for maintaining updates or cleaning up unnecessary options."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
-                id=customfield_item_id, idCustomFieldOption=custom_field_option_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/customFields/{id}/options/{idCustomFieldOption}".format(  # noqa: UP032
+            id=customfield_item_id, idCustomFieldOption=custom_field_option_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3821,22 +3859,22 @@ async def list_available_emoji(
     """Retrieve a list of available emojis from Trello.
 
     This tool is used to call the Trello API to retrieve a list of all available emojis. It should be called when there's a need to access or display the available emoji options within Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/emoji",
-            params=remove_none_values({
-                "locale": locale,
-                "spritesheets": include_spritesheet_urls,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/emoji",
+        method="GET",
+        params=remove_none_values({
+            "locale": locale,
+            "spritesheets": include_spritesheet_urls,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3898,33 +3936,33 @@ async def get_enterprise_by_id(
     """Retrieve details of an enterprise by its ID.
 
     Use this tool to retrieve information about a specific enterprise in Trello using its ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": enterprise_fields_to_retrieve,
-                "members": member_inclusion_type,
-                "member_fields": member_fields,
-                "member_filter": member_filter_query,
-                "member_sort": member_sort_value,
-                "member_sortBy": member_sort,
-                "member_sortOrder": deprecated_member_sort_order,
-                "member_startIndex": member_start_index,
-                "member_count": member_count,
-                "organizations": organization_visibility_filter,
-                "organization_fields": organization_fields,
-                "organization_paid_accounts": include_paid_account_information,
-                "organization_memberships": organization_memberships_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": enterprise_fields_to_retrieve,
+            "members": member_inclusion_type,
+            "member_fields": member_fields,
+            "member_filter": member_filter_query,
+            "member_sort": member_sort_value,
+            "member_sortBy": member_sort,
+            "member_sortOrder": deprecated_member_sort_order,
+            "member_startIndex": member_start_index,
+            "member_count": member_count,
+            "organizations": organization_visibility_filter,
+            "organization_fields": organization_fields,
+            "organization_paid_accounts": include_paid_account_information,
+            "organization_memberships": organization_memberships_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3937,20 +3975,20 @@ async def get_enterprise_audit_log(
     """Retrieve actions from an enterprise's audit log.
 
     Fetches an array of actions related to an Enterprise object for audit purposes from Trello's audit log. Useful for analyzing enterprise activities and administrative changes."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/auditlog".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/auditlog".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -3967,21 +4005,21 @@ async def get_enterprise_admins(
     """Retrieve admin members of a specified enterprise.
 
     Use this tool to obtain the list of admin members for a given enterprise, identified by its ID. This is helpful for managing or viewing enterprise administrative access."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/admins".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/admins".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4009,24 +4047,24 @@ async def get_enterprise_signup_url(
     """Retrieve the signup URL for a specific enterprise on Trello.
 
     Use this tool to get the signup URL for a specific Trello enterprise. This can be useful when you need to invite new users to join an enterprise on Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/signupUrl".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "authenticate": require_authentication,
-                "confirmationAccepted": has_user_accepted_confirmation,
-                "returnUrl": redirect_url,
-                "tosAccepted": tos_accepted,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/signupUrl".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "authenticate": require_authentication,
+            "confirmationAccepted": has_user_accepted_confirmation,
+            "returnUrl": redirect_url,
+            "tosAccepted": tos_accepted,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4073,29 +4111,29 @@ async def get_enterprise_users(
     """Retrieve users from a Trello enterprise, with optional filters.
 
     Use this tool to get information about users in a Trello enterprise, such as licensed members or board guests. The response is paginated, providing up to 100 users per request."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/members/query".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "licensed": licensed_members_only,
-                "deactivated": return_deactivated_members,
-                "collaborator": include_collaborators,
-                "managed": return_managed_members,
-                "admin": include_administrators_only,
-                "activeSince": active_since_date,
-                "inactiveSince": inactive_since_date,
-                "search": search_value_filter,
-                "cursor": pagination_cursor,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/members/query".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "licensed": licensed_members_only,
+            "deactivated": return_deactivated_members,
+            "collaborator": include_collaborators,
+            "managed": return_managed_members,
+            "admin": include_administrators_only,
+            "activeSince": active_since_date,
+            "inactiveSince": inactive_since_date,
+            "search": search_value_filter,
+            "cursor": pagination_cursor,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4142,29 +4180,29 @@ async def get_enterprise_members(
     """Retrieve members of a specified enterprise on Trello.
 
     Use this tool to get a list of members associated with a particular enterprise by providing the enterprise ID. This is useful for managing team members or reviewing enterprise membership details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/members".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "filter": scim_filter_query,
-                "sort": sort_members,
-                "sortBy": sort_criteria,
-                "sortOrder": sort_order_for_listing,
-                "startIndex": member_start_index,
-                "count": member_count_filter,
-                "organization_fields": organization_fields,
-                "board_fields": included_board_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/members".format(id=enterprise_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "filter": scim_filter_query,
+            "sort": sort_members,
+            "sortBy": sort_criteria,
+            "sortOrder": sort_order_for_listing,
+            "startIndex": member_start_index,
+            "count": member_count_filter,
+            "organization_fields": organization_fields,
+            "board_fields": included_board_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4191,25 +4229,25 @@ async def get_enterprise_member_by_id(
     """Retrieve a specific enterprise member's details by ID.
 
     This tool retrieves details of a specific member within an enterprise using their ID. It should be called when you need information about an enterprise member, provided the enterprise ID and member ID are known."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/members/{idMember}".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id
-            ),
-            params=remove_none_values({
-                "fields": member_fields,
-                "organization_fields": organization_fields,
-                "board_fields": board_fields_for_enterprise_member,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/members/{idMember}".format(  # noqa: UP032
+            id=enterprise_id, idMember=member_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "organization_fields": organization_fields,
+            "board_fields": board_fields_for_enterprise_member,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4226,22 +4264,22 @@ async def check_org_transferability(
     """Check if an organization can be transferred to an enterprise.
 
     Use this tool to determine whether a specific organization is eligible for transfer to a certain enterprise."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/transferrable/organization/{idOrganization}".format(  # noqa: UP032
-                id=enterprise_id, idOrganization=organization_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/transferrable/organization/{idOrganization}".format(  # noqa: UP032
+            id=enterprise_id, idOrganization=organization_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4261,22 +4299,22 @@ async def get_transferrable_organizations(
     """Retrieve organizations transferrable to an enterprise.
 
     Fetches a list of organizations that can be transferred to an enterprise, given a bulk list of organization IDs. Use this tool to identify which organizations can be moved to a specified enterprise."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/transferrable/bulk/{idOrganizations}".format(  # noqa: UP032
-                id=enterprise_id, idOrganizations=organization_ids
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/transferrable/bulk/{idOrganizations}".format(  # noqa: UP032
+            id=enterprise_id, idOrganizations=organization_ids
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4295,23 +4333,23 @@ async def decline_enterprise_join_requests(
     """Decline multiple enterprise join requests for organizations.
 
     This tool declines enterprise join requests for one or multiple organizations in a Trello enterprise. It should be used when you need to reject several join requests at once."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/${id}/enterpriseJoinRequest/bulk".format(  # noqa: UP032
-                id=enterprise_id
-            ),
-            params=remove_none_values({
-                "idOrganizations": organization_ids,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/${id}/enterpriseJoinRequest/bulk".format(  # noqa: UP032
+            id=enterprise_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "idOrganizations": organization_ids,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4341,27 +4379,27 @@ async def get_claimable_workspaces(
     """Retrieve claimable workspaces for an enterprise by ID.
 
     Use this tool to get the list of workspaces that can be claimed by a specific enterprise, optionally filtering by active or inactive status."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/claimableOrganizations".format(  # noqa: UP032
-                id=enterprise_id
-            ),
-            params=remove_none_values({
-                "limit": workspace_limit,
-                "cursor": sort_order_cursor,
-                "name": enterprise_name,
-                "activeSince": active_since_date,
-                "inactiveSince": inactive_since_date,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/claimableOrganizations".format(  # noqa: UP032
+            id=enterprise_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "limit": workspace_limit,
+            "cursor": sort_order_cursor,
+            "name": enterprise_name,
+            "activeSince": active_since_date,
+            "inactiveSince": inactive_since_date,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4380,24 +4418,24 @@ async def get_pending_enterprise_workspaces(
     """Retrieve pending workspaces for an enterprise by ID.
 
     Use this tool to get a list of workspaces that are pending approval for a specific enterprise. It is useful when managing enterprise-level organization and pending requests."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/pendingOrganizations".format(  # noqa: UP032
-                id=enterprise_id
-            ),
-            params=remove_none_values({
-                "activeSince": active_since_date,
-                "inactiveSince": inactive_until_date,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/pendingOrganizations".format(  # noqa: UP032
+            id=enterprise_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "activeSince": active_since_date,
+            "inactiveSince": inactive_until_date,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4413,21 +4451,21 @@ async def create_enterprise_auth_token(
     """Create an auth token for a Trello enterprise.
 
     Use this tool to generate an authentication token for a specified Trello enterprise. It is typically called when access to enterprise-level features is required."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/tokens".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "expiration": token_expiration,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/tokens".format(id=enterprise_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "expiration": token_expiration,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4446,21 +4484,21 @@ async def transfer_org_to_enterprise(
     """Transfer an organization to an enterprise.
 
     Use this tool to initiate the transfer of an organization to an enterprise. It is useful for enterprises using AdminHub for user management; the addition will be completed asynchronously. A successful call only confirms the request was received."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/organizations".format(id=enterprise_id),  # noqa: UP032
-            params=remove_none_values({
-                "idOrganization": organization_id_to_transfer,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/organizations".format(id=enterprise_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "idOrganization": organization_id_to_transfer,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4483,23 +4521,23 @@ async def update_member_license_status(
     """Update a member's license status in an enterprise.
 
     Use this tool to update whether a member should utilize one of an enterprise's available licenses. Note that revoking a license will deactivate the member within the enterprise. This operation is not available for enterprises using AdminHub for user management."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/licensed".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id
-            ),
-            params=remove_none_values({
-                "value": grant_enterprise_license,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/licensed".format(  # noqa: UP032
+            id=enterprise_id, idMember=member_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": grant_enterprise_license,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4527,26 +4565,26 @@ async def deactivate_enterprise_member(
     """Deactivate a member from an enterprise on Trello.
 
     Deactivate an enterprise member on Trello, unless the enterprise uses AdminHub for user management."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id_to_deactivate
-            ),
-            params=remove_none_values({
-                "value": user_deactivation_status,
-                "fields": member_field_values,
-                "organization_fields": organization_field,
-                "board_fields": board_field_values,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
+            id=enterprise_id, idMember=member_id_to_deactivate
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": user_deactivation_status,
+            "fields": member_field_values,
+            "organization_fields": organization_field,
+            "board_fields": board_field_values,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4562,22 +4600,22 @@ async def make_trello_member_enterprise_admin(
     """Promote a member to an enterprise admin in Trello.
 
     Use this tool to make a Trello member an admin of a specified enterprise. Note: This action is not available for enterprises using AdminHub for user management."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id_to_promote
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
+            id=enterprise_id, idMember=member_id_to_promote
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4593,22 +4631,22 @@ async def remove_enterprise_admin(
     """Remove a member as admin from a Trello enterprise.
 
     Use this tool to remove a member's admin rights from an enterprise in Trello. Note that this action is not available for enterprises using AdminHub for user management."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
-                id=enterprise_id, idMember=member_id_to_remove_admin
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/admins/{idMember}".format(  # noqa: UP032
+            id=enterprise_id, idMember=member_id_to_remove_admin
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4626,22 +4664,22 @@ async def remove_organization_from_enterprise(
     """Remove an organization from an enterprise.
 
     Use this tool to remove an organization from a specified enterprise in Trello."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/organizations/{idOrg}".format(  # noqa: UP032
-                id=enterprise_id, idOrg=organization_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/organizations/{idOrg}".format(  # noqa: UP032
+            id=enterprise_id, idOrg=organization_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4660,22 +4698,22 @@ async def add_organizations_to_enterprise(
     """Add multiple organizations to an enterprise.
 
     Use this tool to add an array of organizations to a Trello enterprise. This operation is asynchronous for enterprises using AdminHub for user management. A successful call returns a 200 status, indicating the receipt of the request but not the completion of the process."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/enterprises/{id}/organizations/bulk/{idOrganizations}".format(  # noqa: UP032
-                id=enterprise_id, idOrganizations=organization_ids_to_add
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/enterprises/{id}/organizations/bulk/{idOrganizations}".format(  # noqa: UP032
+            id=enterprise_id, idOrganizations=organization_ids_to_add
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4692,21 +4730,21 @@ async def get_trello_label_info(
     """Retrieve detailed information about a specific Trello label.
 
     Use this tool to get details of a specific label in Trello by providing the label ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": fields_included_in_response,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": fields_included_in_response,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4724,22 +4762,22 @@ async def update_trello_label(
     """Update a Trello label by its ID.
 
     Use this tool to update the details of a specific Trello label using its ID. Useful for changing label attributes such as name or color."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": new_label_name,
-                "color": new_label_color,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "name": new_label_name,
+            "color": new_label_color,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4750,20 +4788,20 @@ async def delete_trello_label(
     """Delete a Trello label by its ID.
 
     Use this tool to remove a specific label from Trello by providing its ID. It should be called when a user wants to delete a label that is no longer needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/labels/{id}".format(id=label_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4780,23 +4818,23 @@ async def update_trello_label_field(
     """Update a specific field on a Trello label.
 
     Use this tool to update a specific field, such as name or color, on a Trello label by providing the label ID and the field to be updated."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/labels/{id}/{field}".format(  # noqa: UP032
-                id=label_id, field=label_field_to_update
-            ),
-            params=remove_none_values({
-                "value": new_field_value,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/labels/{id}/{field}".format(  # noqa: UP032
+            id=label_id, field=label_field_to_update
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": new_field_value,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4812,23 +4850,23 @@ async def create_trello_label(
     """Create a new label on a Trello board.
 
     Use this tool to add a new label to a specific board in Trello. Ideal for organizing and categorizing tasks on your board by creating custom labels."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/labels",
-            params=remove_none_values({
-                "name": label_name,
-                "color": label_color,
-                "idBoard": board_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/labels",
+        method="POST",
+        params=remove_none_values({
+            "name": label_name,
+            "color": label_color,
+            "idBoard": board_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4845,21 +4883,21 @@ async def get_trello_list_info(
     """Retrieve detailed information about a specific Trello list.
 
     Use this tool to get detailed information about a Trello list by its ID. Ideal for managing and reviewing list-specific data within Trello boards."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": list_field_names,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": list_field_names,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4886,25 +4924,25 @@ async def update_trello_list(
     """Updates properties of a Trello list.
 
     This tool updates the properties of a specified Trello list when changes are needed, such as modifying its name or position."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "name": new_list_name,
-                "closed": archive_list,
-                "idBoard": destination_board_id,
-                "pos": list_new_position,
-                "subscribed": member_subscribed,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}".format(id=list_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "name": new_list_name,
+            "closed": archive_list,
+            "idBoard": destination_board_id,
+            "pos": list_new_position,
+            "subscribed": member_subscribed,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4923,24 +4961,24 @@ async def create_trello_board_list(
     """Create a new list on a Trello board.
 
     Use this tool to add a new list to an existing Trello board. Ideal for organizing tasks or projects by creating distinct categories or phases."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists",
-            params=remove_none_values({
-                "name": list_name,
-                "idBoard": board_id,
-                "idListSource": source_list_id,
-                "pos": list_position,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists",
+        method="POST",
+        params=remove_none_values({
+            "name": list_name,
+            "idBoard": board_id,
+            "idListSource": source_list_id,
+            "pos": list_position,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4951,20 +4989,20 @@ async def archive_all_cards_in_list(
     """Archive all cards in a specified Trello list.
 
     Use this tool to archive every card in a specified Trello list. It is useful for organizing cards and clearing lists once they are no longer needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/archiveAllCards".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/archiveAllCards".format(id=list_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -4977,22 +5015,22 @@ async def move_all_cards_in_list(
     """Move all cards from one Trello list to another.
 
     Use this tool to move all cards from a specified list in Trello to another list. It's useful for reorganizing tasks or consolidating workflows within a Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/moveAllCards".format(id=source_list_id),  # noqa: UP032
-            params=remove_none_values({
-                "idBoard": target_board_id,
-                "idList": target_list_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/moveAllCards".format(id=source_list_id),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "idBoard": target_board_id,
+            "idList": target_list_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5006,21 +5044,21 @@ async def archive_unarchive_list_trello(
     """Toggle a list's archived status in Trello.
 
     Use this tool to archive or unarchive a list in Trello by specifying its ID. This is useful for organizing boards by managing list visibility."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/closed".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": archive_list,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/closed".format(id=list_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": archive_list,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5032,21 +5070,21 @@ async def move_list_to_board(
     """Transfer a Trello list to another board.
 
     Use this tool to move a specific list from its current board to a different board on Trello. Ideal for organizing tasks and managing projects across boards efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/idBoard".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": target_board_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/idBoard".format(id=list_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": target_board_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5063,23 +5101,23 @@ async def rename_trello_list(
     """Rename a list on Trello using its ID and field.
 
     Use this tool to rename a list on Trello by specifying the list ID and desired field name."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/{field}".format(  # noqa: UP032
-                id=list_id, field=list_field_to_update
-            ),
-            params=remove_none_values({
-                "value": new_list_name,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/{field}".format(  # noqa: UP032
+            id=list_id, field=list_field_to_update
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": new_list_name,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5094,21 +5132,21 @@ async def get_list_actions(
     """Retrieve actions performed on a specific Trello list.
 
     Use this tool to get all actions taken on a given Trello list by specifying the list ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/actions".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "filter": action_type_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/actions".format(id=list_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": action_type_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5122,21 +5160,21 @@ async def get_board_by_list_id(
     """Retrieve the board for a specified list ID in Trello.
 
     This tool retrieves the details of the board that a specific list belongs to in Trello. Use it when you need to identify or access the board associated with a particular list."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/board".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": board_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/board".format(id=list_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": board_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5147,20 +5185,20 @@ async def get_trello_list_cards(
     """Retrieve all cards from a specific Trello list.
 
     Use this tool to get a list of all cards from a specific Trello list by providing the list ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/lists/{id}/cards".format(id=list_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/lists/{id}/cards".format(id=list_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5247,42 +5285,41 @@ async def get_trello_member_details(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members=id'."]:
     """Retrieve details of a Trello member by ID.
 
-    Use this tool to get comprehensive information about a specific Trello member by providing their ID.
-    It's ideal for obtaining member profile data and understanding user-specific information in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "actions": include_actions_details,
-                "boards": include_boards_details,
-                "boardBackgrounds": board_background_options,
-                "boardsInvited": boards_invited_filter,
-                "boardsInvited_fields": boards_invited_fields,
-                "boardStars": include_board_stars,
-                "cards": include_card_details,
-                "customBoardBackgrounds": include_custom_board_backgrounds,
-                "customEmoji": include_custom_emoji,
-                "customStickers": include_custom_stickers,
-                "fields": member_detail_fields,
-                "notifications": include_notifications,
-                "organizations": organizations_inclusion,
-                "organization_fields": organization_fields,
-                "organization_paid_account": include_paid_account_info_in_workspace,
-                "organizationsInvited": invited_organizations_scope,
-                "organizationsInvited_fields": organization_fields_invited,
-                "paid_account": include_paid_account_info,
-                "savedSearches": include_saved_searches,
-                "tokens": include_tokens,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    Use this tool to get comprehensive information about a specific Trello member by providing their ID. Its ideal for obtaining member profile data and understanding user-specific information in Trello."""  # noqa: E501
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "actions": include_actions_details,
+            "boards": include_boards_details,
+            "boardBackgrounds": board_background_options,
+            "boardsInvited": boards_invited_filter,
+            "boardsInvited_fields": boards_invited_fields,
+            "boardStars": include_board_stars,
+            "cards": include_card_details,
+            "customBoardBackgrounds": include_custom_board_backgrounds,
+            "customEmoji": include_custom_emoji,
+            "customStickers": include_custom_stickers,
+            "fields": member_detail_fields,
+            "notifications": include_notifications,
+            "organizations": organizations_inclusion,
+            "organization_fields": organization_fields,
+            "organization_paid_account": include_paid_account_info_in_workspace,
+            "organizationsInvited": invited_organizations_scope,
+            "organizationsInvited_fields": organization_fields_invited,
+            "paid_account": include_paid_account_info,
+            "savedSearches": include_saved_searches,
+            "tokens": include_tokens,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5321,28 +5358,28 @@ async def update_trello_member(
     """Update a member's information on Trello.
 
     Use this tool to update details of a Trello member by specifying their ID. This is useful for modifying user information or settings."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}".format(id=member_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "fullName": new_member_full_name,
-                "initials": member_initials,
-                "username": new_username,
-                "bio": member_bio,
-                "avatarSource": avatar_source_option,
-                "prefs/colorBlind": enable_color_blind_mode,
-                "prefs/locale": preferred_locale,
-                "prefs/minutesBetweenSummaries": update_interval_minutes,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}".format(id=member_identifier),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "fullName": new_member_full_name,
+            "initials": member_initials,
+            "username": new_username,
+            "bio": member_bio,
+            "avatarSource": avatar_source_option,
+            "prefs/colorBlind": enable_color_blind_mode,
+            "prefs/locale": preferred_locale,
+            "prefs/minutesBetweenSummaries": update_interval_minutes,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5358,22 +5395,22 @@ async def get_member_property(
     """Fetch a specific property of a Trello member.
 
     Use this tool to retrieve a particular property of a member in Trello by specifying the member's ID and the desired field."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/{field}".format(  # noqa: UP032
-                id=member_id_or_username, field=member_property_field
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/{field}".format(  # noqa: UP032
+            id=member_id_or_username, field=member_property_field
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5389,22 +5426,23 @@ async def list_member_actions(
 ) -> Annotated[dict[str, Any], "Response from the API endpoint 'get-members-id-actions'."]:
     """Retrieve actions performed by a Trello member.
 
-    Use this tool to obtain a list of actions associated with a specific Trello member. It is useful when you need to track or analyze the activities of a member on Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/actions".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "filter": action_types_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    Use this tool to obtain a list of actions associated with a specific Trello member.
+    It is useful when you need to track or analyze the activities of a member on Trello."""
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/actions".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": action_types_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5422,23 +5460,23 @@ async def get_custom_board_backgrounds(
     """Retrieve a member's custom board backgrounds on Trello.
 
     This tool fetches a member's custom board backgrounds from Trello. It should be called when you need to access the personalized board backgrounds created or used by a specific member."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "filter": background_filter,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="GET",
+        params=remove_none_values({
+            "filter": background_filter,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5457,23 +5495,23 @@ async def upload_board_background(
     """Upload a new background to a Trello board.
 
     Use this tool to upload a new background to a specific Trello board. It should be called when there's a need to update or add a board background under a member's account."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "file": background_file,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardBackgrounds".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="POST",
+        params=remove_none_values({
+            "file": background_file,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5493,23 +5531,23 @@ async def get_member_board_background(
     """Retrieve a member's board background in Trello.
 
     Use this tool to retrieve the background details of a specific board associated with a member in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=board_background_id
-            ),
-            params=remove_none_values({
-                "fields": background_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=board_background_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": background_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5534,24 +5572,24 @@ async def update_board_background(
     """Update a Trello board background for a member.
 
     Use this tool to update the background of a Trello board for a specified member. Ideal for personalizing or managing board appearances."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=board_background_id
-            ),
-            params=remove_none_values({
-                "brightness": background_brightness,
-                "tile": tile_background,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=board_background_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "brightness": background_brightness,
+            "tile": tile_background,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5568,22 +5606,22 @@ async def delete_board_background(
     """Deletes a board background for a Trello member.
 
     Use this tool to delete a specified board background for a Trello member. This should be called when a user needs to remove an unwanted or outdated background from their Trello board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=board_background_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=board_background_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5596,20 +5634,20 @@ async def list_member_board_stars(
     """Retrieve a member's starred boards.
 
     Call this tool to list the boards that a specific member has starred in Trello."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5627,22 +5665,22 @@ async def star_board_for_member(
     """Star a board for a Trello member.
 
     Use this tool to star a specific Trello board on behalf of a member. This is useful for members who want to highlight or prioritize certain boards for easy access."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "idBoard": board_id_to_star,
-                "pos": position_of_starred_board,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardStars".format(id=member_id_or_username),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "idBoard": board_id_to_star,
+            "pos": position_of_starred_board,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5660,22 +5698,22 @@ async def get_board_star(
     """Retrieve details of a specific boardStar for a member.
 
     Use this tool to get information about a particular boardStar associated with a member. It is useful for retrieving specific boardStar details such as the board's favorite status for a member."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
-                id=member_id_or_username, idStar=board_star_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+            id=member_id_or_username, idStar=board_star_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5699,23 +5737,23 @@ async def update_starred_board_position(
     """Update the position of a starred board on Trello.
 
     Use this tool to change the ordering of a user's starred boards on Trello by updating their position."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
-                id=member_id_or_username, idStar=board_star_id
-            ),
-            params=remove_none_values({
-                "pos": new_position_for_starred_board,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+            id=member_id_or_username, idStar=board_star_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "pos": new_position_for_starred_board,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5731,22 +5769,22 @@ async def unstar_trello_board(
     """Unstar a Trello board for a user.
 
     This tool is used to remove a star from a specified Trello board for a specific user. Call this tool when a user wants to unmark a board as a favorite."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
-                id=member_id_or_username, idStar=board_star_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardStars/{idStar}".format(  # noqa: UP032
+            id=member_id_or_username, idStar=board_star_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5779,25 +5817,25 @@ async def list_user_boards(
     """Lists the boards that a user is a member of.
 
     Use this tool to retrieve a list of boards associated with a specific user ID on Trello."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boards".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "filter": board_filter,
-                "fields": board_fields,
-                "lists": include_lists_with_boards,
-                "organization": include_organization,
-                "organization_fields": include_organization_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boards".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": board_filter,
+            "fields": board_fields,
+            "lists": include_lists_with_boards,
+            "organization": include_organization,
+            "organization_fields": include_organization_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5813,23 +5851,21 @@ async def get_member_invited_boards(
     """Retrieve the boards a Trello member has been invited to.
 
     Use this tool to get a list of Trello boards that a specific member has been invited to. Useful for tracking invitations and access permissions for members."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/boardsInvited".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "fields": included_board_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/boardsInvited".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": included_board_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5846,21 +5882,21 @@ async def get_member_trello_cards(
     """Retrieve the cards assigned to a Trello member.
 
     Use this tool to get a list of cards that a particular Trello member is assigned to, identified by their member ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/cards".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "filter": filter_status,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/cards".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": filter_status,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5876,22 +5912,22 @@ async def get_member_custom_board_backgrounds(
     """Retrieve a member's custom board backgrounds on Trello.
 
     Use this tool to obtain a specific member's custom board backgrounds from Trello. This can be useful when customizing or reviewing a Trello board's appearance based on a member's personal background collection."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5911,23 +5947,23 @@ async def upload_custom_board_background(
     """Upload a new custom board background for a Trello board.
 
     This tool uploads a custom background image to a Trello board. Use it when you want to add a personalized background to enhance a board's appearance."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "file": background_image_file,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customBoardBackgrounds".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="POST",
+        params=remove_none_values({
+            "file": background_image_file,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5945,22 +5981,22 @@ async def get_custom_board_background(
     """Get a specific custom board background by ID.
 
     Retrieve details of a particular custom board background using the member and background ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=custom_background_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=custom_background_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -5984,24 +6020,24 @@ async def update_custom_board_background(
     """Update a specific custom board background for a member.
 
     This tool updates the custom background of a board for a specified member. Use it when you need to modify or change the background image or style of a board on Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=custom_background_id
-            ),
-            params=remove_none_values({
-                "brightness": background_brightness,
-                "tile": tile_background,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=custom_background_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "brightness": background_brightness,
+            "tile": tile_background,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6019,22 +6055,22 @@ async def delete_custom_board_background(
     """Delete a specific custom board background on Trello.
 
     Use this tool to delete a custom board background for a specific member in Trello. Call this when you need to remove a visually customized board background permanently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
-                id=member_id_or_username, idBackground=background_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customBoardBackgrounds/{idBackground}".format(  # noqa: UP032
+            id=member_id_or_username, idBackground=background_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6047,20 +6083,20 @@ async def get_member_custom_emojis(
     """Retrieve a member's uploaded custom emojis from Trello.
 
     This tool fetches the custom emojis uploaded by a specified member on Trello. Use it when you need to access or display a member's personalized emoji collection."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6078,22 +6114,22 @@ async def create_custom_emoji(
     """Create a new custom emoji for a Trello member.
 
     This tool is used to create a new custom emoji for a specific Trello member. It should be called when a user wants to add a personalized emoji to their Trello account."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "file": emoji_file_path,
-                "name": emoji_name,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customEmoji".format(id=member_identifier),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "file": emoji_file_path,
+            "name": emoji_name,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6111,23 +6147,23 @@ async def get_member_custom_emoji(
     """Retrieve a member's custom emoji.
 
     Call this tool to obtain details about a specific custom emoji associated with a Trello member."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customEmoji/{idEmoji}".format(  # noqa: UP032
-                id=member_id_or_username, idEmoji=custom_emoji_id
-            ),
-            params=remove_none_values({
-                "fields": custom_emoji_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customEmoji/{idEmoji}".format(  # noqa: UP032
+            id=member_id_or_username, idEmoji=custom_emoji_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": custom_emoji_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6140,22 +6176,20 @@ async def get_member_uploaded_stickers(
     """Retrieve a member's uploaded custom stickers on Trello.
 
     Use this tool to access all custom stickers uploaded by a specific member on Trello by providing their ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customStickers".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6173,23 +6207,21 @@ async def upload_custom_sticker(
     """Upload a new custom sticker for a Trello member.
 
     This tool uploads a new custom sticker to a Trello member's account. It should be called when a user wants to personalize their Trello experience with custom stickers."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "file": sticker_file_path,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customStickers".format(id=member_id_or_username),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "file": sticker_file_path,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6211,23 +6243,23 @@ async def get_member_custom_sticker(
     """Retrieve a specific custom sticker for a Trello member.
 
     Use this tool to get information about a custom sticker associated with a specific Trello member by providing the member's ID and the sticker's ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
-                id=member_id_or_username, idSticker=sticker_id
-            ),
-            params=remove_none_values({
-                "fields": sticker_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
+            id=member_id_or_username, idSticker=sticker_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": sticker_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6245,22 +6277,22 @@ async def delete_member_custom_sticker(
     """Remove a member's custom sticker.
 
     Use this tool to delete a specified custom sticker from a Trello member's profile."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
-                id=member_id_or_username, idSticker=sticker_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/customStickers/{idSticker}".format(  # noqa: UP032
+            id=member_id_or_username, idSticker=sticker_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6309,33 +6341,31 @@ async def get_member_notifications(
     """Retrieve notifications for a specific Trello member.
 
     Use this tool to get notifications for a specific member on Trello by providing their member ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notifications".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "entities": include_entities,
-                "display": show_display,
-                "filter": notification_filter,
-                "read_filter": notification_read_status,
-                "fields": notification_fields,
-                "limit": notification_limit,
-                "page": notification_page,
-                "before": notification_id_before,
-                "since": since_notification_id,
-                "memberCreator": include_member_creator,
-                "memberCreator_fields": member_creator_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/notifications".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "entities": include_entities,
+            "display": show_display,
+            "filter": notification_filter,
+            "read_filter": notification_read_status,
+            "fields": notification_fields,
+            "limit": notification_limit,
+            "page": notification_page,
+            "before": notification_id_before,
+            "since": since_notification_id,
+            "memberCreator": include_member_creator,
+            "memberCreator_fields": member_creator_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6360,25 +6390,23 @@ async def get_member_workspaces(
     """Retrieve a member's workspaces from Trello.
 
     Use this tool to obtain a list of workspaces (organizations) associated with a specific Trello member. It should be called when you need information about the workspaces a user is part of on Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/organizations".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "filter": workspace_filter,
-                "fields": organization_fields,
-                "paid_account": include_paid_account_info,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/organizations".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": workspace_filter,
+            "fields": organization_fields,
+            "paid_account": include_paid_account_info,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6397,23 +6425,23 @@ async def get_invited_workspaces(
     """Fetches workspaces a member has been invited to.
 
     Call this tool to obtain a list of workspaces or organizations a Trello member has been invited to. Useful for checking pending workspace invitations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/organizationsInvited".format(  # noqa: UP032
-                id=member_identifier
-            ),
-            params=remove_none_values({
-                "fields": organization_fields_selection,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/organizationsInvited".format(  # noqa: UP032
+            id=member_identifier
+        ),
+        method="GET",
+        params=remove_none_values({
+            "fields": organization_fields_selection,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6426,22 +6454,20 @@ async def list_member_saved_searches(
     """Retrieve saved searches for a specified member.
 
     Use this tool to obtain the list of saved searches associated with a specific Trello member. It should be called when you need to access saved search data for a given member by their ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/savedSearches".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6463,23 +6489,23 @@ async def create_saved_search_trello(
     """Create a saved search in Trello for a member.
 
     This tool is used to create a new saved search for a specific Trello member. It should be called when a user wants to save a search query for future use in their Trello account."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches".format(id=member_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "name": saved_search_name,
-                "query": search_query,
-                "pos": saved_search_position,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/savedSearches".format(id=member_identifier),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "name": saved_search_name,
+            "query": search_query,
+            "pos": saved_search_position,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6495,22 +6521,22 @@ async def get_saved_search_details(
     """Retrieve detailed information about a saved search on Trello.
 
     This tool is used to fetch detailed information for a specific saved search of a Trello member. It should be called when you need to retrieve the parameters or criteria of a saved search identified by its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
-                id=member_id_or_username, idSearch=saved_search_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+            id=member_id_or_username, idSearch=saved_search_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6536,25 +6562,25 @@ async def update_saved_search(
     """Update a saved search in Trello for a specific member.
 
     This tool updates an existing saved search for a Trello member. Use it when you need to change details of a saved search, like search terms or settings."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
-                id=member_id_or_username, idSearch=saved_search_id
-            ),
-            params=remove_none_values({
-                "name": new_saved_search_name,
-                "query": new_search_query,
-                "pos": new_search_position,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+            id=member_id_or_username, idSearch=saved_search_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "name": new_saved_search_name,
+            "query": new_search_query,
+            "pos": new_search_position,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6570,22 +6596,22 @@ async def delete_saved_search(
     """Permanently remove a saved search for a Trello member.
 
     Use this tool when you need to delete a specific saved search for a Trello member by their ID and the search ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
-                id=member_id_or_username, idSearch=saved_search_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/savedSearches/{idSearch}".format(  # noqa: UP032
+            id=member_id_or_username, idSearch=saved_search_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6601,21 +6627,21 @@ async def list_member_app_tokens(
     """Retrieve a list of a member's application tokens.
 
     This tool retrieves a list of application tokens associated with a specific member. Use this when you need to access or manage a member's app tokens on Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/tokens".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "webhooks": include_webhooks,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/tokens".format(id=member_id_or_username),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "webhooks": include_webhooks,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6632,21 +6658,21 @@ async def create_member_avatar(
     """Create a new avatar for a Trello member.
 
     Use this tool to generate a new avatar for a specified Trello member by providing their ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/avatar".format(id=member_id_or_username),  # noqa: UP032
-            params=remove_none_values({
-                "file": avatar_file_path,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/avatar".format(id=member_id_or_username),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "file": avatar_file_path,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6664,23 +6690,23 @@ async def dismiss_trello_message(
     """Dismiss a specific message for a Trello member.
 
     Use this tool to dismiss a one-time message for a Trello member by their ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/oneTimeMessagesDismissed".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "value": message_to_dismiss,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/oneTimeMessagesDismissed".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="POST",
+        params=remove_none_values({
+            "value": message_to_dismiss,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6695,22 +6721,22 @@ async def get_member_notification_settings(
     """Retrieve a member's notification channel settings on Trello.
 
     This tool is used to get the notification settings for a specific member in Trello. Useful for understanding how and through which channels a member receives notifications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings".format(  # noqa: UP032
-                id=member_id_or_username
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/notificationsChannelSettings".format(  # noqa: UP032
+            id=member_id_or_username
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6729,22 +6755,22 @@ async def get_blocked_notification_keys(
     """Fetch blocked notification keys for a Trello member's channel.
 
     This tool retrieves the blocked notification keys of a specific Trello member on a designated channel. It is useful for managing or auditing notification settings for a user's communication channels."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}".format(  # noqa: UP032
-                id=member_id_or_username, channel=notification_channel
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}".format(  # noqa: UP032
+            id=member_id_or_username, channel=notification_channel
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6768,24 +6794,24 @@ async def update_member_notification_blocked_keys(
     """Update blocked notification keys for a member's channel.
 
     Use this tool to update the list of blocked notification keys for a specific channel of a Trello member. This is useful to customize notification preferences on a per-channel basis."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}".format(  # noqa: UP032
-                id=member_id_or_username,
-                channel=notification_channel,
-                blockedKeys=blocked_notification_keys,
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/members/{id}/notificationsChannelSettings/{channel}/{blockedKeys}".format(  # noqa: UP032
+            id=member_id_or_username,
+            channel=notification_channel,
+            blockedKeys=blocked_notification_keys,
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6847,34 +6873,34 @@ async def get_trello_notification(
     """Retrieve a specific Trello notification by its ID.
 
     Use this tool to get the details of a specific notification on Trello by providing the notification ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "board": include_board_object,
-                "board_fields": board_fields_to_include,
-                "card": include_card,
-                "card_fields": card_fields_to_include,
-                "display": include_display,
-                "entities": include_entities,
-                "fields": notification_fields,
-                "list": include_list_object,
-                "member": include_member,
-                "member_fields": member_fields_inclusion,
-                "memberCreator": include_member_creator_object,
-                "memberCreator_fields": include_member_creator_fields,
-                "organization": include_organization,
-                "organization_fields": organization_field_selection,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "board": include_board_object,
+            "board_fields": board_fields_to_include,
+            "card": include_card,
+            "card_fields": card_fields_to_include,
+            "display": include_display,
+            "entities": include_entities,
+            "fields": notification_fields,
+            "list": include_list_object,
+            "member": include_member,
+            "member_fields": member_fields_inclusion,
+            "memberCreator": include_member_creator_object,
+            "memberCreator_fields": include_member_creator_fields,
+            "organization": include_organization,
+            "organization_fields": organization_field_selection,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6890,21 +6916,21 @@ async def update_notification_status(
     """Update the read status of a Trello notification.
 
     This tool updates the read status of a specific Trello notification. It should be called when you want to mark a notification as read or unread in Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "unread": mark_as_read,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}".format(id=notification_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "unread": mark_as_read,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6920,22 +6946,22 @@ async def get_notification_property(
     """Retrieve a specific property from a Trello notification.
 
     Use this tool to obtain a particular attribute of a Trello notification by specifying the notification ID and the desired field. Useful when needing detailed information about a notification."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/{field}".format(  # noqa: UP032
-                id=notification_id, field=notification_property_field
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/{field}".format(  # noqa: UP032
+            id=notification_id, field=notification_property_field
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6953,22 +6979,22 @@ async def mark_all_notifications_read(
     """Mark all Trello notifications as read.
 
     Use this tool to mark all notifications in Trello as read, helping users manage their notification inbox efficiently."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/all/read",
-            params=remove_none_values({
-                "read": mark_notifications_read,
-                "ids": notification_ids_to_mark,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/all/read",
+        method="POST",
+        params=remove_none_values({
+            "read": mark_notifications_read,
+            "ids": notification_ids_to_mark,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -6984,21 +7010,21 @@ async def update_notification_read_status(
     """Update the read status of a Trello notification.
 
     This tool updates the read status of a specific Trello notification by marking it as read or unread."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/unread".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "value": notification_unread_status,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/unread".format(id=notification_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "value": notification_unread_status,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7015,21 +7041,21 @@ async def get_board_notification_info(
     """Retrieve the board associated with a specific notification.
 
     Use this tool to find out which Trello board a particular notification is linked to. It is useful when needing to trace the context or origin of notifications within Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/board".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": board_fields_selection,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/board".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": board_fields_selection,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7046,21 +7072,21 @@ async def get_notification_card(
     """Retrieve the card linked to a specific notification.
 
     This tool fetches the card details associated with a given notification ID on Trello. It should be used when you need information about the card referenced in a notification."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/card".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": card_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/card".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": card_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7077,21 +7103,21 @@ async def get_trello_notification_list(
     """Retrieve the list linked to a specific Trello notification.
 
     Use this tool to get the list information associated with a given Trello notification ID. This is useful for identifying which list is involved in a notification or for further actions related to that list."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/list".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": list_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/list".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": list_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7108,21 +7134,21 @@ async def get_notification_member(
     """Get the member a notification is about.
 
     Fetches information about the member involved in a specific Trello notification, excluding the creator."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/member".format(id=notification_id),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/member".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7141,23 +7167,21 @@ async def get_notification_creator(
     """Get the member who created the notification.
 
     Use this tool to fetch information about the member who created a specific notification in Trello. Ideal for understanding the origin of notifications."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/memberCreator".format(  # noqa: UP032
-                id=notification_id
-            ),
-            params=remove_none_values({
-                "fields": member_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/memberCreator".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7176,23 +7200,21 @@ async def get_notification_organization(
     """Retrieve the organization linked to a notification.
 
     Use this tool to obtain details about the organization associated with a specific Trello notification. It is useful when you need to understand the origin or context of a notification by identifying the related organization."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/notifications/{id}/organization".format(  # noqa: UP032
-                id=notification_id
-            ),
-            params=remove_none_values({
-                "fields": organization_fields,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/notifications/{id}/organization".format(id=notification_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": organization_fields,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7217,24 +7239,24 @@ async def create_trello_workspace(
     """Create a new Trello workspace.
 
     Use this tool to create a new workspace in Trello. It should be called when you want to organize boards and manage team's projects under a new workspace."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations",
-            params=remove_none_values({
-                "displayName": display_name_for_workspace,
-                "desc": workspace_description,
-                "name": workspace_identifier,
-                "website": workspace_website_url,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations",
+        method="POST",
+        params=remove_none_values({
+            "displayName": display_name_for_workspace,
+            "desc": workspace_description,
+            "name": workspace_identifier,
+            "website": workspace_website_url,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7247,20 +7269,20 @@ async def get_organization_details(
     """Fetches details of a Trello organization by ID.
 
     Use this tool to obtain detailed information about a specific Trello organization using its ID. It provides the necessary details for managing or reviewing organization settings within Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}".format(id=organization_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}".format(id=organization_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7315,32 +7337,32 @@ async def update_organization(
     """Update the details of a Trello organization.
 
     This tool updates an organization's information in Trello using the organization's ID. Call this when changes to organization details are needed."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
-            params=remove_none_values({
-                "name": new_organization_name,
-                "displayName": new_display_name,
-                "desc": organization_description,
-                "website": organization_website_url,
-                "prefs/associatedDomain": google_apps_domain,
-                "prefs/externalMembersDisabled": allow_external_members,
-                "prefs/googleAppsVersion": google_apps_version,
-                "prefs/boardVisibilityRestrict/org": workspace_board_visibility_restriction,
-                "prefs/boardVisibilityRestrict/private": private_board_visibility_restriction,
-                "prefs/boardVisibilityRestrict/public": public_board_visibility_restriction,
-                "prefs/orgInviteRestrict": organization_invite_restriction_email,
-                "prefs/permissionLevel": workspace_visibility,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "name": new_organization_name,
+            "displayName": new_display_name,
+            "desc": organization_description,
+            "website": organization_website_url,
+            "prefs/associatedDomain": google_apps_domain,
+            "prefs/externalMembersDisabled": allow_external_members,
+            "prefs/googleAppsVersion": google_apps_version,
+            "prefs/boardVisibilityRestrict/org": workspace_board_visibility_restriction,
+            "prefs/boardVisibilityRestrict/private": private_board_visibility_restriction,
+            "prefs/boardVisibilityRestrict/public": public_board_visibility_restriction,
+            "prefs/orgInviteRestrict": organization_invite_restriction_email,
+            "prefs/permissionLevel": workspace_visibility,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7353,20 +7375,20 @@ async def delete_organization(
     """Delete an existing organization in Trello.
 
     Use this tool to permanently delete an organization from Trello by providing its ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}".format(id=organization_id_or_name),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7382,22 +7404,22 @@ async def get_organization_field_trello(
     """Retrieve a specific field from a Trello organization.
 
     Use this tool to obtain specific details about a Trello organization by providing the organization ID and the field you are interested in."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/{field}".format(  # noqa: UP032
-                id=organization_id_or_name, field=organization_field
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/{field}".format(  # noqa: UP032
+            id=organization_id_or_name, field=organization_field
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7410,22 +7432,20 @@ async def list_workspace_actions(
     """Retrieve actions from a specific Workspace.
 
     Use this tool to obtain a list of all actions taken within a specified Trello Workspace. This can help track changes, updates, and other activities."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/actions".format(  # noqa: UP032
-                id=workspace_identifier
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/actions".format(id=workspace_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7446,24 +7466,22 @@ async def list_workspace_boards(
     """Retrieve boards in a specified Trello workspace.
 
     Use this tool to obtain a list of all boards within a specific Trello workspace, identified by its ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/boards".format(  # noqa: UP032
-                id=organization_identifier
-            ),
-            params=remove_none_values({
-                "filter": board_status_filter,
-                "fields": board_fields_to_retrieve,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/boards".format(id=organization_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "filter": board_status_filter,
+            "fields": board_fields_to_retrieve,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7479,23 +7497,21 @@ async def start_organization_csv_export(
     """Initiate a CSV export for a Trello organization.
 
     Use this tool to trigger the export of a Trello organization's data into a CSV file. This is useful for archiving or analyzing organizational data outside of Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/exports".format(  # noqa: UP032
-                id=workspace_identifier
-            ),
-            params=remove_none_values({
-                "attachments": include_attachments,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/exports".format(id=workspace_identifier),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "attachments": include_attachments,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7508,22 +7524,20 @@ async def retrieve_trello_organization_exports(
     """Retrieve exports for a Trello organization.
 
     This tool retrieves the exports available for a specified Trello organization using the organization's ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/exports".format(  # noqa: UP032
-                id=workspace_id_or_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/exports".format(id=workspace_id_or_name),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7536,22 +7550,20 @@ async def list_workspace_members(
     """Retrieve members of a specified Trello Workspace.
 
     Use this tool to get a list of all members in a specified Trello Workspace by providing the Workspace ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members".format(  # noqa: UP032
-                id=workspace_identifier
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members".format(id=workspace_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7569,25 +7581,25 @@ async def update_organization_members(
     """Update the members of a Trello organization.
 
     Use this tool to modify the membership of a specified Trello organization. It updates the organization members based on provided details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members".format(  # noqa: UP032
-                id=organization_id_or_name
-            ),
-            params=remove_none_values({
-                "email": member_email,
-                "fullName": member_full_name,
-                "type": member_role_type,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members".format(  # noqa: UP032
+            id=organization_id_or_name
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "email": member_email,
+            "fullName": member_full_name,
+            "type": member_role_type,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7610,24 +7622,24 @@ async def list_workspace_memberships(
     """Retrieve memberships of a specific Workspace on Trello.
 
     Use this tool to fetch a list of all memberships within a specified Trello Workspace. This can help identify members and their roles in the Workspace."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/memberships".format(  # noqa: UP032
-                id=organization_id_or_name
-            ),
-            params=remove_none_values({
-                "filter": membership_filter,
-                "member": include_member_objects,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/memberships".format(  # noqa: UP032
+            id=organization_id_or_name
+        ),
+        method="GET",
+        params=remove_none_values({
+            "filter": membership_filter,
+            "member": include_member_objects,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7650,23 +7662,23 @@ async def get_organization_membership(
     """Retrieve details of a specific organization membership.
 
     Use this tool to get detailed information about a specific membership within an organization on Trello. It is particularly useful for understanding the membership attributes or status for a given organization and membership ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/memberships/{idMembership}".format(  # noqa: UP032
-                id=organization_id_or_name, idMembership=membership_id
-            ),
-            params=remove_none_values({
-                "member": include_member_object,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/memberships/{idMembership}".format(  # noqa: UP032
+            id=organization_id_or_name, idMembership=membership_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "member": include_member_object,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7679,22 +7691,22 @@ async def get_workspace_scoped_plugin_data(
     """Retrieve organization scoped pluginData for a Workspace.
 
     Call this tool to access plugin data that is specific to a particular Workspace in an organization. Ideal for retrieving information related to plugins configured within the Trello Workspace."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/pluginData".format(  # noqa: UP032
-                id=organization_id_or_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/pluginData".format(  # noqa: UP032
+            id=organization_id_or_name
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7707,22 +7719,20 @@ async def list_organization_collections(
     """Retrieve collections of a specified organization.
 
     This tool fetches and lists the collections associated with a specific organization on Trello. It should be called when there is a need to access or display the organization's collections."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/tags".format(  # noqa: UP032
-                id=organization_identifier
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/tags".format(id=organization_identifier),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7735,22 +7745,20 @@ async def create_organization_tag(
     """Create a new tag within a specified organization on Trello.
 
     This tool is used to create a new tag for a specific organization in Trello. Call this tool when you need to organize tasks by adding a tag to an organization's board."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/tags".format(  # noqa: UP032
-                id=organization_identifier
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/tags".format(id=organization_identifier),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7771,23 +7779,23 @@ async def update_workspace_member(
     """Add or update a member in a Trello Workspace.
 
     This tool allows you to add a member to a Trello Workspace or update their role within the Workspace. Use it when you need to manage Workspace memberships."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
-                id=workspace_organization_id_or_name, idMember=member_id_or_username
-            ),
-            params=remove_none_values({
-                "type": member_role,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
+            id=workspace_organization_id_or_name, idMember=member_id_or_username
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "type": member_role,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7803,22 +7811,22 @@ async def remove_workspace_member(
     """Remove a member from a Trello workspace.
 
     This tool is used to remove a member from a specific Trello workspace. Call this tool when you need to manage workspace membership by removing a user."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
-                id=workspace_id_or_name, idMember=member_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members/{idMember}".format(  # noqa: UP032
+            id=workspace_id_or_name, idMember=member_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7841,23 +7849,23 @@ async def toggle_workspace_member_status(
     """Deactivate or reactivate a member of a Workspace on Trello.
 
     Use this tool to deactivate or reactivate a specified member within a Trello Workspace. It should be called when you need to change a member's active status."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
-                id=organization_identifier, idMember=member_id_or_username
-            ),
-            params=remove_none_values({
-                "value": deactivate_member,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members/{idMember}/deactivated".format(  # noqa: UP032
+            id=organization_identifier, idMember=member_id_or_username
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "value": deactivate_member,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7874,21 +7882,21 @@ async def set_workspace_logo(
     """Set the logo image for a Workspace on Trello.
 
     Use this tool to set or update the logo image for a specific Workspace in Trello by providing the Workspace ID and logo information."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_id_or_name),  # noqa: UP032
-            params=remove_none_values({
-                "file": workspace_logo_file,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_id_or_name),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "file": workspace_logo_file,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7901,20 +7909,20 @@ async def delete_workspace_logo(
     """Deletes the logo from a Trello workspace.
 
     This tool deletes the logo from a specified Trello workspace by its ID. Use it when you need to remove a logo from a workspace to update its appearance."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_identifier),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/logo".format(id=workspace_identifier),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7933,22 +7941,22 @@ async def delete_member_from_workspace(
     """Remove a member from a Trello Workspace and all its boards.
 
     This tool removes a specified member from a Trello Workspace and all associated boards. It should be used when you need to completely revoke a member's access to a workspace and its boards."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/members/{idMember}/all".format(  # noqa: UP032
-                id=organization_id_or_name, idMember=member_id_to_remove
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/members/{idMember}/all".format(  # noqa: UP032
+            id=organization_id_or_name, idMember=member_id_to_remove
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7965,22 +7973,22 @@ async def remove_workspace_google_domain(
     """Remove the associated Google Apps domain from a Workspace.
 
     This tool deletes the associated Google Apps domain from a specified Trello Workspace. It should be called when you need to disassociate a Google domain from a Workspace."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/prefs/associatedDomain".format(  # noqa: UP032
-                id=organization_id_or_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/prefs/associatedDomain".format(  # noqa: UP032
+            id=organization_id_or_name
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -7996,22 +8004,22 @@ async def remove_workspace_invite_restriction(
     """Removes email domain restrictions for Workspace invitations.
 
     Use this tool to remove any email domain restrictions on who can be invited to a Trello Workspace. It should be called when there's a need to allow broader invitations to the Workspace without domain limitations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/prefs/orgInviteRestrict".format(  # noqa: UP032
-                id=organization_id_or_name
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/prefs/orgInviteRestrict".format(  # noqa: UP032
+            id=organization_id_or_name
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8029,22 +8037,22 @@ async def delete_organization_tag(
     """Delete a tag from an organization in Trello.
 
     Use this tool to remove a specific tag from an organization in Trello, identified by the organization ID and tag ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/tags/{idTag}".format(  # noqa: UP032
-                id=organization_identifier, idTag=tag_id_to_delete
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/tags/{idTag}".format(  # noqa: UP032
+            id=organization_identifier, idTag=tag_id_to_delete
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8064,22 +8072,22 @@ async def check_new_billable_guests_on_board(
     """Checks for new billable guests on a specified Trello board.
 
     Use this tool to determine if a specific Trello board within an organization has acquired new billable guests."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/organizations/{id}/newBillableGuests/{idBoard}".format(  # noqa: UP032
-                id=organization_id_or_name, idBoard=board_id_to_check_new_billable_guests
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/organizations/{id}/newBillableGuests/{idBoard}".format(  # noqa: UP032
+            id=organization_id_or_name, idBoard=board_id_to_check_new_billable_guests
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8092,20 +8100,20 @@ async def get_trello_plugin(
     """Retrieve details of a specific Trello plugin using its ID.
 
     Use this tool to fetch information about a specific Trello plugin by providing its ID. This is useful for obtaining plugin details directly from Trello."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8118,20 +8126,20 @@ async def update_trello_plugin(
     """Update a Trello plugin by ID.
 
     Use this tool to modify the details of a specific Trello plugin by providing its ID. Ideal for updating plugin configurations or information."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/plugins/{id}/".format(id=organization_id_or_name),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8147,22 +8155,20 @@ async def get_plugin_member_privacy_compliance(
     """Retrieve member privacy compliance for a specific plugin.
 
     This tool retrieves the member privacy compliance details for a specific plugin on Trello. Use this when you need to assess the privacy compliance status of a plugin regarding member information."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/plugins/{id}/compliance/memberPrivacy".format(  # noqa: UP032
-                id=power_up_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/plugins/{id}/compliance/memberPrivacy".format(id=power_up_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8244,41 +8250,41 @@ async def trello_search(
     """Search for anything in your Trello account.
 
     This tool allows users to perform a search in their Trello account to find boards, cards, and other items matching their query."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/search",
-            params=remove_none_values({
-                "query": search_query,
-                "idBoards": board_filter,
-                "idOrganizations": organization_ids,
-                "idCards": card_ids_list,
-                "modelTypes": search_object_types,
-                "board_fields": board_fields_to_include,
-                "boards_limit": maximum_boards_to_return,
-                "board_organization": include_board_organization,
-                "card_fields": card_fields_selection,
-                "cards_limit": maximum_cards_to_return,
-                "cards_page": cards_page_number,
-                "card_board": include_parent_board_with_card_results,
-                "card_list": include_parent_list_with_card_results,
-                "card_members": include_card_members,
-                "card_stickers": include_card_stickers,
-                "card_attachments": include_card_attachments,
-                "organization_fields": organization_fields,
-                "organizations_limit": maximum_workspaces_to_return,
-                "member_fields": member_fields,
-                "members_limit": maximum_members_to_return,
-                "partial": partial_match_search,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/search",
+        method="GET",
+        params=remove_none_values({
+            "query": search_query,
+            "idBoards": board_filter,
+            "idOrganizations": organization_ids,
+            "idCards": card_ids_list,
+            "modelTypes": search_object_types,
+            "board_fields": board_fields_to_include,
+            "boards_limit": maximum_boards_to_return,
+            "board_organization": include_board_organization,
+            "card_fields": card_fields_selection,
+            "cards_limit": maximum_cards_to_return,
+            "cards_page": cards_page_number,
+            "card_board": include_parent_board_with_card_results,
+            "card_list": include_parent_list_with_card_results,
+            "card_members": include_card_members,
+            "card_stickers": include_card_stickers,
+            "card_attachments": include_card_attachments,
+            "organization_fields": organization_fields,
+            "organizations_limit": maximum_workspaces_to_return,
+            "member_fields": member_fields,
+            "members_limit": maximum_members_to_return,
+            "partial": partial_match_search,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8303,25 +8309,25 @@ async def search_trello_members(
     """Search for Trello members by criteria.
 
     Use this tool to search for Trello members based on specific criteria. Useful for finding users in an organization or project."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/search/members/",
-            params=remove_none_values({
-                "query": search_query,
-                "limit": maximum_results,
-                "idBoard": board_id,
-                "idOrganization": organization_id,
-                "onlyOrgMembers": search_only_organization_members,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/search/members/",
+        method="GET",
+        params=remove_none_values({
+            "query": search_query,
+            "limit": maximum_results,
+            "idBoard": board_id,
+            "idOrganization": organization_id,
+            "onlyOrgMembers": search_only_organization_members,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8342,22 +8348,22 @@ async def retrieve_trello_token_info(
     """Retrieve information about a Trello token.
 
     Use this tool to get details about a specific Trello token, which may include access permissions and associated user or application information. Call this when you need to verify or inspect Trello token data."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}".format(token=trello_token),  # noqa: UP032
-            params=remove_none_values({
-                "fields": token_info_fields,
-                "webhooks": include_webhooks,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}".format(token=trello_token),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": token_info_fields,
+            "webhooks": include_webhooks,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8375,21 +8381,21 @@ async def get_trello_token_owner_info(
     """Retrieve information about a Trello token's owner.
 
     Call this tool to get details about the owner of a specific Trello token. Useful for verifying token ownership or accessing member-related data."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/member".format(token=user_token),  # noqa: UP032
-            params=remove_none_values({
-                "fields": member_info_fields_to_retrieve,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/member".format(token=user_token),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "fields": member_info_fields_to_retrieve,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8402,20 +8408,20 @@ async def get_trello_token_webhooks(
     """Retrieve webhooks created with a specific Trello token.
 
     Use this tool to obtain all webhooks that have been created using a specific Trello token. Useful for managing and reviewing webhook configurations."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=trello_token),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=trello_token),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8439,23 +8445,23 @@ async def create_trello_webhook(
     """Create a new webhook for a Trello token.
 
     Use this tool to create a new webhook associated with a specific Trello token. This is useful for setting up event notifications or integrations with Trello boards or cards."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=webhook_token),  # noqa: UP032
-            params=remove_none_values({
-                "description": webhook_description,
-                "callbackURL": webhook_post_url,
-                "idModel": object_id_for_webhook,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/webhooks".format(token=webhook_token),  # noqa: UP032
+        method="POST",
+        params=remove_none_values({
+            "description": webhook_description,
+            "callbackURL": webhook_post_url,
+            "idModel": object_id_for_webhook,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8471,22 +8477,22 @@ async def retrieve_trello_webhook(
     """Retrieve details of a Trello webhook using a token and webhook ID.
 
     Use this tool to get information about a specific webhook created with a Trello token. It requires a token and the webhook ID to access the details."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
-                token=access_token, idWebhook=webhook_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+            token=access_token, idWebhook=webhook_id
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8503,22 +8509,22 @@ async def delete_trello_webhook(
     """Delete a specific Trello webhook.
 
     Use this tool to delete a webhook in Trello, specified by token and webhook ID."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
-                token=authentication_token, idWebhook=webhook_id
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+            token=authentication_token, idWebhook=webhook_id
+        ),
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8540,25 +8546,25 @@ async def update_webhook_token(
     """Update a Trello webhook associated with a token.
 
     Use this tool to update the configuration of a Trello webhook linked with a specific token."""
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
-                token=authentication_token, idWebhook=webhook_id
-            ),
-            params=remove_none_values({
-                "description": webhook_description,
-                "callbackURL": callback_url,
-                "idModel": webhook_object_id,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/webhooks/{idWebhook}".format(  # noqa: UP032
+            token=authentication_token, idWebhook=webhook_id
+        ),
+        method="PUT",
+        params=remove_none_values({
+            "description": webhook_description,
+            "callbackURL": callback_url,
+            "idModel": webhook_object_id,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8571,20 +8577,20 @@ async def delete_trello_token(
     """Delete a Trello API authentication token.
 
     Use this tool to delete a specific Trello API authentication token when it is no longer needed for access or should be invalidated for security reasons."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/tokens/{token}/".format(token=trello_token),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/tokens/{token}/".format(token=trello_token),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8609,24 +8615,24 @@ async def add_trello_webhook(
     """Create a new webhook on Trello.
 
     This tool creates a new webhook in Trello, allowing users to receive updates about changes to boards or cards. Call this tool when you need to automate interactions or notifications based on Trello activities."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/webhooks/",
-            params=remove_none_values({
-                "description": webhook_description,
-                "callbackURL": callback_url,
-                "idModel": model_id_to_monitor,
-                "active": webhook_is_active,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="POST",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/webhooks/",
+        method="POST",
+        params=remove_none_values({
+            "description": webhook_description,
+            "callbackURL": callback_url,
+            "idModel": model_id_to_monitor,
+            "active": webhook_is_active,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8637,20 +8643,20 @@ async def get_trello_webhook_by_id(
     """Retrieve details of a Trello webhook by its ID.
 
     This tool fetches the details of a Trello webhook using its ID. Ensure to include the token used to create the webhook to avoid authorization errors."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8674,24 +8680,24 @@ async def update_trello_webhook(
     """Update a Trello webhook by its ID.
 
     Use this tool to update the details of an existing Trello webhook by providing the webhook ID."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
-            params=remove_none_values({
-                "description": webhook_description,
-                "callbackURL": callback_url,
-                "idModel": model_id_to_monitor,
-                "active": set_webhook_active,
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="PUT",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
+        method="PUT",
+        params=remove_none_values({
+            "description": webhook_description,
+            "callbackURL": callback_url,
+            "idModel": model_id_to_monitor,
+            "active": set_webhook_active,
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8702,20 +8708,20 @@ async def remove_trello_webhook(
     """Deletes a Trello webhook using its ID.
 
     This tool is used to delete a specific Trello webhook by providing its unique ID. It should be called when there is a need to remove an existing webhook that is no longer required."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="DELETE",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/webhooks/{id}".format(id=webhook_id),  # noqa: UP032
+        method="DELETE",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
 
 
 @tool(requires_secrets=["TRELLO_API_KEY", "TRELLO_TOKEN"])
@@ -8732,19 +8738,19 @@ async def get_trello_webhook_field(
     """Retrieve a specific field from a Trello webhook.
 
     Use this tool to access information about a specific field in a Trello webhook by providing the webhook ID and the desired field name."""  # noqa: E501
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
-            url="https://api.trello.com/1/webhooks/{id}/{field}".format(  # noqa: UP032
-                id=webhook_id, field=webhook_field_to_retrieve
-            ),
-            params=remove_none_values({
-                "key": context.get_secret("TRELLO_API_KEY"),
-                "token": context.get_secret("TRELLO_TOKEN"),
-            }),
-            method="GET",
-        )
-        response.raise_for_status()
-        try:
-            return {"response_json": response.json()}
-        except Exception:
-            return {"response_text": response.text}
+    response = await make_request(
+        url="https://api.trello.com/1/webhooks/{id}/{field}".format(  # noqa: UP032
+            id=webhook_id, field=webhook_field_to_retrieve
+        ),
+        method="GET",
+        params=remove_none_values({
+            "key": context.get_secret("TRELLO_API_KEY"),
+            "token": context.get_secret("TRELLO_TOKEN"),
+        }),
+        headers=remove_none_values({}),
+        data=remove_none_values({}),
+    )
+    try:
+        return {"response_json": response.json()}
+    except Exception:
+        return {"response_text": response.text}
