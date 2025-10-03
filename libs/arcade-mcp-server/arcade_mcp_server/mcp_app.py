@@ -226,8 +226,6 @@ class MCPApp:
             asyncio.run(
                 run_stdio_server(
                     catalog=self._catalog,
-                    port=port,
-                    reload=reload,
                     **self.server_kwargs,
                 )
             )
