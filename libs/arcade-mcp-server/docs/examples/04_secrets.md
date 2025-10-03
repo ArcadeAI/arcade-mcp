@@ -4,14 +4,14 @@ Read secrets from environment and `.env` files securely via Context.
 
 ## Running the Example
 
-- **Run**: `python -m arcade_mcp_server`
-- **Run (stdio)**: `python -m arcade_mcp_server stdio`
+- **Run**: `uv run 04_secrets.py`
+- **Run (stdio)**: `uv run 04_secrets.py stdio`
 - **Create `.env`**: Add `API_KEY=supersecret` to a `.env` file
 
 ## Source Code
 
 ```python
---8<-- "docs/examples/04_tool_secrets.py"
+--8<-- "docs/examples/04_secrets.py"
 ```
 
 ## Working with Secrets
@@ -22,12 +22,11 @@ Secrets can be provided via environment variables:
 ```bash
 export API_KEY="your-secret-key"
 export DATABASE_URL="postgresql://localhost/mydb"
-python -m arcade_mcp_server
 ```
 
 ### 2. Using .env Files
 
-Create a `.env` file in your working directory:
+Create a `.env` file in the directoryof your server:
 ```
 API_KEY=supersecret
 DATABASE_URL=postgresql://user:pass@localhost/db

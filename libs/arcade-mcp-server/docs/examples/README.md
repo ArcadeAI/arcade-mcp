@@ -4,19 +4,21 @@ This directory contains examples demonstrating how to build MCP servers with you
 
 ## Getting Started
 
-The easiest way to get started is with the `arcade new` command:
+The easiest way to get started is with `arcade new`:
 
 ```bash
-# Install the Arcade CLI
+# Install the CLI
 uv pip install arcade-mcp
 
-# Create a new server with example tools
+# Create a new server project with example tools
 arcade new my_server
 cd my_server
 
-# Run the server
-arcade mcp
+# Run your server
+uv run server.py
 ```
+
+This creates a complete project with `server.py`, `pyproject.toml`, and example tools showing best practices.
 
 ## Examples Overview
 
@@ -24,63 +26,59 @@ arcade mcp
 
 1. **[00_hello_world.py](00_hello_world.py)** – Minimal tool example
    - Single `@tool` function showing the basics
-   - Run: `arcade mcp` (or `arcade mcp stdio`)
+   - Run: `uv run 00_hello_world.py` (or `uv run 00_hello_world.py stdio`)
 
 2. **[01_tools.py](01_tools.py)** – Creating tools and discovery
    - Simple parameters, lists, and `TypedDict`
    - How the server discovers tools automatically
-   - Run: `arcade mcp`
+   - Run: `uv run 01_tools.py`
 
 3. **[02_building_apps.py](02_building_apps.py)** – Building apps with MCPApp
    - Create an `MCPApp`, register tools with `@app.tool`
-   - Run HTTP: `python 02_building_apps.py`
-   - Run stdio: `python 02_building_apps.py stdio`
+   - Run HTTP: `uv run 02_building_apps.py`
+   - Run stdio: `uv run 02_building_apps.py stdio`
 
 4. **[03_context.py](03_context.py)** – Using `Context`
    - Access secrets, logging, and user context
-   - Run: `arcade mcp`
+   - Run: `uv run 03_context.py`
 
-5. **[04_tool_secrets.py](04_tool_secrets.py)** – Working with secrets
+5. **[04_tool_secrets.py](04_secrets.py)** – Working with secrets
    - Use `requires_secrets` and access masked values
-   - Run: `arcade mcp`
+   - Run: `uv run 04_secrets.py`
 
 6. **[05_logging.py](05_logging.py)** – Logging with MCP
    - Demonstrates debug/info/warning/error levels and structured logs
-   - Run: `python 05_logging.py`
+   - Run: `uv run 05_logging.py`
+
+7. **[06_tool_organization.py](06_tool_organization.py)** – Tool organization and imports
+   - Demonstrate modular tool organization, importing from files and packages
+   - Run: `uv run 06_tool_organization.py`
+
+8. **[07_auth.py](07_auth.py)** – Tools that require auth
+   - Create tools that require OAuth scopes
+   - Use Reddit OAuth to fetch posts
+   - Prerequisites: Run `arcade login` to authenticate with Arcade
+   - Run: `uv run 07_auth.py`
 
 ## Running Examples
 
-### Recommended: Using the Arcade CLI
+### Recommended: Direct Python Execution
 
-Most examples can be run with the `arcade mcp` command:
+Most examples can be run directly with Python using `uv`:
 
 ```bash
-# Auto-discover tools in current directory
-arcade mcp
+# Run any example file directly
+uv run 00_hello_world.py
+uv run 02_building_apps.py
+uv run 06_tool_organization.py
 
 # With specific transport
-arcade mcp stdio  # For Claude Desktop
-arcade mcp        # HTTP by default
+uv run server.py stdio  # For Claude Desktop
+uv run server.py http   # HTTP by default
 
-# With debugging
-arcade mcp --debug
-
-# With hot reload (HTTP only)
-arcade mcp --reload
+# You can also run with python directly
+python 00_hello_world.py
+python 02_building_apps.py stdio
 ```
 
-### Alternative: Direct Python Execution
-
-For MCPApp examples, you can run the script directly:
-
-```bash
-python 02_building_apps.py
-```
-
-Or use the server module directly:
-
-```bash
-python -m arcade_mcp_server
-```
-
-**Note:** We recommend using `arcade mcp` for a better development experience.
+All example files include proper command-line argument handling with `if __name__ == "__main__":` blocks.
