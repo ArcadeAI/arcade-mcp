@@ -74,6 +74,7 @@ nav:
       - examples/04_secrets.md
       - examples/05_logging.md
       - examples/06_tool_organization.md
+      - examples/07_auth.md
   - Clients:
       - clients/claude.md
       - clients/cursor.md

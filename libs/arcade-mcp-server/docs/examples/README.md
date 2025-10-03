@@ -54,6 +54,12 @@ This creates a complete project with `server.py`, `pyproject.toml`, and example 
    - Demonstrate modular tool organization, importing from files and packages
    - Run: `uv run 06_tool_organization.py`
 
+8. **[07_auth.py](07_auth.py)** – Tools that require auth
+   - Create tools that require OAuth scopes
+   - Use Reddit OAuth to fetch posts
+   - Prerequisites: Run `arcade login` to authenticate with Arcade
+   - Run: `uv run 07_auth.py`
+
 ## Running Examples
 
 ### Recommended: Direct Python Execution
